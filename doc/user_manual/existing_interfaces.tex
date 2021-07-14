@@ -4786,9 +4786,9 @@ If different labels are wanted, they would need to be changed directly in the Ne
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Additional Information}
 The Neutrino interface is used to alter the particle size by modifying the Neutrino input file. The Neutrino interface
-searches for the default SPH solver parameter name: '\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
+searches for the default SPH solver parameter name: `\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
 Neutrino input file, the Neutrino interface must also be changed. Similarly, the Neutrino interface searches for the
-output in the default Measurement field name: '\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
+output in the default Measurement field name: `\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
 if the measurement field name was changed.
 
 
@@ -4942,13 +4942,13 @@ Note that the path to \texttt{runner.py} may need to be added to the PATH variab
 This section covers the input specification for running AccelerateCFD
  (\url{https://github.com/IllinoisRocstar/AccelerateCFD_CE})
  through RAVEN. It is important to notice
-that this explanation assumes that the reader already knows how to use AccelerateCFD. The existing inteface can be used to pertrub any parameter
-contained in the AccelerateCFD input file (podInputs.xml).
+that this explanation assumes that the user already knows how to use AccelerateCFD. The existing inteface can be used to perturb any parameter
+contained in the AccelerateCFD input file (i.e., podInputs.xml).
 
 \subsubsection{Files}
 In the \xmlNode{Files} section, as specified before, all the files needed
 for the code to run should be specified. In the case of AccelerateCFD,
- the files needed are the following:
+the files needed are the following:
 \begin{itemize}
   \item AccelerateCFD input file ``podInputs.xml''. This input file must be tagged with
           the $type="input"$
@@ -4974,7 +4974,7 @@ Example:
 \subsubsection{Models}
 In the \xmlNode{Models} block, the AccelerateCFD executable needs to be specified.
 The  path to the AccelerateCFD executable must be included.
- Here is a standard example of what can be used:
+Here is a standard example of what can be used:
 \begin{lstlisting}[style=XML]
   <Models>
     <Code name="myAccelerateCFD" subType="AccelerateCFD">
@@ -5044,7 +5044,7 @@ An example of a \xmlNode{Samplers} block is given below:
 In this section, the \xmlNode{MultiRun} will be used. As shown in the following, the AccelerateCFD
 input files are listed in \xmlNode{Files} and are linked here using \xmlNode{Input}, the \xmlNode{Model}
 and \xmlNode{Sampler} defined in previous sections will be used in this \xmlNode{MultiRun}. The
-outputs will be saved in the \textbf{DataObject} 'resultPointSet'.
+outputs will be saved in the \textbf{DataObject} `resultPointSet'.
 
 \begin{lstlisting}[style=XML]
   <Steps>
@@ -5065,7 +5065,7 @@ outputs will be saved in the \textbf{DataObject} 'resultPointSet'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Output File Conversion}
 The AccelerateCFD software produces CFD-grade results (velocity and scalar fields). The interface
-is will extract the rusults and deploy them as int he following format:
+will extract the results and deploy them using the following format:
 \begin{itemize}
   \item $variableName-coordinates-axis$. For example: $volVectorField-0\_0\_0\_0\_0\_0-x$ or $volVectorField-min_min_min-x$
 \end{itemize}
