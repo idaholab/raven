@@ -403,7 +403,7 @@ class GeneticAlgorithm(RavenSampled):
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     for t in self._activeTraj[1:]:
-      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)#, None
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)
     self.incrementIteration(traj)
     info['step'] = self.counter
 
@@ -415,20 +415,22 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    population = datasetToDataArray(rlz, list(self.toBeSampled))
+
+    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
-    g0 = np.zeros((np.shape(population)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+    g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+
     g = xr.DataArray(g0,
                      dims=['chromosome','Constraint'],
-                     coords={'chromosome':np.arange(np.shape(population)[0]),
+                     coords={'chromosome':np.arange(np.shape(offSprings)[0]),
                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
     ## FIXME The constraint handling is following the structure of the RavenSampled.py,
     #        there are many utility functions that can be simplified and/or merged with
     #        _check, _handle, and _apply, for explicit and implicit constraints.
-    #        This can be simpliefied in the near future in GradientDescent, SimulatedAnnealing, and here in GA
-    for index,individual in enumerate(population):
+    #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
+    for index,individual in enumerate(offSprings):
       newOpt = individual
       opt = objectiveVal[index]
       for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
@@ -436,34 +438,58 @@ class GeneticAlgorithm(RavenSampled):
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff,constraintFunction=g,type=self._minMax)
+
+    offSpringFitness = self._fitnessInstance(rlz,
+                                             objVar = self._objectiveVar,
+                                             a = self._objCoeff,
+                                             b = self._penaltyCoeff,
+                                             penalty = None,
+                                             constraintFunction=g,
+                                             type=self._minMax)
+
     acceptable = 'first' if self.counter==1 else 'accepted'
-    self._collectOptPoint(population,fitness,objectiveVal)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
+
+    self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        population,fitness,age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
+        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age = self.popAge,
+                                                                                             variables = list(self.toBeSampled),
+                                                                                             population = self.population,
+                                                                                             fitness = self.fitness,
+                                                                                             newRlz = rlz,
+                                                                                             offSpringsFitness = offSpringFitness,
+                                                                                             popObjectiveVal = self.objectiveVal)
         self.popAge = age
-        self.population = population
       else:
-        self.population = population
-      self.objectiveVal = rlz[self._objectiveVar].data
-      self.fitness = fitness
+        self.population = offSprings
+        self.fitness = offSpringFitness
+        self.objectiveVal = rlz[self._objectiveVar].data
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
-      parents = self._parentSelectionInstance(population,variables=list(self.toBeSampled),fitness=fitness,nParents=self._nParents)
+      parents = self._parentSelectionInstance(self.population,
+                                              variables = list(self.toBeSampled),
+                                              fitness = self.fitness,
+                                              nParents = self._nParents)
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      childrenXover = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+      childrenXover = self._crossoverInstance(parents = parents,
+                                              variables = list(self.toBeSampled),
+                                              crossoverProb = self._crossoverProb,
+                                              points = self._crossoverPoints)
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings=childrenXover, distDict = self.distDict,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings = childrenXover,
+                                               distDict = self.distDict,
+                                               locs = self._mutationLocs,
+                                               mutationProb = self._mutationProb,
+                                               variables = list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
@@ -486,9 +512,9 @@ class GeneticAlgorithm(RavenSampled):
       while flag and counter < self._populationSize:
         counter += 1
         repeated =[]
-        for i in range(np.shape(population.data)[0]):
+        for i in range(np.shape(self.population.data)[0]):
           for j in range(i,np.shape(children.data)[0]):
-            if all(population.data[i,:]==children.data[j,:]):
+            if all(self.population.data[i,:]==children.data[j,:]):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
