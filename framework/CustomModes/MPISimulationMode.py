@@ -133,11 +133,7 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    #if not magicSyntax:
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    #else:
-    #  newRunInfo['precommand'] = "_specialSyntax_" + runInfoDict["MPIExec"]+" "+nodeCommand+" "+runInfoDict['precommand']
-
     if runInfoDict['NumThreads'] > 1 and not magicSyntax:
       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
