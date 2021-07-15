@@ -60,6 +60,17 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
 
+  def copyModel(self, obj):
+    """
+      This method is aimed to copy the "obj" model in this instance
+      It is generally used for unpickling objects (models)
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    if obj.type != self.type:
+      self.raiseAnError(IOError,'Only objects of the same type can be copied! {} != {} !'.format(obj.type, self.type))
+    self.__dict__.update(obj.__dict__)
+
   def _manipulateInput(self,dataIn):
     """
       Method that is aimed to manipulate the input in order to return a common input understandable by this class
