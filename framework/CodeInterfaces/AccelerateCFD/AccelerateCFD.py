@@ -117,7 +117,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
         dataList = [datai]
         self.dataFom = pd.concat(dataList,keys=['fom'])
-        
+
     if not len(coordsLocal):
       raise IOError('Mesh type files must be inputed (mesh-x, mesh-y, mesh-z). Got None!')
     if self.romName is None or self.romType is None:
@@ -149,7 +149,6 @@ class AcceleratedCFD(CodeInterfaceBase):
     outputfile = 'out~' + inputToPerturb[0].getBase()
     # create command
     # the input file name is hardcoded in AccelerateCFD (podInputs.xml)
-    # executeCommand = [('parallel', executable )]
     executeCommand = [("parallel", "podPrecompute -parallel"), ("parallel", "podROM -i podInputs.xml -parallel"), ("parallel", "podFlowReconstruct -parallel"), ("parallel", "podPostProcess aVelocityFOM -parallel"),  ("serial", "cd rom/"+self.romType+"_"+self.romName+"/"+"system"),   ("serial", "rm  controlDict"), ("serial", "cp controlDict.2 controlDict"), ("serial", "cd ../"), ("parallel", "postProcess -parallel"), ("serial", "cd ../..")]
     returnCommand = executeCommand, outputfile
     return returnCommand
@@ -164,7 +163,7 @@ class AcceleratedCFD(CodeInterfaceBase):
 
   def findInps(self,inputFiles, inputType):
     """
-      Locates the input files required by AcellerateCDF Interface
+      Locates the input files required by AcellerateCFD Interface
       @ In, inputFiles, list, list of Files objects
       @ In, inputType, str, inputType to find (e.g. mesh-x, input, etc)
       @ Out, podDictInput, list, list containing AcellerateCFD required input files
@@ -333,10 +332,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         uromuxStd = romData.loc['rom'].std()['ux']
         ufomuyStd = self.dataFom.loc['fom'].std()['uy']
         uromuyStd = romData.loc['rom'].std()['uy']
-
-        uerr = math.sqrt((ufomux-uromux)**2 + (ufomuy-uromuy)**2) 
-        # uerr=math.sqrt((ufomuxStd-uromuxStd)**2 + (ufomuyStd-uromuyStd)**2)
-
+        uerr = math.sqrt((ufomux-uromux)**2 + (ufomuy-uromuy)**2)
         results["ufomux"] = np.asarray([ufomux]*len(timeList))
         results["uromux"] = np.asarray([uromux]*len(timeList))
         results["ufomuy"] = np.asarray([ufomuy]*len(timeList))

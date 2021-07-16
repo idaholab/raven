@@ -88,7 +88,7 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
-  # this is needed for now since we need to split the stoch enviroments
+  # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
