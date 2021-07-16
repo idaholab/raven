@@ -877,7 +877,7 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    
+
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
     if batchMode:
@@ -898,8 +898,8 @@ class Code(Model):
       ## the current behavior of the system. If these are not desired, then this
       ## code can be moved to later.  -- DPM 4/12/17
       kw['executable'] = self.executable
-      kw['outfile'] = None      
-      
+      kw['outfile'] = None
+
       #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
       #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
       for index, inputFile in enumerate(myInput):
@@ -908,14 +908,14 @@ class Code(Model):
           break
       if kw['outfile'] is None:
         self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))      
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
 
       ## These kw are updated by createNewInput, so the job either should not
       ## have access to the metadata, or it needs to be updated from within the
       ## evaluateSample function, which currently is not possible since that
       ## function does not know about the job instance.
       metadata = copy.copy(kw)
-      
+
       ## These variables should not be part of the metadata, so add them after
       ## we copy this dictionary (Caught this when running an ensemble model)
       ## -- DPM 4/11/17
@@ -927,7 +927,7 @@ class Code(Model):
       kw['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
       kw['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
       kw['numberNodes'       ] = len(nodesList)
-      
+
       ## This may look a little weird, but due to how the parallel python library
       ## works, we are unable to pass a member function as a job because the
       ## pp library loses track of what self is, so instead we call it from the
