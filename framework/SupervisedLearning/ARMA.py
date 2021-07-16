@@ -144,20 +144,20 @@ class ARMA(SupervisedLearning):
                                                  often in periodic data.""", default=None)
     peaks.addParam("target", InputTypes.StringType, required=True,
                   descr=r"""defines the name of one target (besides the
-          		pivot parameter) expected to have periodic peaks.""")
+                        pivot parameter) expected to have periodic peaks.""")
     peaks.addParam("threshold", InputTypes.FloatType, required=True,
                   descr=r"""user-defined minimum required
-          		height of peaks (absolute value).""")
+                        height of peaks (absolute value).""")
     peaks.addParam("period", InputTypes.FloatType, required=True,
                   descr=r"""user-defined expected period for target variable.""")
     nbin= InputData.parameterInputFactory('nbin',contentType=InputTypes.IntegerType, default=5)
     window = InputData.parameterInputFactory("window", contentType=InputTypes.FloatListType,
                                                  descr=r"""lists the window of time within each period in which a peak should be discovered.
-                                            		 The text of this node is the upper and lower boundary of this
-                                            		 window \emph{relative to} the start of the period, separated by a comma.
-                                            		 User can define the lower bound to be a negative
-                                            		 number if the window passes through one side of one period. For example, if the period is 24
-                                            		 hours, the window can be -2,2 which is equivalent to 22, 2.""")
+                                                 The text of this node is the upper and lower boundary of this
+                                                 window \emph{relative to} the start of the period, separated by a comma.
+                                                 User can define the lower bound to be a negative
+                                                 number if the window passes through one side of one period. For example, if the period is 24
+                                                 hours, the window can be -2,2 which is equivalent to 22, 2.""")
     window.addParam("width", InputTypes.FloatType, required=True,
                   descr=r"""The user defined  width of peaks in that window. The width is in the unit of the signal as well.""")
     peaks.addSub(nbin)
