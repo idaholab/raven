@@ -216,13 +216,15 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \\times obj - b \\times \\Sum_{j=1}^{nConstraint} max(0,-penalty_j)$.
-                                 b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
-                                 c.    feasibleFirst: $fitness = \[ \\begin{cases}
-                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
-                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
-                                                                    \\end{cases}
-                                                                \]$""")
+                  This includes:\\
+                                 a.    invLinear: \[fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-g_j(x)).\]
+                                 b.    logistic: \[fitness = \frac{1}{1+e^{a \times (obj-b)}}.\]
+                                 c.    feasibleFirst: \[fitness = \begin{cases}
+                                                                      -obj & g_j(x) \geq 0 \ \forall j \in \{1 .. nConstraint\} \\
+                                                                      -obj_{worst} - \sum_{j=1}^{nConstraint} max(0,-g_j(x)) & otherwise;
+                                                                  \end{cases}
+                                                                \]
+                                                      where $g_j(x)$ is the $j^{th}$ constraint function written as $g_j(x) > 0$, i.e., positive if no violation occurres and negative otherwise.""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,

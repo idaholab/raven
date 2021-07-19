@@ -556,7 +556,7 @@ class ParameterInput(object):
       @ In, recDepth, int, optional, recursion depth of printing
       @ Out, msg, str, LaTeX string representation of user manual entry
     """
-    name = cls.name
+    name = cls.name#name = re.sub(r'(?<!\\)_', r'\_', cls.name)
     desc = wrapText(cls.description, indent=doDent(recDepth, 1))
     msg = ''
     # if this is a main entity, use subsection instead of itemizing
@@ -584,9 +584,9 @@ class ParameterInput(object):
         msg += '\n{sub}'.format(sub=sub.generateLatex(recDepth=recDepth+2))
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
     # TODO is this a good idea? -> disables underscores in math mode :(
-    if recDepth == 0:
-      # assure underscore is escaped, but not doubly
-      msg = re.sub(r'(?<!\\)_', r'\_', msg)
+    #if recDepth == 0:
+      ## assure underscore is escaped, but not doubly
+      #msg = re.sub(r'(?<!\\)_', r'\_', msg)
     return msg
 
   @classmethod
