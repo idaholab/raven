@@ -172,6 +172,7 @@ class Optimizer(AdaptiveSampler):
     self._initSampler = None    # sampler to use for picking initial seeds
     self._constraintFunctions = [] # list of constraint functions
     self._impConstraintFunctions = [] # list of implicit constraint functions
+    self._requireSolnExport = True # optimizers only produce result in solution export
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
