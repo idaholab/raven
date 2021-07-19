@@ -76,6 +76,8 @@ class AdaptiveSampler(Sampler):
       @ Out, None
     """
     self._targetEvaluation = self.assemblerDict['TargetEvaluation'][0][3]
+    if solutionExport is None:
+      self.raiseAnError('No <SolutionExport> found this step! Required for adaptive sampling.')
     self._solutionExport = solutionExport
     Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._validateSolutionExportVariables(solutionExport)
