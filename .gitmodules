@@ -16,6 +16,3 @@
 [submodule "plugins/FARM"]
 	path = plugins/FARM
 	url = https://github.com/Argonne-National-Laboratory/FARM.git
-[submodule "plugins/vert"]
-	path = plugins/vert
-	url = https://hpcgitlab.hpc.inl.gov/mandd/vert.git
