@@ -105,21 +105,16 @@ def crowdingDistance(rank, popSize, objectives):
     @ Out, crowdDist, np.array, array of crowding distances
   """
   crowdDist = np.zeros(popSize)
-  dist={}
   fronts = np.unique(rank)
   fronts = fronts[fronts!=np.inf]
 
   for f in range(len(fronts)):
     front = np.where(np.asarray(rank)==f+1)[0]
-    fmax = np.max(objectives[front, :], axis=0)
-    fmin = np.min(objectives[front, :], axis=0)
-    for i in range(np.shape(objectives)[1]):
-      sortedRank = np.argsort(objectives[front, i])
+    fMax = np.max(objectives[front, :], axis=0)
+    fMin = np.min(objectives[front, :], axis=0)
+    for obj in range(np.shape(objectives)[1]):
+      sortedRank = np.argsort(objectives[front, obj])
       crowdDist[front[sortedRank[0]]] = crowdDist[front[sortedRank[-1]]] = np.inf
-      for j in range(1, len(front)-1):
-        crowdDist[front[sortedRank[j]]] = crowdDist[front[sortedRank[j]]] + (objectives[front[sortedRank[j+1]], i] - objectives[front[sortedRank[j-1]], i]) / (fmax[i]-fmin[i])
+      for i in range(1, len(front)-1):
+        crowdDist[front[sortedRank[i]]] = crowdDist[front[sortedRank[i]]] + (objectives[front[sortedRank[i+1]], obj] - objectives[front[sortedRank[i-1]], obj]) / (fMax[obj]-fMin[obj])
   return crowdDist
-
-# def batches(iterable, n=3):
-#   for i in range(len(iterable) - (n-1)):
-#     yield iterable[i:i+n]
