@@ -316,20 +316,27 @@ class RAVEN(CodeInterfaceBase):
       return True
     # check for output CSV (and data)
     if not failure:
-      for filename in self.linkedDataObjectOutStreamsNames:
-        outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
-        try:
-          fileObj = open(outStreamFile,"r")
-        except IOError:
-          print(self.printTag+' ERROR: The RAVEN INNER output file "'+str(outStreamFile)+'" does not exist!')
-          failure = True
-        if not failure:
-          readLines = fileObj.readlines()
-          if any("nan" in x.lower() for x in readLines):
+      if self.linkedDataObjectOutStreamsNames:
+        for filename in self.linkedDataObjectOutStreamsNames:
+          outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
+          try:
+            fileObj = open(outStreamFile,"r")
+          except IOError:
+            print(self.printTag+' ERROR: The RAVEN INNER output file "'+str(outStreamFile)+'" does not exist!')
             failure = True
-            print(self.printTag+' ERROR: Found nan in RAVEN INNER output "'+str(outStreamFile)+'!')
-            break
-          del readLines
+          if not failure:
+            readLines = fileObj.readlines()
+            if any("nan" in x.lower() for x in readLines):
+              failure = True
+              print(self.printTag+' ERROR: Found nan in RAVEN INNER output "'+str(outStreamFile)+'!')
+              break
+            del readLines
+      else:
+        dbName = self.linkedDatabaseName
+        path = self.outDatabases[dbName]
+        fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
+        if not os.path.isfile(fullPath):
+          print(f'{self.printTag} ERROR: The RAVEN INNER output file "{os.path.abspath(fullPath)}" was not found!')
     return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):

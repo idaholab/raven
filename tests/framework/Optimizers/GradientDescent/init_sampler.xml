@@ -1,11 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-<<<<<<< HEAD
-    <name>framework/Optimizers.ConvergeGradient</name>
-=======
-      <name>framework/Optimizers/ConvergeGradient.InitSampler</name>
->>>>>>> devel
+    <name>framework/Optimizers/GradientDescent.InitSampler</name>
     <author>talbpaul</author>
     <created>2020-02-10</created>
     <classesTested>Optimizer</classesTested>
