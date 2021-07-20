@@ -256,4 +256,14 @@
      rel_err = 0.001
     [../]
   [../]
+ 
+   [./knapsackMultipleDist]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBase_multipleDist.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/knapsackMultipleDist/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []
