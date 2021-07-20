@@ -209,9 +209,9 @@ def randomIntegers(low, high, caller=None, engine=None):
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low
+    intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
-    rawInt = int(round(rawNum))
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
       if caller:
         caller.raiseAMessage("Random int out of range")
