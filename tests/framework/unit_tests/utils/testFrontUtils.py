@@ -171,16 +171,16 @@ testCDarray = np.array([[12, 0],
                        [0.8, 11.7],
                        [0, 12]])
 
-rankCDsingleFornt = frontUtils.rankNonDominatedFrontiers(testCDarray)
-indexes_CD_2D = frontUtils.crowdingDistance(rank=rankCDsingleFornt, popSize=len(rankCDsingleFornt), objectives=testCDarray)
-answerIndexes_CD_2D = np.array([np.inf,0.16666667,0.11666667,0.08333333,0.09166667,0.125,0.16666667,0.29166667,0.45833333,0.625,0.75,0.5,0.20833333,0.11666667,0.125,np.inf])
-checkArray('2D crowding distance', indexes_CD_2D.tolist(), answerIndexes_CD_2D.tolist())
+rankCDSingleFront = frontUtils.rankNonDominatedFrontiers(testCDarray)
+indexesCD2D = frontUtils.crowdingDistance(rank=rankCDSingleFront, popSize=len(rankCDSingleFront), objectives=testCDarray)
+answerIndexesCD2D = np.array([np.inf,0.16666667,0.11666667,0.08333333,0.09166667,0.125,0.16666667,0.29166667,0.45833333,0.625,0.75,0.5,0.20833333,0.11666667,0.125,np.inf])
+checkArray('2D crowding distance', indexesCD2D.tolist(), answerIndexesCD2D.tolist())
 
 # test2: 3 objective functions
 rank3D = frontUtils.rankNonDominatedFrontiers(test3D)
-indexes_CD_3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), objectives=test3D)
-answerIndexes_CD_3D = np.array([np.inf, np.inf, 1.06417083, np.inf, np.inf,0.56135102, np.inf, np.inf, np.inf,np.inf])
-checkArray('3D crowding distance', indexes_CD_3D.tolist(), answerIndexes_CD_3D.tolist())
+indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), objectives=test3D)
+answerIndexesCD3D = np.array([np.inf, np.inf, 1.06417083, np.inf, np.inf,0.56135102, np.inf, np.inf, np.inf,np.inf])
+checkArray('3D crowding distance', indexesCD3D.tolist(), answerIndexesCD3D.tolist())
 ###########################################
 print(results)
 
