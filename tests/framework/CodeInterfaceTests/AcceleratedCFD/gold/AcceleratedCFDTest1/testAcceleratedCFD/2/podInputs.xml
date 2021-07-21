@@ -1,11 +1,11 @@
 <basis>
     <velocityBasisName>basis1</velocityBasisName>
-    <basisPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/bases</basisPath>
+    <basisPath>./bfsCase2.inl/bases</basisPath>
     <velocityBasisName>basis1</velocityBasisName>
 </basis>
 
 <fullOrderModel>
-    <fomPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/fom</fomPath>
+    <fomPath>../bfsCase2.inl/fom</fomPath>
     <librarySolution>
         <name>flow1</name>
         <fomDirectoryName>bfs.full</fomDirectoryName>
@@ -34,7 +34,7 @@
     <timestep>1e-4</timestep>
     <startTime>0.0</startTime>
     <endTime>0.51</endTime>
-    
+
     <!-- only used for backward Euler -->
     <maxInnerIterations>10</maxInnerIterations>
 </solver>

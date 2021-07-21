@@ -109,6 +109,11 @@ class AcceleratedCFD(CodeInterfaceBase):
         xmlFind = lambda str: root.findall(str)[0].text
         self.fomPath = xmlFind('./fullOrderModel/fomPath')
         self.fomName = xmlFind('./fullOrderModel/librarySolution/fomDirectoryName')
+        if '~' in self.fomPath:
+          self.fomPath = os.path.expanduser(self.fomPath)
+        if not os.path.isabs(self.fomPath):
+          workingDir = runInfo['WorkingDir']
+          self.fomPath = os.path.join(workingDir, self.fomPath)
         self.fomDataFolder = os.path.join(self.fomPath,self.fomName,"postProcessing","probe","0","U")
         self.romName = xmlFind('./rom/romName')
         self.romType = xmlFind('./rom/romType')
