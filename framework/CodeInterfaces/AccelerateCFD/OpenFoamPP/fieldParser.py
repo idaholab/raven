@@ -142,7 +142,7 @@ def parseDataNonuniform(content, n, n2, isBinary):
     if b'scalar' in content[n]:
       data = np.array([float(x) for x in content[n + 3:n + 3 + num]])
     else:
-      data = np.array([ln.strip().strip('()')[1:-2].split() for ln in content[n + 3:n + 3 + num]], dtype=float)
+      data = np.array([parseDataUniform(ln) for ln in content[n + 3:n + 3 + num]], dtype=float)
   else:
     nn = 1
     if b'vector' in content[n]:
