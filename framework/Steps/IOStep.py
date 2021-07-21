@@ -118,7 +118,7 @@ class IOStep(Step):
                                                        okay = 'Database',
                                                        received = inDictionary['Output'][i].type))
       # from ROM model to ...
-      elif isinstance(inDictionary['Input'][i], Models.ROM) or isinstance(inDictionary['Input'][i], Models.ExternalModel):
+      elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
           self.actionType.append('MODEL-FILES')
@@ -134,7 +134,7 @@ class IOStep(Step):
       # from File to ...
       elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
-        if isinstance(outputs[i],Models.ROM) or isinstance(outputs[i],Models.ExternalModel):
+        if isinstance(outputs[i], (Models.ROM, Models.ExternalModel)):
           self.actionType.append('FILES-MODEL')
         # ... dataobject
         elif isinstance(outputs[i],DataObject.DataObject):
@@ -225,7 +225,7 @@ class IOStep(Step):
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
-        if not isinstance(unpickledObj,Models.ROM) and not isinstance(unpickledObj,Models.ExternalModel):
+        if not isinstance(unpickledObj, (Models.ROM, Models.ExternalModel)):
           ## DEBUGG
           # the following will iteratively check the size of objects being unpickled
           # this is quite useful for finding memory crashes due to parallelism
