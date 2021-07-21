@@ -17,11 +17,10 @@ Factory for generating the instances of the  Models Module
 
 from EntityFactoryBase import EntityFactory
 from .PostProcessorInterface import PostProcessorInterface
-from .FTImporter import FTImporter
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .BasicStatistics import BasicStatistics
 from .LimitSurface import LimitSurface
 from .Metric import Metric
-from .ETImporter import ETImporter
 from .DataMining import DataMining
 from .SafestPoint import SafestPoint
 from .ValueDuration import ValueDuration
@@ -31,16 +30,22 @@ from .CrossValidation import CrossValidation
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
-from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
-from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
-from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
 from .Validation import Validation
+
+### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay
+from .HS2PS import HS2PS
+from .HStoPSOperator import HStoPSOperator
+from .HistorySetSampling import HistorySetSampling
+from .HistorySetSnapShot import HistorySetSnapShot
+from .HistorySetSync import HistorySetSync
+from .TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
+from .dataObjectLabelFilter import dataObjectLabelFilter
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:

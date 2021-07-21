@@ -962,7 +962,7 @@ class DataSet(DataObject):
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value, np.ndarray):
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
@@ -1218,14 +1218,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
-    if self.isEmpty:
-      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealizations'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1800,7 +1806,10 @@ class DataSet(DataObject):
       @ Out, varList, list(str), list of variables
     """
     with open(fileName+'.csv','r') as f:
-      provided = list(s.strip() for s in f.readline().split(','))
+      line = f.readline()
+      if line.startswith('\ufeff'):
+        line = line[1:]
+      provided = list(s.strip() for s in line.split(','))
     return provided
 
   def _loadCsvMeta(self,fileName):

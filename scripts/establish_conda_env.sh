@@ -74,6 +74,25 @@ function find_conda_defs ()
   CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
+function guess_conda_defs ()
+{
+	if [ -z ${CONDA_DEFS} ];
+	then
+      CONDA_DEFS=$(which conda | tail -1)
+      if [[ "$CONDA_DEFS" != "" ]]; then
+        # we found it
+        LOCATION_CONDASH="etc/profile.d/conda.sh"
+        if [[ "$CONDA_PATH" == *"condabin"* ]]; then
+          CONDA_DEFS=`echo "${CONDA_DEFS/condabin\/conda/$LOCATION_CONDASH}"`
+        else
+          CONDA_DEFS=`echo "${CONDA_DEFS/bin\/conda/$LOCATION_CONDASH}"`
+        fi
+        # fix Windows backslashes to be forward, compatible with all *nix including mingw
+        CONDA_DEFS="${CONDA_DEFS//\\//}"
+      fi
+	fi
+}
+
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
@@ -368,9 +387,17 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
     #  conda info || echo conda info failed
     #fi
   else
-    echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
-    echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
-    exit 1
+    # try to guess
+    guess_conda_defs
+    if test -e ${CONDA_DEFS};
+    then
+      if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
+      source ${CONDA_DEFS}
+    else
+      echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
+      echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
+      exit 1
+    fi
   fi
 else
   # check if pip exists

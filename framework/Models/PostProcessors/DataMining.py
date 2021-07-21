@@ -320,18 +320,18 @@ class DataMining(PostProcessorInterface):
       @ Out, inputDict, dict, an input dictionary that this post-processor can process
     """
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
+    if not set(self.PreProcessor._pp.validDataType).issubset(set(['PointSet'])):
       self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
 
-    tempData = self.PreProcessor.interface.inputToInternal([currentInput])
-    preProcessedData = self.PreProcessor.interface.run(tempData)
+    tempData = self.PreProcessor._pp.createPostProcessorInput([currentInput])
+    preProcessedData = self.PreProcessor._pp.run(tempData)
 
     if self.initializationOptionDict['KDD']['Features'] == 'input':
       featureList = currentInput.getVars('input')
     elif self.initializationOptionDict['KDD']['Features'] == 'output':
       dataList = preProcessedData['data'].keys()
-      # FIXME: this fix is due to the changes in the data structure of interface pp
-      toRemove = ['prefix', 'ProbabilityWeight'] + currentInput.getVars('input')
+      # FIXME: this fix is due to the changes in the data structure of © pp
+      toRemove = currentInput.getVars('input') + currentInput.getVars('meta')
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
       featureList = [feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')]
@@ -387,7 +387,7 @@ class DataMining(PostProcessorInterface):
       self.solutionExport = initDict["SolutionExport"]
     if "PreProcessor" in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
-      if not '_inverse' in dir(self.PreProcessor.interface):
+      if not '_inverse' in dir(self.PreProcessor._pp):
         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
@@ -592,6 +592,7 @@ class DataMining(PostProcessorInterface):
       for i in range(reducedDimensionality):
         newColumnName = self.labelFeature + str(i + 1)
         outputDict['outputs'][newColumnName] =  transformedData[:, i]
+
     if self.solutionExport is not None:
       if 'cluster' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -619,7 +620,7 @@ class DataMining(PostProcessorInterface):
             rlzDims = {}
             for index,center in zip(indices,centers):
               tempDict[index] = center
-            centers = self.PreProcessor.interface._inverse(tempDict)
+            centers = self.PreProcessor._pp._inverse(tempDict)
             rlzs[self.labelFeature] = np.atleast_1d(indices)
             rlzDims[self.labelFeature] = []
             if self.solutionExport.type == 'PointSet':

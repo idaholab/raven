@@ -1,0 +1,155 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/GeneticAlgorithms/GA_knapsackBaseTournament</name>
+    <author>mandd</author>
+    <created>2021-06-22</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      This test is designed to find the optimal solution of a basic knapsack problem using tournament select
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>simpleKnapsack</WorkingDir>
+    <Sequence>opt, print, printExport</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="opt" re-seeding="2286">
+      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
+      <Model          class="Models"      type="ExternalModel"    >Kbase</Model>
+      <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
+      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
+      <Output class="OutStreams"   type="Print"     >PrintOptOut_1</Output>
+    </IOStep>
+    <IOStep name="printExport">
+      <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
+      <Output class="OutStreams"   type="Print"     >PrintOptOut_export_1</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <UniformDiscrete name="unif_dist_wRepl">
+      <lowerBound>0</lowerBound>   <!-- 0 implies not chosen -->
+      <upperBound>1</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAoptimizer">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>14</populationSize>
+        <reproduction nParents="6">
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.1</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="logistic">
+          <a>0.2</a>
+          <b>13.0</b>
+        </fitness>
+        <parentSelection>tournamentSelection</parentSelection>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="proj1">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
+      </variable>
+      <variable name="proj2">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+      </variable>
+      <variable name="proj3">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+      </variable>
+      <variable name="proj4">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
+      </variable>
+      <variable name="proj5">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+      </variable>
+      <variable name="proj6">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
+      </variable>
+      <variable name="proj7">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+      </variable>
+      <variable name="proj8">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+      </variable>
+      <variable name="proj9">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
+      </variable>
+      <variable name="proj10">
+        <distribution>unif_dist_wRepl</distribution>
+        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+      </variable>
+
+      <objective>planValue</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="KnapsackModel" name="Kbase" subType="">
+      <variables>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,validPlan</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
+    <PointSet name="MCOut">
+      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="PrintOptOut_1">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="PrintOptOut_export_1">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

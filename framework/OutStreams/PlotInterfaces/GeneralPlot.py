@@ -35,6 +35,8 @@ from ClassProperty import ClassProperty
 
 import matplotlib.pyplot as plt
 
+display = utils.displayAvailable()
+
 class GeneralPlot(PlotInterface):
   """
     OutStream of type Plot

@@ -37,6 +37,7 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -117,6 +118,10 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x,y,func,const,ans</vars>
+    </Plot>
   </OutStreams>
 
 </Simulation>

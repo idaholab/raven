@@ -63,6 +63,7 @@ class AdaptiveSampler(Sampler):
     self._inputIdentifiers = {}         # identifiers for a single realization
     self._targetEvaluation = None       # data object with feedback from sample realizations
     self._solutionExport = None         # data object for solution printing
+    self._requireSolnExport = False     # if this object requires a solution export
     # NOTE TargetEvaluations consider all the Step <Output> DataObjects as candidates, so requiring
     # exactly one TargetEvaluation forces only having one <Output> DataObject in AdaptiveSampling
     # MultiRun Steps. For now, we leave it as "n".
@@ -76,6 +77,8 @@ class AdaptiveSampler(Sampler):
       @ Out, None
     """
     self._targetEvaluation = self.assemblerDict['TargetEvaluation'][0][3]
+    if self._requireSolnExport and solutionExport is None:
+      self.raiseAnError(IOError, 'No <SolutionExport> found this step! Required for this sampling strategy.')
     self._solutionExport = solutionExport
     Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._validateSolutionExportVariables(solutionExport)

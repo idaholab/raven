@@ -42,9 +42,9 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
       @ Out, None
     """
     super().__init__()
-    self.printTag                = 'MetricDistributor'
+    self.printTag = 'MetricDistributor'
     # instance of given Metric
-    self.estimator                = estimator
+    self.estimator = estimator
     # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
     self.canHandleDynamicData = self.estimator.isDynamic()
     # True if the instance of given metric, i.e. 'estimator', can handle pairwise data, else False
@@ -97,9 +97,11 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
         self.raiseAnError(IOError, "Distribution is provided, but the metric ", self.estimator.name, " can not handle it!")
     feat, targ = pairedData
     if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
+      self.raiseAMessage('Using feature and target as distributions ...')
       out = self.estimator.evaluate(feat, targ)
       dynamicOutput.append(out)
     elif isinstance(feat, Distributions.Distribution):
+      self.raiseAMessage('Using feature as distribution ...')
       targVals = np.asarray(targ[0])
       for hist in range(targVals.shape[1]):
         if targ[1] is not None:
@@ -110,6 +112,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
         out = self.estimator.evaluate(feat, targIn)
         dynamicOutput.append(out)
     elif isinstance(targ, Distributions.Distribution):
+      self.raiseAMessage('Using target as distribution ...')
       featVals = np.asarray(feat[0])
       for hist in range(featVals.shape[1]):
         if feat[1] is not None:
@@ -119,7 +122,8 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
           featIn = featVals[:,hist]
         out = self.estimator.evaluate(featIn, targ)
         dynamicOutput.append(out)
-    elif self.estimator.type in ['CDFAreaDifference', 'PDFCommonArea']:
+    elif self.estimator.isInstanceString(['CDFAreaDifference', 'PDFCommonArea']):
+      self.raiseAMessage('Using PDF/CDF metrics ...')
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
       for hist in range(featVals.shape[1]):
@@ -135,6 +139,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
         out = self.estimator.evaluate(featIn, targIn)
         dynamicOutput.append(out)
     else:
+      self.raiseAMessage('Using non-PDF/CDF metrics ...')
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
       assert(featVals.shape[0] == targVals.shape[0])

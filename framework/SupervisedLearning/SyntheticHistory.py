@@ -77,11 +77,16 @@ class SyntheticHistory(supervisedLearning):
       @ Out, None
     """
     self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
+    foundTSAType = False
     for sub in inp.subparts:
       if sub.name in TSA.factory.knownTypes():
         algo = TSA.factory.returnInstance(sub.name)
         self.algoSettings[algo] = algo.handleInput(sub)
         self.tsaAlgorithms.append(algo)
+        foundTSAType = True
+    if foundTSAType is False:
+      options = ', '.join(TSA.factory.knownTypes())
+      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
 
@@ -129,6 +134,8 @@ class SyntheticHistory(supervisedLearning):
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       params = self.trainedParams[algo]
+      if not algo.canGenerate():
+        self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = algo.generate(params, pivots, settings)
       result[:, indices] += signal
     # RAVEN realization construction

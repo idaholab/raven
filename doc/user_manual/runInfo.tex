@@ -59,6 +59,19 @@ the settings of the calculation flow that is being performed through RAVEN:
   %
   \default{mpiexec}
 
+  %%%%%% N THREADS
+\item \xmlNode{threadParameter}, \xmlDesc{string, optional field}, specifies the command used to set the
+    number of threads. The ``%NUM_CPUS%'' is a wildcard that will be replaced by the number of threads
+    specified in the node \xmlNode{NumThreads}. In this way for commands
+    that require the number of threads to be inputted without a blank space after this command,
+    the user can specify the command attaching the wildcard above to the string reporting the command.
+    For example, $--my-nthreads=%NUM_CPUS%$ (e.g. $--my-nthreads=10$). In other cases, the command can be
+    inputted explicetely adding the blank space. For example, $-omp %NUM_CPUS%$ (e.g. $-omp 10$).
+    If the wild card is not present, a blank space is always added after the command
+    (e.g. $--mycommand => --mycommand 10$).
+  %
+  \default{--n-threads=\%NUM\_CPUS\%}
+
 %%%%%% BATCH SIZE
 \item \xmlNode{batchSize}, \xmlDesc{integer, optional field},
   specifies the number of parallel runs executed simultaneously (e.g.,
@@ -125,7 +138,8 @@ software.
 For example, if RAVEN is driving a code named ``FOO,'' and this code has
 multi-threading support, this block is used to specify how many threads each
 instance of FOO should use (e.g. ``\texttt{FOO --n-threads=N}'' where \texttt{N}
- is the number of threads).
+ is the number of threads). The command to specify the number of threads can be
+customized via the node \xmlNode{threadParameter}.
 %
 \default{1 (or None when the driven code does not have multi-threading
 support)}

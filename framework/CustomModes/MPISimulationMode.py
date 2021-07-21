@@ -109,9 +109,9 @@ class MPISimulationMode(Simulation.SimulationMode):
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if runInfoDict['NumThreads'] > 1:
+      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
-
+      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 

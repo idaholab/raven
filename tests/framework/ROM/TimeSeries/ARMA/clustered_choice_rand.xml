@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.ClusteredRandChoice</name>
@@ -5,7 +6,7 @@
     <created>2020-04-15</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM, with
+      Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM, with
       a random choice of the clustered ROMs in the evaluation stage
     </description>
   </TestInfo>
@@ -24,7 +25,7 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
-  
+
   <Steps>
     <IOStep name="load">
       <Input class="Files" type="">input</Input>
@@ -47,7 +48,7 @@
   </Steps>
 
   <Files>
-      <Input name="input">../Clustered/head.csv</Input>
+    <Input name="input">../Clustered/head.csv</Input>
   </Files>
 
   <DataObjects>
@@ -82,9 +83,9 @@
       <reseedCopies>False</reseedCopies>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>True</preserveInputCDF>
-      <Segment grouping='cluster'>
-        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10' shift='first'>Time</subspace>
+      <Segment grouping="cluster">
+        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
+        <subspace divisions="10" shift="first">Time</subspace>
         <evaluationClusterChoice>random</evaluationClusterChoice>
       </Segment>
     </ROM>
@@ -97,9 +98,9 @@
   </Models>
 
   <Metrics>
-    <SKL name="metric">
+    <Metric name="metric" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <OutStreams>
@@ -109,4 +110,5 @@
       <what>input, output</what>
     </Print>
   </OutStreams>
+
 </Simulation>
