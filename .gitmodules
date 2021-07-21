@@ -12,7 +12,7 @@
 	url = https://github.com/idaholab/LOGOS.git
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
+	url = https://hpcgitlab.hpc.inl.gov/RAVEN_PLUGINS/SRAW.git
 [submodule "plugins/FARM"]
 	path = plugins/FARM
 	url = https://github.com/Argonne-National-Laboratory/FARM.git
