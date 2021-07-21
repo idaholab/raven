@@ -173,7 +173,7 @@ class External(BaseEntity, InputDataUser):
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, None
     """
-    if type(myInput)==dict:
+    if isinstance(myInput,dict):
       self.__inputFromWhat['dict'](myInput)
     else:
       self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
