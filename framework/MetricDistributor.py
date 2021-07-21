@@ -138,6 +138,18 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
           targIn = targVals[:,hist]
         out = self.estimator.evaluate(featIn, targIn)
         dynamicOutput.append(out)
+    elif self.estimator.isInstanceString(['DSS']):
+      out = self.estimator.evaluate(feat, targ)
+      dynamicOutput.append(out)
+      featVals = np.asarray(feat)
+      targVals = np.asarray(targ)
+      assert(featVals.shape[0] == targVals.shape[0])
+      assert(featVals.shape[1] == targVals.shape[1])
+      assert(featVals.shape[2] == targVals.shape[2])
+      if self.canHandleDynamicData:
+        dynamicOutput = self.estimator.evaluate(featVals, targVals)
+      else:
+        self.raiseAnError(IOError, "Must Handle Dynamic Data!")
     else:
       self.raiseAMessage('Using non-PDF/CDF metrics ...')
       featVals = np.asarray(feat[0])
