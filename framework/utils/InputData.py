@@ -556,7 +556,7 @@ class ParameterInput(object):
       @ In, recDepth, int, optional, recursion depth of printing
       @ Out, msg, str, LaTeX string representation of user manual entry
     """
-    name = cls.name#name = re.sub(r'(?<!\\)_', r'\_', cls.name)
+    name = re.sub(r'(?<!\\)_', r'\_', cls.name)
     desc = wrapText(cls.description, indent=doDent(recDepth, 1))
     msg = ''
     # if this is a main entity, use subsection instead of itemizing
