@@ -53,12 +53,14 @@ class Representativity(Validation):
         specifying input of cls.
     """
     specs = super(Representativity, cls).getInputSpecification()
-    parametersInput = InputData.parameterInputFactory("Parameters", contentType=InputTypes.StringListType)
+    parametersInput = InputData.parameterInputFactory("featureParameters", contentType=InputTypes.StringListType)
     parametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(parametersInput)
     targetParametersInput = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType)
     targetParametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(targetParametersInput)
+    targetPivotParameterInput = InputData.parameterInputFactory("targetPivotParameter", contentType=InputTypes.StringType)
+    specs.addSub(targetPivotParameterInput)
     return specs
 
   def __init__(self):
@@ -153,10 +155,12 @@ class Representativity(Validation):
     """
     super()._handleInput(paramInput)
     for child in paramInput.subparts:
-      if child.getName() == 'Parameters':
+      if child.getName() == 'featureParameters':
         self.Parameters = child.value
       elif child.getName() == 'targetParameters':
         self.targetParameters = child.value
+      elif child.getName() == 'targetPivotParameter':
+        self.targetPivotParameter = child.value
 
   def run(self, inputIn):
     """
@@ -190,7 +194,9 @@ class Representativity(Validation):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+    # self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+    for data in datasets:
+      sen = self.stat.run(data)
     names = kwargs.get('dataobjectNames')
     outs = {}
     for feat, targ, param, targParam in zip(self.features, self.targets, self.Parameters, self.targetParameters):

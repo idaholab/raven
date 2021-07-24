@@ -80,20 +80,9 @@ class Probabilistic(Validation):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     # inpVars, outVars, dataSet = inputIn['Data'][0]
-    dataSets = [data for _, _, data in inputIn['Data']]
+    # dataSets = [data for _, _, data in inputIn['Data']]
+    dataDict = {data.attrs['name']: data for _, _, data in inputIn['Data']}
     pivotParameter = self.pivotParameter
-    # # names = [dataSets[i].attrs['name'] for i in len(dataSets)]
-    # names = ['simulation','experiment']
-    # pivotParameter = self.pivotParameter
-    # outs = {}
-    # for feat, targ in zip(self.features, self.targets):
-    #   featData = self._getDataFromDatasets(dataSets, feat, names)
-    #   targData = self._getDataFromDatasets(dataSets, targ, names)
-    #   for metric in self.metrics:
-    #     name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-    #     outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
-    # return outs
-
     names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
     if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
       if 'dynamic' not in self.dynamicType: #self.model.dataType:
@@ -107,34 +96,18 @@ class Probabilistic(Validation):
     #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
     #   if not all([True if pivotParameter in inp else False for inp in dataSets]):
     #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}
+
+
+    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
 
     if pivotParameter:
-      if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+      #if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+      if len(inputIn['Data'][0][-1]['time']) != len(list(evaluation.values())[0]):
         self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
       if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = dataSets[0][pivotParameter]
+        evaluation[pivotParameter] = inputIn['Data'][0][-1]['time']
+        #evaluation[pivotParameter] = dataSets[0][pivotParameter]
     return evaluation
-
-  # ## merge the following run method with above run method
-  # def run(self, datasets, **kwargs):
-  #   """
-  #     Main method to "do what you do".
-  #     @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
-  #     @ In, kwargs, dict, keyword arguments
-  #     @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
-  #   """
-  #   names = kwargs.get('dataobjectNames')
-  #   outs = {}
-  #   for feat, targ in zip(self.features, self.targets):
-  #     featData = self._getDataFromDatasets(datasets, feat, names)
-  #     targData = self._getDataFromDatasets(datasets, targ, names)
-  #     # featData = (featData[0], None)
-  #     # targData = (targData[0], None)
-  #     for metric in self.metrics:
-  #       name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-  #       outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
-  #   return outs
 
   ### utility functions
   def _evaluate(self, datasets, **kwargs):
@@ -147,8 +120,10 @@ class Probabilistic(Validation):
     names = kwargs.get('dataobjectNames')
     outputDict = {}
     for feat, targ in zip(self.features, self.targets):
-      featData = self._getDataFromDatasets(datasets, feat, names)
-      targData = self._getDataFromDatasets(datasets, targ, names)
+      # featData = self._getDataFromDatasets(datasets, feat, names)
+      featData = self._getDataFromDataDict(datasets, feat, names)
+      # targData = self._getDataFromDatasets(datasets, targ, names)
+      targData = self._getDataFromDataDict(datasets, targ, names)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
         outputDict[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
@@ -168,17 +143,47 @@ class Probabilistic(Validation):
     dat = None
     if "|" in var and names is not None:
       do, feat =  var.split("|")
-      doindex = names.index(do)
-      dat = datasets[doindex][feat]
+      doIndex = names.index(do)
+      dat = datasets[doIndex][feat]
     else:
-      for doindex, ds in enumerate(datasets):
+      for doIndex, ds in enumerate(datasets):
         if var in ds:
           dat = ds[var]
           break
     if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
+      pw = datasets[doIndex]['ProbabilityWeight-{}'.format(feat)].values
     elif 'ProbabilityWeight' in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight'].values
+      pw = datasets[doIndex]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
+    return data
+
+  def _getDataFromDataDict(self, datasets, var, names=None):
+    """
+      Utility function to retrieve the data from datasets
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
+      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
+      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
+    """
+    pw = None
+    if "|" in var and names is not None:
+      do, feat =  var.split("|")
+      dat = datasets[do][feat]
+    else:
+      for doIndex, ds in enumerate(datasets):
+        if var in ds:
+          dat = ds[var]
+          break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight'].values
     dim = len(dat.shape)
     # (numRealizations,  numHistorySteps) for MetricDistributor
     dat = dat.values

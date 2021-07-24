@@ -156,45 +156,47 @@ class BasicStatistics(PostProcessorInterface):
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
     if len(currentInput) == 0:
       self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-
-    pbWeights = None
-    if type(currentInput).__name__ == 'tuple':
-      return currentInput
-    # TODO: convert dict to dataset, I think this will be removed when DataSet is used by other entities that
-    # are currently using this Basic Statisitics PostProcessor.
-    if type(currentInput).__name__ == 'dict':
-      if 'targets' not in currentInput.keys():
-        self.raiseAnError(IOError, 'Did not find targets in the input dictionary')
-      inputDataset = xr.Dataset()
-      for var, val in currentInput['targets'].items():
-        inputDataset[var] = val
-      if 'metadata' in currentInput.keys():
-        metadata = currentInput['metadata']
-        self.pbPresent = True if 'ProbabilityWeight' in metadata else False
-        if self.pbPresent:
-          pbWeights = xr.Dataset()
-          self.realizationWeight = xr.Dataset()
-          self.realizationWeight['ProbabilityWeight'] = metadata['ProbabilityWeight']/metadata['ProbabilityWeight'].sum()
-          for target in self.parameters['targets']:
-            pbName = 'ProbabilityWeight-' + target
-            if pbName in metadata:
-              pbWeights[target] = metadata[pbName]/metadata[pbName].sum()
-            elif self.pbPresent:
-              pbWeights[target] = self.realizationWeight['ProbabilityWeight']
+    if not isinstance(currentInput,xr.Dataset):
+      pbWeights = None
+      if type(currentInput).__name__ == 'tuple':
+        return currentInput
+      # TODO: convert dict to dataset, I think this will be removed when DataSet is used by other entities that
+      # are currently using this Basic Statisitics PostProcessor.
+      if type(currentInput).__name__ == 'dict':
+        if 'targets' not in currentInput.keys():
+          self.raiseAnError(IOError, 'Did not find targets in the input dictionary')
+        inputDataset = xr.Dataset()
+        for var, val in currentInput['targets'].items():
+          inputDataset[var] = val
+        if 'metadata' in currentInput.keys():
+          metadata = currentInput['metadata']
+          self.pbPresent = True if 'ProbabilityWeight' in metadata else False
+          if self.pbPresent:
+            pbWeights = xr.Dataset()
+            self.realizationWeight = xr.Dataset()
+            self.realizationWeight['ProbabilityWeight'] = metadata['ProbabilityWeight']/metadata['ProbabilityWeight'].sum()
+            for target in self.parameters['targets']:
+              pbName = 'ProbabilityWeight-' + target
+              if pbName in metadata:
+                pbWeights[target] = metadata[pbName]/metadata[pbName].sum()
+              elif self.pbPresent:
+                pbWeights[target] = self.realizationWeight['ProbabilityWeight']
+          else:
+            self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
         else:
           self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-      else:
-        self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-      if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
-        self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
-        self.sampleTag = utils.first(inputDataset.sizes.keys())
-      return inputDataset, pbWeights
+        if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
+          self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
+          self.sampleTag = utils.first(inputDataset.sizes.keys())
+        return inputDataset, pbWeights
 
-    if currentInput.type not in ['PointSet','HistorySet']:
-      self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
+      if currentInput.type not in ['PointSet','HistorySet']:
+        self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
-    # extract all required data from input DataObjects, an input dataset is constructed
-    dataSet = currentInput.asDataset()
+      # extract all required data from input DataObjects, an input dataset is constructed
+      dataSet = currentInput.asDataset()
+    else:
+      dataSet = currentInput
     try:
       inputDataset = dataSet[self.parameters['targets']]
     except KeyError:
