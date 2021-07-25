@@ -48,8 +48,8 @@
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
     <UniformDiscrete name='uniform_dist_Repl_2'>
-      <lowerBound>1.0e-5</lowerBound>
-      <upperBound>1.0e-2</upperBound>
+      <lowerBound>1.0E-5</lowerBound>
+      <upperBound>1.0E-2</upperBound>
       <nPoints>1000</nPoints>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
