@@ -418,7 +418,7 @@ class JobHandler(BaseType):
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
-          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,stdout=outFile,stderr=outFile,env=localenv)
+          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localenv)
         ## update list of servers
         servers.append(nodeId)
 
