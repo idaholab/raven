@@ -161,8 +161,8 @@ class PPDSS(Validation):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     # assert
-    assert(isinstance(inputIn, list))
-    assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
+    assert(isinstance(inputIn["Data"], list))
+    assert(isinstance(inputIn["Data"][0][-1], xr.Dataset) and isinstance(inputI["Data"][1][-1], xr.Dataset))
     # the input can be either be a list of dataobjects or a list of datasets (xarray)
     #datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
     datasets = [data for _, _, data in inputIn['Data']]
