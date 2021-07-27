@@ -195,8 +195,8 @@
 
     <xsd:complexType name="UniformDiscreteDistribution">
         <xsd:all>
-            <xsd:element name="lowerBound" type="xsd:decimal" minOccurs="1"/>
-            <xsd:element name="upperBound" type="xsd:decimal" minOccurs="1"/>
+            <xsd:element name="lowerBound" type="xsd:float" minOccurs="1"/>
+            <xsd:element name="upperBound" type="xsd:float" minOccurs="1"/>
             <xsd:element name="strategy" type="xsd:string" minOccurs="1"/>
             <xsd:element name="nPoints" type="xsd:string" minOccurs="0"/>
         </xsd:all>

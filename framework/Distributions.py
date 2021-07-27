@@ -1757,12 +1757,17 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
+    if x > 1.0 or x < 0:
+      self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    cumulative=0.0
-    for element in sortedMapping:
-      cumulative += element[1]
-      if cumulative >= x:
-        return float(element[0])
+    if x == 1.0:
+      return float(sortedMapping[-1][0])
+    else:
+      cumulative=0.0
+      for element in sortedMapping:
+        cumulative += element[1]
+        if cumulative >= x:
+          return float(element[0])
 
   def rvs(self):
     """

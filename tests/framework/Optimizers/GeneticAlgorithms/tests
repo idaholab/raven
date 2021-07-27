@@ -256,7 +256,7 @@
      rel_err = 0.001
     [../]
   [../]
- 
+
    [./knapsackMultipleDist]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/GA_knapsackBase_multipleDist.xml'
@@ -264,6 +264,17 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/knapsackMultipleDist/PrintOptOut.csv'
      rel_err = 0.001
+    [../]
+  [../]
+
+  [./ppf_bound]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/test_ppf_bound.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/GA_PPF/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
     [../]
   [../]
 []
