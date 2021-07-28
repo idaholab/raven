@@ -460,15 +460,15 @@ then
   fi
 fi
 
-# Right before library installation, install ExamplePlugin
-echo Installing ExamplePlugin...
-parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
-
 
 ## install mode
 if [[ $ECE_MODE == 2 ]];
 then
+  # Right before library installation, install ExamplePlugin
+  echo Installing ExamplePlugin...
+  parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+  ${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
   # if libraries already exist, depends on if in "clean" mode or not
   if [[ $LIBS_EXIST == 0 ]];
   then

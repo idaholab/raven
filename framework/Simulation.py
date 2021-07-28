@@ -229,6 +229,7 @@ class Simulation(MessageUser):
                                                                   # (e.g. --my-nthreads=10), otherwise we can have something like
                                                                   # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
                                                                   # space is always added (e.g. --mycommand => --mycommand 10)
+    self.runInfoDict['includeDashboard'  ] = False        # in case of internalParalle True, instanciate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
     self.runInfoDict['WorkingDir'        ] = ''            # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''            # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1             # the number of mpi process by run
@@ -613,6 +614,8 @@ class Simulation(MessageUser):
         self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'internalParallel':
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
+        dashboard = element.attrib.get("dashboard",'False')
+        self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
@@ -720,7 +723,7 @@ class Simulation(MessageUser):
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
                       env=remoteRunCommand.get("env", None))
-      self.raiseADebug('Submitted in queque! Shutting down Jobhandler!')
+      self.raiseADebug('Submitted in queue! Shutting down Jobhandler!')
       self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
