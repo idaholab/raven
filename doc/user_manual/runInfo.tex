@@ -92,7 +92,7 @@ the settings of the calculation flow that is being performed through RAVEN:
   Since the main thread is also responsible for collecting the results of
   previously finished jobs, it is possible that faster jobs may complete before
   the main thread can replenish the queue.
-  By increasing this value, you are allowing RAVEN to consume more memory 
+  By increasing this value, you are allowing RAVEN to consume more memory
   in order to stage more jobs, placing them in a pending job queue, with the
   benefit that slower job collection times will be masked as the job handler
   will flush the complete jobs and run whatever is available on the pending
@@ -173,9 +173,16 @@ flag that controls the type of parallel implementation needs to be used for Inte
 Objects (e.g. ROMs, External Models, PostProcessors, etc.).
 If this flag is set to:
 \begin{itemize}
- \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading (i.e. 1 processor, multiple threads equal to the \xmlNode{batchSize}).
-\\\nb This ``parallelism mode'' runs multiple instances of the Model in a single processor. If the evaluation of the model is memory intensive (i.e. it uses a lot of memory) or computational intensive (i.e. a lot of computation operations evolving in a $CPUt  \approx >  0.1\frac{sec}{evaluation}$) the single processor might get over-loaded determining a degradation of performance. In such cases, the internal parallelism needs to be used (see the following);
- \item  \textbf{\texttt{True}}, the internal parallelism is employed using a internally-developed multi-processor approach (i.e. \xmlNode{batchSize} processors, 1 single thread). This approach works for both Shared Memory Systems (e.g. PC, laptops, workstations, etc.) and Distributed Memory Machines (e.g. High Performance Computing Systems, etc.).
+ \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading
+ (i.e. 1 processor, multiple threads equal to the \xmlNode{batchSize}).
+ \\\nb This ``parallelism mode'' runs multiple instances of the Model in a single processor.
+ If the evaluation of the model is memory intensive (i.e. it uses a lot of memory) or computational
+ intensive (i.e. a lot of computation operations evolving in a $CPUt  \approx >  0.1\frac{sec}{evaluation}$)
+ the single processor might get over-loaded determining a degradation of performance. In such cases, the internal
+ parallelism needs to be used (see the following);
+ \item  \textbf{\texttt{True}}, the internal parallelism is employed using a internally-developed multi-processor
+ approach (i.e. \xmlNode{batchSize} processors, 1 single thread). This approach works for both Shared Memory Systems
+ (e.g. PC, laptops, workstations, etc.) and Distributed Memory Machines (e.g. High Performance Computing Systems, etc.).
  \\\nb This ``parallelism mode'' runs multiple instances of the Model in multiple processors. Since the parallelism is employed
  in Python, some overhead is present. This ``mode'' needs to be used when:
  \begin{itemize}
@@ -184,9 +191,19 @@ If this flag is set to:
  \end{itemize}
 \end{itemize}
 %
+  This XML node might contain contain the following attribute:
+  \vspace{-5mm}
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{dashboard}, \xmlDesc{optional bool attribute}, this
+    attribute enable or disable the RAY Dashboard support. By default,
+    it is disabled.
+    \default{False}
+    %
+  \end{itemize}
+  %
+%
 \default{False}
-
-
 
 %%%%%% precommand
 \item \xmlNode{precommand}, \xmlDesc{string, optional field}, specifies
@@ -244,8 +261,47 @@ the associated log files.
 \nb This flag is only active for Models of type ``Code''.
 %
 \default{False}
-\end{itemize}
 
+
+%%%%%% headNode
+\item \xmlNode{headNode}, \xmlDesc{string, optional
+field}, specifies, if \xmlNode{internalParallel} is set to true, the IP (and port) of the head node
+in which raven is running. If specified, the RAVEN internal parallelization will try to link
+to an already established parallel enviroment (without re-instanciating another).
+\nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
+automatically sets this option )
+%
+\default{None - Automatic detection}
+
+%%%%%% redisPassword
+\item \xmlNode{redisPassword}, \xmlDesc{string, optional
+field}, specifies, if \xmlNode{internalParallel} is set to true, the password used by the RAVEN internal parallelization
+in order to link multiple sockets to the main RAVEN runner. If set, in conjunction with  \xmlNode{headNode},  the RAVEN internal parallelization will try to link
+to an already established parallel enviroment (without re-instanciating another).
+\nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
+automatically sets this option )
+%
+\default{None - Automatic detection}
+
+%%%%%% remoteNodes
+\item \xmlNode{remoteNodes}, \xmlDesc{comma separated string, optional
+field}, specifies, if \xmlNode{internalParallel} is set to true, the list of nodes (IPs) that should be used by the RAVEN to deploy its internal parallelization.
+If set, in conjunction with  \xmlNode{headNode} and \xmlNode{redisPassword},  the RAVEN internal parallelization will try to link
+to an already established parallel enviroment (without re-instanciating another).
+\nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
+automatically sets this option )
+%
+\default{None - Automatic detection}
+
+
+%%%%%% remoteNodes
+\item \xmlNode{PYTHONPATH}, \xmlDesc{string, optional
+field}, specifies additional PATH that should be added in the $PYTHONPATH$ before executing models. In this node the user can specify
+additional path that will be added to the PYTHONPATH (e.g. path of python scripts that are used in driven models, etc.)
+%
+\default{None}
+
+\end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% RUN INFO QUEUE MODES %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,7 +316,7 @@ of protocol the parallel enviroment should use.
 %
 RAVEN currently supports one pre-defined ``mode'':
   \begin{itemize}
-    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec}) 
+    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
       to distribute the running program; more information regarding this protocol can be found
       in~\cite{MPI}.
       Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
