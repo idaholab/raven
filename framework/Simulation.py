@@ -769,7 +769,6 @@ class Simulation(MessageUser):
     self.writeStatusFile()
     self.raiseAMessage('Run complete!', forcePrint=True)
 
-
   def generateAllAssemblers(self, objectInstance):
     """
       This method is used to generate all assembler objects at the Step construction stage

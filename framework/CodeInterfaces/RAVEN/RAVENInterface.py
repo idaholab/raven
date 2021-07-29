@@ -337,6 +337,7 @@ class RAVEN(CodeInterfaceBase):
         fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
         if not os.path.isfile(fullPath):
           print(f'{self.printTag} ERROR: The RAVEN INNER output file "{os.path.abspath(fullPath)}" was not found!')
+          failure = True
     return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):

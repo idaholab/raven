@@ -477,15 +477,6 @@ class JobHandler(BaseType):
                                                    profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
-      #if _rayAvail:
-      #  pathSeparator = os.pathsep
-      #  if "PYTHONPATH" in os.environ and len(os.environ["PYTHONPATH"].strip()) > 0:
-      #    previousPath = os.environ["PYTHONPATH"].strip()+pathSeparator
-      #  else:
-      #    previousPath = ""
-      #  #print("XXXXXX PYTHON ENVIROMENT NEW: "+previousPath+pathSeparator.join(sys.path))
-      #  functionToRun.options(override_environment_variables={"PYTHONPATH":previousPath+pathSeparator.join(sys.path)})
-
       internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
                                                    functionToRun.remote if _rayAvail else functionToRun.original_function,
                                                    identifier=identifier,
