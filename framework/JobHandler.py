@@ -179,21 +179,54 @@ class JobHandler(BaseType):
       @ Out, None
     """
     if self.runInfoDict['internalParallel']:
+      ## dashboard?
+      db=self.runInfoDict['includeDashboard']
       ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
+      sys.path.append(self.runInfoDict['WorkingDir'])
+      if 'UPDATE_PYTHONPATH' in self.runInfoDict:
+        sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
+
+      self.rayInstanciatedOutside = False
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
+        uniqueN = list(set(availableNodes))
         ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
-        self.raiseADebug("Local host name is  : ", localHostName)
+        self.raiseADebug("Head host name is   : ", localHostName)
+        # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if not nProcsHead:
+          self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
+          self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        ## initialize ray server with nProcs
-        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
-        ## Get localHost and servers
-        servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
+        # is ray instanciated outside?
+        self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+        if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
+          # create head node cluster
+          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
+          # add names in runInfo
+          self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
+          if _rayAvail:
+            self.raiseADebug("Head host IP      :", address)
+            self.raiseADebug("Head redis pass   :", redisPassword)
+          ## Get servers and run ray remote listener
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword, db)
+          if self.rayInstanciatedOutside:
+            # update the python path and working dir
+            # update head node paths
+            olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+            os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
+          # add names in runInfo
+          self.runInfoDict['remoteNodes'] = servers
+          ## initialize ray server with nProcs
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False,include_dashboard=db) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
+        else:
+          self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
+          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
@@ -204,11 +237,10 @@ class JobHandler(BaseType):
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
-
     else:
       ## We are just using threading
       self.rayServer = None
-
+    # ray is initialized
     self.isRayInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
@@ -221,7 +253,7 @@ class JobHandler(BaseType):
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
+      self.raiseADebug('Host "'+nodeId.strip()+'" identified with IP: ', hostNameMapping[nodeId.strip()])
     return hostNameMapping
 
   def __getLocalHost(self):
@@ -232,10 +264,120 @@ class JobHandler(BaseType):
     """
     return str(socket.getfqdn()).strip()
 
-  def __runRemoteListeningSockets(self,address):
+  def __shutdownParallel(self):
+    """
+      shutdown the parallel protocol
+      @ In, None
+      @ Out, None
+    """
+    if _rayAvail and self.rayServer is not None and not self.rayInstanciatedOutside:
+      # we need to ssh and stop each remote node cluster (ray)
+      servers = []
+      if 'remoteNodes' in self.runInfoDict:
+        servers += self.runInfoDict['remoteNodes']
+      if 'headNode' in self.runInfoDict:
+        servers += [self.runInfoDict['headNode']]
+      # get local enviroment
+      localenv = os.environ.copy()
+      localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      for nodeAddress in servers:
+        self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
+        command="ray stop"
+        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localenv)
+        rayTerminate.wait()
+        if rayTerminate.returncode != 0:
+          self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
+      # shutdown ray API (object storage, plasma, etc.)
+      ray.shutdown()
+
+  def __runHeadNode(self, nProcs):
+    """
+      Method to activate the head ray server
+      @ In, nProcs, int, the number of processors
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    # get local enviroment
+    localenv = os.environ.copy()
+    localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+    if _rayAvail:
+      command = ["ray","start","--head"]
+      if nProcs is not None:
+        command.append("--num-cpus="+str(nProcs))
+      outFile = open("ray_head.ip", 'w')
+      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localenv)
+      rayStart.wait()
+      outFile.close()
+      if rayStart.returncode != 0:
+        self.raiseAnError(RuntimeError, "RAY failed to start on the --head node! Return code is {}".format(rayStart.returncode))
+      else:
+        address, redisPassword = self.__getRayInfoFromStart("ray_head.ip")
+    return address, redisPassword
+
+  def __getRayInfoFromStart(self, rayLog):
+    """
+      Read Ray info from shell return script
+      @ In, rayLog, str, the ray output log
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    with open(rayLog, 'r') as rayLogObj:
+      for line in rayLogObj.readlines():
+        if "ray start" in line.strip():
+          ix = line.strip().find("ray start")
+          address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
+          address = address.split("=")[-1].replace("'","")
+          redisPassword = redisPassword.split("=")[-1].replace("'","")
+          address_arg, address = address.replace("'","").split("=")
+          if address_arg.strip() != "--address":
+            self.raiseAWarning("Unexpected ray start:" + line)
+          break
+    return address, redisPassword
+
+  def __updateListeningSockets(self, localHostName):
+    """
+      Update the path in the remote nodes
+      @ In, localHostName, string, the head node name
+      @ Out, None
+    """
+    ## Get the local machine name and the remote nodes one
+    remoteNodesIP = self.__getLocalAndRemoteMachineNames()
+    ## Strip out the nodes' names
+    availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
+    ## Get unique nodes
+    uniqueNodes  = list(set(list(set(availableNodes))) - set([localHostName]))
+    servers      = []
+    self.remoteServers = {}
+    if len(uniqueNodes) > 0:
+      ## There are remote nodes that need to be activated
+      ## Modify the python path used by the local environment
+      localenv = os.environ.copy()
+      pathSeparator = os.pathsep
+      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
+        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
+      else:
+        previousPath = ""
+      localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
+      ## Start
+      for nodeId in uniqueNodes:
+        remoteHostName =  remoteNodesIP[nodeId]
+        ## Activate the remote socketing system
+        ## let's build the command and then call the os-agnostic version
+        if _rayAvail:
+          self.raiseADebug("Updating RAY server in node: "+nodeId.strip())
+          runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","update_path_in_remote_servers.sh")
+          command=" ".join([runScript,"--remote-node-address",nodeId," --working-dir ",self.runInfoDict['WorkingDir']])
+          command += " --python-path "+localenv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
+
+  def __runRemoteListeningSockets(self,address, localHostName, redisPassword):
     """
       Method to activate the remote sockets for parallel python
       @ In, address, string, the head node redis address
+      @ In, localHostName, string, the local host name
+      @ In, redisPassword, string, the head node redis password
       @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
@@ -245,21 +387,21 @@ class JobHandler(BaseType):
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes  = list(set(availableNodes))
+    uniqueNodes  = list(set(list(set(availableNodes))) - set([localHostName]))
     servers      = []
-
-    if len(uniqueNodes) > 1:
+    self.remoteServers = {}
+    if len(uniqueNodes) > 0:
       ## There are remote nodes that need to be activated
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
       pathSeparator = os.pathsep
-      localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
+      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
+        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
+      else:
+        previousPath = ""
+      localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
       ## Start
       for nodeId in uniqueNodes:
-        ## Build the filename
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
-        outFile = open(outFileName, 'w')
-
         ## Check how many processors are available in the node
         ntasks = availableNodes.count(nodeId)
         remoteHostName =  remoteNodesIP[nodeId]
@@ -267,12 +409,16 @@ class JobHandler(BaseType):
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
         if _rayAvail:
-          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+          self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
+          runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
+          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
+          print("command is: "+command)
+          command += " --python-path "+localenv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
-
-        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localenv)
         ## update list of servers
         servers.append(nodeId)
 
@@ -337,7 +483,6 @@ class JobHandler(BaseType):
                                                    metadata=metadata,
                                                    uniqueHandler=uniqueHandler,
                                                    profile=self.__profileJobs)
-
     # set the client info
     internalJob.clientRunner = clientQueue
     #  set the groupping id if present
@@ -693,12 +838,19 @@ class JobHandler(BaseType):
             ## want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
+              if self.rayServer is not None and 'headNode' in self.runInfoDict:
+                kwargs['headNode'] = self.runInfoDict['headNode']
+                kwargs['redisPassword'] = self.runInfoDict['redisPassword']
+              if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
+                kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
               kwargs['INDEX'] = str(i)
               kwargs['INDEX1'] = str(i+i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+
+
               ## This will not be used since the Code will create a new
               ## directory for its specific files and will spawn a process there
               ## so we will let the Code fill that in. Note, the line below
@@ -778,9 +930,7 @@ class JobHandler(BaseType):
     @ Out, None
     """
     self.completed = True
-    if _rayAvail and self.rayServer:
-     ray.shutdown()
-
+    self.__shutdownParallel()
 
   def terminateAll(self):
     """

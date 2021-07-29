@@ -28,7 +28,7 @@ import time
 #Internal Modules------------------------------------------------------------------------------------
 from .HybridModelBase import HybridModelBase
 import Files
-from utils import InputData, InputTypes
+from utils import InputData, InputTypes, mathUtils
 from utils import utils
 from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
@@ -395,7 +395,7 @@ class HybridModel(HybridModelBase):
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
       currentInput = self._extractInputs(varDict, paramsList)
       if self.crowdingDistance is None:
-        self.crowdingDistance = self.computeCrowdingDistance(trainInput)
+        self.crowdingDistance = mathUtils.computeCrowdingDistance(trainInput)
       sizeCD = len(self.crowdingDistance)
       if sizeCD != trainInput.shape[1]:
         self.crowdingDistance = self.updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.crowdingDistance)
@@ -416,21 +416,6 @@ class HybridModel(HybridModelBase):
         allValid = False
     return allValid
 
-  def computeCrowdingDistance(self, trainSet):
-    """
-      This function will compute the Crowding distance coefficients among the input parameters
-      @ In, trainSet, numpy.array, array contains values of input parameters
-      @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
-    """
-    dim = trainSet.shape[1]
-    distMat = np.zeros((dim, dim))
-    for i in range(dim):
-      for j in range(i):
-        distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
-        distMat[j,i] = distMat[i,j]
-    crowdingDist = np.sum(distMat,axis=1)
-    return crowdingDist
-
   def updateCrowdingDistance(self, oldSet, newSet, crowdingDistance):
     """
       This function will compute the Crowding distance coefficients among the input parameters
@@ -449,7 +434,7 @@ class HybridModel(HybridModelBase):
     for i in range(oldSize):
       for j in range(newSize):
         distMatAppend[i,j] = linalg.norm(oldSet[:,i] - newSet[:,j])
-    distMatNew = self.computeCrowdingDistance(newSet)
+    distMatNew = mathUtils.computeCrowdingDistance(newSet)
     for i in range(oldSize):
       newCrowdingDistance[i] = crowdingDistance[i] + np.sum(distMatAppend[i,:])
     for i in range(newSize):
