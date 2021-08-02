@@ -211,7 +211,7 @@ class JobHandler(BaseType):
             self.raiseADebug("Head host IP      :", address)
             self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword, db)
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
             # update head node paths
