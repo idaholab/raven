@@ -328,7 +328,6 @@ class JobHandler(BaseType):
         if "ray start" in line.strip():
           ix = line.strip().find("ray start")
           address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
-          address = address.split("=")[-1].replace("'", "")
           redisPassword = redisPassword.split("=")[-1].replace("'","")
           address_arg, address = address.replace("'","").split("=")
           if address_arg.strip() != "--address":
