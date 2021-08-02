@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created ... TODO
-
+  Created July 26, 2021
+  @author: talbpaul
+  Example plugin ROM for mechanics testing
 """
+
 import numpy as np
 from scipy import interpolate
 
@@ -56,7 +58,7 @@ class LinearROM(SupervisedLearningPlugin):
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
-      Method to initialize the DataClassifier post-processor.
+      Method to initialize this object before use in each Step
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, optional, dictionary with initialization options
@@ -71,8 +73,9 @@ class LinearROM(SupervisedLearningPlugin):
       Perform training on samples in featureVals with responses y.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
         an array of input feature values
-      @ Out, targetVals, array, shape = [n_samples], an array of output target
+      @ In, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
+      @ Out, None
     """
     target = self.target
     feature = self.features[0]
@@ -83,7 +86,7 @@ class LinearROM(SupervisedLearningPlugin):
     """
       Evaluates the model based on input features
       @ In, featureVals, np.array, 2-D numpy array [n_samples,n_features]
-      @ Out, targetVals, np.array, 1-D numpy array [n_samples]
+      @ Out, targetVals, dict, {feature: [n_samples]}
     """
     targetVals = np.zeros(featureVals.shape[0])
     for v, val in enumerate(featureVals[:, 0]):
