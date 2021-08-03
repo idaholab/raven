@@ -153,6 +153,14 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
+  # TODO future
+  # def getTrainedParams(self):
+  #   """
+  #     Provide training parameters as variable names mapped to values
+  #     @ In, None
+  #     @ Out, params, dict, map of {algo_param: value}
+  #   """
+
   def readTSAInput(self, spec):
     """
       Read in TSA algorithms
