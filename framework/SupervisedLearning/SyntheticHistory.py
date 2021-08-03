@@ -78,7 +78,7 @@ class SyntheticHistory(supervisedLearning, TSAUser):
       @ Out, None
     """
     self.raiseADebug('Training...')
-    self.trainTSASequential(targetVals[0, :, :])
+    self.trainTSASequential(targetVals)
 
   def __evaluateLocal__(self, featureVals):
     """
