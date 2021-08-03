@@ -332,7 +332,12 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
     # further check active unfinished trajectories
-    traj = 0
+    ## FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+    # sanity check: if there's no history (we never got any answers) then report than rather than crash
+    if len(self._optPointHistory[traj]) == 0:
+      self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
+                        'Perhaps the Model failed?')
     opt = self._optPointHistory[traj][-1][0]
     val = opt[self._objectiveVar]
     self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
@@ -599,6 +604,10 @@ class RavenSampled(Optimizer):
     if self._minMax == 'max':
       objValue *= -1
     toExport[self._objectiveVar] = objValue
+    # check for anything else that solution export wants that rlz might provide
+    for var in self._solutionExport.getVars():
+      if var not in toExport and var in rlz:
+        toExport[var] = rlz[var]
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
