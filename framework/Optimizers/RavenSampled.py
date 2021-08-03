@@ -604,16 +604,16 @@ class RavenSampled(Optimizer):
     if self._minMax == 'max':
       objValue *= -1
     toExport[self._objectiveVar] = objValue
-    # check for anything else that solution export wants that rlz might provide
-    for var in self._solutionExport.getVars():
-      if var not in toExport and var in rlz:
-        toExport[var] = rlz[var]
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
     toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
     # additional from from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+    # check for anything else that solution export wants that rlz might provide
+    for var in self._solutionExport.getVars():
+      if var not in toExport and var in rlz:
+        toExport[var] = rlz[var]
     # formatting
     toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
     self._solutionExport.addRealization(toExport)
