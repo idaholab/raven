@@ -18,8 +18,6 @@
   @author: talbpaul
 """
 
-from __future__ import absolute_import
-
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier

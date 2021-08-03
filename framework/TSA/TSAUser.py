@@ -13,8 +13,9 @@
 # limitations under the License.
 """
 Created on August 3, 2021
-
 @author: talbpaul
+
+Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
 
@@ -50,9 +51,19 @@ class TSAUser:
     self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
     self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
 
+  # TODO future
+  # def getTrainedParams(self):
+  #   """
+  #     Provide training parameters as variable names mapped to values
+  #     @ In, None
+  #     @ Out, params, dict, map of {algo_param: value}
+  #   """
+
   def readTSAInput(self, spec):
     """
       Read in TSA algorithms
+      @ In, spec, InputData.parameterInput, input specs filled with user entries
+      @ Out, None
     """
     self.pivotParameterID = spec.findFirst('pivotParameter').value # TODO does a base class do this?
     for sub in spec.subparts:
@@ -79,19 +90,19 @@ class TSAUser:
     pivotName = self.pivotParameterID
     # NOTE assumption: self.target exists!
     pivotIndex = self.target.index(pivotName)
-    # NOTE assumption: only one training signal (otherwise need a [0, ...] for the slicer)
-    pivots = targetVals[:, pivotIndex]
+    # NOTE assumption: only one training signal
+    pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
-    residual = targetVals[:, :] # deep-ish copy, so we don't mod originals
-    numAlgo = len(self.tsaAlgorithms)
-    for a, algo in enumerate(self.tsaAlgorithms):
-      settings = self.algoSettings[algo]
+    residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
+    numAlgo = len(self._tsaAlgorithms)
+    for a, algo in enumerate(self._tsaAlgorithms):
+      settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
-      signal = residual[:, indices].T # using tuple "indices" transposes, so transpose back
+      signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
       params = algo.characterize(signal, pivots, targets, settings)
       # store characteristics
-      self.trainedParams[algo] = params
+      self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
       # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
       #             the ARMA
@@ -103,17 +114,17 @@ class TSAUser:
   def evaluateTSASequential(self):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
-      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ In, None
       @ Out, rlz, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
     # NOTE assumption: self.target exists!
     result = np.zeros((self.pivotParameterValues.size, len(self.target) - 1)) # -1 is pivot
-    for algo in self.tsaAlgorithms[::-1]:
-      settings = self.algoSettings[algo]
+    for algo in self._tsaAlgorithms[::-1]:
+      settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
-      params = self.trainedParams[algo]
+      params = self._tsaTrainedParams[algo]
       if not algo.canGenerate():
         self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = algo.generate(params, pivots, settings)
@@ -130,7 +141,7 @@ class TSAUser:
       @ Out, None
     """
     root = xml.getRoot()
-    for algo in self.tsaAlgorithms:
+    for algo in self._tsaAlgorithms:
       algoNode = xmlUtils.newNode(algo.name)
-      algo.writeXML(algoNode, self.trainedParams[algo])
+      algo.writeXML(algoNode, self._tsaTrainedParams[algo])
       root.append(algoNode)
