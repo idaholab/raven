@@ -21,11 +21,11 @@
 import numpy as np
 
 from utils import InputData, xmlUtils
-import TSA
+from TSA import TSAUser
 
 from .SupervisedLearning import supervisedLearning
 
-class SyntheticHistory(supervisedLearning):
+class SyntheticHistory(supervisedLearning, TSAUser):
   """
     Leverage TSA algorithms to train then generate synthetic signals.
   """
@@ -43,9 +43,7 @@ class SyntheticHistory(supervisedLearning):
         descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
                a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
                signals based on training signal sets. """)
-    for typ in TSA.factory.knownTypes():
-      c = TSA.factory.returnClass(typ) # TODO no message handler for second argument
-      specs.addSub(c.getInputSpecification())
+    cls.addTSASpecs(specs)
     return specs
 
   ### INHERITED METHODS ###
@@ -57,15 +55,9 @@ class SyntheticHistory(supervisedLearning):
     """
     # general infrastructure
     supervisedLearning.__init__(self, **kwargs)
+    TSAUser.__init__(self)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
-    # training storage
-    self.algoSettings = {}  # initialization settings for each algorithm
-    self.trainedParams = {} # holds results of training each algorithm
-    self.tsaAlgorithms = [] # list and order for tsa algorithms to use
-    # data manipulation
-    self.pivotParameterID = None      # string name for time-like pivot parameter
-    self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
 
     inputSpecs = kwargs['paramInput']
     self.readInputSpecs(inputSpecs)
@@ -76,19 +68,7 @@ class SyntheticHistory(supervisedLearning):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, None
     """
-    self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
-    foundTSAType = False
-    for sub in inp.subparts:
-      if sub.name in TSA.factory.knownTypes():
-        algo = TSA.factory.returnInstance(sub.name)
-        self.algoSettings[algo] = algo.handleInput(sub)
-        self.tsaAlgorithms.append(algo)
-        foundTSAType = True
-    if foundTSAType is False:
-      options = ', '.join(TSA.factory.knownTypes())
-      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
-    if self.pivotParameterID not in self.target:
-      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
+    self.readTSAInput(inp)
 
   def __trainLocal__(self, featureVals, targetVals):
     """
@@ -98,49 +78,14 @@ class SyntheticHistory(supervisedLearning):
       @ Out, None
     """
     self.raiseADebug('Training...')
-    # TODO obtain pivot parameter
-    pivotName = self.pivotParameterID
-    pivotIndex = self.target.index(pivotName)
-    # TODO assumption: only one training signal
-    pivots = targetVals[0, :, pivotIndex]
-    self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
-    residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    numAlgo = len(self.tsaAlgorithms)
-    for a, algo in enumerate(self.tsaAlgorithms):
-      settings = self.algoSettings[algo]
-      targets = settings['target']
-      indices = tuple(self.target.index(t) for t in targets)
-      signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
-      params = algo.characterize(signal, pivots, targets, settings)
-      # store characteristics
-      self.trainedParams[algo] = params
-      # obtain residual; the part of the signal not characterized by this algo
-      # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
-      #             the ARMA
-      if a < numAlgo - 1:
-        algoResidual = algo.getResidual(signal, params, pivots, settings)
-        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
-      # TODO meta store signal, residual?
+    self.trainTSASequential(targetVals)
 
   def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, rlz, dict, realization dictionary of values for each target
     """
-    pivots = self.pivotParameterValues
-    result = np.zeros((self.pivotParameterValues.size, len(self.target) - 1)) # -1 is pivot
-    for algo in self.tsaAlgorithms[::-1]:
-      settings = self.algoSettings[algo]
-      targets = settings['target']
-      indices = tuple(self.target.index(t) for t in targets)
-      params = self.trainedParams[algo]
-      if not algo.canGenerate():
-        self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
-      signal = algo.generate(params, pivots, settings)
-      result[:, indices] += signal
-    # RAVEN realization construction
-    rlz = dict((target, result[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
-    rlz[self.pivotParameterID] = self.pivotParameterValues
+    rlz = self.evaluateTSASequential()
     return rlz
 
   def writePointwiseData(self, writeTo):
@@ -160,11 +105,7 @@ class SyntheticHistory(supervisedLearning):
       @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
-    root = writeTo.getRoot()
-    for algo in self.tsaAlgorithms:
-      algoNode = xmlUtils.newNode(algo.name)
-      algo.writeXML(algoNode, self.trainedParams[algo])
-      root.append(algoNode)
+    self.writeTSAtoXML(writeTo)
 
   ### Segmenting and Clustering ###
   def isClusterable(self):
