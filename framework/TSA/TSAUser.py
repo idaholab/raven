@@ -153,13 +153,69 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
-  # TODO future
-  # def getTrainedParams(self):
-  #   """
-  #     Provide training parameters as variable names mapped to values
-  #     @ In, None
-  #     @ Out, params, dict, map of {algo_param: value}
-  #   """
+  def _tsaReset(self):
+    """
+      Resets trained and cached params
+      @ In, None
+      @ Out, None
+    """
+    self._tsaTrainedParams = {}      # holds results of training each algorithm
+    self._paramNames = None          # cached list of parameter names
+    self._paramRealization = None    # cached dict of param variables mapped to values
+    self._tsaTargets = None          # cached list of targets
+
+  def getTargets(self):
+    """
+      Provide ordered target set for the set of algorithms used by this entity
+      @ In, None
+      @ Out, targets, set, set of targets used among all algorithms
+    """
+    if self._tsaTargets is None:
+      targets = set()
+      # if we've trained params, we can use that
+      if self._tsaTrainedParams:
+        for algo, params in self._tsaTrainedParams.items():
+          targets.update(params.keys())
+      # otherwise, we use targets from settings
+      else:
+        for algo, settings in self._tsaAlgoSettings.items():
+          targets.update(settings['target'])
+      self._tsaTargets = targets
+    return self._tsaTargets
+
+  def getCharacterizingVariableNames(self):
+    """
+      Provide expected training parameters as variable names list
+      Note this works even if training has not been performed yet
+      @ In, None
+      @ Out, names, list, list of parameter names
+    """
+    if self._paramNames is None:
+      if self._paramRealization is not None:
+        # if we trained already?,then we can return keys
+        self._paramNames = list(self._paramRealization.keys())
+      else:
+        # otherwise we build the names predictively
+        names = []
+        for algo in self._tsaAlgorithms:
+          names.extend(algo.getParamNames(self._tsaAlgoSettings[algo]))
+        self._paramNames = names
+    return self._paramNames
+
+  def getParamsAsVars(self):
+    """
+      Provide training parameters as variable names mapped to values
+      Note this is only useful AFTER characterization has been performed/trained
+      @ In, None
+      @ Out, params, dict, map of {algo_param: value}
+    """
+    if self._paramRealization is None:
+      rlz = {}
+      for algo, params in self._tsaTrainedParams.items():
+        new = algo.getParamsAsVars(params)
+        rlz.update(new)
+      self._paramRealization = rlz
+    return self._paramRealization
 
   def readTSAInput(self, spec):
     """
