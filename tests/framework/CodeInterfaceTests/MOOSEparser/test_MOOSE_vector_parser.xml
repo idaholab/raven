@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/CodeInterfaceTests.MOOSE_vector_parser</name>
     <author>wangc</author>
-    <created>2021-08-04</created>
+    <created>2021-08-06</created>
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
       Test the MOOSE interface capability to perturb the element in vector variable
@@ -19,97 +19,66 @@
   </RunInfo>
 
   <Files>
-    <Input name='mam_input'>../MOOSE_parser.i</Input>
+    <Input name='moose_input'>lcf1.i</Input>
   </Files>
 
   <Distributions>
-    <Exponential name='exp_D'>
-      <lowerBound>0.0</lowerBound>
-      <upperBound>2000.0</upperBound>
-      <lambda>0.0023</lambda>
-    </Exponential>
     <Uniform name="u1">
-      <lowerBound>0.05</lowerBound>
-      <upperBound>0.2</upperBound>
-    </Uniform>
-    <Uniform name="u2">
-      <lowerBound>85000000</lowerBound>
-      <upperBound>87000000</upperBound>
+      <lowerBound>1</lowerBound>
+      <upperBound>5</upperBound>
     </Uniform>
     <Uniform name="u3">
-      <lowerBound>10</lowerBound>
-      <upperBound>12</upperBound>
-    </Uniform>
-    <Uniform name="u4">
-      <lowerBound>1</lowerBound>
-      <upperBound>3</upperBound>
+      <lowerBound>0.1</lowerBound>
+      <upperBound>0.7</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name='graph_x'>
-      <variable name='nsh'>
-        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
-        <distribution>exp_D</distribution>
-      </variable>
-      <variable name='hs_const_1'>
-        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
+    <Grid name='grid_vector'>
+      <variable name='w1'>
+        <grid type='CDF' construction='equal' steps='2'>0.0 0.95</grid>
         <distribution>u1</distribution>
       </variable>
-      <variable name='hs_const_3'>
-        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
-        <distribution>u2</distribution>
-      </variable>
-      <variable name='mat_const_1'>
-        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
+      <variable name='w3'>
+        <grid type='CDF' construction='equal' steps='2'>0.0 0.95</grid>
         <distribution>u3</distribution>
-      </variable>
-      <variable name='mat_const_3'>
-        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
-        <distribution>u4</distribution>
       </variable>
     </Grid>
   </Samplers>
 
   <DataObjects>
-    <PointSet name='mam_out'>
-      <options>
-        <operator>max</operator>
-      </options>
+    <PointSet name='moose_out'>
       <Input>
-        nsh
+        w1, w3
       </Input>
       <Output>
-        delta_temp
+        L2_out
       </Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name='fix'>
+    <Print name='dump'>
       <type>csv</type>
-      <source>mam_out</source>
+      <source>moose_out</source>
     </Print>
   </OutStreams>
 
   <Models>
     <Code name='nope' subType='MooseBasedApp'>
-      <alias variable='nsh' type='input'>AuxVariables|nsh|initial_condition</alias>
-      <alias variable='hs_const_1' type='input'>AuxKernels|heat_source|constant_expressions:1</alias>
-      <alias variable='hs_const_3' type='input'>AuxKernels|heat_source|constant_expressions:3</alias>
-      <alias variable='mat_const_1' type='input'>Materials|cp_rho_mat|constant_expressions:1</alias>
-      <alias variable='mat_const_3' type='input'>Materials|cp_rho_mat|constant_expressions:3</alias>
-      <executable><!-- ~/projects/anamammoth/mammoth-opt --></executable>
+      <alias variable='w1' type='input'>Functions|the_linear_combo|w:1</alias>
+      <alias variable='w3' type='input'>Functions|the_linear_combo|w:3</alias>
+      <executable>/Users/wangc/projects/moose/test/moose_test-opt</executable>
     </Code>
   </Models>
 
   <Steps>
     <MultiRun name='vector_parser_moose' clearRunDir="False">
-      <Input class='Files' type=''>mam_input</Input>
+      <Input class='Files' type=''>moose_input</Input>
       <Model class='Models' type='Code'>nope</Model>
-      <Sampler class='Samplers' type='Grid'>graph_x</Sampler>
-      <Output class='DataObjects' type='PointSet'>mam_out</Output>
-      <Output class='OutStreams' type='Print'>fix</Output>
+      <Sampler class='Samplers' type='Grid'>grid_vector</Sampler>
+      <Output class='DataObjects' type='PointSet'>moose_out</Output>
+      <Output class='OutStreams' type='Print'>dump</Output>
     </MultiRun>
   </Steps>
 </Simulation>
