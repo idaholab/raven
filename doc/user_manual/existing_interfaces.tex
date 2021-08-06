@@ -863,7 +863,9 @@ environment gets activated (possibility to sample parameters directly in the con
 Here is a standard example of what can be used to use RELAP7 as the model:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>~path/to/RAVEN-opt</executable></Code>
+    <Code name='MyRAVEN' subType='RAVEN'>
+      <executable>~path/to/RAVEN-opt</executable>
+    </Code>
 </Models>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -968,7 +970,9 @@ In the \xmlNode{Models} block particular MooseBasedApp executable needs to be sp
 Here is a standard example of what can be used to use with a typical MooseBasedApp (Bison) as the model:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name='MyMooseBasedApp' subType='MooseBasedApp'><executable>~path/to/Bison-opt</executable></Code>
+    <Code name='MyMooseBasedApp' subType='MooseBasedApp'>
+      <executable>~path/to/Bison-opt</executable>
+    </Code>
 </Models>
 \end{lstlisting}
 
@@ -1052,7 +1056,8 @@ the variable name in the Sampler input block needs to be named as follows:
 ...
 \end{lstlisting}
 
-% In case the variables have multiple entries, for example, variable `w' as shown in the following:
+%
+In case the variables have multiple entries, for example, variable `w' as shown in the following:
 \begin{lstlisting}[style=XML]
 [Functions]
   ...
@@ -1277,7 +1282,9 @@ utilize curly brackets.
     <plotSettings>
        <plot>
         <type>line</type>
-        <x>MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}</x>
+        <x>
+          MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}
+        </x>
         <y>MCOutData|Output|aveTempLeft</y>
         <kwargs><color>blue</color></kwargs>
       </plot>
