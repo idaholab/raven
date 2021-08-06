@@ -64,6 +64,31 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self.target = None
 
+  def readTSAInput(self, spec):
+    """
+      Read in TSA algorithms
+      @ In, spec, InputData.parameterInput, input specs filled with user entries
+      @ Out, None
+    """
+    if self.pivotParameterID is None: # might be handled by parent
+      self.pivotParameterID = spec.findFirst('pivotParameter').value
+    for sub in spec.subparts:
+      if sub.name in factory.knownTypes():
+        algo = factory.returnInstance(sub.name)
+        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
+        self._tsaAlgorithms.append(algo)
+        foundTSAType = True
+    if foundTSAType is False:
+      options = ', '.join(factory.knownTypes())
+      # NOTE this assumes that every TSAUser is also an InputUser!
+      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
+    if self.target is None:
+      # set up all the expected targets from all the TSAs
+      self.target = [self.pivotParameterID] + list(self.getTargets())
+    elif self.pivotParameterID not in self.target:
+      # NOTE this assumes that every TSAUser is also an InputUser!
+      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
+
   def _tsaReset(self):
     """
       Resets trained and cached params
