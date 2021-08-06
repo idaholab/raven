@@ -2,8 +2,8 @@
   [./Basic]
     type = 'RavenFramework'
     input = 'basic.xml'
-    output = 'Basic/durations.xml'
-    UnorderedCsv = 'Basic/chz.csv'
+    output = 'Basic/chz.xml'
+    csv = 'Basic/chz.csv'
     rel_err = 0.01
   [../]
 []
