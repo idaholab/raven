@@ -971,6 +971,7 @@ Here is a standard example of what can be used to use with a typical MooseBasedA
     <Code name='MyMooseBasedApp' subType='MooseBasedApp'><executable>~path/to/Bison-opt</executable></Code>
 </Models>
 \end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -1050,6 +1051,38 @@ the variable name in the Sampler input block needs to be named as follows:
 </Samplers>
 ...
 \end{lstlisting}
+
+% In case the variables have multiple entries, for example, variable `w' as shown in the following:
+\begin{lstlisting}[style=XML]
+[Functions]
+  ...
+  [./the_linear_combo]
+    type = LinearCombinationFunction
+    functions = 'xtimes twoxplus1 xsquared tover2'
+    w = '3 -1.2 0.4 3'
+  [../]
+  ...
+[]
+\end{lstlisting}
+The users can append `:' to the end of the variable, and use an integer number to indicate which
+entry value to be perturbed by RAVEN.
+For example, if the user wants to perturb the first
+and third values of `w' in the aboved example, the RAVEN Sampler will be updated as follows:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='Functions|the_linear_combo|w:1'>
+      ...
+    </variable>
+    <variable name='Functions|the_linear_combo|w:3'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+
 %
 In case some variables in external (\texttt{Generic} input files) need to be perturbed,
 the wildcard approach can be used (for those variables):
