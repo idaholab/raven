@@ -53,13 +53,13 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="chz"/>
     <HistorySet name="input">
       <Output>signal_f, signal_a, signal_fa</Output>
       <options>
         <pivotParameter>pivot</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="chz"/>
   </DataObjects>
 
 </Simulation>
