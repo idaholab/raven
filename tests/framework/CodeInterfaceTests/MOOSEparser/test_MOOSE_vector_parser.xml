@@ -68,7 +68,9 @@
     <Code name='nope' subType='MooseBasedApp'>
       <alias variable='w1' type='input'>Functions|the_linear_combo|w:1</alias>
       <alias variable='w3' type='input'>Functions|the_linear_combo|w:3</alias>
-      <executable>/Users/wangc/projects/moose/test/moose_test-opt</executable>
+      <executable>
+        <!-- /moose/test/moose_test-opt -->
+      </executable>
     </Code>
   </Models>
 
