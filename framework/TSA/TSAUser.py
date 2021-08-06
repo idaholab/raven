@@ -64,6 +64,31 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self.target = None
 
+  def readTSAInput(self, spec):
+    """
+      Read in TSA algorithms
+      @ In, spec, InputData.parameterInput, input specs filled with user entries
+      @ Out, None
+    """
+    if self.pivotParameterID is None: # might be handled by parent
+      self.pivotParameterID = spec.findFirst('pivotParameter').value
+    for sub in spec.subparts:
+      if sub.name in factory.knownTypes():
+        algo = factory.returnInstance(sub.name)
+        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
+        self._tsaAlgorithms.append(algo)
+        foundTSAType = True
+    if foundTSAType is False:
+      options = ', '.join(factory.knownTypes())
+      # NOTE this assumes that every TSAUser is also an InputUser!
+      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
+    if self.target is None:
+      # set up all the expected targets from all the TSAs
+      self.target = [self.pivotParameterID] + list(self.getTargets())
+    elif self.pivotParameterID not in self.target:
+      # NOTE this assumes that every TSAUser is also an InputUser!
+      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
+
   def _tsaReset(self):
     """
       Resets trained and cached params
@@ -128,31 +153,6 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
-  def readTSAInput(self, spec):
-    """
-      Read in TSA algorithms
-      @ In, spec, InputData.parameterInput, input specs filled with user entries
-      @ Out, None
-    """
-    if self.pivotParameterID is None: # might be handled by parent
-      self.pivotParameterID = spec.findFirst('pivotParameter').value
-    for sub in spec.subparts:
-      if sub.name in factory.knownTypes():
-        algo = factory.returnInstance(sub.name)
-        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
-        self._tsaAlgorithms.append(algo)
-        foundTSAType = True
-    if foundTSAType is False:
-      options = ', '.join(factory.knownTypes())
-      # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
-    if self.target is None:
-      # set up all the expected targets from all the TSAs
-      self.target = [self.pivotParameterID] + list(self.getTargets())
-    elif self.pivotParameterID not in self.target:
-      # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
-
   def trainTSASequential(self, targetVals):
     """
       Train TSA algorithms using a sequential removal-and-residual approach.
@@ -191,19 +191,23 @@ class TSAUser:
       @ Out, rlz, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
+    # the algorithms' targets need to be consistently indexed, but there's no
+    # reason to keep including the pivot values every time, so set up an indexing
+    # that ignores the pivotParameter on which to index the results variables
+    noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     # NOTE assumption: self.target exists!
-    result = np.zeros((self.pivotParameterValues.size, len(self.target) - 1)) # -1 is pivot
+    result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
     for algo in self._tsaAlgorithms[::-1]:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
-      indices = tuple(self.target.index(t) for t in targets)
+      indices = tuple(noPivotTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
       if not algo.canGenerate():
         self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = algo.generate(params, pivots, settings)
       result[:, indices] += signal
     # RAVEN realization construction
-    rlz = dict((target, result[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
+    rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues
     return rlz
 
