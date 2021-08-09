@@ -42,6 +42,11 @@ class ARDRegression(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    import sklearn
+    import sklearn.linear_model
+    import sklearn.multioutput
+    # we wrap the model with the multi output regressor (for multitarget)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ARDRegression())
 
   @classmethod
   def getInputSpecification(cls):
@@ -106,17 +111,3 @@ class ARDRegression(ScikitLearnBase):
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-  def initializeModel(self, settings):
-    """
-      Method to initialize the surrogate model with a settings dictionary
-      @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
-      @ Out, None
-    """
-    self.settings = settings
-    import sklearn
-    import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ARDRegression(**settings))
-    # self.model.set_params(**settings)

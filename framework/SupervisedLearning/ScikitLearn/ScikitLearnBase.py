@@ -48,6 +48,25 @@ class ScikitLearnBase(SupervisedLearning):
     self.uniqueVals = None
     self.settings = None
     self.model = None
+    self.multioutputWrapper = True
+
+  def updateSettings(self, settings):
+    """
+      Update the parameters of the self.model if the model is wrapper by sklearn.multioutput class
+      @ In, settings, dict, dictionary of user-defined settings for the model
+      @ Out, out, dict, the updated dictionary based on user-defined settings
+    """
+    out = dict()
+    if self.multioutputWrapper:
+      params = self.model.get_params()
+      for key, val in params.items():
+        out[key] = settings[key] if key in settings else val
+        if '__' in key:
+          deepKey = key.split('__')[-1]
+          out[key] = settings[deepKey] if deepKey in settings else val
+    else:
+      out = settings
+    return out
 
   def initializeModel(self, settings):
     """
@@ -56,6 +75,7 @@ class ScikitLearnBase(SupervisedLearning):
       @ Out, None
     """
     self.settings = settings
+    settings = self.updateSettings(settings)
     self.model.set_params(**settings)
 
   def __trainLocal__(self,featureVals,targetVals):
