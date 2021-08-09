@@ -211,7 +211,7 @@ class JobHandler(BaseType):
             self.raiseADebug("Head host IP      :", address)
             self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword, db)
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
             # update head node paths
@@ -278,12 +278,12 @@ class JobHandler(BaseType):
       if 'headNode' in self.runInfoDict:
         servers += [self.runInfoDict['headNode']]
       # get local enviroment
-      localenv = os.environ.copy()
-      localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      localEnv = os.environ.copy()
+      localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
         command="ray stop"
-        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localenv)
+        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
@@ -299,14 +299,14 @@ class JobHandler(BaseType):
     """
     address, redisPassword = None, None
     # get local enviroment
-    localenv = os.environ.copy()
-    localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+    localEnv = os.environ.copy()
+    localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
     if _rayAvail:
       command = ["ray","start","--head"]
       if nProcs is not None:
         command.append("--num-cpus="+str(nProcs))
       outFile = open("ray_head.ip", 'w')
-      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localenv)
+      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
       rayStart.wait()
       outFile.close()
       if rayStart.returncode != 0:
@@ -328,7 +328,6 @@ class JobHandler(BaseType):
         if "ray start" in line.strip():
           ix = line.strip().find("ray start")
           address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
-          address = address.split("=")[-1].replace("'","")
           redisPassword = redisPassword.split("=")[-1].replace("'","")
           address_arg, address = address.replace("'","").split("=")
           if address_arg.strip() != "--address":
@@ -353,13 +352,13 @@ class JobHandler(BaseType):
     if len(uniqueNodes) > 0:
       ## There are remote nodes that need to be activated
       ## Modify the python path used by the local environment
-      localenv = os.environ.copy()
+      localEnv = os.environ.copy()
       pathSeparator = os.pathsep
-      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
-        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
+      if "PYTHONPATH" in localEnv and len(localEnv["PYTHONPATH"].strip()) > 0:
+        previousPath = localEnv["PYTHONPATH"].strip()+pathSeparator
       else:
         previousPath = ""
-      localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
+      localEnv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
       ## Start
       for nodeId in uniqueNodes:
         remoteHostName =  remoteNodesIP[nodeId]
@@ -369,8 +368,8 @@ class JobHandler(BaseType):
           self.raiseADebug("Updating RAY server in node: "+nodeId.strip())
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","update_path_in_remote_servers.sh")
           command=" ".join([runScript,"--remote-node-address",nodeId," --working-dir ",self.runInfoDict['WorkingDir']])
-          command += " --python-path "+localenv["PYTHONPATH"]
-          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
+          command += " --python-path "+localEnv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
 
   def __runRemoteListeningSockets(self,address, localHostName, redisPassword):
     """
@@ -393,13 +392,13 @@ class JobHandler(BaseType):
     if len(uniqueNodes) > 0:
       ## There are remote nodes that need to be activated
       ## Modify the python path used by the local environment
-      localenv = os.environ.copy()
+      localEnv = os.environ.copy()
       pathSeparator = os.pathsep
-      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
-        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
+      if "PYTHONPATH" in localEnv and len(localEnv["PYTHONPATH"].strip()) > 0:
+        previousPath = localEnv["PYTHONPATH"].strip()+pathSeparator
       else:
         previousPath = ""
-      localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
+      localEnv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
       ## Start
       for nodeId in uniqueNodes:
         ## Check how many processors are available in the node
@@ -413,12 +412,12 @@ class JobHandler(BaseType):
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
           command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
           print("command is: "+command)
-          command += " --python-path "+localenv["PYTHONPATH"]
-          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
+          command += " --python-path "+localEnv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
-          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localenv)
+          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localEnv["PYTHONPATH"],"-d"])
+          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         ## update list of servers
         servers.append(nodeId)
 
@@ -745,7 +744,7 @@ class JobHandler(BaseType):
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
-           self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
+          self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
         if removeFinished:
           if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
