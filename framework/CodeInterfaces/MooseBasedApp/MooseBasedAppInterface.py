@@ -157,7 +157,7 @@ class MooseBasedApp(CodeInterfaceBase):
       # colon is used when we want to perturb element in the vector of given variable
       elemLoc = None
       if ":" in var:
-        request, elemLoc = var.split(':')
+        request, elemLoc = (v.strip() for v in var.split(':'))
       else:
         request = var
       if '|' not in request:
