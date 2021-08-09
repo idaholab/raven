@@ -92,7 +92,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
-      <variables>x,y,ans</variables>
+      <variables>x,y,ans,aux_ans</variables>
     </ExternalModel>
   </Models>
 
@@ -100,11 +100,11 @@
     <PointSet name="dummyIN"/>
     <PointSet name="optOut">
       <Input>x,y,func,const</Input>
-      <Output>ans</Output>
+      <Output>ans,aux_ans</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,func,const,ans,stepSize,iteration,accepted,conv_gradient</Output>
+      <Output>x,y,func,const,ans,aux_ans,stepSize,iteration,accepted,conv_gradient</Output>
     </PointSet>
   </DataObjects>
 
