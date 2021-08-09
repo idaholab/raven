@@ -32,7 +32,7 @@ class TSAUser:
     """
       Make input specs for TSA algorithm inclusion.
       @ In, spec, InputData.parameterInput, input specs to which TSA algos should be added
-      @ In, subType, str, one of (None, 'generate', 'characterize'), subset of allowable algorithms
+      @ In, subset, str, optional, one of (None, 'generate', 'characterize'), subset of allowable algorithms
       @ Out, None
     """
     # NOTE we use an assertion here, since only developer actions should be picking subType
@@ -195,7 +195,6 @@ class TSAUser:
     # reason to keep including the pivot values every time, so set up an indexing
     # that ignores the pivotParameter on which to index the results variables
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
-    # NOTE assumption: self.target exists!
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
     for algo in self._tsaAlgorithms[::-1]:
       settings = self._tsaAlgoSettings[algo]
