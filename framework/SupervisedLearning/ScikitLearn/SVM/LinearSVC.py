@@ -35,7 +35,7 @@ class LinearSVC(ScikitLearnBase):
   """
   info = {'problemtype':'classification', 'normalize':True}
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
       @ In, None
@@ -97,6 +97,16 @@ class LinearSVC(ScikitLearnBase):
                                                  $intercept_scaling$ has to be increased.""", default=1.))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Enable verbose output. Note that this setting takes advantage
+                                                 of a per-process runtime setting in liblinear that, if enabled, may not
+                                                 work properly in a multithreaded context.""", default=0))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Controls the pseudo random number generation for shuffling
+                                                 the data for the dual coordinate descent (if dual=True). When dual=False
+                                                 the underlying implementation of LinearSVC is not random and
+                                                 random_state has no effect on the results. Pass an int for reproducible
+                                                 output across multiple function calls. """, default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -107,7 +117,8 @@ class LinearSVC(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'dual', 'penalty', 'loss', 'tol', 'fit_intercept',
-                                                               'intercept_scaling',  'max_iter', 'multi_class'])
+                                                               'intercept_scaling',  'max_iter', 'multi_class', 'verbose',
+                                                               'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
