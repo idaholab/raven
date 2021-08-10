@@ -8,7 +8,6 @@
     <description>
        An example exercising supervised sklearn methods, specifically
        the linear_model|RidgeClassifier model is tested here.
-
        Note, all of the tests in SKLearn operate on a 2D input domain with
        the goal of fitting a paraboloid function. The input dimensions are
        of largely different scales and one dimension is off-centered from
@@ -21,8 +20,10 @@
       <revision author="alfoa" date="2016-07-13">    removed renormalization</revision>
       <revision author="talbpaul" date="2016-09-15">    other test updates</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+      <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -36,9 +37,8 @@
     <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="SciKitLearn">
+    <ROM name="modelUnderTest" subType="RidgeClassifier">
       <!-- Using all of the defaults -->
-      <SKLtype>linear_model|RidgeClassifier</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
       <alpha>1.0</alpha>

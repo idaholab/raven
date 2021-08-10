@@ -8,7 +8,6 @@
     <description>
        An example exercising supervised sklearn methods, specifically
        the tree|DecisionTreeRegressor model is tested here.
-
        Note, all of the tests in SKLearn operate on a 2D input domain with
        the goal of fitting a paraboloid function. The input dimensions are
        of largely different scales and one dimension is off-centered from
@@ -20,8 +19,10 @@
     <revisions>
       <revision author="maljdan" date="2016-05-02">Adding a fixed random_state value to account for different values occurring on different systems. Also, test is being disabled temporarily.</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+      <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -35,8 +36,7 @@
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="SciKitLearn">
-      <SKLtype>tree|DecisionTreeRegressor</SKLtype>
+    <ROM name="modelUnderTest" subType="DecisionTreeRegressor">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <criterion>mse</criterion>
@@ -53,7 +53,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -65,5 +64,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

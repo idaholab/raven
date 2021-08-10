@@ -21,6 +21,7 @@
       <revision author="maljdan" date="2016-05-02">    Fixing another SVC case for older scikit-learn versions.</revision>
       <revision author="talbpaul" date="2016-09-15">    other test updates</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+      <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
     </revisions>
   </TestInfo>
 
