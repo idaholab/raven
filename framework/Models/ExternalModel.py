@@ -85,14 +85,15 @@ class ExternalModel(Dummy):
     self.pickled = False              # is this model pickled?
     self.constructed = True           # is this model constructed?
 
-  def copyModel(self, obj):
+  def _copyModel(self, obj):
     """
-      This method is aimed to copy the "obj" model in this instance
-      It is generally used for unpickling objects (models)
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
       @ In, obj, instance, the instance of the object to copy from
       @ Out, None
     """
-    super().copyModel(obj)
+    super()._copyModel(obj)
     self.constructed = True
 
   def applyRunInfo(self, runInfo):

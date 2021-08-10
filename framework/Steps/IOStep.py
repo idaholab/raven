@@ -242,7 +242,7 @@ class IOStep(Step):
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         # copy model (same for any internal model (Dummy model derived classes)
-        outputs[i].copyModel(unpickledObj)
+        outputs[i]._copyModel(unpickledObj)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
