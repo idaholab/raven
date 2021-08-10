@@ -22,6 +22,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -74,9 +75,9 @@ class LarsCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
@@ -87,7 +88,10 @@ class LarsCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
                                                  It specifies the number of folds..""", default=5))
-
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Sets the verbosity amount.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Maximum number of iterations to perform.""", default=500))
     return specs
 
   def _handleInput(self, paramInput):
@@ -98,7 +102,8 @@ class LarsCV(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['eps','precompute', 'fit_intercept',
-                                                               'normalize','max_n_alphas','cv'])
+                                                               'normalize','max_n_alphas','cv', 'verbose',
+                                                               'max_iter'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

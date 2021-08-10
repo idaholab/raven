@@ -22,6 +22,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -72,9 +73,9 @@ class Lars(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
@@ -85,7 +86,13 @@ class Lars(ScikitLearnBase):
                                                  descr=r"""Upper bound on a uniform noise parameter to be added to the
                                                  y values, to satisfy the model’s assumption of one-at-a-time computations.
                                                  Might help with stability.""", default=None))
-
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Sets the verbosity amount.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("fit_path", contentType=InputTypes.BoolType,
+                                                 descr=r"""If True the full path is stored in the coef_path_ attribute.
+                                                 If you compute the solution for a large problem or many targets,
+                                                 setting fit_path to False will lead to a speedup, especially with a
+                                                 small alpha.""", default=True))
     return specs
 
   def _handleInput(self, paramInput):
@@ -96,7 +103,8 @@ class Lars(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['eps','precompute', 'fit_intercept',
-                                                               'normalize','n_nonzero_coefs','jitter'])
+                                                               'normalize','n_nonzero_coefs','jitter', 'verbose',
+                                                               'fit_path'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

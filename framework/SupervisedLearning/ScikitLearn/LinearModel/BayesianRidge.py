@@ -101,6 +101,8 @@ class BayesianRidge(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Verbose mode when fitting the model.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -112,7 +114,7 @@ class BayesianRidge(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha_1','alpha_2','lambda_1','lambda_2',
                                                                'compute_score', 'threshold_lambda', 'fit_intercept',
-                                                               'n_iter', 'normalize','alpha_init','lambda_init'])
+                                                               'n_iter', 'normalize','alpha_init','lambda_init', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

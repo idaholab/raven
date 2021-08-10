@@ -81,9 +81,9 @@ class ElasticNetCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
@@ -99,6 +99,9 @@ class ElasticNetCV(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("n_alphas", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Number of alphas along the regularization path,
+                                                 used for each l1_ratio.""", default=100))
     return specs
 
   def _handleInput(self, paramInput):
@@ -110,7 +113,7 @@ class ElasticNetCV(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'eps','l1_ratio',
                                                                'precompute', 'fit_intercept','cv',
-                                                               'max_iter', 'normalize','selection','positive'])
+                                                               'max_iter', 'normalize','selection','positive', 'n_alphas'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

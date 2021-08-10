@@ -97,6 +97,9 @@ class ElasticNet(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -108,7 +111,7 @@ class ElasticNet(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha','l1_ratio',
                                                                'precompute', 'fit_intercept',
-                                                               'max_iter', 'normalize','selection','positive'])
+                                                               'max_iter', 'normalize','selection','positive', 'warm_start'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
