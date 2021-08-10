@@ -73,7 +73,7 @@ class SVC(ScikitLearnBase):
                                                                                                                        'rbf','sigmoid']),
                                                  descr=r"""Specifies the kernel type to be used in the algorithm. It must be one of
                                                             ``linear'', ``poly'', ``rbf'' or ``sigmoid''.""", default='rbf'))
-    specs.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntergerType,
+    specs.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntegerType,
                                                  descr=r"""Degree of the polynomial kernel function ('poly').Ignored by all other kernels.""",
                                                  default=3))
     specs.addSub(InputData.parameterInputFactory("gamma", contentType=InputTypes.FloatType,
@@ -104,6 +104,21 @@ class SVC(ScikitLearnBase):
                                                  break ties according to the confidence values of decision_function; otherwise the first class among
                                                  the tied classes is returned. Please note that breaking ties comes at a relatively high computational
                                                  cost compared to a simple predict.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Enable verbose output. Note that this setting takes advantage
+                                                 of a per-process runtime setting in libsvm that, if enabled, may not
+                                                 work properly in a multithreaded context.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("probability", contentType=InputTypes.BoolType,
+                                                 descr=r"""Whether to enable probability estimates.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Controls the pseudo random number generation for shuffling
+                                                 the data for probability estimates. Ignored when probability is False.
+                                                 Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -115,7 +130,8 @@ class SVC(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'kernel', 'degree', 'gamma', 'coef0',
                                                              'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter',
-                                                             'decision_function_shape', 'break_ties'])
+                                                             'decision_function_shape', 'break_ties', 'verbose', 'probability',
+                                                             'class_weight', 'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

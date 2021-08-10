@@ -107,6 +107,10 @@ class LinearSVC(ScikitLearnBase):
                                                  the underlying implementation of LinearSVC is not random and
                                                  random_state has no effect on the results. Pass an int for reproducible
                                                  output across multiple function calls. """, default=None))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -118,7 +122,7 @@ class LinearSVC(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'dual', 'penalty', 'loss', 'tol', 'fit_intercept',
                                                                'intercept_scaling',  'max_iter', 'multi_class', 'verbose',
-                                                               'random_state'])
+                                                               'random_state', 'class_weight'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

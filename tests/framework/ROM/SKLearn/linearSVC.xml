@@ -8,7 +8,6 @@
     <description>
        An example exercising supervised sklearn methods, specifically
        the svm|LinearSVC model is tested here.
-
        Note, all of the tests in SKLearn operate on a 2D input domain with
        the goal of fitting a paraboloid function. The input dimensions are
        of largely different scales and one dimension is off-centered from
@@ -24,6 +23,7 @@
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -37,8 +37,7 @@
     <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="SciKitLearn">
-      <SKLtype>svm|LinearSVC</SKLtype>
+    <ROM name="modelUnderTest" subType="LinearSVC">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <C>1.0</C>
@@ -52,7 +51,6 @@
       <multi_class>ovr</multi_class>
       <fit_intercept>True</fit_intercept>
       <intercept_scaling>1</intercept_scaling>
-      <class_weight>None</class_weight>
       <verbose>0</verbose>
       <random_state>1</random_state>
     </ROM>
