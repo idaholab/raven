@@ -30,9 +30,9 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ComplementNBClassifier(ScikitLearnBase):
+class ComplementNB(ScikitLearnBase):
   """
-    GaussianNBClassifier
+    ComplementNB Classifier
     Complement Naive Bayes classifier described in Rennie et al. (2003).
   """
   info = {'problemtype':'classification', 'normalize':True}
@@ -48,7 +48,7 @@ class ComplementNBClassifier(ScikitLearnBase):
     import sklearn.naive_bayes
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.ComplementNB)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.ComplementNB())
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,8 +59,8 @@ class ComplementNBClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(ComplementNBClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\textit{ComplementNBClassifier} (Complement Naive Bayes classifier) was designed to correct
+    specs = super(ComplementNB, cls).getInputSpecification()
+    specs.description = r"""The \\textit{ComplementNB} classifier (Complement Naive Bayes classifier) was designed to correct
                          the ``severe assumptions'' made by the standard Multinomial Naive Bayes classifier.
                          It is particularly suited for imbalanced data sets (see Rennie et al. (2003))
                          """

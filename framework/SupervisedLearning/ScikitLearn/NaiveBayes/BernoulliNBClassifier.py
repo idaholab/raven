@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  BernoulliNBClassifier
+  BernoulliNB Classifier
   Gaussian Naive Bayes (GaussianNB) classifier
 
 """
@@ -30,9 +30,9 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class BernoulliNBClassifier(ScikitLearnBase):
+class BernoulliNB(ScikitLearnBase):
   """
-    GaussianNBClassifier
+    BernoulliNB Classifier
     Gaussian Naive Bayes (GaussianNB) classifier
   """
   info = {'problemtype':'classification', 'normalize':True}
@@ -48,7 +48,7 @@ class BernoulliNBClassifier(ScikitLearnBase):
     import sklearn.naive_bayes
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.BernoulliNB)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.BernoulliNB())
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,8 +59,8 @@ class BernoulliNBClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(BernoulliNBClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\textit{BernoulliNBClassifier} implements the naive Bayes training and
+    specs = super(BernoulliNB, cls).getInputSpecification()
+    specs.description = r"""The \\textit{BernoulliNB} classifier implements the naive Bayes training and
                          classification algorithms for data that is distributed according to multivariate
                          Bernoulli distributions; i.e., there may be multiple features but each one is
                          assumed to be a binary-valued (Bernoulli, boolean) variable.

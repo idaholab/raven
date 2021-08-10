@@ -46,7 +46,7 @@ class NuSVR(ScikitLearnBase):
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.NuSVR)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.NuSVR())
 
   @classmethod
   def getInputSpecification(cls):

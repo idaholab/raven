@@ -44,7 +44,7 @@ class MLPRegressor(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.neural_network
-    self.model = sklearn.neural_network.MLPRegressor
+    self.model = sklearn.neural_network.MLPRegressor()
 
   @classmethod
   def getInputSpecification(cls):

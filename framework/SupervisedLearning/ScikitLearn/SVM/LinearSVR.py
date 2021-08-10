@@ -46,7 +46,7 @@ class LinearSVR(ScikitLearnBase):
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.LinearSVR)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.LinearSVR())
 
   @classmethod
   def getInputSpecification(cls):

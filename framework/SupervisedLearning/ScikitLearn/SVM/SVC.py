@@ -46,7 +46,7 @@ class SVC(ScikitLearnBase):
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.svm.SVC)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.svm.SVC())
 
   @classmethod
   def getInputSpecification(cls):

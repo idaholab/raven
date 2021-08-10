@@ -45,7 +45,7 @@ class OutputCodeClassifier(ScikitLearnBase):
     import sklearn.multiclass
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OutputCodeClassifier)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OutputCodeClassifier())
 
   @classmethod
   def getInputSpecification(cls):

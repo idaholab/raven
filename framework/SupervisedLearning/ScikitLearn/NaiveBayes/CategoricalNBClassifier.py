@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  CategoricalNBClassifier
+  CategoricalNB Classifier
   Naive Bayes classifier for categorical features
 
 """
@@ -30,9 +30,9 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CategoricalNBClassifier(ScikitLearnBase):
+class CategoricalNB(ScikitLearnBase):
   """
-    GaussianNBClassifier
+    CategoricalNB Classifier
     Naive Bayes classifier for categorical features
   """
   info = {'problemtype':'classification', 'normalize':True}
@@ -48,7 +48,7 @@ class CategoricalNBClassifier(ScikitLearnBase):
     import sklearn.naive_bayes
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.CategoricalNB)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.CategoricalNB())
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,8 +59,8 @@ class CategoricalNBClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(CategoricalNBClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\textit{CategoricalNBClassifier} (Naive Bayes classifier for categorical features)
+    specs = super(CategoricalNB, cls).getInputSpecification()
+    specs.description = r"""The \\textit{CategoricalNB} classifier (Naive Bayes classifier for categorical features)
                          is suitable for classification with discrete features that are categorically distributed.
                          The categories of each feature are drawn from a categorical distribution.
                          """

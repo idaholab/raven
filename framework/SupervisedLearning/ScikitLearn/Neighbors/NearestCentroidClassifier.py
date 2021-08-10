@@ -46,7 +46,7 @@ class NearestCentroidClassifier(ScikitLearnBase):
     import sklearn.neighbors
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.NearestCentroid)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.NearestCentroid())
 
   @classmethod
   def getInputSpecification(cls):

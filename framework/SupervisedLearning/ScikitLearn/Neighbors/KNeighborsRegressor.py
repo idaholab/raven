@@ -48,7 +48,7 @@ class KNeighborsRegressor(ScikitLearnBase):
     import sklearn.neighbors
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.neighbors.KNeighborsRegressor)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.neighbors.KNeighborsRegressor())
 
   @classmethod
   def getInputSpecification(cls):

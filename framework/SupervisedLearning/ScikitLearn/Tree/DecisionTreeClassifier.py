@@ -48,7 +48,7 @@ class DecisionTreeClassifier(ScikitLearnBase):
     import sklearn.tree
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.tree.DecisionTreeClassifier)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.tree.DecisionTreeClassifier())
 
   @classmethod
   def getInputSpecification(cls):

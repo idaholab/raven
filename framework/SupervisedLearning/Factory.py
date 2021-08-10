@@ -80,11 +80,11 @@ from .ScikitLearn.LinearModel.RidgeClassifierCV import RidgeClassifierCV
 from .ScikitLearn.LinearModel.SGDClassifier import SGDClassifier
 from .ScikitLearn.LinearModel.SGDRegressor import SGDRegressor
 
-from .ScikitLearn.NaiveBayes.ComplementNBClassifier import ComplementNBClassifier
-from .ScikitLearn.NaiveBayes.CategoricalNBClassifier import CategoricalNBClassifier
-from .ScikitLearn.NaiveBayes.BernoulliNBClassifier import BernoulliNBClassifier
-from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNBClassifier
-from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNBClassifier
+from .ScikitLearn.NaiveBayes.ComplementNBClassifier import ComplementNB
+from .ScikitLearn.NaiveBayes.CategoricalNBClassifier import CategoricalNB
+from .ScikitLearn.NaiveBayes.BernoulliNBClassifier import BernoulliNB
+from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNB
+from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNB
 
 from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
 from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier

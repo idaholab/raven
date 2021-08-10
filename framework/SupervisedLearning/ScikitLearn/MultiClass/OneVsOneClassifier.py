@@ -45,7 +45,7 @@ class OneVsOneClassifier(ScikitLearnBase):
     import sklearn.multiclass
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsOneClassifier)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsOneClassifier())
 
   @classmethod
   def getInputSpecification(cls):

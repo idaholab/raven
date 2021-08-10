@@ -42,6 +42,7 @@ class RidgeCV(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
     self.model = sklearn.linear_model.RidgeCV()

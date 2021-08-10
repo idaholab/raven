@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  GaussianNBClassifier
+  GaussianNB Classifier
   Gaussian Naive Bayes (GaussianNB) classifier
 
 """
@@ -30,9 +30,9 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GaussianNBClassifier(ScikitLearnBase):
+class GaussianNB(ScikitLearnBase):
   """
-    GaussianNBClassifier
+    GaussianNB Classifier
     Gaussian Naive Bayes (GaussianNB) classifier
   """
   info = {'problemtype':'classification', 'normalize':True}
@@ -48,7 +48,7 @@ class GaussianNBClassifier(ScikitLearnBase):
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.GaussianNB)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.GaussianNB())
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,8 +59,8 @@ class GaussianNBClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(GaussianNBClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\textit{GaussianNBClassifier} implements the Gaussian Naive Bayes
+    specs = super(GaussianNB, cls).getInputSpecification()
+    specs.description = r"""The \\textit{GaussianNB} classifier implements the Gaussian Naive Bayes
                          algorithm for classification.
                          The likelihood of the features is assumed to be Gaussian:
                          \begin{equation}

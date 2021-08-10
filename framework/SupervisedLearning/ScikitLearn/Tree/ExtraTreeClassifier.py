@@ -48,7 +48,7 @@ class ExtraTreeClassifier(ScikitLearnBase):
     import sklearn.tree
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.tree.ExtraTreeClassifier)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.tree.ExtraTreeClassifier())
 
   @classmethod
   def getInputSpecification(cls):

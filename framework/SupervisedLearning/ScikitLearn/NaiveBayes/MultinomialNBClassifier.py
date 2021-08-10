@@ -29,9 +29,9 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MultinomialNBClassifier(ScikitLearnBase):
+class MultinomialNB(ScikitLearnBase):
   """
-    GaussianNBClassifier
+    MultinomialNBClassifier
     Naive Bayes classifier for multinomial models
   """
   info = {'problemtype':'classification', 'normalize':True}
@@ -47,7 +47,7 @@ class MultinomialNBClassifier(ScikitLearnBase):
     import sklearn.naive_bayes
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.MultinomialNB)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.MultinomialNB())
 
   @classmethod
   def getInputSpecification(cls):
@@ -58,8 +58,8 @@ class MultinomialNBClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(MultinomialNBClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\textit{MultinomialNBClassifier} implements the naive Bayes algorithm for
+    specs = super(MultinomialNB, cls).getInputSpecification()
+    specs.description = r"""The \\textit{MultinomialNB} classifier implements the naive Bayes algorithm for
                         multinomially distributed data, and is one of the two classic naive Bayes
                         variants used in text classification (where the data is typically represented
                         as word vector counts, although tf-idf vectors are also known to work well in

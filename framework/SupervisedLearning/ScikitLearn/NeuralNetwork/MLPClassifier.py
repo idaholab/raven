@@ -46,7 +46,7 @@ class MLPClassifier(ScikitLearnBase):
     import sklearn.neural_network
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neural_network.MLPClassifier)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neural_network.MLPClassifier())
 
   @classmethod
   def getInputSpecification(cls):

@@ -46,7 +46,7 @@ class Perceptron(ScikitLearnBase):
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.linear_model.Perceptron)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.linear_model.Perceptron())
 
   @classmethod
   def getInputSpecification(cls):

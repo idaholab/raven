@@ -49,7 +49,7 @@ class QuadraticDiscriminantAnalysisClassifier(ScikitLearnBase):
     import sklearn.discriminant_analysis
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis())
 
   @classmethod
   def getInputSpecification(cls):

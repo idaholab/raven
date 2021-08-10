@@ -46,7 +46,7 @@ class LassoLars(ScikitLearnBase):
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LassoLars)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LassoLars())
 
   @classmethod
   def getInputSpecification(cls):
