@@ -259,10 +259,7 @@ class ExternalModel(Dummy):
       if key in self.modelVariableType.keys() or key in additionalKeys:
         InputDict[key] = Input[key]
 
-    if 'current_time' in Input:
-      self.sim.runStep(externalSelf, InputDict)
-    else:
-      self.sim.run(externalSelf, InputDict)
+    self.sim.run(externalSelf, InputDict)
 
     for key in self.modelVariableType:
       try:
