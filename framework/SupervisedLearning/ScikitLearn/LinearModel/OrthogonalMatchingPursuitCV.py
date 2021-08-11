@@ -82,7 +82,9 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
                                                  features to include. $10%$ of n\_features but at least 5 if available.""", default=None))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
+                                                 It specifies the number of folds..""", default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Amount of verbosity.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -92,7 +94,8 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize','max_iter','cv'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize','max_iter','cv',
+                                                               'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

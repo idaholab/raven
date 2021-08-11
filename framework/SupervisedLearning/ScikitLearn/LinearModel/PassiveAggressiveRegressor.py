@@ -73,6 +73,10 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
                                                  descr=r"""The maximum number of passes over the training data (aka epochs).""", default=1000))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""The stopping criterion.""", default=1e-3))
+    specs.addSub(InputData.parameterInputFactory("epsilon", contentType=InputTypes.FloatType,
+                                                 descr=r"""If the difference between the current prediction and the
+                                                 correct label is below this threshold, the model is not updated.""",
+                                                 default=0.1))
     specs.addSub(InputData.parameterInputFactory("early_stopping", contentType=InputTypes.BoolType,
                                                  descr=r"""hether to use early stopping to terminate training when validation score is not
                                                  improving. If set to True, it will automatically set aside a stratified fraction of training
@@ -88,6 +92,18 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['epsilon_insensitive', ' squared_epsilon_insensitive']),
                                                  descr=r"""The loss function to be used: epsilon_insensitive: equivalent to PA-I.
                                                  squared_epsilon_insensitive: equivalent to PA-II.""", default='epsilon_insensitive'))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to shuffle the training data, when shuffle is set to
+                                                 True. Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
+                                                 descr=r"""The verbosity level""", default=0))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("average", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, computes the averaged SGD weights and
+                                                 stores the result in the coef_ attribute. """, default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -99,7 +115,8 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
     super()._handleInput( paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C','fit_intercept','max_iter',
                                                                'tol','early_stopping','validation_fraction',
-                                                               'n_iter_no_change','shuffle','loss'])
+                                                               'n_iter_no_change','shuffle','loss', 'epsilon',
+                                                               'random_state', 'verbose', 'warm_start', 'average'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

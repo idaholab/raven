@@ -40,8 +40,6 @@
       <!-- Using all of the defaults -->
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <n_nonzero_coefs>None</n_nonzero_coefs>
-      <tol>None</tol>
       <fit_intercept>True</fit_intercept>
       <normalize>True</normalize>
       <precompute>auto</precompute>

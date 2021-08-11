@@ -91,6 +91,15 @@ class PassiveAggressiveClassifier(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['hinge', ' squared_hinge']),
                                                  descr=r"""The loss function to be used: hinge: equivalent to PA-I.
                                                  squared_hinge: equivalent to PA-II.""", default='hinge'))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to shuffle the training data, when shuffle is set to
+                                                 True. Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
+                                                 descr=r"""The verbosity level""", default=0))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -102,7 +111,8 @@ class PassiveAggressiveClassifier(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C','fit_intercept','max_iter',
                                                                'tol','early_stopping','validation_fraction',
-                                                               'n_iter_no_change','shuffle','loss'])
+                                                               'n_iter_no_change','shuffle','loss', 'random_state',
+                                                               'verbose', 'warm_start'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

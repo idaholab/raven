@@ -42,8 +42,6 @@
       <Target>Z</Target>
       <fit_intercept>True</fit_intercept>
       <normalize>True</normalize>
-      <max_iter>None</max_iter>
-      <cv>None</cv>
       <verbose>False</verbose>
     </ROM>
   </Models>
