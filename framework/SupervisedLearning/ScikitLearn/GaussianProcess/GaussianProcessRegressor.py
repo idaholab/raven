@@ -138,7 +138,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
 
-                                                 \\end{itemize}""", default='Constant'))
+                                                 \\end{itemize}""", default=None))
 
 
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
@@ -212,6 +212,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                'normalize_y', 'random_state', 'optimizer'])
     # notFound must be empty
     assert(not notFound)
-    # special treatment for kenel
-    settings['kernel'] = self.pickKernel(settings['kernel'])
+    # special treatment for kernel
+    settings['kernel'] = self.pickKernel(settings['kernel']) if settings['kernel'] is not None else None
     self.initializeModel(settings)

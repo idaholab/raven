@@ -122,7 +122,8 @@ class ExtraTreeClassifier(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['criterion', 'splitter', 'max_depth','min_samples_split',
                                                                'min_samples_leaf','min_weight_fraction_leaf','max_features',
-                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha'])
+                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha',
+                                                               'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
