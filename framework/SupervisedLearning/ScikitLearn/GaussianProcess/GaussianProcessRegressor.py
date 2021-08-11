@@ -153,7 +153,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  descr=r"""Whether the target values y are normalized, the mean and variance of the target values are set equal to 0 and 1 respectively. This is recommended for cases where zero-mean,
                                                            unit-variance priors are used.""", default=False))
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
-                                              descr=r"""Seed for the internal random number generator""", default=0))
+                                              descr=r"""Seed for the internal random number generator""", default=None))
+    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
+                                                 descr=r"""Per default, the 'L-BGFS-B' algorithm from
+                                                 scipy.optimize.minimize is used. If None is passed, the kernel’s
+                                                 parameters are kept fixed. """, default='L-BGFS-B'))
     return specs
 
   def pickKernel(self, name):
@@ -162,6 +166,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
       @ In, name, str, the kernel name
       @ Out, kernel, object, the kernel object
     """
+    import sklearn
     if name.lower() == 'constant':
       kernel = sklearn.gaussian_process.kernels.ConstantKernel()
     elif name.lower() == 'dotproduct':
@@ -204,7 +209,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
-                                                               'normalize_y', 'random_state'])
+                                                               'normalize_y', 'random_state', 'optimizer'])
     # notFound must be empty
     assert(not notFound)
     # special treatment for kenel

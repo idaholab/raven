@@ -36,14 +36,13 @@
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="GaussianProcess">
+    <ROM name="modelUnderTest" subType="GaussianProcessRegressor">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <alpha>1e-10</alpha>
       <n_restarts_optimizer>0</n_restarts_optimizer>
       <normalize_y>True</normalize_y>
-      <optimizer>fmin_cobyla</optimizer>
-      <random_state>None</random_state>
+      <optimizer>fmin_l_bfgs_b</optimizer>
     </ROM>
   </Models>
 

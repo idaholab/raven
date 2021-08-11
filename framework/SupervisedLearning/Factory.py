@@ -87,7 +87,7 @@ from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNB
 from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNB
 
 from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
-from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
+from .ScikitLearn.NeuralNetwork.MLPRegressor import MLPRegressor
 
 from .ScikitLearn.GaussianProcess.GaussianProcessClassifier import GaussianProcessClassifier
 from .ScikitLearn.GaussianProcess.GaussianProcessRegressor import GaussianProcessRegressor

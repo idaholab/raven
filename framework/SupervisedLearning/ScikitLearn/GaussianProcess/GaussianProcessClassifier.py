@@ -158,7 +158,11 @@ class GaussianProcessClassifier(ScikitLearnBase):
                                                         separate these two classes. The predictions of these binary predictors are combined into multi-class predictions. """, default='one_vs_rest'))
 
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
-                                              descr=r"""Seed for the internal random number generator""", default=0))
+                                              descr=r"""Seed for the internal random number generator""", default=None))
+    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
+                                                 descr=r"""Per default, the 'L-BGFS-B' algorithm from
+                                                 scipy.optimize.minimize is used. If None is passed, the kernel’s
+                                                 parameters are kept fixed. """, default='L-BGFS-B'))
     return specs
 
   def pickKernel(self, name):
@@ -167,6 +171,7 @@ class GaussianProcessClassifier(ScikitLearnBase):
       @ In, name, str, the kernel name
       @ Out, kernel, object, the kernel object
     """
+    import sklearn
     if name.lower() == 'constant':
       kernel = sklearn.gaussian_process.kernels.ConstantKernel()
     elif name.lower() == 'dotproduct':
@@ -209,7 +214,7 @@ class GaussianProcessClassifier(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'multi_class', 'n_restarts_optimizer',
-                                                               'max_iter_predict', 'random_state'])
+                                                               'max_iter_predict', 'random_state', 'optimizer'])
     # notFound must be empty
     assert(not notFound)
     # special treatment for kenel

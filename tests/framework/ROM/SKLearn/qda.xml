@@ -36,10 +36,9 @@
     <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="QDA">
+    <ROM name="modelUnderTest" subType="QuadraticDiscriminantAnalysisClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <priors>None</priors>
       <reg_param>0.0</reg_param>
     </ROM>
   </Models>

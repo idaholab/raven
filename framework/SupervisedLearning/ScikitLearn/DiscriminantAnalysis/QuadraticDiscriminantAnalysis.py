@@ -66,18 +66,23 @@ class QuadraticDiscriminantAnalysisClassifier(ScikitLearnBase):
     The model fits a Gaussian density to each class"""
 
     specs.addSub(InputData.parameterInputFactory("priors", contentType=InputTypes.FloatListType,
-                                                 descr=r"""The class prior probabilities. By default, the class proportions are inferred from the training data.""", default=None))
+                                                 descr=r"""The class prior probabilities. By default, the class
+                                                 proportions are inferred from the training data.""", default=None))
     specs.addSub(InputData.parameterInputFactory("reg_param", contentType=InputTypes.FloatType,
                                                  descr=r"""Regularizes the per-class covariance estimates by transforming
-                                                 S2 as S2 = (1 - reg\_param) * S2 + reg\_param * np.eye(n\_features), where S2 corresponds to the
+                                                 S2 as S2 = (1 - reg\_param) * S2 + reg\_param * np.eye(n\_features),
+                                                 where S2 corresponds to the
                                                  scaling\_ attribute of a given class.""", default=0.0))
     specs.addSub(InputData.parameterInputFactory("store_covariance", contentType=InputTypes.BoolType,
-                                                 descr=r"""If True, the class covariance matrices are explicitely computed and stored in the self.covariance\_ attribute.""",
+                                                 descr=r"""If True, the class covariance matrices are explicitely
+                                                 computed and stored in the self.covariance\_ attribute.""",
                                                  default=False))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
-                                                 descr=r"""Absolute threshold for a singular value to be considered significant, used to estimate
-                                                 the rank of Xk where Xk is the centered matrix of samples in class k. This parameter does not affect
-                                                 the predictions. It only controls a warning that is raised when features are considered to be colinear.""",
+                                                 descr=r"""Absolute threshold for a singular value to be considered
+                                                 significant, used to estimate the rank of Xk where Xk is the centered
+                                                 matrix of samples in class k. This parameter does not affect
+                                                 the predictions. It only controls a warning that is raised when
+                                                 features are considered to be colinear.""",
                                                  default=1.0e-4))
     return specs
 
