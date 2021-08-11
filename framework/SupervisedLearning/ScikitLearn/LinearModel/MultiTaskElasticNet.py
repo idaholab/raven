@@ -46,10 +46,7 @@ class MultiTaskElasticNet(ScikitLearnBase):
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.linear_model.MultiTaskElasticNet()
-
-    # self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.MultiTaskElasticNet())
 
   @classmethod
   def getInputSpecification(cls):
@@ -109,7 +106,7 @@ class MultiTaskElasticNet(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha','l1_ratio', 'fit_intercept',
+    settings, notFound = paramInput.findNodesAndExtractValues(['tol','alpha','l1_ratio', 'fit_intercept',
                                                                'max_iter', 'normalize','selection', 'warm_start'])
     # notFound must be empty
     assert(not notFound)

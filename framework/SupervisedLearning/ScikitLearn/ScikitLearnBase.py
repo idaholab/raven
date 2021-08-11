@@ -119,7 +119,11 @@ class ScikitLearnBase(SupervisedLearning):
       outcomes =  self.uniqueVals
     else:
       outcomes = self.model.predict(featureVals)
-    returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
+    outcomes = np.atleast_1d(outcomes)
+    if len(outcomes.shape) == 1:
+      returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
+    else:  
+      returnDict = {key: outcomes[:, i] for i, key in enumerate(self.target)}
     return returnDict
 
   def __resetLocal__(self):
