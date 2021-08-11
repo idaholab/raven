@@ -129,6 +129,18 @@ class SGDRegressor(ScikitLearnBase):
                                                  Must be between 0 and 1. Only used if early\_stopping is True.""", default=0.1))
     specs.addSub(InputData.parameterInputFactory("n_iter_no_change", contentType=InputTypes.IntegerType,
                                                 descr=r"""Number of iterations with no improvement to wait before early stopping.""", default=5))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to shuffle the training data, when shuffle is set to
+                                                 True. Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
+                                                 descr=r"""The verbosity level""", default=0))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("average", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, computes the averaged SGD weights accross
+                                                 all updates and stores the result in the coef_ attribute.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -141,7 +153,8 @@ class SGDRegressor(ScikitLearnBase):
     settings, notFound = paramInput.findNodesAndExtractValues(['loss','penalty','alpha','l1_ratio','fit_intercept',
                                                                'max_iter','tol','shuffle','epsilon', 'learning_rate',
                                                                'eta0','power_t','early_stopping','validation_fraction',
-                                                               'n_iter_no_change'])
+                                                               'n_iter_no_change', 'random_state', 'verbose', 'warm_start',
+                                                               'average'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

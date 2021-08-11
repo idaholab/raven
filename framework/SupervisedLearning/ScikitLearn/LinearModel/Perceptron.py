@@ -95,6 +95,19 @@ class Perceptron(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("validation_fraction", contentType=InputTypes.FloatType,
                                                  descr=r"""The proportion of training data to set aside as validation set for early stopping.
                                                  Must be between 0 and 1. Only used if early_stopping is True.""", default=0.1))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to shuffle the training data, when shuffle is set to
+                                                 True. Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
+                                                 descr=r"""The verbosity level""", default=0))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -106,7 +119,8 @@ class Perceptron(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['penalty','alpha','l1_ratio','early_stopping',
                                                                'fit_intercept','max_iter','tol','validation_fraction',
-                                                               'n_iter_no_change','shuffle','eta0'])
+                                                               'n_iter_no_change','shuffle','eta0', 'class_weight',
+                                                               'random_state', 'verbose', 'warm_start'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

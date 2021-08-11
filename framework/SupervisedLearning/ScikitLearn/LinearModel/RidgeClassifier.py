@@ -95,6 +95,14 @@ class RidgeClassifier(ScikitLearnBase):
                                                               n\_samples and n\_features are large. Note that ``sag'' and ``saga'' fast convergence is only guaranteed on
                                                               features with approximately the same scale. You can preprocess the data with a scaler from sklearn.preprocessing.
                                                  \\end{itemize}""", default='auto'))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to shuffle the training data, when shuffle is set to
+                                                 True. Pass an int for reproducible output across multiple function calls.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -105,7 +113,8 @@ class RidgeClassifier(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','fit_intercept','max_iter',
-                                                               'normalize','tol','solver'])
+                                                               'normalize','tol','solver', 'random_state',
+                                                               'class_weight'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

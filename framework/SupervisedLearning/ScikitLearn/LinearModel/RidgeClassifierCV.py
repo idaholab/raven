@@ -73,8 +73,24 @@ class RidgeClassifierCV(ScikitLearnBase):
                                                  by the l2-norm. """, default=False))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
-
+                                                 It specifies the number of folds..""", default=None))
+    specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatListType,
+                                                 descr=r"""Array of alpha values to try. Regularization strength; must be a positive float. Regularization
+                                                 improves the conditioning of the problem and reduces the variance of the estimates.
+                                                 Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
+                                                 linear models such as LogisticRegression or LinearSVC.""", default=[0.1, 1.0, 10.0]))
+    specs.addSub(InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType,
+                                                 descr=r"""A string (see model evaluation documentation) or a scorer
+                                                 callable object / function with signature.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
+    specs.addSub(InputData.parameterInputFactory("store_cv_values", contentType=InputTypes.BoolType,
+                                                 descr=r"""Flag indicating if the cross-validation values corresponding
+                                                 to each alpha should be stored in the cv_values_ attribute (see below).
+                                                 This flag is only compatible with cv=None (i.e. using Leave-One-Out
+                                                 Cross-Validation).""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -84,7 +100,8 @@ class RidgeClassifierCV(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['normalize','fit_intercept','cv'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['normalize','fit_intercept','cv', 'alphas'
+                                                               'scoring', 'class_weight', 'store_cv_values'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

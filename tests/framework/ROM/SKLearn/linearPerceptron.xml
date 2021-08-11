@@ -40,7 +40,6 @@
       <!-- Using all of the defaults -->
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <penalty>None</penalty>
       <alpha>0.0001</alpha>
       <fit_intercept>True</fit_intercept>
       <n_iter_no_change>5</n_iter_no_change>
@@ -48,7 +47,6 @@
       <random_state>0</random_state>
       <verbose>0</verbose>
       <eta0>1.0</eta0>
-      <class_weight>None</class_weight>
       <warm_start>False</warm_start>
     </ROM>
   </Models>

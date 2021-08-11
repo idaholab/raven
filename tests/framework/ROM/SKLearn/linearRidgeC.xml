@@ -42,9 +42,7 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <alpha>1.0</alpha>
-      <class_weight>None</class_weight>
       <fit_intercept>True</fit_intercept>
-      <max_iter>None</max_iter>
       <normalize>True</normalize>
       <solver>auto</solver>
       <tol>0.001</tol>

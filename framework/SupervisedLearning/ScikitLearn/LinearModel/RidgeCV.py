@@ -70,8 +70,6 @@ class RidgeCV(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True, the
                                                  regressors X will be normalized before regression by subtracting the mean and dividing
                                                  by the l2-norm. """, default=False))
-    specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
-                                                 descr=r"""Precision of the solution""", default=1e-3))
     specs.addSub(InputData.parameterInputFactory("gcv_mode", contentType=InputTypes.makeEnumType("gcv_mode", "gcvType",['auto', 'svd', 'eigen']),
                                                  descr=r"""Flag indicating which strategy to use when performing Leave-One-Out Cross-Validation.
                                                  Options are:
@@ -86,10 +84,23 @@ class RidgeCV(ScikitLearnBase):
                                                  descr=r"""Flag indicating whether to optimize the alpha value for each target separately
                                                  (for multi-output settings: multiple prediction targets). When set to True, after fitting,
                                                  the alpha_ attribute will contain a value for each target. When set to False, a single alpha
-                                                  is used for all targets.""", default=False))
+                                                  is used for all targets. New in version 0.24. (not used)""", default=False))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
+                                                 It specifies the number of folds..""", default=None))
+    specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatListType,
+                                                 descr=r"""Array of alpha values to try. Regularization strength; must be a positive float. Regularization
+                                                 improves the conditioning of the problem and reduces the variance of the estimates.
+                                                 Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
+                                                 linear models such as LogisticRegression or LinearSVC.""", default=[0.1, 1.0, 10.0]))
+    specs.addSub(InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType,
+                                                 descr=r"""A string (see model evaluation documentation) or a scorer
+                                                 callable object / function with signature.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("store_cv_values", contentType=InputTypes.BoolType,
+                                                 descr=r"""Flag indicating if the cross-validation values corresponding
+                                                 to each alpha should be stored in the cv_values_ attribute (see below).
+                                                 This flag is only compatible with cv=None (i.e. using Leave-One-Out
+                                                 Cross-Validation).""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -99,8 +110,9 @@ class RidgeCV(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['gcv_mode','fit_intercept','tol',
-                                                               'normalize','alpha_per_target','cv'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['gcv_mode','fit_intercept',
+                                                               'normalize','cv',
+                                                               'scoring', 'store_cv_values', 'alphas'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
