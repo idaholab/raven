@@ -1,0 +1,65 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/TSACharacterizer.Basic</name>
+    <author>talbpaul</author>
+    <created>2021-08-04</created>
+    <classesTested>PostProcessors.TSACharacterizer</classesTested>
+    <description>
+      Test basic operation of the TSACharacterizer. Each characterization target should
+      have a test signal designed for it to assure an analytic or reliable result.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>Load,Process</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="Load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <PostProcess name="Process">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Model class="Models" type="PostProcessor">tsa_chz</Model>
+      <Output class="DataObjects" type="PointSet">chz</Output>
+      <Output class="OutStreams" type="Print">chz</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="input">../TrainingData/signals.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="tsa_chz" subType="TSACharacterizer">
+      <pivotParameter>pivot</pivotParameter>
+      <fourier target='signal_f, signal_fa'>
+        <periods>2, 5, 10</periods>
+      </fourier>
+      <arma target="signal_a, signal_fa" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </PostProcessor>
+  </Models>
+
+  <OutStreams>
+    <Print name="chz">
+      <type>csv</type>
+      <source>chz</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="chz"/>
+    <HistorySet name="input">
+      <Output>signal_f, signal_a, signal_fa</Output>
+      <options>
+        <pivotParameter>pivot</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -25,6 +25,7 @@ import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 import six
+from numpy import linalg
 
 from utils.utils import UreturnPrintTag, UreturnPrintPostTag
 from .graphStructure import graphObject
@@ -148,7 +149,7 @@ def hyperdiagonal(lengths):
   """
     Obtains the length of a diagonal of a hyperrectangle given the lengths of the sides.  Useful for high-dimensional distance scaling.
     @ In, lengths, list(float), lengths of the sides of the ND rectangle
-    @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
+    @ Out, diag, float, the length of the diagonal between farthest-separated corners of the hypercube
   """
   try:
     return np.sqrt(np.sum(lengths*lengths))
@@ -475,7 +476,6 @@ def NDInArray(findIn,val,tol=1e-12):
   """
   if len(findIn)<1:
     return False,None,None
-  targ = []
   found = False
   for idx,looking in enumerate(findIn):
     num = looking - val
@@ -617,16 +617,16 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   eigvals  = lowrankEigenvals.astype(complex)
   return eigvals, eigvects
 
-def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
   """
     @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
     @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
     @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
-    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+    @ In, optimized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
                           if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
     @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
   """
-  if optmized:
+  if optimized:
     L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
@@ -796,7 +796,7 @@ def toListFromNumpyOrC1array(array):
   if type(array).__name__ == 'ndarray':
     response = array.tolist()
   elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
+    response = np.asarray(array).tolist()
   return response
 
 def toListFromNumpyOrC1arrayIterative(array):
@@ -813,10 +813,10 @@ def toListFromNumpyOrC1arrayIterative(array):
       return None
     tempdict = {}
     for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+      tempdict[np.toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else:
-    return toBytes(array)
+    return np.toBytes(array)
 
 def sizeMatch(var,sizeToCheck):
   """
@@ -930,7 +930,6 @@ def angleBetweenVectors(a, b):
     @ In, b, np.array, vector of floats
     @ Out, ang, float, angle in degrees
   """
-  nVar = len(a)
   # if either vector is all zeros, then angle between is also
   normA = np.linalg.norm(a)
   normB = np.linalg.norm(b)
@@ -965,7 +964,7 @@ def characterizeCDF(data, binOps=None, minBins=1):
     @ In, minBins, int, minimum bins for empirical CDF
     @ Out, params, dict, essential parameters for CDF
   """
-  # caluclate number of bins
+  # calculate number of bins
   # binOps=Length or value
   nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
   # construct histogram
@@ -1067,7 +1066,7 @@ def sampleICDF(x, cdfParams):
 
 def interpolateDist(x, y, x0, xf, y0, yf, mask):
   """
-    Interplotes values for samples "x" to get dependent values "y" given bins
+    Interpolates values for samples "x" to get dependent values "y" given bins
     @ In, x, np.array, sampled points (independent var)
     @ In, y, np.array, sampled points (dependent var)
     @ In, x0, np.array, left-nearest neighbor in empirical distribution for each x
@@ -1078,7 +1077,7 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
     @ Out, y, np.array, same "y" but with values inserted
   """
   ### handle divide-by-zero problems first, specially
-  # check for where div zero prooblems will occur
+  # check for where div zero problems will occur
   divZeroMask = x0 == xf
   # careful with double masking -> doesn't always do what you think it does
   zMask = [a[divZeroMask] for a in np.where(mask)]
@@ -1091,3 +1090,20 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
   okayWhere = [a[okayMask] for a in np.where(mask)]
   y[tuple(okayWhere)] = y0 + dy/dx * frac
   return y
+
+def computeCrowdingDistance(trainSet):
+  """
+    This function will compute the Crowding distance coefficients among the input parameters
+    @ In, trainSet, numpy.array, array contains values of input parameters
+    @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
+  """
+  dim = trainSet.shape[1]
+  distMat = np.zeros((dim, dim))
+
+  for i in range(dim):
+    for j in range(i):
+      distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
+      distMat[j,i] = distMat[i,j]
+
+  crowdingDist = np.sum(distMat,axis=1)
+  return crowdingDist

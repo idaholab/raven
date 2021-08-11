@@ -37,6 +37,7 @@ from .ParetoFrontierPostProcessor import ParetoFrontier
 from .EconomicRatio import EconomicRatio
 from .Validation import Validation
 from .validationAlgorithms.Probabilistic import Probabilistic
+from .TSACharacterizer import TSACharacterizer
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay

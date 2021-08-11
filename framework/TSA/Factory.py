@@ -15,6 +15,7 @@
   Factory interface for returning classes and instances from the
   Time Series Analysis module.
 """
+from utils import InputData
 from EntityFactoryBase import EntityFactory
 
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer

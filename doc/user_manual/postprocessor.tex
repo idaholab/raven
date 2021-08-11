@@ -36,6 +36,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{ParetoFrontier}
   \item \textbf{EconomicRatio}
   \item \textbf{Validation}
+  \item \textbf{TSACharacterizer}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -1611,11 +1612,11 @@ The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}
 \subsubsection{Validation}
 \label{subsubsec:Validation}
 
-The \xmlNode{Validation} post-processor represents a gate 
+The \xmlNode{Validation} post-processor represents a gate
 for applying a different range of algorithms to validate (e.g. compare)
-dataset and/or models (e.g. Distributions). 
+dataset and/or models (e.g. Distributions).
 The post-processor is in charge of deploying a common infrastructure
-for the user of  \textbf{Validation} problems. 
+for the user of  \textbf{Validation} problems.
 Several algorithms are avaialable within this post-processor:
 \begin{itemize}
   \item  \textbf{Probabilistic}, for Static and Time-dependent data
@@ -1650,13 +1651,13 @@ with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
 
 In addition to the nodes above, the user must choose a validation algorithm:
 \begin{itemize}
-  \item \xmlNode{Probabilistic}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed 
-  using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})  or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea}) 
+  \item \xmlNode{Probabilistic}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed
+  using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})  or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea})
   This xml-node accepts the following attribute:
     \begin{itemize}
       \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
     \end{itemize}
-  %\item \xmlNode{DSS}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed via DSS.  
+  %\item \xmlNode{DSS}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed via DSS.
   %This xml-node accepts the following attribute:
   %  \begin{itemize}
   %    \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
@@ -1730,3 +1731,46 @@ DSS                           & HistorySet                                      
 % To be replaced by the PostProcessor Plugin
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\input{PostProcessors/InterfacedPostProcessors.tex}
+
+\subsubsection{TSACharacterizer}
+\label{TSACharacterizer}
+The \xmlNode{TSACharacterizer} postprocessor is a tool to characterize sets of histories using
+the Time Series Analysis (TSA) module. It takes each history realization from the input data object
+and returns characterizations. Note the characterizations are entirely stored in the \texttt{metadata}
+portion of the output data object; no data is store in the input or output.
+
+The \xmlNode{SampleSelector} postprocessor can only act on \xmlNode{HistorySet} \xmlNode{DataObjects},
+and generates a \xmlNode{PointSet} \xmlNode{DataObject} in return with as many realizations as the input
+history set.
+
+\ppType{TSACharacterizer}{TSACharacterizer}
+%
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, specifies the name of the time-like
+    monotonic variable used for the signals in the input history set.
+\end{itemize}
+
+\tsaList
+
+\textbf{TSACharacterizer Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="chz" subType="TSACharacterizer">
+      <pivotParameter>pivot</pivotParameter>
+      <fourier target='signal_f, signal_fa'>
+        <periods>2, 5, 10</periods>
+      </fourier>
+      <arma target="signal_a, signal_fa" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}

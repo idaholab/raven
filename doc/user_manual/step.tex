@@ -415,13 +415,13 @@ This step type is used to:
    \textit{CSV} files contained in a directory;
  \item stream the content of a \textit{Database} or a \textit{DataObjects} out through
    an \textbf{OutStream} object (see section \ref{sec:outstream});
-\item store/retrieve a \textit{ROM} to/from an external \textit{File} using Pickle module
- of Python.
-\end{itemize}
-This last function can be used to create and store mathematical model of fast solution
- trained to predict a response of interest of a physical system. This model can be
+ \item store/retrieve a \textit{ROM} or  \textit{ExternalModel} to/from an external \textit{File} using Pickle module
+ of Python. This function can be used to create and store ExternalModel or mathematical model (ROM) of fast solution
+ trained to predict a response of interest of a physical system. These models can be
 recovered in other simulations or used to evaluate the response of a physical system
  in a Python program by the implementing of the Pickle module.
+\end{itemize}
+
 %
 The specifications of this type of step must be defined within an
 \xmlNode{IOStep} XML block.
@@ -469,7 +469,7 @@ This step accepts the following roles:
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{PointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
-    \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
+    \xmlAttr{type} attribute must be \xmlString{ROM} or \xmlString{ExternalModel} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
     \xmlAttr{type} attribute must be \xmlString{ }
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity to
@@ -542,25 +542,27 @@ A summary of the objects that can go from/to other objects is shown in Table \re
                & OutStream  & Print or Plot Data             \\ \hline
     Database   & DataObject & Load from On-Disk Database     \\ \hline
     File       & DataObject & Load from On-Disk CSV          \\
+                & ExternalModel        & Load On-Disk Serialized ExternalModel    \\
                & ROM        & Load On-Disk Serialized ROM    \\ \hline
     ROM        & DataObject & Print ROM Metadata to CSV, XML \\
-               & File       & Serialize ROM to Disk
+               & File       & Serialize ROM to Disk   \\ \hline
+    ExternalModel     & File       & Serialize ExternalModel to Disk \\
   \end{tabular}
   \caption{Object options for \xmlNode{IOStep} operations}
   \label{tab:IOSTEP}
 \end{table}
 
-As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM
-in a binary file. To use the exported ROM in an external Python (or
+As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM or ExternalModel
+in a binary file. To use the exported ROM or ExternalModel in an external Python (or
 Python-compatible) code, the RAVEN framework must be present in end-user machine.
 The main reason for this is that the \textit{Pickle} module uses the class definitions to template
 the reconstruction of the serialized object in memory.
-\\ In order to faciliate the usage of the serialized ROM in an external Python code, the RAVEN
+\\ In order to faciliate the usage of the serialized ROM or ExternalModel in an external Python code, the RAVEN
 team provided a utility class contained in :
 \begin{lstlisting}[language=bash]
  ./raven/scripts/externalROMloader.py
 \end{lstlisting}
-An example of how to use this utility class to load and use a serialized ROM (already trained) is reported below:
+An example of how to use this utility class to load and use a serialized ROM (already trained) or ExternalModel is reported below:
 %
 Example Python Function:
 \begin{lstlisting}[language=python]
@@ -573,7 +575,7 @@ eval  = rom.evaluate(request)
 print str(eval)
 \end{lstlisting}
 
-The module above can also be used to evaluate a ROM from input file:
+The module above can also be used to evaluate a ROM or ExternalModel from input file:
 \begin{lstlisting}[language=bash]
   python ./raven/scripts/externalROMloader.py input_file.xml
 \end{lstlisting}
@@ -621,6 +623,10 @@ The output of the above command would look like as follows:
   </evaluations>
 </UROM>
 \end{lstlisting}
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%   ROM    %%%%%
