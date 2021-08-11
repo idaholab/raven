@@ -23,6 +23,7 @@ import numpy as np
 import abc
 import sys
 import importlib
+import pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -397,7 +398,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     else:
       fileobj = fileo
       fileobj.open(mode='wb+')
-    cloudpickle.dump(self,fileobj)
+    cloudpickle.dump(self,fileobj, protocol=pickle.HIGHEST_PROTOCOL)
     fileobj.flush()
     fileobj.close()
 
