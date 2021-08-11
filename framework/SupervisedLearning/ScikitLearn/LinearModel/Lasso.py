@@ -93,7 +93,9 @@ class Lasso(ScikitLearnBase):
                                                  descr=r"""If set to ``random'', a random coefficient is updated every iteration
                                                  rather than looping over features sequentially by default. This (setting to `random'')
                                                  often leads to significantly faster convergence especially when tol is higher than $1e-4$""", default='cyclic'))
-
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -104,7 +106,8 @@ class Lasso(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','tol', 'fit_intercept', 'precompute',
-                                                               'normalize','max_iter','positive','selection'])
+                                                               'normalize','max_iter','positive','selection',
+                                                               'warm_start'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

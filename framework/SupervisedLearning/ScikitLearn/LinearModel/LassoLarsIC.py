@@ -79,7 +79,7 @@ class LassoLarsIC(ScikitLearnBase):
                                                  dividing by the l2-norm.""", default=True))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=500))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
                                                  For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
@@ -89,6 +89,8 @@ class LassoLarsIC(ScikitLearnBase):
                                                  control the tolerance of the optimization.""", default=finfo(float).eps))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
                                                  descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Amount of verbosity.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -99,7 +101,7 @@ class LassoLarsIC(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','max_iter', 'normalize', 'precompute',
-                                                               'eps','positive','criterion'])
+                                                               'eps','positive','criterion', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

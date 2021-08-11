@@ -19,6 +19,7 @@
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
+from numpy import finfo
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -75,7 +76,7 @@ class LassoLarsCV(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=True))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
                                                  For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_n_alphas", contentType=InputTypes.IntegerType,
@@ -91,6 +92,8 @@ class LassoLarsCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
                                                  It specifies the number of folds..""", default=5))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Amount of verbosity.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -101,7 +104,7 @@ class LassoLarsCV(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','max_iter', 'normalize', 'precompute',
-                                                               'max_n_alphas','eps','positive','cv'])
+                                                               'max_n_alphas','eps','positive','cv', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

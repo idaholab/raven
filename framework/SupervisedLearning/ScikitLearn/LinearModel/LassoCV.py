@@ -80,7 +80,7 @@ class LassoCV(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
                                                  For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
@@ -94,6 +94,11 @@ class LassoCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
                                                  It specifies the number of folds..""", default=5))
+    specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatListType,
+                                                 descr=r"""List of alphas where to compute the models. If None alphas
+                                                 are set automatically.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Amount of verbosity.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -104,7 +109,8 @@ class LassoCV(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol','eps', 'n_alphas', 'fit_intercept','normalize',
-                                                               'precompute','max_iter','positive','selection','cv'])
+                                                               'precompute','max_iter','positive','selection','cv',
+                                                               'alphas', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

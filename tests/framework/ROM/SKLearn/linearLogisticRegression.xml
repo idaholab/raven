@@ -45,8 +45,6 @@
       <C>1.0</C>
       <fit_intercept>True</fit_intercept>
       <intercept_scaling>1.0</intercept_scaling>
-      <class_weight>None</class_weight>
-      <random_state>None</random_state>
       <tol>0.0001</tol>
     </ROM>
   </Models>

@@ -103,7 +103,7 @@ class LogisticRegression(ScikitLearnBase):
                                                    \\item ``liblinear'' does not support setting penalty=``none''
                                                  \\end{itemize}""", default='lbfgs'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
+                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=100))
     specs.addSub(InputData.parameterInputFactory("multi_class", contentType=InputTypes.makeEnumType("multiClass", "multiClassType",['auto','ovr', 'multinomial']),
                                                  descr=r"""If the option chosen is ``ovr'', then a binary problem is fit for each label. For ``multinomial''
                                                  the loss minimised is the multinomial loss fit across the entire probability distribution, even when the
@@ -113,6 +113,13 @@ class LogisticRegression(ScikitLearnBase):
                                                  descr=r"""The Elastic-Net mixing parameter, with $0 <= l1_ratio <= 1$. Only used if penalty=``elasticnet''.
                                                  Setting $l1_ratio=0$ is equivalent to using penalty=``l2'', while setting $l1_ratio=1$ is equivalent to using
                                                  $penalty=``l1''$. For $0 < l1_ratio <1$, the penalty is a combination of L1 and L2.""", default=0.5))
+    specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
+                                                 descr=r"""If not given, all classes are supposed to have weight one.
+                                                 The “balanced” mode uses the values of y to automatically adjust weights
+                                                 inversely proportional to class frequencies in the input data""", default=None))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used when solver == ‘sag’, ‘saga’ or ‘liblinear’ to shuffle the data.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -123,7 +130,8 @@ class LogisticRegression(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'dual', 'penalty', 'l1_ratio', 'tol', 'fit_intercept',
-                                                               'solver','intercept_scaling',  'max_iter', 'multi_class'])
+                                                               'solver','intercept_scaling',  'max_iter', 'multi_class',
+                                                               'class_weight', 'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

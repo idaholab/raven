@@ -22,6 +22,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -77,7 +78,7 @@ class LassoLars(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
                                                  For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
@@ -93,6 +94,8 @@ class LassoLars(ScikitLearnBase):
                                                  descr=r"""Upper bound on a uniform noise parameter to be added to the y values,
                                                  to satisfy the model’s assumption of one-at-a-time computations. Might help
                                                  with stability.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Amount of verbosity.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -103,7 +106,7 @@ class LassoLars(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','fit_intercept', 'normalize', 'precompute',
-                                                               'max_iter','eps','positive','jitter'])
+                                                               'max_iter','eps','positive','jitter', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

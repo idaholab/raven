@@ -42,11 +42,14 @@ class MultiTaskElasticNet(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.MultiTaskElasticNet())
+    self.model = sklearn.linear_model.MultiTaskElasticNet()
+
+    # self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.MultiTaskElasticNet())
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,14 +87,8 @@ class MultiTaskElasticNet(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
-    specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
-                                                 descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
-    specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
-                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=True))
-
     specs.addSub(InputData.parameterInputFactory("selection", contentType=InputTypes.makeEnumType("selection", "selectionType",['cyclic', 'random']),
                                                  descr=r"""If set to ``random'', a random coefficient is updated every iteration
                                                  rather than looping over features sequentially by default. This (setting to `random'')
@@ -100,6 +97,9 @@ class MultiTaskElasticNet(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.BoolType,
+                                                 descr=r"""When set to True, reuse the solution of the previous call
+                                                 to fit as initialization, otherwise, just erase the previous solution.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -109,9 +109,8 @@ class MultiTaskElasticNet(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha','l1_ratio',
-                                                               'precompute', 'fit_intercept',
-                                                               'max_iter', 'normalize','selection','positive'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha','l1_ratio', 'fit_intercept',
+                                                               'max_iter', 'normalize','selection', 'warm_start'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
