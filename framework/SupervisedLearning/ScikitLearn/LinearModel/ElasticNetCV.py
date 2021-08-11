@@ -88,7 +88,7 @@ class ElasticNetCV(ScikitLearnBase):
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds.""", default=5))
+                                                 It specifies the number of folds.""", default=None))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
                                                  descr=r"""When set to True, forces the coefficients to be positive.""", default=True))
     specs.addSub(InputData.parameterInputFactory("selection", contentType=InputTypes.makeEnumType("selection", "selectionType",['cyclic', 'random']),

@@ -93,7 +93,7 @@ class LassoCV(ScikitLearnBase):
                                                  often leads to significantly faster convergence especially when tol is higher than $1e-4$""", default='cyclic'))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
+                                                 It specifies the number of folds..""", default=None))
     specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatListType,
                                                  descr=r"""List of alphas where to compute the models. If None alphas
                                                  are set automatically.""", default=None))

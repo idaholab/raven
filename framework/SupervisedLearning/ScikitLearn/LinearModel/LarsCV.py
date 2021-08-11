@@ -87,7 +87,7 @@ class LarsCV(ScikitLearnBase):
                                                  residuals in the cross-validation.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
+                                                 It specifies the number of folds..""", default=None))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Sets the verbosity amount.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,

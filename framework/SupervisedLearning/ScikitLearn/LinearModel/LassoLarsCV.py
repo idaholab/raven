@@ -91,7 +91,7 @@ class LassoLarsCV(ScikitLearnBase):
                                                  descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5))
+                                                 It specifies the number of folds..""", default=None))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Amount of verbosity.""", default=False))
     return specs
