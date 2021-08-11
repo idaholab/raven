@@ -305,6 +305,10 @@ class DataSet(DataObject):
     if outType == 'xrDataset':
       # return reference to the xArray
       data = self._convertToXrDataset()
+      if data != None:
+        if 'name' not in data.attrs:
+          data.attrs['name'] = self.name
+          
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
       data = self._convertToDict()
@@ -794,7 +798,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, vars, list(str), variable names list
     """
-    return self._inputs + self._outputs + self._metavars
+    return self._inputs +framework/DataObjects/DataSet.py self._outputs + self._metavars
 
   @property
   def size(self):
@@ -2082,6 +2086,7 @@ class DataSet(DataObject):
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
+      meta.pop('name', None)
       for name in sorted(list(meta.keys())):
         target = meta[name]
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
