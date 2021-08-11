@@ -308,7 +308,7 @@ class DataSet(DataObject):
       if data != None:
         if 'name' not in data.attrs:
           data.attrs['name'] = self.name
-
+          
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
       data = self._convertToDict()
@@ -2090,6 +2090,7 @@ class DataSet(DataObject):
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
+      meta.pop('name', None)
       for name in sorted(list(meta.keys())):
         target = meta[name]
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
