@@ -32,7 +32,7 @@ import Driver
 import Steps
 
 # write tex
-stepSpec = Steps.MultiRun.getInputSpecification()()
+stepSpec = Steps.factory.returnClass('MultiRun').getInputSpecification()()
 tex = stepSpec.generateLatex()
 fName = 'example_multirun_spec.tex'
 with open(fName, 'w') as f:

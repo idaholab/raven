@@ -32,12 +32,32 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   _features = []
 
   @classmethod
+  def canGenerate(cls) -> bool:
+    """
+    A predicate function to determine if object instance inherits from TimeSeriesGenerator.
+
+    @ In, None
+    @ Out, boolean, True if instance can generate
+    """
+    return issubclass(cls, TimeSeriesGenerator)
+
+  @classmethod
+  def canCharacterize(cls) -> bool:
+    """
+    A predicate function to determine if object instance inherits from TimeSeriesCharacterizer.
+
+    @ In, None
+    @ Out, boolean, True if instance can characterize
+    """
+    return issubclass(cls, TimeSeriesCharacterizer)
+
+  @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
+      Method to get a reference to a class that specifies the input data for class cls.
+
+      @ In, None
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class for time series analysis algorithms used in RAVEN.'
@@ -81,18 +101,6 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       settings['seed'] = None
     return settings
 
-  @abc.abstractmethod
-  def characterize(self, signal, pivot, targets, settings):
-    """
-      Characterizes the provided time series ("signal") using methods specific to this algorithm.
-      @ In, signal, np.array, time-dependent series
-      @ In, pivot, np.array, time-like parameter
-      @ In, targets, list(str), names of targets
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, params, dict, characterization of signal; structure as:
-                           params[target variable][characteristic] = value
-    """
-
   def getResidual(self, initial, params, pivot, settings):
     """
       Removes trained signal from data and find residual
@@ -109,6 +117,22 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     residual = initial - sample
     return residual
 
+  @abc.abstractclassmethod
+  def writeXML(self, writeTo, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+
+
+
+class TimeSeriesGenerator(TimeSeriesAnalyzer):
+  """
+  Act as an identifying class for algorithms that can generate synthetic time histories.
+  """
+
   @abc.abstractmethod
   def generate(self, params, pivot, settings):
     """
@@ -118,12 +142,31 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic signal
     """
+    pass
 
-  def writeXML(self, writeTo, params):
+
+class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
+  """
+  Act as an identifying class for algorithms that can generate characterize time-dependent signals.
+  """
+
+  @abc.abstractmethod
+  def characterize(self, signal, pivot, targets, settings):
     """
-      Allows the engine to put whatever it wants into an XML to print to file.
-      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, params, dict, parameters from training this ROM
-      @ Out, None
+      Characterizes the provided time series ("signal") using methods specific to this algorithm.
+      @ In, signal, np.array, time-dependent series
+      @ In, pivot, np.array, time-like parameter
+      @ In, targets, list(str), names of targets
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, params, dict, characterization of signal; structure as:
+                           params[target variable][characteristic] = value
     """
-    pass # overwrite in subclasses if desired
+    pass
+
+  @abc.abstractmethod
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """

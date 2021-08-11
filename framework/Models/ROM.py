@@ -1335,6 +1335,11 @@ class ROM(Dummy):
       if child.getName() == 'CV':
         self.cvInstance = child.value.strip()
         continue
+      #set input and output var lists (needed for FMI/FMU export)
+      if child.getName() == 'Features':
+        self._setVariableList('input', child.value)
+      elif child.getName() == 'Target':
+        self._setVariableList('output', child.value)
       if len(child.parameterValues) > 0 and child.getName().lower() not in self.kerasLayersList:
         if child.getName() == 'alias':
           continue
@@ -1426,6 +1431,21 @@ class ROM(Dummy):
     metaKeys = metaKeys.union(keys)
     metaParams.update(params)
     return metaKeys, metaParams
+
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      Also train this model.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    # save reseeding parameters from pickledROM
+    loadSettings = self.initializationOptionDict
+    # train the ROM from the unpickled object
+    self.train(obj)
+    self.setAdditionalParams(loadSettings)
 
   def train(self,trainingSet):
     """

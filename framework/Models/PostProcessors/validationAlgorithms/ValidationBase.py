@@ -21,13 +21,9 @@
   ##TODO: Recast it once the new PostProcesso API gets in place
 """
 
-#External Modules------------------------------------------------------------------------------------
-
-#External Modules End--------------------------------------------------------------------------------
-
 #Internal Modules------------------------------------------------------------------------------------
-#from utils import utils, InputData, InputTypes
 from BaseClasses import BaseInterface
+from Metrics.metrics import factory as MetricInterfaceFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ValidationBase(BaseInterface):
@@ -72,10 +68,11 @@ class ValidationBase(BaseInterface):
     self.pivotParameter = kwargs.get('pivotParameter')
     self.metrics = kwargs.get('metrics')
     if self.acceptableMetrics:
-      accetable = [True if metric.estimator.type in self.acceptableMetrics else False for metric in self.metrics]
-      if not all(accetable):
-        notAcceptable = [self.metrics[i].estimator.type for i, x in enumerate(accetable) if not x]
-        self.raiseAnError(IOError, "The metrics '{}' are not acceptable for validation algorithm {}".format(','.join(notAcceptable), self.name))
+      acceptable = [True if metric.estimator.isInstanceString(self.acceptableMetrics) else False for metric in self.metrics]
+      if not all(acceptable):
+        notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
+        self.raiseAnError(IOError,
+            "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
   def _handleInput(self, paramInput):
     """

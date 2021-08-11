@@ -25,11 +25,11 @@ from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, impor
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class ARMA(TimeSeriesAnalyzer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
@@ -57,10 +57,10 @@ class ARMA(TimeSeriesAnalyzer):
                          observed switching between modes. Note that the ARMA must be
                          retrained to change this property; it cannot be applied to serialized ARMAs.
                          \default{False}""")
-    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))
-    specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
                        regression; typically represented as $Q$ in literature."""))
     return specs
@@ -76,7 +76,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
     self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
@@ -85,7 +85,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['P'] = spec.findFirst('SignalLag').value
     settings['Q'] = spec.findFirst('NoiseLag').value
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
@@ -98,7 +98,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, settings, dict, existing settings
       @ Out, settings, dict, modified settings
     """
-    settings = TimeSeriesAnalyzer.setDefaults(self, settings)
+    settings = super().setDefaults(settings)
     if 'gaussianize' not in settings:
       settings['gaussianize'] = True
     if 'engine' not in settings:
@@ -177,6 +177,40 @@ class ARMA(TimeSeriesAnalyzer):
       if not settings['reduce_memory']:
         params[target]['arma']['results'] = res
     return params
+
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__constant')
+      names.append(f'{base}__variance')
+      for p in range(settings['P']):
+        names.append(f'{base}__AR__{p}')
+      for q in range(settings['Q']):
+        names.append(f'{base}__MA__{q}')
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      rlz[f'{base}__constant'] = info['arma']['const']
+      rlz[f'{base}__variance'] = info['arma']['var']
+      for p, ar in enumerate(info['arma']['ar']):
+        rlz[f'{base}__AR__{p}'] = ar
+      for q, ma in enumerate(info['arma']['ma']):
+        rlz[f'{base}__MA__{q}'] = ma
+    return rlz
 
   def getResidual(self, initial, params, pivot, settings):
     """
