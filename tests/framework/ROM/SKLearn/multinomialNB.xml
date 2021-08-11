@@ -43,7 +43,6 @@
       <Target>Z</Target>
       <alpha>1.0</alpha>
       <fit_prior>True</fit_prior>
-      <class_prior>None</class_prior>
     </ROM>
   </Models>
 

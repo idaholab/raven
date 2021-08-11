@@ -108,6 +108,9 @@ class ExtraTreeClassifier(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
                                                  complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to pick randomly the max\_features used at each split.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):

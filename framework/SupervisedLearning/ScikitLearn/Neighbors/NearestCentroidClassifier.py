@@ -29,7 +29,7 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class NearestCentroidClassifier(ScikitLearnBase):
+class NearestCentroid(ScikitLearnBase):
   """
     Nearest Centroid Classifier
   """
@@ -57,7 +57,7 @@ class NearestCentroidClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(NearestCentroidClassifier, cls).getInputSpecification()
+    specs = super().getInputSpecification()
     specs.description = r"""The \xmlNode{RadiusNeighborsClassifier} is a type of instance-based learning or
                          non-generalizing learning: it does not attempt to construct a general internal
                          model, but simply stores instances of the training data.

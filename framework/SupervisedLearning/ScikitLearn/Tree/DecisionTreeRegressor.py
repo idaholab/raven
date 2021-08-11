@@ -48,7 +48,7 @@ class DecisionTreeRegressor(ScikitLearnBase):
     import sklearn.tree
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegression(sklearn.tree.DecisionTreeRegressor())
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.tree.DecisionTreeRegressor())
 
   @classmethod
   def getInputSpecification(cls):
@@ -108,6 +108,17 @@ class DecisionTreeRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
                                                  complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Controls the randomness of the estimator. The features are
+                                                 always randomly permuted at each split, even if splitter is set to
+                                                 "best". When max\_features < n\_features, the algorithm will select
+                                                 max_features at random at each split before finding the best split
+                                                 among them. But the best found split may vary across different runs,
+                                                 even if max\_features=n\_features. That is the case, if the improvement
+                                                 of the criterion is identical for several splits and one split has to
+                                                 be selected at random. To obtain a deterministic behaviour during
+                                                 fitting, random\_state has to be fixed to an integer.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -119,7 +130,8 @@ class DecisionTreeRegressor(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['criterion', 'splitter', 'max_depth','min_samples_split',
                                                                'min_samples_leaf','min_weight_fraction_leaf','max_features',
-                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha'])
+                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha',
+                                                               'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

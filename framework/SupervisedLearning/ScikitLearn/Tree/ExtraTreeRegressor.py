@@ -48,7 +48,7 @@ class ExtraTreeRegressor(ScikitLearnBase):
     import sklearn.tree
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegression(sklearn.tree.ExtraTreeRegressor())
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.tree.ExtraTreeRegressor())
 
   @classmethod
   def getInputSpecification(cls):
@@ -93,7 +93,6 @@ class ExtraTreeRegressor(ScikitLearnBase):
                                                   \\begin{itemize}
                                                     \\item sqrt: $max\_features=sqrt(n\_features)$
                                                     \\item log2: $max\_features=log2(n\_features)$
-                                                    \\item None: $max\_features=n\_features$
                                                     \\item auto: automatic selection
                                                   \\end{itemize}
                                                   \nb the search for a split does not stop until at least one valid partition of the node
@@ -111,6 +110,9 @@ class ExtraTreeRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
                                                  complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
+    specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Used to pick randomly the max\_features used at each split.""",
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -122,7 +124,8 @@ class ExtraTreeRegressor(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['criterion', 'splitter', 'max_depth','min_samples_split',
                                                                'min_samples_leaf','min_weight_fraction_leaf','max_features',
-                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha'])
+                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha',
+                                                               'random_state'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

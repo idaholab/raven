@@ -88,7 +88,8 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
                                                  descr=r"""Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
                                                  manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$, minkowski\_distance
                                                  (l\_p) is used.""", default=2))
-    specs.addSub(InputData.parameterInputFactory("metric", contentType=InputTypes.makeEnumType("metric", "metricType",['uniform','distance']),
+    specs.addSub(InputData.parameterInputFactory("metric", contentType=InputTypes.makeEnumType("metric", "metricType",['minkowski','euclidean', 'manhattan',
+                                                 'chebyshev', 'hamming', 'canberra', 'braycurtis']),
                                                  descr=r"""the distance metric to use for the tree. The default metric is minkowski, and with
                                                  $p=2$ is equivalent to the standard Euclidean metric.
                                                  The available metrics are:

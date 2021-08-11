@@ -39,7 +39,6 @@
     <ROM name="modelUnderTest" subType="NearestCentroid">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <shrink_threshold>None</shrink_threshold>
     </ROM>
   </Models>
 

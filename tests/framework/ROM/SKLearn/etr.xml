@@ -41,10 +41,8 @@
       <Target>Z</Target>
       <criterion>mse</criterion>
       <max_features>auto</max_features>
-      <max_depth>None</max_depth>
       <min_samples_split>2</min_samples_split>
       <min_samples_leaf>1</min_samples_leaf>
-      <max_leaf_nodes>None</max_leaf_nodes>
       <random_state>1</random_state>
     </ROM>
   </Models>

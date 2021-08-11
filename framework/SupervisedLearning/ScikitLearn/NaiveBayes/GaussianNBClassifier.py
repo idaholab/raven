@@ -37,7 +37,7 @@ class GaussianNB(ScikitLearnBase):
   """
   info = {'problemtype':'classification', 'normalize':True}
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
       @ In, None
@@ -45,7 +45,7 @@ class GaussianNB(ScikitLearnBase):
     """
     super().__init__()
     import sklearn
-    import sklearn.svm
+    import sklearn.naive_bayes
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.GaussianNB())

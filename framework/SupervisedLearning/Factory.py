@@ -98,7 +98,7 @@ from .ScikitLearn.MultiClass.OutputCodeClassifier import OutputCodeClassifier
 
 
 from .ScikitLearn.Neighbors.KNeighborsClassifier import KNeighborsClassifier
-from .ScikitLearn.Neighbors.NearestCentroidClassifier import NearestCentroidClassifier
+from .ScikitLearn.Neighbors.NearestCentroidClassifier import NearestCentroid
 from .ScikitLearn.Neighbors.RadiusNeighborsRegressor import RadiusNeighborsRegressor
 from .ScikitLearn.Neighbors.KNeighborsRegressor import KNeighborsRegressor
 from .ScikitLearn.Neighbors.RadiusNeighborsClassifier import RadiusNeighborsClassifier

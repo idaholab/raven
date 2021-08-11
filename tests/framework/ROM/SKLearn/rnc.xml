@@ -36,7 +36,7 @@
     <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="RadiusNeighbors">
+    <ROM name="modelUnderTest" subType="RadiusNeighborsClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <radius>1.0</radius>
