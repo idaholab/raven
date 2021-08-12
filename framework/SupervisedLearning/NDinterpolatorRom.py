@@ -68,10 +68,18 @@ class NDinterpolatorRom(SupervisedLearning):
       @ Out, None
     """
     self.__dict__.update(state)
-    self.__initLocal__()
+    self.setInterpolator()
     #only train if the original copy was trained
     if self.amITrained:
       self.__trainLocal__(self.featv,self.targv)
+
+  def setInterpolator(self):
+    """
+      Set up the interpolator
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def __trainLocal__(self,featureVals,targetVals):
     """

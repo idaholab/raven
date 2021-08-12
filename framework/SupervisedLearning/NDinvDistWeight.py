@@ -74,6 +74,16 @@ class NDinvDistWeight(NDinterpolatorRom):
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     self._p = None # must be positive, power parameter
 
+  def setInterpolator(self):
+    """
+      Set up the interpolator
+      @ In, None
+      @ Out, None
+    """
+    self.interpolator = []
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self._p)))
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
@@ -85,9 +95,7 @@ class NDinvDistWeight(NDinterpolatorRom):
     if len(notFound) != 0:
       self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self._p = nodes['p']
-    self.interpolator = []
-    for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self._p)))
+    self.setInterpolator()
 
   def __resetLocal__(self):
     """
@@ -95,6 +103,4 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator = []
-    for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self._p)))
+    self.setInterpolator()

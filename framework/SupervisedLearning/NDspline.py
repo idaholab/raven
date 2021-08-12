@@ -81,8 +81,7 @@ class NDspline(NDinterpolatorRom):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.NDSpline())
+    self.setInterpolator()
 
   def initializeFromDict(self, inputDict):
     """
@@ -91,8 +90,7 @@ class NDspline(NDinterpolatorRom):
       @ Out, None
     """
     super().initializeFromDict(inputDict)
-    for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.NDSpline())
+    self.setInterpolator()
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -137,11 +135,20 @@ class NDspline(NDinterpolatorRom):
       targv = interpolationND.vectd(targetVals[:,index])
       self.interpolator[index].fit(featv,targv)
 
+  def setInterpolator(self):
+    """
+      Set up the interpolator
+      @ In, None
+      @ Out, None
+    """
+    self.interpolator = []
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.NDSpline())
+
   def __resetLocal__(self):
     """
       Reset ROM. After this method the ROM should be described only by the initial parameter settings
       @ In, None
       @ Out, None
     """
-    for index in range(len(self.target)):
-      self.interpolator[index].reset()
+    self.setInterpolator()
