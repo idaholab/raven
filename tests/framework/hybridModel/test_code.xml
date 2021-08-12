@@ -39,8 +39,7 @@
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
     </Code>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="knr" subType="KNeighborsRegressor">
       <Features>x, y</Features>
       <Target>poly</Target>
       <n_neighbors>5</n_neighbors>

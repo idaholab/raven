@@ -74,8 +74,8 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
       @ Out, None
     """
-    self.settings = settings
     settings = self.updateSettings(settings)
+    self.settings = settings
     self.model.set_params(**settings)
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -122,7 +122,7 @@ class ScikitLearnBase(SupervisedLearning):
     outcomes = np.atleast_1d(outcomes)
     if len(outcomes.shape) == 1:
       returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
-    else:  
+    else:
       returnDict = {key: outcomes[:, i] for i, key in enumerate(self.target)}
     return returnDict
 

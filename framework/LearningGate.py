@@ -161,8 +161,7 @@ class SupervisedLearningGate(BaseInterface):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    # paramDict = self.supervisedContainer[-1].returnInitialParameters()
-    paramDict = {}
+    paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
   def provideExpectedMetaKeys(self):

@@ -62,6 +62,10 @@ class SupervisedLearning(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType, default='time'))
+    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
+    cvInput.addParam("class", InputTypes.StringType)
+    cvInput.addParam("type", InputTypes.StringType)
+    spec.addSub(cvInput)
     return spec
 
   @staticmethod

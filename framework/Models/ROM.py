@@ -192,9 +192,10 @@ class ROM(Dummy):
     paramInput = self.getInputSpecification(xml=xmlNode)()
     paramInput.parseNode(xmlNode)
     cvNode = paramInput.findFirst('CV')
-    self.cvInstance = cvNode.values if cvNode is not None else None
+    if cvNode is not None:
+      self.cvInstance = cvNode.value
     estimatorNode = paramInput.findFirst('estimator')
-    self._estimator = estimatorNode.values if estimatorNode is not None else None
+    self._estimator = estimatorNode.value if estimatorNode is not None else None
     ##
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     self._interfaceROM._readMoreXML(xmlNode)
@@ -382,8 +383,8 @@ class ROM(Dummy):
       @ In, trainingSize, int, the size of current training size
       @ Out, cvScore, dict, the dict containing the score of cross validation
     """
-    if self.subType.lower() not in ['scikitlearn','ndinvdistweight']:
-      self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
+    #if self.subType.lower() not in ['scikitlearn','ndinvdistweight']:
+    #  self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
     cvScore = self._crossValidationScore(trainingSet)
     return cvScore
 
