@@ -2,7 +2,7 @@
   <DataSet type="Static">
     <general>
       <inputs>trajID</inputs>
-      <outputs>x,y,func,const,ans,stepSize,iteration,accepted,conv_gradient</outputs>
+      <outputs>x,y,func,const,ans,aux_ans,stepSize,iteration,accepted,conv_gradient</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>

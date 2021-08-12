@@ -17,11 +17,11 @@
 import numpy as np
 
 from utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class Wavelet(TimeSeriesAnalyzer):
+class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
     Perform Discrete Wavelet Transformation on time-dependent data.
   """
@@ -63,8 +63,7 @@ class Wavelet(TimeSeriesAnalyzer):
     cgau family: cgau1, cgau2, cgau3, cgau4, cgau5, cgau6, cgau7, cgau8
     shan family: shan
     fbsp family: fbsp
-    cmor family: cmor
-"""
+    cmor family: cmor"""
     ))
     return specs
 
@@ -77,7 +76,7 @@ class Wavelet(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
 
   def handleInput(self, spec):
@@ -86,7 +85,7 @@ class Wavelet(TimeSeriesAnalyzer):
       @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['family'] = spec.findFirst('family').value
     return settings
 
@@ -123,7 +122,33 @@ class Wavelet(TimeSeriesAnalyzer):
 
     return params
 
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    # FIXME we don't know a priori how many entries will be in the decomp, so we can't register it yet!
+    raise NotImplementedError('Cannot predict variables for Wavelet!')
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
 
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    # FIXME we don't know a priori how many entries will be in the decomp, so we can't register it yet!
+    raise NotImplementedError('Cannot predict variables for Wavelet!')
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      for name, values in info['results'].items():
+        for v, val in enumerate(values):
+          rlz[f'{base}__{name}__{v}'] = val
+    return rlz
 
   def generate(self, params, pivot, settings):
     """

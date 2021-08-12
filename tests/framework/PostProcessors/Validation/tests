@@ -6,4 +6,11 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_gate_probabilistic_time_dep]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_probabilistic_time_dep.xml'
+    csv = 'ProbabilisticTimeDep/pp1_metric_dump_0.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
 []

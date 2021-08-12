@@ -60,16 +60,22 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
 
-  def copyModel(self, obj):
+  def _copyModel(self, obj):
     """
-      This method is aimed to copy the "obj" model in this instance
-      It is generally used for unpickling objects (models)
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
       @ In, obj, instance, the instance of the object to copy from
       @ Out, None
     """
     if obj.type != self.type:
       self.raiseAnError(IOError,'Only objects of the same type can be copied! {} != {} !'.format(obj.type, self.type))
-    self.__dict__.update(obj.__dict__)
+    try:
+      #If __getstate__ and __setstate__ available, use them
+      self.__setstate__(obj.__getstate__())
+    except AttributeError:
+      #Otherwise just use object's dictionary
+      self.__dict__.update(obj.__dict__)
 
   def _manipulateInput(self,dataIn):
     """

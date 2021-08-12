@@ -15,12 +15,14 @@
   Factory interface for returning classes and instances from the
   Time Series Analysis module.
 """
+from utils import InputData
 from EntityFactoryBase import EntityFactory
 
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
 from .Wavelet import Wavelet
+from .PolynomialRegression import PolynomialRegression
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems

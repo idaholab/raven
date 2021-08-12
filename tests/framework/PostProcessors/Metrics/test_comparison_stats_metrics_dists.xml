@@ -26,14 +26,14 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans, dist1, dist1</Features>
       <Targets type="variable">ans2, dist2, outputDataMC|Output|ans2</Targets>
-      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
-      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <Metric class="Metrics" type="Metric">cdf_diff</Metric>
+      <Metric class="Metrics" type="Metric">pdf_area</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff"/>
-    <PDFCommonArea name="pdf_area"/>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
   </Metrics>
 
   <Distributions>

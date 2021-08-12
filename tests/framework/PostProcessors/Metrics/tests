@@ -42,7 +42,6 @@
   [./test_comparison_statistics_unit]
     type = 'RavenPython'
     input = 'unit_test_comparison_statistics.py'
-    requires_swig2 = True
   [../]
   [./testMetricTD]
     type = 'RavenFramework'

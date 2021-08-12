@@ -1281,7 +1281,7 @@ class ROM(Dummy):
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
-    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -1433,10 +1433,12 @@ class ROM(Dummy):
     metaParams.update(params)
     return metaKeys, metaParams
 
-  def copyModel(self, obj):
+  def _copyModel(self, obj):
     """
-      This method is aimed to copy the "obj" model in this instance
-      It is generally used for unpickling objects (models)
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      Also train this model.
       @ In, obj, instance, the instance of the object to copy from
       @ Out, None
     """

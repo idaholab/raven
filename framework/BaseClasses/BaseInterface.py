@@ -27,6 +27,15 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
     to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
+
+    Entities in RAVEN request a specific Interface via the subType input attribute. Generally,
+    <Entity name="myName" subType="requestedInterface">
+      ...
+    </Entity>
+    such as
+    <Plot name="my_line" subType="GeneralPlot">
+      ...
+    </Plot>
   """
   ################################
   # Core API (confirmed)
@@ -61,7 +70,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       self.name = paramInput.parameterValues['name']
     else:
       self.raiseAnError(IOError, 'not found name for a '+self.__class__.__name__)
-    self.type = paramInput.getName()
+    #self.type = paramInput.getName() -> we set this in __init__, setting it here to the spec type seems sketchy
     if self.globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
@@ -220,7 +229,6 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
-
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """

@@ -83,8 +83,8 @@ class IOStep(Step):
     """
     # check if #inputs == #outputs
     # collect the outputs without outstreams
-    outputs         = self.__getOutputs(inDictionary)
-    databases       = set()
+    outputs = self.__getOutputs(inDictionary)
+    databases = set()
     self.actionType = []
     errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' +\
                   'but received "{received}" instead!'
@@ -118,7 +118,7 @@ class IOStep(Step):
                                                        okay = 'Database',
                                                        received = inDictionary['Output'][i].type))
       # from ROM model to ...
-      elif isinstance(inDictionary['Input'][i], Models.ROM) or isinstance(inDictionary['Input'][i], Models.ExternalModel):
+      elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
           if 'FMU' in outputs[i].getExt().upper():
@@ -137,7 +137,7 @@ class IOStep(Step):
       # from File to ...
       elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
-        if isinstance(outputs[i],Models.ROM) or isinstance(outputs[i],Models.ExternalModel):
+        if isinstance(outputs[i], (Models.ROM, Models.ExternalModel)):
           self.actionType.append('FILES-MODEL')
         # ... dataobject
         elif isinstance(outputs[i],DataObject.DataObject):
@@ -198,6 +198,7 @@ class IOStep(Step):
       elif self.actionType[i] == 'dataObjects-Database':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
         outputs[i].saveDataToFile(inDictionary['Input'][i])
+
       elif self.actionType[i] == 'ROM-dataObjects':
         #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
         ## print information from the ROM to the data set or associated XML.
@@ -236,7 +237,7 @@ class IOStep(Step):
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
-        if not isinstance(unpickledObj,Models.ROM) and not isinstance(unpickledObj,Models.ExternalModel):
+        if not isinstance(unpickledObj, (Models.ROM, Models.ExternalModel)):
           ## DEBUGG
           # the following will iteratively check the size of objects being unpickled
           # this is quite useful for finding memory crashes due to parallelism
@@ -253,7 +254,8 @@ class IOStep(Step):
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         # copy model (same for any internal model (Dummy model derived classes)
-        outputs[i].copyModel(unpickledObj)
+        outputs[i]._copyModel(unpickledObj)
+
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         ## load a CSV from file

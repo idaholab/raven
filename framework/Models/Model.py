@@ -261,7 +261,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.__vars[type].extend(vars)
     self.__vars[type] = list(set(self.__vars[type]))
     # alias system
-    if type in 'aux': return
+    if type in 'aux':
+      return
     self._replaceVariablesNamesWithAliasSystem(self.__vars[type],type)
 
   def _getVariableList(self, type):

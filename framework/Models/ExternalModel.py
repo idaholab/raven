@@ -85,14 +85,15 @@ class ExternalModel(Dummy):
     self.pickled = False              # is this model pickled?
     self.constructed = True           # is this model constructed?
 
-  def copyModel(self, obj):
+  def _copyModel(self, obj):
     """
-      This method is aimed to copy the "obj" model in this instance
-      It is generally used for unpickling objects (models)
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
       @ In, obj, instance, the instance of the object to copy from
       @ Out, None
     """
-    super().copyModel(obj)
+    super()._copyModel(obj)
     self.constructed = True
 
   def applyRunInfo(self, runInfo):
@@ -167,7 +168,8 @@ class ExternalModel(Dummy):
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     elif paramInput.parameterValues['subType'].strip() == 'pickledModel':
-      self.pickled, self.constructed = True,  False
+      self.pickled = True
+      self.constructed = False
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
@@ -185,8 +187,6 @@ class ExternalModel(Dummy):
       for child in paramInput.subparts:
         if child.getName() == 'variables':
           self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been depreciated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
-          if len(child.parameterValues) > 0:
-            self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
           self.modelVariableType = dict.fromkeys(child.value)
         elif child.getName() == 'inputs':
           self._setVariableList('input', child.value)

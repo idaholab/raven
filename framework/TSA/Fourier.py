@@ -21,11 +21,11 @@ import numpy as np
 import sklearn.linear_model
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class Fourier(TimeSeriesAnalyzer):
+class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
@@ -66,7 +66,7 @@ class Fourier(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
   def handleInput(self, spec):
     """
@@ -74,7 +74,7 @@ class Fourier(TimeSeriesAnalyzer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['periods'] = spec.findFirst('periods').value
     return settings
 
@@ -158,7 +158,38 @@ class Fourier(TimeSeriesAnalyzer):
       # END for target in targets
     return params
 
-  # getResidual -> use base implementation
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__fit_intercept')
+      for period in settings['periods']:
+        baseWave = f'{base}__period{period}'
+        names.append(f'{baseWave}__amplitude')
+        names.append(f'{baseWave}__phase')
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      rlz[f'{base}__fit_intercept'] = info['intercept']
+      for period in info['coeffs']:
+        baseWave = f'{base}__period{period}'
+        for stat, value in info['coeffs'][period].items():
+          rlz[f'{baseWave}__{stat}'] = value
+    return rlz
+
 
   def generate(self, params, pivot, settings):
     """

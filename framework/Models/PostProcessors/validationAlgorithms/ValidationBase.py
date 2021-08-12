@@ -21,13 +21,9 @@
   ##TODO: Recast it once the new PostProcesso API gets in place
 """
 
-#External Modules------------------------------------------------------------------------------------
-
-#External Modules End--------------------------------------------------------------------------------
-
 #Internal Modules------------------------------------------------------------------------------------
-#from utils import utils, InputData, InputTypes
 from BaseClasses import BaseInterface
+from Metrics.metrics import factory as MetricInterfaceFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ValidationBase(BaseInterface):
@@ -72,10 +68,11 @@ class ValidationBase(BaseInterface):
     self.pivotParameter = kwargs.get('pivotParameter')
     self.metrics = kwargs.get('metrics')
     if self.acceptableMetrics:
-      accetable = [True if metric.type in self.acceptableMetrics else False for metric in self.metrics]
-      if not all(accetable):
-        notAcceptable = [self.metrics[i].type for i, x in enumerate(accetable) if not x]
-        self.raiseAnError(IOError, "The metrics '{}' are not acceptable for validation algorithm {}".format(','.join(notAcceptable), self.name))
+      acceptable = [True if metric.estimator.isInstanceString(self.acceptableMetrics) else False for metric in self.metrics]
+      if not all(acceptable):
+        notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
+        self.raiseAnError(IOError,
+            "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
   def _handleInput(self, paramInput):
     """
@@ -102,16 +99,30 @@ class ValidationBase(BaseInterface):
       @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
       @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
       @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
-      @ Out, data, xarray.DataArray, the retrived data
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
     """
     data = None
+    pw = None
+    dat = None
     if "|" in var and names is not None:
       do, feat =  var.split("|")
-      data = datasets[names.index(do)][feat]
+      doindex = names.index(do)
+      dat = datasets[doindex][feat]
     else:
-      for ds in datasets:
+      for doindex, ds in enumerate(datasets):
         if var in ds:
-          data = ds[var]
+          dat = ds[var]
           break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
     return data
 

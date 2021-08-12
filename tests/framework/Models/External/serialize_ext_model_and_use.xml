@@ -68,7 +68,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
-      <variables>y1,y2,ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</variables>
+      <inputs>y1,y2</inputs>
+      <outputs>ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</outputs>
       <moreXMLInfo>
         <valueForXML>3.14159</valueForXML>
       </moreXMLInfo>

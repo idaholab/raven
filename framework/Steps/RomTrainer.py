@@ -84,4 +84,3 @@ class RomTrainer(Step):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']:
       ROM.train(inDictionary['Input'][0])
-

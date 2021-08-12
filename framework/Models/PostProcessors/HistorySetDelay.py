@@ -24,9 +24,9 @@ import numpy as np
 import xarray as xr
 
 from utils import InputData, InputTypes
-from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
-class HistorySetDelay(PostProcessorInterface):
+class HistorySetDelay(PostProcessorReadyInterface):
   """
     Class to get lagged or delayed data out of a history set.
   """
@@ -69,6 +69,8 @@ class HistorySetDelay(PostProcessorInterface):
     self.validDataType = ['HistorySet']       #only available output is HistorySet
     self.outputMultipleRealizations = True    #this PP will return a full set of realization
     self.printTag = 'PostProcessor HistorySetDelay'
+    self.setInputDataType('xrDataset')
+    self.keepInputMeta(True)
 
   def _handleInput(self, paramInput):
     """
@@ -83,16 +85,29 @@ class HistorySetDelay(PostProcessorInterface):
                             child.parameterValues['steps'],
                             child.parameterValues['default']))
 
-  def run(self,inputDic):
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+
+  def run(self,inputIn):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, list, list of DataObjects
+      @ In, inputIn, dict, dictionary of data.
+          inputIn = {'Data':listData, 'Files':listOfFiles},
+          listData has the following format: (listOfInputVars, listOfOutVars, xr.Dataset)
       @ Out, data, xarray.DataSet, output dataset
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetDelay Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-
-    data = inputDic[0].asDataset()
+    inpVars, outVars, data = inputIn['Data'][0]
     for delay in self.delays:
       original, new, steps, default = delay
       coords = {key: data[original][key] for key in data[original].dims}
