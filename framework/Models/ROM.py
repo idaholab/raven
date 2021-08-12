@@ -142,11 +142,13 @@ class ROM(Dummy):
     self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
     self.cvInstance = None                # Instance of provided cross validation
+    self._estimator = None                # Instance of provided estimator (ROM)
     self._interfaceROM = None             # Instance of provided ROM
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('estimator', InputData.Quantity.zero_to_one)
 
   def __getstate__(self):
     """
@@ -191,6 +193,8 @@ class ROM(Dummy):
     paramInput.parseNode(xmlNode)
     cvNode = paramInput.findFirst('CV')
     self.cvInstance = cvNode.values if cvNode is not None else None
+    estimatorNode = paramInput.findFirst('estimator')
+    self._estimator = estimatorNode.values if estimatorNode is not None else None
     ##
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     self._interfaceROM._readMoreXML(xmlNode)
@@ -222,6 +226,9 @@ class ROM(Dummy):
     if self.cvInstance is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
+    if self._estimator is not None:
+      self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimator)
+      self._estimator.initialize(runInfo, inputs, initDict)
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """

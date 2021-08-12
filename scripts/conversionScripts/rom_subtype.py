@@ -24,15 +24,16 @@ def convert(tree,fileName=None):
   simulation = tree.getroot()
   # metrics
   models = simulation.find('Models')
-  roms = models.findall('ROM')
-  for rom in roms:
-    subType = rom.attrib['subType']
-    if subType == 'SciKitLearn':
-      node = rom.find('SKLtype')
-      sklType = node.text
-      newType = sklType.split('|')[-1] if '|' in sklType else sklType
-      rom.attrib['subType'] = newType
-      rom.remove(node)
+  if models is not None:
+    roms = models.findall('ROM')
+    for rom in roms:
+      subType = rom.attrib['subType']
+      if subType == 'SciKitLearn':
+        node = rom.find('SKLtype')
+        sklType = node.text
+        newType = sklType.split('|')[-1] if '|' in sklType else sklType
+        rom.attrib['subType'] = newType
+        rom.remove(node)
   return tree
 
 if __name__=='__main__':
