@@ -24,6 +24,7 @@
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+from utils import InputData, InputTypes
 interpolationND = utils.findCrowModule("interpolationND")
 from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------
@@ -69,11 +70,9 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    super().__init__(self)
+    super().__init__()
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     self._p = None # must be positive, power parameter
-
-    self.__initLocal__()
 
   def _handleInput(self, paramInput):
     """
@@ -86,13 +85,6 @@ class NDinvDistWeight(NDinterpolatorRom):
     if len(notFound) != 0:
       self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self._p = nodes['p']
-
-  def __initLocal__(self):
-    """
-      Method used to add additional initialization features used by pickling
-      @ In, None
-      @ Out, None
-    """
     self.interpolator = []
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self._p)))
@@ -103,4 +95,6 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.__initLocal__()
+    self.interpolator = []
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self._p)))
