@@ -40,7 +40,7 @@
   <Samplers>
     <Umbrella name="IS">
       <samplerInit>
-        <dimensions>2</dimensions>
+        <dimensions>3</dimensions>
         <limit>1</limit>
         <modeLocation>3</modeLocation>
         <tailProbability>0.6</tailProbability>

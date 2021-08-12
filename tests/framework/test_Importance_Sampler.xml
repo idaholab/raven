@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>framework.testImportance</name>
     <author>Tanaya</author>
@@ -24,6 +24,10 @@
   </Models>
 
   <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
     <Normal name="Target">
       <mean>0</mean>
       <sigma>1</sigma>
@@ -42,6 +46,9 @@
       </variable>
       <variable name="importance">
         <distribution>Importance</distribution>
+      </variable>
+      <variable name="uniform">
+        <distribution>uniform</distribution>
       </variable>
 
       <samplerInit>
