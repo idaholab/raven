@@ -283,6 +283,21 @@ class ROM(Dummy):
     metaParams.update(params)
     return metaKeys, metaParams
 
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      Also train this model.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    # save reseeding parameters from pickledROM
+    loadSettings = self.initializationOptionDict
+    # train the ROM from the unpickled object
+    self.train(obj)
+    self.setAdditionalParams(loadSettings)
+
   def train(self,trainingSet):
     """
       This function train the ROM
