@@ -66,6 +66,11 @@ class SupervisedLearning(BaseInterface):
     cvInput.addParam("class", InputTypes.StringType)
     cvInput.addParam("type", InputTypes.StringType)
     spec.addSub(cvInput)
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType)
+    AliasInput.addParam("variable", InputTypes.StringType, True)
+    AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasInput.addParam("type", AliasTypeInput, True)
+    spec.addSub(AliasInput)
     return spec
 
   @staticmethod
