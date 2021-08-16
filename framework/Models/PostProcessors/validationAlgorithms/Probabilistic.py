@@ -138,6 +138,8 @@ class Probabilistic(ValidationBase):
     super()._handleInput(paramInput)
 
 
+
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -145,9 +147,9 @@ class Probabilistic(ValidationBase):
       @ In, inputIn, list, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    dataDict = {data.attrs['name']: data for _, _, data in inputIn['Data']}
+    dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     pivotParameter = self.pivotParameter
-    names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+    names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
     if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
       if 'dynamic' not in self.dynamicType: #self.model.dataType:
         self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
