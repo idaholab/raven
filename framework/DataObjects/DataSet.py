@@ -2071,18 +2071,19 @@ class DataSet(DataObject):
       toRemove = []
       ## TODO doesn't work for time-dependent requests!
       genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
-      for child in genNode:
-        if child.tag in ['inputs','outputs','pointwise_meta']:
-          vs = []
-          for var in child.text.split(','):
-            if var.strip() in keep:
-              vs.append(var)
-          if len(vs) == 0:
-            toRemove.append(child)
-          else:
-            child.text = ','.join(vs)
-      for r in toRemove:
-        genNode.remove(r)
+      if genNode is not None:
+        for child in genNode:
+          if child.tag in ['inputs','outputs','pointwise_meta']:
+            vs = []
+            for var in child.text.split(','):
+              if var.strip() in keep:
+                vs.append(var)
+            if len(vs) == 0:
+              toRemove.append(child)
+            else:
+              child.text = ','.join(vs)
+        for r in toRemove:
+          genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:
