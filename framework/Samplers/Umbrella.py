@@ -35,7 +35,7 @@ import math
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils,randomUtils,InputData, InputTypes
+from utils import utils, randomUtils, InputData, InputTypes, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Umbrella(ForwardSampler):
@@ -86,9 +86,9 @@ class Umbrella(ForwardSampler):
     self.printTag = 'SAMPLER UMBRELLA'
     self.samplingType = None
     self.limit = None
-    self.modeLocation = 0
-    self.rho = 0
-    self.dimension = 0
+    self.modeLocation = 0 # mode location of the gamma distribution
+    self.rho = 0  # covariance weights for the multivariate normal distribution
+    self.dimension = 0  # dimensionality of the sample
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -97,7 +97,7 @@ class Umbrella(ForwardSampler):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    ForwardSampler.readSamplerInit(self,xmlNode)
+    super().readSamplerInit(xmlNode)
     self.modeLocation = paramInput.findFirst('samplerInit').findFirst('modeLocation').value
     self.tailProb = paramInput.findFirst('samplerInit').findFirst('tailProbability').value
     self.rho = paramInput.findFirst('samplerInit').findFirst('rho').value
@@ -120,7 +120,6 @@ class Umbrella(ForwardSampler):
     """
          Method to get alpha and beta values of gamma distribution based on mode location, standard deviation and tail probability
          @ In, k, mode location of the gamma distribution specified by the user
-         @ In, tail, tail probability of the distribution
          @ Out, sigma, standard distribution of the gamma distribution
     """
     beta = (k + np.sqrt(k ** 2 + 4 * sigma ** 2)) / (2 * sigma ** 2)
@@ -132,9 +131,9 @@ class Umbrella(ForwardSampler):
   def tailProbabilityGamma(self, k, sigma):
     """
          Method to collect parameters of gamma distribution in a dictionary
-         @ In, k, mode location of the gamma distribution specified by the user
-         @ In, sigma, standard distribution of the gamma distribution
-         @ Out, dictionary of gamma parameters
+         @ In, k, float, mode location of the gamma distribution specified by the user
+         @ In, sigma, float, standard deviation of the gamma distribution
+         @ Out, tailProbabilityGamma, dict, dictionary of gamma parameters
     """
     D = k ** 2 + 4 * sigma ** 2
     beta = (k + D ** 0.5) / (2 * sigma ** 2)
@@ -143,35 +142,21 @@ class Umbrella(ForwardSampler):
     return {'alpha': alpha, 'beta': beta, 'tailprob': value,
             'k': k, 'sigma': sigma}
 
-  def getDiscreteSamples(self, n, the_w):
+  def getDiscreteSamples(self, n, weights):
     """
          Method to sample from a discrete distribution
-         @ In, n, samples size
-         @ In, the_w, weights of the mixture distribution
-         @ Out, dataframe, samples from a discrete distribution
+         @ In, n, int, samples size
+         @ In, weights, numpy.ndarray, weights of the mixture distribution
+         @ Out, discreteSample, pandas.DataFrame, samples from a discrete distribution
     """
-    P = np.cumsum(the_w)
-    m = len(the_w)
+    P = np.cumsum(weights)
+    m = len(weights)
     x = np.arange(1, m + 1)
     uniformSample = np.random.uniform(size=n)
     discreteSample = np.zeros(n)
     for i in range(m - 1, -1, -1):
       discreteSample[uniformSample < P[i]] = x[i]
     return discreteSample
-
-  def constructCornerPoints(self):
-    """
-         Method to create the vertices of a K dimensional unit square
-         @ In, dimensions, dimensions specified by the user
-         @ Out, dataframe, vertices in K dimensional unit square
-    """
-    nrows = 2 ** self.dimension
-    vertices = np.zeros(shape=(nrows, self.dimension))
-    for i in range(1, nrows + 1):
-      for j in range(1, self.dimension + 1):
-        power = math.floor((i - 1) / 2 ** (j - 1))
-        vertices[i - 1, j - 1] = (-1) ** (power + 2)
-    return vertices
 
   def gammaTailPDF(self, x, vertWeights):
     """
@@ -204,9 +189,9 @@ class Umbrella(ForwardSampler):
   def umbrellaPDF(self, x, vertWeights):
     """
          Function to evaluate the multivariate umbrella pdf with gamma tails. The gamma tails have their seperate weighing scheme.
-         @ In, x, samples
-         @ In, vertWeights, weights of the mixture distribution
-         @ Out, dataframe, dataframe of samples and associated probability values
+         @ In, x, samples, numpy.ndarray
+         @ In, vertWeights, dict, weights of the mixture distribution
+         @ Out, gammaTailPDFValues, pd.DataFrame, dataframe of samples and associated probability values
     """
     mvnorm = multivariate_normal(self.mu, self.covariance)
     targetPDF = mvnorm.pdf(x)
@@ -216,23 +201,23 @@ class Umbrella(ForwardSampler):
     gammaTailPDFValues['pdfValues'] = umbrellaPDFValues
     return gammaTailPDFValues
 
-  def univGammaTailSample(self, sample_size):
+  def univGammaTailSample(self, sampleSize):
     """
          Method to evaluate a univariate variate gamma tail sample in positive hyper-quadrant
-         @ In, sample_size
-         @ Out, sample, univariate gamma samples
+         @ In, sampleSize, int, number of samples
+         @ Out, sample, numpy.ndarray, univariate gamma samples
     """
     sample = gamma.rvs(scale=1 / self.tailProb ['beta'],
                        a=self.tailProb ['alpha'],
-                       size=sample_size)
+                       size=sampleSize)
     return sample
 
   def gammaTailSample(self, sampleSize, vertWeights):
     """
          Method to generate multivariate gamma tail samples
-         @ In, sample_size
-         @ In, vertWeights, weights of the mixture distribution
-         @ Out, dataframe, dataframe of samples
+         @ In, sampleSize, int, number of samples
+         @ In, vertWeights, dict, weights of the mixture distribution
+         @ Out, newSamplesDF, pandas.DataFrame, dataframe of samples
     """
     multiSamples = np.empty(shape=(sampleSize, self.dimension))
 
@@ -253,9 +238,9 @@ class Umbrella(ForwardSampler):
   def umbrellaSample(self, sampleSize, vertWeights):
     """
          Method to generate samples from multivariate umbrella distribution
-         @ In, sample_size
-         @ In, vertWeights, weights of the mixture distribution
-         @ Out, dataframe of umbrella samples
+         @ In, sampleSize, int, number of samples
+         @ In, vertWeights, dict, weights of the mixture distribution
+         @ Out, umbrellaSamples, pandas.DataFrame, dataframe of umbrella samples
     """
     pmf = [self.weightTarget, 1 - self.weightTarget]
     discreteSamples = self.getDiscreteSamples(sampleSize, pmf)
@@ -287,7 +272,7 @@ class Umbrella(ForwardSampler):
       @ Out, None
     """
 
-    vertices = self.constructCornerPoints()
+    vertices = mathUtils.constructCornerPoints(self.dimension)
     nvertices = len(vertices)
     verticesWeights = np.ones(nvertices) / nvertices
     verticesWeights = dict({"vert": vertices, "w": verticesWeights})
@@ -298,13 +283,12 @@ class Umbrella(ForwardSampler):
 
     sigma = scipy.optimize.root(partial(self.getStd, self.modeLocation), 1, tol=0.0000001)['x'][0]
     self.tailProb = self.tailProbabilityGamma(self.modeLocation, sigma)
+
     sampleSize = 30
     umbrellaSample = self.umbrellaSample(sampleSize,
                                          verticesWeights)
 
-    print('umbrellaSample')
-    print(umbrellaSample)
-    # self.inputInfo['SampledVars']['x1'] = umbrellaSample[0].to_numpy()
+    self.inputInfo['SampledVars']['x1'] = umbrellaSample[0].to_numpy()
     self.inputInfo['ProbabilityWeight'] = 1.0
     self.inputInfo['ProbabilityWeight-x1'] = umbrellaSample['weights'].to_numpy()
     self.inputInfo['PointProbability'] =1.0

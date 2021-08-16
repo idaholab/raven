@@ -1091,3 +1091,17 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
   okayWhere = [a[okayMask] for a in np.where(mask)]
   y[tuple(okayWhere)] = y0 + dy/dx * frac
   return y
+
+def constructCornerPoints(k):
+  """
+       Method to create the vertices of a k dimensional unit square
+       @ In, k, int, dimensions specified by the user
+       @ Out, vertices, numpy.ndarray, vertices in k dimensional unit square
+  """
+  nrows = 2 ** k
+  vertices = np.zeros(shape=(nrows, k))
+  for i in range(1, nrows + 1):
+    for j in range(1, k + 1):
+      power = math.floor((i - 1) / 2 ** (j - 1))
+      vertices[i - 1, j - 1] = (-1) ** (power + 2)
+  return vertices
