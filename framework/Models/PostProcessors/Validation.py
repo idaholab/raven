@@ -29,7 +29,7 @@ import xarray as xr
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
 from . import validationAlgorithms
-from utils import utils, mathUtils
+from utils import utils, mathUtils, xmlUtils
 from utils import InputData, InputTypes
 import DataObjects
 import MetricDistributor
@@ -206,3 +206,11 @@ class Validation(PostProcessorReadyInterface):
 
   # Each individual validation pp should implement their own run method.
   # def run(self, input):
+
+  @staticmethod
+  def getDataSetName(ds):
+    """
+    """
+    datasetMeta = ds.attrs['DataSet'].getRoot()
+    name = xmlUtils.findPath(datasetMeta, 'general/datasetName').text
+    return name
