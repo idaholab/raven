@@ -1560,11 +1560,8 @@ class DataSet(DataObject):
                 self.name.strip(),'":',",".join(requiredDims))
     self._orderedVars = self.vars
     self._data = datasetSub
-    if self._data.attrs:
-      self.addMeta('DataSet', {'DataSetAttributes':self._data.attrs})
-    #for key, val in self._data.attrs.items():
-    #  self.addMeta('DataSet', {key:val})
-      #self._meta[key] = val
+    for key, val in self._data.attrs.items():
+      self._meta[key] = val
 
   def _getCompatibleType(self,val):
     """
