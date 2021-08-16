@@ -306,8 +306,9 @@ class DataSet(DataObject):
       # return reference to the xArray
       data = self._convertToXrDataset()
       if data != None:
-        if 'name' not in data.attrs:
-          data.attrs['name'] = self.name
+        if 'DataSet' not in data.attrs:
+          data.attrs['DataSet'] = xmlUtils.StaticXmlElement('DataSet')
+        data.attrs['DataSet'].addScalar('general', 'datasetName', self.name)
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
       data = self._convertToDict()
@@ -1178,6 +1179,7 @@ class DataSet(DataObject):
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(sorted(self._metavars)),
+                                         'datasetName':self.name
       }})
       self._data.attrs = self._meta
     elif action == 'extend':
@@ -1562,11 +1564,8 @@ class DataSet(DataObject):
                 self.name.strip(),'":',",".join(requiredDims))
     self._orderedVars = self.vars
     self._data = datasetSub
-    if self._data.attrs:
-      self.addMeta('DataSet', {'DataSetAttributes':self._data.attrs})
-    #for key, val in self._data.attrs.items():
-    #  self.addMeta('DataSet', {key:val})
-      #self._meta[key] = val
+    for key, val in self._data.attrs.items():
+      self._meta[key] = val
 
   def _getCompatibleType(self,val):
     """
