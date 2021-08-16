@@ -1561,7 +1561,8 @@ class DataSet(DataObject):
     self._orderedVars = self.vars
     self._data = datasetSub
     for key, val in self._data.attrs.items():
-      self._meta[key] = val
+      self.addMeta('DataSet', {key:val})
+      #self._meta[key] = val
 
   def _getCompatibleType(self,val):
     """
