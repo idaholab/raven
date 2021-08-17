@@ -70,6 +70,17 @@ class GradientHistory(StepManipulator):
               stochastic surfaces or low-order gradient approximations such as SPSA, a small value
               for the shrink factor is recommended. If an optimization path appears to be converging
               early, increasing the shrink factor might improve the search. \default{1.15} """))
+    specs.addSub(InputData.parameterInputFactory('terms', contentType=InputTypes.IntegerType,
+        descr=r"""the number of previous gradient evaluations to include when determining a new step
+              direction. Modifying this allows past gradient evaluations to influence future steps,
+              with a decaying influence. Setting this to 1 means only the local gradient evaluation
+              will be used. \default{1}."""))
+    specs.addSub(InputData.parameterInputFactory('decay', contentType=InputTypes.FloatType,
+        descr=r"""if including more than one gradient history terms when determining a new step direction,
+              specifies the rate of decay for previous terms to influence the current direction. The
+              decay factor has the form $e^(-\lambda t)$, where $t$ counts the gradient terms starting with
+              the most recent as 0 and moving towards the past, and $\lamda$ is this decay factor.
+              This should generally be a small decimal number. \default{0.2}"""))
     return specs
 
   def __init__(self):
@@ -86,6 +97,8 @@ class GradientHistory(StepManipulator):
     self._optVars = None         # optimization variables
     self._growth = 1.25          # rate of step growth
     self._shrink = 1.15          # rate of step shrinking
+    self._gradTerms = 1          # number of historical gradients to use, if available
+    self._termDecay = 0.2        # rate at which historical gradients drop off
     self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
     self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
     # __private
@@ -104,6 +117,12 @@ class GradientHistory(StepManipulator):
     shrink = specs.findFirst('shrinkFactor')
     if shrink is not None:
       self._shrink = shrink.value
+    gradTerms = specs.findFirst('terms')
+    if gradTerms is not None:
+      self._gradTerms = gradTerms.value
+    termDecay = specs.findFirst('decay')
+    if termDecay is not None:
+      self._termDecay = termDecay.value
 
   def initialize(self, optVars, **kwargs):
     """
@@ -139,11 +158,18 @@ class GradientHistory(StepManipulator):
     """
     stepSize = self._stepSize(gradientHist=gradientHist, prevStepSize=prevStepSize,
                               recommend=recommend, **kwargs)
-    gradient = gradientHist[-1][1]
+    direction = dict((var, 0) for var in self._optVars)
+    for t in range(self._gradTerms):
+      if len(gradientHist) <= t:
+        break
+      decay = np.exp(-t * self._termDecay)
+      for var in direction:
+        direction[var] -= gradientHist[-(t+1)][1][var] * decay
+    # gradient = gradientHist[-1][1]
     # use gradient, prev point, and step size to choose new point
     newOpt = {}
     for var in self._optVars:
-      newOpt[var] = prevOpt[var] - stepSize * gradient[var]
+      newOpt[var] = prevOpt[var] + stepSize * direction[var]
     return newOpt, stepSize, None
 
   def fixConstraintViolations(self, proposed, previous, fixInfo):
