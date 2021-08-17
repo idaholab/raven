@@ -2090,7 +2090,6 @@ class DataSet(DataObject):
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
-      #meta.pop('name', None)
       for name in sorted(list(meta.keys())):
         target = meta[name]
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
