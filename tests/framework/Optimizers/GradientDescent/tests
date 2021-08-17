@@ -188,7 +188,7 @@
     input = 'valley.xml'
     [./data]
       type = OrderedCSV
-      output = 'Valley/opt_export_fd_0.csv'
+      output = 'Valley/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
