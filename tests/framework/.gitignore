@@ -180,3 +180,5 @@ CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/formattest.i
 CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/out~formattest
 CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/formattest.i
 hybridModel/logicalCode/logicalModelCode/
+Models/External/SerializePyomo/
+Models/External/SerializeWrkd/

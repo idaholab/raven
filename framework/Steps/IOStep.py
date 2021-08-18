@@ -121,7 +121,12 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
-          self.actionType.append('MODEL-FILES')
+          #XXX switching on the file extension is not very
+          # extendable.  Possibly should have a type or something
+          if 'py' == outputs[i].getExt().lower():
+            self.actionType.append('MODEL-PYOMO')
+          else:
+            self.actionType.append('MODEL-FILES')
         # ... data object
         elif isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
@@ -217,6 +222,11 @@ class IOStep(Step):
         # call the serialize method within the model
         ## TODO: ADD Deserialization method
         inDictionary['Input'][i].serialize(outputs[i])
+
+      elif self.actionType[i] == 'MODEL-PYOMO':
+        outfile = open(outputs[i].getAbsFile(),"w")
+        outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
+        outfile.close()
 
       elif self.actionType[i] == 'FILES-MODEL':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel

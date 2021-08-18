@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SerializePyomo</WorkingDir>
+    <Sequence>sample, train, serialize</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="rom_out.py" type="">rom_out.py</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">attenuate</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="Models" type="ROM">out_rom</Output>
+    </RomTrainer>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">out_rom</Input>
+      <Output class="Files" type="">rom_out.py</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
+      <inputs>y1,y2</inputs>
+      <outputs>ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</outputs>
+      <moreXMLInfo>
+        <valueForXML>3.14159</valueForXML>
+      </moreXMLInfo>
+    </ExternalModel>
+    <ROM name="out_rom" subType="SciKitLearn">
+      <SKLtype>linear_model|LinearRegression</SKLtype>
+      <Features>y1,y2</Features>
+      <Target>ans</Target>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="y1">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="y2">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>y1,y2</Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>y1, y2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+
+</Simulation>
