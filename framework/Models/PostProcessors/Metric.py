@@ -115,6 +115,8 @@ class Metric(PostProcessorInterface):
         continue
       if inputType in ['PointSet', 'HistorySet']:
         dataSet = currentInput.asDataset()
+        if dataSet is None:
+          self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
         metadata = currentInput.getMeta(pointwise=True)
         for ioType in inputOrOutput:
           if metricDataName in currentInput.getVars(ioType):
