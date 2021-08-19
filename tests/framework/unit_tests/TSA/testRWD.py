@@ -236,7 +236,7 @@ def createRWDSignal(time_series, pivot, intercept=0, plot=False):
 # generate signal
 targets = ['A'] #, 'B', 'C']
 pivot = np.linspace(0, 100, 1000)
-N = len(pivot)
+N = len(pivot) 
 s = np.linspace(-10,10,1000)
 time_series = 3.5*s+s**2+10
 #noise = rng.random((1000,))*0.02
@@ -284,7 +284,6 @@ assert np.allclose(BaseMatrix, np.dot(U, np.dot(np.diag(S), V)))
 
 
 F = U.T @ SignatureMatrix  
-
 okay_basis = U[:,0]
 okay_feature = F[0:3,0]
 ######
@@ -298,9 +297,6 @@ okay_feature = F[0:3,0]
 
 checkArray('Simple RWD Basis', okay_basis, check[0][:,0], float, tol=1e-3)
 checkArray('Simple RWD Features', okay_feature, check[1][0:3,0], float, tol=1e-3)
-
-
-
 checkTrue("RWD can characterize", rwd.canCharacterize())
 
 '''
