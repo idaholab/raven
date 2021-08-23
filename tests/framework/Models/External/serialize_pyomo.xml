@@ -5,11 +5,12 @@
 
   <RunInfo>
     <WorkingDir>SerializePyomo</WorkingDir>
-    <Sequence>sample, train, serialize</Sequence>
+    <Sequence>sample, train, serialize, pickle</Sequence>
   </RunInfo>
 
   <Files>
     <Input name="rom_out.py" type="">rom_out.py</Input>
+    <Input name="rom_pickle.pk" type="">rom_pickle.pk</Input>
   </Files>
 
   <Steps>
@@ -26,6 +27,10 @@
     <IOStep name="serialize">
       <Input class="Models" type="ROM">out_rom</Input>
       <Output class="Files" type="">rom_out.py</Output>
+    </IOStep>
+    <IOStep name="pickle">
+      <Input class="Models" type="ROM">out_rom</Input>
+      <Output class="Files" type="">rom_pickle.pk</Output>
     </IOStep>
   </Steps>
 
