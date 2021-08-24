@@ -166,7 +166,7 @@ class Sobol(SparseGridCollocation):
               'refs':self.references,
               'numRuns':len(self.distinctPoints)}
     #for target in self.targets:
-    self.ROM.supervisedEngine.supervisedContainer[0].initialize(initdict)
+    self.ROM.supervisedContainer[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     """
