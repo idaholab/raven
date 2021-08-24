@@ -149,7 +149,7 @@ class {classname}(Fmi2Slave):
         sys.path.append(os.path.join(self.raven_path,"framework"))
         import Driver
       # de-serialize the model
-      print(self.model_path)
+      print("model_path", self.model_path)
       self.model = pickle.load(open(self.model_path, mode='rb'))
       self.initialized = True
 
