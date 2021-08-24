@@ -1,4 +1,4 @@
-import numpy
+#!/usr/bin/env python
 """ This example demonstrates how to use the FMU.get*() and FMU.set*() functions
  to set custom input and control the simulation """
 
@@ -37,6 +37,7 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
   vr_paths = vrs['raven_path']
   # extract the FMU
   unzipdir = extract(fmuFilename)
+  print("extracted")
 
   fmu = FMU2Slave(guid=model_description.guid,
               unzipDirectory=unzipdir,
@@ -44,11 +45,13 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
               instanceName='instance1')
 
   # initialize
+  print("initializing", flush=True)
   sys.path.append(pathToRaven)
   fmu.instantiate(loggingOn=True)
   fmu.setupExperiment(startTime=start_time)
   fmu.enterInitializationMode()
   fmu.exitInitializationMode()
+  print("initialized")
 
   #model_path = "C:\\Users\\ALFOA\\projects\\raven\\test_turbine_fmi\\ROMpk"
   fmu.setString( [vr_paths], [pathToRaven])
@@ -97,4 +100,6 @@ if __name__ == '__main__':
   import os
   fmuFilename = './SerializeWrkd/attenuate_pk2.fmu'
   pathToRaven = os.sep.join(['..','..','..','..'])+os.sep+"framework"
+  print("Loading", fmuFilename)
+  print("pathToRaven", pathToRaven)
   simulateCustomInputFMU(fmuFilename, pathToRaven, False)
