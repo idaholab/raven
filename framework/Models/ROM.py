@@ -25,10 +25,9 @@ import os
 from .Dummy import Dummy
 import Decorators
 from SupervisedLearning import factory
-from utils import utils, xmlUtils
+from utils import utils, xmlUtils, mathUtils
 from utils import InputData, InputTypes
 from Decorators.Parallelization import Parallel
-import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
 # set enviroment variable to avoid parallelim degradation in some surrogate models
@@ -62,12 +61,10 @@ class ROM(Dummy):
     validSpec = validClass.getInputSpecification()
     inputSpecification.mergeSub(validSpec)
 
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
-    cvInput.addParam("class", InputTypes.StringType)
-    cvInput.addParam("type", InputTypes.StringType)
-    inputSpecification.addSub(cvInput)
-
-
+    # cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
+    # cvInput.addParam("class", InputTypes.StringType)
+    # cvInput.addParam("type", InputTypes.StringType)
+    # inputSpecification.addSub(cvInput)
     ## wangc: I think we should avoid loading all inputSpecifications
     # for typ in SupervisedLearning.factory.knownTypes():
     #   obj = SupervisedLearning.factory.returnClass(typ)
@@ -78,43 +75,6 @@ class ROM(Dummy):
     ## TODO: remove
     # CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
-
-    ### TODO: Move to ROMCollection Class
-    # ####################
-    # # manually entered #
-    # ####################
-    # # segmenting and clustering
-    # segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    # segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
-    # segment.addParam('grouping', segmentGroups)
-    # subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
-    # subspace.addParam('divisions', InputTypes.IntegerType, False)
-    # subspace.addParam('pivotLength', InputTypes.FloatType, False)
-    # subspace.addParam('shift', InputTypes.StringType, False)
-    # segment.addSub(subspace)
-    # clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
-    # segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
-    # segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
-    # ## clusterFeatures
-    # segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
-    # ## max cycles (for Interpolated ROMCollection)
-    # segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
-    # ## classifier
-    # clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
-    # clsfr.addParam('class', InputTypes.StringType, True)
-    # clsfr.addParam('type', InputTypes.StringType, True)
-    # segment.addSub(clsfr)
-    # ## metric
-    # metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
-    # metric.addParam('class', InputTypes.StringType, True)
-    # metric.addParam('type', InputTypes.StringType, True)
-    # segment.addSub(metric)
-    # segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
-    # inputSpecification.addSub(segment)
-    # ##### END ROMCollection
-    #
-    # inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
-    # inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
 
     return inputSpecification
 
@@ -137,13 +97,24 @@ class ROM(Dummy):
       @ Out, None
     """
     super().__init__()
-    self.initializationOptionDict = {}    # ROM initialization options
     self.amITrained = False               # boolean flag, is the ROM trained?
     self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
     self.cvInstance = None                # Instance of provided cross validation
     self._estimator = None                # Instance of provided estimator (ROM)
     self._interfaceROM = None             # Instance of provided ROM
+
+    self.pickled = False # True if ROM comes from a pickled rom
+    self.pivotParameterId = 'time' # The name of pivot parameter
+    self.canHandleDynamicData = False # check if the model can autonomously handle the time-dependency
+                                      # if not and time-dep data are passed in, a list of ROMs are constructed
+    self.isADynamicModel = False # True if the ROM is time-dependent
+    self.supervisedContainer = [] # List ROM instances
+    self.historySteps = [] # The history steps of pivot parameter
+    self.segment = False # True if segmenting/clustring/interpolating is requested
+    self.numThreads = 1 # number of threads used by the ROM
+    self.seed = None # seed information
+
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -157,6 +128,9 @@ class ROM(Dummy):
       @ Out, d, dict, things to serialize
     """
     d = copy.copy(self.__dict__)
+    if not self.amITrained:
+      supervisedEngineObj = d.pop("supervisedContainer")
+      del supervisedEngineObj
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
@@ -169,7 +143,11 @@ class ROM(Dummy):
       @ Out, None
     """
     # default setstate behavior
-    self.__dict__ = d
+    self.__dict__.update(d)
+    if not d['amITrained']:
+      # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
+      modelInstance = self._interfaceROM
+      self.supervisedContainer  = [modelInstance]
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
 
@@ -179,7 +157,7 @@ class ROM(Dummy):
       @ In, runInfo, dict, RunInfo info
       @ Out, None
     """
-    self.initializationOptionDict['NumThreads'] = runInfo.get('NumThreads', 1)
+    self.numThreads = runInfo.get('NumThreads', 1)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -201,20 +179,30 @@ class ROM(Dummy):
     self._interfaceROM._readMoreXML(xmlNode)
     ## TODO: how to handle 'estimator' node?
 
-    self.initializationOptionDict['name'] = self.name
-    self.initializationOptionDict['modelInstance'] = self._interfaceROM
+
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
-      self.initializationOptionDict['pickled'] = True
+      self.pickled = True
 
     pivot = paramInput.findFirst('pivotParameter')
     if pivot is not None:
-      self.initializationOptionDict['pivotParameter'] = pivot.value
-    else:
-      self.initializationOptionDict['pivotParameter'] = 'time'
+      self.pivotParameterId = pivot.value
 
-    self._initializeSupervisedGate(**self.initializationOptionDict)
-    #the ROM is instanced and initialized
+    self.canHandleDynamicData = self._interfaceROM.isDynamic()
+    self.supervisedContainer = [self._interfaceROM]
+
+    ### ROMCollection ###
+    # if the ROM targeted by this gate is a cluster, create the cluster now!
+    if self.segment:
+      nameToClass = {'segment': 'Segments',
+                     'cluster': 'Clusters',
+                     'interpolate': 'Interpolated'}
+      # read from specs directly
+      segSpecs = paramInput.findFirst('Segment')
+      # determine type of segment to load -> limited by InputData to specific options
+      segType = segSpecs.parameterValues.get('grouping', 'segment')
+      SVL =  self.interfaceFactory.returnInstance(nameToClass[segType])
+      self.supervisedContainer = [SVL]
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -231,22 +219,15 @@ class ROM(Dummy):
       self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimator)
       self._estimator.initialize(runInfo, inputs, initDict)
 
-  def _initializeSupervisedGate(self,**initializationOptions):
-    """
-      Method to initialize the supervisedGate class
-      @ In, initializationOptions, dict, the initialization options
-      @ Out, None
-    """
-    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, **initializationOptions)
-
   def reset(self):
     """
       Reset the ROM
       @ In,  None
       @ Out, None
     """
-    self.supervisedEngine.reset()
-    self.amITrained   = False
+    for rom in self.supervisedContainer:
+      rom.reset()
+    self.amITrained = False
 
   def reseed(self,seed):
     """
@@ -254,7 +235,8 @@ class ROM(Dummy):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    self.supervisedEngine.reseed(seed)
+    for rom in self.supervisedContainer:
+      rom.reseed(seed)
 
   def getInitParams(self):
     """
@@ -265,7 +247,7 @@ class ROM(Dummy):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = self.supervisedEngine.getInitParams()
+    paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
   def provideExpectedMetaKeys(self):
@@ -278,7 +260,7 @@ class ROM(Dummy):
     # load own keys and params
     metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
     # add from engine
-    keys, params = self.supervisedEngine.provideExpectedMetaKeys()
+    keys, params = self.supervisedContainer[-1].provideExpectedMetaKeys()
     metaKeys = metaKeys.union(keys)
     metaParams.update(params)
     return metaKeys, metaParams
@@ -293,7 +275,7 @@ class ROM(Dummy):
       @ Out, None
     """
     # save reseeding parameters from pickledROM
-    loadSettings = self.initializationOptionDict
+    loadSettings = {'seed': self.seed}
     # train the ROM from the unpickled object
     self.train(obj)
     self.setAdditionalParams(loadSettings)
@@ -305,21 +287,63 @@ class ROM(Dummy):
       @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
-      self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
+      self.supervisedContainer         = copy.deepcopy(trainingSet.supervisedContainer)
+      self.seed = trainingSet.seed
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
-        pivotParameterId = self.supervisedEngine.pivotParameterId
-        if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
+        if not trainingSet.checkIndexAlignment(indexesToCheck=self.pivotParameterId):
           self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
-      self.amITrained = self.supervisedEngine.amITrained
+
+      self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
+      # if training using ROMCollection, special treatment
+      # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+      if self.segment:
+        self.supervisedContainer[0].train(self.trainingSet)
+      else:
+        # not a collection # TODO move time-dependent snapshots to collection!
+        ## time-dependent or static ROM?
+        if any(type(x).__name__ == 'list' for x in self.trainingSet.values()):
+          # we need to build a "time-dependent" ROM
+          self.isADynamicModel = True
+          if self.pivotParameterId not in list(self.trainingSet.keys()):
+            self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId),
+                              'A time-dependent-like ROM cannot be created!')
+          if type(self.trainingSet[self.pivotParameterId]).__name__ != 'list':
+            self.raiseAnError(IOError, 'The pivot parameter "{}" is not a list.'.format(self.pivotParameterId),
+                              " Are you sure it is part of the output space of the training set?")
+          self.historySteps = self.trainingSet.get(self.pivotParameterId)[-1]
+          if not len(self.historySteps):
+            self.raiseAnError(IOError, "the training set is empty!")
+          # intrinsically time-dependent or does the Gate need to handle it?
+          if self.canHandleDynamicData:
+            # the ROM is able to manage the time dependency on its own
+            self.supervisedContainer[-1].train(self.trainingSet)
+          else:
+            # TODO we can probably migrate this time-dependent handling to a type of ROMCollection!
+            # we need to construct a chain of ROMs
+            # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
+            # get the time slices
+            newTrainingSet = mathUtils.historySnapShoots(self.trainingSet, len(self.historySteps))
+            assert type(newTrainingSet).__name__ == 'list'
+            # copy the original ROM
+            originalROM = self.supervisedContainer[0]
+            # start creating and training the time-dep ROMs
+            self.supervisedContainer = [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+            # train
+            for ts in range(len(self.historySteps)):
+              self.supervisedContainer[ts].train(newTrainingSet[ts])
+        # if a static ROM ...
+        else:
+          #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+          self.supervisedContainer[0].train(self.trainingSet)
+      # END if ROMCollection
+      self.amITrained = True
 
   def confidence(self,request,target = None):
     """
@@ -329,8 +353,17 @@ class ROM(Dummy):
       @ In, request, datatype, feature coordinates (request)
       @ Out, confidenceDict, dict, the dict containing the confidence on each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM = self._inputToInternal(request)
-    confidenceDict = self.supervisedEngine.confidence(inputToROM)
+    request = self._inputToInternal(request)
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM "+self.name+" has not been trained yet and, consequentially, can not be evaluated!")
+    confidenceDict = {}
+    for rom in self.supervisedContainer:
+      sliceEvaluation = rom.confidence(request)
+      if len(list(confidenceDict.keys())) == 0:
+        confidenceDict.update(sliceEvaluation)
+      else:
+        for key in confidenceDict.keys():
+          confidenceDict[key] = np.append(confidenceDict[key],sliceEvaluation[key])
     return confidenceDict
 
   @Decorators.timingProfile
@@ -338,14 +371,29 @@ class ROM(Dummy):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
-      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
+      @ Out, resultsDict, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM       = self._inputToInternal(request)
-    outputEvaluation = self.supervisedEngine.run(inputToROM)
+    request = self._inputToInternal(request)
+    if self.pickled:
+      self.raiseAnError(RuntimeError,'ROM "', self.name, '" has not been loaded yet!  Use an IOStep to load it.')
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not be evaluated!")
+    resultsDict = {}
+    # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+    if self.segment:
+      resultsDict = self.supervisedContainer[0].run(request)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = rom.run(request)
+        if len(list(resultsDict.keys())) == 0:
+          resultsDict.update(sliceEvaluation)
+        else:
+          for key in resultsDict.keys():
+            resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
-    for k,v in outputEvaluation.items():
-      outputEvaluation[k] = np.atleast_1d(v)
-    return outputEvaluation
+    for k,v in resultsDict.items():
+      resultsDict[k] = np.atleast_1d(v)
+    return resultsDict
 
   def _externalRun(self,inRun):
     """
@@ -390,7 +438,8 @@ class ROM(Dummy):
       @ In, params, dict, new params to set (internals depend on ROM)
       @ Out, None
     """
-    self.supervisedEngine.setAdditionalParams(params)
+    for rom in self.supervisedContainer:
+      rom.setAdditionalParams(params)
 
   def convergence(self,trainingSet):
     """
@@ -409,7 +458,7 @@ class ROM(Dummy):
       @ In, trainingSize, int, the size of current training size
       @ Out, cvMetrics, dict, the calculated cross validation metrics
     """
-    if len(self.supervisedEngine.supervisedContainer) > 1:
+    if len(self.supervisedContainer) > 1:
       self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
     cvMetrics = None
     if self._checkCV(len(trainingSet)):
@@ -449,8 +498,7 @@ class ROM(Dummy):
     """
     # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
     ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
-    engines = self.supervisedEngine.supervisedContainer
-    for engine in engines:
+    for engine in self.supervisedContainer:
       engine.writePointwiseData(writeTo)
 
   def writeXML(self, what='all'):
@@ -460,18 +508,18 @@ class ROM(Dummy):
       @ Out, xml, xmlUtils.StaticXmlElement, written meta
     """
     #determine dynamic or static
-    dynamic = self.supervisedEngine.isADynamicModel
+    dynamic = self.isADynamicModel
     # determine if it can handle dynamic data
-    handleDynamicData = self.supervisedEngine.canHandleDynamicData
+    handleDynamicData = self.canHandleDynamicData
     # get pivot parameter
-    pivotParameterId = self.supervisedEngine.pivotParameterId
+    pivotParameterId = self.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.supervisedContainer[0].target
+    ROMtargets = self.supervisedContainer[0].target
     ## establish requested targets
     targets = ROMtargets if what=='all' else what.split(',')
     ## establish sets of engines to work from
-    engines = self.supervisedEngine.supervisedContainer
+    engines = self.supervisedContainer
     # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
     #    on whether the engine is naturally dynamic or whether we need to handle that part.
     if dynamic and not handleDynamicData:
@@ -480,14 +528,14 @@ class ROM(Dummy):
       ## pre-print printing
       engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
       for s,rom in enumerate(engines):
-        pivotValue = self.supervisedEngine.historySteps[s]
+        pivotValue = self.historySteps[s]
         #for target in targets: # should be handled by SVL engine or here??
         #  #skip the pivot param
         #  if target == pivotParameterId:
         #    continue
         #otherwise, call engine's print method
         self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
-        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
+        subXML = xmlUtils.StaticXmlElement(self.supervisedContainer[0].printTag)
         rom.writeXML(subXML, skip = [pivotParameterId])
         for element in subXML.getRoot():
           xml.addScalarNode(element, pivotValue)
