@@ -176,6 +176,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
     self.functionS = romFactory.returnInstance('KNeighborsClassifier')
     paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
     self.functionS.initializeFromDict(paramDict)
+    ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
     # settings = {'n_jobs': -1}
     settings = {}
     self.functionS.initializeModel(settings)
@@ -187,6 +188,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
       self.errorModel = romFactory.returnInstance('KNeighborsClassifier')
       paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
       self.errorModel.initializeFromDict(paramDict)
+      ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
       # settings = {'weights': 'distance', 'n_jobs': -1}
       settings = {'weights': 'distance'}
       self.errorModel.initializeModel(settings)
