@@ -279,6 +279,7 @@ class ROM(Dummy):
     # train the ROM from the unpickled object
     self.train(obj)
     self.setAdditionalParams(loadSettings)
+    self.pickled = False
 
   def train(self,trainingSet):
     """
