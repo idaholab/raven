@@ -42,13 +42,6 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <estimator class="Models" type="ROM">estimator</estimator>
-      <!--
-        <estimator>
-          <SKLtype>linear_model|LinearRegression</SKLtype>
-          <fit_intercept>True</fit_intercept>
-          <normalize>True</normalize>
-        </estimator>
-      -->
     </ROM>
     <ROM name="estimator" subType="LinearRegression">
       <Features>X,Y</Features>

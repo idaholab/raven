@@ -201,14 +201,13 @@ class SupervisedLearning(BaseInterface):
     """
     self.__dict__.update(d)
 
-  # TODO: remove, seems not needed
-  # def initialize(self, idict):
-  #   """
-  #     Initialization method
-  #     @ In, idict, dict, dictionary of initialization parameters
-  #     @ Out, None
-  #   """
-  #   pass #Overloaded by (at least) GaussPolynomialRom
+  def setEstimator(self, estimator):
+    """
+      Initialization method
+      @ In, estimator, ROM instance, estimator used by ROM
+      @ Out, None
+    """
+    pass
 
   ## TODO: we may not need the set and read AssembleObjects
   def setAssembledObjects(self, assembledObjects):

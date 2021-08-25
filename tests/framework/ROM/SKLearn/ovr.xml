@@ -41,11 +41,13 @@
     <ROM name="modelUnderTest" subType="OneVsRestClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <estimator>
-        <SKLtype>linear_model|LinearRegression</SKLtype>
-        <fit_intercept>True</fit_intercept>
-        <normalize>True</normalize>
-      </estimator>
+      <estimator class="Models" type="ROM">estimator</estimator>
+    </ROM>
+    <ROM name="estimator" subType="LinearRegression">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
     </ROM>
   </Models>
 

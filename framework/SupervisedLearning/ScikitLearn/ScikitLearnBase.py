@@ -78,6 +78,14 @@ class ScikitLearnBase(SupervisedLearning):
     self.settings = settings
     self.model.set_params(**settings)
 
+  def setEstimator(self, estimator):
+    """
+      Initialization method
+      @ In, estimator, ROM instance, estimator used by ROM
+      @ Out, None
+    """
+    pass
+
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.

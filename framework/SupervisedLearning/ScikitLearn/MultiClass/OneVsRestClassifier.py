@@ -44,8 +44,9 @@ class OneVsRestClassifier(ScikitLearnBase):
     import sklearn
     import sklearn.multiclass
     import sklearn.multioutput
+    from sklearn.svm import SVC
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsRestClassifier())
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsRestClassifier(SVC()))
 
   @classmethod
   def getInputSpecification(cls):
@@ -65,9 +66,8 @@ class OneVsRestClassifier(ScikitLearnBase):
                         possible to gain knowledge about the class by inspecting its corresponding classifier.
                         This is the most commonly used strategy for multiclass classification and is a fair default choice.
                         """
-    estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
-                                                 descr=r"""An estimator object implementing fit and one of
-                                                 decision\_function or predict\_proba.""", default='no-default')
+    estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
+                                                 descr=r"""name of a ROM that can be used as an estimator""", default='no-default')
     #TODO: Add more inputspecs for estimator
     specs.addSub(estimatorInput)
 
@@ -84,7 +84,20 @@ class OneVsRestClassifier(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['estimator','n_jobs'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['n_jobs'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
+
+  def setEstimator(self, estimator):
+    """
+      Initialization method
+      @ In, estimator, ROM instance, estimator used by ROM
+      @ Out, None
+    """
+    if estimator._interfaceROM.multioutputWrapper:
+      sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
+    else:
+      sklEstimator = estimator._interfaceROM.model
+    settings = {'estimator':sklEstimator}
+    self.model.set_params(**settings)

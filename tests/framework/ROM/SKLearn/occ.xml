@@ -41,12 +41,12 @@
     <ROM name="modelUnderTest" subType="OutputCodeClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <estimator>
-        <SKLtype>svm|SVC</SKLtype>
-        <fit_intercept>True</fit_intercept>
-        <normalize>True</normalize>
-      </estimator>
+      <estimator class="Models" type="ROM">estimator</estimator>
       <random_state>0</random_state>
+    </ROM>
+    <ROM name="estimator" subType="SVC">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
     </ROM>
   </Models>
 

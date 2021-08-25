@@ -44,8 +44,9 @@ class OutputCodeClassifier(ScikitLearnBase):
     import sklearn
     import sklearn.multiclass
     import sklearn.multioutput
+    from sklearn.svm import SVC
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OutputCodeClassifier())
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OutputCodeClassifier(SVC()))
 
   @classmethod
   def getInputSpecification(cls):
@@ -66,9 +67,8 @@ class OutputCodeClassifier(ScikitLearnBase):
                         (0 < code\_size < 1) or for making the model more robust to errors (code\_size > 1). See the
                         documentation for more details.
                         """
-    estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
-                                                 descr=r"""An estimator object implementing fit and one of
-                                                 decision\_function or predict\_proba.""", default='no-default')
+    estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
+                                                 descr=r"""name of a ROM that can be used as an estimator""", default='no-default')
     #TODO: Add more inputspecs for estimator
     specs.addSub(estimatorInput)
     specs.addSub(InputData.parameterInputFactory("code_size", contentType=InputTypes.FloatType,
@@ -92,7 +92,20 @@ class OutputCodeClassifier(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['estimator','code_size', 'random_state', 'n_jobs'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['code_size', 'random_state', 'n_jobs'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
+
+  def setEstimator(self, estimator):
+    """
+      Initialization method
+      @ In, estimator, ROM instance, estimator used by ROM
+      @ Out, None
+    """
+    if estimator._interfaceROM.multioutputWrapper:
+      sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
+    else:
+      sklEstimator = estimator._interfaceROM.model
+    settings = {'estimator':sklEstimator}
+    self.model.set_params(**settings)

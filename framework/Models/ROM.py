@@ -215,9 +215,10 @@ class ROM(Dummy):
     if self.cvInstance is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
+
     if self._estimator is not None:
       self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimator)
-      self._estimator.initialize(runInfo, inputs, initDict)
+      self._interfaceROM.setEstimator(self._estimator)
 
   def reset(self):
     """

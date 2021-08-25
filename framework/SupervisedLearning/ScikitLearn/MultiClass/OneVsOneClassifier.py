@@ -44,8 +44,9 @@ class OneVsOneClassifier(ScikitLearnBase):
     import sklearn
     import sklearn.multiclass
     import sklearn.multioutput
+    from sklearn.svm import LinearSVC
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsOneClassifier())
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsOneClassifier(LinearSVC()))
 
   @classmethod
   def getInputSpecification(cls):
@@ -61,9 +62,8 @@ class OneVsOneClassifier(ScikitLearnBase):
                         This strategy consists in fitting one classifier per class pair. At prediction time, the class
                         which received the most votes is selected.
                         """
-    estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
-                                                 descr=r"""An estimator object implementing fit and one of
-                                                 decision\_function or predict\_proba.""", default='no-default')
+    estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
+                                                 descr=r"""name of a ROM that can be used as an estimator""", default='no-default')
     #TODO: Add more inputspecs for estimator
     specs.addSub(estimatorInput)
 
@@ -80,7 +80,20 @@ class OneVsOneClassifier(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['estimator','n_jobs'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['n_jobs'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
+
+  def setEstimator(self, estimator):
+    """
+      Initialization method
+      @ In, estimator, ROM instance, estimator used by ROM
+      @ Out, None
+    """
+    if estimator._interfaceROM.multioutputWrapper:
+      sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
+    else:
+      sklEstimator = estimator._interfaceROM.model
+    settings = {'estimator':sklEstimator}
+    self.model.set_params(**settings)
