@@ -96,7 +96,7 @@ class LinearSVC(ScikitLearnBase):
                                                  To lessen the effect of regularization on synthetic feature weight (and therefore on the intercept)
                                                  $intercept_scaling$ has to be increased.""", default=1.))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
+                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=1000))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.IntegerType,
                                                  descr=r"""Enable verbose output. Note that this setting takes advantage
                                                  of a per-process runtime setting in liblinear that, if enabled, may not
