@@ -94,7 +94,7 @@ class Validation(PostProcessorReadyInterface):
     self.pivotValues = None     # pivot values (present if dynamic == True)
 
 
-    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
     ## dataset option
     self.setInputDataType('xrDataset')
