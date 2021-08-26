@@ -27,7 +27,7 @@ import numpy as np
 import six
 from numpy import linalg
 
-from utils.utils import UreturnPrintTag, UreturnPrintPostTag
+from utils.utils import UreturnPrintTag, UreturnPrintPostTag, first
 from .graphStructure import graphObject
 
 import MessageHandler # makes sure getMessageHandler is defined
@@ -996,7 +996,11 @@ def derivatives(f, x0, var = None, n = 1, h = None, target=None):
   """
   assert(n <= 10)
   assert(isinstance(var, list) or isinstance(var, type(None)))
+  #XXX Possibly this should only be done sometimes
+  for key in x0:
+    x0[key] = np.atleast_1d(x0[key])
   assert(len(list(x0.values())[0]) == 1)
+  #assert(first(x0.values()).size == 1)
   targets = [target]
   if target is None:
     checkWorking = f(x0)

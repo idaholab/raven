@@ -1736,7 +1736,8 @@ class ravenROM(ExternalGreyBoxModel):
   def evaluate_outputs(self):
     request = {k:np.asarray(v) for k,v in zip(self._input_names,self._input_values)}
     outs = self.rom.evaluate(request)
-    return np.asaarray([outs[k].flatten() for k in self._output_names], dtype=np.float6)
+    eval_outputs = np.asarray([outs[k].flatten() for k in self._output_names], dtype=np.float64)
+    return eval_outputs.flatten()
 
   def evaluate_jacobian_outputs(self):
     request = {k:np.asarray(v) for k,v in zip(self._input_names,self._input_values)}
@@ -1744,7 +1745,7 @@ class ravenROM(ExternalGreyBoxModel):
     jac = np.zeros((self._n_outputs, self._n_inputs))
     for tc, target in enumerate(self._output_names):
       for fc, feature in enumerate(self._input_names):
-        jac[tc,fc] = derivatives['d{}|d{}'.format(feature,target)]
+        jac[tc,fc] = derivatives['d{}|d{}'.format(target, feature)]
     return jac
 
 def pyomoModel(ex_model):
@@ -1773,6 +1774,10 @@ if __name__ == '__main__':
   concreteModel = pyomoModel(ext_model)
   ### here you should implement the optimization problem
   ###
+  solver = pyo.SolverFactory('cyipopt')
+  solver.config.options['hessian_approximation'] = 'limited-memory'
+  results = solver.solve(concreteModel)
+  print(results)
 """
 
     return template
