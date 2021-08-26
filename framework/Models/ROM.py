@@ -214,11 +214,11 @@ class ROM(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     # retrieve cross validation object
-    if self.cvInstanceName is not None:
+    if self.cvInstance is not None and self.cvInstanceName is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstanceName)
       self.cvInstance.initialize(runInfo, inputs, initDict)
 
-    if self._estimatorName is not None:
+    if self._estimator is None and self._estimatorName is not None:
       self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimatorName)
       self._interfaceROM.setEstimator(self._estimator)
 
