@@ -100,7 +100,9 @@ class ROM(Dummy):
     self.amITrained = False               # boolean flag, is the ROM trained?
     self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
+    self.cvInstanceName = None            # the name of Cross Validation instance
     self.cvInstance = None                # Instance of provided cross validation
+    self._estimatorName = None            # the name of estimator instance
     self._estimator = None                # Instance of provided estimator (ROM)
     self._interfaceROM = None             # Instance of provided ROM
 
@@ -171,9 +173,9 @@ class ROM(Dummy):
     paramInput.parseNode(xmlNode)
     cvNode = paramInput.findFirst('CV')
     if cvNode is not None:
-      self.cvInstance = cvNode.value
+      self.cvInstanceName = cvNode.value
     estimatorNode = paramInput.findFirst('estimator')
-    self._estimator = estimatorNode.value if estimatorNode is not None else None
+    self._estimatorName = estimatorNode.value if estimatorNode is not None else None
     ##
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     self._interfaceROM._readMoreXML(xmlNode)
@@ -212,12 +214,12 @@ class ROM(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     # retrieve cross validation object
-    if self.cvInstance is not None:
-      self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
+    if self.cvInstanceName is not None:
+      self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstanceName)
       self.cvInstance.initialize(runInfo, inputs, initDict)
 
-    if self._estimator is not None:
-      self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimator)
+    if self._estimatorName is not None:
+      self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimatorName)
       self._interfaceROM.setEstimator(self._estimator)
 
   def reset(self):

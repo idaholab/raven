@@ -95,5 +95,15 @@ class OneVsOneClassifier(ScikitLearnBase):
       sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
     else:
       sklEstimator = estimator._interfaceROM.model
-    settings = {'estimator':sklEstimator}
+    if not callable(getattr(sklEstimator, "fit", None)):
+      self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
+    ###FIXME: We may need to check 'predict_proba' inside ROM class
+    # elif not callable(getattr(sklEstimator, "predict_proba", None)) and not callable(getattr(sklEstimator, "decision_function", None)):
+    #   self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
+    else:
+      self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
+    if self.multioutputWrapper:
+      settings = {'estimator__estimator':sklEstimator}
+    else:
+      settings = {'estimator':sklEstimator}
     self.model.set_params(**settings)
