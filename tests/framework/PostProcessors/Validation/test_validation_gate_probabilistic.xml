@@ -22,7 +22,7 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Validation">

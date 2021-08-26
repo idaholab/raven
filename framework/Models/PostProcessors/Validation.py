@@ -88,7 +88,15 @@ class Validation(PostProcessorInterface):
     # add assembly objects (and set up pointers)
     self.PreProcessor = None    ## Instance of PreProcessor, default is None
     self.metrics = None          ## Instance of Metric, default is None
-    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
+
+    self.dataType = ['static', 'dynamic'] # the type of data can be passed in (static aka PointSet, dynamic aka HistorySet) (if both are present the validation algorithm can work for both data types)
+    self.acceptableMetrics = [] # if not populated all types of metrics are accepted, otherwise list the metrics (see Probablistic.py for an example)
+    self.features = None        # list of feature variables
+    self.targets = None         # list of target variables
+    self.pivotValues = None     # pivot values (present if dynamic == True)
+
+
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
 
   def _localWhatDoINeed(self):
