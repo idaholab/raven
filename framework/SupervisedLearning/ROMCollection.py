@@ -726,6 +726,14 @@ class Clusters(Segments):
     self._clusterFeatures = None         # dict of lists, features to cluster on
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterVariableID = '_ROM_Cluster' # name by which clustering dimension shall be known
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    super().setTemplateROM(romInfo)
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
