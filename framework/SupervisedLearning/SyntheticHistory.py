@@ -33,17 +33,17 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
   ## define the clusterable features for this ROM.
   # _clusterableFeatures = TODO # get from TSA
   @classmethod
-  def getInputSpecifications(cls):
+  def getInputSpecification(cls):
     """
       Establish input specs for this class.
       @ In, None
       @ Out, spec, InputData.ParameterInput, class for specifying input template
     """
-    specs = InputData.parameterInputFactory('SyntheticHistory', strictMode=True,
-        descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
-               a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
-               signals based on training signal sets. """)
-    cls.addTSASpecs(specs)
+    specs = super().getInputSpecification()
+    specs.description = r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
+           a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
+           signals based on training signal sets. """
+    specs = cls.addTSASpecs(specs)
     return specs
 
   ### INHERITED METHODS ###
@@ -54,7 +54,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    super().__init__()
+    SupervisedLearning.__init__(self)
+    TSAUser.__init__(self)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
 
@@ -64,7 +65,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.readTSAInput(inp)
+    SupervisedLearning._handleInput(self, paramInput)
+    self.readTSAInput(paramInput)
 
   def __trainLocal__(self, featureVals, targetVals):
     """

@@ -46,6 +46,7 @@ class TSAUser:
       elif subset == 'generate' and not c.canGenerate():
         continue
       spec.addSub(c.getInputSpecification())
+    return spec
 
   def __init__(self):
     """

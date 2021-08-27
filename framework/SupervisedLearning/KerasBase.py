@@ -21,6 +21,7 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
+from sklearn import preprocessing
 import random as rn
 import matplotlib
 import platform
@@ -78,7 +79,7 @@ class KerasBase(SupervisedLearning):
     inputSpecification = super().getInputSpecification()
     inputSpecification.description = r"""TensorFlow-Keras Deep Neural Networks."""
     # general xml nodes
-    inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputTypes.StringListType, default='accuracy')) #list of metrics
+    inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputTypes.StringListType, default=['accuracy'])) #list of metrics
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputTypes.IntegerType, default=20))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputTypes.IntegerType, default=20))
     inputSpecification.addSub(InputData.parameterInputFactory("random_seed", contentType=InputTypes.IntegerType, default=None))
@@ -1186,7 +1187,6 @@ class KerasBase(SupervisedLearning):
                        self.kerasDict['kerasAdvancedActivationLayersList'] + self.kerasDict['kerasNormalizationLayersList'] + \
                        self.kerasDict['kerasNoiseLayersList']
     # LabelEncoder can be used to normalize labels
-    from sklearn import preprocessing
     self.labelEncoder = preprocessing.LabelEncoder()
     # perform z-score normalization if True
     self.externalNorm = True
@@ -1287,6 +1287,7 @@ class KerasBase(SupervisedLearning):
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
+    ## Potential Pickling issue: https://github.com/tensorflow/tensorflow/issues/33283
     state = SupervisedLearning.__getstate__(self)
     tf.keras.models.save_model(self._ROM, KerasBase.tempModelFile, save_format='h5')
     # another method to save the TensorFlow model
@@ -1296,7 +1297,6 @@ class KerasBase(SupervisedLearning):
     state[KerasBase.modelAttr] = serialModelData
     os.remove(KerasBase.tempModelFile)
     del state["_ROM"]
-    state['initOptionDict'].pop('paramInput',None)
     return state
 
   def __setstate__(self, d):

@@ -148,7 +148,7 @@ class ROM(Dummy):
     self.__dict__.update(d)
     if not d['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
-      modelInstance = self._interfaceROM
+      modelInstance = self.interfaceFactory.returnInstance(self.subType)
       self.supervisedContainer  = [modelInstance]
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
@@ -218,6 +218,7 @@ class ROM(Dummy):
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstanceName)
       self.cvInstance.initialize(runInfo, inputs, initDict)
 
+    # only initialize once
     if self._estimator is None and self._estimatorName is not None:
       self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimatorName)
       self._interfaceROM.setEstimator(self._estimator)
