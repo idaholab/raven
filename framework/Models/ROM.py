@@ -227,7 +227,7 @@ class ROM(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     # retrieve cross validation object
-    if self.cvInstance is not None and self.cvInstanceName is not None:
+    if self.cvInstance is None and self.cvInstanceName is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstanceName)
       self.cvInstance.initialize(runInfo, inputs, initDict)
 

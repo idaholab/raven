@@ -510,6 +510,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
+    # reset supervisedContainer since some information is lost during deepcopy, such as 'features' and 'target'
+    rom.supervisedContainer = [rom._interfaceROM]
     for svl in rom.supervisedContainer:
       svl.initialize({'SG'   :sg,
                       'dists':self.dists,
