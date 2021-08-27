@@ -34,7 +34,7 @@ from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DMD
 
 ## FIXME: convert the following ROM to use new ROM API
-# from .ARMA               import ARMA
+from .ARMA               import ARMA
 # from .ROMCollection      import Collection, Segments, Clusters, Interpolated
 
 ## Tensorflow-Keras Neural Network Models
