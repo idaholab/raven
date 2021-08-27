@@ -71,43 +71,9 @@ class SupervisedLearning(BaseInterface):
     AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     spec.addSub(AliasInput)
-
-    ### TODO: Move to ROMCollection Class
-    # ####################
-    # # manually entered #
-    # ####################
-    # segmenting and clustering
-    segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
-    segment.addParam('grouping', segmentGroups)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
-    subspace.addParam('divisions', InputTypes.IntegerType, False)
-    subspace.addParam('pivotLength', InputTypes.FloatType, False)
-    subspace.addParam('shift', InputTypes.StringType, False)
-    segment.addSub(subspace)
     clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
-    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
-    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
-    ## clusterFeatures
-    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
-    ## max cycles (for Interpolated ROMCollection)
-    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
-    ## classifier
-    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
-    clsfr.addParam('class', InputTypes.StringType, True)
-    clsfr.addParam('type', InputTypes.StringType, True)
-    segment.addSub(clsfr)
-    ## metric
-    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
-    metric.addParam('class', InputTypes.StringType, True)
-    metric.addParam('type', InputTypes.StringType, True)
-    segment.addSub(metric)
-    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
-    spec.addSub(segment)
-    ##### END ROMCollection
-    spec.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
-    spec.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
-
+    spec.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum)) # for pickled ROMCollection
+    spec.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for pickled Interpolated ROMCollection
 
     return spec
 

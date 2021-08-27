@@ -30,6 +30,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 # internal libraries
 from utils import utils, mathUtils, xmlUtils, randomUtils
+from utils import InputData, InputTypes
 from .SupervisedLearning import SupervisedLearning
 # import pickle as pk # TODO remove me!
 import os
@@ -51,10 +52,7 @@ class Collection(SupervisedLearning):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    specs.description = r"""To be added"""
-    spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType))
+    spec.description = r"""To be added"""
     return spec
 
   def __init__(self):
@@ -65,10 +63,21 @@ class Collection(SupervisedLearning):
     """
     super().__init__()
     self.printTag = 'ROM Collection'              # message printing appearance
-    self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
-    self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
+    self._romName = None # name of the requested ROM
+    self._templateROM = None   # example of a ROM that will be used in this grouping, set by setTemplateROM
     self._roms = []                               # ROMs that belong to this grouping.
     self._romInitAdditionalParams = {}            # used for deserialization, empty by default
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._templateROM = romInfo.get('modelInstance')
+    self._romName = romInfo.get('name', 'unnamed')
+    if self._templateROM is None:
+      self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
 
   def _handleInput(self, paramInput):
     """
@@ -77,8 +86,6 @@ class Collection(SupervisedLearning):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target'])
-    assert(not notFound)
 
   def __getstate__(self):
     """
@@ -181,6 +188,30 @@ class Segments(Collection):
   ########################
   # CONSTRUCTION METHODS #
   ########################
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""To be added"""
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True)
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
+    segment.addParam('grouping', segmentGroups)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
+    subspace.addParam('divisions', InputTypes.IntegerType, False)
+    subspace.addParam('pivotLength', InputTypes.FloatType, False)
+    subspace.addParam('shift', InputTypes.StringType, False)
+    segment.addSub(subspace)
+    spec.addSub(segment)
+    return spec
+
   def __init__(self):
     """
       Constructor.
@@ -647,6 +678,38 @@ class Clusters(Segments):
     are managed by calling finalizeLocalRomSegmentEvaluation on each segment ROM, and
     finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""To be added"""
+    segment = spec.popSub('Segment')
+    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## classifier
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
+    clsfr.addParam('class', InputTypes.StringType, True)
+    clsfr.addParam('type', InputTypes.StringType, True)
+    segment.addSub(clsfr)
+    ## metric
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
+    metric.addParam('class', InputTypes.StringType, True)
+    metric.addParam('type', InputTypes.StringType, True)
+    segment.addSub(metric)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
+    spec.addSub(segment)
+    return spec
+
   ## Constructors ##
   def __init__(self):
     """
@@ -1233,6 +1296,48 @@ class Clusters(Segments):
 #
 class Interpolated(SupervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""To be added"""
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True)
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
+    segment.addParam('grouping', segmentGroups)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
+    subspace.addParam('divisions', InputTypes.IntegerType, False)
+    subspace.addParam('pivotLength', InputTypes.FloatType, False)
+    subspace.addParam('shift', InputTypes.StringType, False)
+    segment.addSub(subspace)
+    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
+    ## classifier
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
+    clsfr.addParam('class', InputTypes.StringType, True)
+    clsfr.addParam('type', InputTypes.StringType, True)
+    segment.addSub(clsfr)
+    ## metric
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
+    metric.addParam('class', InputTypes.StringType, True)
+    metric.addParam('type', InputTypes.StringType, True)
+    segment.addSub(metric)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
+    spec.addSub(segment)
+    return spec
+
   def __init__(self):
     """
       Constructor.
@@ -1242,6 +1347,15 @@ class Interpolated(SupervisedLearning):
     super().__init__()
     self.printTag = 'Interp. Cluster ROM'
     self._maxCycles = None # maximum number of cycles to run (default no limit)
+    self._macroTemplate = Clusters()
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._macroTemplate.setTemplateROM(romInfo)
 
   def _handleInput(self, paramInput):
     """
@@ -1257,13 +1371,13 @@ class Interpolated(SupervisedLearning):
       self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
-    self._macroTemplate = Clusters(**kwargs)            # example "yearly" SVL engine collection
     maxCycles = inputSpecs.findFirst('maxCycles')
     if maxCycles is not None:
       self._maxCycles = maxCycles.value
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
+    self._macroTemplate._handleInput(paramInput)            # example "yearly" SVL engine collection
   # passthrough to template
   def setAdditionalParams(self, params):
     """

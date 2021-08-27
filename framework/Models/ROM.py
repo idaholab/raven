@@ -38,7 +38,9 @@ class ROM(Dummy):
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
   interfaceFactory = factory
-
+  segmentNameToClass = {'segment': 'Segments',
+                 'cluster': 'Clusters',
+                 'interpolate': 'Interpolated'}
   @classmethod
   def getInputSpecification(cls, xml=None):
     """
@@ -60,6 +62,13 @@ class ROM(Dummy):
     validClass = cls.interfaceFactory.returnClass(subType)
     validSpec = validClass.getInputSpecification()
     inputSpecification.mergeSub(validSpec)
+    ## Add segment input specifications
+    segment = xml.find('Segment')
+    if segment is not None:
+      segType = segment.attrib.get('grouping', 'segment')
+      validClass = cls.interfaceFactory.returnClass(cls.segmentNameToClass[segType])
+      validSpec = validClass.getInputSpecification()
+      inputSpecification.mergeSub(validSpec)
 
     # cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
     # cvInput.addParam("class", InputTypes.StringType)
@@ -71,10 +80,6 @@ class ROM(Dummy):
     #   if hasattr(obj, 'getInputSpecifications'):
     #     subspecs = obj.getInputSpecifications()
     #     inputSpecification.mergeSub(subspecs)
-
-    ## TODO: remove
-    # CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
 
     return inputSpecification
 
@@ -116,6 +121,7 @@ class ROM(Dummy):
     self.segment = False # True if segmenting/clustring/interpolating is requested
     self.numThreads = 1 # number of threads used by the ROM
     self.seed = None # seed information
+    self._segmentROM = None # segment rom instance
 
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
@@ -176,12 +182,28 @@ class ROM(Dummy):
       self.cvInstanceName = cvNode.value
     estimatorNode = paramInput.findFirst('estimator')
     self._estimatorName = estimatorNode.value if estimatorNode is not None else None
-    ##
+
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
-    self._interfaceROM._readMoreXML(xmlNode)
-    ## TODO: how to handle 'estimator' node?
+    segmentNode = paramInput.findFirst('Segment')
+    if segmentNode is not None:
+      self.segment = True
+      # determine type of segment to load -> limited by InputData to specific options
+      segType = segmentNode.parameterValues.get('grouping', 'segment')
+      self._segmentROM =  self.interfaceFactory.returnInstance(self.segmentNameToClass[segType])
+      segment = xmlNode.find('Segment')
+      romXml = copy.deepcopy(xmlNode)
+      romXml.remove(segment)
+    else:
+      romXml = xmlNode
+    self._interfaceROM._readMoreXML(romXml)
 
-
+    if self.segment:
+      romInfo = {'name':self.name, 'modelInstance': self._interfaceROM}
+      self._segmentROM.setTemplateROM(romInfo)
+      self._segmentROM._handleInput(paramInput)
+      self.supervisedContainer = [self._segmentROM]
+    else:
+      self.supervisedContainer = [self._interfaceROM]
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.pickled = True
@@ -191,20 +213,6 @@ class ROM(Dummy):
       self.pivotParameterId = pivot.value
 
     self.canHandleDynamicData = self._interfaceROM.isDynamic()
-    self.supervisedContainer = [self._interfaceROM]
-
-    ### ROMCollection ###
-    # if the ROM targeted by this gate is a cluster, create the cluster now!
-    if self.segment:
-      nameToClass = {'segment': 'Segments',
-                     'cluster': 'Clusters',
-                     'interpolate': 'Interpolated'}
-      # read from specs directly
-      segSpecs = paramInput.findFirst('Segment')
-      # determine type of segment to load -> limited by InputData to specific options
-      segType = segSpecs.parameterValues.get('grouping', 'segment')
-      SVL =  self.interfaceFactory.returnInstance(nameToClass[segType])
-      self.supervisedContainer = [SVL]
 
   def initialize(self,runInfo,inputs,initDict=None):
     """

@@ -445,7 +445,7 @@ class ARMA(SupervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = supervisedLearning.__getstate__(self)
+    d = SupervisedLearning.__getstate__(self)
     eng=d.pop("randomEng")
     randCounts = eng.get_rng_state()
     d['crow_rng_counts'] = randCounts
@@ -527,7 +527,7 @@ class ARMA(SupervisedLearning):
       @ Out, None
     """
     # reseeding is taken care of in the supervisedLearning base class of this method
-    supervisedLearning.setAdditionalParams(self, params)
+    SupervisedLearning.setAdditionalParams(self, params)
     paramInput = params['paramInput']
     # multicycle; note that myNode is "multicycleNode" not a node that I own
     myNode = paramInput.findFirst('Multicycle')
