@@ -14,7 +14,7 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for NDinterpolatorRom
 """

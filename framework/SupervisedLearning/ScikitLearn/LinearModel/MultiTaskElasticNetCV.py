@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   Multi-task L1/L2 ElasticNet with built-in cross-validation.
 
 """

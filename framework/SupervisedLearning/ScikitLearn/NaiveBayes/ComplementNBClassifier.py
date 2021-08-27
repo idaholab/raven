@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   ComplementNBClassifier
   Complement Naive Bayes classifier described in Rennie et al. (2003).
 

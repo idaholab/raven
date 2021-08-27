@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   Lasso linear model with iterative fitting along a regularization path
 
 """

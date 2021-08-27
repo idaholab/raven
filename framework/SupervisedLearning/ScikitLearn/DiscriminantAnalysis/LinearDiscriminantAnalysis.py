@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   LinearDiscriminantAnalysis
   Classifier implementing Discriminant Analysis (Linear) classification
 

@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   RadiusNeighborsClassifier
   Classifier implementing a vote among neighbors within a given radius
 

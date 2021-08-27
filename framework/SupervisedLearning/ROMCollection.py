@@ -14,7 +14,7 @@
 """
   Created on January 10, 2019
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Container to handle ROMs that are made of many sub-roms
 """
 # standard libraries

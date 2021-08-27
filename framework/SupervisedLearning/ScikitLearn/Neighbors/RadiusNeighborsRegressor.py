@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   RadiusNeighborsRegressor
   Regressor implementing a vote among neighbors within a given radius
 

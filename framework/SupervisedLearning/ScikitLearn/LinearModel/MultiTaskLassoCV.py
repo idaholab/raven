@@ -14,7 +14,7 @@
 """
   Created on Jan 21, 2020
 
-  @author: alfoa
+  @author: alfoa, wangc
   Cross-Validated Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer.
 
 """

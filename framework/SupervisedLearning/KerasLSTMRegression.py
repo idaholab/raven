@@ -14,7 +14,7 @@
 """
   Created on Apr. 13, 2021
 
-  @author: cogljj
+  @author: cogljj, wangc
   module for recurrent neural network using short-term model network (LSTM)
 """
 #External Modules------------------------------------------------------------------------------------

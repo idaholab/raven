@@ -14,7 +14,7 @@
 """
   Created on Jan 5, 2020
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from ARMA.py, split for modularity
   Uses TimeSeriesAnalysis (TSA) algorithms to train then generate synthetic histories
 """

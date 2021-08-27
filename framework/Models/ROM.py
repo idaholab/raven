@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module where the base class and the specialization of different type of Model are
+  Created on May 17, 2017
+  @author: alfoa, wangc
+  Module where the base class and the specialization of different type of Model are
 """
+
 #External Modules------------------------------------------------------------------------------------
 import copy
 import itertools

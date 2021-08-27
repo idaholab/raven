@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Created on Apr. 13, 2021
-  @author: cogljj
+  @author: cogljj, wangc
   base class for tensorflow and keras regression used for deep neural network
   i.e. Multi-layer perceptron regression, CNN, LSTM
 """
