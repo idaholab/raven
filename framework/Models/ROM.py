@@ -122,6 +122,7 @@ class ROM(Dummy):
     self.numThreads = 1 # number of threads used by the ROM
     self.seed = None # seed information
     self._segmentROM = None # segment rom instance
+    self._paramInput = None # the parsed xml input
 
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
@@ -177,6 +178,7 @@ class ROM(Dummy):
     super()._readMoreXML(xmlNode)
     paramInput = self.getInputSpecification(xml=xmlNode)()
     paramInput.parseNode(xmlNode)
+    self._paramInput = paramInput
     cvNode = paramInput.findFirst('CV')
     if cvNode is not None:
       self.cvInstanceName = cvNode.value
@@ -287,7 +289,7 @@ class ROM(Dummy):
       @ Out, None
     """
     # save reseeding parameters from pickledROM
-    loadSettings = {'seed': self.seed}
+    loadSettings = {'seed': self.seed, 'paramInput': self._paramInput}
     # train the ROM from the unpickled object
     self.train(obj)
     self.setAdditionalParams(loadSettings)
