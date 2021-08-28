@@ -75,7 +75,7 @@ class SupervisedLearningPlugin(PluginBase, SupervisedLearning):
       @ In, None
       @ Out, params, dict,  dictionary of parameter names and initial values
     """
-    pass
+    return {}
 
   def __returnCurrentSettingLocal__(self):
     """
@@ -83,5 +83,4 @@ class SupervisedLearningPlugin(PluginBase, SupervisedLearning):
       @ In, None
       @ Out, params, dict, dictionary of parameter names and current values
     """
-    pass
-
+    return {}
