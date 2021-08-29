@@ -35,6 +35,8 @@ def run(self,Inputs):
     @ Out, None
   """
   self.ans = evaluate(self.x,self.y)
+  # test secondary variable passthrough
+  self.aux_ans = self.x + self.y
 
 def grad(x, y):
   """
