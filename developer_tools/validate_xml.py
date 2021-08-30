@@ -21,7 +21,10 @@ import get_coverage_tests
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 conversionDir = os.path.join(scriptDir, '..', 'scripts', 'conversionScripts')
 termproc = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE)
-tlen = int(termproc.communicate()[0])
+try:
+  tlen = int(termproc.communicate()[0])
+except ValueError:
+  tlen = 100
 maxlen = min(100, tlen)
 
 def validateTests():
