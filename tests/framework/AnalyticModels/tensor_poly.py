@@ -24,7 +24,7 @@ def evaluate(inp):
   return np.prod(list(1.+n for n in inp))
 
 def run(self,Input):
-  self.ans  = evaluate(Input.values())
+  self.ans2  = evaluate(Input.values())
 
 #
 #  This model has analytic mean and variance and is documented in raven/docs/tests
