@@ -24,8 +24,6 @@ from __future__ import absolute_import
 from .CrossValidation import CrossValidation
 from .SklCrossValidation import SciKitLearn
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory
 
 __all__ = ['SciKitLearn']

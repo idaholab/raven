@@ -44,14 +44,13 @@ class Collection(supervisedLearning):
   """
     A container that handles collections of ROMs in a particular way.
   """
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'ROM Collection'              # message printing appearance
     self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
@@ -159,14 +158,13 @@ class Segments(Collection):
   ########################
   # CONSTRUCTION METHODS #
   ########################
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Collection.__init__(self, messageHandler, **kwargs)
+    Collection.__init__(self, **kwargs)
     self.printTag = 'Segmented ROM'
     self._divisionInstructions = {}    # which parameters are clustered, and how, and how much?
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
@@ -244,7 +242,19 @@ class Segments(Collection):
     if not skipAssembly:
       self.readAssembledObjects()
     # subdivide space
+    ## [0] is normal segments, [1] is potentially the odd-shaped last segment
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    if divisions[1]:
+      # we can't currently handle unequal segments during sampling, it creates nightmarish
+      # realization structures (i.e. ragged value and index arrays)
+      # for the DataObject to make sense of. For now, error out instead of being inscrutable.
+      indices = divisions[1][0]
+      pivot = self._templateROM.pivotParameterID
+      pivots = [tdict[pivot][0][i] for i in indices]
+      delta = pivots[1] - pivots[0]
+      self.raiseAnError(RuntimeError, 'Domain was not subdivided into equal segments! ' +
+          f'Last segment is from "{pivot}" = {pivots[0]} to {pivots[1]}, with pivotLength = {delta} ' +
+          f'and covering {indices[1]-indices[0]} entries!')
     self.divisions = divisions
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
@@ -441,15 +451,15 @@ class Segments(Collection):
         # TODO speedup; can we do this without looping?
         dt = pivot[1] - pivot[0]
         while floor < dataLen - 1:
-          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine percision error
+          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine precision error
           # if the next crossing point is past the end, put the remainder piece
           ## into the "unclustered" grouping, since it might be very oddly sized
           ## and throw off segmentation (specifically for clustering)
           if cross == len(pivot):
             remaining = pivot[-1] - pivot[floor-1]
             oneLess = pivot[-2] - pivot[floor-1]
-            test1 = abs(remaining-segmentValue)/segmentValue
-            test2 = abs(oneLess-segmentValue)/segmentValue
+            test1 = abs(remaining-segmentValue)/segmentValue < 1e-6
+            test2 = abs(oneLess-segmentValue)/segmentValue < 1e-6
             if not (test1 or test2):
               unclustered.append((floor, cross - 1))
               break
@@ -608,14 +618,13 @@ class Clusters(Segments):
     finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
   ## Constructors ##
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Segments.__init__(self, messageHandler, **kwargs)
+    Segments.__init__(self, **kwargs)
     self.printTag = 'Clustered ROM'
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
@@ -637,7 +646,8 @@ class Clusters(Segments):
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
-    # choice?
+
+    # how to choose representative cluster: static or random
     evalChoice = segmentNode.findFirst('evaluationClusterChoice')
     if evalChoice is not None:
       self._evaluationChoice = evalChoice.value
@@ -666,7 +676,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.interface.unSupervisedEngine
+      classifier = classifier._pp.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
@@ -682,6 +692,11 @@ class Clusters(Segments):
     evalMode = params.pop('clusterEvalMode', None)
     if evalMode:
       self._evaluationMode = evalMode
+    # TODO
+    #if self._evaluationMode == 'clustered':
+    #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
+    #else:
+    #  self.removeMetaKeys(['cluster_multiplicity'])
     Segments.setAdditionalParams(self, params)
 
   def evaluate(self, edict):
@@ -707,7 +722,10 @@ class Clusters(Segments):
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
-        clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        if self._evaluationChoice == 'first':
+          clusterIndex = 0
+        else:
+          clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
         # find ROM in full history
         segmentIndex, _ = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
@@ -719,7 +737,7 @@ class Clusters(Segments):
         if self._evaluationMode == 'truncated':
           localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
         else:
-          localPicker = slice(None, None, None)
+          localPicker = r #slice(None, None, None)
         # make final local modifications to truncated evaluation
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, globalPicker, localPicker)
         # update the cluster start index
@@ -728,7 +746,10 @@ class Clusters(Segments):
       ## for truncated mode, this is trivial.
       ## for clustered mode, this is complicated.
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
-    # TODO add clusterWeights to "result" as meta to the output? This would be handy!
+    # TODO add cluster multiplicity to "result" as meta to the output
+    #if self._evaluationMode == 'clustered':
+    #  result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
+    #  result['_indexMap']['cluster_multiplicity'] = np.atleast_1d([self._clusterVariableID])
     return result
 
   def writePointwiseData(self, writeTo):
@@ -746,6 +767,7 @@ class Clusters(Segments):
     # add some cluster stuff
     # cluster features
     ## both scaled and unscaled
+    labels = self._clusterInfo['labels']
     featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
     for scaling in ['unscaled', 'scaled']:
       for name in featureNames:
@@ -754,7 +776,8 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(self._clusterInfo['labels'])
+    rlz[varName] = np.asarray(labels)
+
     writeTo.addRealization(rlz)
 
   def writeXML(self, writeTo, targets=None, skip=None):
@@ -837,20 +860,17 @@ class Clusters(Segments):
     pivotLen = 0
     for cluster in clusters:
       # choose a ROM
-      # TODO user option? alternative is random, or ? centroids ?
-      chooseRomMode = 'first' if self._evaluationChoice is None else self._evaluationChoice
-      if chooseRomMode == 'first':
+      # TODO implement a distribution-based method for representative ROMs
+      if self._evaluationChoice == 'first':
         ## option 1: just take the first one
-        segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
-      elif chooseRomMode == 'random':
+        rom = self._roms[cluster]
+      elif self._evaluationChoice == 'random':
         ## option 2: choose randomly
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, chooseRandom=True)
-      # grab the Chosen ROM to represent this cluster
-      rom = self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
+        rom = self._clusterInfo['map'][cluster][clusterIndex]
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
-      # TODO FIXME should add "cluster" as an indexMap dimension!
-      ## INSTEAD, for now, just pile the realizations together, with no regard.
+      # collect results
       newLen = len(subResults[pivotID])
       pivotLen += newLen
       # if we're getting ND objects, identify indices and target-index dependence
@@ -861,6 +881,8 @@ class Clusters(Segments):
       # populate results storage
       if result is None:
         result = dict((target, subResults[target] if target in allIndices else []) for target in subResults)
+        # FIXME the Indices might not be the same for all ROMs; for instance, if cluster by weeks
+        # for a year, there's one day left over for its own cluster!
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
@@ -928,6 +950,11 @@ class Clusters(Segments):
       ## first dimention is the cluster ID, then others after.
       indexMap[target] = np.asarray([self._clusterVariableID] + list(indexMap.get(target, [pivotID])))
       # convert the list of arrays to a pure array
+      # FIXME -> except, you don't get a pure array if the length of each entry isn't the same
+      # For example:
+      # if you have 3 clusters with length (100, 100, 10), then you get an array of numpy arrays,
+      #    shape = (3,),
+      # if you have 3 clusters with length (70, 70, 70), then you get a single numpy array
       result[target] = np.asarray(values)
     # store the index map results
     result['_indexMap'] = indexMap
@@ -1081,9 +1108,16 @@ class Clusters(Segments):
     # make cluster information dict
     self._clusterInfo['labels'] = labels
     ## clustered
-    self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
-    # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
-    self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
+    if self._evaluationChoice == 'first':
+      # save memory!
+      romMapping = dict((label, roms[labels == label]) for label in uniqueLabels)
+      allIndices = np.arange(0, len(roms))
+      self._clusterInfo['map'] = dict((label, allIndices[labels == label]) for label in uniqueLabels)
+      self._roms = list(romMapping[label][0] for label in uniqueLabels)
+    elif self._evaluationChoice == 'random':
+      # save options!
+      self._clusterInfo['map'] = dict((label, roms[labels==label]) for label in uniqueLabels)
+      self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
     """
@@ -1162,15 +1196,15 @@ class Clusters(Segments):
 #
 class Interpolated(supervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler instance, message handler
       @ In, kwargs, dict, initialization options
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'Interp. Cluster ROM'
+    self._maxCycles = None # maximum number of cycles to run (default no limit)
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
@@ -1178,7 +1212,11 @@ class Interpolated(supervisedLearning):
       self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
-    self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
+    self._macroTemplate = Clusters(**kwargs)            # example "yearly" SVL engine collection
+    maxCycles = inputSpecs.findFirst('maxCycles')
+    if maxCycles is not None:
+      self._maxCycles = maxCycles.value
+      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
   # passthrough to template
@@ -1188,11 +1226,15 @@ class Interpolated(supervisedLearning):
       @ In, params, dict, params to set
       @ Out, setAdditionalParams, dict, additional params set
     """
-    mh = params.get('messageHandler', None)
-    if mh:
-      for step, collection in self._macroSteps.items():
-        collection.messageHandler = mh
-      self._macroTemplate.messageHandler = mh
+    # max cycles
+    maxCycles = params.pop('maxCycles', None)
+    if maxCycles is not None:
+      self._maxCycles = maxCycles
+      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
+    for step, collection in self._macroSteps.items():
+      # deepcopy is necessary because clusterEvalMode has to be popped out in collection
+      collection.setAdditionalParams(copy.deepcopy(params))
+    self._macroTemplate.setAdditionalParams(params)
     return super().setAdditionalParams(params)
 
   def setAssembledObjects(self, *args, **kwargs):
@@ -1451,14 +1493,17 @@ class Interpolated(supervisedLearning):
     self.raiseADebug('Evaluating interpolated ROM ...')
     results = None
     ## TODO set up right for ND??
-    numMacro = len(self._macroSteps)
+    forcedMax = self._maxCycles if self._maxCycles is not None else np.inf
+    numMacro = min(len(self._macroSteps), forcedMax)
     macroIndexValues = []
     for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      if m + 1 > numMacro:
+        break
       # m is an index of the macro step, in order of the macro values (e.g. in order of years)
       # macroStep is the actual macro step value (e.g. the year)
       # model is the ClusterROM instance for this macro step
       macroIndexValues.append(macroStep)
-      self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
+      self.raiseADebug(f' ... evaluating macro step "{macroStep}" ({m+1} / {numMacro})')
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
@@ -1478,11 +1523,14 @@ class Interpolated(supervisedLearning):
           if target in [pivotID, '_indexMap'] or target in indices:
             results[target] = values
           else:
-            results[target] = np.zeros([numMacro] + list(values.shape))
+            # TODO there's a strange behavior here where we have nested numpy arrays instead of
+            # proper matrices sometimes; maybe it has to be this way for unequal clusters
+            # As a result, we use the object dtype, onto which we can place a whole numpy array.
+            results[target] = np.zeros([numMacro] + list(values.shape), dtype=object)
       # END setting up results structure, if needed
       # FIXME reshape in case indexMap is not the same as finalIndexMap?
       for target, values in subResult.items():
-        if target in [pivotID, '_indexMap'] or target in indexMap:
+        if target in [pivotID, '_indexMap'] or target in indices:# indexMap:
           continue
         indexer = tuple([m] + [None]*len(values.shape))
         try:
@@ -1491,9 +1539,9 @@ class Interpolated(supervisedLearning):
           self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
     results['_indexMap'] = {} #finalIndexMap
     for target, vals in results.items():
-      if target not in indices and target not in ['_indexMap']:
+      if target not in indices and target not in ['_indexMap']: # TODO get a list of meta vars?
         default = [] if vals.size == 1 else [pivotID]
-        results['_indexMap'][target] = [self._macroParameter] + finalIndexMap.get(target, default)
+        results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
     return results
 

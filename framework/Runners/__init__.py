@@ -31,9 +31,4 @@ from .DistributedMemoryRunner import DistributedMemoryRunner
 from .PassthroughRunner import PassthroughRunner
 from .Error import Error
 
-# from .Factory import knownTypes
-# from .Factory import returnInstance
-# from .Factory import returnClass
-
-# We should not really need this as we do not use wildcard imports
-__all__ = ['Runner', 'InternalRunner', 'SharedMemoryRunner', 'DistributedMemoryRunner', 'Error']
+from .Factory import factory

@@ -43,15 +43,13 @@ class PolyExponential(supervisedLearning):
       P_i(X) is a polynomial of rank M function of the parametric space X
       Q_i(X) is a polynomial of rank M function of the parametric space X
   """
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       PolyExponential constructor
-      @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
 
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.availCoeffRegressors               = ['nearest','poly','spline']                   # avail coeff regressors
     self.printTag                           = 'PolyExponential'                             # Print tag
     self.pivotParameterID                   = kwargs.get("pivotParameter","time")           # Pivot parameter ID
@@ -195,9 +193,7 @@ class PolyExponential(supervisedLearning):
         # construct spline
         numbTerms = self.polyExpParams['expTerms']
         targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
-        self.model[target] = NDsplineRom(self.messageHandler,
-                                         **{'Features':self.features,
-                                            'Target':targets})
+        self.model[target] = NDsplineRom(**{'Features':self.features, 'Target':targets})
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 

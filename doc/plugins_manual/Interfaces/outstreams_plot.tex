@@ -1,0 +1,62 @@
+\section{Plots}
+\label{sec:outstreams_plot}
+New plots that are specific to particular applications are possible through \xmlNode{OutStreams}
+\xmlNode{Plot} plugins.
+
+These plotting plugins should inherit from the \texttt{PlotPlugin} base class defined in
+\begin{lstlisting}[language=bash]
+  raven/framework/PluginBaseClasses/OutStreamPlotPlugin.py
+\end{lstlisting}
+which sets up the plotting tool to be found when RAVEN runs.
+
+A good example of the \texttt{PlotPlugin} can be found in the RAVEN ExamplePlugin, found at
+\begin{lstlisting}[language=bash]
+  raven/plugins/ExamplePlugin/src/CorrelationPlot.py
+\end{lstlisting}
+
+There are a few methods that can or must be implemented for new plotting strategies.
+
+%
+%
+\subsection{\texttt{run} method, required}
+The \texttt{run} method is the primary execution method for the PlotPlugin. Here, whatever data
+handling and plotting mechanics will be executed. Note that \texttt{run} does not receive any inputs;
+often, the source for the data to be plotted will be identified in the \texttt{initialize} method.
+
+The \texttt{run} method can perform many actions including data manipulation, creation of
+\texttt{matplotlib} figures and axes, saving figures to file, and so forth. In the end, \texttt{run}
+should not return anything.
+
+%
+%
+\subsection{Constructor, optional}
+As the constructor for Python classes, the \texttt{\_\_init\_\_} method should be extended to define
+any instance variables used in the plugin class. If no instance variables are used, this may be ommitted.
+
+Any call to \texttt{\_\_init\_\_} must include a call to the parent's constructor, such as
+\begin{lstlisting}[language=python]
+  def __init__(self):
+    """ ... """
+    super().__init__()
+\end{lstlisting}
+This assures access to basic RAVEN functionalities required to use the plugin.
+
+%
+%
+\subsection{Input Handling methods, optional}
+The class method \texttt{getInputSpecification} and corresponding instance method
+\texttt{handleInput} are how RAVEN determines what user inputs are allowed and how those input
+values get stored in the plugin. Acceptable inputs are defined in \texttt{getInputSpecification}
+and then read in during \texttt{handleInput}. Both of these methods require a call to \texttt{super}
+to function as expected.
+
+%
+%
+\subsection{Initialization, optional}
+The aptly-named \texttt{initialize} method is used at the start of every RAVEN \xmlNode{Step} to prepare
+for execution. A common task for this method is to find the source of the data to plot. To make this
+process easier, RAVEN provides a \texttt{self.findSource} method that can search the input dictionary
+provided to \texttt{initialize} and find a \xmlNode{DataObject} by string name.
+
+%
+%

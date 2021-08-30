@@ -1,0 +1,113 @@
+\subsubsection{Interfaced}
+\label{Interfaced}
+The \textbf{Interfaced} post-processor is a Post-Processor that allows the user
+to create its own Post-Processor. While the External Post-Processor (see
+Section~\ref{External} allows the user to create case-dependent
+Post-Processors, with this new class the user can create new general
+purpose Post-Processors.
+%
+
+\ppType{Interfaced}{Interfaced}
+
+\begin{itemize}
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
+  lists the method names of a method that will be computed (each
+  returning a post-processing value). All available methods need to be included
+  in the ``/raven/framework/PostProcessorFunctions/'' folder
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'>
+       <method>testInterfacedPP</method>
+       <!--Here, the xml nodes required by the chosen method have to be
+       included.
+        -->
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+All the \textbf{Interfaced} post-processors need to be contained in the
+``/raven/framework/PostProcessorFunctions/'' folder. In fact, once the
+\textbf{Interfaced} post-processor is defined in the RAVEN input file, RAVEN
+search that the method of the post-processor is located in such folder.
+
+The class specified in the \textbf{Interfaced} post-processor has to inherit the
+PostProcessorInterfaceBase class and the user must specify this set of
+methods:
+\begin{itemize}
+  \item initialize: in this method, the internal parameters of the
+  post-processor are initialized. Mandatory variables that needs to be
+  specified are the following:
+\begin{itemize}
+  \item self.inputFormat: type of dataObject expected in input
+  \item self.outputFormat: type of dataObject generated in output
+\end{itemize}
+  \item readMoreXML: this method is in charge of reading the PostProcessor xml
+  node, parse it and fill the PostProcessor internal variables.
+  \item run: this method performs the desired computation of the dataObject.
+\end{itemize}
+
+\begin{lstlisting}[language=python]
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+class testInterfacedPP(PostProcessorInterfaceBase):
+  def initialize(self)
+  def readMoreXML(self,xmlNode)
+  def run(self,inputDic)
+\end{lstlisting}
+
+\paragraph{Data Format}
+The user is not allowed to modify directly the DataObjects, however the
+content of the DataObjects is available in the form of a python dictionary.
+Both the dictionary give in input and the one generated in the output of the
+PostProcessor are structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict = {'data':{}, 'metadata':{}}
+\end{lstlisting}
+
+where:
+
+\begin{lstlisting}[language=python]
+inputDict['data'] = {'input':{}, 'output':{}}
+\end{lstlisting}
+
+In the input dictonary, each input variable is listed as a dictionary that
+contains a numpy array with its own values as shown below for a simplified
+example
+
+\begin{lstlisting}[language=python]
+inputDict['data']['input'] = {'inputVar1': array([ 1.,2.,3.]),
+                              'inputVar2': array([4.,5.,6.])}
+\end{lstlisting}
+
+Similarly, if the dataObject is a PointSet then the output dictionary is
+structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict['data']['output'] = {'outputVar1': array([ .1,.2,.3]),
+                               'outputVar2':array([.4,.5,.6])}
+\end{lstlisting}
+
+Howevers, if the dataObject is a HistorySet then the output dictionary is
+structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict['data']['output'] = {'hist1': {}, 'hist2':{}}
+\end{lstlisting}
+
+where
+
+\begin{lstlisting}[language=python]
+inputDict['output']['data'][hist1] = {'time': array([ .1,.2,.3]),
+                              'outputVar1':array([ .4,.5,.6])}
+inputDict['output']['data'][hist2] = {'time': array([ .1,.2,.3]),
+                              'outputVar1':array([ .14,.15,.16])}
+\end{lstlisting}

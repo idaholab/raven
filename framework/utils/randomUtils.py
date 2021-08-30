@@ -11,22 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+
+"""
  This file contains the random number generating methods used in the framework.
  created on 07/15/2017
  @author: talbpaul
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
+import sys
+import math
 import threading
-import numpy as np
 from collections import deque, defaultdict
+import numpy as np
 
 from utils.utils import findCrowModule
 from utils import mathUtils
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
-# Numoy stochastic environment can not pass the test as this point
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
+# Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
 
@@ -85,7 +88,7 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
-  # this is needed for now since we need to split the stoch enviroments
+  # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
@@ -175,6 +178,24 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
   else:
     return _reduceRedundantListing(vals,size)
 
+def randomMultivariateNormal(cov, size=1, mean=None):
+  """
+    Provides a random sample from a multivariate distribution.
+    @ In, cov, np.array, covariance matrix (must be square, positive definite)
+    @ In, size, int, optional, number of samples to return
+    @ In, mean, np.array, means for distributions (must be length of 1 side of covar matrix == len(cov[0]))
+    @ Out, vals, np.array, array of samples with size [n_samples, len(cov[0])]
+  """
+  dims = cov.shape[0]
+  if mean is None:
+    mean = np.zeros(dims)
+  eps = 10 * sys.float_info.epsilon
+  covEps = cov + eps * np.identity(dims)
+  decomp = np.linalg.cholesky(covEps)
+  randSamples = randomNormal(size=(dims, size)).reshape((dims, size))
+  vals = mean + np.dot(decomp, randSamples)
+  return vals
+
 def randomIntegers(low, high, caller=None, engine=None):
   """
     Function to get a random integer
@@ -188,9 +209,9 @@ def randomIntegers(low, high, caller=None, engine=None):
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low
+    intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
-    rawInt = int(round(rawNum))
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
       if caller:
         caller.raiseAMessage("Random int out of range")
@@ -199,20 +220,36 @@ def randomIntegers(low, high, caller=None, engine=None):
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
 
-def randomChoice(array, engine=None):
+def randomChoice(array, size = 1, replace = True, engine = None):
   """
-    Generates a random sample from a given array-like (list or such) or N-D array
+    Generates a random sample or a sequence of random samples from a given array-like (list or such) or N-D array
     This equivalent to np.random.choice but extending the functionality to N-D arrays
     @ In, array, list or np.ndarray, the array from which to pick
+    @ In, size, int, optional, the number of samples to return
+    @ In, replace, bool, optional, allows replacement if True, default is True
     @ In, engine, instance, optional, optional, random number generator
-    @ Out, randomChoice, object, the random choice (1 element)
+    @ Out, selected, object, the random choice (1 element) or a list of elements
   """
   assert(hasattr(array,"shape") or isinstance(array,list))
-  if hasattr(array,"shape"):
-    coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in array.shape])
-    return array[coord]
-  else:
-    return array[randomIntegers(0, len(array)-1, engine=engine)]
+
+  if not replace:
+    if hasattr(array,"shape"):
+      raise RuntimeError("Option with replace False not available for ndarrays")
+    if len(array) < size:
+      raise RuntimeError("array size < of number of requested samples (size)")
+
+  sel = []
+  coords = array
+  for _ in range(size):
+    if hasattr(array,"shape"):
+      coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in coords.shape])
+      sel.append(coords[coord])
+    else:
+      sel.append(coords[randomIntegers(0, len(coords)-1, engine=engine)])
+    if not replace:
+      coords.remove(sel[-1])
+  selected = sel[0] if size == 1 else sel
+  return selected
 
 def randomPermutation(l,caller,engine=None):
   """
@@ -251,8 +288,8 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   rnorm = float(r)/np.linalg.norm(pts,axis=1)
   pts *= rnorm[:,np.newaxis]
   #TODO if all values in any given sample are 0,
-  #       this produces an unphysical result, so we should resample;
-  #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
+  #       this produces an not physical result, so we should re-sample;
+  #       however, this probability is very small and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:

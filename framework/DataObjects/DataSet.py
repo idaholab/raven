@@ -21,10 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 
 import numpy as np
 import pandas as pd
@@ -39,20 +36,6 @@ except ValueError:
 import CsvLoader
 from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
-# for profiling with kernprof
-# try:
-#   import __builtin__
-#   __builtin__.profile
-# except (AttributeError,ImportError):
-#   # profiler not preset, so pass through
-#   def profile(func):
-#     """
-#       Dummy for when profiler is missing.
-#       @ In, func, method, method to run
-#       @ Out, func, method, method to run
-#     """
-#     return func
-
 #
 #
 #
@@ -62,11 +45,9 @@ class DataSet(DataObject):
     This class outlines the behavior for the basic in-memory DataObject, including support
     for ND and ragged input/output variable data shapes.  Other in-memory DataObjects are
     specialized implementations of this class.
-
     DataObject developed Oct 2017 with the intent to obtain linear performance from data objects when appending, over
     thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
     for final form.  Subclasses are shortcuts (recipes) for this most general case.
-
     The interface for these data objects is specific.  The methods under "EXTERNAL API", "INITIALIZATION",
     and "BUILTINS" are the only methods that should be called to interact with the object.
   """
@@ -102,12 +83,13 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self,keys, params={}):
+  def addExpectedMeta(self, keys, params={}, overwrite=False):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ In, overwrite, bool, optional, if True then allow existing data while changing keys
       @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
@@ -117,8 +99,9 @@ class DataSet(DataObject):
     if len(keys) == 0:
       return keys
     # CANNOT add expected meta after samples are started
-    assert(self._data is None)
-    assert(self._collector is None or len(self._collector) == 0)
+    if not overwrite:
+      assert(self._data is None)
+      assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
@@ -316,18 +299,20 @@ class DataSet(DataObject):
     """
       Casts this dataObject as dictionary or an xr.Dataset depending on outType.
       @ In, outType, str, optional, type of output object (xr.Dataset or dictionary).
-      @ Out, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
+      @ Out, data, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
     """
+    data = None
     if outType == 'xrDataset':
       # return reference to the xArray
-      return self._convertToXrDataset()
+      data = self._convertToXrDataset()
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
-      return self._convertToDict()
+      data = self._convertToDict()
     else:
       # raise an error
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
+    return data
 
   def checkIndexAlignment(self,indexesToCheck=None):
     """
@@ -348,6 +333,8 @@ class DataSet(DataObject):
         self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
     # check the alignment of each index by checking for NaN values in each slice
     data = self.asDataset()
+    if data is None:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     for index in indexesToCheck:
       # check that index is indeed an index
       assert(index in self.indexes)
@@ -429,6 +416,16 @@ class DataSet(DataObject):
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
+  def getData(self):
+    """
+      Acquire the data for this dataset, as might go into an on-file database.
+      @ In, None
+      @ Out, data, xr.Dataset, sample data
+      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+    """
+    self.asDataset()
+    return self._data, self._meta
+
   def getVars(self,subset=None):
     """
       Gives list of variables that are part of this dataset.
@@ -461,6 +458,8 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
@@ -475,7 +474,7 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,dataIn,style='netCDF',**kwargs):
+  def load(self, dataIn, style='netCDF', **kwargs):
     """
       Reads this dataset from disk based on the format.
       @ In, dataIn, str, path and name of file to read
@@ -489,7 +488,7 @@ class DataSet(DataObject):
       dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(dataIn,**kwargs)
+      self._fromNetCDF(dataIn, **kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
       if dataIn.endswith('.csv'):
@@ -506,7 +505,7 @@ class DataSet(DataObject):
     self._setScalingFactors()
 
   # @profile
-  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, first = True):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
@@ -516,8 +515,20 @@ class DataSet(DataObject):
       @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
-      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
-      @ Out, rlz, dict, realization requested (None if not found)
+      @ In, asDataSet, bool, optional, return realization from the data as a DataSet
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (index, rlz), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                 first element:
+                                   if first: int, index where match was found OR size of data if not found
+                                   else    : list, list of indices where matches were found OR size of data if not found
+                                 second element:
+                                   if first:
+                                     if asDataSet: xarray.Dataset, first matching realization as xarray.Dataset OR None if not found
+                                     else        : dict, first matching realization as {var:value} OR None if not found
+                                   else    :
+                                     if asDataSet: xarray.Dataset, all matching realizations as xarray.Dataset OR None if not found
+                                     else        : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
@@ -567,16 +578,23 @@ class DataSet(DataObject):
           return 0, None
         # otherwise, get it from the collector
         else:
-          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
-      # add index map where necessary
-      rlz = self._addIndexMapToRlz(rlz)
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
+      # if as Dataset convert it
+      if asDataSet:
+        rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
+        rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
+        dims = self.getDimensions()
+        for index, rl in enumerate(rlzs):
+          d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+          rlz[index] =  xr.Dataset.from_dict(d)
+        rlz = xr.concat(rlz,dim=self.sampleTag)
       return index, rlz
 
   def remove(self,variable):
@@ -655,7 +673,7 @@ class DataSet(DataObject):
     if old in self._scaleFactors:
       self._scaleFactors[new] = self._scaleFactors.pop(old)
     if self._data is not None:
-      self._data.rename({old:new},inplace=True)
+      self._data = self._data.rename({old:new})
 
   def reset(self):
     """
@@ -669,6 +687,35 @@ class DataSet(DataObject):
     self._meta = {}
     self._alignedIndexes = {}
     self._scaleFactors = {}
+
+  def setData(self, data, meta):
+    """
+      Directly set the data for this data object, such as from an on-file database.
+      @ In, data, xr.Dataset, structured data set including the sampleID with realizations
+      @ In, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+      @ Out, None
+    """
+    assert isinstance(data, xr.Dataset)
+    self._collector = None
+    self._data = data
+    self._meta = meta
+    # if we have meta information, we can reconstruct the IO space for this DO
+    if 'DataSet' in meta:
+      self._setStructureFromMetaXML(meta['DataSet'])
+    # otherwise, we don't know where anything goes, so dump it all in output
+    else:
+      self._pivotParams = {}
+      # index map
+      for var in data:
+        indices = list(data[var].coords.keys())
+        for idx in indices:
+          if idx == self.sampleTag:
+            continue
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+        self._outputs.append(var)
+      self._metavars = self._outputs[:]
 
   def sliceByIndex(self,index):
     """
@@ -701,7 +748,7 @@ class DataSet(DataObject):
     """
     self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
-      self._toNetCDF(fileName,**kwargs)
+      self._toNetCDF(fileName, **kwargs)
     elif style.lower() == 'csv':
       if len(self) == 0:
         self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
@@ -915,7 +962,7 @@ class DataSet(DataObject):
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value, np.ndarray):
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
@@ -929,12 +976,8 @@ class DataSet(DataObject):
           dim = dims[0]
           correctShape = rlz[dim].shape
           if rlz[var].shape != correctShape:
-            self.raiseAWarning(('Variable "{var}" with shape {vShape} '+
-                                'is not consistent with respect its index "{dim}" with shape {dShape}!')
-                               .format(var=var,
-                                       vShape=rlz[var].shape,
-                                       dim=dim,
-                                       dShape=correctShape))
+            self.raiseAWarning(f'Variable "{var}" with shape {rlz[var].shape} ' +
+                               f'is not consistent with respect its index "{dim}" with shape {correctShape} for DataSet "{self.name}"!')
             return False
         # if this variable depends on multiple dimensions, check shape
         elif len(dims) > 1:
@@ -1053,9 +1096,7 @@ class DataSet(DataObject):
       # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
       # ONCE #
       #if method == 'once':
-      val = dict((i,data[i]) for i in range(len(data)))
-      val = xr.Dataset(data_vars=val)
-      val = val.to_array(dim=self.sampleTag) # TODO labels preserved?
+      val = xr.concat(data, self.sampleTag)
       val.coords[self.sampleTag] = labels
       # SPLIT # currently unused, but could be for parallel performance
       #elif method == 'split':
@@ -1078,6 +1119,17 @@ class DataSet(DataObject):
       self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0])))
     array.rename(var)
     return array
+
+  @staticmethod
+  def _clearDuplicates(toClear):
+    """
+      Clears out duplicate coordinates from a xr.DataArray
+      @ In, toClear, xr.DataArray, data array to remove duplicate coordinates
+      @ Out, toClear, xr.DataArray, new data array with no duplicates
+    """
+    for dim in toClear.coords.dims:
+      toClear = toClear.isel({dim:np.unique(toClear[dim], return_index=True)[1]})
+    return toClear
 
   def _convertArrayListToDataset(self,array,action='return'):
     """
@@ -1166,12 +1218,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealizations'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1269,7 +1329,10 @@ class DataSet(DataObject):
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
         # END if for variable data type (ndarray, xarray, or scalar)
         # re-index samples
-        arrays[var][self.sampleTag] += firstSample
+        #was arrays[var][self.sampleTag] += firstSample
+        #This line works because arrays[var][self.sampleTag] is [0],
+        # or because firstSample is 0
+        arrays[var] = arrays[var].assign_coords({self.sampleTag:arrays[var][self.sampleTag]+firstSample})
       # collect all data into dataset, and update self._data
       self._convertArrayListToDataset(arrays,action='extend')
       # reset collector
@@ -1459,25 +1522,11 @@ class DataSet(DataObject):
     # collapse into xr.Dataset
     self.asDataset()
 
-  def _fromNetCDF(self,fileName, **kwargs):
-    """
-      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
-      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fileName, str, path/name to read file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    self._data = xr.open_dataset(fileName)
-    # NOTE: open_dataset does NOT close the file object after loading (lazy loading)
-    ## -> if you try to rm the file in Windows before closing, it will fail with WindowsError 32: file in use!
-    # convert metadata back to XML files
-    for key,val in self._data.attrs.items():
-      self._meta[key] = pk.loads(val.encode('utf-8'))
-
   def _fromXarrayDataset(self,dataset):
     """
+      Loads data from an xarray dataset
+      @ In, dataset, xarray.Dataset, the data set containg the data
+      @ Out, None
     """
     if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
@@ -1551,26 +1600,35 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, first=True):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (r, rlz) or (rr, rlzs), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                     first element:
+                                       if first:  r, int, index where match was found OR size of data if not found
+                                       else    : rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlzs, list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     if toMatch is None:
       toMatch = {}
-    if noMatch is None:
-      noMatch = {}
+
     assert(self._collector is not None)
+
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
-    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
-    for r, row in enumerate(self._collector[:]):
+    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    if not first:
+      rr, rlz = [], []
+    for r, row in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
       match = True
       # find matches first
       if toMatch:
@@ -1598,9 +1656,16 @@ class DataSet(DataObject):
           if not match:
             break
       if match:
-        break
+        if first:
+          break
+        else:
+          rr.append(r)
+          rlz.append(self._getRealizationFromCollectorByIndex(r))
     if match:
-      return r, self._getRealizationFromCollectorByIndex(r)
+      if first:
+        return r, self._getRealizationFromCollectorByIndex(r)
+      else:
+        return rr, rlz
     else:
       return len(self), None
 
@@ -1741,7 +1806,10 @@ class DataSet(DataObject):
       @ Out, varList, list(str), list of variables
     """
     with open(fileName+'.csv','r') as f:
-      provided = list(s.strip() for s in f.readline().split(','))
+      line = f.readline()
+      if line.startswith('\ufeff'):
+        line = line[1:]
+      provided = list(s.strip() for s in line.split(','))
     return provided
 
   def _loadCsvMeta(self,fileName):
@@ -1776,7 +1844,9 @@ class DataSet(DataObject):
     needed = set(self._orderedVars)
     missing = needed - provided
     if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fileName,missing))
+      extra = provided - needed
+      self.raiseAnError(IOError, f'Not all variables requested for data object "{self.name}" were found in csv "{fileName}.csv"!' +
+                        f'\nNeeded: {needed}; \nUnused: {extra}; \nMissing: {missing}')
     # otherwise, return happily and continue loading the CSV
     return dims
 
@@ -1804,7 +1874,7 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    loader = CsvLoader.CsvLoader(self.messageHandler)
+    loader = CsvLoader.CsvLoader()
     df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 
@@ -1866,6 +1936,45 @@ class DataSet(DataObject):
         self._scaleFactors[name] = (m,s)
       except Exception:
         self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
+
+  def _setStructureFromMetaXML(self, meta):
+    """
+      Sets this DataSet's structure based on structured meta XML
+      @ In, meta, xmlUtils.StaticXmlElement, xml structure
+      @ Out, None
+    """
+    root = meta.getRoot()
+    # locate index map
+    dims = root.find('dims')
+    varToDim = {}
+    if dims is not None:
+      for child in dims:
+        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
+    # inputs, outputs, indices meta
+    inputs = root.find('general/inputs')
+    if inputs is not None:
+      if inputs.text is None:
+        self._inputs = []
+      else:
+        self._inputs = list(x.strip() for x in inputs.text.split(','))
+    outputs = root.find('general/outputs')
+    if outputs is not None:
+      if outputs.text is None:
+        self._outputs = []
+      else:
+        self._outputs = list(x.strip() for x in outputs.text.split(','))
+    self._orderedVars = self._inputs + self._outputs
+    self._pivotParams = {}
+    for var in self._orderedVars:
+      if var in varToDim:
+        indices = varToDim[var]
+        for idx in indices:
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
+    if pointwiseMeta:
+      self.addExpectedMeta(pointwiseMeta, overwrite=True)
 
   def _toCSV(self, fileName, start=0, **kwargs):
     """
@@ -1979,20 +2088,6 @@ class DataSet(DataObject):
         ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
 
-  def _toNetCDF(self,fileName,**kwargs):
-    """
-      Writes this data object to file in netCDF4.
-      @ In, fileName, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
-                                    One good option is format='NETCDF4' to assure netCDF4 is used
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    # convert metadata into writeable
-    self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
-    self._data.to_netcdf(fileName,**kwargs)
-
   def _usePandasWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """
       Uses Pandas to write a CSV.
@@ -2099,7 +2194,6 @@ class DataSet(DataObject):
   #    np.savetxt(outFile,data,header=header,fmt=types)
   #  # format data?
 
-
   ### HIERARCHICAL STUFF ###
   def _constructHierPaths(self):
     """
@@ -2108,6 +2202,8 @@ class DataSet(DataObject):
       @ Out, results, list(xr.Dataset), dataset containing only the path information
     """
     # TODO can we do this without collapsing? Should we?
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     data = self.asDataset()
     paths = self._generateHierPaths()
     results = [None] * len(paths)
@@ -2130,6 +2226,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None:
+          break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()
@@ -2166,4 +2264,3 @@ class DataSet(DataObject):
       fromData = []
     endings = fromColl + fromData
     return endings
-

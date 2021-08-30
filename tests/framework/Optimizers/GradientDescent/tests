@@ -24,6 +24,10 @@
       type = XML
       output = 'Basic/opt_export.xml'
     [../]
+    [./plot]
+      type = Exists
+      output = 'Basic/opt_path.png'
+    [../]
   [../]
 
   [./ConvergeGradient]
@@ -156,4 +160,27 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+  [./InitialStep]
+    type = 'RavenFramework'
+    input = 'initial_step.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'InitialStep/optOut.csv InitialStep/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./1variable]
+    type = 'RavenFramework'
+    input = '1_variable_gradient.xml'
+    [./data]
+      type = OrderedCSV
+      output = '1variable/opt_export_fd_0.csv 1variable/opt_export_cd_0.csv 1variable/opt_export_spsa_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
 []

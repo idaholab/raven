@@ -26,9 +26,9 @@
   </Files>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
@@ -57,7 +57,7 @@
         <n_splits>10</n_splits>
         <shuffle>False</shuffle>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <Model class="Models" type="Code">poly</Model>

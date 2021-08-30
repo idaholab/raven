@@ -29,13 +29,12 @@ import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from BaseClasses import BaseType
+from EntityFactoryBase import EntityFactory
+from BaseClasses import MessageUser
 import Distributions
-import Quadratures
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(MessageHandler.MessageUser):
+class OrthogonalPolynomial(MessageUser):
   """
     Provides polynomial generators and evaluators for stochastic collocation.
   """
@@ -45,21 +44,20 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    super().__init__()
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
-    self.messageHandler = None
 
-  def initialize(self,quad,messageHandler):
+  def initialize(self,quad):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
-      @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    self.messageHandler = messageHandler
+    pass
 
   def __getitem__(self,order,var=None):
     """
@@ -91,7 +89,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, None
       @ Out, state, tuple, (Quadrature instance, message handler) - defining quad for polynomial
     """
-    state = self.quad,self.messageHandler
+    state = [self.quad]
     return state
 
   def __setstate__(self,items):
@@ -101,7 +99,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ Out, None
     """
     self.__init__()
-    self.initialize(*items)#quad,messageHandler)
+    self.initialize(*items)
 
   def __eq__(self,other):
     """
@@ -200,14 +198,13 @@ class Legendre(OrthogonalPolynomial):
   """
     Provides polynomial Legendre generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+  def initialize(self, quad):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
-      @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly    = polys.legendre
     self._evPoly  = polys.eval_legendre
@@ -266,14 +263,13 @@ class Hermite(OrthogonalPolynomial):
   """
     Provides polynomial Hermite generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+  def initialize(self, quad):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
-      @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad)
     self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly    = polys.hermitenorm
     self._evPoly  = polys.eval_hermitenorm
@@ -316,14 +312,13 @@ class Laguerre(OrthogonalPolynomial):
   """
     Provides polynomial Laguerre generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+  def initialize(self, quad):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
-      @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly    = polys.genlaguerre
     self._evPoly  = polys.eval_genlaguerre
@@ -367,14 +362,13 @@ class Jacobi(OrthogonalPolynomial):
   """
     Provides polynomial Jacobi generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+  def initialize(self, quad):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
-      @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad)
     self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly    = polys.jacobi
     self._evPoly  = polys.eval_jacobi
@@ -423,34 +417,5 @@ class Jacobi(OrthogonalPolynomial):
     return np.sqrt(coeff)
 
 
-
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'OrthoPolynomial'
-__interFaceDict = {}
-__interFaceDict['Legendre'] = Legendre
-__interFaceDict['Hermite'] = Hermite
-__interFaceDict['Laguerre'] = Laguerre
-__interFaceDict['Jacobi'] = Jacobi
-#__interFaceDict['Lagrange'] = Lagrange TODO
-__knownTypes = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Returns the object types known here.
-     @ In, None
-     @ Out, knownTypes, list, known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    function used to generate a OrthoPoly class
-    @ In, Typer, string, OrthoPoly type
-    @ Out, returnInstance, OrthoPoly instance, Instance of the Specialized Filter class
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type]()
-  else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('OrthoPolynomial')
+factory.registerAllSubtypes(OrthogonalPolynomial)

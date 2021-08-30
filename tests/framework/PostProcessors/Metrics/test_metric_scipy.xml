@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric_scipy</name>
     <author>wangc</author>
@@ -26,13 +27,13 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="ScipyMetric">braycurtis</Metric>
-      <Metric class="Metrics" type="ScipyMetric">canberra</Metric>
-      <Metric class="Metrics" type="ScipyMetric">correlation</Metric>
-      <Metric class="Metrics" type="ScipyMetric">minkowski</Metric>
+      <Metric class="Metrics" type="Metric">braycurtis</Metric>
+      <Metric class="Metrics" type="Metric">canberra</Metric>
+      <Metric class="Metrics" type="Metric">correlation</Metric>
+      <Metric class="Metrics" type="Metric">minkowski</Metric>
     </PostProcessor>
   </Models>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder2">
       <Input>x1,x2</Input>
@@ -43,7 +44,7 @@
       <Output>ans,ans2</Output>
     </PointSet>
     <PointSet name="pp1_out">
-        <Output>
+      <Output>
             braycurtis_ans2_ans,
             canberra_ans2_ans,
             correlation_ans2_ans,
@@ -51,7 +52,7 @@
         </Output>
     </PointSet>
   </DataObjects>
-  
+
   <OutStreams>
     <Print name="pp1_print">
       <type>csv</type>
@@ -60,20 +61,20 @@
   </OutStreams>
 
   <Metrics>
-    <ScipyMetric name="braycurtis">
+    <Metric name="braycurtis" subType="ScipyMetric">
       <metricType>paired_distance|braycurtis</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="canberra">
-        <metricType>paired_distance|canberra</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="correlation">
-        <metricType>paired_distance|correlation</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="minkowski">
-        <metricType>paired_distance|minkowski</metricType>
-        <p>5</p>
-        <w>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</w>
-    </ScipyMetric>
+    </Metric>
+    <Metric name="canberra" subType="ScipyMetric">
+      <metricType>paired_distance|canberra</metricType>
+    </Metric>
+    <Metric name="correlation" subType="ScipyMetric">
+      <metricType>paired_distance|correlation</metricType>
+    </Metric>
+    <Metric name="minkowski" subType="ScipyMetric">
+      <metricType>paired_distance|minkowski</metricType>
+      <p>5</p>
+      <w>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</w>
+    </Metric>
   </Metrics>
 
   <Distributions>

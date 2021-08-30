@@ -16,7 +16,6 @@ Created on Mar 25, 2013
 
 @author: crisr
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import xml.etree.ElementTree as ET
 import os
@@ -115,7 +114,14 @@ class MOOSEparser():
       # modification or addition
       if found:
         # modification
-        found[-1].text = str(mod)
+        if isinstance(mod, tuple):
+          ## location index start from 1
+          loc, modVal = mod[0], mod[1]
+          val = found[-1].text.split()
+          val[loc-1] = str(modVal)
+          found[-1].text = ' '.join(val)
+        else:
+          found[-1].text = str(mod)
       else:
         # addition
         trees = MooseInputParser.addNewPath(trees, target, mod)
@@ -135,4 +141,3 @@ class MOOSEparser():
     if foundNumSteps:
       vectorPPDict['timeStep'] = foundNumSteps[-1].text.strip("\' \n").split(' ') #TODO: define default num_steps in case it is not in moose input
     return foundIntegral is not None, vectorPPDict
-

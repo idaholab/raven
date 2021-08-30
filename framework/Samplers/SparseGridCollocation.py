@@ -69,10 +69,9 @@ class SparseGridCollocation(Grid):
       @ In, None
       @ Out, None
     """
-    Grid.__init__(self)
+    super().__init__()
     self.type           = 'SparseGridCollocationSampler'
     self.printTag       = 'SAMPLER '+self.type.upper()
-    self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
     self.polyDict       = {}    #varName-indexed dict of polynomial types
@@ -142,7 +141,6 @@ class SparseGridCollocation(Grid):
     # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for multivariate normal
     # distribution if PCA is used.
     standardNormal = Distributions.Normal()
-    standardNormal.messageHandler = self.messageHandler
     standardNormal.mean = 0.0
     standardNormal.sigma = 1.0
     standardNormal.initializeDistribution()
@@ -178,14 +176,14 @@ class SparseGridCollocation(Grid):
     self.raiseADebug(msg)
 
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
+    self.indexSet = IndexSets.factory.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
-    self.sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
+    self.sparseGrid = Quadratures.factory.returnInstance(self.sparseGridType)
     self.raiseADebug('Starting %s sparse grid generation...' %self.sparseGridType)
-    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
+    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler)
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
@@ -256,12 +254,12 @@ class SparseGridCollocation(Grid):
       if quadType not in distr.compatibleQuadrature:
         self.raiseAnError(IOError,'Quadrature type"',quadType,'"is not compatible with variable"',varName,'"distribution"',distr.type,'"')
 
-      quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
-      quad.initialize(distr,self.messageHandler)
+      quad = Quadratures.factory.returnInstance(quadType, Subtype=subType)
+      quad.initialize(distr)
       self.quadDict[varName]=quad
 
-      poly = OrthoPolynomials.returnInstance(polyType,self)
-      poly.initialize(quad,self.messageHandler)
+      poly = OrthoPolynomials.factory.returnInstance(polyType)
+      poly.initialize(quad)
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])

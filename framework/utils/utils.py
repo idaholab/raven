@@ -14,9 +14,9 @@
 """
   Utility module containing methods commonly used throughout the Python framework.
 """
-
+# NOTE we still import these from __future__ here because many machines still running
+# python 2.X need to use this file (for example the plugin installer)
 from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *
@@ -31,7 +31,6 @@ import shutil
 import inspect
 import subprocess
 import platform
-import copy
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -677,7 +676,10 @@ def add_path(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
   # we add it in pythonpath too
-  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  newPath = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
+    print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
+  os.environ['PYTHONPATH'] = newPath
 
 def add_path_recursively(absoluteInitialPath):
   """
@@ -701,7 +703,7 @@ def findCrowModule(name):
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
     module = import_module("crow_modules.{}{}".format(name,ext))
-  except ImportError as ie:
+  except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
       raise ie
     module = import_module("{}{}".format(name,ext))

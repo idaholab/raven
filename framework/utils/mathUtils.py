@@ -18,9 +18,6 @@
  @author: senrs
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-import sys
 import math
 import functools
 import copy
@@ -28,8 +25,13 @@ import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 import six
+from numpy import linalg
+
 from utils.utils import UreturnPrintTag, UreturnPrintPostTag
 from .graphStructure import graphObject
+
+import MessageHandler # makes sure getMessageHandler is defined
+mh = getMessageHandler()
 
 def normal(x,mu=0.0,sigma=1.0):
   """
@@ -97,23 +99,6 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
         return highFill
   return myInterp
 
-def simpson(f, a, b, n):
-  """
-    Simpson integration rule
-    @ In, f, instance, the function to integrate
-    @ In, a, float, lower bound
-    @ In, b, float, upper bound
-    @ In, n, int, number of integration steps
-    @ Out, sumVar, float, integral
-  """
-  h = (b - a) / float(n)
-  y = np.zeros(n+1)
-  x = np.zeros(n+1)
-  for i in range(0, n+1):
-    x[i] = a + i*h
-    y[i] = f(x[i])
-  return integrate.simps(y, x)
-
 def countBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data
@@ -164,7 +149,7 @@ def hyperdiagonal(lengths):
   """
     Obtains the length of a diagonal of a hyperrectangle given the lengths of the sides.  Useful for high-dimensional distance scaling.
     @ In, lengths, list(float), lengths of the sides of the ND rectangle
-    @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
+    @ Out, diag, float, the length of the diagonal between farthest-separated corners of the hypercube
   """
   try:
     return np.sqrt(np.sum(lengths*lengths))
@@ -491,7 +476,6 @@ def NDInArray(findIn,val,tol=1e-12):
   """
   if len(findIn)<1:
     return False,None,None
-  targ = []
   found = False
   for idx,looking in enumerate(findIn):
     num = looking - val
@@ -633,16 +617,16 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   eigvals  = lowrankEigenvals.astype(complex)
   return eigvals, eigvects
 
-def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
   """
     @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
     @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
     @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
-    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+    @ In, optimized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
                           if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
     @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
   """
-  if optmized:
+  if optimized:
     L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
@@ -812,7 +796,7 @@ def toListFromNumpyOrC1array(array):
   if type(array).__name__ == 'ndarray':
     response = array.tolist()
   elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
+    response = np.asarray(array).tolist()
   return response
 
 def toListFromNumpyOrC1arrayIterative(array):
@@ -829,10 +813,10 @@ def toListFromNumpyOrC1arrayIterative(array):
       return None
     tempdict = {}
     for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+      tempdict[np.toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else:
-    return toBytes(array)
+    return np.toBytes(array)
 
 def sizeMatch(var,sizeToCheck):
   """
@@ -846,15 +830,13 @@ def sizeMatch(var,sizeToCheck):
     sizeMatched = False
   return sizeMatched
 
-def readVariableGroups(xmlNode, messageHandler, caller):
+def readVariableGroups(xmlNode):
   """
     Reads the XML for the variable groups and initializes them
     Placed in mathUtils because it uses VariableGroups, which inherit from BaseClasses
     -> and hence all the rest of the required libraries.
     NOTE: maybe we should have a thirdPartyUtils that is different from utils and mathUtils?
     @ In, xmlNode, ElementTree.Element, xml node to read in
-    @ In, messageHandler, MessageHandler.MessageHandler instance, message handler to assign to the variable group objects
-    @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
     @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
   """
   import VariableGroups
@@ -869,7 +851,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
     name = child.attrib['name']
     nodes[name] = child
     if child.text is None:
-      needs = []
+      needs = [''] # needs to be an empty string, not simply []
     else:
       needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
     for n in needs:
@@ -881,7 +863,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
   graph = graphObject(deps)
   # sanity checking
   if graph.isALoop():
-    caller.raiseAnError(IOError, 'VariableGroups have circular dependency!')
+    mh.error('mathUtils', IOError, 'VariableGroups have circular dependency!')
   # ordered list (least dependencies first)
   hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
 
@@ -890,7 +872,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
   for name in hierarchy:
     if len(deps[name]):
       varGroup = VariableGroups.VariableGroup()
-      varGroup.readXML(nodes[name], messageHandler, varGroups)
+      varGroup.readXML(nodes[name], varGroups)
       varGroups[name] = varGroup
 
   return varGroups
@@ -948,7 +930,6 @@ def angleBetweenVectors(a, b):
     @ In, b, np.array, vector of floats
     @ Out, ang, float, angle in degrees
   """
-  nVar = len(a)
   # if either vector is all zeros, then angle between is also
   normA = np.linalg.norm(a)
   normB = np.linalg.norm(b)
@@ -971,3 +952,158 @@ def giveZero():
     @ Out, giveZero, int, zero
   """
   return 0
+
+##########################
+# empirical distribution #
+##########################
+def characterizeCDF(data, binOps=None, minBins=1):
+  """
+    Constructs an empirical CDF from the given data
+    @ In, data, np.array(float), values to fit CDF to
+    @ In, binOps, int, setting for picking binning strategy
+    @ In, minBins, int, minimum bins for empirical CDF
+    @ Out, params, dict, essential parameters for CDF
+  """
+  # calculate number of bins
+  # binOps=Length or value
+  nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
+  # construct histogram
+  counts, edges = np.histogram(data, bins=nBins, density=False)
+  counts = np.array(counts) / float(len(data))
+  # numerical CDF, normalizing to 0..1
+  cdf = np.cumsum(counts)
+  # set lowest value as first entry,
+  ## from Jun implementation, min of CDF set to 0 for ?numerical issues?
+  cdf = np.insert(cdf, 0, 0)
+  # store parameters
+  params = {'bins': edges,
+            'counts':counts,
+            'pdf' : counts * nBins,
+            'cdf' : cdf,
+            'lens' : len(data)}
+  return params
+
+def gaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF into Gaussian distribution
+    @ In, data, np.array, values to "gaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, normed, np.array, gaussian version of "data"
+  """
+  cdfVals = sampleCDF(data, cdf)
+  normed = stats.norm.ppf(cdfVals) # TODO could use RAVEN dist, but this is more modular
+  return normed
+
+def degaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF from Gaussian distribution
+    Opposite of "gaussianize" above
+    @ In, data, np.array, "normal" values to "degaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, denormed, np.array, empirical version of "data"
+  """
+  cdfVals = stats.norm.cdf(data)
+  denormed = sampleICDF(cdfVals, cdf)
+  return denormed
+
+def sampleCDF(x, cdfParams):
+  """
+    Samples the empirical distribution's CDF at requested value(s)
+    @ In, x, float/np.array, value(s) at which to sample CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical CDF at x
+  """
+  # TODO could this be covered by an empirical distribution from Distributions?
+  # set up I/O
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['bins'][0]
+  aboveMask = x >= cdfParams['bins'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['cdf'][0]
+  y[aboveMask] = cdfParams['cdf'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['bins'], x[inMask])
+  x0 = cdfParams['bins'][indices-1]
+  y0 = cdfParams['cdf'][indices-1]
+  xf = cdfParams['bins'][indices]
+  yf = cdfParams['cdf'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  # numerical errors can happen due to not-sharp 0 and 1 in empirical cdf
+  ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
+  y[y >= 1.0] = 1.0 - np.finfo(float).eps
+  y[y <= 0.0] = np.finfo(float).eps
+  return y
+
+def sampleICDF(x, cdfParams):
+  """
+    Samples the inverse CDF defined by "cdfParams" to get values
+    @ In, x, float/np.array, value(s) at which to sample inverse CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical inverse CDF at x
+  """
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['cdf'][0]
+  aboveMask = x >= cdfParams['cdf'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['bins'][0]
+  y[aboveMask] = cdfParams['bins'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['cdf'], x[inMask])
+  x0 = cdfParams['cdf'][indices - 1]
+  y0 = cdfParams['bins'][indices - 1]
+  xf = cdfParams['cdf'][indices]
+  yf = cdfParams['bins'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  return y
+
+def interpolateDist(x, y, x0, xf, y0, yf, mask):
+  """
+    Interpolates values for samples "x" to get dependent values "y" given bins
+    @ In, x, np.array, sampled points (independent var)
+    @ In, y, np.array, sampled points (dependent var)
+    @ In, x0, np.array, left-nearest neighbor in empirical distribution for each x
+    @ In, xf, np.array, right-nearest neighbor in empirical distribution for each x
+    @ In, y0, np.array, value at left-nearest neighbor in empirical distribution for each x
+    @ In, yf, np.array, value at right-nearest neighbor in empirical distribution for each x
+    @ In, mask, np.array, boolean mask in "y" where the distribution values apply
+    @ Out, y, np.array, same "y" but with values inserted
+  """
+  ### handle divide-by-zero problems first, specially
+  # check for where div zero problems will occur
+  divZeroMask = x0 == xf
+  # careful with double masking -> doesn't always do what you think it does
+  zMask = [a[divZeroMask] for a in np.where(mask)]
+  y[tuple(zMask)] = 0.5 * (yf[divZeroMask] + y0[divZeroMask])
+  ### interpolate all other points as y = low + slope * frac
+  okayMask = np.logical_not(divZeroMask)
+  dy = yf[okayMask] - y0[okayMask]
+  dx = xf[okayMask] - x0[okayMask]
+  frac = x[mask][okayMask] - x0[okayMask]
+  okayWhere = [a[okayMask] for a in np.where(mask)]
+  y[tuple(okayWhere)] = y0 + dy/dx * frac
+  return y
+
+def computeCrowdingDistance(trainSet):
+  """
+    This function will compute the Crowding distance coefficients among the input parameters
+    @ In, trainSet, numpy.array, array contains values of input parameters
+    @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
+  """
+  dim = trainSet.shape[1]
+  distMat = np.zeros((dim, dim))
+
+  for i in range(dim):
+    for j in range(i):
+      distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
+      distMat[j,i] = distMat[i,j]
+
+  crowdingDist = np.sum(distMat,axis=1)
+  return crowdingDist

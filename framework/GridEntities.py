@@ -16,28 +16,23 @@ Created on Mar 30, 2015
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+import abc
+import sys
 
 #External Modules------------------------------------------------------------------------------------
-#import itertools
 import numpy as np
 from scipy.interpolate import interp1d
-import sys
-import abc
-import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity
 import utils.TreeStructure as ETS
 from utils.RAVENiterators import ravenArrayIterator
-#import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
+class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     Base Class that needs to be used when a new Grid class is generated
     It provides all the methods to create, modify, and handle a grid in the phase space.
@@ -51,24 +46,22 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     """
     return 0
 
-  def __init__(self,messageHandler=None):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, optional, the global message handler instance
+      @ In, None
       @ Out, None
     """
-    if messageHandler != None:
-      self.setMessageHandler(messageHandler)
+    super().__init__()
     self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                             # dictionary that contains all the key feature of the grid
 
   @classmethod
-  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
+  def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
     """
       XML reader for the grid statement.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
-      @ In, messageHandler, MessageHandler, optional, the global message handler instance
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
     """
@@ -240,13 +233,13 @@ class GridEntity(GridBase):
     """
     return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer.keys() else 0
 
-  def __init__(self,messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, global message handler
+      @ In, None
       @ Out, None
     """
-    GridBase.__init__(self,messageHandler)
+    super().__init__()
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
     self.gridContainer['bounds']                = {'upperBounds':{},'lowerBounds':{}} # dictionary of lower and upper bounds
@@ -266,17 +259,14 @@ class GridEntity(GridBase):
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
     self.volumetricRatio                        = None               # volumetric ratio (optional if steplenght is read or passed in initDict)
 
-  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
+  def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
     """
       XML reader for the grid statement.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
-      @ In, messageHandler, MessageHandler, optional, the global message handler instance
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
     """
-    if messageHandler != None:
-      self.setMessageHandler(messageHandler)
     self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLength':{}}
     gridInfo = {}
     dimInfo = {}
@@ -709,21 +699,20 @@ class MultiGridEntity(GridBase):
     In addition, it handles an hierarchical multi-grid approach (creating a mapping from coarse and finer grids in
     an adaptive meshing approach). The strategy for mesh (grid) refining is driven from outside.
   """
-  def __init__(self,messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, optional, the global message handler instance
+      @ In, None
       @ Out, None
     """
-    GridBase.__init__(self, messageHandler)
-    self.multiGridActivated     = False                                # boolean flag to check if the multigrid approach has been activated
-    self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
-    self.grid                   = ETS.HierarchicalTree(self.messageHandler,
-                                  self.__createNewNode("InitialGrid",
-                                  {"grid":returnInstance("GridEntity",self,
-                                   self.messageHandler),"level":"1"})) # grid hierarchical Container
-    self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]
-    self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name
+    super().__init__()
+    self.multiGridActivated = False         # boolean flag to check if the multigrid approach has been activated
+    self.subGridVolumetricRatio = None      # initial subgrid volumetric ratio
+    self.grid = ETS.HierarchicalTree(self.__createNewNode("InitialGrid",
+                                        {"grid":factory.returnInstance("GridEntity"),
+                                        "level":"1"})) # grid hierarchical Container
+    self.multiGridIterator = ["1", None]    # multi grid iterator [first position is the level ID, the second it the multi-index]
+    self.mappingLevelName = {'1':None}      # mapping between grid level and node name
 
   def __len__(self):
     """
@@ -736,16 +725,15 @@ class MultiGridEntity(GridBase):
       totalLength += len(node.get('grid'))
     return totalLength
 
-  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
+  def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
     """
       XML reader for the Multi-grid statement.
       @ In, xmlNode, xml.etree.ElementTree, XML element node that represents the portion of the input that belongs to this class
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
-      @ In, messageHandler, MessageHandler, optional, the global message handler instance
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
     """
-    self.grid.getrootnode().get("grid")._readMoreXml(xmlNode,dimensionTags,messageHandler,dimTagsPrefix)
+    self.grid.getrootnode().get("grid")._readMoreXml(xmlNode, dimensionTags, dimTagsPrefix)
 
   def initialize(self,initDictionary=None):
     """
@@ -807,8 +795,8 @@ class MultiGridEntity(GridBase):
       @ In, attributes, dict, initial attributes
       @ Out, node, Node, new node
     """
-    node = ETS.HierarchicalNode(self.messageHandler,nodeName)
-    node.add("grid",returnInstance("GridEntity",self.messageHandler))
+    node = ETS.HierarchicalNode(nodeName)
+    node.add("grid", factory.returnInstance("GridEntity"))
     for key, attribute in attributes.items():
       node.add(key,attribute)
     return node
@@ -862,9 +850,9 @@ class MultiGridEntity(GridBase):
           initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-          newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
-          verteces                 = parentNodeCellIds[fcellId]
-          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
+          newGrid = factory.returnInstance("GridEntity")
+          verteces = parentNodeCellIds[fcellId]
+          lowerBounds,upperBounds = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
             for key in lowerBounds.keys():
@@ -1081,32 +1069,6 @@ class MultiGridEntity(GridBase):
           self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')
     self.updateParameter(parameterName, value, True, nodeName)
 
-"""
- Internal Factory of Classes
-"""
-__base                             = 'GridEntities'
-__interFaceDict                    = {}
-__interFaceDict['GridEntity'     ] = GridEntity
-__interFaceDict['MultiGridEntity'] = MultiGridEntity
-__knownTypes                       = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Method to return the types known by this module
-    @ In, None
-    @ Out, __knownTypes, list, list of known types (e.g. [GridEntity, MultiGridEntity, etc.])
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller,messageHandler=None):
-  """
-    Method to return an instance of a class defined in this module
-    @ In, Type, string, Class name (e.g. GridEntity)
-    @ In, caller, instance, instance of the caller object
-    @ In, messageHandler, optional instance, instance of the messageHandler system
-    @ Out, returnInstance, instance, instance of the requested class
-  """
-  try:
-    return __interFaceDict[Type](messageHandler)
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('GridEntities')
+factory.registerType('GridEntity', GridEntity)
+factory.registerType('MultiGridEntity', MultiGridEntity)
