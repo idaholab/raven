@@ -70,7 +70,7 @@ class GradientHistory(StepManipulator):
               stochastic surfaces or low-order gradient approximations such as SPSA, a small value
               for the shrink factor is recommended. If an optimization path appears to be converging
               early, increasing the shrink factor might improve the search. \default{1.15} """))
-    specs.addSub(InputData.parameterInputFactory('terms', contentType=InputTypes.IntegerType,
+    specs.addSub(InputData.parameterInputFactory('window', contentType=InputTypes.IntegerType,
         descr=r"""the number of previous gradient evaluations to include when determining a new step
               direction. Modifying this allows past gradient evaluations to influence future steps,
               with a decaying influence. Setting this to 1 means only the local gradient evaluation
@@ -117,7 +117,7 @@ class GradientHistory(StepManipulator):
     shrink = specs.findFirst('shrinkFactor')
     if shrink is not None:
       self._shrink = shrink.value
-    gradTerms = specs.findFirst('terms')
+    gradTerms = specs.findFirst('window')
     if gradTerms is not None:
       self._gradTerms = gradTerms.value
     termDecay = specs.findFirst('decay')

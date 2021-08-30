@@ -62,7 +62,7 @@
       </gradient>
       <stepSize>
         <GradientHistory>
-          <terms>4</terms>
+          <window>4</window>
           <decay>0.001</decay>
           <growthFactor>1.25</growthFactor>
           <shrinkFactor>2</shrinkFactor>
