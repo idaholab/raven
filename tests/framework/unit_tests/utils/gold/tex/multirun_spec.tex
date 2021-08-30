@@ -9,27 +9,27 @@
   The \xmlNode{MultiRun} node recognizes the following parameters:
     \begin{itemize}
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
-        User-defined name to designate this entity in the RAVEN input file. 
+        User-defined name to designate this entity in the RAVEN input file.
       \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity 
+        Desired verbosity of messages coming from this entity
       \item \xmlAttr{sleepTime}: \xmlDesc{float, optional}, 
-        Determines the wait time between successive iterations within this step, in seconds. 
+        Determines the wait time between successive iterations within this step, in seconds.
       \item \xmlAttr{re-seeding}: \xmlDesc{string, optional}, 
          this optional attribute could be used to control the seeding of the random number generator
         (RNG). If inputted, the RNG can be reseeded. The value of this attribute can be: either 1)
         an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} = ``20021986''), or 2)
-        string value named ``continue'' where the RNG is not re-initialized 
+        string value named ``continue'' where the RNG is not re-initialized
       \item \xmlAttr{pauseAtEnd}: \xmlDesc{string, optional}, 
-        -- no description yet -- 
+        -- no description yet --
       \item \xmlAttr{fromDirectory}: \xmlDesc{string, optional}, 
-        -- no description yet -- 
+        -- no description yet --
       \item \xmlAttr{repeatFailureRuns}: \xmlDesc{string, optional}, 
-        -- no description yet -- 
+        -- no description yet --
       \item \xmlAttr{clearRunDir}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
         indicates whether the run directory should be cleared (removed) before beginning
         the Step calculation. The run directory has the same name as the Step and is located
         within the WorkingDir. Note this directory is only used for Steps with certain Models,
-        such as Code.               \default{True} 
+        such as Code.               \default{True}
   \end{itemize}
 
   The \xmlNode{MultiRun} node recognizes the following subnodes:
@@ -39,9 +39,9 @@
       The \xmlNode{Input} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{Model}: \xmlDesc{string}, 
@@ -49,9 +49,9 @@
       The \xmlNode{Model} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{Sampler}: \xmlDesc{string}, 
@@ -59,9 +59,9 @@
       The \xmlNode{Sampler} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{Output}: \xmlDesc{string}, 
@@ -69,9 +69,9 @@
       The \xmlNode{Output} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{Optimizer}: \xmlDesc{string}, 
@@ -79,9 +79,9 @@
       The \xmlNode{Optimizer} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{SolutionExport}: \xmlDesc{string}, 
@@ -89,9 +89,9 @@
       The \xmlNode{SolutionExport} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
 
     \item \xmlNode{Function}: \xmlDesc{string}, 
@@ -99,8 +99,8 @@
       The \xmlNode{Function} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            -- no description yet -- 
+            -- no description yet --
       \end{itemize}
   \end{itemize}

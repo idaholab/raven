@@ -74,7 +74,7 @@ class NuSVR(ScikitLearnBase):
                                                                                                                        'rbf','sigmoid']),
                                                  descr=r"""Specifies the kernel type to be used in the algorithm. It must be one of
                                                             ``linear'', ``poly'', ``rbf'' or ``sigmoid''.""", default='rbf'))
-    specs.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntergerType,
+    specs.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntegerType,
                                                  descr=r"""Degree of the polynomial kernel function ('poly').Ignored by all other kernels.""",
                                                  default=3))
     specs.addSub(InputData.parameterInputFactory("gamma", contentType=InputTypes.FloatType,

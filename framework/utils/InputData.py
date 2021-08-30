@@ -656,13 +656,19 @@ class ParameterInput(object):
       req = 'required' if info['required'] else 'optional'
       default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
-      msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d} {de}'.format(i=doDent(recDepth, 1),
-                                                                                   n=name,
-                                                                                   t=typ,
-                                                                                   r=req,
-                                                                                   d=desc,
-                                                                                   de=default)
-
+      if default:
+        msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d} {de}'.format(i=doDent(recDepth, 1),
+                                                                                     n=name,
+                                                                                     t=typ,
+                                                                                     r=req,
+                                                                                     d=desc,
+                                                                                     de=default)
+      else:
+        msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
+                                                                                     n=name,
+                                                                                     t=typ,
+                                                                                     r=req,
+                                                                                     d=desc)
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 

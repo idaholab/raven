@@ -59,7 +59,7 @@ class GaussianProcessClassifier(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(GaussianProcessRegressor, cls).getInputSpecification()
+    specs = super(GaussianProcessClassifier, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GaussianProcessClassifier} is based on Laplace approximation. The implementation
                          is based on Algorithm 3.1, 3.2, and 5.1 of Gaussian Processes for Machine Learning (GPML) by
                          Rasmussen and Williams.Internally, the Laplace approximation is used for approximating the
