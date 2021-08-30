@@ -58,7 +58,7 @@ class SGDRegressor(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(SGDRegressor, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{SGDRegressor} implements regularized linear models with stochastic
+    specs.description = r"""The \xmlNode{SGDRegressor} implements regularized linear models with stochastic
                         gradient descent (SGD) learning for regression: the gradient of the loss is estimated each sample at
                         a time and the model is updated along the way with a decreasing strength schedule
                         (aka learning rate). For best results using the default learning rate schedule, the
@@ -71,7 +71,7 @@ class SGDRegressor(ScikitLearnBase):
                         combination of both (Elastic Net). If the parameter update crosses the 0.0 value because
                         of the regularizer, the update is truncated to $0.0$ to allow for learning sparse models and
                         achieve online feature selection.
-                        \\This implementation works with data represented as dense arrays of floating point values for the features.
+                        This implementation works with data represented as dense arrays of floating point values for the features.
                         """
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
                                                  descr=r"""The loss function to be used.
@@ -105,14 +105,14 @@ class SGDRegressor(ScikitLearnBase):
                                                  are ignored if they are less than this threshold.""", default=0.1))
     specs.addSub(InputData.parameterInputFactory("learning_rate", contentType=InputTypes.makeEnumType("learning_rate", "learningType",['constant', 'optimal', 'invscaling','adaptive']),
                                                  descr=r"""The learning rate schedule:
-                                                 \\begin{itemize}
-                                                  \\item constant: $eta = eta0$
-                                                  \\item optimal: $eta = 1.0 / (alpha * (t + t0))$ where t0 is chosen by a heuristic proposed by Leon Bottou.
-                                                  \\item invscaling: $eta = eta0 / pow(t, power\_t)$
-                                                  \\item adaptive: $eta = eta0$, as long as the training keeps decreasing. Each time n\_iter\_no\_change consecutive epochs fail
+                                                 \begin{itemize}
+                                                  \item constant: $eta = eta0$
+                                                  \item optimal: $eta = 1.0 / (alpha * (t + t0))$ where t0 is chosen by a heuristic proposed by Leon Bottou.
+                                                  \item invscaling: $eta = eta0 / pow(t, power\_t)$
+                                                  \item adaptive: $eta = eta0$, as long as the training keeps decreasing. Each time n\_iter\_no\_change consecutive epochs fail
                                                   to decrease the training loss by tol or fail to increase validation score by tol if early\_stopping is True, the current
                                                   learning rate is divided by 5.
-                                                 \\end{itemize}
+                                                 \end{itemize}
                                                  """, default='optimal'))
     specs.addSub(InputData.parameterInputFactory("eta0", contentType=InputTypes.FloatType,
                                                  descr=r"""The initial learning rate for the ``constant'', ``invscaling'' or ``adaptive'' schedules. The default value is 0.0

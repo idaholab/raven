@@ -58,7 +58,7 @@ class Ridge(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(Ridge, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{Ridge} regressor also known as
+    specs.description = r"""The \xmlNode{Ridge} regressor also known as
                              \textit{linear least squares with l2 regularization} solves a regression
                              model where the loss function is the linear least squares function and the
                              regularization is given by the l2-norm.
@@ -82,7 +82,7 @@ class Ridge(ScikitLearnBase):
                                                  descr=r"""Precision of the solution""", default=1e-3))
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.makeEnumType("solver", "solverType",['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga']),
                                                  descr=r"""Solver to use in the computational routines:
-                                                 \\begin{itemize}
+                                                 \begin{itemize}
                                                    \item auto, chooses the solver automatically based on the type of data.
                                                    \item svd, uses a Singular Value Decomposition of X to compute the Ridge coefficients. More stable for singular
                                                                matrices than ``cholesky''.
@@ -95,7 +95,7 @@ class Ridge(ScikitLearnBase):
                                                               Both methods also use an iterative procedure, and are often faster than other solvers when both
                                                               n\_samples and n\_features are large. Note that ``sag'' and ``saga'' fast convergence is only guaranteed on
                                                               features with approximately the same scale. You can preprocess the data with a scaler from sklearn.preprocessing.
-                                                 \\end{itemize}""", default='auto'))
+                                                 \end{itemize}""", default='auto'))
     return specs
 
   def _handleInput(self, paramInput):

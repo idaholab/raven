@@ -59,7 +59,7 @@ class LassoLarsIC(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(LassoLarsIC, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{LassoLarsIC} (\\textit{Lasso model fit with Lars using BIC or AIC for model selection})
+    specs.description = r"""The \xmlNode{LassoLarsIC} (\textit{Lasso model fit with Lars using BIC or AIC for model selection})
                         is a Lasso model fit with Lars using BIC or AIC for model selection.
                         The optimization objective for Lasso is:
                         $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
@@ -69,7 +69,7 @@ class LassoLarsIC(ScikitLearnBase):
                         while being simple.
                         """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['bic', 'aic']),
-                                                 descr=r"""The type of criterion to use.$""", default='aic'))
+                                                 descr=r"""The type of criterion to use.""", default='aic'))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                  the data is assumed to be already centered.""", default=True))

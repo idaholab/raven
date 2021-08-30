@@ -58,7 +58,7 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(PassiveAggressiveRegressor, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{PassiveAggressiveRegressor}
+    specs.description = r"""The \xmlNode{PassiveAggressiveRegressor}
                         is a a regression algorithm similar to the Perceptron algorithm
                         but with a regularization parameter C.
                         \\The passive-aggressive algorithms are a family of algorithms for

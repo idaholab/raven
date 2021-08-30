@@ -59,13 +59,13 @@ class LassoLarsCV(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(LassoLarsCV, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{LassoLarsCV} (\\textit{Cross-validated Lasso model fit with Least Angle Regression})
+    specs.description = r"""The \xmlNode{LassoLarsCV} (\textit{Cross-validated Lasso model fit with Least Angle Regression})
                         This model is an augomentation of the LassoLars model with the addition of
                         cross validation tecniques.
                         The optimization objective for Lasso is:
-                        \\begin{equation}
+                        \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
-                        \\end{equation}
+                        \end{equation}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,

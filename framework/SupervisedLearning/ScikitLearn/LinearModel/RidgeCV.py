@@ -57,7 +57,7 @@ class RidgeCV(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(RidgeCV, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{RidgeCV} regressor also known as
+    specs.description = r"""The \xmlNode{RidgeCV} regressor also known as
                              \textit{linear least squares with l2 regularization} solves a regression
                              model where the loss function is the linear least squares function and the
                              regularization is given by the l2-norm.
@@ -73,12 +73,12 @@ class RidgeCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("gcv_mode", contentType=InputTypes.makeEnumType("gcv_mode", "gcvType",['auto', 'svd', 'eigen']),
                                                  descr=r"""Flag indicating which strategy to use when performing Leave-One-Out Cross-Validation.
                                                  Options are:
-                                                 \\begin{itemize}
-                                                   \\item \textit{auto}, use ``svd'' if $n\_samples > n\_features$, otherwise use ``eigen''
-                                                   \\item \textit{svd}, force use of singular value decomposition of X when X is
-                                                    dense, eigenvalue decomposition of X^T.X when X is sparse
-                                                   \\item \textit{eigen}, force computation via eigendecomposition of X.X^T
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item \textit{auto}, use ``svd'' if $n\_samples > n\_features$, otherwise use ``eigen''
+                                                   \item \textit{svd}, force use of singular value decomposition of X when X is
+                                                    dense, eigenvalue decomposition of $X^T.X$ when X is sparse
+                                                   \item \textit{eigen}, force computation via eigendecomposition of $X.X^T$
+                                                 \end{itemize}
                                                  """, default='auto'))
     specs.addSub(InputData.parameterInputFactory("alpha_per_target", contentType=InputTypes.BoolType,
                                                  descr=r"""Flag indicating whether to optimize the alpha value for each target separately

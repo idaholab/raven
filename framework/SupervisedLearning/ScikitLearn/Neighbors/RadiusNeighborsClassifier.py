@@ -69,7 +69,7 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
                          It implements learning based on the number of neighbors within a fixed radius
                          $r$ of each training point, where $r$ is a floating-point value specified by the
                          user.
-                            """
+                        """
     # penalty
     specs.addSub(InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType,
                                                  descr=r"""Range of parameter space to use by default for radius neighbors queries.""", default=1.0))
@@ -93,24 +93,24 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
                                                  descr=r"""the distance metric to use for the tree. The default metric is minkowski, and with
                                                  $p=2$ is equivalent to the standard Euclidean metric.
                                                  The available metrics are:
-                                                 \\begin{itemize}
-                                                   \\item minkowski: $sum(|x - y|^p)^(1/p)$
-                                                   \\item euclidean: $sqrt(sum((x - y)^2))$
-                                                   \\item manhattan: $sum(|x - y|)$
-                                                   \\item chebyshev: $max(|x - y|)$
-                                                   \\item hamming: $N\_unequal(x, y) / N\_tot$
-                                                   \\item canberra: $sum(|x - y| / (|x| + |y|))$
-                                                   \\item braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item minkowski: $sum(|x - y|^p)^(1/p)$
+                                                   \item euclidean: $sqrt(sum((x - y)^2))$
+                                                   \item manhattan: $sum(|x - y|)$
+                                                   \item chebyshev: $max(|x - y|)$
+                                                   \item hamming: $N\_unequal(x, y) / N\_tot$
+                                                   \item canberra: $sum(|x - y| / (|x| + |y|))$
+                                                   \item braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
+                                                 \end{itemize}
                                                  """, default='minkowski'))
     specs.addSub(InputData.parameterInputFactory("outlier_label", contentType=InputTypes.StringListType,
                                                  descr=r"""label for outlier samples (samples with no neighbors in given radius).
                                                  The available options are:
-                                                 \\begin{itemize}
-                                                   \\item manual label: strings or int labels. list of manual labels if multi-output is used.
-                                                   \\item most\_frequent: assign the most frequent label of y to outliers.
-                                                   \\item None: when any outlier is detected, an error will be raised.
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item manual label: strings or int labels. list of manual labels if multi-output is used.
+                                                   \item most\_frequent: assign the most frequent label of y to outliers.
+                                                   \item None: when any outlier is detected, an error will be raised.
+                                                 \end{itemize}
                                                  """, default=None))
     return specs
 

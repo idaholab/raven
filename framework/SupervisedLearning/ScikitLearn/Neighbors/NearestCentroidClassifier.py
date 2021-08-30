@@ -67,13 +67,13 @@ class NearestCentroid(ScikitLearnBase):
                          It implements learning based on the number of neighbors within a fixed radius
                          $r$ of each training point, where $r$ is a floating-point value specified by the
                          user.
-                            """
+                        """
     # penalty
     specs.addSub(InputData.parameterInputFactory("shrink_threshold", contentType=InputTypes.FloatType,
                                                  descr=r"""Threshold for shrinking centroids to remove features.""", default=None))
     specs.addSub(InputData.parameterInputFactory("metric", contentType=InputTypes.makeEnumType("metric", "metricType",['uniform','distance']),
                                                  descr=r"""The metric to use when calculating distance between instances in a feature array.
-                                                 The available metrics are allo the ones explained in the \\xmlNode{Metrics} section (pairwise).
+                                                 The available metrics are allo the ones explained in the \xmlNode{Metrics} section (pairwise).
                                                  The centroids for the samples corresponding to each class is the point from which the sum of
                                                  the distances (according to the metric) of all samples that belong to that particular class are
                                                  minimized. If the ``manhattan'' metric is provided, this centroid is the median and for all other metrics,

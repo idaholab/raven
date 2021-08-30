@@ -58,7 +58,7 @@ class RidgeClassifierCV(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(RidgeClassifierCV, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{RidgeClassifierCV} is a classifier that uses Ridge regression.
+    specs.description = r"""The \xmlNode{RidgeClassifierCV} is a classifier that uses Ridge regression.
                         This classifier first converts the target values into {-1, 1} and then treats
                         the problem as a regression task (multi-output regression in the multiclass case).
                         In addition, a cross-validation method is applied to optimize the hyper-parameter.

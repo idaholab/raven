@@ -57,7 +57,7 @@ class MultiTaskLasso(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(MultiTaskLasso, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{MultiTaskLasso} (\\textit{Multi-task Lasso model trained
+    specs.description = r"""The \xmlNode{MultiTaskLasso} (\textit{Multi-task Lasso model trained
                         with L1/L2 mixed-norm as regularizer}) is an algorithm for regression problem
                         where the optimization objective for Lasso is:
                         $(1 / (2 * n\_samples)) * ||Y - XW||^2_{Fro} + alpha * ||W||_{21}$

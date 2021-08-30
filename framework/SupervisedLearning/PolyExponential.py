@@ -34,12 +34,12 @@ class PolyExponential(SupervisedLearning):
   """
     This surrogate is aimed to construct a time-dep surrogate based on a polynomial sum of exponentials
     The surrogate will have the form:
-    SM(X,z) = sum_{i=1}^N P_i(X) exp ( - Q_i(X) z )
+    $SM(X,z) = sum_{i=1}^N P_{i}(X) exp ( - Q_{i}(X) z )$
     where:
       z is the independent  monotonic variable (e.g. time)
       X is the vector of the other independent (parametric) variables
-      P_i(X) is a polynomial of rank M function of the parametric space X
-      Q_i(X) is a polynomial of rank M function of the parametric space X
+      $P_{i}(X)$ is a polynomial of rank M function of the parametric space X
+      $Q_{i}(X)$ is a polynomial of rank M function of the parametric space X
   """
   @classmethod
   def getInputSpecification(cls):
@@ -68,7 +68,6 @@ class PolyExponential(SupervisedLearning):
     It is crucial to notice that this model is quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.
     In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization
     problem, which is quite slow in case of increasing number of ``numberExpTerms''.
-    %
     In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
     \xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential}."""
 

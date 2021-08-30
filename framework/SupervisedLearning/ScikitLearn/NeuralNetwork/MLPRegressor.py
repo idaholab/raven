@@ -64,20 +64,20 @@ class MLPRegressor(ScikitLearnBase):
                                                  lenght = n\_layers - 2""", default=(100,)))
     specs.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.makeEnumType("activation", "activationType",['identity', 'logistic', 'tanh','tanh']),
                                                  descr=r"""Activation function for the hidden layer:
-                                                 \\begin{itemize}
-                                                  \\item identity:  no-op activation, useful to implement linear bottleneck, returns $f(x) = x$
-                                                  \\item logistic: the logistic sigmoid function, returns $f(x) = 1 / (1 + exp(-x))$.
-                                                  \\item tanh: the hyperbolic tan function, returns $f(x) = tanh(x)$.
-                                                  \\item relu:  the rectified linear unit function, returns $f(x) = max(0, x)$
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item identity:  no-op activation, useful to implement linear bottleneck, returns $f(x) = x$
+                                                   \item logistic: the logistic sigmoid function, returns $f(x) = 1 / (1 + exp(-x))$.
+                                                   \item tanh: the hyperbolic tan function, returns $f(x) = tanh(x)$.
+                                                   \item relu:  the rectified linear unit function, returns $f(x) = max(0, x)$
+                                                 \end{itemize}
                                                  """, default='relu'))
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.makeEnumType("solver", "solverType",['lbfgs', 'sgd', 'adam']),
                                                  descr=r"""The solver for weight optimization:
-                                                 \\begin{itemize}
-                                                  \\item lbfgs: is an optimizer in the family of quasi-Newton methods.
-                                                  \\item sgd: refers to stochastic gradient descent.
-                                                  \\item adam: refers to a stochastic gradient-based optimizer proposed by Kingma, Diederik, and Jimmy Ba
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item lbfgs: is an optimizer in the family of quasi-Newton methods.
+                                                   \item sgd: refers to stochastic gradient descent.
+                                                   \item adam: refers to a stochastic gradient-based optimizer proposed by Kingma, Diederik, and Jimmy Ba
+                                                 \end{itemize}
                                                  """, default='adam'))
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""L2 penalty (regularization term) parameter.""", default=0.0001))
@@ -87,15 +87,15 @@ class MLPRegressor(ScikitLearnBase):
                                                  default='auto'))
     specs.addSub(InputData.parameterInputFactory("learning_rate", contentType=InputTypes.makeEnumType("learningRate", "learningRateType",['constant', 'invscaling', 'adaptive']),
                                                  descr=r"""Learning rate schedule for weight updates.:
-                                                 \\begin{itemize}
-                                                  \\item constant: is a constant learning rate given by `learning\_rate\_init'.
-                                                  \\item invscaling: gradually decreases the learning rate at each time step `t' using
+                                                 \begin{itemize}
+                                                  \item constant: is a constant learning rate given by `learning\_rate\_init'.
+                                                  \item invscaling: gradually decreases the learning rate at each time step `t' using
                                                   an inverse scaling exponent of `power\_t'. effective\_learning\_rate = learning\_rate\_init / pow(t, power\_t)
-                                                  \\item adaptive: keeps the learning rate constant to `learning\_rate\_init' as long as training
+                                                  \item adaptive: keeps the learning rate constant to `learning\_rate\_init' as long as training
                                                   loss keeps decreasing. Each time two consecutive epochs fail to decrease training loss by at
                                                   least tol, or fail to increase validation score by at least tol if `early\_stopping' is on,
                                                   the current learning rate is divided by 5. Only used when solver=`sgd'.
-                                                 \\end{itemize}
+                                                 \end{itemize}
                                                  """, default='constant'))
     specs.addSub(InputData.parameterInputFactory("learning_rate_init", contentType=InputTypes.FloatType,
                                                  descr=r"""The initial learning rate used. It controls the step-size in updating the weights.
@@ -128,7 +128,7 @@ class MLPRegressor(ScikitLearnBase):
                                                  descr=r"""Whether to use Nesterov's momentum. Only used when solver=`sgd' and momentum > 0.""", default=True))
     specs.addSub(InputData.parameterInputFactory("early_stopping", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use early stopping to terminate training when validation score is not improving.
-                                                 If set to true, it will automatically set aside $10%$ of training data as validation and terminate
+                                                 If set to true, it will automatically set aside ten-percent of training data as validation and terminate
                                                  training when validation score is not improving by at least tol for n\_iter\_no\_change consecutive
                                                  epochs. The split is stratified, except in a multilabel setting. If early stopping is False, then
                                                  the training stops when the training loss does not improve by more than tol for n\_iter\_no\_change

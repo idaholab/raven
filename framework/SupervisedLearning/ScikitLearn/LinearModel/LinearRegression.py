@@ -58,7 +58,7 @@ class LinearRegression(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \\xmlNode{LinearRegression}
+    specs.description = r"""The \xmlNode{LinearRegression}
                         is an Ordinary least squares Linear Regression.
                         LinearRegression fits a linear model with coefficients $w = (w1, …, wp)$ to
                         minimize the residual sum of squares between the observed targets in the

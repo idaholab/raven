@@ -48,23 +48,17 @@ class HDMRRom(GaussPolynomialRom):
     specs.description = r"""The \xmlString{HDMRRom} is based on a Sobol decomposition scheme.
                         In Sobol decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
                         a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.
-                        %
                         In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
                         be \xmlString{HDMRRom}.
-                        %
                         The HDMRRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
                         Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
-                        %
                         \nb This ROM type must be trained from a Sobol decomposition training set.
-                        %
                         Thus, it can only be trained from the outcomes of a Sobol sampler.
                         Also, this ROM must be referenced in the Sobol sampler in order to
                         accurately produce the necessary sparse grid points to train this ROM.
                         Experience has shown order 2 Sobol decompositions to include the great majority of
-                          uncertainty in most models.
-
+                        uncertainty in most models.
                         \zNormalizationNotPerformed{HDMRRom}
-
                         \textbf{Example:}
                         {\footnotesize
                         \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -97,7 +91,6 @@ class HDMRRom(GaussPolynomialRom):
                           </Models>
                         \end{lstlisting}
                         }
-
                         When Printing this ROM via an OutStream (see \ref{sec:printing}), the available metrics are:
                         \begin{itemize}
                           \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,

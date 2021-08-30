@@ -75,15 +75,12 @@ class MSR(NDinterpolatorRom):
                                                    the cluster.
                                                    \item \texttt{count} - The count of points that flow to or from the
                                                    extremum.
-                                                   % \item \xmlString{area} - The area enclosed by the manifold that flows to
-                                                   % or from the extremum.
                                                  \end{itemize}""", default='difference'))
     specs.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType,
                                                  descr=r"""specifies the
                                                  method used for estimating the gradient, available options are:
                                                  \begin{itemize}
                                                    \item \texttt{steepest}
-                                                   %\item \texttt{maxflow} \textit{(disabled)}
                                                  \end{itemize}""", default='steepest'))
     specs.addSub(InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType,
                                                  descr=r"""specifies the
@@ -95,7 +92,6 @@ class MSR(NDinterpolatorRom):
                                                    \item \texttt{beta skeleton}
                                                    \item \texttt{relaxed beta skeleton}
                                                    \item \texttt{approximate knn}
-                                                   %\item \texttt{delaunay} \textit{(disabled)}
                                                  \end{itemize}""", default='beta skeleton'))
     specs.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType,
                                                  descr=r"""in range: $(0, 2])$. It is

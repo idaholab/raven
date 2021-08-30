@@ -52,7 +52,7 @@ class KerasClassifier(KerasBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlNode{KerasClassifier}
                         """
     return specs
 

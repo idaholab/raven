@@ -59,7 +59,7 @@ class RidgeClassifier(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(RidgeClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{RidgeClassifier} is a classifier that uses Ridge regression.
+    specs.description = r"""The \xmlNode{RidgeClassifier} is a classifier that uses Ridge regression.
                         This classifier first converts the target values into {-1, 1} and then treats
                         the problem as a regression task (multi-output regression in the multiclass case).
                         """
@@ -81,7 +81,7 @@ class RidgeClassifier(ScikitLearnBase):
                                                  descr=r"""Precision of the solution""", default=1e-3))
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.makeEnumType("solver", "solverType",['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga']),
                                                  descr=r"""Solver to use in the computational routines:
-                                                 \\begin{itemize}
+                                                 \begin{itemize}
                                                    \item auto, chooses the solver automatically based on the type of data.
                                                    \item svd, uses a Singular Value Decomposition of X to compute the Ridge coefficients. More stable for singular
                                                                matrices than ``cholesky''.
@@ -94,7 +94,7 @@ class RidgeClassifier(ScikitLearnBase):
                                                               Both methods also use an iterative procedure, and are often faster than other solvers when both
                                                               n\_samples and n\_features are large. Note that ``sag'' and ``saga'' fast convergence is only guaranteed on
                                                               features with approximately the same scale. You can preprocess the data with a scaler from sklearn.preprocessing.
-                                                 \\end{itemize}""", default='auto'))
+                                                 \end{itemize}""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.makeEnumType("classWeight", "classWeightType",['balanced']),
                                                  descr=r"""If not given, all classes are supposed to have weight one.
                                                  The “balanced” mode uses the values of y to automatically adjust weights

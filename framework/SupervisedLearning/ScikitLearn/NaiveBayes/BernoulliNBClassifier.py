@@ -60,7 +60,7 @@ class BernoulliNB(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(BernoulliNB, cls).getInputSpecification()
-    specs.description = r"""The \\textit{BernoulliNB} classifier implements the naive Bayes training and
+    specs.description = r"""The \textit{BernoulliNB} classifier implements the naive Bayes training and
                          classification algorithms for data that is distributed according to multivariate
                          Bernoulli distributions; i.e., there may be multiple features but each one is
                          assumed to be a binary-valued (Bernoulli, boolean) variable.

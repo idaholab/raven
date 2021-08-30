@@ -93,24 +93,19 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
-                                                 \\begin{itemize}
+                                                 \begin{itemize}
                                                    \item Constant, Constant kernel: $k(x_1, x_2) = constant\_value \;\forall\; x_1, x_2$.
-
                                                    \item DotProduct, it is non-stationary and can be obtained from linear regression by putting $N(0, 1)$ priors on the coefficients of $x_d (d = 1, . . . , D)$
                                                                      and a prior of $N(0, \sigma_0^2)$ on the bias. The DotProduct kernel is invariant to a rotation of the coordinates about the origin, but not translations.
                                                                      It is parameterized by a parameter sigma\_0 $\sigma$ which controls the inhomogenity of the kernel.
-
                                                    \item ExpSineSquared, it allows one to model functions which repeat themselves exactly. It is parameterized by a length scale parameter $l>0$ and a periodicity parameter $p>0$.
                                                                          The kernel is given by $k(x_i, x_j) = \text{exp}\left(-\frac{ 2\sin^2(\pi d(x_i, x_j)/p) }{ l^ 2} \right)$ where $d(\\cdot,\\cdot)$ is the Euclidean distance.
-
                                                    \item Exponentiation, it takes one base kernel and a scalar parameter $p$ and combines them via $k_{exp}(X, Y) = k(X, Y) ^p$.
-
                                                    \item Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls the smoothness of the resulting function. The smaller $\nu$,
                                                                  the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
                                                                  identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$ (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
                                                                  The kernel is given by $k(x_i, x_j) =  \frac{1}{\Gamma(\nu)2^{\nu-1}}\Bigg( \frac{\sqrt{2\nu}}{l} d(x_i , x_j ) \Bigg)^\nu K_\nu\Bigg( \frac{\sqrt{2\nu}}{l} d(x_i , x_j )\Bigg)$
                                                                  where $d(\cdot,\cdot)$ is the Euclidean distance, $K_{\nu}(\cdot)$ is a modified Bessel function and $\Gamma(\cdot)$ is the gamma function.
-
                                                    \item PairwiseLinear, it is a thin wrapper around the functionality of the pairwise kernels. It uses the a linear metric to calculate kernel between instances
                                                                  in a feature array. Evaluation of the gradient is not analytic but numeric and all kernels support only isotropic distances.
                                                    \item PairwiseAdditiveChi2, it is a thin wrapper around the functionality of the pairwise metrics. It uses the an additive chi squared metric to calculate kernel between instances
@@ -129,16 +124,13 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                  in a feature array. Evaluation of the gradient is not analytic but numeric and all kernels support only isotropic distances.
                                                    \item PairwiseCosine, it is a thin wrapper around the functionality of the pairwise metrics. It uses the a cosine metric to calculate kernel between instances
                                                                  in a feature array. Evaluation of the gradient is not analytic but numeric and all kernels support only isotropic distances.
-
                                                    \item RBF, it is a stationary kernel. It is also known as the ``squared exponential'' kernel. It is parameterized by a length scale parameter $l>0$,
                                                               which can either be a scalar (isotropic variant of the kernel) or a vector with the same number of dimensions as the inputs $X$ (anisotropic variant of the kernel).
                                                               The kernel is given by $k(x_i, x_j) = \exp\left(- \frac{d(x_i, x_j)^2}{2l^2} \right)$ where $l$ is the length scale of the kernel and $d(\cdot,\cdot)$ is the Euclidean distance.
-
                                                    \item RationalQuadratic, it can be seen as a scale mixture (an infinite sum) of RBF kernels with different characteristic length scales. It is parameterized by a length scale parameter
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
-
-                                                 \\end{itemize}""", default=None))
+                                                 \end{itemize}""", default=None))
 
 
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,

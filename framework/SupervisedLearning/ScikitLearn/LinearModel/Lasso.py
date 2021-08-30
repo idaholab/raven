@@ -58,13 +58,13 @@ class Lasso(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(Lasso, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{Lasso} (\\textit{Linear Model trained with L1 prior as regularizer})
+    specs.description = r"""The \xmlNode{Lasso} (\textit{Linear Model trained with L1 prior as regularizer})
                         is an algorithm for regression problem
                         It minimizes the usual sum of squared errors, with a bound on the sum of the
                         absolute values of the coefficients:
-                        \\begin{equation}
+                        \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
-                        \\end{equation}
+                        \end{equation}
                         """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Constant that multiplies the L1 term. Defaults to 1.0.

@@ -58,7 +58,7 @@ class OrthogonalMatchingPursuit(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(OrthogonalMatchingPursuit, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{OrthogonalMatchingPursuit}
+    specs.description = r"""The \xmlNode{OrthogonalMatchingPursuit}
                         implements the OMP algorithm for approximating the fit of a
                         linear model with constraints imposed on the number of non-zero
                         coefficients (ie. the $\ell_0$ pseudo-norm). OMP is based on a greedy
@@ -70,7 +70,7 @@ class OrthogonalMatchingPursuit(ScikitLearnBase):
                         """
     specs.addSub(InputData.parameterInputFactory("n_nonzero_coefs", contentType=InputTypes.IntegerType,
                                                  descr=r"""Desired number of non-zero entries in the solution. If None (by default)
-                                                 this value is set to $10%$ of n\_features.""", default=None))
+                                                 this value is set to ten-percent of n\_features.""", default=None))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Maximum norm of the residual.""", default=None))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,

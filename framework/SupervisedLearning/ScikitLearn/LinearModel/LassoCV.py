@@ -58,13 +58,13 @@ class LassoCV(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(LassoCV, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{LassoCV} (\\textit{Lasso linear model with iterative fitting along a regularization path})
+    specs.description = r"""The \xmlNode{LassoCV} (\textit{Lasso linear model with iterative fitting along a regularization path})
                         is an algorithm for regression problem. The best model is selected by cross-validation.
                         It minimizes the usual sum of squared errors, with a bound on the sum of the
                         absolute values of the coefficients:
-                        \\begin{equation}
+                        \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
-                        \\end{equation}
+                        \end{equation}
                         """
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))

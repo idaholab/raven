@@ -68,12 +68,12 @@ class LinearDiscriminantAnalysisClassifier(ScikitLearnBase):
     """
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.StringType,
                                                  descr=r"""Solver to use, possible values:
-                                                 \\begin{itemize}
-                                                   \\item svd: Singular value decomposition (default). Does not compute the covariance matrix,
+                                                 \begin{itemize}
+                                                   \item svd: Singular value decomposition (default). Does not compute the covariance matrix,
                                                                therefore this solver is recommended for data with a large number of features.
-                                                   \\item lsqr: Least squares solution. Can be combined with shrinkage or custom covariance estimator.
-                                                   \\item eigen: Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.
-                                                 \\end{itemize}
+                                                   \item lsqr: Least squares solution. Can be combined with shrinkage or custom covariance estimator.
+                                                   \item eigen: Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.
+                                                 \end{itemize}
                                                  """, default='svd'))
     specs.addSub(InputData.parameterInputFactory("Shrinkage", contentType=InputTypes.FloatOrStringType,
                                                  descr=r"""Shrinkage parameter, possible values: 1) None: no shrinkage (default),

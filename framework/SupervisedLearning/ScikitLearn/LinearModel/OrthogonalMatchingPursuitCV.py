@@ -58,7 +58,7 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(OrthogonalMatchingPursuitCV, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{OrthogonalMatchingPursuitCV}
+    specs.description = r"""The \xmlNode{OrthogonalMatchingPursuitCV}
                         implements the OMP algorithm for approximating the fit of a
                         linear model with constraints imposed on the number of non-zero
                         coefficients (ie. the $\ell_0$ pseudo-norm). OMP is based on a greedy
@@ -79,7 +79,7 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
                                                  dividing by the l2-norm.""", default=True))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Maximum numbers of iterations to perform, therefore maximum
-                                                 features to include. $10%$ of n\_features but at least 5 if available.""", default=None))
+                                                 features to include. Ten-percent of n\_features but at least 5 if available.""", default=None))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
                                                  It specifies the number of folds..""", default=None))

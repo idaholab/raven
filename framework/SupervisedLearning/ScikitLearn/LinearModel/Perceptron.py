@@ -58,7 +58,7 @@ class Perceptron(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(Perceptron, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{Perceptron} classifier is based on an
+    specs.description = r"""The \xmlNode{Perceptron} classifier is based on an
                         algorithm for supervised classification of
                         an input into one of several possible non-binary outputs.
                         It is a type of linear classifier, i.e. a classification algorithm that makes

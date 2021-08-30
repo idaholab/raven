@@ -42,7 +42,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     There are several possible families to choose from, and most families contain
     more than one variation. For more information regarding the wavelet families,
     refer to the Pywavelets documentation located at:
-    https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html#wavelet-families
+    https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html (wavelet-families)
 
     Possible values are:
     haar family: haar

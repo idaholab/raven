@@ -52,7 +52,7 @@ class KerasRegression(KerasBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlNode{KerasRegression}
                         """
     return specs
 

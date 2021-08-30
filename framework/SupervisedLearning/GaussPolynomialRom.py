@@ -61,7 +61,6 @@ class GaussPolynomialRom(SupervisedLearning):
                         be \xmlString{GaussPolynomialRom}.
                         The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
                         SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
-                        %
                         \begin{table}[htb]
                           \centering
                           \begin{tabular}{c | c c}
@@ -75,14 +74,11 @@ class GaussPolynomialRom(SupervisedLearning):
                           \caption{GaussPolynomialRom defaults}
                           \label{tab:gpcCompatible}
                         \end{table}
-                        %
                         \nb This ROM type must be trained from a collocation quadrature set.
-                        %
                         Thus, it can only be trained from the outcomes of a SparseGridCollocation sampler.
                         Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
                         accurately produce the necessary sparse grid points to train this ROM.
                         \zNormalizationNotPerformed{GaussPolynomialRom}
-
                         \textbf{Example:}
                         {\footnotesize
                         \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -118,7 +114,6 @@ class GaussPolynomialRom(SupervisedLearning):
                         </Simulation>
                         \end{lstlisting}
                         }
-
                         When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the available metrics are:
                         \begin{itemize}
                           \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
@@ -134,11 +129,9 @@ class GaussPolynomialRom(SupervisedLearning):
                                                  descr=r"""specifies the rules by which to construct multidimensional polynomials.  The options are
                                                  \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
                                                  \xmlString{HyperbolicCross}, and \xmlString{Custom}.
-                                                 %
                                                  Total degree is efficient for
                                                  uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
                                                  for low-regularity input spaces.
-                                                 %
                                                  If \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required."""))
     specs.addSub(InputData.parameterInputFactory("PolynomialOrder", contentType=InputTypes.IntegerType,
                                                  descr=r"""indicates the maximum polynomial order in any one dimension to use in the

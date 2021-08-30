@@ -62,7 +62,7 @@ class BayesianRidge(ScikitLearnBase):
                         It estimates a probabilistic model of the regression problem as
                         described above. The prior for the coefficient is given by a
                         spherical Gaussian:
-                        $p(w|\\lambda) = \\mathcal{N}(w|0,\\lambda^{-1}\\mathbf{I}_{p})$
+                        $p(w|\lambda) = \mathcal{N}(w|0,\lambda^{-1}\mathbf{I}_{p})$
                         The parameters $w$, $\alpha$ and $\lambda$ are estimated jointly during
                         the fit of the model, the regularization parameters $\alpha$ and $\lambda$
                         being estimated by maximizing the log marginal likelihood.

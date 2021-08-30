@@ -67,7 +67,7 @@ class KNeighborsRegressor(ScikitLearnBase):
                          of the nearest neighbors in the training set.
                          It implements learning based on the $k$ nearest neighbors of each query point,
                          where $k$ is an integer value specified by the user.
-                            """
+                        """
     # penalty
     specs.addSub(InputData.parameterInputFactory("n_neighbors", contentType=InputTypes.IntegerType,
                                                  descr=r"""Number of neighbors to use by default for kneighbors queries.""", default=5))
@@ -91,15 +91,15 @@ class KNeighborsRegressor(ScikitLearnBase):
                                                  descr=r"""the distance metric to use for the tree. The default metric is minkowski, and with
                                                  $p=2$ is equivalent to the standard Euclidean metric.
                                                  The available metrics are:
-                                                 \\begin{itemize}
-                                                   \\item minkowski: $sum(|x - y|^p)^(1/p)$
-                                                   \\item euclidean: $sqrt(sum((x - y)^2))$
-                                                   \\item manhattan: $sum(|x - y|)$
-                                                   \\item chebyshev: $max(|x - y|)$
-                                                   \\item hamming: $N\_unequal(x, y) / N\_tot$
-                                                   \\item canberra: $sum(|x - y| / (|x| + |y|))$
-                                                   \\item braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
-                                                 \\end{itemize}
+                                                 \begin{itemize}
+                                                   \item minkowski: $sum(|x - y|^p)^(1/p)$
+                                                   \item euclidean: $sqrt(sum((x - y)^2))$
+                                                   \item manhattan: $sum(|x - y|)$
+                                                   \item chebyshev: $max(|x - y|)$
+                                                   \item hamming: $N\_unequal(x, y) / N\_tot$
+                                                   \item canberra: $sum(|x - y| / (|x| + |y|))$
+                                                   \item braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
+                                                 \end{itemize}
                                                  """, default='minkowski'))
     return specs
 

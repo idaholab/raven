@@ -41,7 +41,7 @@ class KerasLSTMRegression(KerasRegression):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlNode{KerasLSTMRegression}
                         """
     return specs
 

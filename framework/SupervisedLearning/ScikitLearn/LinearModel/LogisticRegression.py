@@ -93,15 +93,15 @@ class LogisticRegression(ScikitLearnBase):
                                                  $intercept_scaling$ has to be increased.""", default=1.))
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.makeEnumType("solver", "solverType",['newton-cg','lbfgs', 'liblinear','sag','saga']),
                                                  descr=r"""Algorithm to use in the optimization problem.
-                                                 \\begin{itemize}
-                                                   \\item For small datasets, ``liblinear'' is a good choice, whereas ``sag'' and ``saga'' are faster for large ones.
-                                                   \\item For multiclass problems, only ``newton-cg'', ``sag'', ``saga'' and ``lbfgs'' handle multinomial loss; `
+                                                 \begin{itemize}
+                                                   \item For small datasets, ``liblinear'' is a good choice, whereas ``sag'' and ``saga'' are faster for large ones.
+                                                   \item For multiclass problems, only ``newton-cg'', ``sag'', ``saga'' and ``lbfgs'' handle multinomial loss; `
                                                    `liblinear'' is limited to one-versus-rest schemes.
-                                                   \\item ``newton-cg'', ``lbfgs'', ``sag'' and ``saga'' handle L2 or no penalty
-                                                   \\item ``liblinear'' and ``saga'' also handle L1 penalty
-                                                   \\item ``saga'' also supports ``elasticnet'' penalty
-                                                   \\item ``liblinear'' does not support setting penalty=``none''
-                                                 \\end{itemize}""", default='lbfgs'))
+                                                   \item ``newton-cg'', ``lbfgs'', ``sag'' and ``saga'' handle L2 or no penalty
+                                                   \item ``liblinear'' and ``saga'' also handle L1 penalty
+                                                   \item ``saga'' also supports ``elasticnet'' penalty
+                                                   \item ``liblinear'' does not support setting penalty=``none''
+                                                 \end{itemize}""", default='lbfgs'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=100))
     specs.addSub(InputData.parameterInputFactory("multi_class", contentType=InputTypes.makeEnumType("multiClass", "multiClassType",['auto','ovr', 'multinomial']),

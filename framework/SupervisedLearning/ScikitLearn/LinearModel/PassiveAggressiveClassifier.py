@@ -58,7 +58,7 @@ class PassiveAggressiveClassifier(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super(PassiveAggressiveClassifier, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{PassiveAggressiveClassifier}
+    specs.description = r"""The \xmlNode{PassiveAggressiveClassifier}
                         is a principled approach to linear
                         classification that advocates minimal weight updates i.e., the least required
                         to correctly classify the current training instance.

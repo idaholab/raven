@@ -37,7 +37,7 @@ class KerasMLPClassifier(KerasClassifier):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlNode{KerasMLPClassifier}
                         """
     return specs
 

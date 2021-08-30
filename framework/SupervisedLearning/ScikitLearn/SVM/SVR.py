@@ -71,7 +71,7 @@ class SVR(ScikitLearnBase):
     # penalty
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization parameter. The strength of the regularization is inversely
-                                                          proportional to C.
+                                                           proportional to C.
                                                            Must be strictly positive. The penalty is a squared l2 penalty..""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['linear','poly',
                                                                                                                        'rbf','sigmoid']),
