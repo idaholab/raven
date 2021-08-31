@@ -54,11 +54,13 @@ class GaussPolynomialRom(SupervisedLearning):
     specs.description = r"""The \xmlString{GaussPolynomialRom} is based on a
                         characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
                         expansion (gPC).
+                        \\
                         In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty
                         are used to represent the original model.  The method converges moments of the original
                         model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
                         In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
                         be \xmlString{GaussPolynomialRom}.
+                        \\
                         The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
                         SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
                         \begin{table}[htb]
@@ -79,41 +81,7 @@ class GaussPolynomialRom(SupervisedLearning):
                         Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
                         accurately produce the necessary sparse grid points to train this ROM.
                         \zNormalizationNotPerformed{GaussPolynomialRom}
-                        \textbf{Example:}
-                        {\footnotesize
-                        \begin{lstlisting}[style=XML,morekeywords={name,subType}]
-                        <Simulation>
-                          ...
-                          <Samplers>
-                            ...
-                            <SparseGridCollocation name="mySG" parallel="0">
-                              <variable name="x1">
-                                <distribution>myDist1</distribution>
-                              </variable>
-                              <variable name="x2">
-                                <distribution>myDist2</distribution>
-                              </variable>
-                              <ROM class = 'Models' type = 'ROM' >myROM</ROM>
-                            </SparseGridCollocation>
-                            ...
-                          </Samplers>
-                          ...
-                          <Models>
-                            ...
-                            <ROM name='myRom' subType='GaussPolynomialRom'>
-                              <Target>ans</Target>
-                              <Features>x1,x2</Features>
-                              <IndexSet>TotalDegree</IndexSet>
-                              <PolynomialOrder>4</PolynomialOrder>
-                              <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
-                              <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
-                            </ROM>
-                            ...
-                          </Models>
-                          ...
-                        </Simulation>
-                        \end{lstlisting}
-                        }
+                        \\
                         When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the available metrics are:
                         \begin{itemize}
                           \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
@@ -175,8 +143,6 @@ class GaussPolynomialRom(SupervisedLearning):
                   result in increased resolution for this dimension at the cost of resolution in lower-weighted
                   dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
     specs.addSub(interpolationParam)
-    specs.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType, default='time'))
-
     return specs
 
   def __confidenceLocal__(self,featureVals):

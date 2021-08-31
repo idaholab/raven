@@ -40,11 +40,11 @@ class pickledROM(SupervisedLearning):
     the case, a \xmlNode{ROM} with subtype \xmlString{pickledROM} is used to hold the place of the ROM that will
     be loaded from file.  The notation for this ROM is much less than a typical ROM; it usually only requires a name and
     its subtype.
-
+    \\
     Note that when loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs of
     a ROM; it is expected that a user know at least the I/O of a ROM before trying to use it as a model.
     However, RAVEN does require that pickled ROMs be trained before pickling in the first place.
-
+    \\
     Initially, a pickledROM is not usable.  It cannot be trained or sampled; attempting to do so will raise an
     error.  An \xmlNode{IOStep} is used to load the ROM from file, at which point the ROM will have all the same
     characteristics as when it was pickled in a previous RAVEN run.

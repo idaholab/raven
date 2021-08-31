@@ -62,6 +62,7 @@ class NDspline(NDinterpolatorRom):
                             No further XML sub-nodes are required.
                             \nb This ROM type must be trained from a regular Cartesian grid.
                             Thus, it can only be trained from the outcomes of a grid sampling strategy.
+                            \zNormalizationPerformed{NDspline}
                         """
     return specs
 

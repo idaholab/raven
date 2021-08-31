@@ -59,17 +59,32 @@ class SupervisedLearning(BaseInterface):
     """
     spec = super().getInputSpecification()
     spec.addParam("subType", InputTypes.StringType, True)
-    spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType, default='time'))
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
-    cvInput.addParam("class", InputTypes.StringType)
-    cvInput.addParam("type", InputTypes.StringType)
+    spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType,
+        descr=r"""specifies the names of the features of this ROM.
+        \nb These parameters are going to be requested for the training of this object
+        (see Section~\ref{subsec:stepRomTrainer})"""))
+    spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType,
+        descr=r"""contains a comma separated list of the targets of this ROM. These parameters
+        are the Figures of Merit (FOMs) this ROM is supposed to predict.
+        \nb These parameters are going to be requested for the training of this
+        object (see Section \ref{subsec:stepRomTrainer})."""))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
+        descr=r"""If a time-dependent ROM is requested, please specifies the pivot
+        variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
+    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
+        descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
+        ``CrossValidation``.""")
+    cvInput.addParam("class", InputTypes.StringType, descr=r"""\xmlString{Model}""")
+    cvInput.addParam("type", InputTypes.StringType, descr=r"""\xmlString{PostProcessor}""")
     spec.addSub(cvInput)
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType)
-    AliasInput.addParam("variable", InputTypes.StringType, True)
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType,
+        descr=r"""specifies alias for
+        any variable of interest in the input or output space. These aliases can be used anywhere in the RAVEN input to
+        refer to the variables. In the body of this node the user specifies the name of the variable that the model is going to use
+        (during its execution).""")
+    AliasInput.addParam("variable", InputTypes.StringType, True, descr=r"""define the actual alias, usable throughout the RAVEN input""")
     AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
-    AliasInput.addParam("type", AliasTypeInput, True)
+    AliasInput.addParam("type", AliasTypeInput, True, descr=r"""either ``input'' or ``output''.""")
     spec.addSub(AliasInput)
     return spec
 
