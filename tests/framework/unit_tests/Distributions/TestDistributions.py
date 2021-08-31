@@ -1084,9 +1084,11 @@ checkAnswer("Categorical  cdf(10)" , Categorical.cdf(10),0.1)
 checkAnswer("Categorical  cdf(30)" , Categorical.cdf(30),0.45)
 checkAnswer("Categorical  cdf(60)" , Categorical.cdf(60),1.0)
 
+checkAnswer("Categorical  ppf(0.0)" , Categorical.ppf(0.0),10)
 checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
 checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
 checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
+checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),60)
 
 # Test Custom1D
 Custom1DElement = ET.Element("Custom1D",{"name":"test"})

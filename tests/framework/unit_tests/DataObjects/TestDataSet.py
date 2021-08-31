@@ -516,8 +516,10 @@ checkSame('Metadata DataSet/dims/y value',y.text,'time')
 checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
 checkSame('Metadata DataSet/dims/c value',c.text,'time')
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName,inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'DataSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -581,6 +583,7 @@ correct = ['<DataObjectMetadata name="DataSet">',
            '      <y>time</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>DataSet</datasetName>',
            '      <inputs>a,b,c</inputs>',
            '      <outputs>x,y,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',

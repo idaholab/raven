@@ -35,7 +35,7 @@ from OutStreams import OutStreamEntity
 
 class MultiRun(SingleRun):
   """
-    this class implements one step of the simulation pattern' where several runs are needed
+    This class implements one step of the simulation pattern' where several runs are needed
   """
   def __init__(self):
     """
