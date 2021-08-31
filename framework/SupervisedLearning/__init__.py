@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The SupervisedLeaerning module includes different types of ROM strategies available in RAVEN
+  The SupervisedLearning module includes different types of ROM strategies available in RAVEN
 """
 
 from .SupervisedLearning import SupervisedLearning
@@ -20,5 +20,6 @@ from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
 from .KerasBase import KerasBase
 from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
+from .ROMCollection import Collection
 
 from .Factory import factory

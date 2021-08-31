@@ -19,9 +19,9 @@
 from EntityFactoryBase import EntityFactory
 
 ################################################################################
-
 from .SupervisedLearning import SupervisedLearning
 
+## internal developed or customized ROM
 from .GaussPolynomialRom import GaussPolynomialRom
 from .HDMRRom            import HDMRRom
 from .MSR                import MSR
@@ -32,25 +32,20 @@ from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DMD
-
-## FIXME: convert the following ROM to use new ROM API
 from .ARMA               import ARMA
-from .ROMCollection      import Collection, Segments, Clusters, Interpolated
+from .ROMCollection      import Segments, Clusters, Interpolated
 
 ## Tensorflow-Keras Neural Network Models
-from .KerasBase import KerasBase
-from .KerasRegression import KerasRegression
-from .KerasClassifier import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
 from .KerasLSTMRegression import KerasLSTMRegression
 
-# import ScikitLearn models
-from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
+## import ScikitLearn models
+# DiscriminantAnalysis
 from .ScikitLearn.DiscriminantAnalysis import LinearDiscriminantAnalysis
 from .ScikitLearn.DiscriminantAnalysis import QuadraticDiscriminantAnalysis
-
+# LinearModel
 from .ScikitLearn.LinearModel.ARDRegression import ARDRegression
 from .ScikitLearn.LinearModel.BayesianRidge import BayesianRidge
 from .ScikitLearn.LinearModel.ElasticNet import ElasticNet
@@ -79,37 +74,36 @@ from .ScikitLearn.LinearModel.RidgeClassifier import RidgeClassifier
 from .ScikitLearn.LinearModel.RidgeClassifierCV import RidgeClassifierCV
 from .ScikitLearn.LinearModel.SGDClassifier import SGDClassifier
 from .ScikitLearn.LinearModel.SGDRegressor import SGDRegressor
-
+# NaiveBayes
 from .ScikitLearn.NaiveBayes.ComplementNBClassifier import ComplementNB
 from .ScikitLearn.NaiveBayes.CategoricalNBClassifier import CategoricalNB
 from .ScikitLearn.NaiveBayes.BernoulliNBClassifier import BernoulliNB
 from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNB
 from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNB
-
+# NeuralNetwork
 from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
 from .ScikitLearn.NeuralNetwork.MLPRegressor import MLPRegressor
-
+# GaussianProcess
 from .ScikitLearn.GaussianProcess.GaussianProcessClassifier import GaussianProcessClassifier
 from .ScikitLearn.GaussianProcess.GaussianProcessRegressor import GaussianProcessRegressor
-
+# MultiClass
 from .ScikitLearn.MultiClass.OneVsOneClassifier import OneVsOneClassifier
 from .ScikitLearn.MultiClass.OneVsRestClassifier import OneVsRestClassifier
 from .ScikitLearn.MultiClass.OutputCodeClassifier import OutputCodeClassifier
-
-
+# Neighbors
 from .ScikitLearn.Neighbors.KNeighborsClassifier import KNeighborsClassifier
 from .ScikitLearn.Neighbors.NearestCentroidClassifier import NearestCentroid
 from .ScikitLearn.Neighbors.RadiusNeighborsRegressor import RadiusNeighborsRegressor
 from .ScikitLearn.Neighbors.KNeighborsRegressor import KNeighborsRegressor
 from .ScikitLearn.Neighbors.RadiusNeighborsClassifier import RadiusNeighborsClassifier
-
+# SVM
 from .ScikitLearn.SVM.LinearSVC import LinearSVC
 from .ScikitLearn.SVM.LinearSVR import LinearSVR
 from .ScikitLearn.SVM.NuSVC import NuSVC
 from .ScikitLearn.SVM.NuSVR import NuSVR
 from .ScikitLearn.SVM.SVC import SVC
 from .ScikitLearn.SVM.SVR import SVR
-
+# Tree
 from .ScikitLearn.Tree.DecisionTreeClassifier import DecisionTreeClassifier
 from .ScikitLearn.Tree.DecisionTreeRegressor import DecisionTreeRegressor
 from .ScikitLearn.Tree.ExtraTreeClassifier import ExtraTreeClassifier
