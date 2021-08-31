@@ -199,17 +199,50 @@ class Segments(Collection):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""To be added"""
+    spec.description = r"""\xmlNode{Segment} provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs."""
     # segmenting and clustering
-    segment = InputData.parameterInputFactory("Segment", strictMode=True)
+    segment = InputData.parameterInputFactory("Segment", strictMode=True,
+                                              descr=r"""provides an alternative way to build the ROM. When
+                                                this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+                                                requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+                                                during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+                                                is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+                                                segments. By default, no segmentation occurs.""")
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
-    segment.addParam('grouping', segmentGroups)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
-    subspace.addParam('divisions', InputTypes.IntegerType, False)
-    subspace.addParam('pivotLength', InputTypes.FloatType, False)
-    subspace.addParam('shift', InputTypes.StringType, False)
+    segment.addParam('grouping', segmentGroups, descr=r"""enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node.""", default='segment')
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType, descr=r"""designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM.""")
+    subspace.addParam('divisions', InputTypes.IntegerType, False, descr=r"""as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.""")
+    subspace.addParam('pivotLength', InputTypes.FloatType, False, descr=r"""provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+            Either this option or \xmlAttr{pivotLength} must be provided.""")
+    subspace.addParam('shift', InputTypes.StringType, False, descr=r"""governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.""")
     segment.addSub(subspace)
     spec.addSub(segment)
+
     return spec
 
   def __init__(self):
@@ -689,24 +722,70 @@ class Clusters(Segments):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""To be added"""
+    spec.description = r"""The cluster \xmlNode{Segment} provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs."""
     segment = spec.popSub('Segment')
     clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
-    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
-    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum,
+        descr=r"""changes the structure of the samples for Clustered
+        Segmented ROMs. Determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}""", default='truncated'))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True,
+        contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid']),
+        descr=r"""one of \xmlString{first} or
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
+        first ROM (representative segmented ROM),in each cluster, is considered to
+        be representative of the full space in the cluster (i.e. the evaluation is always performed
+        interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
+        is choosen when an evaluation is requested.
+        \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+        ``random''.""", default='first'))
     ## clusterFeatures
-    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType,
+        descr=r"""if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options."""))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType,
+                                                    descr=r"""maximum number of cycles to run (default no limit)""", default=None))
     ## classifier
-    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
-    clsfr.addParam('class', InputTypes.StringType, True)
-    clsfr.addParam('type', InputTypes.StringType, True)
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.""")
+    clsfr.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Models}""")
+    clsfr.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{PostProcessor}""")
     segment.addSub(clsfr)
     ## metric
-    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
-    metric.addParam('class', InputTypes.StringType, True)
-    metric.addParam('type', InputTypes.StringType, True)
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""Metrics for clustering subdomain ROMs, the text of this node is the \xmlAttr{name}
+        of the requested Metric.""")
+    metric.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Metrics}""")
+    metric.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{Metric}""")
     segment.addSub(metric)
-    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType,
+        descr=r"""pivot parameter for macro steps (e.g. years)"""))
     spec.addSub(segment)
     return spec
 
@@ -1377,8 +1456,8 @@ class Interpolated(SupervisedLearning):
         be representative of the full space in the cluster (i.e. the evaluation is always performed
         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
         is choosen when an evaluation is requested.
-      	\nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
-      	``random''.""", default='first'))
+        \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+        ``random''.""", default='first'))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType,
         descr=r"""if clustering then delineates

@@ -65,8 +65,7 @@ class ROM(Dummy):
                                         algorithm representing the ROM that tunes itself to replicate those results.
                                         RAVEN supports several different types of ROMs, both internally developed and
                                         imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
-                                        Currently in RAVEN, the ROMs are classified into several sub-types that, once chosen,
-                                        provide access to several different algorithms.
+                                        Currently in RAVEN, the user can use the \xmlAttr{subType} to select the ROM.
                                       """
     inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType)
     ######################
