@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
+    <Sequence>mcRunExp, mcRunApp, PCM</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm</name>
+    <author>dhuang</author>
+    <created>2021-07-21</created>
+    <classesTested>PostProcessors.Validation</classesTested>
+    <description>
+        This test is aimed to show how PCM works.
+        For simplicity, this test is using attenuate as experiment and tensor_ploy as application.
+        The output name convention is ...``feature name''\_``target name''\_``metric name''.
+    </description>
+    <revisions>
+      <revision author="dhuang" date="2021-08-26">...</revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate.py" name="exp" subType="">
+      <variables>X,ans</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/tensor_poly.py" name="app" subType="">
+      <variables>X,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
+      <Features>outputDataMC1|ans,outputDataMC2|ans2</Features>
+      <Targets>inputPlaceHolder2|ymsr</Targets> <!--possibly ymsr instead of yapp_pred (pcm_metirc|yapp_pred)-->
+      <!--
+        <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
+      -->
+      <Metric class="Metrics" type="Metric">cdf_diff</Metric>
+      <Metric class="Metrics" type="Metric">pdf_area</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
+  </Metrics>
+
+  <Distributions>
+    <MultivariateNormal name="dist_x" method='pca'>
+      <mu>0.1 0.5 -0.3</mu>
+      <covariance type='rel'>
+      1.0 0.7 0.5
+      0.7 1.0 0.8
+      0.5 0.8 1.0
+      </covariance>
+    </MultivariateNormal>
+    <!--
+    <Normal name='dist_x'>
+      <mean>0.8</mean>
+      <sigma>0.2</sigma>
+    </Normal>
+    -->
+    <Normal name="dist_msr">
+      <mean>1.0</mean>
+      <sigma>0.02</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="X">
+        <distribution>dist_x</distribution>
+      </variable>
+      <variable name="ymsr">
+        <distribution>dist_msr</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRunExp" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
+      <Model class="Models" type="ExternalModel">exp</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+    </MultiRun>
+    <MultiRun name="mcRunApp" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
+      <Model class="Models" type="ExternalModel">app</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <PostProcess name="PCM">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="PostProcessor">pcm</Model>
+      <Output class="DataObjects" type="PointSet">pcm_metric</Output> <!--possibly a HistorySet, xarray?-->
+      <Output class="OutStreams" type="Print">pcm_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder1">
+      <Input>X</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC1">
+      <Input>X</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outputDataMC2">
+      <Input>X</Input>
+      <Output>ans2</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder2">
+      <Input>ymsr</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="pcm_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>yapp_pred</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pcm_metric_dump">
+      <type>csv</type>
+      <source>pcm_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
