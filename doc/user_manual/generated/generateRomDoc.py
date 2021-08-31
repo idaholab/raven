@@ -96,7 +96,7 @@ General ARMA Example:
 \end{lstlisting}
 """
 
-NDspline = r"""
+ndSpline = r"""
 \hspace{24pt}
 Example:
 \begin{lstlisting}[style=XML]
@@ -115,7 +115,7 @@ Example:
 \end{lstlisting}
 """
 
-GaussPolynomialRom = r"""
+gaussPolynomialRom = r"""
 \hspace{24pt}
 Example:
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -152,11 +152,37 @@ Example:
 \end{lstlisting}
 """
 
-rom = r"""
+hdmrRom = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
-
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Samplers>
+    ...
+    <Sobol name="mySobol" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+    </Sobol>
+    ...
+  </Samplers>
+  ...
+  <Models>
+    ...
+    <ROM name='myHDMR' subType='HDMRRom'>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <SobolOrder>2</SobolOrder>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+    </ROM>
+    ...
+  </Models>
 \end{lstlisting}
 """
 
@@ -204,8 +230,9 @@ Example:
 # examples Factory
 exampleFactory = {'pickledROM':pickledROM,
                   'ARMA':armaExp,
-                  'NDspline':NDspline,
-                  'GaussPolynomialRom': GaussPolynomialRom,
+                  'NDspline':ndSpline,
+                  'GaussPolynomialRom': gaussPolynomialRom,
+                  'HDMRRom': hdmrRom,
 
                   }
 
@@ -226,6 +253,7 @@ excludeObj = ['SupervisedLearning', 'ScikitLearnBase', 'KerasBase', 'KerasRegres
 validRom = ['NDspline',
             'pickledROM',
             'GaussPolynomialRom',
+            'HDMRRom',
 
             ]
 # write all known types
