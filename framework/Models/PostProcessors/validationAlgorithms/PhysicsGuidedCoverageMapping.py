@@ -79,31 +79,19 @@ class PhysicsGuidedCoverageMapping(Validation):
       @ In, inputIn, list, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    # inpVars, outVars, dataSet = inputIn['Data'][0]
-    dataSets = [data for _, _, data in inputIn['Data']]
-    dataDict = {data.attrs['name']: data for _, _, data in inputIn['Data']}
+    dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     pivotParameter = self.pivotParameter
-    names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+    names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
     if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
       if 'dynamic' not in self.dynamicType: #self.model.dataType:
         self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
-      # else:
-      #   pivotParameter = self.pivotParameter
-    # #  check if pivotParameter
-    # if pivotParameter:
-    #   #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
-    #   if isinstance(inputIn['Data'][0][-1], xr.Dataset) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
-    #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    #   if not all([True if pivotParameter in inp else False for inp in dataSets]):
-    #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-
     evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
 
     if pivotParameter:
-      if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+      if len(inputIn['Data'][0][-1]['time']) != len(list(evaluation.values())[0]):
         self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
       if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = dataSets[0][pivotParameter]
+        evaluation[pivotParameter] = inputIn['Data'][0][-1]['time']
     return evaluation
 
   ### utility functions
