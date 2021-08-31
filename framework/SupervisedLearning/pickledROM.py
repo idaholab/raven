@@ -35,6 +35,20 @@ class pickledROM(SupervisedLearning):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
+    specs.description = r"""It is not uncommon for a reduced-order model (ROM) to be created and trained in one RAVEN run, then
+    serialized to file (\emph{pickled}), then loaded into another RAVEN run to be used as a model.  When this is
+    the case, a \xmlNode{ROM} with subtype \xmlString{pickledROM} is used to hold the place of the ROM that will
+    be loaded from file.  The notation for this ROM is much less than a typical ROM; it usually only requires a name and
+    its subtype.
+
+    Note that when loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs of
+    a ROM; it is expected that a user know at least the I/O of a ROM before trying to use it as a model.
+    However, RAVEN does require that pickled ROMs be trained before pickling in the first place.
+
+    Initially, a pickledROM is not usable.  It cannot be trained or sampled; attempting to do so will raise an
+    error.  An \xmlNode{IOStep} is used to load the ROM from file, at which point the ROM will have all the same
+    characteristics as when it was pickled in a previous RAVEN run.
+"""
     #### The following is for ARMA to reset certain variables.
     #### FIXME: we need to find a better way to handle it.
     #### For example, an optional attribute in ROM to indicate the actual type of ROM
@@ -85,6 +99,14 @@ class pickledROM(SupervisedLearning):
                     where $y$ is the cycle after the first and $g$ is the provided scaling factor.""")
     multicycle.addSub(growth)
     specs.addSub(multicycle)
+    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    # for pickled Interpolated ROMCollection
+    specs.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum,
+                                                 descr=r"""changes the structure of the samples for Clustered
+                                                 Segmented ROMs. These are identical to the options for \xmlNode{evalMode}
+                                                 node under \xmlNode{Segmented} """, default=None))
+    specs.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType,
+                                                 descr=r"""maximum number of cycles to run (default no limit)""", default=None))
     return specs
 
   def __init__(self):

@@ -56,33 +56,35 @@ class ROM(Dummy):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.description = r"""A Reduced Order Model (ROM) is a mathematical model consisting of a fast
+                                        solution trained to predict a response of interest of a physical system.
+                                        The ``training'' process is performed by sampling the response of a physical
+                                        model with respect to variations of its parameters subject, for example, to
+                                        probabilistic behavior.
+                                        The results (outcomes of the physical model) of the sampling are fed into the
+                                        algorithm representing the ROM that tunes itself to replicate those results.
+                                        RAVEN supports several different types of ROMs, both internally developed and
+                                        imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
+                                        Currently in RAVEN, the ROMs are classified into several sub-types that, once chosen,
+                                        provide access to several different algorithms.
+                                      """
     inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType)
     ######################
     # dynamically loaded #
     ######################
-    assert xml is not None
-    subType = xml.attrib.get('subType')
-    validClass = cls.interfaceFactory.returnClass(subType)
-    validSpec = validClass.getInputSpecification()
-    inputSpecification.mergeSub(validSpec)
-    ## Add segment input specifications
-    segment = xml.find('Segment')
-    if segment is not None:
-      segType = segment.attrib.get('grouping', 'segment')
-      validClass = cls.interfaceFactory.returnClass(cls.segmentNameToClass[segType])
+    # assert xml is not None
+    if xml is not None:
+      subType = xml.attrib.get('subType')
+      validClass = cls.interfaceFactory.returnClass(subType)
       validSpec = validClass.getInputSpecification()
       inputSpecification.mergeSub(validSpec)
-
-    # cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
-    # cvInput.addParam("class", InputTypes.StringType)
-    # cvInput.addParam("type", InputTypes.StringType)
-    # inputSpecification.addSub(cvInput)
-    ## wangc: I think we should avoid loading all inputSpecifications
-    # for typ in SupervisedLearning.factory.knownTypes():
-    #   obj = SupervisedLearning.factory.returnClass(typ)
-    #   if hasattr(obj, 'getInputSpecifications'):
-    #     subspecs = obj.getInputSpecifications()
-    #     inputSpecification.mergeSub(subspecs)
+      ## Add segment input specifications
+      segment = xml.find('Segment')
+      if segment is not None:
+        segType = segment.attrib.get('grouping', 'segment')
+        validClass = cls.interfaceFactory.returnClass(cls.segmentNameToClass[segType])
+        validSpec = validClass.getInputSpecification()
+        inputSpecification.mergeSub(validSpec)
 
     return inputSpecification
 

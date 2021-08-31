@@ -71,10 +71,6 @@ class SupervisedLearning(BaseInterface):
     AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     spec.addSub(AliasInput)
-    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
-    spec.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum)) # for pickled ROMCollection
-    spec.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for pickled Interpolated ROMCollection
-
     return spec
 
   @staticmethod

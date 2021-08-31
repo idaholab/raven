@@ -32,22 +32,40 @@ sys.path.pop()
 from utils.InputData import wrapText
 
 # examples
-romExample = r"""
+pickledROM = r"""
 \hspace{24pt}
 Example:
+For this example the ROM has already been created and trained in another RAVEN run, then pickled to a file
+called \texttt{rom\_pickle.pk}.  In the example, the file is identified in \xmlNode{Files}, the model is
+defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
 \begin{lstlisting}[style=XML]
-<ROM name='rom' subType='SVR'>
+<Simulation>
   ...
-
+  <Files>
+    <Input name="rompk" type="">rom_pickle.pk</Input>
+  </Files>
   ...
-</ROM>
+  <Models>
+    ...
+    <ROM name="myRom" subType="pickledROM"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadROM">
+      <Input class="Files" type="">rompk</Input>
+      <Output class="Models" type="ROM">myRom</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
 \end{lstlisting}
-
 """
 
-
 # examples Factory
-exampleFactory = {'romExample':romExample}
+exampleFactory = {'pickledROM':pickledROM}
 
 #------------#
 # ROM #
