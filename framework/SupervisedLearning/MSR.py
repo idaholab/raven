@@ -60,6 +60,9 @@ class MSR(NDinterpolatorRom):
                             linear model which is then used for prediction. Currently, the probability
                             prediction can be done using kernel density estimation (KDE) or through a
                             one-versus-one support vector machine (SVM).
+                            \\
+                            \zNormalizationNotPerformed{MSR}
+                            \\
                             In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
                             be \xmlString{MSR}
                         """

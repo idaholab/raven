@@ -52,6 +52,9 @@ class NDinvDistWeight(NDinterpolatorRom):
                             multivariate interpolation with a known scattered set of points.
                             The assigned values to unknown points are calculated via a weighted average of
                             the values available at the known points.
+                            \\
+                            \zNormalizationPerformed{NDinvDistWeight}
+                            \\
                             In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
                             \xmlAttr{subType} needs to be \xmlString{NDinvDistWeight}.
                         """

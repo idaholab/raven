@@ -32,6 +32,25 @@ sys.path.pop()
 from utils.InputData import wrapText
 
 # examples
+ndSpline = r"""
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='NDspline'>
+       <Features>var1,var2,var3</Features>
+       <Target>result1,result2</Target>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
 pickledROM = r"""
 \hspace{24pt}
 Example:
@@ -59,57 +78,6 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
     </IOStep>
     ...
   </Steps>
-  ...
-</Simulation>
-\end{lstlisting}
-"""
-
-armaExp = r"""
-\hspace{24pt}
-General ARMA Example:
-\begin{lstlisting}[style=XML, morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <ROM name='aUserDefinedName' subType='ARMA'>
-      <pivotParameter>Time</pivotParameter>
-      <Features>scaling</Features>
-      <Target>Speed1,Speed2</Target>
-      <P>5</P>
-      <Q>4</Q>
-      <Segment>
-        <subspace pivotLength="1296000" shift="first">Time</subspace>
-      </Segment>
-      <preserveInputCDF>True</preserveInputCDF>
-      <Fourier>604800,86400</Fourier>
-      <FourierOrder>2, 4</FourierOrder>
-      <Peaks target='Speed1' threshold='0.1' period='86400'>
-        <window width='14400' >-7200,10800</window>
-        <window width='18000' >64800,75600</window>
-      </Peaks>
-     </ROM>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-"""
-
-ndSpline = r"""
-\hspace{24pt}
-Example:
-\begin{lstlisting}[style=XML]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <ROM name='aUserDefinedName' subType='NDspline'>
-       <Features>var1,var2,var3</Features>
-       <Target>result1,result2</Target>
-     </ROM>
-    ...
-  </Models>
   ...
 </Simulation>
 \end{lstlisting}
@@ -186,54 +154,193 @@ Example:
 \end{lstlisting}
 """
 
-rom = r"""
+msr = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
-
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    </ROM>
+    <ROM name='aUserDefinedName' subType='MSR'>
+       <Features>var1,var2,var3</Features>
+       <Target>result1,result2</Target>
+       <!-- <weighted>true</weighted> -->
+       <simplification>0.0</simplification>
+       <persistence>difference</persistence>
+       <gradient>steepest</gradient>
+       <graph>beta skeleton</graph>
+       <beta>1</beta>
+       <knn>8</knn>
+       <partitionPredictor>kde</partitionPredictor>
+       <kernel>gaussian</kernel>
+       <smooth/>
+       <bandwidth>0.2</bandwidth>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
 \end{lstlisting}
+"""
+
+invDist = r"""
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='NDinvDistWeight'>
+      <Features>var1,var2,var3</Features>
+      <Target>result1,result2</Target>
+      <p>3</p>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+synthetic = r"""
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, hour</Target>
+      <Features>scaling</Features>
+      <pivotParameter>hour</pivotParameter>
+      <fourier target="signal1, signal2">
+        <periods>12, 24</periods>
+      </fourier>
+      <arma target="signal1, signal2" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+armaExp = r"""
+\hspace{24pt}
+General ARMA Example:
+\begin{lstlisting}[style=XML, morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='ARMA'>
+      <pivotParameter>Time</pivotParameter>
+      <Features>scaling</Features>
+      <Target>Speed1,Speed2</Target>
+      <P>5</P>
+      <Q>4</Q>
+      <Segment>
+        <subspace pivotLength="1296000" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Fourier>604800,86400</Fourier>
+      <FourierOrder>2, 4</FourierOrder>
+      <Peaks target='Speed1' threshold='0.1' period='86400'>
+        <window width='14400' >-7200,10800</window>
+        <window width='18000' >64800,75600</window>
+      </Peaks>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+poly = r"""
+\hspace{24pt}
+Example:
+
+"""
+
+dmd = r"""
+\hspace{24pt}
+Example:
+
 """
 
 rom = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
 
-\end{lstlisting}
+"""
+
+kmlpc = r"""
+\hspace{24pt}
+Example:
+
+"""
+
+kconv = r"""
+\hspace{24pt}
+Example:
+
+"""
+
+klstmc = r"""
+\hspace{24pt}
+Example:
+
+"""
+
+klstmr = r"""
+\hspace{24pt}
+Example:
+
 """
 
 rom = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
 
-\end{lstlisting}
 """
 
 rom = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
 
-\end{lstlisting}
 """
 
 rom = r"""
 \hspace{24pt}
 Example:
-\begin{lstlisting}[style=XML]
 
-\end{lstlisting}
 """
-
 
 # examples Factory
-exampleFactory = {'pickledROM':pickledROM,
-                  'ARMA':armaExp,
+exampleFactory = {
                   'NDspline':ndSpline,
+                  'pickledROM':pickledROM,
                   'GaussPolynomialRom': gaussPolynomialRom,
                   'HDMRRom': hdmrRom,
-
+                  'MSR': msr,
+                  'NDinvDistWeight':invDist,
+                  # SciKitLearn
+                  'SyntheticHistory': synthetic,
+                  'ARMA': armaExp,
+                  'PolyExponential': poly,
+                  'DMD': dmd,
+                  'KerasMLPClassifier': kmlpc,
+                  'KerasConvNetClassifier': kconv,
+                  'KerasLSTMClassifier': klstmc,
+                  'KerasLSTMRegression': klstmr,
                   }
 
 #------------#
@@ -254,7 +361,17 @@ validRom = ['NDspline',
             'pickledROM',
             'GaussPolynomialRom',
             'HDMRRom',
-
+            'MSR',
+            'NDinvDistWeight'
+            # SciKitLearn
+            'SyntheticHistory',
+            'ARMA',
+            'PolyExponential',
+            'DMD',
+            'KerasMLPClassifier',
+            'KerasConvNetClassifier',
+            'KerasLSTMClassifier',
+            'KerasLSTMRegression'
             ]
 # write all known types
 for name in SupervisedLearning.factory.knownTypes():

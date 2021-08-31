@@ -41,8 +41,17 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     specs = super().getInputSpecification()
     specs.description = r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
-           a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
-           signals based on training signal sets. """
+        a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
+        signals based on training signal sets. It is a more general implementation of the ARMA ROM. The available
+        algorithms are discussed in more detail below. The SyntheticHistory ROM uses the TSA algorithms to
+        characterize then reproduce time series in sequence; for example, if using Fourier then ARMA, the
+        SyntheticHistory ROM will characterize the Fourier properties using the Fourier TSA algorithm on a
+        training signal, then send the residual to the ARMA TSA algorithm for characterization. Generating
+        new signals works in reverse, first generating a signal using the ARMA TSA algorithm then
+        superimposing the Fourier TSA algorithm.
+        //
+        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+        \xmlAttr{subType} needs to be \xmlString{SyntheticHistory}."""
     specs = cls.addTSASpecs(specs)
     return specs
 
