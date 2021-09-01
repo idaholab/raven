@@ -15,13 +15,14 @@ from __future__ import print_function, unicode_literals
 import os
 import sys
 import subprocess
-import tempfile
+import shutil
 import get_coverage_tests
 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 conversionDir = os.path.join(scriptDir, '..', 'scripts', 'conversionScripts')
-termproc = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE)
-tlen = int(termproc.communicate()[0])
+tlen = shutil.get_terminal_size((80, 20))[0]
+# termproc = subprocess.Popen('tput cols', shell=True, stdout=subprocess.PIPE)
+# tlen = int(termproc.communicate()[0])
 maxlen = min(100, tlen)
 
 def validateTests():
