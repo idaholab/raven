@@ -54,14 +54,31 @@ class DMD(SupervisedLearning):
     """
     specs = super().getInputSpecification()
     specs.description = r"""The \xmlString{DMD} ROM aimed to construct a time-dependent (or any other monotonic
-                        variable) surrogate model based on Dynamic Mode Decomposition
-                        This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
-                        series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
-                        with a fixed oscillation frequency and decay/growth rate is computed
-                        in order to represent the data-set.
-                        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-                        \xmlAttr{subType} needs to be set equal to \xmlString{DMD}
-                        """
+        variable) surrogate model based on Dynamic Mode Decomposition
+        This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
+        series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
+        with a fixed oscillation frequency and decay/growth rate is computed
+        in order to represent the data-set.
+        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+        \xmlAttr{subType} needs to be set equal to \xmlString{DMD}.
+        \\
+        Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
+        via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+        in \xmlNode{OutStream} of type \xmlAttr{Print}):
+        \begin{itemize}
+          \item \xmlNode{rankSVD}, see XML input specifications above
+          \item \xmlNode{energyRankSVD}, see XML input specifications above
+          \item \xmlNode{rankTLSQ}, see XML input specifications above
+          \item \xmlNode{exactModes}, see XML input specifications above
+          \item \xmlNode{optimized}, see XML input specifications above
+          \item \xmlNode{features}, see XML input specifications above
+          \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
+          \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
+          between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
+          \item \xmlNode{eigs}, XML node containing the eigenvalues (imaginary and real part)
+          \item \xmlNode{amplitudes}, XML node containing the amplitudes (imaginary and real part)
+          \item \xmlNode{modes}, XML node containing the dynamic modes (imaginary and real part)
+        \end{itemize}"""
     specs.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.makeEnumType("dmd", "dmdType", ["dmd", "hodmd"]),
                                                  descr=r"""the type of Dynamic Mode Decomposition to apply.Available are:
                                                   \begin{itemize}
@@ -78,7 +95,7 @@ class DMD(SupervisedLearning):
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
                                                  \item \textit{>1}, this rank is going to be used for the truncation
-                                               \end{itemize}""", default=None))
+                                                 \end{itemize}""", default=None))
     specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
                                                  descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by

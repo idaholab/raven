@@ -267,19 +267,100 @@ General ARMA Example:
 poly = r"""
 \hspace{24pt}
 Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='PolyExp' subType='PolyExponential'>
+     <Target>time,decay_heat, xe135_dens</Target>
+     <Features>enrichment,bu</Features>
+     <pivotParameter>time</pivotParameter>
+     <numberExpTerms>5</numberExpTerms>
+     <max_iter>1000000</max_iter>
+     <tol>0.000001</tol>
+  </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
+Example to export the coefficients of trained PolyExponential ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <what>coefficients,timeScale</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 """
 
 dmd = r"""
 \hspace{24pt}
 Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='DMD' subType='DMD'>
+      <Target>time,totals_watts, xe135_dens</Target>
+      <Features>enrichment,bu</Features>
+      <dmdType>dmd</dmdType>
+      <pivotParameter>time</pivotParameter>
+      <rankSVD>0</rankSVD>
+      <rankTLSQ>5</rankTLSQ>
+      <exactModes>False</exactModes>
+      <optimized>True</optimized>
+    </ROM
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
-"""
-
-rom = r"""
-\hspace{24pt}
-Example:
-
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 """
 
 kmlpc = r"""
@@ -324,6 +405,11 @@ Example:
 
 """
 
+rom = r"""
+\hspace{24pt}
+Example:
+
+"""
 # examples Factory
 exampleFactory = {
                   'NDspline':ndSpline,

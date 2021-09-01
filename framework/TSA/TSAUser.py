@@ -38,7 +38,9 @@ class TSAUser:
     # NOTE we use an assertion here, since only developer actions should be picking subType
     assert subset in (None, 'characterize', 'generate'), f'Invalid subset for TSAUser.addTSASpecs: "{subset}"'
     # need pivot parameter ID, but this might be superceded by a parent class.
-    spec.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType,
+        descr=r"""If a time-dependent ROM is requested, please specifies the pivot
+        variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
     for typ in factory.knownTypes():
       c = factory.returnClass(typ)
       if subset == 'characterize' and not c.canCharacterize():

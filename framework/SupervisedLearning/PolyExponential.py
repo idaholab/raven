@@ -69,7 +69,19 @@ class PolyExponential(SupervisedLearning):
     In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization
     problem, which is quite slow in case of increasing number of ``numberExpTerms''.
     In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-    \xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential}."""
+    \xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential}.
+    \\
+    Once the ROM is trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients can be exported into an XML file
+    via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+    in \xmlNode{OutStream} of type \xmlAttr{Print}):
+    \begin{itemize}
+      \item \xmlNode{expTerms}, see XML input specifications above, inquired pre-pending the keyword ``output|'' (e.g. output| expTerms)
+      \item \xmlNode{coeffRegressor}, see XML input specifications above
+      \item \xmlNode{polyOrder}, see XML input specifications above
+      \item \xmlNode{features}, see XML input specifications above
+      \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
+      \item \xmlNode{coefficients}, XML node containing the exponential terms' coefficients for each realization
+    \end{itemize}"""
 
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
                                                 descr=r"""defines the pivot variable (e.g., time) that represents the
