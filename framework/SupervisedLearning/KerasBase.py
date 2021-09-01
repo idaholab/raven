@@ -474,7 +474,7 @@ class KerasBase(SupervisedLearning):
     ###########################
     layerInput = InputData.parameterInputFactory('SeparableConv2D',contentType=InputTypes.StringType,
         descr=r""" """)
-    layerInput.addParam('name', param_type=Types.StringType, required=True,
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r""" """)
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
         descr=r""" """))
