@@ -74,8 +74,8 @@ class SupervisedLearning(BaseInterface):
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
         ``CrossValidation``.""")
-    cvInput.addParam("class", InputTypes.StringType, descr=r"""\xmlString{Model}""")
-    cvInput.addParam("type", InputTypes.StringType, descr=r"""\xmlString{PostProcessor}""")
+    cvInput.addParam("class", InputTypes.StringType, descr=r"""should be set to \xmlString{Model}""")
+    cvInput.addParam("type", InputTypes.StringType, descr=r"""should be set to \xmlString{PostProcessor}""")
     spec.addSub(cvInput)
     AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType,
         descr=r"""specifies alias for

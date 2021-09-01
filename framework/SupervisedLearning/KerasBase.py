@@ -79,26 +79,45 @@ class KerasBase(SupervisedLearning):
     inputSpecification = super().getInputSpecification()
     inputSpecification.description = r"""TensorFlow-Keras Deep Neural Networks."""
     # general xml nodes
-    inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputTypes.StringListType, default=['accuracy'])) #list of metrics
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputTypes.IntegerType, default=20))
-    inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputTypes.IntegerType, default=20))
-    inputSpecification.addSub(InputData.parameterInputFactory("random_seed", contentType=InputTypes.IntegerType, default=None))
-    inputSpecification.addSub(InputData.parameterInputFactory("plot_model", contentType=InputTypes.BoolType, default=False))
-    inputSpecification.addSub(InputData.parameterInputFactory("num_classes",contentType= InputTypes.IntegerType, default=1))
-    inputSpecification.addSub(InputData.parameterInputFactory("validation_split", contentType=InputTypes.FloatType, default=0.25))
-    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", contentType=InputTypes.StringType, default='softmax'))
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.StringType, default='categorical_crossentropy'))
+    inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputTypes.StringListType,
+        descr=r""" """, default=['accuracy'])) #list of metrics
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputTypes.IntegerType,
+        descr=r""" """, default=20))
+    inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputTypes.IntegerType,
+        descr=r""" """, default=20))
+    inputSpecification.addSub(InputData.parameterInputFactory("random_seed", contentType=InputTypes.IntegerType,
+        descr=r""" """,  default=None))
+    inputSpecification.addSub(InputData.parameterInputFactory("plot_model", contentType=InputTypes.BoolType,
+        descr=r""" """, default=False))
+    inputSpecification.addSub(InputData.parameterInputFactory("num_classes",contentType= InputTypes.IntegerType,
+        descr=r""" """, default=1))
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_split", contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.25))
+    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", contentType=InputTypes.StringType,
+        descr=r""" """, default='softmax'))
+    inputSpecification.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.StringType,
+        descr=r""" """, default='categorical_crossentropy'))
     # Keras optimizer parameters
-    OptimizerSettingInput = InputData.parameterInputFactory('optimizerSetting', contentType=InputTypes.StringType, default=None)
-    Beta1Input = InputData.parameterInputFactory('beta_1', contentType=InputTypes.FloatType, default=0.9)
-    Beta2Input = InputData.parameterInputFactory('beta_2', contentType=InputTypes.FloatType, default=0.999)
-    DecayInput = InputData.parameterInputFactory('decay', contentType=InputTypes.FloatType, default=0.0)
-    LRInput = InputData.parameterInputFactory('lr', contentType=InputTypes.FloatType, default=0.001)
-    OptimizerInput = InputData.parameterInputFactory('optimizer', contentType=InputTypes.StringType, default='Adam')
-    EpsilonInput = InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType, default=None)
-    MomentumInput = InputData.parameterInputFactory('momentum', contentType=InputTypes.FloatType, default=0.0)
-    NesterovInput = InputData.parameterInputFactory('nesterov', contentType=InputTypes.BoolType, default=False)
-    RhoInput = InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType, default=0.95)
+    OptimizerSettingInput = InputData.parameterInputFactory('optimizerSetting', contentType=InputTypes.StringType,
+        descr=r""" """, default=None)
+    Beta1Input = InputData.parameterInputFactory('beta_1', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.9)
+    Beta2Input = InputData.parameterInputFactory('beta_2', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.999)
+    DecayInput = InputData.parameterInputFactory('decay', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.0)
+    LRInput = InputData.parameterInputFactory('lr', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.001)
+    OptimizerInput = InputData.parameterInputFactory('optimizer', contentType=InputTypes.StringType,
+        descr=r""" """, default='Adam')
+    EpsilonInput = InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
+        descr=r""" """, default=None)
+    MomentumInput = InputData.parameterInputFactory('momentum', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.0)
+    NesterovInput = InputData.parameterInputFactory('nesterov', contentType=InputTypes.BoolType,
+        descr=r""" """, default=False)
+    RhoInput = InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
+        descr=r""" """, default=0.95)
     OptimizerSettingInput.addSub(Beta1Input)
     OptimizerSettingInput.addSub(Beta2Input)
     OptimizerSettingInput.addSub(DecayInput)
@@ -117,122 +136,175 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  Dense Layers: regular densely-connected neural network layer
     ###########################
-    layerInput = InputData.parameterInputFactory('Dense',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('Dense',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Activation Layers: applies an activation function to an output
     ###########################
-    layerInput = InputData.parameterInputFactory('Activation',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('Activation',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'activation' need to be popped out and only the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Dropout Layers: Applies Dropout to the input
     ###########################
-    layerInput = InputData.parameterInputFactory('Dropout',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('noise_shape',contentType=InputTypes.IntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('seed',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('Dropout',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('noise_shape',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('seed',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Flatten Layers: Flattens the input
     ###########################
     layerInput = InputData.parameterInputFactory('Flatten',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=InputTypes.StringType))
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Input Layers: Input() is used to instantiate a Keras tensor
     ###########################
     layerInput = InputData.parameterInputFactory('Input',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Reshape Layers: Reshapes an output to a certain shape
     ###########################
-    layerInput = InputData.parameterInputFactory('Reshape',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('Reshape',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'target_shape' need to be popped out and only the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('target_shape',contentType=InputTypes.IntegerTupleType))
+    layerInput.addSub(InputData.parameterInputFactory('target_shape',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Permute Layers: permutes the dimensions of the input according to a given pattern
     ###########################
-    layerInput = InputData.parameterInputFactory('Permute',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('Permute',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'permute_pattern' need to pop out and only the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('permute_pattern',contentType=InputTypes.IntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('input_shape',contentType=InputTypes.IntegerTupleType))
+    layerInput.addSub(InputData.parameterInputFactory('permute_pattern',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('input_shape',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  RepeatVector Layers: repeats the input n times
     ###########################
-    layerInput = InputData.parameterInputFactory('RepeatVector',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('RepeatVector',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'repetition_factor' need to be popped out and only the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('repetition_factor',contentType=InputTypes.IntegerType))
+    layerInput.addSub(InputData.parameterInputFactory('repetition_factor',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Lambda Layers: Wraps arbitrary expression as a Layer object
     ###########################
-    layerInput = InputData.parameterInputFactory('Lambda',contentType=InputTypes.StringType,strictMode=False)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('Lambda',contentType=InputTypes.StringType,strictMode=False,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # A function object need to be created and passed to given layer
-    layerInput.addSub(InputData.parameterInputFactory('function',contentType=InputTypes.StringType))
+    layerInput.addSub(InputData.parameterInputFactory('function',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ActivityRegularization Layers: applies an update to the cost function based input activity
     ###########################
-    layerInput = InputData.parameterInputFactory('ActivityRegularization',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('l1',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('l2',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('ActivityRegularization',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('l1',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('l2',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Masking Layers: Masks a sequence by using a mask value to skip timesteps
     ###########################
-    layerInput = InputData.parameterInputFactory('Masking',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('mask_value',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('Masking',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('mask_value',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SpatialDropout1D Layers: Spatial 1D version of Dropout
     ###########################
-    layerInput = InputData.parameterInputFactory('SpatialDropout1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('SpatialDropout1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'rate' need to be popped out and the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType))
+    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SpatialDropout2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('SpatialDropout2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('SpatialDropout2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'rate' need to be popped out and the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SpatialDropout3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('SpatialDropout3D',contentType=InputTypes.StringType)
+    layerInput = InputData.parameterInputFactory('SpatialDropout3D',contentType=InputTypes.StringType,
+        descr=r""" """)
     layerInput.addParam('name', InputTypes.StringType, True)
     # 'rate' need to be popped out and the value will be passed to the given layer
-    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###################################
     # Convolutional Layers
@@ -240,249 +312,427 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  Conv1D Layers: 1D convolutioanl layer (e.g. temporal convolutional)
     ###########################
-    layerInput = InputData.parameterInputFactory('Conv1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('Conv1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Conv2D Layers: 2D convolutioanl layer (e.g. spatial convolution over images)
     ###########################
-    layerInput = InputData.parameterInputFactory('Conv2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('Conv2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Conv3D Layers: 3D convolutioanl layer (e.g. spatial convolution over volumes)
     ###########################
-    layerInput = InputData.parameterInputFactory('Conv3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('Conv3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SeparableConv1D Layers: Depthwise separable 1D convolutioanl layer
     ###########################
-    layerInput = InputData.parameterInputFactory('SeparableConv1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('SeparableConv1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SeparableConv2D Layers: Depthwise separable 2D convolutioanl layer
     ###########################
-    layerInput = InputData.parameterInputFactory('SeparableConv2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('pointwise_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('SeparableConv2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=Types.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('pointwise_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  DepthwiseConv2D Layers: Depthwise separable 2D convolutioanl layer
     ###########################
-    layerInput = InputData.parameterInputFactory('DepthwiseConv2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('DepthwiseConv2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('depthwise_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Conv2DTranspose Layers: Transposed convolution layer (sometimes called Deconvolution)
     ###########################
-    layerInput = InputData.parameterInputFactory('Conv2DTranspose',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('output_padding',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('Conv2DTranspose',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('output_padding',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Conv3DTranspose Layers: Transposed convolution layer (sometimes called Deconvolution)
     ###########################
-    layerInput = InputData.parameterInputFactory('Conv3DTranspose',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('output_padding',contentType=InputTypes.IntegerOrIntegerTupleType))
+    layerInput = InputData.parameterInputFactory('Conv3DTranspose',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('output_padding',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     #  Cropping1D  Layers: cropping layer for 1D input (e.g. temporal sequence)
     ###########################
-    layerInput = InputData.parameterInputFactory('Cropping1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType))
+    layerInput = InputData.parameterInputFactory('Cropping1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Cropping2D  Layers: cropping layer for 2D input (e.g. picutures)
     ###########################
-    layerInput = InputData.parameterInputFactory('Cropping2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('Cropping2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Cropping3D  Layers: cropping layer for 2D input (e.g. picutures)
     ###########################
-    layerInput = InputData.parameterInputFactory('Cropping3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('Cropping3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('cropping',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     # Upsampling1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('Upsampling1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('Upsampling1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True)
+    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     # Upsampling2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('UpSampling2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('interpolation',contentType=interpolationEnumType))
+    layerInput = InputData.parameterInputFactory('UpSampling2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('interpolation',contentType=interpolationEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     # Upsampling3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('UpSampling3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('UpSampling3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ZeroPadding1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ZeroPadding1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType))
+    layerInput = InputData.parameterInputFactory('ZeroPadding1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ZeroPadding2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ZeroPadding2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('ZeroPadding2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ZeroPadding3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ZeroPadding3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('ZeroPadding3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ############################################
     #   Pooling Layers
@@ -500,94 +750,142 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  MaxPooling2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('MaxPooling2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('MaxPooling2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  MaxPooling3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('MaxPooling3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('MaxPooling3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  AveragePooling1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('AveragePooling1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('AveragePooling1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  AveragePooling2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('AveragePooling2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('AveragePooling2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  AveragePooling3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('AveragePooling3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('AveragePooling3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalMaxPooling1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalMaxPooling1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalMaxPooling1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalAveragePooling1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalAveragePooling1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalAveragePooling1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalMaxPooling2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalMaxPooling2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalMaxPooling2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalAveragePooling2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalAveragePooling2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalAveragePooling2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalMaxPooling3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalMaxPooling3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalMaxPooling3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GlobalAveragePooling3D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GlobalAveragePooling3D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
+    layerInput = InputData.parameterInputFactory('GlobalAveragePooling3D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
 
     ######################################
@@ -596,41 +894,72 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  LocallyConnected1D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('LocallyConnected1D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('LocallyConnected1D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  LocallyConnected2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('LocallyConnected2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('LocallyConnected2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ######################################
     #  Recurrent Layers
@@ -638,200 +967,366 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  RNN Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('RNN',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType))
+    layerInput = InputData.parameterInputFactory('RNN',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SimpleRNN Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('SimpleRNN',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType))
+    layerInput = InputData.parameterInputFactory('SimpleRNN',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GRU Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GRU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('GRU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  LSTM Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('LSTM',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('LSTM',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ConvLSTM2D Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ConvLSTM2D',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType))
-    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('ConvLSTM2D',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SimpleRNNCell Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('SimpleRNNCell',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('SimpleRNNCell',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GRUCell Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GRUCell',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType))
+    layerInput = InputData.parameterInputFactory('GRUCell',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  LSTMCell Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('LSTMCell',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('LSTMCell',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Embedding Layers
@@ -839,15 +1334,24 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  Embdedding Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('Embdedding',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('input_dim',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('output_dim',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('embeddings_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('embeddings_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('embdeddings_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('mask_zero',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('input_length',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('Embdedding',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('input_dim',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('output_dim',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('embeddings_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('embeddings_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('embdeddings_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('mask_zero',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('input_length',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Advanced Activation Layers
@@ -855,49 +1359,69 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  LeakyRelU Layers: Leaky version of a Rectified Linear Unit
     ###########################
-    layerInput = InputData.parameterInputFactory('LeakyRelU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('LeakyRelU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  PReLU Layers: Parametric Rectified Linear Unit
     ###########################
-    layerInput = InputData.parameterInputFactory('PReLU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('alpha_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('alpha_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('alpha_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('shared_axes',contentType=InputTypes.FloatListType))
+    layerInput = InputData.parameterInputFactory('PReLU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('alpha_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('alpha_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('alpha_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('shared_axes',contentType=InputTypes.FloatListType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ELU Layers: Exponential Linear Unit
     ###########################
-    layerInput = InputData.parameterInputFactory('ELU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('ELU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ThresholdedReLU Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ThresholdedReLU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('ThresholdedReLU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True)
     layerInput.addSub(InputData.parameterInputFactory('theta',contentType=InputTypes.FloatType))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Softmax Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('Softmax',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType))
+    layerInput = InputData.parameterInputFactory('Softmax',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ReLU Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('ReLU',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('max_value',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('negative_slope',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType))
+    layerInput = InputData.parameterInputFactory('ReLU',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True)
+    layerInput.addSub(InputData.parameterInputFactory('max_value',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('negative_slope',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Normalization Layers
@@ -905,21 +1429,36 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  BatchNormalization Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('BatchNormalization',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
-    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType))
-    layerInput.addSub(InputData.parameterInputFactory('momentum',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('epsilon',contentType=InputTypes.FloatType))
-    layerInput.addSub(InputData.parameterInputFactory('center',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('scale',contentType=InputTypes.BoolType))
-    layerInput.addSub(InputData.parameterInputFactory('beta_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('gamma_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('moving_mean_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('moving_variance_initializer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('beta_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('gamma_regularizer',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('beta_constraint',contentType=InputTypes.StringType))
-    layerInput.addSub(InputData.parameterInputFactory('gamma_constraint',contentType=InputTypes.StringType))
+    layerInput = InputData.parameterInputFactory('BatchNormalization',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
+    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('momentum',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('epsilon',contentType=InputTypes.FloatType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('center',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('scale',contentType=InputTypes.BoolType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('beta_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('gamma_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('moving_mean_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('moving_variance_initializer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('beta_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('gamma_regularizer',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('beta_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('gamma_constraint',contentType=InputTypes.StringType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Noise Layers
@@ -927,38 +1466,30 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  GausianNoise Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GaussianNoise',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('GaussianNoise',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'stddev' need to be popped out and the value will be passed to given layer
-    layerInput.addSub(InputData.parameterInputFactory('stddev',contentType=InputTypes.FloatType))
+    layerInput.addSub(InputData.parameterInputFactory('stddev',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GausianDropout Layers
     ###########################
-    layerInput = InputData.parameterInputFactory('GaussianDropout',contentType=InputTypes.StringType)
-    layerInput.addParam('name', InputTypes.StringType, True)
+    layerInput = InputData.parameterInputFactory('GaussianDropout',contentType=InputTypes.StringType,
+        descr=r""" """)
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r""" """)
     # 'stddev' need to be popped out and the value will be passed to given layer
-    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType))
+    layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
+        descr=r""" """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     #################################################
 
-    layerLayoutInput = InputData.parameterInputFactory('layer_layout',contentType=InputTypes.StringListType, default='no-default')
+    layerLayoutInput = InputData.parameterInputFactory('layer_layout',contentType=InputTypes.StringListType,
+        descr=r""" """, default='no-default')
     inputSpecification.addSub(layerLayoutInput)
-
-    #Estimators can include ROMs, and so because baseNode does a copy, this
-    #needs to be after the rest of ROMInput is defined.
-    EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputTypes.StringType, baseNode=inputSpecification)
-    EstimatorInput.addParam("estimatorType", InputTypes.StringType, False)
-    #The next lines are to make subType and name not required.
-    EstimatorInput.addParam("subType", InputTypes.StringType, False)
-    EstimatorInput.addParam("name", InputTypes.StringType, False)
-    inputSpecification.addSub(EstimatorInput)
-
-    # inputs for cross validations
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
-    cvInput.addParam("class", InputTypes.StringType)
-    cvInput.addParam("type", InputTypes.StringType)
-    inputSpecification.addSub(cvInput)
 
     return inputSpecification
 
