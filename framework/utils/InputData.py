@@ -593,10 +593,11 @@ class ParameterInput(object):
         attributeNode.set('use','required')
 
   @classmethod
-  def generateLatex(cls, recDepth=0):
+  def generateLatex(cls, recDepth=0, sectionLevel=1):
     """
       Generates the user manual entry for this input spec.
       @ In, recDepth, int, optional, recursion depth of printing
+      @ In, sectionLevel, int, optional, the level of the section, i.e., 0: 'section', 1: 'subsection', 2:'subsubsection'
       @ Out, msg, str, LaTeX string representation of user manual entry
     """
     name = cls.name
@@ -605,7 +606,12 @@ class ParameterInput(object):
     # if this is a main entity, use subsection instead of itemizing
     if recDepth == 0:
       # triple curly braces preserves one set of curls while replacing "n"
-      msg += '\n\n\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      if sectionLevel == 0:
+        msg += '\n\n\section{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      elif sectionLevel == 1:
+        msg += '\n\n\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      elif sectionLevel == 2:
+        msg += '\n\n\subsubsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
     else:
       # since this is a sub-entity, it's part of a list
       msg += '{i}\\item \\xmlNode{{{n}}}:'.format(i=doDent(recDepth), n=name)

@@ -564,29 +564,6 @@ klstmr = r"""
 \end{lstlisting}
 """
 
-rom = r"""
-\hspace{24pt}
-Example:
-
-"""
-
-rom = r"""
-\hspace{24pt}
-Example:
-
-"""
-
-rom = r"""
-\hspace{24pt}
-Example:
-
-"""
-
-rom = r"""
-\hspace{24pt}
-Example:
-
-"""
 # examples Factory
 exampleFactory = {
                   'NDspline':ndSpline,
@@ -595,7 +572,6 @@ exampleFactory = {
                   'HDMRRom': hdmrRom,
                   'MSR': msr,
                   'NDinvDistWeight':invDist,
-                  # SciKitLearn
                   'SyntheticHistory': synthetic,
                   'ARMA': armaExp,
                   'PolyExponential': poly,
@@ -603,7 +579,7 @@ exampleFactory = {
                   'KerasMLPClassifier': kmlpc,
                   'KerasConvNetClassifier': kconv,
                   'KerasLSTMClassifier': klstmc,
-                  'KerasLSTMRegression': klstmr,
+                  'KerasLSTMRegression': klstmr
                   }
 
 #------------#
@@ -616,51 +592,67 @@ msg = ''
 descr = ' '
 msg += descr
 
+
 import SupervisedLearning
+from SupervisedLearning import ScikitLearnBase
 excludeObj = ['SupervisedLearning',
               'ScikitLearnBase',
               'KerasBase',
               'KerasRegression',
               'KerasClassifier',
-              'KerasMLPClassifier',
-              'KerasConvNetClassifier',
-              'KerasLSTMClassifier',
-              'KerasLSTMRegression',
+              'NDinterpolatorRom',
               'Collection',
               'Segments',
               'Clusters',
-              'Interpolated',
-              ]
-
-validRom = ['NDspline',
+              'Interpolated']
+validDNNRom = ['KerasMLPClassifier',
+              'KerasConvNetClassifier',
+              'KerasLSTMClassifier',
+              'KerasLSTMRegression']
+validInternalRom = ['NDspline',
             'pickledROM',
             'GaussPolynomialRom',
             'HDMRRom',
             'MSR',
-            'NDinvDistWeight'
-            # SciKitLearn
+            'NDinvDistWeight',
             'SyntheticHistory',
             'ARMA',
             'PolyExponential',
-            'DMD',
-            'KerasMLPClassifier',
-            'KerasConvNetClassifier',
-            'KerasLSTMClassifier',
-            'KerasLSTMRegression'
-            ]
-# write all known types
-for name in SupervisedLearning.factory.knownTypes():
+            'DMD']
+validRom = list(SupervisedLearning.factory.knownTypes())
+orderedValidRom = []
+for rom in validInternalRom + validRom:
+  if rom not in orderedValidRom:
+    orderedValidRom.append(rom)
+### Internal ROM file generation
+internalRom = ''
+sklROM = ''
+dnnRom = ''
+for name in orderedValidRom:
   if name in excludeObj:
+    continue
+  if name in validDNNRom:
     continue
   obj = SupervisedLearning.factory.returnClass(name)
   specs = obj.getInputSpecification()
-  tex = specs.generateLatex()
-  msg +=tex
-  if name in exampleFactory:
-    msg+= exampleFactory[name]
+  tex = specs.generateLatex(sectionLevel=2)
+  exampleTex = exampleFactory[name] if name in exampleFactory else ''
+  try:
+    if isinstance(obj(), ScikitLearnBase):
+      sklROM += tex
+      sklROM += exampleTex
+    else:
+      internalRom += tex
+      internalRom += exampleTex
+  except:
+    print('Can not generate latex file for ' + name)
 
-fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'rom.tex'))
+fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'internalRom.tex'))
 with open(fName, 'w') as f:
-  f.writelines(msg)
+  f.writelines(internalRom)
+print(f'\nSuccessfully wrote "{fName}"')
 
+fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'sklRom.tex'))
+with open(fName, 'w') as f:
+  f.writelines(sklROM)
 print(f'\nSuccessfully wrote "{fName}"')

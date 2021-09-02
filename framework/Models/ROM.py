@@ -67,7 +67,8 @@ class ROM(Dummy):
                                         imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
                                         Currently in RAVEN, the user can use the \xmlAttr{subType} to select the ROM.
                                       """
-    inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType)
+    inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType,
+        descr=r"""specify the type of ROM that will be used""")
     ######################
     # dynamically loaded #
     ######################

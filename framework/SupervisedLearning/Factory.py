@@ -25,7 +25,6 @@ from .SupervisedLearning import SupervisedLearning
 from .GaussPolynomialRom import GaussPolynomialRom
 from .HDMRRom            import HDMRRom
 from .MSR                import MSR
-from .NDinterpolatorRom  import NDinterpolatorRom
 from .NDinvDistWeight    import NDinvDistWeight
 from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory

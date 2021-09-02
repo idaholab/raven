@@ -21,5 +21,6 @@ from .KerasBase import KerasBase
 from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
 from .ROMCollection import Collection
+from .NDinterpolatorRom  import NDinterpolatorRom
 
 from .Factory import factory
