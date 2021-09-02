@@ -63,6 +63,7 @@ class LinearRegression(ScikitLearnBase):
                         LinearRegression fits a linear model with coefficients $w = (w1, …, wp)$ to
                         minimize the residual sum of squares between the observed targets in the
                         dataset, and the targets predicted by the linear approximation.
+                        \zNormalizationNotPerformed{LinearRegression}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,

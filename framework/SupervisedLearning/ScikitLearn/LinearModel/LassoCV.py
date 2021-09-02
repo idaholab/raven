@@ -65,6 +65,7 @@ class LassoCV(ScikitLearnBase):
                         \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
                         \end{equation}
+                        \zNormalizationNotPerformed{LassoCV}
                         """
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))

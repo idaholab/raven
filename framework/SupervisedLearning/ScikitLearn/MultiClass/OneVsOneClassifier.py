@@ -61,6 +61,7 @@ class OneVsOneClassifier(ScikitLearnBase):
     specs.description = r"""The \xmlNode{OneVsOneClassifier} (\textit{One-vs-one multiclass strategy})
                         This strategy consists in fitting one classifier per class pair. At prediction time, the class
                         which received the most votes is selected.
+                        \zNormalizationNotPerformed{OneVsOneClassifier}
                         """
     estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""name of a ROM that can be used as an estimator""", default='no-default')

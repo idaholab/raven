@@ -67,6 +67,7 @@ class LassoLarsIC(ScikitLearnBase):
                         are useful to select the value of the regularization parameter by making a trade-off between the
                         goodness of fit and the complexity of the model. A good model should explain well the data
                         while being simple.
+                        \zNormalizationNotPerformed{LassoLarsIC}
                         """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['bic', 'aic']),
                                                  descr=r"""The type of criterion to use.""", default='aic'))

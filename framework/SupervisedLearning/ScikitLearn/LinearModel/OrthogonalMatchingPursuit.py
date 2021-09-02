@@ -67,6 +67,7 @@ class OrthogonalMatchingPursuit(ScikitLearnBase):
                         pursuit (MP) method, but better in that at each iteration, the residual
                         is recomputed using an orthogonal projection on the space of the
                         previously chosen dictionary elements.
+                        \zNormalizationNotPerformed{OrthogonalMatchingPursuit}
                         """
     specs.addSub(InputData.parameterInputFactory("n_nonzero_coefs", contentType=InputTypes.IntegerType,
                                                  descr=r"""Desired number of non-zero entries in the solution. If None (by default)

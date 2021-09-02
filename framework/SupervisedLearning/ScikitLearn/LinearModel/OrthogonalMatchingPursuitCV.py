@@ -69,6 +69,7 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
                         previously chosen dictionary elements.
                         In this model, the cross-validation is embedded for the automatic selection
                         of the best hyper-parameters.
+                        \zNormalizationNotPerformed{OrthogonalMatchingPursuitCV}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,

@@ -68,6 +68,7 @@ class KNeighborsClassifier(ScikitLearnBase):
                          representatives within the nearest neighbors of the point.
                          It implements learning based on the $k$ nearest neighbors of each query point,
                          where $k$ is an integer value specified by the user.
+                         \zNormalizationPerformed{KNeighborsClassifier}
                         """
     # penalty
     specs.addSub(InputData.parameterInputFactory("n_neighbors", contentType=InputTypes.IntegerType,

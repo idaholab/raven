@@ -65,6 +65,7 @@ class ExtraTreeClassifier(ScikitLearnBase):
                          split to separate the samples of a node into two groups, random splits are drawn for each of the
                          max\_features randomly selected features and the best split among those is chosen. When max\_features
                          is set 1, this amounts to building a totally random decision tree.
+                         \zNormalizationPerformed{ExtraTreeClassifier}
                          """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['gini','entropy']),
                                                  descr=r"""The function to measure the quality of a split. Supported criteria are ``gini'' for the

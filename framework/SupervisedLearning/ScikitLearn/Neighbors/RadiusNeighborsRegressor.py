@@ -68,6 +68,7 @@ class RadiusNeighborsRegressor(ScikitLearnBase):
                          It implements learning based on the number of neighbors within a fixed radius
                          $r$ of each training point, where $r$ is a floating-point value specified by the
                          user.
+                         \zNormalizationPerformed{RadiusNeighborsRegressor}
                         """
     # penalty
     specs.addSub(InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType,

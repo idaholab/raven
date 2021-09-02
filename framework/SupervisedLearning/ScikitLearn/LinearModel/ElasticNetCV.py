@@ -62,6 +62,7 @@ class ElasticNetCV(ScikitLearnBase):
                         Linear regression with combined L1 and L2 priors as regularizer.
                         This model is similar to the \xmlNode{ElasticNet}
                         with the addition of an iterative fitting along a regularization path (via cross-validation).
+                        \zNormalizationNotPerformed{ElasticNetCV}
                         """
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))

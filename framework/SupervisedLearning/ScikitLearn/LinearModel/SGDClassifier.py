@@ -71,6 +71,7 @@ class SGDClassifier(ScikitLearnBase):
                         combination of both (Elastic Net). If the parameter update crosses the 0.0 value because
                         of the regularizer, the update is truncated to $0.0$ to allow for learning sparse models and
                         achieve online feature selection.
+                        \zNormalizationPerformed{SGDClassifier}
                         """
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['hinge', 'log', 'modified_huber', 'squared_hinge','perceptron',
                                                                                                                  'squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),

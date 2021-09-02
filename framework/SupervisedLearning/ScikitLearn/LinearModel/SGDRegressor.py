@@ -72,6 +72,7 @@ class SGDRegressor(ScikitLearnBase):
                         of the regularizer, the update is truncated to $0.0$ to allow for learning sparse models and
                         achieve online feature selection.
                         This implementation works with data represented as dense arrays of floating point values for the features.
+                        \zNormalizationPerformed{SGDRegressor}
                         """
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
                                                  descr=r"""The loss function to be used.

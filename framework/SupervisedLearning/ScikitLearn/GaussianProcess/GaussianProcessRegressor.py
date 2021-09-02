@@ -86,7 +86,9 @@ class GaussianProcessRegressor(ScikitLearnBase):
                            \item Classification is only a post-processing, meaning that one first needs
                            to solve a regression problem by providing the complete scalar float precision
                            output $y$ of the experiment one is attempting to model.
-                         \end{itemize}"""
+                         \end{itemize}
+                         \zNormalizationNotPerformed{GaussianProcessRegressor}
+                         """
     # create kernel node
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'Exponentiation',
                                                                                                                    'Matern', 'Pairwise', 'RBF', 'RationalQuadratic']),

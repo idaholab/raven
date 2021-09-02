@@ -62,6 +62,7 @@ class NuSVC(ScikitLearnBase):
                             It is very similar to SVC but with the addition of the hyper-parameter Nu for controlling the
                             number of support vectors. In NuSVC nu replaces C of SVC.
                             The implementation is based on libsvm.
+                            \zNormalizationPerformed{NuSVC}
                             """
     specs.addSub(InputData.parameterInputFactory('nu', contentType=InputTypes.FloatType,
                                                  descr=r"""An upper bound on the fraction of margin errors and

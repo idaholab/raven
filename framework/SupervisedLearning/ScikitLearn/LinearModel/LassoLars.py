@@ -65,6 +65,7 @@ class LassoLars(ScikitLearnBase):
                         \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
                         \end{equation}
+                        \zNormalizationNotPerformed{LassoLars}
                         """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Constant that multiplies the L1 term. Defaults to 1.0.

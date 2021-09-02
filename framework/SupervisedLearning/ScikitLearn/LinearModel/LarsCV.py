@@ -66,6 +66,7 @@ class LarsCV(ScikitLearnBase):
                         determined by a linear combination of a subset of potential covariates.
                         This method is an augmentation of the Lars method with the addition of cross-validation
                         embedded tecniques.
+                        \zNormalizationNotPerformed{LarsCV}
                         """
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
                                                  descr=r"""The machine-precision regularization in the computation of the Cholesky

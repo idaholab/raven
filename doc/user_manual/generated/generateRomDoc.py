@@ -617,8 +617,20 @@ descr = ' '
 msg += descr
 
 import SupervisedLearning
-excludeObj = ['SupervisedLearning', 'ScikitLearnBase', 'KerasBase', 'KerasRegression', 'KerasClassifier',
-              'Collection', 'Segments', 'Clusters', 'Interpolated']
+excludeObj = ['SupervisedLearning',
+              'ScikitLearnBase',
+              'KerasBase',
+              'KerasRegression',
+              'KerasClassifier',
+              'KerasMLPClassifier',
+              'KerasConvNetClassifier',
+              'KerasLSTMClassifier',
+              'KerasLSTMRegression',
+              'Collection',
+              'Segments',
+              'Clusters',
+              'Interpolated',
+              ]
 
 validRom = ['NDspline',
             'pickledROM',

@@ -67,6 +67,7 @@ class MultiTaskElasticNet(ScikitLearnBase):
                         \\Where:
                         $||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
                         i.e. the sum of norm of each row.
+                        \zNormalizationNotPerformed{MultiTaskElasticNet}
                         """
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))

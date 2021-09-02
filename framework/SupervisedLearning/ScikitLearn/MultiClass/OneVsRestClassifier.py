@@ -65,6 +65,7 @@ class OneVsRestClassifier(ScikitLearnBase):
                         interpretability. Since each class is represented by one and one classifier only, it is
                         possible to gain knowledge about the class by inspecting its corresponding classifier.
                         This is the most commonly used strategy for multiclass classification and is a fair default choice.
+                        \zNormalizationNotPerformed{OneVsRestClassifier}
                         """
     estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""name of a ROM that can be used as an estimator""", default='no-default')

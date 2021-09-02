@@ -64,6 +64,7 @@ class ElasticNet(ScikitLearnBase):
                         \begin{equation}
                         1/(2*n_{samples}) *||y - Xw||^2_2+alpha*l1\_ratio*||w||_1 + 0.5 *alpha*(1 - l1\_ratio)*||w||^2_2
                         \end{equation}
+                        \zNormalizationNotPerformed{ElasticNet}
                         """
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))

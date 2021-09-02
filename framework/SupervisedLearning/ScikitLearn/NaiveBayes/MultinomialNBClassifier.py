@@ -82,6 +82,7 @@ class MultinomialNB(ScikitLearnBase):
                         learning samples and prevents zero probabilities in further computations.
                         Setting $\alpha = 1$ is called Laplace smoothing, while $\alpha < 1$ is called
                         Lidstone smoothing.
+                        \zNormalizationPerformed{MultinomialNB}
                         """
     specs.addSub(InputData.parameterInputFactory("class_prior", contentType=InputTypes.FloatListType,
                                                   descr=r"""Prior probabilities of the classes. If specified the priors are

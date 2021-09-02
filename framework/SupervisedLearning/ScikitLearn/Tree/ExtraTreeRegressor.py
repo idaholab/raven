@@ -66,6 +66,7 @@ class ExtraTreeRegressor(ScikitLearnBase):
                          random splits are drawn for each of the max\_features randomly selected features
                          and the best split among those is chosen. When max\_features is set 1, this amounts
                          to building a totally random decision tree.
+                         \zNormalizationPerformed{ExtraTreeRegressor}
                          """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['mse','friedman_mse','mae']),
                                                  descr=r"""The function to measure the quality of a split. Supported criteria are ``mse'' for the mean squared error,

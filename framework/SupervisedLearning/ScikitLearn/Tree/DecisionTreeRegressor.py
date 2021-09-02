@@ -62,6 +62,7 @@ class DecisionTreeRegressor(ScikitLearnBase):
     specs = super(DecisionTreeRegressor, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{DecisionTreeRegressor} is a regressor that is based on the
                          decision tree logic.
+                         \zNormalizationPerformed{DecisionTreeRegressor}
                          """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['mse','friedman_mse','mae','poisson']),
                                                  descr=r"""The function to measure the quality of a split. Supported criteria are ``mse'' for the mean squared error,

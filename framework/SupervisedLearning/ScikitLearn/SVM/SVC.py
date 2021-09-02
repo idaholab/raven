@@ -63,6 +63,7 @@ class SVC(ScikitLearnBase):
                             The implementation is based on libsvm. The fit time scales at least
                             quadratically with the number of samples and may be impractical
                             beyond tens of thousands of samples. The multiclass support is handled according to a one-vs-one scheme.
+                            \zNormalizationPerformed{SVC}
                             """
     # penalty
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,

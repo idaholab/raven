@@ -67,6 +67,7 @@ class MultiTaskLassoCV(ScikitLearnBase):
                         i.e. the sum of norm of each row.
                         In this model, the cross-validation is embedded for the automatic selection
                         of the best hyper-parameters.
+                        \zNormalizationNotPerformed{MultiTaskLassoCV}
                         """
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
                                                  descr=r"""Length of the path. $eps=1e-3$ means that $alpha\_min / alpha\_max = 1e-3$.""", default=1e-3))

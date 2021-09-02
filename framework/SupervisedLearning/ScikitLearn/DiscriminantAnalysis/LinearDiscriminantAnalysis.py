@@ -65,6 +65,7 @@ class LinearDiscriminantAnalysisClassifier(ScikitLearnBase):
     The model fits a Gaussian density to each class, assuming that all classes share the same covariance matrix.
     The fitted model can also be used to reduce the dimensionality of the input by projecting it to the most discriminative
     directions, using the transform method.
+    \zNormalizationNotPerformed{LinearDiscriminantAnalysisClassifier}
     """
     specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.StringType,
                                                  descr=r"""Solver to use, possible values:

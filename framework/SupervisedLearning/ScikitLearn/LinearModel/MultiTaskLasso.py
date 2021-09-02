@@ -64,6 +64,7 @@ class MultiTaskLasso(ScikitLearnBase):
                         \\Where:
                         $||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
                         i.e. the sum of norm of each row.
+                        \zNormalizationNotPerformed{MultiTaskLasso}
                         """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Constant that multiplies the L1 term. Defaults to 1.0.

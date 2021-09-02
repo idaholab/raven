@@ -67,6 +67,7 @@ class NearestCentroid(ScikitLearnBase):
                          It implements learning based on the number of neighbors within a fixed radius
                          $r$ of each training point, where $r$ is a floating-point value specified by the
                          user.
+                         \zNormalizationPerformed{RadiusNeighborsClassifier}
                         """
     # penalty
     specs.addSub(InputData.parameterInputFactory("shrink_threshold", contentType=InputTypes.FloatType,

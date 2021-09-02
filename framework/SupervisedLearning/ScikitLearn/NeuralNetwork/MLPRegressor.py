@@ -56,8 +56,9 @@ class MLPRegressor(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \\xmlNode{MLPRegressor} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
+    specs.description = r"""The \xmlNode{MLPRegressor} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
                             More precisely, it trains using some form of gradient descent and the gradients are calculated using Backpropagation.
+                            \zNormalizationPerformed{MLPRegressor}
                         """
     specs.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType,
                                                  descr=r"""The ith element represents the number of neurons in the ith hidden layer.

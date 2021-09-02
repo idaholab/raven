@@ -67,6 +67,7 @@ class KNeighborsRegressor(ScikitLearnBase):
                          of the nearest neighbors in the training set.
                          It implements learning based on the $k$ nearest neighbors of each query point,
                          where $k$ is an integer value specified by the user.
+                         \zNormalizationPerformed{KNeighborsRegressor}
                         """
     # penalty
     specs.addSub(InputData.parameterInputFactory("n_neighbors", contentType=InputTypes.IntegerType,

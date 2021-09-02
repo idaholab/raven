@@ -67,6 +67,7 @@ class SVR(ScikitLearnBase):
                             The implementation is based on libsvm. The fit time complexity
                             is more than quadratic with the number of samples which makes it hard
                             to scale to datasets with more than a couple of 10000 samples.
+                            \zNormalizationPerformed{SVR}
                             """
     # penalty
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,

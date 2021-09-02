@@ -62,6 +62,7 @@ class LinearSVC(ScikitLearnBase):
                             similar to SVC with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm,
                             so it has more flexibility in the choice of penalties and loss functions and should scale better to large numbers of samples.
                             This class supports both dense and sparse input and the multiclass support is handled according to a one-vs-the-rest scheme.
+                            \zNormalizationPerformed{LinearSVC}
                             """
     specs.addSub(InputData.parameterInputFactory("penalty", contentType=InputTypes.makeEnumType("penalty", "penaltyType",['l1','l2']),
                                                  descr=r"""Specifies the norm used in the penalization. The ``l2'' penalty is the standard used in SVC.

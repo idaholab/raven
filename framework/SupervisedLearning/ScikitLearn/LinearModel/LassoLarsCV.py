@@ -66,6 +66,7 @@ class LassoLarsCV(ScikitLearnBase):
                         \begin{equation}
                          (1 / (2 * n\_samples)) * ||y - Xw||^2\_2 + alpha * ||w||\_1
                         \end{equation}
+                        \zNormalizationNotPerformed{LassoLarsCV}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,

@@ -66,6 +66,7 @@ class BayesianRidge(ScikitLearnBase):
                         The parameters $w$, $\alpha$ and $\lambda$ are estimated jointly during
                         the fit of the model, the regularization parameters $\alpha$ and $\lambda$
                         being estimated by maximizing the log marginal likelihood.
+                        \zNormalizationNotPerformed{BayesianRidge}
                         """
     specs.addSub(InputData.parameterInputFactory("n_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Maximum number of iterations.""", default=300))

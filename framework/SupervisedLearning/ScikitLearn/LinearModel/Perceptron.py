@@ -66,6 +66,7 @@ class Perceptron(ScikitLearnBase):
                         with the feature vector.
                         The algorithm allows for online learning, in that it processes elements in the
                         training set one at a time.
+                        \zNormalizationPerformed{Perceptron}
                         """
     specs.addSub(InputData.parameterInputFactory("penalty", contentType=InputTypes.makeEnumType("penalty", "penaltyType",['l2', ' l1', 'elasticnet']),
                                                  descr=r"""The penalty (aka regularization term) to be used.""", default=None))

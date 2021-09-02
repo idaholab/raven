@@ -62,6 +62,7 @@ class RidgeCV(ScikitLearnBase):
                              model where the loss function is the linear least squares function and the
                              regularization is given by the l2-norm.
                              In addition, a cross-validation method is applied to optimize the hyper-parameter.
+                             \zNormalizationNotPerformed{RidgeCV}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,

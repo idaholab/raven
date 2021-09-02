@@ -64,6 +64,7 @@ class ARDRegression(ScikitLearnBase):
                             parameters lambda (precisions of the distributions of the weights) and
                             alpha (precision of the distribution of the noise).
                             The estimation is done by an iterative procedures (Evidence Maximization).
+                            \zNormalizationNotPerformed{ARDRegression}
                             """
     specs.addSub(InputData.parameterInputFactory("n_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Maximum number of iterations.""", default=300))

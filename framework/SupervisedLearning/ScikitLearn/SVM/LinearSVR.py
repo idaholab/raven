@@ -62,6 +62,7 @@ class LinearSVR(ScikitLearnBase):
                             similar to SVR with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm,
                             so it has more flexibility in the choice of penalties and loss functions and should scale better to large numbers of samples.
                             This class supports both dense and sparse input.
+                            \zNormalizationPerformed{LinearSVR}
                             """
     specs.addSub(InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
                                                  descr=r"""Epsilon parameter in the epsilon-insensitive loss function. The value of

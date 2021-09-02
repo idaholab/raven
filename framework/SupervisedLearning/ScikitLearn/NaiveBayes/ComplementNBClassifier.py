@@ -63,6 +63,7 @@ class ComplementNB(ScikitLearnBase):
     specs.description = r"""The \\textit{ComplementNB} classifier (Complement Naive Bayes classifier) was designed to correct
                          the ``severe assumptions'' made by the standard Multinomial Naive Bayes classifier.
                          It is particularly suited for imbalanced data sets (see Rennie et al. (2003))
+                         \zNormalizationPerformed{ComplementNB}
                          """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).

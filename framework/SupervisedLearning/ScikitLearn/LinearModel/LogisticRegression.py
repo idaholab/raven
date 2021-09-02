@@ -69,6 +69,7 @@ class LogisticRegression(ScikitLearnBase):
                             The ``newton-cg'', ``sag'', and ``lbfgs'' solvers support only L2 regularization with primal formulation,
                             or no regularization. The ``liblinear'' solver supports both L1 and L2 regularization, with a dual formulation
                             only for the L2 penalty. The Elastic-Net regularization is only supported by the ``saga'' solver.
+                            \zNormalizationPerformed{LogisticRegression}
                             """
     specs.addSub(InputData.parameterInputFactory("penalty", contentType=InputTypes.makeEnumType("penalty", "penaltyType",['l1','l2', 'elasticnet', 'none']),
                                                  descr=r"""Used to specify the norm used in the penalization. The newton-cg, sag and lbfgs solvers

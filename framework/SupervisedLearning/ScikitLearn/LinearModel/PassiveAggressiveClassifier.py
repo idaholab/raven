@@ -66,6 +66,7 @@ class PassiveAggressiveClassifier(ScikitLearnBase):
                         large-scale learning. They are similar to the Perceptron in that they
                         do not require a learning rate. However, contrary to the Perceptron,
                         they include a regularization parameter C.
+                        \zNormalizationPerformed{PassiveAggressiveClassifier}
                         """
     specs.addSub(InputData.parameterInputFactory("C", contentType=InputTypes.FloatType,
                                                  descr=r"""Maximum step size (regularization).""", default=1.0))

@@ -62,6 +62,7 @@ class RidgeClassifier(ScikitLearnBase):
     specs.description = r"""The \xmlNode{RidgeClassifier} is a classifier that uses Ridge regression.
                         This classifier first converts the target values into {-1, 1} and then treats
                         the problem as a regression task (multi-output regression in the multiclass case).
+                        \zNormalizationNotPerformed{RidgeClassifier}
                         """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization strength; must be a positive float. Regularization

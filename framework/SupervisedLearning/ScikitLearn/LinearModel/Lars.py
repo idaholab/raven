@@ -64,6 +64,7 @@ class Lars(ScikitLearnBase):
                         The LARS algorithm provides a means of producing an estimate of which variables
                         to include, as well as their coefficients, when a response variable is
                         determined by a linear combination of a subset of potential covariates.
+                        \zNormalizationNotPerformed{Lars}
                         """
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
                                                  descr=r"""The machine-precision regularization in the computation of the Cholesky

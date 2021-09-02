@@ -63,6 +63,7 @@ class CategoricalNB(ScikitLearnBase):
     specs.description = r"""The \\textit{CategoricalNB} classifier (Naive Bayes classifier for categorical features)
                          is suitable for classification with discrete features that are categorically distributed.
                          The categories of each feature are drawn from a categorical distribution.
+                         \zNormalizationPerformed{CategoricalNB}
                          """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).

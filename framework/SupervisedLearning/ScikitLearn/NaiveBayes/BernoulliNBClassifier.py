@@ -78,6 +78,7 @@ class BernoulliNB(ScikitLearnBase):
                          count vectors) may be used to train and use this classifier.
                          \textit{Bernoulli Naive Bayes} might perform better on some datasets, especially
                          those with shorter documents.
+                         \zNormalizationPerformed{BernoulliNB}
                          """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).

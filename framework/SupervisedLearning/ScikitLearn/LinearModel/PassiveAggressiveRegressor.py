@@ -63,6 +63,7 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
                         but with a regularization parameter C.
                         \\The passive-aggressive algorithms are a family of algorithms for
                         large-scale learning.
+                        \zNormalizationPerformed{PassiveAggressiveRegressor}
                         """
     specs.addSub(InputData.parameterInputFactory("C", contentType=InputTypes.FloatType,
                                                  descr=r"""Maximum step size (regularization).""", default=1.0))

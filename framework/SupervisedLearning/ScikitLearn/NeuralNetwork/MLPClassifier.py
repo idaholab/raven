@@ -58,9 +58,10 @@ class MLPClassifier(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \\xmlNode{MLPClassifier} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
+    specs.description = r"""The \xmlNode{MLPClassifier} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
                             More precisely, it trains using some form of gradient descent and the gradients are calculated using Backpropagation.
                             For classification, it minimizes the Cross-Entropy loss function, and it supports multi-class classification.
+                            \zNormalizationPerformed{MLPClassifier}
                         """
     specs.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType,
                                                  descr=r"""The ith element represents the number of neurons in the ith hidden layer.

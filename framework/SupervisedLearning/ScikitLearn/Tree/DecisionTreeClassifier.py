@@ -62,6 +62,7 @@ class DecisionTreeClassifier(ScikitLearnBase):
     specs = super(DecisionTreeClassifier, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{DecisionTreeClassifier} is a classifier that is based on the
                          decision tree logic.
+                         \zNormalizationPerformed{DecisionTreeClassifier}
                          """
     specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['gini','entropy']),
                                                  descr=r"""The function to measure the quality of a split. Supported criteria are ``gini'' for the

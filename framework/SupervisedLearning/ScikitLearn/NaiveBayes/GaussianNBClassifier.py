@@ -68,6 +68,7 @@ class GaussianNB(ScikitLearnBase):
                                \mu_y)^2}{2\sigma^2_y}\right)
                          \end{equation}
                          The parameters $\sigma_y$ and $\mu_y$ are estimated using maximum likelihood.
+                         \zNormalizationPerformed{GaussianNB}
                          """
     specs.addSub(InputData.parameterInputFactory("priors", contentType=InputTypes.FloatListType,
                                                   descr=r"""Prior probabilities of the classes. If specified the priors are

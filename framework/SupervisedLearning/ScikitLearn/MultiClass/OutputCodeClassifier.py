@@ -66,6 +66,7 @@ class OutputCodeClassifier(ScikitLearnBase):
                         classifiers used can be controlled by the user, either for compressing the model
                         (0 < code\_size < 1) or for making the model more robust to errors (code\_size > 1). See the
                         documentation for more details.
+                        \zNormalizationNotPerformed{OutputCodeClassifier}
                         """
     estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""name of a ROM that can be used as an estimator""", default='no-default')

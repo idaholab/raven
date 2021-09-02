@@ -63,6 +63,7 @@ class Ridge(ScikitLearnBase):
                              model where the loss function is the linear least squares function and the
                              regularization is given by the l2-norm.
                              Also known as Ridge Regression or Tikhonov regularization.
+                             \zNormalizationNotPerformed{Ridge}
                         """
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization strength; must be a positive float. Regularization

@@ -63,6 +63,7 @@ class RidgeClassifierCV(ScikitLearnBase):
                         the problem as a regression task (multi-output regression in the multiclass case).
                         In addition, a cross-validation method is applied to optimize the hyper-parameter.
                         By default, it performs Leave-One-Out Cross-Validation.
+                        \zNormalizationNotPerformed{RidgeClassifierCV}
                         """
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
