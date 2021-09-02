@@ -15,6 +15,7 @@
 Created on September 2, 2021
 
 @author: talbpaul
+Definition for a common plotting need with synthetic histories versus training data.
 """
 
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ from utils import InputData, InputTypes
 
 class SyntheticCloud(PlotInterface):
   """
-    Plots the path that variables took during an optimization, including accepted and rejected runs.
+    Plots the training data along with a cloud of sampled data for synthetic histories.
   """
   @classmethod
   def getInputSpecification(cls):
@@ -148,9 +149,9 @@ class SyntheticCloud(PlotInterface):
         ax.set_title(f'{var}, {self.macroName} {int(mac)}')
         ax.set_ylabel(var)
         if mTraining is not None:
-          ax.plot(mTraining[self.microName].values, mTraining[var].values, 'k-x')
+          ax.plot(mTraining[self.microName].values, mTraining[var].values, 'k-.')
 
       filename =  f'{self.name}_{m}.png'
       plt.savefig(filename)
-      self.raiseAMessage(f'Wrote "{filename}.')
+      self.raiseAMessage(f'Wrote "{filename}".')
 
