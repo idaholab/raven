@@ -58,7 +58,8 @@ class SupervisedLearning(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.addParam("subType", InputTypes.StringType, True)
+    spec.addParam("subType", param_type=InputTypes.StringType, required=True,
+        descr=r"""specify the type of ROM that will be used""")
     spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType,
         descr=r"""specifies the names of the features of this ROM.
         \nb These parameters are going to be requested for the training of this object

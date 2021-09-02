@@ -168,11 +168,10 @@ class KerasBase(SupervisedLearning):
         descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).""",
         default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the bias vector
-        (see~\ref{regularizersDNN}).""", default=None))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the output
-        of the layer (its "activation"). (see~\ref{regularizersDNN})""", default=None))
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""constraint function applied to the kernel weights
         matrix (see~\ref{constraintsDNN}).""", default=None))
@@ -393,15 +392,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its "activation")"""))
+        descr=r"""egularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -441,15 +441,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its "activation")"""))
+        descr=r"""Regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -489,15 +490,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its "activation")"""))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -537,15 +539,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its "activation")"""))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -603,15 +606,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its "activation")"""))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -675,9 +679,9 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the bias vector"""))
     layerInput.addSub(InputData.parameterInputFactory('depth_multiplier',contentType=InputTypes.IntegerType,
@@ -728,15 +732,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its ``activation'')"""))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -775,15 +780,16 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the kernel weights matrix """, default='glorot_uniform'))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""Initializer for the bias vector""", default='zeros'))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the kernel weights matrix."""))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the bias vector"""))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""Regularizer function applied to the output of the layer (its ``activation'')"""))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r"""Constraint function applied to the kernel matrix"""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -932,31 +938,38 @@ class KerasBase(SupervisedLearning):
     #  MaxPooling1D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('MaxPooling1D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Max pooling operation for 1D temporal data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""size of the max pooling window."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""Specifies how much the pooling window moves for each pooling step."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
-        descr=r""" """))
+        descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  MaxPooling2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('MaxPooling2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Max pooling operation for 2D spatial data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""integer or tuple of 2 integers, window size over which to take the maximum. (2, 2) will take the max
+        value over a 2x2 pooling window. If only one integer is specified, the same window length will be used for
+        both dimensions."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""Integer, tuple of 2 integers, or None. Strides values. Specifies how far the pooling window moves
+        for each pooling step. If None, it will default to pool\_size."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
@@ -964,15 +977,18 @@ class KerasBase(SupervisedLearning):
     #  MaxPooling3D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('MaxPooling3D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Max pooling operation for 3D data (spatial or spatio-temporal).""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerTupleType,
-        descr=r""" """))
+        descr=r"""Tuple of 3 integers, factors by which to downscale (dim1, dim2, dim3). (2, 2, 2) will halve the
+        size of the 3D input in each dimension."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerTupleType,
-        descr=r""" """))
+        descr=r"""tuple of 3 integers, or None. Strides values."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
@@ -980,15 +996,17 @@ class KerasBase(SupervisedLearning):
     #  AveragePooling1D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('AveragePooling1D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Average pooling for temporal data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""size of the average pooling windows."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""Factor by which to downscale."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
@@ -996,15 +1014,19 @@ class KerasBase(SupervisedLearning):
     #  AveragePooling2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('AveragePooling2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Average pooling operation for spatial data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""integer or tuple of 2 integers, factors by which to downscale (vertical, horizontal). (2, 2) will
+        halve the input in both spatial dimension. If only one integer is specified, the same window length will
+        be used for both dimensions."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""Integer, tuple of 2 integers, or None. Strides values. If None, it will default to pool\_size."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
@@ -1012,15 +1034,18 @@ class KerasBase(SupervisedLearning):
     #  AveragePooling3D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('AveragePooling3D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Average pooling operation for 3D data (spatial or spatio-temporal).""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('pool_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""tuple of 3 integers, factors by which to downscale (dim1, dim2, dim3). (2, 2, 2) will halve the size
+        of the 3D input in each dimension."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""tuple of 3 integers, or None. Strides values."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        with zeros evenly to the left/right or up/down of the input such that output has the same height/width
+        dimension as the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
@@ -1028,7 +1053,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalMaxPooling1D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalMaxPooling1D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global max pooling operation for 1D temporal data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1038,7 +1063,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalAveragePooling1D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalAveragePooling1D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global average pooling operation for temporal data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1048,7 +1073,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalMaxPooling2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalMaxPooling2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global max pooling operation for spatial data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1058,7 +1083,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalAveragePooling2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalAveragePooling2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global average pooling operation for spatial data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1068,7 +1093,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalMaxPooling3D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalMaxPooling3D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global Max pooling operation for 3D data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1078,7 +1103,7 @@ class KerasBase(SupervisedLearning):
     #  GlobalAveragePooling3D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GlobalAveragePooling3D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Global Average pooling operation for 3D data.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
@@ -1092,31 +1117,34 @@ class KerasBase(SupervisedLearning):
     #  LocallyConnected1D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('LocallyConnected1D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Locally-connected layer for 1D inputs.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of a single integer, specifying the length of the 1D convolution window."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of a single integer, specifying the stride length of the convolution."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""Currently only supports ``valid'' (case-insensitive). ``same'' may be supported in the future.
+        ``valid'' means no padding."""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -1130,7 +1158,7 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
@@ -1140,19 +1168,21 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
@@ -1169,7 +1199,7 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
@@ -1189,25 +1219,27 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1237,27 +1269,29 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1291,27 +1325,29 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1345,7 +1381,7 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
@@ -1357,25 +1393,27 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1409,25 +1447,27 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1447,25 +1487,27 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
@@ -1489,27 +1531,29 @@ class KerasBase(SupervisedLearning):
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+        activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""regularizer function applied to the output
+        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
         descr=r""" """))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
