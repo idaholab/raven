@@ -48,6 +48,8 @@
 
     <xsd:complexType name="GradientHistorySMType">
         <xsd:all>
+          <xsd:element name="window" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="decay" type="xsd:float" minOccurs="0" maxOccurs="1"/>
           <xsd:element name="growthFactor" type="xsd:float" minOccurs="0" maxOccurs="1"/>
           <xsd:element name="shrinkFactor" type="xsd:float" minOccurs="0" maxOccurs="1"/>
           <xsd:element name="initialStepScale" type="xsd:float" minOccurs="0" maxOccurs="1"/>
