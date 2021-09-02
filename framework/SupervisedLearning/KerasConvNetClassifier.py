@@ -39,8 +39,21 @@ class KerasConvNetClassifier(KerasClassifier):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{KerasConvNetClassifier}
-                        """
+    specs.description = r"""Convolutional Neural Network (CNN) is a deep learning algorithm which can take in an input image, assign
+        importance to various objects in the image and be able to differentiate one from the other. The
+        architecture of a CNN is analogous to that of the connectivity pattern of Neurons in the Human Brain
+        and was inspired by the organization of the Visual Cortex. Individual neurons respond to stimuli only
+        in a restricted region of the visual field known as the Receptive Field. A collection of such fields
+        overlap to cover the entire visual area. CNN is able to successfully capture the spatial and temporal
+        dependencies in an image through the applicaiton of relevant filters. The architecture performs
+        a better fitting to the image dataset due to the reduction in the number of parameters involved
+        and reusability of weights. In other words, the network can be trained to understand the sophistication
+        of the image better.
+        \\
+        \zNormalizationPerformed{KerasConvNetClassifier}
+        \\
+        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+        be \xmlString{KerasConvNetClassifier}."""
     return specs
 
   def __init__(self):

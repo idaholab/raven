@@ -41,8 +41,13 @@ class KerasLSTMClassifier(KerasClassifier):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{KerasLSTMClassifier}
-                        """
+    specs.description = r"""Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
+        of learning long-term dependencies. They work tremendously well on a large variety of problems, and
+        are now widely used. LSTMs are explicitly designed to avoid the long-term dependency problem. Remembering
+        information for long periods of time is practically their default behavior, not something that they
+        struggle to learn.
+        \zNormalizationPerformed{KerasLSTMClassifier}
+        """
     return specs
 
   def __init__(self):

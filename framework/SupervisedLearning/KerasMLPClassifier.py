@@ -37,8 +37,22 @@ class KerasMLPClassifier(KerasClassifier):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{KerasMLPClassifier}
-                        """
+    specs.description = r"""Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
+        ANN, can be viewed as a logistic regression classifier where input is first transformed
+        using a non-linear transformation. This transformation probjects the input data into a
+        space where it becomes linearly separable. This intermediate layer is referred to as a
+        \textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
+        input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
+        utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
+        Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
+        However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
+        relationships. The extra layers enable composition of features from lower layers, potentially
+        modeling complex data with fewer units than a similarly performing shallow network.
+        \\
+        \zNormalizationPerformed{KerasMLPClassifier}
+        \\
+        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+        be \xmlString{KerasMLPClassifier}"""
     return specs
 
   def __init__(self):

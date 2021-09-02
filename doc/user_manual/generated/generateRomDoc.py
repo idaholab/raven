@@ -366,25 +366,202 @@ Example to export the coefficients of trained DMD ROM:
 kmlpc = r"""
 \hspace{24pt}
 Example:
-
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasMLPClassifier'>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <Dense name="layer1">
+          <activation>relu</activation>
+          <dim_out>15</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="layer2">
+          <activation>tanh</activation>
+          <dim_out>8</dim_out>
+      </Dense>
+      <Dropout name="dropout2">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="outLayer">
+          <activation>sigmoid</activation>
+      </Dense>
+      <layer_layout>layer1, dropout1, layer2, dropout2, outLayer</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 """
 
 kconv = r"""
 \hspace{24pt}
 Example:
-
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasConvNetClassifier'>
+      <Features>x1,x2</Features>
+      <Target>labels</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>2</epochs>
+      <plot_model>True</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>1</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <Conv1D name="firstConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
+          <activation>relu</activation>
+          <dim_out>10</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dropout name="dropout2">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense2">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 """
 
 klstmc = r"""
 \hspace{24pt}
-Example:
+\textbf{KerasLSTMClassifier Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasLSTMClassifier'>
+      <Features>x</Features>
+      <Target>y</Target>
+      <loss>categorical_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>10</epochs>
+      <validation_split>0.25</validation_split>
+      <num_classes>26</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <LSTM name="lstm1">
+          <activation>tanh</activation>
+          <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+          <activation>tanh</activation>
+          <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
 """
 
 klstmr = r"""
 \hspace{24pt}
-Example:
+\textbf{KerasLSTMRegression Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="lstmROM" subType="KerasLSTMRegression">
+      <Features>prev_sum, prev_square, prev_square_sum</Features>
+      <Target>sum, square</Target>
+      <pivotParameter>index</pivotParameter>
+      <loss>mean_squared_error</loss>
+      <LSTM name="lstm1">
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dense name="dense">
+      </Dense>
+      <layer_layout>lstm1, lstm2, dense</layer_layout>
 
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 """
 
 rom = r"""
