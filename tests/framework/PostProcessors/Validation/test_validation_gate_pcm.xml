@@ -29,8 +29,8 @@
       <variables>X,ans2</variables>
     </ExternalModel>
     <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
-      <Features>outputDataMC1|ans,outputDataMC2|ans2</Features>
-      <Targets>inputPlaceHolder2|ymsr</Targets> <!--possibly ymsr instead of yapp_pred (pcm_metirc|yapp_pred)-->
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
       <!--
         <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
       -->
@@ -59,10 +59,6 @@
       <sigma>0.2</sigma>
     </Normal>
     -->
-    <Normal name="dist_msr">
-      <mean>1.0</mean>
-      <sigma>0.02</sigma>
-    </Normal>
   </Distributions>
 
   <Samplers>
@@ -72,9 +68,6 @@
       </samplerInit>
       <variable name="X">
         <distribution>dist_x</distribution>
-      </variable>
-      <variable name="ymsr">
-        <distribution>dist_msr</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -95,7 +88,6 @@
     <PostProcess name="PCM">
       <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
       <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
       <Model class="Models" type="PostProcessor">pcm</Model>
       <Output class="DataObjects" type="PointSet">pcm_metric</Output> <!--possibly a HistorySet, xarray?-->
       <Output class="OutStreams" type="Print">pcm_metric_dump</Output>
@@ -115,15 +107,15 @@
       <Input>X</Input>
       <Output>ans2</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder2">
-      <Input>ymsr</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <PointSet name="pcm_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>yapp_pred</Output>
+      <Output>pp1_vars</Output>
     </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="pp1_vars">ans_ans2_cdf_diff,ans_ans2_pdf_area</Group>
+  </VariableGroups>
 
   <OutStreams>
     <Print name="pcm_metric_dump">
