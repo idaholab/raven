@@ -585,12 +585,94 @@ exampleFactory = {
 #------------#
 # ROM #
 #------------#
-import Models
-msg = ''
-# base classes first
-# descr = wrapText(Models.ROM.userManualDescription(), '  ')
-descr = ' '
-msg += descr
+segmentTex = r"""
+In addition, \xmlNode{Segment} can be used to divided the ROM. In order to enable the segmentation, the
+user need to specify following information for \xmlNode{Segment}:
+\begin{itemize}
+  \item \xmlNode{Segment}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs.
+
+    To futher enable clustering of the segments, the \xmlNode{Segment} has the following attributes:
+    \begin{itemize}
+      \item \xmlAttr{grouping}, \xmlDesc{string, optional field} enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node, as described below.
+        \default{segment}
+    \end{itemize}
+
+    This node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM. This node also requires an attribute
+        to determine how the subspace is divided, as well as other attributes, described below:
+        \begin{itemize}
+          \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+          \item \xmlAttr{divisions}, \xmlDesc{integer, optional field}, as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.
+            Either this option or \xmlAttr{pivotLength} must be provided.
+          \item \xmlAttr{shift}, \xmlDesc{string, optional field}, governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.
+        \end{itemize}
+      \item \xmlNode{Classifier}, \xmlDesc{string, optional field} associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.
+      \item \xmlNode{clusterFeatures}, \xmlDesc{string, optional field}, if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options.
+      \item \xmlNode{evalMode}, \xmlDesc{string, optional field}, one of \xmlString{truncated},
+        \xmlString{full}, or \xmlString{clustered}, determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}
+     \item \xmlNode{evaluationClusterChoice}, \xmlDesc{string, optional field}, one of \xmlString{first} or
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
+        first ROM (representative segmented ROM),in each cluster, is considered to
+         be representative of the full space in the cluster (i.e. the evaluation is always performed
+         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
+         is choosen when an evaluation is requested.
+	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+	 ``random''.
+         %If ``centroid'', a ROM ``trained" on the centroids
+         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
+         %available yet).
+         \default{first}
+    \end{itemize}
+\end{itemize}
+"""
 
 
 import SupervisedLearning
@@ -643,6 +725,8 @@ for name in orderedValidRom:
       sklROM += exampleTex
     else:
       internalRom += tex
+      if name == 'ARMA':
+        internalRom += segmentTex
       internalRom += exampleTex
   except:
     print('Can not generate latex file for ' + name)
