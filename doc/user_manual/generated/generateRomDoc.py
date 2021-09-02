@@ -664,8 +664,8 @@ user need to specify following information for \xmlNode{Segment}:
          be representative of the full space in the cluster (i.e. the evaluation is always performed
          interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
          is choosen when an evaluation is requested.
-	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
-	 ``random''.
+   \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+   ``random''.
          %If ``centroid'', a ROM ``trained" on the centroids
          %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
          %available yet).
