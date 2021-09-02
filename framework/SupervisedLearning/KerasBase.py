@@ -1146,25 +1146,27 @@ class KerasBase(SupervisedLearning):
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  LocallyConnected2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('LocallyConnected2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Locally-connected layer for 2D inputs.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
         descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of 2 integers, specifying the width and height of the 2D convolution window.
+        Can be a single integer to specify the same value for all spatial dimensions."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of 2 integers, specifying the strides of the convolution along the width and
+        height. Can be a single integer to specify the same value for all spatial dimensions."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r"""Currently only support ``valid'' (case-insensitive)."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
@@ -1184,9 +1186,9 @@ class KerasBase(SupervisedLearning):
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ######################################
     #  Recurrent Layers
@@ -1195,27 +1197,30 @@ class KerasBase(SupervisedLearning):
     #  RNN Layers
     ###########################
     layerInput = InputData.parameterInputFactory('RNN',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Fully-connected RNN where the output is to be fed back to input.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
         descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last output in the output sequence, or the full sequence.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last state in addition to the output. """, default=False))
     layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, process the input sequence backwards and return the reversed sequence."""))
     layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the last state for each sample at index i in a batch will be used as initial state for the
+        sample of index i in the following batch.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a
+        RNN, although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.""",
+        default=False))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  SimpleRNN Layers
     ###########################
     layerInput = InputData.parameterInputFactory('SimpleRNN',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Fully-connected RNN where the output is to be fed back to input.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
@@ -1228,44 +1233,52 @@ class KerasBase(SupervisedLearning):
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+        recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+        default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+        recurrent state.""", default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last output in the output sequence, or the full sequence.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last state in addition to the output. """, default=False))
     layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, process the input sequence backwards and return the reversed sequence."""))
     layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the last state for each sample at index i in a batch will be used as initial state for the
+        sample of index i in the following batch.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a
+        RNN, although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.""",
+        default=False))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GRU Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GRU',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Gated Recurrent Unit.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
@@ -1274,54 +1287,61 @@ class KerasBase(SupervisedLearning):
         descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
         activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use for the recurrent step.""", default='sigmoid'))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+        recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+        default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+        recurrent state.""", default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last output in the output sequence, or the full sequence.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last state in addition to the output. """, default=False))
     layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, process the input sequence backwards and return the reversed sequence."""))
     layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the last state for each sample at index i in a batch will be used as initial state for the
+        sample of index i in the following batch.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a
+        RNN, although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.""",
+        default=False))
     layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""GRU convention (whether to apply reset gate after or before matrix multiplication).
+        False = ``before'', True = ``after'' (default and CuDNN compatible)."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  LSTM Layers
     ###########################
     layerInput = InputData.parameterInputFactory('LSTM',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Long Short-Term Memory layer""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
@@ -1330,245 +1350,281 @@ class KerasBase(SupervisedLearning):
         descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
         activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use for the recurrent step.""", default='sigmoid'))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+        recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+        default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+        recurrent state.""", default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last output in the output sequence, or the full sequence.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last state in addition to the output. """, default=False))
     layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, process the input sequence backwards and return the reversed sequence."""))
     layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the last state for each sample at index i in a batch will be used as initial state for the
+        sample of index i in the following batch.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a
+        RNN, although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.""",
+        default=False))
     layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""If True, add 1 to the bias of the forget gate at initialization. Setting it to true will also
+        force bias\_initializer=``zeros''.""", default=True))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ConvLSTM2D Layers
     ###########################
     layerInput = InputData.parameterInputFactory('ConvLSTM2D',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""2D Convolutional LSTM. Similar to an LSTM layer, but the input transformations and recurrent
+        transformations are both convolutional.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
         descr=r"""dimensionality of the output space of this layer"""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_size',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of n integers, specifying the dimensions of the convolution window."""))
     layerInput.addSub(InputData.parameterInputFactory('strides',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of n integers, specifying the strides of the convolution. Specifying any
+        stride value != 1 is incompatible with specifying any dilation\_rate value != 1."""))
     layerInput.addSub(InputData.parameterInputFactory('padding',contentType=paddingEnumType,
-        descr=r""" """))
+        descr=r""" One of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same'' results in padding
+        evenly to the left/right or up/down of the input such that output has the same height/width dimension as
+        the input."""))
     layerInput.addSub(InputData.parameterInputFactory('data_format',contentType=dataFormatEnumType,
         descr=r"""A string, one of channels\_last (default) or channels\_first."""))
     layerInput.addSub(InputData.parameterInputFactory('dilation_rate',contentType=InputTypes.IntegerOrIntegerTupleType,
-        descr=r""" """))
+        descr=r"""An integer or tuple/list of n integers, specifying the dilation rate to use for dilated convolution.
+        Currently, specifying any dilation\_rate value != 1 is incompatible with specifying any strides value != 1."""))
     layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
         descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
         activation: $a(x) = x)$."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Activation function to use for the recurrent step.""", default='sigmoid'))
     layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
         descr=r"""whether the layer uses a bias vector."""))
     layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+        recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
     layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
         descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
     layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
         descr=r"""regularizer function applied to the output
         of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
     layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+        default=None))
     layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
     layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+        default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+        recurrent state.""", default=0.0))
     layerInput.addSub(InputData.parameterInputFactory('return_sequences',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last output in the output sequence, or the full sequence.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('return_state',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""Whether to return the last state in addition to the output. """, default=False))
     layerInput.addSub(InputData.parameterInputFactory('go_backwards',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, process the input sequence backwards and return the reversed sequence."""))
     layerInput.addSub(InputData.parameterInputFactory('stateful',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the last state for each sample at index i in a batch will be used as initial state for the
+        sample of index i in the following batch.""", default=False))
     layerInput.addSub(InputData.parameterInputFactory('unroll',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a
+        RNN, although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.""",
+        default=False))
     layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""If True, add 1 to the bias of the forget gate at initialization. Setting it to true will also
+        force bias\_initializer=``zeros''.""", default=True))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
-    ###########################
-    #  SimpleRNNCell Layers
-    ###########################
-    layerInput = InputData.parameterInputFactory('SimpleRNNCell',contentType=InputTypes.StringType,
-        descr=r""" """)
-    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
-        descr=r"""the name of the layer""")
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r"""dimensionality of the output space of this layer"""))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
-        activation: $a(x) = x)$."""))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r"""whether the layer uses a bias vector."""))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the output
-        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
-    ###########################
-    #  GRUCell Layers
-    ###########################
-    layerInput = InputData.parameterInputFactory('GRUCell',contentType=InputTypes.StringType,
-        descr=r""" """)
-    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
-        descr=r"""the name of the layer""")
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r"""dimensionality of the output space of this layer"""))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
-        activation: $a(x) = x)$."""))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r"""whether the layer uses a bias vector."""))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the output
-        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType,
-        descr=r""" """))
-    inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
-    ###########################
-    #  LSTMCell Layers
-    ###########################
-    layerInput = InputData.parameterInputFactory('LSTMCell',contentType=InputTypes.StringType,
-        descr=r""" """)
-    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
-        descr=r"""the name of the layer""")
-    layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
-        descr=r"""dimensionality of the output space of this layer"""))
-    layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
-        descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
-        activation: $a(x) = x)$."""))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
-        descr=r"""whether the layer uses a bias vector."""))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
-        descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
-        descr=r"""regularizer function applied to the output
-        of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
-    layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
-        descr=r""" """))
-    layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
-        descr=r""" """))
-    inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
+    # ###########################
+    # #  SimpleRNNCell Layers
+    # ###########################
+    # layerInput = InputData.parameterInputFactory('SimpleRNNCell',contentType=InputTypes.StringType,
+    #     descr=r""" """)
+    # layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+    #     descr=r"""the name of the layer""")
+    # layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+    #     descr=r"""dimensionality of the output space of this layer"""))
+    # layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+    #     descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+    #     activation: $a(x) = x)$."""))
+    # layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+    #     descr=r"""whether the layer uses a bias vector."""))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+    #     recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the output
+    #     of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
+    # layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+    #     default=0.0))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+    #     recurrent state.""", default=0.0))
+    # inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
+    # ###########################
+    # #  GRUCell Layers
+    # ###########################
+    # layerInput = InputData.parameterInputFactory('GRUCell',contentType=InputTypes.StringType,
+    #     descr=r""" """)
+    # layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+    #     descr=r"""the name of the layer""")
+    # layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+    #     descr=r"""dimensionality of the output space of this layer"""))
+    # layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+    #     descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+    #     activation: $a(x) = x)$."""))
+    # layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+    #     descr=r"""whether the layer uses a bias vector."""))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+    #     recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the output
+    #     of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
+    # layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+    #     default=0.0))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+    #     recurrent state.""", default=0.0))
+    # layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+    #     descr=r""" """))
+    # layerInput.addSub(InputData.parameterInputFactory('reset_after',contentType=InputTypes.BoolType,
+    #     descr=r"""GRU convention (whether to apply reset gate after or before matrix multiplication).
+    #     False = ``before'', True = ``after'' (default and CuDNN compatible)."""))
+    # inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
+    # ###########################
+    # #  LSTMCell Layers
+    # ###########################
+    # layerInput = InputData.parameterInputFactory('LSTMCell',contentType=InputTypes.StringType,
+    #     descr=r""" """)
+    # layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+    #     descr=r"""the name of the layer""")
+    # layerInput.addSub(InputData.parameterInputFactory('dim_out',contentType=InputTypes.IntegerType,
+    #     descr=r"""dimensionality of the output space of this layer"""))
+    # layerInput.addSub(InputData.parameterInputFactory('activation',contentType=InputTypes.StringType,
+    #     descr=r"""Activation function to use. If you don't specify anything, no activation is applied (ie. ``linear''
+    #     activation: $a(x) = x)$."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_activation',contentType=InputTypes.StringType,
+    #     descr=r"""Activation function to use for the recurrent step.""", default='sigmoid'))
+    # layerInput.addSub(InputData.parameterInputFactory('use_bias',contentType=InputTypes.BoolType,
+    #     descr=r"""whether the layer uses a bias vector."""))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the kernel weights matrix (see~\ref{initializersDNN}).""", default='glorot_uniform'))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""Initializer for the recurrent\_kernel weights matrix, used for the linear transformation of the
+    #     recurrent state (see~\ref{initializersDNN}).""", default='orthogonal'))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_initializer',contentType=InputTypes.StringType,
+    #     descr=r"""initializer for the bias vector (see ~\ref{initializersDNN}).""", default='zeros'))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""Regularizer function applied to the recurrent\_kernel weights matrix(see ~\ref{regularizersDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the bias vector (see~\ref{regularizersDNN}).""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('activity_regularizer',contentType=InputTypes.StringType,
+    #     descr=r"""regularizer function applied to the output
+    #     of the layer (its ``activation''). (see~\ref{regularizersDNN})""", default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('kernel_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN})."""))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""Constraint function applied to the recurrent\_kernel weights matrix(see~\ref{constraintsDNN}).""",
+    #     default=None))
+    # layerInput.addSub(InputData.parameterInputFactory('bias_constraint',contentType=InputTypes.StringType,
+    #     descr=r"""constraint function applied to the bias vector (see ~\ref{constraintsDNN})"""))
+    # layerInput.addSub(InputData.parameterInputFactory('dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the inputs.""",
+    #     default=0.0))
+    # layerInput.addSub(InputData.parameterInputFactory('recurrent_dropout',contentType=InputTypes.FloatType,
+    #     descr=r"""Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+    #     recurrent state.""", default=0.0))
+    # layerInput.addSub(InputData.parameterInputFactory('unit_forget_bias',contentType=InputTypes.BoolType,
+    #     descr=r"""If True, add 1 to the bias of the forget gate at initialization. Setting it to true will also
+    #     force bias\_initializer=``zeros''.""", default=True))
+    # layerInput.addSub(InputData.parameterInputFactory('implementation',contentType=InputTypes.IntegerType,
+    #     descr=r""" """))
+    # inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Embedding Layers
     ##########################################
@@ -1576,23 +1632,30 @@ class KerasBase(SupervisedLearning):
     #  Embdedding Layers
     ###########################
     layerInput = InputData.parameterInputFactory('Embdedding',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Turns positive integers (indexes) into dense vectors of fixed size.
+        e.g. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
+        This layer can only be used as the first layer in a model.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('input_dim',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""Size of the vocabulary."""))
     layerInput.addSub(InputData.parameterInputFactory('output_dim',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Dimension of the dense embedding."""))
     layerInput.addSub(InputData.parameterInputFactory('embeddings_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the embeddings matrix (see~\ref{initializersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('embeddings_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer function applied to the embeddings matrix (see ~\ref{regularizersDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('embdeddings_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint function applied to the embeddings matrix (see~\ref{constraintsDNN})."""))
     layerInput.addSub(InputData.parameterInputFactory('mask_zero',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""whether or not the input value 0 is a special ``padding'' value that should be masked out.
+        This is useful when using recurrent layers which may take variable length input. If this is True, then
+        all subsequent layers in the model need to support masking or an exception will be raised. If mask\_zero
+        is set to True, as a consequence, index 0 cannot be used in the vocabulary (input_dim should equal size
+        of vocabulary + 1)."""))
     layerInput.addSub(InputData.parameterInputFactory('input_length',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""Length of input sequences, when it is constant. This argument is required if you are going to
+        connect Flatten then Dense layers upstream (without it, the shape of the dense outputs cannot be computed)."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Advanced Activation Layers
@@ -1600,71 +1663,72 @@ class KerasBase(SupervisedLearning):
     ###########################
     #  LeakyRelU Layers: Leaky version of a Rectified Linear Unit
     ###########################
-    layerInput = InputData.parameterInputFactory('LeakyRelU',contentType=InputTypes.StringType,
-        descr=r""" """)
+    layerInput = InputData.parameterInputFactory('LeakyReLU',contentType=InputTypes.StringType,
+        descr=r"""Leaky version of a Rectified Linear Unit.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Negative slope coefficient.""", default=0.3))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  PReLU Layers: Parametric Rectified Linear Unit
     ###########################
     layerInput = InputData.parameterInputFactory('PReLU',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Parametric Rectified Linear Unit.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
-        descr=r""" """)
+        descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('alpha_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer function for the weights."""))
     layerInput.addSub(InputData.parameterInputFactory('alpha_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Regularizer for the weights."""))
     layerInput.addSub(InputData.parameterInputFactory('alpha_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Constraint for the weights."""))
     layerInput.addSub(InputData.parameterInputFactory('shared_axes',contentType=InputTypes.FloatListType,
-        descr=r""" """))
+        descr=r"""The axes along which to share learnable parameters for the activation function. """))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ELU Layers: Exponential Linear Unit
     ###########################
     layerInput = InputData.parameterInputFactory('ELU',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Exponential Linear Unit.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('alpha',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Scale for the negative factor."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ThresholdedReLU Layers
     ###########################
     layerInput = InputData.parameterInputFactory('ThresholdedReLU',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Thresholded Rectified Linear Unit.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('theta',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r""" Float >= 0. Threshold location of activation."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  Softmax Layers
     ###########################
     layerInput = InputData.parameterInputFactory('Softmax',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Softmax activation function.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
-    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+    layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerListType,
+        descr=r"""Integer, or list of Integers, axis along which the softmax normalization is applied."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  ReLU Layers
     ###########################
     layerInput = InputData.parameterInputFactory('ReLU',contentType=InputTypes.StringType,
-        descr=r""" """)
-    layerInput.addParam('name', param_type=InputTypes.StringType, required=True)
+        descr=r"""Rectified Linear Unit activation function.""")
+    layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
+        descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('max_value',contentType=InputTypes.FloatType,
-        descr=r"""the name of the layer"""))
+        descr=r""" Float >= 0. Maximum activation value. Default to None, which means unlimited."""))
     layerInput.addSub(InputData.parameterInputFactory('negative_slope',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float >= 0. Negative slope coefficient.""", default=0))
     layerInput.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Float >= 0. Threshold value for thresholded activation.""", default=0.0))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Normalization Layers
@@ -1673,35 +1737,36 @@ class KerasBase(SupervisedLearning):
     #  BatchNormalization Layers
     ###########################
     layerInput = InputData.parameterInputFactory('BatchNormalization',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Layer that normalizes its inputs. Batch normalization applies a transformation that maintains
+        the mean output close to 0 and the output standard deviation close to 1.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     layerInput.addSub(InputData.parameterInputFactory('axis',contentType=InputTypes.IntegerType,
-        descr=r""" """))
+        descr=r"""the axis that should be normalized (typically the features axis)."""))
     layerInput.addSub(InputData.parameterInputFactory('momentum',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Momentum for the moving average."""))
     layerInput.addSub(InputData.parameterInputFactory('epsilon',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""Small float added to variance to avoid dividing by zero."""))
     layerInput.addSub(InputData.parameterInputFactory('center',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r"""If True, add offset of beta to normalized tensor. If False, beta is ignored."""))
     layerInput.addSub(InputData.parameterInputFactory('scale',contentType=InputTypes.BoolType,
-        descr=r""" """))
+        descr=r""" If True, multiply by gamma. If False, gamma is not used. """))
     layerInput.addSub(InputData.parameterInputFactory('beta_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the beta weight."""))
     layerInput.addSub(InputData.parameterInputFactory('gamma_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the gamma weight."""))
     layerInput.addSub(InputData.parameterInputFactory('moving_mean_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the moving mean."""))
     layerInput.addSub(InputData.parameterInputFactory('moving_variance_initializer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Initializer for the moving variance."""))
     layerInput.addSub(InputData.parameterInputFactory('beta_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Optional regularizer for the beta weight."""))
     layerInput.addSub(InputData.parameterInputFactory('gamma_regularizer',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Optional regularizer for the gamma weight."""))
     layerInput.addSub(InputData.parameterInputFactory('beta_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Optional constraint for the beta weight."""))
     layerInput.addSub(InputData.parameterInputFactory('gamma_constraint',contentType=InputTypes.StringType,
-        descr=r""" """))
+        descr=r"""Optional constraint for the gamma weight."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ##########################################
     #  Noise Layers
@@ -1710,28 +1775,32 @@ class KerasBase(SupervisedLearning):
     #  GausianNoise Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GaussianNoise',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Apply additive zero-centered Gaussian noise. This is useful to mitigate overfitting (you could see
+        it as a form of random data augmentation). Gaussian Noise (GS) is a natural choice as corruption process
+        for real valued inputs. As it is a regularization layer, it is only active at training time.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     # 'stddev' need to be popped out and the value will be passed to given layer
     layerInput.addSub(InputData.parameterInputFactory('stddev',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""standard deviation of the noise distribution."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     ###########################
     #  GausianDropout Layers
     ###########################
     layerInput = InputData.parameterInputFactory('GaussianDropout',contentType=InputTypes.StringType,
-        descr=r""" """)
+        descr=r"""Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only active
+        at training time.""")
     layerInput.addParam('name', param_type=InputTypes.StringType, required=True,
         descr=r"""the name of the layer""")
     # 'stddev' need to be popped out and the value will be passed to given layer
     layerInput.addSub(InputData.parameterInputFactory('rate',contentType=InputTypes.FloatType,
-        descr=r""" """))
+        descr=r"""drop probability (as with Dropout). The multiplicative noise will have standard deviation
+        $sqrt(rate / (1 - rate))$."""))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
     #################################################
-
     layerLayoutInput = InputData.parameterInputFactory('layer_layout',contentType=InputTypes.StringListType,
-        descr=r""" """, default='no-default')
+        descr=r"""The layout of the neural network layers, i.e., the list of names of neural network layers""",
+        default='no-default')
     inputSpecification.addSub(layerLayoutInput)
 
     return inputSpecification
