@@ -40,7 +40,7 @@ from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(SupervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
     Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
