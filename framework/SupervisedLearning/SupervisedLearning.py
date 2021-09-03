@@ -45,9 +45,6 @@ class SupervisedLearning(BaseInterface):
                            # 'boolean', 'integer', 'float'
   qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'.
                            # The values are returned by the self.__confidenceLocal__(Features)
-  romType          = ''    # the broad class of the interpolator
-  romTimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -188,6 +185,7 @@ class SupervisedLearning(BaseInterface):
     pass
 
   ## TODO: we may not need the set and read AssembleObjects
+  ## currently only used by ROMCollection
   def setAssembledObjects(self, assembledObjects):
     """
       Allows providing entities from the Assembler to be used in supervised learning algorithms.
@@ -217,9 +215,8 @@ class SupervisedLearning(BaseInterface):
     if type(tdict) != dict:
       self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
-    ## This is for handling the special case needed by SKLtype=*MultiTask* that
+    ## This is for handling the special case needed by skl *MultiTask* that
     ## requires multiple targets.
-
     targetValues = []
     for target in self.target:
       if target in names:

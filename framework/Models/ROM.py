@@ -192,6 +192,7 @@ class ROM(Dummy):
 
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     segmentNode = paramInput.findFirst('Segment')
+    ## remove Segment node before passing input xml to SupervisedLearning ROM
     if segmentNode is not None:
       self.segment = True
       # determine type of segment to load -> limited by InputData to specific options
@@ -278,7 +279,7 @@ class ROM(Dummy):
     """
     # load own keys and params
     metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
-    # add from engine
+    # add from specific rom
     keys, params = self.supervisedContainer[-1].provideExpectedMetaKeys()
     metaKeys = metaKeys.union(keys)
     metaParams.update(params)
@@ -322,7 +323,6 @@ class ROM(Dummy):
 
       self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
       # if training using ROMCollection, special treatment
-      # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
       if self.segment:
         self.supervisedContainer[0].train(self.trainingSet)
       else:
@@ -399,7 +399,6 @@ class ROM(Dummy):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
-    # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
     if self.segment:
       resultsDict = self.supervisedContainer[0].run(request)
     else:
@@ -467,8 +466,6 @@ class ROM(Dummy):
       @ In, trainingSize, int, the size of current training size
       @ Out, cvScore, dict, the dict containing the score of cross validation
     """
-    #if self.subType.lower() not in ['scikitlearn','ndinvdistweight']:
-    #  self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
     cvScore = self._crossValidationScore(trainingSet)
     return cvScore
 

@@ -118,7 +118,7 @@ class NDinterpolatorRom(SupervisedLearning):
       for n_sample in range(featureVals.shape[0]):
         featv = interpolationND.vectd(featureVals[n_sample][:])
         prediction[target][n_sample] = self.interpolator[index].interpolateAt(featv)
-      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
+      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.name + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):

@@ -35,7 +35,6 @@ class NDspline(NDinterpolatorRom):
   """
     An N-dimensional Spline model
   """
-  ROMtype         = 'NDspline'
   info = {'problemtype':'regression', 'normalize':True}
 
   @classmethod

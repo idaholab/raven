@@ -674,7 +674,6 @@ user need to specify following information for \xmlNode{Segment}:
 \end{itemize}
 """
 
-
 import SupervisedLearning
 from SupervisedLearning import ScikitLearnBase
 excludeObj = ['SupervisedLearning',

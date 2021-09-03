@@ -44,7 +44,6 @@ class KerasBase(SupervisedLearning):
   # some modules are commented out since they are not available in TensorFlow 1.1
   # We need to install TensorFlow in a different way
   # available optimizers in Keras
-  ROMType = 'KerasBase'
   # An optimizer is required for compiling a Keras model
   availOptimizer = {}
 

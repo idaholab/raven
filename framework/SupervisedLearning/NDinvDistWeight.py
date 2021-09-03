@@ -34,7 +34,6 @@ class NDinvDistWeight(NDinterpolatorRom):
     An N-dimensional model that interpolates data based on a inverse weighting of
     their training data points?
   """
-  ROMtype         = 'NDinvDistWeight'
   info = {'problemtype':'regression', 'normalize':True}
   @classmethod
   def getInputSpecification(cls):

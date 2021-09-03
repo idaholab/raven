@@ -38,8 +38,6 @@ class KerasRegression(KerasBase):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
-  ROMType = 'KerasRegression'
-
   info = {'problemtype':'regression', 'normalize':True}
 
   @classmethod
