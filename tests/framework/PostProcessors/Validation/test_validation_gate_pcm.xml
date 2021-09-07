@@ -64,7 +64,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="X">
         <distribution>dist_x</distribution>
@@ -114,7 +114,7 @@
   </DataObjects>
 
   <VariableGroups>
-    <Group name="pp1_vars">ans_ans2_cdf_diff,ans_ans2_pdf_area</Group>
+    <Group name="pp1_vars">pri_post_cdf_diff, pri_post_pdf_area</Group>
   </VariableGroups>
 
   <OutStreams>
