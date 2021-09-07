@@ -204,8 +204,8 @@ class Validation(PostProcessorInterface):
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
     if not self.features:
       self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    #elif len(self.features) != len(self.targets):
-    #  self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
+    elif len(self.features) != len(self.targets):
+      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def collectOutput(self, finishedJob, output):
     """
