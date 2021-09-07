@@ -24,6 +24,7 @@
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import xarray as xr
+from scipy import stats
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -107,9 +108,82 @@ class PhysicsGuidedCoverageMapping(Validation):
     for feat, targ in zip(self.features, self.targets):
       featData = self._getDataFromDataDict(datasets, feat, names)
       targData = self._getDataFromDataDict(datasets, targ, names)
+
+      # Standardization
+      yexp = np.array(featData[0]).reshape(len(featData[0]))
+      yapp = np.array(targData[0]).reshape(len(targData[0]))
+      yexp_ref = np.mean(yexp)
+      yapp_ref = np.mean(yapp)
+      yexp_std = (yexp-yexp_ref)/yexp_ref
+      yapp_std = (yapp-yapp_ref)/yapp_ref
+
+      # Kernel Desnity Estimation
+      m1 = yexp_std[:]
+      m2 = yapp_std[:]
+      xmin = m1.min()
+      xmax = m1.max()
+      ymin = m2.min()
+      ymax = m2.max()
+
+      binKDE = 200j
+      X, Y = np.mgrid[xmin:xmax:binKDE, ymin:ymax:binKDE]
+      psts = np.vstack([X.ravel(), Y.ravel()])
+      vals = np.vstack([m1, m2])
+      # kernel
+      knl = stats.gaussian_kde(vals)
+      Z = np.reshape(knl(psts).T, X.shape)
+
+      # Virtual Measurement
+      msr_mean = 0.0
+      msr_std = 0.01
+      msr_numSmpl = 1000
+      ymsr = np.random.normal(msr_mean, msr_std, msr_numSmpl)
+      binMsr = 100
+      pdf_ymsr, bin_ymsr = np.histogram(ymsr, binMsr, range=(xmin, xmax), density=True)
+
+      # yapp_pred by integrating f(yexp, yapp)dyexp * f(yexp)
+      # on range [ymsr.min(), ymsr.max()]
+      pdf_yapp_pred = np.zeros(Y.shape[1])
+      intgr_pdf = 0.0 # for normalization
+      for i in range(len(Y[0, :])):
+        p_yapp_i = 0.0
+        for j in range(len(bin_ymsr)-1):
+          p_yapp_i += knl.evaluate([bin_ymsr[j]+0.5*np.diff(bin_ymsr)[j], Y[0, i]]) * np.diff(bin_ymsr)[j] * pdf_ymsr[j]
+        pdf_yapp_pred[i] = p_yapp_i
+        intgr_pdf += pdf_yapp_pred[i]*(Y[0, 1]-Y[0, 0])
+
+      # normalized PDF of predicted application
+      pdf_yapp_pred_norm = pdf_yapp_pred/intgr_pdf
+
+      # Calculate Expectation (average value) of predicted application
+      pred_mean = 0.0
+      for i in range(len(Y[0, :])):
+        pred_mean += Y[0, i]*pdf_yapp_pred_norm[i]*(Y[0, 1]-Y[0, 0])
+
+      # Calculate Variance of predicted application
+      pred_var = 0.0
+      for i in range(len(Y[0, :])):
+        pred_var += (Y[0, i]-pred_mean)**2.0 * pdf_yapp_pred_norm[i]*(Y[0, 1]-Y[0, 0])
+
+      # Standard Deviation
+      pred_std = np.sqrt(pred_var)
+      pri_std = np.std(yapp_std)
+      std_reduct = pred_std/pri_std
+
+      # Generate distribution by pdf_yapp_pred_norm
+      bins_pred = np.insert(Y[0, :]+0.5*(Y[0, 1]-Y[0, 0]), 0, Y[0, 0]-0.5*(Y[0, 1]-Y[0, 0]))
+      hist_pred = tuple((pdf_yapp_pred_norm, bins_pred))
+      dist_pred = stats.rv_histogram(hist_pred)
+      yapp_pred = dist_pred.rvs(size=len(yapp_std))
+
+      # Form tuple data for metrics
+      priData = tuple((yapp_std.reshape(len(yapp_std),1), targData[1]))
+      postData = tuple((yapp_pred.reshape(len(yapp_std),1), targData[1]))
       for metric in self.metrics:
-        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-        outputDict[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
+        #name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+        name = "pri_post_{}".format(metric.estimator.name)
+        outputDict[name] = metric.evaluate((priData, postData), multiOutput='raw_values')
+
     return outputDict
 
   def _getDataFromDataDict(self, datasets, var, names=None):
