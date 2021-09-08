@@ -11,16 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-  Implementations of plottings strategies for OutStreams.
+# from https://en.wikipedia.org/wiki/Test_functions_for_optimization
+#
 
-  Created April 1, 2021
-  @author: talbpaul
-"""
-from .PlotInterface import PlotInterface
-from .SamplePlot import SamplePlot
-from .GeneralPlot import GeneralPlot as Plot
-from .OptPath import OptPath
-from .SyntheticCloud import SyntheticCloud
+def evaluate(x,y):
+  """
+    Evaluates Beale function.
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, evaluate, value at x, y
+  """
+  return 100 * (x - y)**2 + (x + y)**2
 
-from .Factory import factory
+def run(raven, inputs):
+  """
+    RAVEN API
+    @ In, raven, object, RAVEN container
+    @ In, inputs, dict, additional inputs
+    @ Out, None
+  """
+  raven.ans = evaluate(raven.x, raven.y)
