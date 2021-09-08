@@ -30,13 +30,14 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import utils
 from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class BasicStatistics(PostProcessorInterface):
+class BasicStatistics(PostProcessorReadyInterface):
   """
     BasicStatistics filter class. It computes all the most popular statistics
   """
