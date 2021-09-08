@@ -18,16 +18,17 @@
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-
+import warnings
+import os.path
+warnings.simplefilter('default',DeprecationWarning)
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from melcorInterface   import MelcorApp
+from melcorInterface import MelcorApp
 from melgenInterface import MelgenApp
 
 class Melcor(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for MELCOR 2. Version
   """
-
   def __init__(self):
     """
       Constructor.
@@ -37,6 +38,7 @@ class Melcor(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.melcorInterface = MelcorApp()
     self.melgenInterface = MelgenApp()
+    self.inputExtensions = ['i','inp']
 
   def findInps(self,inputFiles):
     """
@@ -54,6 +56,50 @@ class Melcor(CodeInterfaceBase):
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn,melcIn
 
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
+    """
+    self.variables = []
+    self.plotfile = []
+    self.melOut = []
+    melNode = xmlNode.find('MelcorOutput')
+    varNode = xmlNode.find('variables')
+    try:
+      detNode = xmlNode.find('detNode')
+    except:
+      detNode = None
+    print(varNode)
+    plotNode = xmlNode.find('CodePlotFile')
+    if varNode is None:
+      raise IOError("Melcor variables not found")
+    if plotNode is None:
+      raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
+    if melNode is None:
+      raise IOError("Please enter MELCOR outfile name")
+    MelcorApp.melcorDetNode = None
+    MelcorApp.melcorInpFile = None
+    MelcorApp.melcorRstFile = None
+    if detNode != None:
+      inpNode = xmlNode.find('InputFile')
+      rstNode = xmlNode.find('RestartFile')
+      if inpNode is None:
+        raise IOError("Please enter MELCOR input name")
+      if rstNode is None:
+        raise IOError("Please enter MELCOR restart name")
+      MelcorApp.melcorInpFile = [var.strip() for var in inpNode.text.split(",")][0]
+      MelcorApp.melcorRstFile = [var.strip() for var in rstNode.text.split(",")][0]
+      MelcorApp.melcorDetNode = [var.strip() for var in detNode.text.split(",")][0]
+    MelcorApp.VarList = [var.strip() for var in varNode.text.split("$,")]
+    MelcorApp.MelcorPlotFile = [var.strip() for var in plotNode.text.split(",")][0]
+    MelcorApp.melcorOutFile = [var.strip() for var in melNode.text.split(",")][0]
+    return MelcorApp.VarList,MelcorApp.MelcorPlotFile,MelcorApp.melcorOutFile, MelcorApp.melcorInpFile, MelcorApp.melcorRstFile, MelcorApp.melcorDetNode
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run MELCOR (combined MELGEN AND MELCOR)
@@ -65,7 +111,6 @@ class Melcor(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if preExec is None:
@@ -76,7 +121,19 @@ class Melcor(CodeInterfaceBase):
     #get the melcor part
     melcCommand,melcOut = self.melgenInterface.generateCommand([melcin],executable,clargs,fargs)
     #combine them
-    returnCommand = melgCommand + melcCommand, melcOut
+    detNode = MelcorApp.melcorDetNode
+    if detNode != None:
+      found = False
+      for index, inputFile in enumerate(inputFiles):
+        if inputFile.getPath().endswith("DET_1/"):
+          found = True
+          break
+      if found == True:
+        returnCommand = melgCommand + melcCommand, melcOut		
+      else:
+        returnCommand = melcCommand, melcOut
+    else:
+      returnCommand = melgCommand + melcCommand, melcOut
     return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -89,7 +146,7 @@ class Melcor(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
+    return self.melgenInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -100,7 +157,8 @@ class Melcor(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
-    output = self.melcorInterface.finalizeCodeOutput(command,output, workingDir)
+    print(workingDir)
+    output = self.melgenInterface.finalizeCodeOutput(command,output,workingDir)
     return output
 
   def checkForOutputFailure(self,output,workingDir):
@@ -116,5 +174,3 @@ class Melcor(CodeInterfaceBase):
     """
     failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
     return failure
-
-
