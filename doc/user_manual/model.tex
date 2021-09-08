@@ -1184,10 +1184,14 @@ This XML node needs to contain the attributes:
   %
   \nb As with the other objects, this is the name that can be used to refer to
   this specific entity from other input blocks in the XML.
-  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be kept
-  empty.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, external model type. It must be kept empty, except in the following cases:
+  \begin{itemize}
+    \item  \textbf{\textit{pluginType}}, in this case the  \xmlAttr{subType} is the spefic plugin to use (e.g. \textbf{TEAL.CashFlow})
+    \item  \textbf{\textit{pickledModel}}, a pickled external model (serialized model). See \ref{subsubsec:pickledModel}   for details.
+  \end{itemize}    
+  
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
-  with its absolute or relative path.
+  with its absolute or relative path. This attribute is specified just for Generic ExternalModel (i.e.  empty \xmlAttr{subType})
   %
   \nb If a relative path is specified, the code first checks relative
   to the working directory, then it checks with respect to where the
@@ -1208,9 +1212,24 @@ in a RAVEN internal object.
 %
 These variables are specified within a \xmlNode{variables} block:
 \begin{itemize}
-  \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
+  \item \xmlNode{variables}, \xmlDesc{string, optional parameter}.
   %
   Comma-separated list of variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
+  model.
+  \nb \textbf{This node (\xmlNode{variables}) is deprecated and will be removed in RAVEN 3.0 in favor of the two following nodes (\xmlNode{inputs}, \xmlNode{outputs}) }
+  %
+   \item \xmlNode{inputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of input variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
+  model.
+  %
+   \item \xmlNode{outputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of output variable names.
   %
   Each variable name needs to match a variable used/defined in the external python
   model.
@@ -1230,7 +1249,13 @@ Each variable defined in the \xmlNode{ExternalModel} block is available in the
 module (each method implemented) as a python ``self.''
 %
 
-In the External Python module, the user can implement all the methods that are
+
+\subsubsection{Generic External Model}
+\label{subsubsec:generic_external_model}
+As mentioned before, the generic external model is a python module that is going to be
+treated as a predefined internal model object.
+
+In the External Python module (if not a plugin or  \textbf{\textit{pickledModel}}), the user can implement all the methods that are
 needed for the functionality of the model, but only the following methods, if
 present, are called by the framework:
 \begin{itemize}
@@ -1261,8 +1286,8 @@ present, are called by the framework:
 In the following sub-sections, all the methods are going to be analyzed in
 detail.
 
-\subsubsection{Method: \texttt{def \_readMoreXML}}
-\label{subsubsec:externalReadMoreXML}
+\paragraph{Method: \texttt{def \_readMoreXML}}
+\label{subsubsubsec:externalReadMoreXML}
 As already mentioned, the \textbf{readMoreXML} method can be implemented by the
 user if the XML input that belongs to this External Model needs to be extended
 to contain other information.
@@ -1315,8 +1340,8 @@ def _readMoreXML(self,xmlNode):
 \end{lstlisting}
 
 
-\subsubsection{Method: \texttt{def initialize}}
-\label{subsubsec:externalInitialize}
+\paragraph{\texttt{def initialize}}
+\label{subsubsubsec:externalInitialize}
 The \textbf{initialize} method can be implemented in the \textbf{External Model}
 in order to initialize some variables needed by it.
 %
@@ -1382,9 +1407,8 @@ def initialize(self,runInfo,inputs):
 \end{lstlisting}
 
 
-\subsubsection{Method: \texttt{def createNewInput}}
-\label{subsubsec:externalcreateNewInput}
-
+\paragraph{Method: \texttt{def createNewInput}}
+\label{subsubsubsec:externalcreateNewInput}
 The \textbf{createNewInput} method can be implemented by the user to create a
 new input with the information coming from the RAVEN framework.
 %
@@ -1427,8 +1451,8 @@ def createNewInput(self,inputs,samplerType,**Kwargs):
   return avariable*Kwargs['SampledVars']['aSampledVar']
 \end{lstlisting}
 
-\subsubsection{Method: \texttt{def run}}
-\label{subsubsec:externalRun}
+\paragraph{Method: \texttt{def run}}
+\label{subsubsubsec:externalRun}
 As stated previously, the only method that \emph{must} be present in an
 External Module is the \textbf{run} function.
 %
@@ -1457,14 +1481,51 @@ def run(self,Input):
   self.outcome = self.sigma*self.rho*input[``whatEver'']
 \end{lstlisting}
 
-%\subsection{Projector}
-%\label{sec:models_projector}
-%
-%Description
 
-%Summary
+\subsubsection{pickledModel}
+\label{subsubsec:pickledModel}
+It is not uncommon for a Model to be created and encapsulate in one RAVEN
+run, then serialized to file (pickled), then loaded into another RAVEN run to be used as a model.
+When this is the case, a \xmlNode{ExternalModel} with subtype ’pickledModel’ is used to hold the place of the
+ExternalModel that will be loaded from file. The notation for this ExternalModel is much less than a typical ExternalModel; it
+only requires a name and its subtype.
+Note that when loading ExternalModels from file, RAVEN will not perform any checks on the expected
+inputs or outputs of an ExternalModel; it is expected that a user know at least the $I/O$ of a ExternalModel before trying
+to use it as a model.  
+Initially, a pickledModel is not usable. It cannot be sampled; attempting to do so will
+raise an error. An \xmlNode{IOStep} is used to load the ExternalModel from file, at which point the ExternalModel will
+have all the same characteristics as when it was pickled in a previous RAVEN run.
+Example: For this example the ExternalModel has already been created in another RAVEN
+run, then serialized to a file called rom \texttt{pickle.pk}. In the example, the file is identified in
+\xmlNode{Files}, the model is defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
 
-%Example
+{\footnotesize
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Files>
+    <Input name="pickle.pk" type="">pickle.pk</Input>
+  </Files>
+  ...
+  <Models>
+    ...
+    <ExternalModel name="myModel" subType="pickledModel"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadModel">
+      <Input class="Files" type="">pickle.pk</Input>
+      <Output class="Models" type="pickledModel">myModel</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%         PostProcessor         %%%%%%%%%

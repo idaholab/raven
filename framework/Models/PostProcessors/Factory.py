@@ -38,6 +38,7 @@ from .EconomicRatio import EconomicRatio
 from .Validation import Validation
 from .validationAlgorithms.Probabilistic import Probabilistic
 from .validationAlgorithms.Representativity import Representativity
+from .TSACharacterizer import TSACharacterizer
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay

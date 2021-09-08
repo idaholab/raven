@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Valley</name>
+    <author>talbpaul</author>
+    <created>2021-08-17</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Tests optimization against the "valley problem" where a dominant gradient leads to a
+      diagonal valley with an optimal point along it. Generally quite challenging for gradient
+      descent methods. Note we cut this run short before it really starts converging well.
+    </description>
+    <analytic>
+      This test uses the Parabolic Valley analytic case, documented in the analytic case definitions.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Valley</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">valley</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='dist'>
+      <lowerBound>-2</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GradientDescent name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>dist</distribution>
+        <initial>1</initial>
+      </variable>
+      <variable name="y">
+        <distribution>dist</distribution>
+        <initial>2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>300</limit>
+        <writeSteps>final</writeSteps>
+      </samplerInit>
+      <gradient>
+        <FiniteDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <window>4</window>
+          <decay>0.001</decay>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>2</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+    </GradientDescent>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/parab_valley" name="valley" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>
