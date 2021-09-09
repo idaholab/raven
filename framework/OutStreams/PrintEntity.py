@@ -59,6 +59,14 @@ class Print(OutStreamEntity):
     self._printer = self.interfaceFactory.returnInstance(reqType)
     self._printer.handleInput(spec)
 
+  def _getInterface(self):
+    """
+      Return the interface associated with this entity.
+      @ In, None
+      @ Out, _getInterface, object, interface object
+    """
+    return self._printer
+
   def initialize(self, stepEntities):
     """
       Initialize the OutStream. Initialize interfaces and pass references to sources.

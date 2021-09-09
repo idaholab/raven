@@ -171,9 +171,19 @@ def inputTreeToGetpot(entry, rec=0):
   # if no sub information, just use tag and value
   if not(len(root) or root.attrib):
     val = root.text
-    if ' ' in root.text:
-      val = '\"{}\"'.format(val)
-    gp = '  '*rec + '{k} = {v}\n'.format(k=root.tag, v=val)
+    if not len(val):
+      if rec == 0:
+        start = '[{n}]\n'
+        end = '[]\n'
+      else:
+        start = '  '*rec + '[./{n}]\n'
+        end = '  '*rec + '[../]\n'
+      gp =  start.format(n=root.tag)
+      gp += end
+    else:
+      if ' ' in root.text:
+        val =  '\"{}\"'.format(val)
+      gp = '  '*rec + '{k} = {v}\n'.format(k=root.tag, v=val)
   else:
     if rec == 0:
       start = '[{n}]\n'

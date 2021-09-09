@@ -17,7 +17,9 @@ pathToGCT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path
 sys.path.append(pathToGCT)
 import get_coverage_tests as gct
 
-tests = gct.getRegressionTests()
-for t in tests:
-  print 'Removing ',t+'.bak'
-  os.system('rm %s.bak' %t)
+testsInfo = gct.getRegressionTests()
+for folder, tests in testsInfo.items():
+  for test in tests:
+    t = os.path.join(folder, test)
+    print('Removing ',t+'.bak')
+    os.system('rm %s.bak' %t)

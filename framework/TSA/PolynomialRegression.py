@@ -20,10 +20,10 @@ import utils.importerUtils
 statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
-class PolynomialRegression(TimeSeriesAnalyzer):
+class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
   """
 
@@ -36,7 +36,7 @@ class PolynomialRegression(TimeSeriesAnalyzer):
         specifying input of cls.
     """
     specs = super(PolynomialRegression, cls).getInputSpecification()
-    specs.name = 'regression'
+    specs.name = 'PolynomialRegression'
     specs.description = """TimeSeriesAnalysis algorithm for fitting data of degree one or greater."""
     specs.addSub(InputData.parameterInputFactory('degree', contentType=InputTypes.IntegerType,
                                                  descr="Specifies the degree polynomial to fit the data with."))
@@ -53,7 +53,7 @@ class PolynomialRegression(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
   def handleInput(self, spec):
     """
@@ -61,7 +61,7 @@ class PolynomialRegression(TimeSeriesAnalyzer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
@@ -91,6 +91,34 @@ class PolynomialRegression(TimeSeriesAnalyzer):
       params[target]['model']['object'] = results
     return params
 
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__intercept')
+      for i in range(1,settings['degree']):
+        names.append(f'{base}__coef{i}')
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      for name, value in info['model'].items():
+        if name == 'object':
+          continue
+        rlz[f'{base}__{name}'] = value
+    return rlz
 
   def generate(self, params, pivot, settings):
     """

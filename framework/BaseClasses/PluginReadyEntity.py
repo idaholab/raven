@@ -19,6 +19,10 @@ Created May 10, 2021
 @author: talbpaul
 """
 
+from abc import abstractmethod
+
+import numpy as np
+
 from utils import InputData, InputTypes
 from .BaseEntity import BaseEntity
 
@@ -77,3 +81,33 @@ class PluginReadyEntity(BaseEntity):
     paramInput = self.getInputSpecification(xml=xml)()
     paramInput.parseNode(xml)
     return paramInput
+
+  @abstractmethod
+  def _getInterface(self):
+    """
+      Return the interface associated with this entity.
+      @ In, None
+      @ Out, _getInterface, object, interface object
+    """
+
+  ########
+  #
+  # Utilities
+  #
+  def isInstanceString(self, toCheck):
+    """
+      Use string type names to check if associated metric is one of those whose names are provided.
+      @ In, toCheck, list, list of names of viable types
+      @ Out, isInstanceString, bool, True if interface name matches one of the provided options
+    """
+    viable = tuple([self.interfaceFactory.returnClass(check) for check in np.atleast_1d(toCheck)])
+    return isinstance(self._getInterface(), viable)
+
+  @property
+  def interfaceKind(self):
+    """
+      Provide the "type" of the interface for this Entity.
+      @ In, None
+      @ Out, interfaceType, str, name of type for this Entity's Interface
+    """
+    return self._getInterface().__class__.__name__

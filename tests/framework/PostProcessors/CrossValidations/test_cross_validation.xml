@@ -37,18 +37,18 @@
         <shuffle>False</shuffle>
         <scores>average</scores>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
-      <Metric class="Metrics" type="SKL">m2</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
+      <Metric class="Metrics" type="Metric">m2</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|mean_absolute_error</metricType>
-      </SKL>
-      <SKL name="m2">
-          <metricType>regression|mean_absolute_error</metricType>
-      </SKL>
+    <Metric name="m1" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
+    <Metric name="m2" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
   </Metrics>
 
   <Distributions>
