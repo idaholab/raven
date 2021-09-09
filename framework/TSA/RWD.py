@@ -54,14 +54,14 @@ class RWD(TimeSeriesCharacterizer):
         specifying input of cls.
     """
     specs = super(RWD, cls).getInputSpecification()
-    specs.name = 'RWD' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
+    specs.name = 'rwd' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
     specs.description = r"""TimeSeriesAnalysis algorithm for sliding window snapshots to generate features"""
 
     specs.addSub(InputData.parameterInputFactory('SignatureWindowLength', contentType=InputTypes.FloatType,
                  descr=r"""the size of signature window, which represents as a snapshot for a certain time step;
                        typically represented as $w$ in literature, or $w_sig$ in the code."""))
     specs.addSub(InputData.parameterInputFactory('FeatureIndex', contentType=InputTypes.FloatType,
-                 descr=r""" Index used for feature selection, which requires pre-analysis for now, will be addresses 
+                 descr=r""" Index used for feature selection, which requires pre-analysis for now, will be addresses
                  via other non human work required method """))
     specs.addSub(InputData.parameterInputFactory('SampleType', contentType=InputTypes.FloatType,
                  descr=r"""Indicating the type of sampling."""))
@@ -108,10 +108,10 @@ class RWD(TimeSeriesCharacterizer):
     """
     settings = super().setDefaults(settings)
     if 'SignatureWindowLength' not in settings:
-      settings['SignatureWindowLength'] = 105#len(history)//10
+      settings['SignatureWindowLength'] = None #len(history)//10
       settings['SampleType'] = 1
 
-    return settings #### 
+    return settings ####
 
   def characterize(self, signal, pivot, targets, settings):
     """
@@ -128,17 +128,25 @@ class RWD(TimeSeriesCharacterizer):
     #   SignatureWindowLength, int,  Signature window length
     #   FeatureIndex, list of int,  The index that contains differentiable params
 
+
     params = {}
+
     for tg, target in enumerate(targets):
       history = signal[:, tg]
-      SignatureWindowLength = settings['SignatureWindowLength']
+      if settings['SignatureWindowLength'] is None:
+        settings['SignatureWindowLength'] = len(history)//10
+      SignatureWindowLength = int(settings['SignatureWindowLength'])
       fi = settings['FeatureIndex']
       SampleType = settings['SampleType']
-      AllWindowNumber = len(history)-SignatureWindowLength+1
+      AllWindowNumber = int(len(history)-SignatureWindowLength+1)
+      print(type(AllWindowNumber))
+      print('AllWindowNumber',AllWindowNumber)
+      print(type(SignatureWindowLength))
+      print(SignatureWindowLength)
       SignatureMatrix = np.zeros((SignatureWindowLength, AllWindowNumber))
       for i in range(AllWindowNumber):
         SignatureMatrix[:,i] = np.copy(history[i:i+SignatureWindowLength])
-      
+
       # Sequential sampling
       if SampleType == 0:
         BaseMatrix = np.copy(SignatureMatrix)
@@ -146,7 +154,7 @@ class RWD(TimeSeriesCharacterizer):
       # Randomized sampling
       elif SampleType == 1:
         sampleLimit = len(history)-SignatureWindowLength
-        
+
         WindowNumber = sampleLimit//4
         sampleIndex = np.random.randint(sampleLimit, size=WindowNumber)
         BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
@@ -167,13 +175,56 @@ class RWD(TimeSeriesCharacterizer):
 
       FeatureMatrix = U.T @ SignatureMatrix
       print('FeatureMatrix ',FeatureMatrix.shape)
-      
-      
-      params[target] = [U, FeatureMatrix]
-      
-        
-        
-    return params 
+
+
+      params[target] = {'UVec'   : U,
+                        'Feature': FeatureMatrix}
+      print('%%%%%%%%%%%%%%%%%%%%%%%%')
+      print(list(params))
+    return params
+
+
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    print('@@@@@@@@@@@@@@@@settings:', settings)
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__Feature')
+      names.append(f'{base}__UVec')
+ 
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      print('##################################')
+      print('##################################    target:', target)
+      print('base', base)
+      #print('info',info)
+      (m,n) = info['Feature'].shape
+      (k,l) = (info['UVec']).shape
+      for j in range(m):
+        for i in range(n):
+          rlz[f'{base}__Feature{j}_{i}'] = info['Feature'][j,i]
+      print('^^^^^^^^^^^^^^^^^', info['UVec'].shape)
+      for j in range(k):
+        for i in range(l):
+          rlz[f'{base}__UVec{j}_{i}'] = info['UVec'][j,i]
+
+    return rlz
+
+
 
 
   def generate(self, params, pivot, settings):
@@ -184,28 +235,41 @@ class RWD(TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
-    
+
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
-      SigMat_synthetic = params[target][0] @ params[target][1]
+      SigMat_synthetic = params[target]['UVec'] @ params[target]['Feature']
       synthetic[:, t] = np.hstack((SigMat_synthetic[0,:-1], SigMat_synthetic[:,-1]))
 
     return synthetic
 
 ############## problems
-  def writeXML(self, writeTo, features):
+  def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.
       @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, features, dict, features from as from self.characterize
+      @ In, params, dict, params from as from self.characterize
       @ Out, None
     """
-    for target, info in features.items():
+    #print('params.items(): ',type(params.items()))
+    #print('len(params.items()) ',len(params.items()))
+    #print('params.items() ',params.items())
+    counter = 0
+    for target, info in params.items():
       base = xmlUtils.newNode(target)
+      print('  target', target)
       writeTo.append(base)
-      base.append(xmlUtils.newNode('constant', text=f'{float(info["rwd"]["const"]):1.9e}'))
-      for p, ar in enumerate(info['rwd']['UVec']):
-        base.append(xmlUtils.newNode(f'AR_{p}', text=f'{float(ar):1.9e}'))
+      print('  ', type(info["UVec"]))
+      print('  ', info["UVec"].shape)
+      U0 = info["UVec"][:,0]
+      U1 = info["UVec"][:,1]
+      counter +=1
+      print('counter', counter)
+      #base.append(xmlUtils.newNode('UVec', text=f'{float():1.9e}'))
+      for p, ar in enumerate(U0):
+        base.append(xmlUtils.newNode(f'UVec0_{p}', text=f'{float(ar):1.9e}'))
+        print(p)
+      for p, ar in enumerate(U1):
+        base.append(xmlUtils.newNode(f'UVec1_{p}', text=f'{float(ar):1.9e}'))
+      #base.append(xmlUtils.newNode('variance', text=f'{float(info["var"]):1.9e}'))
 
-      base.append(xmlUtils.newNode('variance', text=f'{float(info["rwd"]["var"]):1.9e}'))
-      
