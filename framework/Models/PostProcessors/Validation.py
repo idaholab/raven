@@ -28,7 +28,7 @@ import xarray as xr
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
-from . import validationAlgorithms
+from . import ValidationAlgorithms
 from utils import utils, mathUtils, xmlUtils
 from utils import InputData, InputTypes
 import DataObjects
