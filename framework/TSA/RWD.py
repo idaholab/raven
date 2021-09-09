@@ -120,7 +120,7 @@ class RWD(TimeSeriesCharacterizer):
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, settings for this ROM
-      @ Out, params, dict of list: 1st is the uvectors, 2nd is params (LOC, HOC)
+      @ Out, params, dict of dict: 1st level contains targets/variables; 2nd contains: U vectors and features
     """
     # lazy import statsmodels
     import statsmodels.api
