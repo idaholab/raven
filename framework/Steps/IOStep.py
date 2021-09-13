@@ -118,10 +118,10 @@ class IOStep(Step):
                                                        okay = 'Database',
                                                        received = inDictionary['Output'][i].type))
       # from ROM model to ...
-      elif isinstance(inDictionary['Input'][i], Models.ROM):
+      elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
-          self.actionType.append('ROM-FILES')
+          self.actionType.append('MODEL-FILES')
         # ... data object
         elif isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
@@ -134,8 +134,8 @@ class IOStep(Step):
       # from File to ...
       elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
-        if isinstance(outputs[i],Models.ROM):
-          self.actionType.append('FILES-ROM')
+        if isinstance(outputs[i], (Models.ROM, Models.ExternalModel)):
+          self.actionType.append('FILES-MODEL')
         # ... dataobject
         elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
@@ -143,14 +143,15 @@ class IOStep(Step):
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
                                                        inp = 'Files',
-                                                       okay = 'ROM',
+                                                       okay = 'MODEL',
                                                        received = inDictionary['Output'][i].type))
       # from anything else to anything else
       else:
         self.raiseAnError(IOError,
-                          'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
+                          'In Step "{name}": This step accepts only {okay} as Input. Received "{input_name}" of type "{received}" instead!'
                           .format(name = self.name,
                                   okay = 'Database, DataObjects, ROM, or Files',
+                                  input_name = inDictionary['Input'][i].name,
                                   received = inDictionary['Input'][i].type))
     # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
@@ -207,44 +208,41 @@ class IOStep(Step):
         # get pointwise data (to place in main section of data object)
         romModel.writePointwiseData(outputs[i])
 
-      elif self.actionType[i] == 'ROM-FILES':
+      elif self.actionType[i] == 'MODEL-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         ## pickle the ROM
         #check the ROM is trained first
-        if not inDictionary['Input'][i].amITrained:
+        if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
-      elif self.actionType[i] == 'FILES-ROM':
-        #inDictionary['Input'][i] is a Files, outputs[i] is ROM
+
+      elif self.actionType[i] == 'FILES-MODEL':
+        #inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
-        ## DEBUGG
-        # the following will iteratively check the size of objects being unpickled
-        # this is quite useful for finding memory crashes due to parallelism
-        # so I'm leaving it here for reference
-        # print('CHECKING SIZE OF', unpickledObj)
-        # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
-        # print('CHECKING SIZES')
-        # from utils.Debugging import checkSizesWalk
-        # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
-        # print('*'*80)
-        # crashme
-        ## /DEBUGG
-        if not isinstance(unpickledObj,Models.ROM):
+        if not isinstance(unpickledObj, (Models.ROM, Models.ExternalModel)):
+          ## DEBUGG
+          # the following will iteratively check the size of objects being unpickled
+          # this is quite useful for finding memory crashes due to parallelism
+          # so I'm leaving it here for reference
+          # print('CHECKING SIZE OF', unpickledObj)
+          # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
+          # print('CHECKING SIZES')
+          # from utils.Debugging import checkSizesWalk
+          # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
+          # print('*'*80)
+          # crashme
+          ## /DEBUGG
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
-        if not unpickledObj.amITrained:
+        if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
-        # save reseeding parameters from pickledROM
-        loadSettings = outputs[i].initializationOptionDict
-        # train the ROM from the unpickled object
-        outputs[i].train(unpickledObj)
-        # reseed as requested
-        outputs[i].setAdditionalParams(loadSettings)
+        # copy model (same for any internal model (Dummy model derived classes)
+        outputs[i]._copyModel(unpickledObj)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet

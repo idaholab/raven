@@ -21,6 +21,17 @@
     [../]
   [../]
 
+  [./MinwReplacementConvAHDpUsingCode]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwRepConvAHDpUsingCode.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./MinwoReplacement]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwoRep.xml'
