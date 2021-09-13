@@ -4,7 +4,7 @@
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms.MinwReplacementConvAHDpUsingCode</name>
     <author>alfoa</author>
-    <created>2021-09-7</created>
+    <created>2021-09-07</created>
     <classesTested>Optimizers.GeneticAlgorithm, Models.Code</classesTested>
     <description>
       This test assesses the Genetic algorithm can be used
