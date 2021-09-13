@@ -2,16 +2,10 @@
   Author:  A. Alfonsi
   Date  :  11/17/2017
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#External Modules---------------------------------------------------------------
 import numpy as np
 import math
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
-from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-#Internal Modules End-----------------------------------------------------------
+from PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 
 class SumOfExponential(ExternalModelPluginBase):

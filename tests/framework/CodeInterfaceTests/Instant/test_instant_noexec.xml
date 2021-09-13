@@ -99,7 +99,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">rattlesnakeInput</Input>
       <Input class="Files" type="">xs.xml</Input>
       <Input class="Files" type="">alias.xml</Input>

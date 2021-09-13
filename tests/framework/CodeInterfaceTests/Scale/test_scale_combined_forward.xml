@@ -61,9 +61,9 @@
       </variable>
     </CustomSampler>
   </Samplers>
- 
+
   <Steps>
-    <MultiRun name="sampleScale" >
+    <MultiRun name="sampleScale"  clearRunDir="False">
       <Input class="Files" type="origen">decay_origen</Input>
       <Input class="Files" type="triton">input_triton</Input>
       <Model class="Models" type="Code">MyScale</Model>

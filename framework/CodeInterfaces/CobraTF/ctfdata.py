@@ -16,7 +16,6 @@ Modified by Alp Tezbasaran @ INL
 July 2018
 """
 
-
 import numpy as np
 
 class ctfdata:
@@ -48,16 +47,14 @@ class ctfdata:
     self.deckEndTimeInfo = self.getTimeDeck(self.lines)
     self.majorData, self.headerName = self.getMajor(self.lines)
 
-  def writeCSV(self, filen):
+  def returnData(self):
     """
-      Method that writes the csv file from major edit data
-      @ In, filen, string (input file name)
-      @ Out, None
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, data, dict, the dictionary containing the data {var1:array,var2:array,etc}
     """
-    # create string for header names
-    headerString = ",".join(self.headerName)
-    # write & save array as csv file
-    np.savetxt(filen, self.majorData, delimiter=',', header=headerString, comments='')
+    data = {var:self.majorData[:,i] for i, var in enumerate(self.headerName)}
+    return data
 
   def getTimeDeck(self, lines):
     """

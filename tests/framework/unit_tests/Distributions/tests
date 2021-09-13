@@ -3,9 +3,7 @@
  [./Distributions]
   #REQUIREMENT_TEST R-RE-1
   type = 'RavenPython'
-  #python_command = python3
   input = 'TestDistributions.py'
-  requires_swig2 = True
  [../]
 
 []

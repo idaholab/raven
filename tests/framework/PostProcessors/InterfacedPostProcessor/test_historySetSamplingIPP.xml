@@ -12,7 +12,7 @@
       <revision author="wangc" date="2018-08-08">Test the defect issue #739</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>historySampling</WorkingDir>
     <Sequence>FirstMRun,PP1,plot1,PP2,plot2,PP3,plot3,PP4,plot4,PP5,plot5</Sequence>
@@ -92,35 +92,30 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="historySamplingPP_uniform" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_uniform" subType="HistorySetSampling">
       <samplingType>uniform</samplingType>
       <numberOfSamples>10</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
-    <PostProcessor name="historySamplingPP_first" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_first" subType="HistorySetSampling">
       <samplingType>firstDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
-    <PostProcessor name="historySamplingPP_second" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_second" subType="HistorySetSampling">
       <samplingType>secondDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
-    <PostProcessor name="historySamplingPP_filt_first" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_filt_first" subType="HistorySetSampling">
       <samplingType>filteredFirstDerivative</samplingType>
       <pivotParameter>time</pivotParameter>
       <tolerance>200</tolerance>
     </PostProcessor>
-    <PostProcessor name="historySamplingPP_filt_second" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_filt_second" subType="HistorySetSampling">
       <samplingType>filteredSecondDerivative</samplingType>
       <pivotParameter>time</pivotParameter>
       <tolerance>5000</tolerance>

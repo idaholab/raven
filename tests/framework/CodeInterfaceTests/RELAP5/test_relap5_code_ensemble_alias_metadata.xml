@@ -31,7 +31,6 @@
   <Models>
     <Code name="MyRELAP" subType="Relap5">
       <executable>
-        .
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
       <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
@@ -42,12 +41,13 @@
     </Code>
     <Code name="MyRELAP_restart" subType="Relap5">
         <executable>
-           .
             <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
         </executable>
         <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
         <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
         <alias variable="timeMyRelap"                   type="input">201:1</alias>
+        <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
+        <csv>True</csv>
     </Code>
 
     <EnsembleModel name="2relapsInSequence" subType="">
@@ -61,7 +61,7 @@
           MyRELAP_restart
         <Input class="Files" type="">snc01_restart.i</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">MyRELAP_restartPS</TargetEvaluation>
-        <!-- block the define the metadataToTransfer. source="model from which it needs to be collected", 
+        <!-- block the define the metadataToTransfer. source="model from which it needs to be collected",
              alias="how it should be called in the receiver model"=> it is an optional argument, XML body is the name of the metadata to transfer
          -->
         <metadataToTransfer source="MyRELAP" alias="sourceID"   >prefix</metadataToTransfer>
@@ -145,7 +145,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testEnsemble2Relaps" re-seeding="1">
+    <MultiRun name="testEnsemble2Relaps" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">snc01.i</Input>
       <Input class="Files" type="">tpfh2o</Input>
       <Model class="Models" type="EnsembleModel">2relapsInSequence</Model>

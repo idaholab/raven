@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/interfacedPostProcessorParallel</name>
+    <author>mandd</author>
+    <created>2019-01-16</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Test of the interfaced post-processor interface performed in parallel
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>interfacedPostProcessorParallel</WorkingDir>
+    <Sequence>FirstMRun,PP</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="Databases" type="HDF5">out_db</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">interfacedPP1</Model>
+      <Output class="DataObjects" type="HistorySet">outMC_PP</Output>
+      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="interfacedPP1" subType="ExamplePlugin.testInterfacedPP">
+      <xmlNodeExample>9</xmlNodeExample>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Databases>
+    <HDF5 name="out_db" readMode="overwrite"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="PrintHistorySet_dump">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Print name="PrintPPHistorySet_dump">
+      <type>csv</type>
+      <source>outMC_PP</source>
+    </Print>
+  </OutStreams>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC_PP">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -64,13 +64,13 @@ class HybridModelBase(Dummy):
     """
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
+    super().__init__()
     self.modelInstances        = {}                  # dictionary {modelName: modelInstance}: instances of given model
     self.sleepTime             = 0.005               # waiting time before checking if a run is finished.
     self.printTag              = 'HybridModelBase MODEL' # print tag

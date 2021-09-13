@@ -36,13 +36,13 @@ class Dummy(Model):
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
     are the output of the sampler and the output is the counter of the performed sampling
   """
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = 'DUMMY MODEL'
@@ -59,6 +59,23 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
+
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    if obj.type != self.type:
+      self.raiseAnError(IOError,'Only objects of the same type can be copied! {} != {} !'.format(obj.type, self.type))
+    try:
+      #If __getstate__ and __setstate__ available, use them
+      self.__setstate__(obj.__getstate__())
+    except AttributeError:
+      #Otherwise just use object's dictionary
+      self.__dict__.update(obj.__dict__)
 
   def _manipulateInput(self,dataIn):
     """

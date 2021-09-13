@@ -14,6 +14,7 @@
       ``TargetEvaluation'' is used to collect the inputs and outputs from the likelihood model.
       ``SolutionExport'' is used to store the posterior values for the input variables, i.e. ``xin'' and ``yin''
     </description>
+    <requirements>R-RA-9</requirements>
   </TestInfo>
 
   <RunInfo>
@@ -31,7 +32,7 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_amh" name="likelihood" subType="">
       <variables>xin, yin, zout</variables>
     </ExternalModel>
   </Models>

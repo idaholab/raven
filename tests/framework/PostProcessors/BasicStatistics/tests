@@ -66,6 +66,14 @@
     zero_threshold = 1e-14
   [../]
 
+  [./medianAndPercentile]
+    type = 'RavenFramework'
+    input = 'test_median_and_percentile.xml'
+    csv = 'median/median.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-14
+  [../]
+
   [./printXml]
     type = 'RavenFramework'
     input = 'print_xml.xml'

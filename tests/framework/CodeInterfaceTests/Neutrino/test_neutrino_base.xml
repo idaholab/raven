@@ -55,7 +55,7 @@
 
   <!--Provides the steps to run RAVEN and what to do  -->
   <Steps>
-    <MultiRun name="sampleNeutrino">
+    <MultiRun name="sampleNeutrino" clearRunDir="False">
       <Input   class="Files"       type=""          >neutrinoInput</Input>
       <Model   class="Models"      type="Code"      >neutrino</Model>
       <Sampler class="Samplers"    type="MonteCarlo"      >myMC</Sampler>
