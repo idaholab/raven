@@ -36,12 +36,14 @@
       -->
       <Metric class="Metrics" type="Metric">cdf_diff</Metric>
       <Metric class="Metrics" type="Metric">pdf_area</Metric>
+      <Metric class="Metrics" type="Metric">std_reduct</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
     <Metric name="cdf_diff" subType="CDFAreaDifference"/>
     <Metric name="pdf_area" subType="PDFCommonArea"/>
+    <Metric name="std_reduct" subType="STDReduction"/>
   </Metrics>
 
   <Distributions>
@@ -114,7 +116,7 @@
   </DataObjects>
 
   <VariableGroups>
-    <Group name="pp1_vars">pri_post_cdf_diff, pri_post_pdf_area</Group>
+    <Group name="pp1_vars">pri_post_cdf_diff, pri_post_pdf_area, pri_post_std_reduct</Group>
   </VariableGroups>
 
   <OutStreams>
