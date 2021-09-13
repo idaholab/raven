@@ -136,13 +136,9 @@ class RWD(TimeSeriesCharacterizer):
       if settings['SignatureWindowLength'] is None:
         settings['SignatureWindowLength'] = len(history)//10
       SignatureWindowLength = int(settings['SignatureWindowLength'])
-      fi = settings['FeatureIndex']
+      fi = int(settings['FeatureIndex'])
       SampleType = settings['SampleType']
       AllWindowNumber = int(len(history)-SignatureWindowLength+1)
-      print(type(AllWindowNumber))
-      print('AllWindowNumber',AllWindowNumber)
-      print(type(SignatureWindowLength))
-      print(SignatureWindowLength)
       SignatureMatrix = np.zeros((SignatureWindowLength, AllWindowNumber))
       for i in range(AllWindowNumber):
         SignatureMatrix[:,i] = np.copy(history[i:i+SignatureWindowLength])
@@ -161,26 +157,16 @@ class RWD(TimeSeriesCharacterizer):
         for i in range(WindowNumber):
           WindowIndex = sampleIndex[i]
           BaseMatrix[:,i] = np.copy(history[WindowIndex:WindowIndex+SignatureWindowLength])
-        #print('sampleIndex: ',sampleIndex)
       # Piecewise Sampling
       else:
         WindowNumber = len(history)//SignatureWindowLength
         BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
         for i in range(WindowNumber-1):
           BaseMatrix[:,i] = np.copy(history[i*SignatureWindowLength:(i+1)*SignatureWindowLength])
-
-
       U,s,V = mathUtils.computeTruncatedSingularValueDecomposition(BaseMatrix,0)
-      print('SignatureMatrix ',SignatureMatrix.shape)
-
       FeatureMatrix = U.T @ SignatureMatrix
-      print('FeatureMatrix ',FeatureMatrix.shape)
-
-
-      params[target] = {'UVec'   : U,
+      params[target] = {'UVec'   : U[:,0:fi],
                         'Feature': FeatureMatrix}
-      print('%%%%%%%%%%%%%%%%%%%%%%%%')
-      print(list(params))
     return params
 
 
@@ -191,11 +177,13 @@ class RWD(TimeSeriesCharacterizer):
       @ Out, names, list, string list of names
     """
     names = []
-    print('@@@@@@@@@@@@@@@@settings:', settings)
     for target in settings['target']:
       base = f'{self.name}__{target}'
-      names.append(f'{base}__Feature')
-      names.append(f'{base}__UVec')
+      sw = int(settings['SignatureWindowLength'])
+      fi = int(settings['FeatureIndex'])
+      for i in range(fi):
+        for j in range(sw):
+          names.append(f'{base}__UVec{i}_{j}')
 
     return names
 
@@ -208,20 +196,10 @@ class RWD(TimeSeriesCharacterizer):
     rlz = {}
     for target, info in params.items():
       base = f'{self.name}__{target}'
-      print('##################################')
-      print('##################################    target:', target)
-      print('base', base)
-      #print('info',info)
-      (m,n) = info['Feature'].shape
       (k,l) = (info['UVec']).shape
-      for j in range(m):
-        for i in range(n):
-          rlz[f'{base}__Feature{j}_{i}'] = info['Feature'][j,i]
-      print('^^^^^^^^^^^^^^^^^', info['UVec'].shape)
-      for j in range(k):
-        for i in range(l):
-          rlz[f'{base}__UVec{j}_{i}'] = info['UVec'][j,i]
-
+      for i in range(l):
+        for j in range(k):
+          rlz[f'{base}__UVec{i}_{j}'] = info['UVec'][j,i]
     return rlz
 
 
@@ -250,25 +228,17 @@ class RWD(TimeSeriesCharacterizer):
       @ In, params, dict, params from as from self.characterize
       @ Out, None
     """
-    #print('params.items(): ',type(params.items()))
-    #print('len(params.items()) ',len(params.items()))
-    #print('params.items() ',params.items())
     counter = 0
     for target, info in params.items():
       base = xmlUtils.newNode(target)
-      print('  target', target)
       writeTo.append(base)
-      print('  ', type(info["UVec"]))
-      print('  ', info["UVec"].shape)
-      U0 = info["UVec"][:,0]
-      U1 = info["UVec"][:,1]
-      counter +=1
-      print('counter', counter)
-      #base.append(xmlUtils.newNode('UVec', text=f'{float():1.9e}'))
-      for p, ar in enumerate(U0):
-        base.append(xmlUtils.newNode(f'UVec0_{p}', text=f'{float(ar):1.9e}'))
-        print(p)
-      for p, ar in enumerate(U1):
-        base.append(xmlUtils.newNode(f'UVec1_{p}', text=f'{float(ar):1.9e}'))
-      #base.append(xmlUtils.newNode('variance', text=f'{float(info["var"]):1.9e}'))
+      (m,n) = info["UVec"].shape
+      for i in range(n):
+      #U0 = info["UVec"][:,0]
+      #U1 = info["UVec"][:,1]
+        counter +=1
+        for p, ar in enumerate(U0):
+          base.append(xmlUtils.newNode(f'UVec{i}_{p}', text=f'{float(ar):1.9e}'))
+        #for p, ar in enumerate(U1):
+        #  base.append(xmlUtils.newNode(f'UVec1_{p}', text=f'{float(ar):1.9e}'))
 

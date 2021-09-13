@@ -195,7 +195,9 @@ def createRWDXML(targets, SignatureWindowLength, FeatureIndex, SampleType):
   return xml
 
 def createFromXML(xml):
-  rwd = RWD.RWD()
+  print(vars(RWD))
+  rwd = RWD()
+  
   inputSpec = rwd.getInputSpecification()()
   inputSpec.parseNode(xml)
   rwd.handleInput(inputSpec)
@@ -255,7 +257,7 @@ if 'SignatureWindowLength' not in settings:
 settings = rwd.setDefaults(settings)
 params = rwd.characterize(signals, pivot, targets, settings)
 check = params['A']#['rwd']
-
+print('check', check.keys())
 
 
 # code to generate answer
@@ -295,8 +297,8 @@ okay_feature = F[0:3,0]
 #print((check[1]).shape)
 #print(len(check[0][:,0]))
 
-checkArray('Simple RWD Basis', okay_basis, check[0][:,0], float, tol=1e-3)
-checkArray('Simple RWD Features', okay_feature, check[1][0:3,0], float, tol=1e-3)
+checkArray('Simple RWD Basis', okay_basis, check['UVec'][:,0], float, tol=1e-3)
+checkArray('Simple RWD Features', okay_feature, check['Feature'][0:3,0], float, tol=1e-3)
 checkTrue("RWD can characterize", rwd.canCharacterize())
 
 '''
