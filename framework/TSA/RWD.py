@@ -196,7 +196,7 @@ class RWD(TimeSeriesCharacterizer):
       base = f'{self.name}__{target}'
       names.append(f'{base}__Feature')
       names.append(f'{base}__UVec')
- 
+
     return names
 
   def getParamsAsVars(self, params):
@@ -223,7 +223,6 @@ class RWD(TimeSeriesCharacterizer):
           rlz[f'{base}__UVec{j}_{i}'] = info['UVec'][j,i]
 
     return rlz
-
 
 
 
