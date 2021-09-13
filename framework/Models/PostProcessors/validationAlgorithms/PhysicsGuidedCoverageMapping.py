@@ -60,7 +60,7 @@ class PhysicsGuidedCoverageMapping(Validation):
     super().__init__()
     self.printTag = 'POSTPROCESSOR PhysicsGuidedCoverageMapping'
     self.dynamicType = ['static','dynamic'] #  for now only static is available
-    self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea"] #  acceptable metrics
+    self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea", "STDReduction"] #  acceptable metrics
     self.name = 'PhysicsGuidedCoverageMapping'
     # self.pivotParameter = None
 
@@ -135,10 +135,10 @@ class PhysicsGuidedCoverageMapping(Validation):
 
       # Virtual Measurement
       msr_mean = 0.0
-      msr_std = 0.01
+      msr_std = 0.1*np.std(yapp_std)
       msr_numSmpl = 1000
       ymsr = np.random.normal(msr_mean, msr_std, msr_numSmpl)
-      binMsr = 100
+      binMsr = msr_numSmpl//20
       pdf_ymsr, bin_ymsr = np.histogram(ymsr, binMsr, range=(xmin, xmax), density=True)
 
       # yapp_pred by integrating f(yexp, yapp)dyexp * f(yexp)
