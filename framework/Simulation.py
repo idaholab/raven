@@ -87,12 +87,17 @@ class SimulationMode(MessageUser):
       @ Out, dictionary to use for modifications.  If empty, no changes
     """
     import multiprocessing
+    newRunInfo = {}
     try:
       if multiprocessing.cpu_count() < runInfoDict['batchSize']:
         self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",runInfoDict['batchSize'])
     except NotImplementedError:
       pass
-    return {}
+    if runInfoDict['NumThreads'] > 1:
+       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
+       #add number of threads to the post command.
+       newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
+    return newRunInfo
 
   def XMLread(self,xmlNode):
     """
