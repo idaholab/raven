@@ -62,6 +62,7 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
   rows = []  # list to record the results
   cnt = 0
   # simulation loop
+  print("Starting loop")
   while time < stop_time:
     # set the input
     fmu.setReal([vr_y1], [y1[cnt]])
@@ -69,6 +70,7 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
     cnt+=1
 
     # perform one step
+    print("starting step")
     fmu.doStep(currentCommunicationPoint=time, communicationStepSize=step_size)
 
     # get the values for 'inputs' and 'outputs[4]'
