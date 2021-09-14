@@ -60,6 +60,14 @@ def run(self,Input):
   self.y1 += 0.05
   self.ans  = evaluate([self.y1,self.y2])
 
+def runStep(self, Input):
+  print("in runStep")
+  self.y1 += 0.05
+  self.ans = evaluate([self.y1, self.y2])
+  self.fromInit = 5.0
+  self.fromCNIDict = 6.0
+  self.fromCNISelf = 7.0
+  print("exiting runStep")
 #
 #  This model has analytic mean and variance documented in raven/docs/tests
 #

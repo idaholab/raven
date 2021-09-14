@@ -95,7 +95,9 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
     plot_result(result)
   result = np.atleast_2d(result)
   print(result[0],result.shape)
-  np.savetxt(outputFileName, result)
+  #np.savetxt(outputFileName, result)
+  open(outputFileName, "w").write(str(result))
+  print("result", result)
   return time
 
 if __name__ == '__main__':
