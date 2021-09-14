@@ -62,11 +62,11 @@ class AcceleratedCFD(CodeInterfaceBase):
         coordinates = coords.text.split()
         cds = []
         for coord in coordinates:
-          if "(" not in coord or ")" not in coord:
-            raise IOError("<coordinates> must be inputted with the foloowing format (x1,y1,z1) ")
+          if not coord.startswith("(") or not coord.endswith(")"):
+            raise IOError("<coordinates> must be inputted with the following format (x1,y1,z1) ")
           xyz = [c.strip() for c in coord.replace(")","").replace("(","").split(",")]
           if len(xyz) != 3:
-            raise IOError("<coordinates> must be inputted with the foloowing format (x1,y1,z1) (x2,y2,z2) etc ")
+            raise IOError("<coordinates> must be inputted with the following format (x1,y1,z1) (x2,y2,z2) etc ")
           cds.append(xyz)
         self.locations['inputCoords'] = np.atleast_2d(np.asarray(cds, dtype=object))
 
@@ -203,7 +203,7 @@ class AcceleratedCFD(CodeInterfaceBase):
 
   def readFoamFile(self, filename):
     """
-      This method is aimed to read a Open Faom file for accelerated CFD
+      This method is aimed to read a Open Foam file for accelerated CFD
       @ In, filename, str, the file name
       @ Out, content, dict, the open foam output content
     """
@@ -260,16 +260,19 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     # open output file
+    # resulting folder of processor*
     resultFolders = glob.glob(os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"processor*"))
     numberOfProcs = len(resultFolders)
     resultFolders.sort()
     resultFolder =  resultFolders[0]
     results = {}
+    # resulting folder of ./processor*/time/
     resultingDirs = [os.path.join(resultFolder, o) for o in os.listdir(resultFolder)
                         if os.path.isdir(os.path.join(resultFolder,o))]
     resultingDirs.sort()
     timeList = []
     tsDirs =  resultingDirs
+    # read time
     for ts in resultingDirs:
       try:
         time = float(ts.split(os.path.sep)[-1])
@@ -283,6 +286,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       refDict =  ts
       fieldVector, fieldScalar = None, None
       for proc in range(numberOfProcs):
+        # read field vector from ./processor*/time/Urom
         whereToRead =  refDict.replace("processor0", "processor"+str(proc))
         if os.path.exists(os.path.join(whereToRead, "Urom")):
           settingsVector, fieldVect = self.readFoamFile(os.path.join(whereToRead, "Urom"))
@@ -290,6 +294,7 @@ class AcceleratedCFD(CodeInterfaceBase):
             fieldVector = fieldVect
           else:
             fieldVector = np.concatenate((fieldVector, fieldVect), axis=0)
+        # read field scalar from ./processor*/time/srom
         if os.path.exists(os.path.join(whereToRead, "srom")):
           settingsScalar, fieldScal = self.readFoamFile(os.path.join(whereToRead, "srom"))
           if fieldVector is None:
@@ -299,6 +304,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       time =  float(settingsVector['location'])
       indx = findNearest(timeList, time)
       results["time"][indx] = time
+      # read values of coordinates given by user from fieldVector
       if fieldVector is not None:
         for i in range(len(self.locations["loc"])):
           cord = settingsVector['class'] + "-"
@@ -311,6 +317,7 @@ class AcceleratedCFD(CodeInterfaceBase):
             if variableName not in results:
               results[variableName] = np.zeros(len(timeList))
             results[variableName][indx] = val
+      # read values of scalar variables from fieldScalar
       if fieldScalar is not None:
         for i in range(len(self.locations["loc"])):
           cord = settingsScalar['class'] + "-"
@@ -321,6 +328,7 @@ class AcceleratedCFD(CodeInterfaceBase):
           if variableName not in results:
             results[variableName] = np.zeros(len(timeList))
           results[variableName][indx] = val
+      # process post-processing file for rom
       ppRomFile = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"postProcessing","probe","0","Urom")
       if os.path.exists(ppRomFile):
         datai = pd.read_csv(ppRomFile,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
