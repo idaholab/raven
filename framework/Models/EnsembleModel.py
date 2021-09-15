@@ -734,7 +734,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
-        excType, excValue, excTrace = finishedRun.exceptionTrace
+        excType, excValue, excTrace = finishedRun[0].exceptionTrace
         e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):

@@ -40,6 +40,12 @@
    csv = 'csv/output.csv'
  [../]
 
+ [./LoadXlsCsv]
+   type = 'RavenFramework'
+   input = 'load_xls_csv.xml'
+   csv = 'LoadXlsCsv/reprint.csv'
+ [../]
+
  [./load_csv_history]
    type = 'RavenFramework'
    input = 'test_load_csv_history.xml'
