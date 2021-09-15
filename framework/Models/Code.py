@@ -620,7 +620,6 @@ class Code(Model):
           outputFile = finalCodeOutput
         else:
           returnDict = finalCodeOutput
-
     ## If the run was successful
     if returnCode == 0:
       ## This may be a tautology at this point --DPM 4/12/17
