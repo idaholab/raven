@@ -14,7 +14,7 @@
 """
 Created on August 31, 2020
 
-@author: Andrea Alfonsi
+@author: Andrea Alfonsi, Congjian Wang
 
 comments: Interface for AccelerateCFD
 """
@@ -28,17 +28,7 @@ from sklearn import neighbors
 from OpenFoamPP import fieldParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
-
-def findNearest(array, value):
-  """
-    Find nearest value
-    @ In, array, numpy array, the array
-    @ In, value, float/int, the pivot value
-    @ Out, idx, int, the index
-  """
-  array = np.asarray(array)
-  idx = (np.abs(array - value)).argmin()
-  return idx
+from utils import mathUtils
 
 class AcceleratedCFD(CodeInterfaceBase):
   """
@@ -99,7 +89,8 @@ class AcceleratedCFD(CodeInterfaceBase):
             v = operator(coordsLocal[coord][1])
           else:
             v = float(self.locations["inputCoords"][i, map[coord]])
-          self.locations["coords"][i, map[coord]] = coordsLocal[coord][1][findNearest(coordsLocal[coord][1],v)]
+          idx, _ = mathUtils.numpyNearestMatch(coordsLocal[coord][1],v)
+          self.locations["coords"][i, map[coord]] = coordsLocal[coord][1][idx]
       if inputFile.getType().lower() == 'input':
         with open(inputFile.getAbsFile(), "r") as inputObj:
           xml = inputObj.read()
@@ -302,7 +293,7 @@ class AcceleratedCFD(CodeInterfaceBase):
           else:
             fieldScalar = np.concatenate((fieldScalar, fieldScal), axis=0)
       time =  float(settingsVector['location'])
-      indx = findNearest(timeList, time)
+      indx, _ = mathUtils.numpyNearestMatch(timeList, time)
       results["time"][indx] = time
       # read values of coordinates given by user from fieldVector
       if fieldVector is not None:
