@@ -97,11 +97,11 @@ class Dummy(Model):
       @ In, dataIn, object, the object that needs to be manipulated
       @ Out, localInput, dict, the manipulated input
     """
-    #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
-    if  type(dataIN).__name__ !='dict':
+    # FIXME wondering if a dictionary compatibility should be kept - Dan M.
+    if not isinstance(dataIN, dict):
       if dataIN.type not in self.admittedData:
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
-    if type(dataIN)!=dict:
+    if not isinstance(dataIN, dict):
       #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
       localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
       if not len(dataIN) == 0:
@@ -109,7 +109,7 @@ class Dummy(Model):
         if dataIN.type == 'PointSet':
           for entries in dataIN.getVars('input')+dataIN.getVars('output'):
             localInput[entries] = copy.copy(dataSet[entries].values)
-        else:
+        elif dataIN.type == 'HistorySet':
           sizeIndex = 0
           for hist in range(len(dataIN)):
             for indexes in dataIN.indexes+dataIN.getVars('output'):
@@ -122,6 +122,17 @@ class Dummy(Model):
                 localInput[entries] = []
               value = dataSet.isel(**{dataIN.sampleTag:hist})[entries].values
               localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
+        elif dataIN.type == 'DataSet':
+          for rlz in range(len(dataIN)):
+            for index in dataIN.indexes:
+              if localInput[index] is None:
+                localInput[index] = []
+              localInput[index].append(dataSet.isel(RAVEN_sample_ID=rlz)[index].values)
+            for entry in dataIN.getVars('input') + dataIN.getVars('output'):
+              if localInput[entry] is None:
+                localInput[entry] = []
+              value = dataSet.isel({dataIN.sampleTag: rlz})[entry].values
+              localInput[entry].append(value)
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
