@@ -173,31 +173,31 @@ class BasicStatistics(PostProcessorReadyInterface):
     #   return currentInput
     # TODO: convert dict to dataset, I think this will be removed when DataSet is used by other entities that
     # are currently using this Basic Statisitics PostProcessor.
-    if type(currentInput).__name__ == 'dict':
-      if 'targets' not in self.parameters: #currentInput.keys():
-        self.raiseAnError(IOError, 'Did not find targets in the input dictionary')
-      inputDataset = xr.Dataset()
-      for var in self.parameters['targets']:
-        inputDataset[var] = currentInput['Data'][0][-1][var]
-      self.pbPresent = True if 'ProbabilityWeight' in currentInput['Data'][0][-1] else False
-      if self.pbPresent:
-        pbWeights = xr.Dataset()
-        self.realizationWeight = xr.Dataset()
-        self.realizationWeight['ProbabilityWeight'] = currentInput['Data'][0][-1]['ProbabilityWeight']/currentInput['Data'][0][-1]['ProbabilityWeight'].sum()
-        for target in self.parameters['targets']:
-          pbName = 'ProbabilityWeight-' + target
-          if pbName in currentInput['Data'][0][-1]:
-            pbWeights[target] = currentInput['Data'][0][-1][pbName]/currentInput['Data'][0][-1][pbName].sum()
-          elif self.pbPresent:
-            pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-      else:
-        self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-    else:
-      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-    if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
-      self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
-      self.sampleTag = utils.first(inputDataset.sizes.keys())
-    return inputDataset, pbWeights
+    # if type(currentInput).__name__ == 'dict':
+    #   if 'targets' not in self.parameters: #currentInput.keys():
+    #     self.raiseAnError(IOError, 'Did not find targets in the input dictionary')
+    #   inputDataset = xr.Dataset()
+    #   for var in self.parameters['targets']:
+    #     inputDataset[var] = currentInput['Data'][0][-1][var]
+    #   self.pbPresent = True if 'ProbabilityWeight' in currentInput['Data'][0][-1] else False
+    #   if self.pbPresent:
+    #     pbWeights = xr.Dataset()
+    #     self.realizationWeight = xr.Dataset()
+    #     self.realizationWeight['ProbabilityWeight'] = currentInput['Data'][0][-1]['ProbabilityWeight']/currentInput['Data'][0][-1]['ProbabilityWeight'].sum()
+    #     for target in self.parameters['targets']:
+    #       pbName = 'ProbabilityWeight-' + target
+    #       if pbName in currentInput['Data'][0][-1]:
+    #         pbWeights[target] = currentInput['Data'][0][-1][pbName]/currentInput['Data'][0][-1][pbName].sum()
+    #       elif self.pbPresent:
+    #         pbWeights[target] = self.realizationWeight['ProbabilityWeight']
+    #   else:
+    #     self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+    # else:
+    #   self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+    # if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
+    #   self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
+    #   self.sampleTag = utils.first(inputDataset.sizes.keys())
+    # return inputDataset, pbWeights
 
       # if 'metadata' in currentInput.keys():
       #   metadata = currentInput['metadata']
@@ -226,9 +226,10 @@ class BasicStatistics(PostProcessorReadyInterface):
 
     # extract all required data from input DataObjects, an input dataset is constructed
     # dataSet = currentInput.asDataset()
-    dataSet = currentInput.asDataset()
+    dataSet = currentInput['Data'][0][-1]
+    dataSet['sampleTag'] = self.sampleTag
     try:
-      inputDataset = dataSet['Data'][self.parameters['targets']]
+      inputDataset = dataSet[self.parameters['targets']]
     except KeyError:
       missing = [var for var in self.parameters['targets'] if var not in dataSet]
       self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),dataSet.name))
@@ -261,6 +262,41 @@ class BasicStatistics(PostProcessorReadyInterface):
           pbWeights[target] = self.realizationWeight['ProbabilityWeight']
     else:
       self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+    # self.sampleTag = dataSet.sampleTag
+
+    # if currentInput.type == 'HistorySet':
+    #   dims = inputDataset.sizes.keys()
+    #   if self.pivotParameter is None:
+    #     if len(dims) > 1:
+    #       self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
+    #             got inputted!')
+    #   elif self.pivotParameter not in dims:
+    #     self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
+    #             requested variables', ','.join(self.parameters['targets']))
+    #   else:
+    #     self.dynamic = True
+    #     if not dataSet.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+    #       self.raiseAnError(IOError, "The data provided by the data objects", dataSet.name, "is not synchronized!")
+    #     self.pivotValue = inputDataset[self.pivotParameter].values
+    #     if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
+    #       msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+    #       " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
+    #       self.raiseAnError(IOError, msg)
+    # extract all required meta data
+    # metaVars = dataSet.getVars('meta')
+    # self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
+    # if self.pbPresent:
+    #   pbWeights = xr.Dataset()
+    #   self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
+    #   for target in self.parameters['targets']:
+    #     pbName = 'ProbabilityWeight-' + target
+    #     if pbName in metaVars:
+    #       pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
+    #     elif self.pbPresent:
+    #       pbWeights[target] = self.realizationWeight['ProbabilityWeight']
+    # else:
+    #   self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+
     return inputDataset, pbWeights
 
   def initialize(self, runInfo, inputs, initDict):

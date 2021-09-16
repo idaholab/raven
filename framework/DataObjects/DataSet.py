@@ -1153,6 +1153,8 @@ class DataSet(DataObject):
       return new
     elif action == 'replace':
       self._data = new
+
+      # general metadata included if first time
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
