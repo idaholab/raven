@@ -19,6 +19,8 @@ OSDIR=""
 DIRB="./pythonfmu/resources/binaries"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   OSDIR="linux64"
+elif [[ "$OSTYPE" == "linux" ]]; then
+  OSDIR="linux64"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   OSDIR="darwin64"
 elif [[ "$OSTYPE" == "cygwin" ]]; then
