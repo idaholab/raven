@@ -1153,7 +1153,6 @@ class DataSet(DataObject):
       return new
     elif action == 'replace':
       self._data = new
-      # general metadata included if first time
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
@@ -1177,7 +1176,8 @@ class DataSet(DataObject):
                                          'pointwise_meta':','.join(sorted(self._metavars)),
                                          'datasetName':self.name
       }})
-      self._data.attrs = self._meta
+      # general metadata included if first time
+      self._data.attrs = self._meta # appears to NOT be a reference
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
