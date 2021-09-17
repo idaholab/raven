@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
@@ -25,14 +23,14 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes, utils, mathUtils
 import LearningGate
 import GridEntities
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LimitSurface(PostProcessor):
+class LimitSurface(PostProcessorInterface):
   """
     LimitSurface filter class. It computes the limit surface associated to a dataset
   """
@@ -47,7 +45,7 @@ class LimitSurface(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurface, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputTypes.StringType)
     inputSpecification.addSub(ParametersInput)
@@ -70,13 +68,13 @@ class LimitSurface(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self,runInfoDict)
+    super().__init__()
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = OrderedDict()    #This is the n-dimensional matrix representing the testing grid
@@ -122,11 +120,11 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
+    super().initialize(runInfo, inputs, initDict)
+    self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity")
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
+      self.ROM = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
@@ -234,7 +232,7 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
 
@@ -304,7 +302,7 @@ class LimitSurface(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value
@@ -339,7 +337,7 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
-    if self.getLocalVerbosity() == 'debug':
+    if self.getVerbosity() == 'debug':
       self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
@@ -385,7 +383,7 @@ class LimitSurface(PostProcessor):
       toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
-      if self.getLocalVerbosity() == 'debug':
+      if self.getVerbosity() == 'debug':
         for coordinate in np.rollaxis(toBeTested, 0):
           myStr = ''
           for iVar, varnName in enumerate(self.axisName):
@@ -405,7 +403,7 @@ class LimitSurface(PostProcessor):
         nPosPoints = len(listSurfPointPositive)
       listSurfPoint[nodeName] = listSurfPointNegative + listSurfPointPositive
       #printing----------------------
-      if self.getLocalVerbosity() == 'debug':
+      if self.getVerbosity() == 'debug':
         if len(listSurfPoint[nodeName]) > 0:
           self.raiseADebug('LimitSurface: Limit surface points:')
         for coordinate in listSurfPoint[nodeName]:

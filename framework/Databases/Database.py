@@ -31,12 +31,11 @@ import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import utils
+from BaseClasses import BaseEntity, InputDataUser
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DateBase(BaseType):
+class DateBase(BaseEntity, InputDataUser):
   """
     class to handle a database,
     Used to add and retrieve attributes and values from said database
@@ -51,29 +50,39 @@ class DateBase(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(DateBase, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addParam("directory", InputTypes.StringType)
     inputSpecification.addParam("filename", InputTypes.StringType)
     inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.database = None                # Database object
     self.exist = False                  # does it exist?
     self.built = False                  # is it built?
     self.filename = ""                  # filename
-    self.workingDir  = runInfoDict['WorkingDir']
-    self.databaseDir = self.workingDir  # Database directory. Default = working directory.
+    self.workingDir  = None             # RAVEN working dir
+    self.databaseDir = None             # Database directory. Default = working directory.
     self.printTag = 'DATABASE'          # For printing verbosity labels
     self.variables = None               # if not None, list of specific variables requested to be stored by user
     self._extension = '.db'             # filetype extension to use, if no filename given
+
+  def applyRunInfo(self, runInfo):
+    """
+      Use RunInfo
+      @ In, runInfo, dict, run info
+      @ Out, None
+    """
+    super().applyRunInfo(runInfo)
+    self.workingDir = runInfo['WorkingDir']
+    self.databaseDir = self.workingDir
 
   def _handleInput(self, paramInput):
     """

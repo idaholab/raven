@@ -42,7 +42,7 @@ class Parallel(object):
       functionName.remote(*args, **kwargs)
     - if ray is available and direct call to the function is needed,
       the original function (or class) will need to be called as following:
-      functionName._function(*args, **kwargs)
+      functionName.original_function(*args, **kwargs)
     - if ray is not available,
       the original function (or class) will need to be called as following:
       functionName(*args, **kwargs)

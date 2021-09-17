@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/GeneticAlgorithms/knapsackMultipleDist</name>
+    <author>mandd</author>
+    <created>2021-07-14</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      This test is designed to find the optimal solution of a heterogenous knapsack problem.
+      This test is design to handle multiple distributions
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>knapsackMultipleDist</WorkingDir>
+    <Sequence>opt, print</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="opt" re-seeding="2286">
+      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
+      <Model          class="Models"      type="ExternalModel"    >hetKbase</Model>
+      <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
+      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
+      <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
+      <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
+      <Output class="OutStreams"   type="Print"     >PrintOptOut_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <UniformDiscrete name="unif_dist_wRepl_low">
+      <lowerBound>0</lowerBound>   
+      <upperBound>4</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+     <UniformDiscrete name="unif_dist_wRepl_med">
+      <lowerBound>10</lowerBound>   
+      <upperBound>14</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <UniformDiscrete name="unif_dist_wRepl_high">
+      <lowerBound>100</lowerBound>   
+      <upperBound>104</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAoptimizer">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>10</populationSize>
+        <reproduction nParents="6">
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.1</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="logistic">
+          <a>0.2</a>
+          <b>13.0</b>
+        </fitness>
+        <parentSelection>rouletteWheel</parentSelection>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="proj1">
+        <distribution>unif_dist_wRepl_low</distribution>
+        <initial>0,1,2,3,4,0,1,2,3,4</initial>
+      </variable>
+      <variable name="proj2">
+        <distribution>unif_dist_wRepl_med</distribution>
+        <initial>12,13,14,10,11,12,13,14,10,11,</initial>
+      </variable>
+      <variable name="proj3">
+        <distribution>unif_dist_wRepl_high</distribution>
+        <initial>101,102,103,104,100,101,102,103,104,100</initial>
+      </variable>
+
+      <objective>planValue</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="heterogKnapsackModel" name="hetKbase" subType="">
+      <variables>proj1,proj2,proj3,planValue,validPlan</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>proj1,proj2,proj3</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
+    <PointSet name="MCOut">
+      <Input>proj1,proj2,proj3</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>proj1,proj2,proj3</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="PrintOptOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="PrintMCOut">
+      <type>csv</type>
+      <source>MCOut</source>
+    </Print>
+    <Print name="PrintOptOut_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

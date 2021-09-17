@@ -22,9 +22,8 @@
   
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID inv="False" >cost</costID>
-      <valueID inv="False" >value</valueID>
-      <valueLimit type="lower">0.5</valueLimit>
+      <objective goal='min'>cost</objective>
+      <objective goal='max' lowerLimit='0.5'>value</objective>
     </PostProcessor>   
   </Models>
 

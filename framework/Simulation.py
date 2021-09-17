@@ -14,26 +14,17 @@
 """
 Module that contains the driver for the whole the simulation flow (Simulation Class)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import xml.etree.ElementTree as ET
 import os,subprocess
-import math
 import sys
 import io
 import string
 import datetime
 import numpy as np
 import threading
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-import MessageHandler
-# NOTE: always import plugin factory first, before other Entities!
-import PluginFactory
+import MessageHandler # this needs to happen early to instantiate message handler
+from BaseClasses import MessageUser
 import Steps
 import DataObjects
 import Files
@@ -46,34 +37,32 @@ import Databases
 import Functions
 import OutStreams
 from JobHandler import JobHandler
-import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
 import Decorators
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
   from Application import InteractiveApplication
-#Internal Modules End--------------------------------------------------------------------------------
 
 # Load up plugins!
 # -> only available on specially-marked base types
 Models.Model.loadFromPlugins()
 
 #----------------------------------------------------------------------------------------------------
-class SimulationMode(MessageHandler.MessageUser):
+class SimulationMode(MessageUser):
   """
     SimulationMode allows changes to the how the simulation
     runs are done.  modifySimulation lets the mode change runInfoDict
     and other parameters.  remoteRunCommand lets a command to run RAVEN
     remotely be specified.
   """
-  def __init__(self,messageHandler):
+  def __init__(self, *args):
     """
       Constructor
-      @ In, messageHandler, instance, instance of the MessageHandler class
+      @ In, args, list, unused positional arguments
       @ Out, None
     """
-    self.messageHandler = messageHandler
+    super().__init__()
     self.printTag = 'SIMULATION MODE'
 
   def remoteRunCommand(self, runInfoDict):
@@ -98,12 +87,17 @@ class SimulationMode(MessageHandler.MessageUser):
       @ Out, dictionary to use for modifications.  If empty, no changes
     """
     import multiprocessing
+    newRunInfo = {}
     try:
       if multiprocessing.cpu_count() < runInfoDict['batchSize']:
         self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",runInfoDict['batchSize'])
     except NotImplementedError:
       pass
-    return {}
+    if runInfoDict['NumThreads'] > 1:
+       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
+       #add number of threads to the post command.
+       newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
+    return newRunInfo
 
   def XMLread(self,xmlNode):
     """
@@ -156,7 +150,7 @@ def splitCommand(s):
 #
 #
 #-----------------------------------------------------------------------------------------------------
-class Simulation(MessageHandler.MessageUser):
+class Simulation(MessageUser):
   """
     This is a class that contain all the object needed to run the simulation
     Usage:
@@ -177,7 +171,7 @@ class Simulation(MessageHandler.MessageUser):
      of the base class of the module: <MyModule>=<myClass>+'s'.
      The base class of the module is by convention named as the new type of simulation component <myClass>.
      The module should contain a set of classes named <myType> that are child of the base class <myClass>.
-     The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
+     The module should possess a function <MyModule>.factory.returnInstance('<myType>') that returns a pointer to the class <myType>.
     Add in Simulation.__init__ the following
      self.<myClass>Dict = {}
      self.entityModules['<myClass>'] = <MyModule>
@@ -201,7 +195,7 @@ class Simulation(MessageHandler.MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all',interactive=Interaction.No):
+  def __init__(self, frameworkDir, verbosity='all', interactive=Interaction.No):
     """
       Constructor
       @ In, frameworkDir, string, absolute path to framework directory
@@ -210,15 +204,14 @@ class Simulation(MessageHandler.MessageUser):
         an interactive UI or to run to completion without human interaction
       @ Out, None
     """
+    super().__init__()
     self.FIXME          = False
     #set the numpy print threshold to avoid ellipses in array truncation
     np.set_printoptions(threshold=np.inf)
-    #establish message handling: the error, warning, message, and debug print handler
-    self.messageHandler = MessageHandler.MessageHandler()
-    self.verbosity      = verbosity
-    callerLength        = 25
-    tagLength           = 15
-    suppressErrs        = False
+    self.verbosity = verbosity
+    callerLength = 25
+    tagLength = 15
+    suppressErrs = False
     self.messageHandler.initialize({'verbosity':self.verbosity,
                                     'callerLength':callerLength,
                                     'tagLength':tagLength,
@@ -227,34 +220,42 @@ class Simulation(MessageHandler.MessageUser):
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'   #Default input file to use
-    self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
+    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'    #Default input file to use
+    self.runInfoDict['SimulationFiles'   ] = []            #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
-    self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['FrameworkDir'      ] = frameworkDir  # the directory where the framework is located
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
-    self.runInfoDict['NodeParameter'     ] = '-f'         # the parameter used to specify the files where the nodes are listed
-    self.runInfoDict['MPIExec'           ] = 'mpiexec'    # the command used to run mpi commands
-    self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
-    self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
-    self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
-    self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
-    self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
-    self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
-    self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
-    self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
-    self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
-    self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
-    self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
-    self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
-    self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
-    self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
-    self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
-    self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
-    self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
+    self.runInfoDict['NodeParameter'     ] = '-f'          # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
+    self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'# the command used to run multi-threading commands.
+                                                                  # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
+                                                                  # that require the num of threads to be inputted without a
+                                                                  # blank space we can have something like --my-nthreads=%NUM_CPUS%
+                                                                  # (e.g. --my-nthreads=10), otherwise we can have something like
+                                                                  # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
+                                                                  # space is always added (e.g. --mycommand => --mycommand 10)
+    self.runInfoDict['includeDashboard'  ] = False        # in case of internalParalle True, instanciate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
+    self.runInfoDict['WorkingDir'        ] = ''            # the directory where the framework should be running
+    self.runInfoDict['TempWorkingDir'    ] = ''            # the temporary directory where a simulation step is run
+    self.runInfoDict['NumMPI'            ] = 1             # the number of mpi process by run
+    self.runInfoDict['NumThreads'        ] = 1             # Number of Threads by run
+    self.runInfoDict['numProcByRun'      ] = 1             # Total number of core used by one run (number of threads by number of mpi)
+    self.runInfoDict['batchSize'         ] = 1             # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False         # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['ParallelCommand'   ] = ''            # the command that should be used to submit jobs in parallel (mpi)
+    self.runInfoDict['ThreadingCommand'  ] = ''            # the command should be used to submit multi-threaded
+    self.runInfoDict['totalNumCoresUsed' ] = 1             # total number of cores used by driver
+    self.runInfoDict['queueingSoftware'  ] = ''            # queueing software name
+    self.runInfoDict['stepName'          ] = ''            # the name of the step currently running
+    self.runInfoDict['precommand'        ] = ''            # Add to the front of the command that is run
+    self.runInfoDict['postcommand'       ] = ''            # Added after the command that is run.
+    self.runInfoDict['delSucLogFiles'    ] = False         # If a simulation (code run) has not failed, delete the relative log file (if True)
+    self.runInfoDict['deleteOutExtension'] = []            # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
+    self.runInfoDict['mode'              ] = ''            # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
+    self.runInfoDict['Nodes'             ] = []            # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
+    self.runInfoDict['expectedTime'      ] = '10:00:00'    # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
-    self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
+    self.runInfoDict['clusterParameters' ] = []            # Extra parameters to use with the qsub command.
     self.runInfoDict['maxQueueSize'      ] = None
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
@@ -297,7 +298,6 @@ class Simulation(MessageHandler.MessageUser):
     self.entityModules['Metrics'          ] = Metrics
     self.entityModules['OutStreams'       ] = OutStreams
 
-
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
     self.entities['Steps'           ] = self.stepsDict
@@ -318,14 +318,14 @@ class Simulation(MessageHandler.MessageUser):
     ## Interaction.No will evaluate to true here and correctly make the
     ## interactive app.
     if interactive:
-      self.app = InteractiveApplication([],self.messageHandler, interactive)
+      self.app = InteractiveApplication([], interactive)
     else:
       self.app = None
 
     #the handler of the runs within each step
-    self.jobHandler    = JobHandler()
+    self.jobHandler = JobHandler()
     #handle the setting of how the jobHandler act
-    self.__modeHandler = SimulationMode(self.messageHandler)
+    self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
@@ -415,7 +415,7 @@ class Simulation(MessageHandler.MessageUser):
     varGroupNode = xmlNode.find('VariableGroups')
     # init, read XML for variable groups
     if varGroupNode is not None:
-      varGroups = mathUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+      varGroups = mathUtils.readVariableGroups(varGroupNode)
     else:
       varGroups={}
     # read other nodes
@@ -424,47 +424,37 @@ class Simulation(MessageHandler.MessageUser):
         continue #we did these before the for loop
       xmlUtils.replaceVariableGroups(child, varGroups)
       if child.tag in self.entities:
+        className = child.tag
+        # we already took care of RunInfo block
+        if className in ['RunInfo']:
+          continue
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
-        Class = child.tag
         if len(child.attrib) == 0:
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-        if Class not in ['RunInfo'] and "returnInputParameter" in self.entityModules[Class].__dict__:
-          paramInput = self.entityModules[Class].returnInputParameter()
+        module = self.entityModules[className]
+        if module.factory.returnInputParameter:
+          paramInput = module.returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
             childName = childChild.getName()
-            if "name" not in childChild.parameterValues:
-              self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
-            name = childChild.parameterValues["name"]
-            if "needsRunInfo" in self.entityModules[Class].__dict__:
-              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self.runInfoDict,self)
-            else:
-              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self)
-            self.entities[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
-        elif Class != 'RunInfo':
+            entity = module.factory.returnInstance(childName)
+            entity.applyRunInfo(self.runInfoDict)
+            entity.handleInput(childChild, globalAttributes=globalAttributes)
+            name = entity.name
+            self.entities[className][name] = entity
+        else:
           for childChild in child:
-            subType = childChild.tag
-            if 'name' in childChild.attrib.keys():
-              name = childChild.attrib['name']
-              self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
-              #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
-              #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              #if name not in self.entities[Class].keys():  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
-              if name not in self.entities[Class]:
-                if "needsRunInfo" in self.entityModules[Class].__dict__:
-                  if childChild.tag == 'PostProcessor':
-                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.attrib['subType'],self.runInfoDict,self)
-                  else:
-                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self.runInfoDict,self)
-                else:
-                  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
-              else:
-                self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
-              self.entities[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
-            else:
-              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
+            kind, name, entity = module.factory.instanceFromXML(childChild)
+            self.raiseADebug(f'Reading class "{kind}" named "{name}" ...')
+            #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
+            #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
+            if name in self.entities[className]:
+              self.raiseAnError(IOError, f'Two objects of class "{className}" have the same name "{name}"!')
+            self.entities[className][name] = entity
+            entity.applyRunInfo(self.runInfoDict)
+            entity.readXML(childChild, varGroups, globalAttributes=globalAttributes)
       else:
         #tag not in entities, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -512,7 +502,8 @@ class Simulation(MessageHandler.MessageUser):
     for key in newRunInfo:
       #Copy in all the new keys
       self.runInfoDict[key] = newRunInfo[key]
-    self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
+    self.jobHandler.applyRunInfo(self.runInfoDict)
+    self.jobHandler.initialize()
     # only print the dictionaries when the verbosity is set to debug
     #if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
@@ -577,6 +568,8 @@ class Simulation(MessageHandler.MessageUser):
           self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        self.runInfoDict['InputDir'] = xmlDirectory
         if os.path.isabs(tempName):
           self.runInfoDict['WorkingDir'] = tempName
         elif "runRelative" in element.attrib:
@@ -608,6 +601,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['NodeParameter'] = element.text.strip()
       elif element.tag == 'MPIExec':
         self.runInfoDict['MPIExec'] = element.text.strip()
+      elif element.tag == 'threadParameter':
+        self.runInfoDict['threadParameter'] = element.text.strip()
       elif element.tag == 'JobName':
         self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand':
@@ -624,6 +619,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'internalParallel':
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
+        dashboard = element.attrib.get("dashboard",'False')
+        self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
@@ -636,6 +633,14 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
+      elif element.tag == 'headNode':
+        self.runInfoDict['headNode'] = element.text.strip()
+      elif element.tag == 'redisPassword':
+        self.runInfoDict['redisPassword'] = element.text.strip()
+      elif element.tag == 'remoteNodes':
+        self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'PYTHONPATH':
+        self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True
@@ -649,7 +654,7 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
-          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self.messageHandler)
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
           self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
@@ -723,6 +728,8 @@ class Simulation(MessageHandler.MessageUser):
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
                       env=remoteRunCommand.get("env", None))
+      self.raiseADebug('Submitted in queue! Shutting down Jobhandler!')
+      self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
@@ -765,7 +772,7 @@ class Simulation(MessageHandler.MessageUser):
     self.messageHandler.printWarnings()
     # implicitly, the job finished successfully if we got here.
     self.writeStatusFile()
-    self.raiseAMessage('Run complete!',forcePrint=True)
+    self.raiseAMessage('Run complete!', forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
     """

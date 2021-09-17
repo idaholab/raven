@@ -32,6 +32,3 @@ try:
 except (AttributeError, ImportError):
   print('Unable to load "memoryProfile" decorator; replacing with passthrough ...')
   memoryProfile = lambda f: f
-
-__all__ = ['Parallelization'] # note this is disallowed for use in RAVEN
-

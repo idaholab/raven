@@ -16,26 +16,19 @@ Created on Feb 16, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
 import sys
 import copy
 import abc
 import json
 import itertools
 import numpy as np
-#External Modules End--------------------------------------------------------------------------------
+from BaseClasses.InputDataUser import InputDataUser
 
-#Internal Modules------------------------------------------------------------------------------------
 from utils import utils,randomUtils,InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import BaseEntity, Assembler
 
-class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
   """
     This is the base class for samplers
     Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution.
@@ -51,7 +44,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Sampler, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
     # -> it's also in the base class ...
@@ -202,8 +195,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    Assembler.__init__(self)
+    super().__init__()
     self.batch                         = 1                         # determines the size of each sampling batch to run
     self.onlySampleAfterCollecting     = True                     # if True, then no new samples unless collection has occurred
     self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?

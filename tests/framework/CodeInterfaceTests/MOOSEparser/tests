@@ -5,5 +5,11 @@
     text = 'parser_moose/1/MOOSE_parser.i parser_moose/2/MOOSE_parser.i'
     test_interface_only = True
   [../]
+  [./MOOSE_vector_parser]
+    type = 'RavenFramework'
+    input = 'test_MOOSE_vector_parser.xml'
+    text = 'vector/vector_parser_moose/1/lcf1.i vector/vector_parser_moose/2/lcf1.i vector/vector_parser_moose/9/lcf1.i'
+    test_interface_only = True
+    csv = 'vector/dump.csv'
+  [../]
 []
-

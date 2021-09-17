@@ -16,15 +16,13 @@ Created on Aug 4, 2020
 
 @author: ZHOUJ2
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
 from utils import utils
 from utils import InputData, InputTypes
@@ -74,14 +72,6 @@ class EconomicRatio(BasicStatistics):
 
 
     return inputSpecification
-
-  def __init__(self, runInfoDict):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasicStatistics.__init__(self, runInfoDict)
 
   def inputToInternal(self, currentInp):
     """
@@ -155,7 +145,7 @@ class EconomicRatio(BasicStatistics):
 
     #for backward compatibility, compile the full list of parameters used in Economic Ratio calculations
     self.parameters['targets'] = list(self.allUsedParams)
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    PostProcessorInterface.initialize(self, runInfo, inputs, initDict)
     inputObj = inputs[-1] if type(inputs) == list else inputs
     inputMetaKeys = []
     outputMetaKeys = []

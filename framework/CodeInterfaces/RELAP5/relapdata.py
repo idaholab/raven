@@ -214,7 +214,10 @@ class relapdata:
               value     = splitted[splitted.index('value:')+1].strip()
               if deckNum is not None:
                 sampleVar = str(deckNum)+'|'+sampleVar
-              self.ravenData[sampleVar]=float(value)
+              try:
+                self.ravenData[sampleVar]=float(value)
+              except ValueError:
+                self.ravenData[sampleVar]=value
           i=i+1
         deckCounter+=1
 

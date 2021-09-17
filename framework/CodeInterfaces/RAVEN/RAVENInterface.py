@@ -16,8 +16,6 @@ Created on Sept 10, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import numpy as np
 from sys import platform
@@ -25,7 +23,6 @@ from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import Databases
-from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
   """
@@ -272,11 +269,18 @@ class RAVEN(CodeInterfaceBase):
           raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
         else:
           nodeFileToUse = os.environ["PBS_NODEFILE"]
-      modifDict['RunInfo|mode'] = 'mpi'
+      modifDict['RunInfo|mode'           ] = 'mpi'
       modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize
+
+    if 'headNode' in Kwargs:
+      modifDict['RunInfo|headNode'] = Kwargs['headNode']
+      modifDict['RunInfo|redisPassword'] = Kwargs['redisPassword']
+    if 'remoteNodes' in Kwargs:
+      if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
+        modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
 
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
@@ -310,6 +314,7 @@ class RAVEN(CodeInterfaceBase):
     if not os.path.isfile(toCheck):
       print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
+    # check for output CSV (and data)
     if not failure:
       if self.linkedDataObjectOutStreamsNames:
         for filename in self.linkedDataObjectOutStreamsNames:
@@ -354,17 +359,15 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
-    messageHandler = MessageHandler()
-    messageHandler.initialize({'verbosity':'quiet'})
     if self.linkedDataObjectOutStreamsNames:
       for filename in self.linkedDataObjectOutStreamsNames:
         # load the output CSV into a data object, so we can return that
         ## load the XML initialization information and type
         dataObjectInfo = self.outStreamsNamesAndType[filename]
         # create an instance of the correct data object type
-        data = DataObjects.returnInstance(dataObjectInfo[1], None)
+        data = DataObjects.factory.returnInstance(dataObjectInfo[1])
         # initialize the data object by reading the XML
-        data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
+        data.readXML(dataObjectInfo[2], variableGroups=self.variableGroups)
         # set the name, then load the data
         data.name = filename
         data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
@@ -382,12 +385,11 @@ class RAVEN(CodeInterfaceBase):
       dbName = self.linkedDatabaseName
       path = self.outDatabases[dbName]
       fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
-      data = DataObjects.returnInstance('DataSet', None)
+      data = DataObjects.factory.returnInstance('DataSet')
       info = {'WorkingDir': self._ravenWorkingDir}
-      db = Databases.returnInstance('NetCDF', info, None)
+      db = Databases.factory.returnInstance('NetCDF')
+      db.applyRunInfo(info)
       db.databaseDir, db.filename = os.path.split(fullPath)
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data
     return dataObjectsToReturn
-
-

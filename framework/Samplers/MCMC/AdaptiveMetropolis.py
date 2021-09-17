@@ -250,7 +250,6 @@ class AdaptiveMetropolis(MCMC):
     proposal.covariance = cov.ravel()
     proposal.dimension = len(mu)
     proposal.rank = len(mu)
-    proposal.messageHandler = self.messageHandler
     proposal.initializeDistribution()
     return proposal
 

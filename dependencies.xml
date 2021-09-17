@@ -37,10 +37,10 @@ Note all install methods after "main" take
     <pandas>1.1</pandas>
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
-    <matplotlib>3.2</matplotlib>
-    <statsmodels>0.12</statsmodels>
+    <matplotlib source='forge'>3.2</matplotlib>
+    <statsmodels/>
     <cloudpickle>1.6</cloudpickle>
-    <tensorflow>1.15</tensorflow>
+    <tensorflow>2.0</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -53,9 +53,13 @@ Note all install methods after "main" take
     <pyside2 source='forge'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip">1.0</ray>
+    <ray os="mac,linux" source="pip">1.3</ray>
+    <!-- ray is not compatible with aioredis 2.0
+      https://github.com/ray-project/ray/issues/17475 -->
+    <aioredis os="mac,linux" source="pip">1.3</aioredis>
     <pillow optional='True'>6.0</pillow>
     <line_profiler optional='True'/>
+    <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
   </main>
   <alternate name="pip">

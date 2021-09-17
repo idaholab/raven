@@ -31,14 +31,13 @@ class KerasConvNetClassifier(KerasClassifier):
     Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
   """
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    KerasClassifier.__init__(self,messageHandler,**kwargs)
+    super().__init__(**kwargs)
     self.printTag = 'KerasConvNetClassifier'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
 

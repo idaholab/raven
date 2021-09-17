@@ -18,17 +18,11 @@
   @author: talbpaul
 """
 
-from __future__ import absolute_import
-
-# These lines ensure that we do not have to do something like:
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier
 from .ARMA import ARMA
 
+from .Factory import factory
 
-# Factory methods
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
-
+from .TSAUser import TSAUser # needs to be imported AFTER factory!

@@ -32,14 +32,13 @@ class MPISimulationMode(Simulation.SimulationMode):
     MPISimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self,messageHandler):
+  def __init__(self, *args):
     """
       Constructor
-      @ In, messageHandler, instance, instance of the messageHandler class
+      @ In, args, list, unused positional arguments
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,messageHandler)
-    self.messageHandler = messageHandler
+    super().__init__(*args)
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
@@ -110,9 +109,9 @@ class MPISimulationMode(Simulation.SimulationMode):
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if runInfoDict['NumThreads'] > 1:
+      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
-
+      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 

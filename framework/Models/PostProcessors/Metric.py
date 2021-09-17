@@ -16,8 +16,6 @@ Created on August 23, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -32,10 +30,10 @@ from utils import InputData, InputTypes
 import Files
 import Distributions
 import MetricDistributor
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Metric(PostProcessor):
+class Metric(PostProcessorInterface):
   """
     Metrics class.
   """
@@ -72,13 +70,13 @@ class Metric(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'POSTPROCESSOR Metrics'
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
@@ -207,7 +205,7 @@ class Metric(PostProcessor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     for metricIn in self.assemblerDict['Metric']:
       self.metricsDict[metricIn[2]] = metricIn[3]
 
@@ -217,7 +215,7 @@ class Metric(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
@@ -242,7 +240,7 @@ class Metric(PostProcessor):
     elif len(self.features) != len(self.targets):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (Files or DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
@@ -317,7 +315,7 @@ class Metric(PostProcessor):
     outputDict = {}
     assert(len(self.features) == len(measureList))
     for metricInstance in self.metricsDict.values():
-      metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
+      metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
       for cnt in range(len(self.targets)):
         nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
         varName = metricInstance.name + '|' + nodeName
