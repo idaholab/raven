@@ -284,6 +284,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     #       self.raiseAnError(IOError, msg)
     # extract all required meta data
     # metaVars= dataSet.getVars('meta')
+    # extract all required ProbabilityWeight
     self.pbPresent = True if 'ProbabilityWeight' in dataSet.keys() else False
     if self.pbPresent:
       pbWeights = xr.Dataset()
@@ -296,7 +297,6 @@ class BasicStatistics(PostProcessorReadyInterface):
           pbWeights[target] = self.realizationWeight['ProbabilityWeight']
     else:
       self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-
     return inputDataset, pbWeights
 
   def initialize(self, runInfo, inputs, initDict):
