@@ -252,19 +252,19 @@ class BasicStatistics(PostProcessorReadyInterface):
     #       " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
     #       self.raiseAnError(IOError, msg)
     # extract all required meta data
-    # metaVars = dataSet.getVars('meta')
-    # self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
-    # if self.pbPresent:
-    #   pbWeights = xr.Dataset()
-    #   self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
-    #   for target in self.parameters['targets']:
-    #     pbName = 'ProbabilityWeight-' + target
-    #     if pbName in metaVars:
-    #       pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
-    #     elif self.pbPresent:
-    #       pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-    # else:
-    #   self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+    # metaVars= dataSet.getVars('meta')
+    self.pbPresent = True if 'ProbabilityWeight' in dataSet.keys() else False
+    if self.pbPresent:
+      pbWeights = xr.Dataset()
+      self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
+      for target in self.parameters['targets']:
+        pbName = 'ProbabilityWeight-' + target
+        if pbName in dataSet.keys():
+          pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
+        elif self.pbPresent:
+          pbWeights[target] = self.realizationWeight['ProbabilityWeight']
+    else:
+      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
     return inputDataset, pbWeights
 
