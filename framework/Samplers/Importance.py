@@ -44,10 +44,6 @@ class Importance(ForwardSampler):
     limit = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType)
     samplerInitInput.addSub(limit)
 
-    constantInput = InputData.parameterInputFactory("ConstantSource")
-    importanceVariableName = InputData.parameterInputFactory("importanceVariable", contentType=InputTypes.IntegerType)
-    constantInput.addSub(importanceVariableName)
-
     targetDistribution = InputData.parameterInputFactory("distribution")
     samplerInitInput.addSub(targetDistribution)
     initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType)
