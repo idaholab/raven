@@ -1,0 +1,152 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testRandom</name>
+    <author>cogljj</author>
+    <created>2014-02-18</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to perform random sampling (MonteCarlo) on simple 1Dimensional distributions.
+       Since the goal of the test is to check the Sampler only, a Dummy Model is used.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #169</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+    <requirements>R-F-1</requirements>
+
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>RandomTest</WorkingDir>
+    <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Uniform name="simple">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC1">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC2">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC3">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC4">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC5">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="outSet">
+      <Input>simple_var</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>simple_var</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outSet_dump">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="Sampler1">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest1_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler2" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC2</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest2_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler3">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC3</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest3_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler4" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC4</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest4_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler5" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC5</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest5_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_RandomTest1_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest2_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest3_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest4_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest5_db" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>
