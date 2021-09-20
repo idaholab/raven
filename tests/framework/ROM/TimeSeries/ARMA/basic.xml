@@ -76,8 +76,6 @@
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800, 302400, 86400, 43200</Fourier>
       <P>2</P>
-
-		<P>2</P>
       <Q>1</Q>
     </ROM>
   </Models>
