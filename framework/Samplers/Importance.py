@@ -11,16 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-  This module contains the Umbrella sampling strategy
-
-  Created on Feb 15, 2021
-  @author: Tanaya
-  supercedes Samplers.py from crisr
-"""
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -35,7 +25,9 @@ from utils import utils,randomUtils,InputData, InputTypes
 
 class Importance(ForwardSampler):
   """
-    MONTE CARLO Sampler
+    MONTE CARLO Importance Sampler. This is currently a uni-variate sampler. Support for this sampling
+    method currently includes one target distribution and one "importance" distribution for weighting.
+    Future iterations of this class may include functionality for multivariate distributions.
   """
 
   @classmethod
@@ -51,8 +43,15 @@ class Importance(ForwardSampler):
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
     limit = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType)
     samplerInitInput.addSub(limit)
+
+    constantInput = InputData.parameterInputFactory("ConstantSource")
+    importanceVariableName = InputData.parameterInputFactory("importanceVariable", contentType=InputTypes.IntegerType)
+    constantInput.addSub(importanceVariableName)
+
     targetDistribution = InputData.parameterInputFactory("distribution")
     samplerInitInput.addSub(targetDistribution)
+    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType)
+    samplerInitInput.addSub(initialSeedInput)
     samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputTypes.StringType)
     samplerInitInput.addSub(samplingTypeInput)
     inputSpecification.addSub(samplerInitInput)
@@ -70,6 +69,7 @@ class Importance(ForwardSampler):
     self.printTag = 'SAMPLER UMBRELLA'
     self.samplingType = None
     self.limit = None
+    self.importance = None
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -79,11 +79,14 @@ class Importance(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.readSamplerInit(self,xmlNode)
+
     if paramInput.findFirst('samplerInit') != None:
       if self.limit is None:
         self.raiseAnError(IOError,self,'Importance sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
     else:
       self.raiseAnError(IOError,self,'Importance sampler '+self.name+' needs the samplerInit block')
+
+    # input check
 
   def localGenerateInput(self, model, myInput):
     """
@@ -94,17 +97,22 @@ class Importance(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    distributions = [key for key in self.distDict.keys()]
+    target = distributions[0]
+    importance=distributions[1]
 
-    uSample = self.distDict['uniform'].rvs()
-    importanceSample = self.distDict['importance'].ppf(uSample)
+    importanceSample = self.distDict[importance].rvs()
 
-    importanceWeight = self.distDict['target'].pdf(
-      importanceSample) / self.distDict['importance'].pdf(importanceSample)
+    importanceWeight = self.distDict[target].pdf(
+      importanceSample) / self.distDict[importance].pdf(importanceSample)
 
-    self.inputInfo['SampledVars']['sample'] = importanceSample
-    self.inputInfo['ProbabilityWeight'] = 1.0
-    self.inputInfo['ProbabilityWeight-uniform'] = 1.0
-    self.inputInfo['ProbabilityWeight-target'] = self.distDict['target'].pdf(importanceSample)
-    self.inputInfo['ProbabilityWeight-importance'] = importanceWeight
-    self.inputInfo['PointProbability'] = importanceWeight
+    sample = importanceSample*importanceWeight
+    key = target
+    for kkey in key.split(','):
+      self.values[kkey] = np.atleast_1d(sample)[0]
+
+    self.inputInfo['ProbabilityWeight-'+importance] = importanceWeight
+    self.inputInfo['ProbabilityWeight-'+target] = self.distDict['target'].pdf(importanceSample)
+    self.inputInfo['PointProbability'] = self.distDict[target].pdf(importanceSample)
+    self.inputInfo['ProbabilityWeight'] = 0
     self.inputInfo['SamplerType'] = 'Importance'

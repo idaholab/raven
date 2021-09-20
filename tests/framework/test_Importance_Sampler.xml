@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testImportance</name>
+    <author>Tanaya</author>
+    <created>2021-03-02</created>
+    <classesTested>Samplers.Importance</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to employ a Importance sampling strategy. Since the goal of the test is to testify
+       that the Importance sampling strategy is functional, a Dummy model is used.
+    </description>
+    <requirements>R-F-1</requirements>
+    
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ImportanceTest</WorkingDir>
+    <Sequence>Sampler1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Normal name="Target">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="Importance">
+      <mean>-1</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Importance name="IS">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>5</initialSeed>
+      </samplerInit>
+      <variable name="target">
+        <distribution>Target</distribution>
+      </variable>
+      <variable name="importance">
+        <distribution>Importance</distribution>
+      </variable>
+
+    </Importance>
+  </Samplers>
+
+<!--  Container for input and output data-->
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>target</Input>
+    </PointSet>
+    <PointSet name="outSet">
+      <Input>target</Input>
+      <Output>ProbabilityWeight-importance</Output>
+      <Output>ProbabilityWeight-target</Output>
+      <Output>PointProbability</Output>
+    </PointSet>
+  </DataObjects>
+
+<!--  Print input and output data:-->
+  <OutStreams>
+    <Print name="outSet_dump">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+<!--  Control of execution-->
+  <Steps>
+    <MultiRun name="Sampler1">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Importance">IS</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest1_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_RandomTest1_db" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>
