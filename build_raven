@@ -106,6 +106,10 @@ fi
 
 (cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
 
+#XXX Temporary since git doesn't realize it needs to rename it on case insensitive
+# filesystems.
+mv framework/Models/PostProcessors/validationAlgorithms framework/Models/PostProcessors/ValidationAlgorithms || echo "Already moved"
+
 if [ ! -z "$RAVEN_SIGNATURE" ];
 then
     #This is to allow the code to be signed on mac os computers.
