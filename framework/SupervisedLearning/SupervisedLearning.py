@@ -222,13 +222,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
     targetValues = np.stack(targetValues, axis=-1)
     # construct the evaluation matrixes
-<<<<<<< HEAD
-    if self._dynamicFeatures:
-      featureValues = np.zeros(shape=(len(targetValues),targetValues.shape[1], len(self.features)))
-    else:
-      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
-    self.featureShape = featureValues.shape
-=======
     ## add the indices if they're not present
     needFeatures = copy.deepcopy(self.features)
     needTargets = copy.deepcopy(self.target)
@@ -239,7 +232,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
             needFeatures.append(feat)
 
     featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
->>>>>>> upstream/devel
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
