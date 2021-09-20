@@ -86,15 +86,17 @@
             \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
         \end{itemize}
      \item \xmlNode{evaluationClusterChoice}, \xmlDesc{string, optional field}, one of \xmlString{first} or
-        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which 
-        strategy needs to be followed for the evaluation stage. If ``first'', the 
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
         first ROM (representative segmented ROM),in each cluster, is considered to
          be representative of the full space in the cluster (i.e. the evaluation is always performed
-         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster, 
+         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
          is choosen when an evaluation is requested.
-         %If ``centroid'', a ROM ``trained" on the centroids 
-         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not 
-         %available yet). 
+	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+	 ``random''.
+         %If ``centroid'', a ROM ``trained" on the centroids
+         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
+         %available yet).
          \default{first}
     \end{itemize}
 }
@@ -2937,6 +2939,62 @@ Therefore, it uses the square error as the loss function, and the output is a se
   \item \betaBMLPDescription{0.999}
   \item \epsilonMLPDescription{1e-8}
 \end{itemize}
+
+%%%% ROM Model - SyntheticHistory  %%%%%%%
+\subsubsection{SyntheticHistory}
+% NOTE TODO: this ROM has the "descr" nodes fully filled in the InputSpecs.
+\label{subsubsec:SyntheticHistory}
+The SyntheticHistory sub-type uses various Time Series Analysis (TSA) algorithms to characterize and
+reproduce synthetic histories. It is a more general implementation of the ARMA ROM. The available
+algorithms are discussed in more detail below. The SyntheticHistory ROM uses the TSA algorithms to
+characterize then reproduce time series in sequence; for example, if using Fourier then ARMA, the
+SyntheticHistory ROM will characterize the Fourier properties using the Fourier TSA algorithm on a
+training signal, then send the residual to the ARMA TSA algorithm for characterization. Generating
+new signals works in reverse, first generating a signal using the ARMA TSA algorithm then
+superimposing the Fourier TSA algorithm.
+
+%
+In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+\xmlAttr{subType} needs to be \xmlString{SyntheticHistory} (see the example
+below).
+%
+\subnodeIntro
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only
+  one feature is allowed for \xmlString{SyntheticHistory} and in current implementation this is used for evaluation only.
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variable(s) of the
+    time series.  Should include the pivot parameter (or Index).
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that is non-decreasing in
+  the input HistorySet.
+\end{itemize}
+
+\tsaList
+
+\textbf{SyntheticHistory Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, hour</Target>
+      <Features>scaling</Features>
+      <pivotParameter>hour</pivotParameter>
+      <fourier target="signal1, signal2">
+        <periods>12, 24</periods>
+      </fourier>
+      <arma target="signal1, signal2" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
 
 %%%% ROM Model - ARMA  %%%%%%%
 \subsubsection{ARMA}

@@ -18,7 +18,9 @@ Module where the base class and the specialization of different type of Model ar
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
+import io
+import sys
 import copy
 import numpy as np
 import time
@@ -62,13 +64,13 @@ class EnsembleModel(Dummy):
     cls.validateDict['Output' ][3]['required'    ] = False
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
+    super().__init__()
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
@@ -458,7 +460,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
-      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
       if newIndexMap:
         joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])
@@ -714,7 +716,8 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception as rerror:
+      except Exception as e:
+        excType, excValue, excTrace = sys.exc_info()
         evaluation = None
         e = rerror
     else:
@@ -732,6 +735,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
+        excType, excValue, excTrace = finishedRun[0].exceptionTrace
         e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
@@ -742,8 +746,12 @@ class EnsembleModel(Dummy):
 
     if not evaluation:
       # the model failed
-      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name
-                        + " identified by " + localIdentifier +" failed! The error is below:\n"+str(e))
+      import traceback
+      msg = io.StringIO()
+      traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
+      msg = msg.getvalue().replace('\n', '\n        ')
+      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
+                        f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)

@@ -18,18 +18,11 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import numpy as np
 from operator import mul
 from functools import reduce
 import itertools
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
 from utils import utils, InputData
@@ -37,8 +30,6 @@ import Distributions
 import SupervisedLearning
 import Quadratures
 import IndexSets
-import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
 
 class Sobol(SparseGridCollocation):
   """
@@ -51,10 +42,9 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    Grid.__init__(self)
+    super().__init__()
     self.type           = 'SobolSampler'
     self.printTag       = 'SAMPLER SOBOL'
-    self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
     self.indexSetType   = None  #the type of index set to use, queried from the sobol ROM
@@ -120,10 +110,10 @@ class Sobol(SparseGridCollocation):
         quadDict[c]=self.quadDict[c]
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
-      iset=IndexSets.returnInstance(SVL.indexSetType,self)
+      iset = IndexSets.factory.returnInstance(SVL.indexSetType)
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
-      self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
-      self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+      self.SQs[combo] = Quadratures.factory.returnInstance(self.sparseGridType)
+      self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler)
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
@@ -135,9 +125,8 @@ class Sobol(SparseGridCollocation):
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+      self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', **initDict)
       self.ROMs[combo].initialize(initializeDict)
-      self.ROMs[combo].messageHandler = self.messageHandler
     #make combined sparse grids
     self.references={}
     for var in self.features:

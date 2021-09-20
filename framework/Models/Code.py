@@ -102,13 +102,13 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.executable = ''         # name of the executable (abs path)
     self.preExec = None          # name of the pre-executable, if any
     self.oriInputFiles = []      # list of the original input files (abs path)
@@ -116,12 +116,20 @@ class Code(Model):
     self.outFileRoot = ''        # root to be used to generate the sequence of output files
     self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
     self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
-    self.printTag = 'CODE MODEL'
-    self.createWorkingDir = True
+    self.printTag = 'CODE MODEL' # label
+    self.createWorkingDir = True # whether to create the requested working dir
     self.foundExecutable = True  # True indicates the executable is found, otherwise not found
     self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
     self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
-    self._ravenWorkingDir = runInfoDict['WorkingDir']
+    self._ravenWorkingDir = None # RAVEN's working dir
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self._ravenWorkingDir = runInfo['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -246,7 +254,7 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
     self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -309,8 +317,10 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
@@ -370,12 +380,13 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
@@ -609,7 +620,6 @@ class Code(Model):
           outputFile = finalCodeOutput
         else:
           returnDict = finalCodeOutput
-
     ## If the run was successful
     if returnCode == 0:
       ## This may be a tautology at this point --DPM 4/12/17
@@ -617,9 +627,9 @@ class Code(Model):
       if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader()
         # does this CodeInterface have sufficiently intense (or limited) CSV files that
         #   it needs to assume floats and use numpy, or can we use pandas?
         loadUtility = self.code.getCsvLoadUtil()
@@ -692,12 +702,17 @@ class Code(Model):
       return exportDict
 
     else:
+      self.raiseAMessage("*"*50)
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        if getattr(self.code, 'printFailedRuns', True):
+          self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        else:
+          self.raiseAMessage(f'Ouput is in "{os.path.abspath(absOutputFile)}"')
       else:
         self.raiseAMessage(" No output " + absOutputFile)
+      self.raiseAMessage("*"*50)
 
       ## If you made it here, then the run must have failed
       return None
@@ -741,7 +756,7 @@ class Code(Model):
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
-    if evaluation.get('RAVEN_isBatch',False):
+    if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:
         output.addRealization(rlz)
     # otherwise, we received a single realization
@@ -862,46 +877,64 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix")
-    uniqueHandler = kwargs.get("uniqueHandler",'any')
 
-    ## These two are part of the current metadata, so they will be added before
-    ## the job is started, so that they will be captured in the metadata and match
-    ## the current behavior of the system. If these are not desired, then this
-    ## code can be moved to later.  -- DPM 4/12/17
-    kwargs['executable'] = self.executable
-    kwargs['outfile'] = None
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
 
-    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
-    #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
-    for index, inputFile in enumerate(myInput):
-      if inputFile.getExt() in self.code.getInputExtension():
-        kwargs['outfile'] = 'out~'+myInput[index].getBase()
-        break
-    if kwargs['outfile'] is None:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+    for i in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][i]
+      else:
+        kw = kwargs
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = copy.copy(kwargs)
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
 
-    ## These variables should not be part of the metadata, so add them after
-    ## we copy this dictionary (Caught this when running an ensemble model)
-    ## -- DPM 4/11/17
-    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
-    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
-    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
-    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
-    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
-    kwargs['numberNodes'       ] = len(nodesList)
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler)
-    self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+
+      ## These two are part of the current metadata, so they will be added before
+      ## the job is started, so that they will be captured in the metadata and match
+      ## the current behavior of the system. If these are not desired, then this
+      ## code can be moved to later.  -- DPM 4/12/17
+      kw['executable'] = self.executable
+      kw['outfile'] = None
+
+      #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+      #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
+      for index, inputFile in enumerate(myInput):
+        if inputFile.getExt() in self.code.getInputExtension():
+          kw['outfile'] = 'out~'+myInput[index].getBase()
+          break
+      if kw['outfile'] is None:
+        self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = copy.copy(kw)
+
+      ## These variables should not be part of the metadata, so add them after
+      ## we copy this dictionary (Caught this when running an ensemble model)
+      ## -- DPM 4/11/17
+      nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+      kw['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
+      kw['precommand'        ] = jobHandler.runInfoDict['precommand']
+      kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+      kw['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+      kw['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+      kw['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+      kw['numberNodes'       ] = len(nodesList)
+
+      ## This may look a little weird, but due to how the parallel python library
+      ## works, we are unable to pass a member function as a job because the
+      ## pp library loses track of what self is, so instead we call it from the
+      ## class and pass self in as the first parameter
+      jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                        uniqueHandler=uniqueHandler, groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      if nRuns == 1:
+        self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+      else:
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(prefix) + '" submitted!')

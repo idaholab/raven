@@ -66,6 +66,17 @@ class ravenROMexternal(object):
       @ In, whereFrameworkIs, str, the location of RAVEN framework (path)
       @ Out, None
     """
+    self._binaryLoc = binaryFileName
+    self._frameworkLoc = whereFrameworkIs
+    self._load(binaryFileName, whereFrameworkIs)
+
+  def _load(self, binaryFileName, whereFrameworkIs):
+    """
+      Load the ROM.
+      @ In, binaryFileName, str, the location of the serialized (pickled) ROM that needs to be imported
+      @ In, whereFrameworkIs, str, the location of RAVEN framework (path)
+      @ Out, None
+    """
     # find the RAVEN framework
     frameworkDir = os.path.abspath(whereFrameworkIs)
     if not os.path.exists(frameworkDir):
@@ -87,6 +98,26 @@ class ravenROMexternal(object):
     if not os.path.exists(serializedROMlocation):
       raise IOError('The serialized (binary) file has not been found in location "' + str(serializedROMlocation)+'" !')
     self.rom = pickle.load(open(serializedROMlocation, mode='rb'))
+
+  def __getstate__(self):
+    """
+      Deep copy.
+      @ In, None
+      @ Out, d, dict, self representation
+    """
+    d = {'binaryFileName': self._binaryLoc,
+         'whereFrameworkIs': self._frameworkLoc}
+    return d
+
+  def __setstate__(self, d):
+    """
+      Deep paste.
+      @ In, d, dict, self representation
+      @ Out, None
+    """
+    self._binaryLoc = d['binaryFileName']
+    self._frameworkLoc = d['whereFrameworkIs']
+    self._load(self._binaryLoc, self._frameworkLoc)
 
   def evaluate(self,request):
     """

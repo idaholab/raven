@@ -1,0 +1,153 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.InterpolatedMaxCycles</name>
+    <author>talbpaul</author>
+    <created>2020-01-19</created>
+    <classesTested>SupervisedLearning.ROMCollection</classesTested>
+    <description>
+      Similar to ``interpolated'' test, but limits the number of cycles (years) sampled.
+      \texttt{synthetic.csv} should have Year values of (0, 1, 2) while
+      \texttt{resynthetic.csv} should have Year values of (0, 1).
+      Also tests the nyquistScalar option.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>InterpolatedMaxCycles</WorkingDir>
+    <Sequence>load, train, serialize, sample, deserialize, resample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="deserialize">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">rearma</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synthetic</Output>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">rearma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">resynthetic</Output>
+      <Output class="OutStreams" type="Print">resynthetic</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+    <Input name="pk">interpolated.pk</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>scaling, Year</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="synthetic">
+      <Input>scaling</Input>
+      <Output>Signal</Output>
+      <Index var="Time">Signal</Index>
+      <Index var="Year">Signal</Index>
+    </DataSet>
+    <DataSet name="resynthetic">
+      <Input>scaling</Input>
+      <Output>Signal</Output>
+      <Index var="Time">Signal</Index>
+      <Index var="Year">Signal</Index>
+      <Index var="_ROM_Cluster">Signal</Index>
+    </DataSet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal, Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <nyquistScalar>0.4</nyquistScalar>
+      <P>0</P>
+      <Q>0</Q>
+      <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>False</preserveInputCDF>
+      <seed>42</seed>
+      <reseedCopies>False</reseedCopies>
+      <Peaks target='Signal' threshold='-2' period='10'>
+        <window width='0.5' >-1,1</window>
+        <window width='0.55' >6,7</window>
+        <nbin>5</nbin>
+      </Peaks>
+      <Segment grouping='interpolate'>
+        <macroParameter>Year</macroParameter>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10'>Time</subspace>
+        <maxCycles>3</maxCycles>
+      </Segment>
+    </ROM>
+    <ROM name="rearma" subType="pickledROM">
+      <clusterEvalMode>clustered</clusterEvalMode>
+      <maxCycles>2</maxCycles>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>Signal</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <SKL name="metric">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synthetic</source>
+    </Print>
+    <Print name="resynthetic">
+      <type>csv</type>
+      <source>resynthetic</source>
+    </Print>
+  </OutStreams>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+</Simulation>

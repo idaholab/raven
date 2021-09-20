@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric</name>
     <author>wangc</author>
@@ -14,8 +15,8 @@
       This test checks the Metric PostProcessor
     </description>
     <revisions>
-        <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
-        <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
+      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+      <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
     </revisions>
   </TestInfo>
 
@@ -26,26 +27,26 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="SKL">euclidean</Metric>
-      <Metric class="Metrics" type="SKL">euclidean2</Metric>
-      <Metric class="Metrics" type="SKL">cosine</Metric>
-      <Metric class="Metrics" type="SKL">manhattan</Metric>
+      <Metric class="Metrics" type="Metric">euclidean</Metric>
+      <Metric class="Metrics" type="Metric">euclidean2</Metric>
+      <Metric class="Metrics" type="Metric">cosine</Metric>
+      <Metric class="Metrics" type="Metric">manhattan</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
-    <SKL name="cosine">
-        <metricType>paired_distance|cosine</metricType>
-    </SKL>
-    <SKL name="manhattan">
-        <metricType>paired_distance|manhattan</metricType>
-    </SKL>
-    <SKL name="euclidean">
+    <Metric name="cosine" subType="SKL">
+      <metricType>paired_distance|cosine</metricType>
+    </Metric>
+    <Metric name="manhattan" subType="SKL">
+      <metricType>paired_distance|manhattan</metricType>
+    </Metric>
+    <Metric name="euclidean" subType="SKL">
       <metricType>paired_distance|euclidean</metricType>
-    </SKL>
-    <SKL name="euclidean2">
+    </Metric>
+    <Metric name="euclidean2" subType="SKL">
       <metricType>paired_distance|euclidean</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Distributions>
@@ -102,17 +103,17 @@
       <Output>euclidean_ans2_ans, euclidean2_ans2_ans</Output>
     </PointSet>
   </DataObjects>
- 
+
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-          <what>input,output</what>
-      </Print>
-      <Print name="pp1_metric_dump">
-          <type>csv</type>
-          <source>pp1_metric</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
   </OutStreams>
 
 </Simulation>

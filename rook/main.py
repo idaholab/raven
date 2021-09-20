@@ -71,6 +71,8 @@ parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
                     help='wait until load average is below the number before starting a new test')
+parser.add_argument('-t', action='store_true',
+                    help='argument added by civet recipes but unused in rook')
 parser.add_argument('--heavy', action='store_true',
                     help='Run only heavy tests')
 parser.add_argument('--no-color', action='store_true',
@@ -391,10 +393,10 @@ if __name__ == "__main__":
       print()
 
   tester_params = {}
-  for tester in testers:
+  for tester_key, tester_value in testers.items():
     #Note as a side effect, testers can add run types to
     # the tester.
-    tester_params[tester] = testers[tester].get_valid_params()
+    tester_params[tester_key] = tester_value.get_valid_params()
 
   Tester.initialize_current_run_type()
   if args.add_run_types is not None:
@@ -477,17 +479,17 @@ if __name__ == "__main__":
     print(path)
   print(Colors.norm)
 
-  csv_report = open("test_report.csv", "w")
-  csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
-  for result, test_name in zip(output_list, test_name_list):
-    if result is not None:
-      group_name = Tester.get_group_name(result.group)
-      out_line = ",".join([test_name, str(result.group == Tester.group_success),
-                           group_name, str(result.runtime)])
-    else:
-      out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
-    csv_report.write(out_line+"\n")
-  csv_report.close()
+  with open("test_report.csv", "w") as csv_report:
+    csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
+    for result, test_name in zip(output_list, test_name_list):
+      if result is not None:
+        group_name = Tester.get_group_name(result.group)
+        out_line = ",".join([test_name, str(result.group == Tester.group_success),
+                             group_name, str(result.runtime)])
+      else:
+        out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
+      csv_report.write(out_line+"\n")
+    csv_report.close()
 
   print("PASSED: {}{}{}".format(Colors.okay, results["pass"], Colors.norm))
   print("SKIPPED: {}{}{}".format(Colors.skip, results["skipped"], Colors.norm))

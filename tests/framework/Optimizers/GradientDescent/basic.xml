@@ -37,6 +37,7 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -91,7 +92,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
-      <variables>x,y,ans</variables>
+      <variables>x,y,ans,aux_ans</variables>
     </ExternalModel>
   </Models>
 
@@ -99,11 +100,11 @@
     <PointSet name="dummyIN"/>
     <PointSet name="optOut">
       <Input>x,y,func,const</Input>
-      <Output>ans</Output>
+      <Output>ans,aux_ans</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,func,const,ans,stepSize,iteration,accepted,conv_gradient</Output>
+      <Output>x,y,func,const,ans,aux_ans,stepSize,iteration,accepted,conv_gradient</Output>
     </PointSet>
   </DataObjects>
 
@@ -117,6 +118,10 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x,y,func,const,ans</vars>
+    </Plot>
   </OutStreams>
 
 </Simulation>

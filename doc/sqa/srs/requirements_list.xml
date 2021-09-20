@@ -100,6 +100,9 @@
           <requirement id_code="R-RA-8">
               <description>RAVEN shall be able to estimate the maximum (bounding) error in the computation of the probability of failure based on generated data and goal functions</description>
           </requirement>
+          <requirement id_code="R-RA-9">
+              <description>RAVEN shall be able to estimate the posterior distributions based on prior distributions and likelihood function</description>
+          </requirement>
       </requirement_set>
 
       <requirement_set caption="Risk Mitigation">
@@ -162,5 +165,3 @@
     </requirement_group>
 
 </requirements_specification>
-
-

@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/HDF5.HDF5location</name>
+    <author>talbpaul</author>
+    <created>2017-07-10</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+      Tests that the location specified for the HDF5 is relative to the working dir, not to the run dir.
+    </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>HDF5_location</WorkingDir>
+    <Sequence>load,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Databases" type="HDF5">all</Input>
+      <Output class="DataObjects" type="HistorySet">dataWorks</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">dataWorks</Input>
+      <Output class="OutStreams" type="Print">hasSquare</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="all" readMode="read" directory="../HDF5_selective"/>
+  </Databases>
+
+  <DataObjects>
+    <HistorySet name="dataWorks">
+      <Input>var1, var2</Input>
+      <Output>time,sine,square</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="hasSquare">
+      <type>csv</type>
+      <source>dataWorks</source>
+    </Print>
+  </OutStreams>
+</Simulation>

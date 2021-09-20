@@ -61,6 +61,7 @@ plugins/ExamplePlugin/doc/version.tex
 build/
 .failed_tests
 .ravenrc
+*.ravenStatus
 
 # eclipse
 .project
