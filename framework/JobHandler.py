@@ -365,9 +365,10 @@ class JobHandler(BaseType):
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
         if _rayAvail:
-          self.raiseADebug("Updating RAY server in node: "+nodeId.strip())
+          self.raiseADebug("Updating RAY server in node:", nodeId.strip())
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","update_path_in_remote_servers.sh")
           command=" ".join([runScript,"--remote-node-address",nodeId," --working-dir ",self.runInfoDict['WorkingDir']])
+          self.raiseADebug("command is:", command)
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
 
@@ -386,7 +387,7 @@ class JobHandler(BaseType):
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes  = list(set(list(set(availableNodes))) - set([localHostName]))
+    uniqueNodes  = list(set(availableNodes) - set([localHostName]))
     servers      = []
     self.remoteServers = {}
     if len(uniqueNodes) > 0:
@@ -411,7 +412,7 @@ class JobHandler(BaseType):
           self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
           command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
-          print("command is: "+command)
+          self.raiseADebug("command is: "+command)
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
         else:

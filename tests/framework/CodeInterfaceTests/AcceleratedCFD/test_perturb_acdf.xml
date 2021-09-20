@@ -1,0 +1,145 @@
+<Simulation verbosity='debug'>
+  <!-- test info block -->
+
+  <TestInfo>
+      <name>framework/CodeInterfaceTests/AcceleratedCFD.perturbACFD1</name>
+      <author>alfoa</author>
+      <created>2020-11-03</created>
+      <classesTested>Models.Code.AcceleratedCFD</classesTested>
+      <description>
+          An example of using the AcceleratedCFD code interface.
+          This test is aimed to test the mechanics of the interface (no executable).
+      </description>
+  </TestInfo>
+
+  <!-- test info block end -->
+
+  <RunInfo>
+    <WorkingDir>AcceleratedCFDTest1</WorkingDir>
+    <Sequence>testAcceleratedCFD,dumpResults</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="AcceleratedCFDinput" type="input">podInputs.xml</Input>
+    <Input name="Cx" type="mesh-x">Cx</Input>
+    <Input name="Cy" type="mesh-y">Cy</Input>
+    <Input name="Cz" type="mesh-z">Cz</Input>
+  </Files>
+
+  <Models>
+	<Code name="AcceleratedCFDCode" subType="AcceleratedCFD">
+        <executable>./romRun</executable>
+        <outputLocations>
+            <coordinates>
+             (0.0,0.0,0.0) (1.0,1.0,1.0) (min,min,min) (max,max,max) (middle,middle,middle)
+            </coordinates>
+        </outputLocations>
+        
+    </Code>
+  </Models>
+
+  <Distributions>
+    <UniformDiscrete name='numModes'>
+      <lowerBound>10</lowerBound>
+      <upperBound>30</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo  name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name='velMods'>
+        <distribution>numModes</distribution>
+      </variable>
+      <variable name='scalMods'>
+        <distribution>numModes</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  
+  
+  <DataObjects>
+    <PointSet name="AcceleratedCFDPointSet">
+      <Input>velMods,scalMods</Input>
+      <Output>time,volVectorField-0_0_0_0_0_0-x,
+      volVectorField-0_0_0_0_0_0-y,
+      volVectorField-0_0_0_0_0_0-z,
+      volVectorField-1_0_1_0_1_0-x,
+      volVectorField-1_0_1_0_1_0-y,
+      volVectorField-1_0_1_0_1_0-z,
+      volVectorField-min_min_min-x,
+      volVectorField-min_min_min-y,
+      volVectorField-min_min_min-z,
+      volVectorField-max_max_max-x,
+      volVectorField-max_max_max-y,
+      volVectorField-max_max_max-z,
+      volVectorField-middle_middle_middle-x,
+      volVectorField-middle_middle_middle-y,
+      volVectorField-middle_middle_middle-z
+      </Output>
+    </PointSet>
+    <HistorySet name="AcceleratedCFDHistorySet">
+      <Input>velMods,scalMods</Input>
+      <Output>time,volVectorField-0_0_0_0_0_0-x,
+      volVectorField-0_0_0_0_0_0-y,
+      volVectorField-0_0_0_0_0_0-z,
+      volVectorField-1_0_1_0_1_0-x,
+      volVectorField-1_0_1_0_1_0-y,
+      volVectorField-1_0_1_0_1_0-z,
+      volVectorField-min_min_min-x,
+      volVectorField-min_min_min-y,
+      volVectorField-min_min_min-z,
+      volVectorField-max_max_max-x,
+      volVectorField-max_max_max-y,
+      volVectorField-max_max_max-z,
+      volVectorField-middle_middle_middle-x,
+      volVectorField-middle_middle_middle-y,
+      volVectorField-middle_middle_middle-z
+      </Output>
+    </HistorySet>
+  </DataObjects>
+
+  
+
+  
+  <OutStreams>
+    <Print name="dumpAcceleratedCFDHistorySet">
+      <type>csv</type>
+      <source>AcceleratedCFDHistorySet</source>
+    </Print>
+    <Print name="dumpAcceleratedCFDPointSet">
+      <type>csv</type>
+      <source>AcceleratedCFDPointSet</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+	<MultiRun name="testAcceleratedCFD" clearRunDir="False">
+        <Input   class="Files"       type="input">AcceleratedCFDinput</Input>
+        <Input   class="Files"       type="mesh-x">Cx</Input>
+        <Input   class="Files"       type="mesh-y">Cy</Input>
+        <Input   class="Files"       type="mesh-x">Cz</Input>
+        <Model   class="Models"      type="Code">AcceleratedCFDCode</Model>
+        <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>
+        <Output  class="Databases"   type="HDF5">DataAcceleratedCFD</Output>
+        <Output  class="DataObjects" type="HistorySet">AcceleratedCFDHistorySet</Output>
+        <Output  class="DataObjects" type="PointSet">AcceleratedCFDPointSet</Output>
+    </MultiRun>
+    <IOStep name="dumpResults" >
+        <Input   class="DataObjects" type="HistorySet">AcceleratedCFDHistorySet</Input>
+        <Input   class="DataObjects" type="PointSet">AcceleratedCFDPointSet</Input>
+        <Output class="OutStreams"   type="Print">dumpAcceleratedCFDHistorySet</Output>
+        <Output class="OutStreams"   type="Print">dumpAcceleratedCFDPointSet</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+	<HDF5 name="DataAcceleratedCFD" readMode='overwrite' />
+  </Databases>
+</Simulation>

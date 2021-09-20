@@ -74,7 +74,6 @@ class MELCORdata:
     regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
     for time,listOfLines in timeBlock.items():
       functionValuesForEachTime['time'].append(float(time))
-
       start = -1
       for lineNumber, line in enumerate(listOfLines):
         if re.search(startRegex, line):
