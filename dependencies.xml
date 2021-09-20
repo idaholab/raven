@@ -54,7 +54,7 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <ray os="mac,linux" source="pip">1.6</ray>
-    <ray-rllib source="pip"/>1.6</ray-rllib>
+    <ray-rllib source="pip">1.6</ray-rllib>
     <!-- ray is not compatible with aioredis 2.0
       https://github.com/ray-project/ray/issues/17475 -->
     <aioredis os="mac,linux" source="pip">1.3</aioredis>
