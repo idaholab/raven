@@ -13,9 +13,9 @@
 # limitations under the License.
 """
   Created on March 20, 2021
-  @author: alfoa
-  description: Postprocessor named Validation. This postprocessor is aimed to
-               to represent a gate for any validation tecniques and processes
+  @author: alfoa, wangc
+  description: Validation Postprocessor Base class. It is aimed to
+               to represent a base class for any validation tecniques and processes
 """
 
 #External Modules---------------------------------------------------------------
@@ -34,7 +34,7 @@ import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 
-class Validation(PostProcessorReadyInterface):
+class ValidationBase(PostProcessorReadyInterface):
   """
     Validation class. It will apply the specified validation algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -51,7 +51,7 @@ class Validation(PostProcessorReadyInterface):
         specifying input of cls.
     """
     ## This will replace the lines above
-    specs = super(Validation, cls).getInputSpecification()
+    specs = super(ValidationBase, cls).getInputSpecification()
     preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
     preProcessorInput.addParam("class", InputTypes.StringType)
     preProcessorInput.addParam("type", InputTypes.StringType)
@@ -91,7 +91,6 @@ class Validation(PostProcessorReadyInterface):
     self.targets = None         # list of target variables
     self.pivotValues = None     # pivot values (present if dynamic == True)
 
-
     self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
     ## dataset option
@@ -125,27 +124,6 @@ class Validation(PostProcessorReadyInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-
-    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
-    ## ******* Replace:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <DSS>
-    ##
-    ##    </DSS>
-    ##  </Validation>
-    ##</PostProcessor>
-    ## ******* with:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <Algorithm type="DSS">
-    ##
-    ##    </Agorithm>
-    ##  </Validation>
-    ##</PostProcessor>
-
     # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
     for child in paramInput.subparts:
       if child.getName() == 'pivotParameter':
