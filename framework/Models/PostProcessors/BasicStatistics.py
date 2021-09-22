@@ -152,6 +152,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     ## dataset options
     self.setInputDataType('xrDataset')
     self.keepInputMeta(False)
+    self._syncNeeded = True
 
   def inputToInternal(self, currentInp):
     """
@@ -173,6 +174,22 @@ class BasicStatistics(PostProcessorReadyInterface):
     except KeyError:
       missing = [var for var in self.parameters['targets'] if var not in dataSet]
       self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),dataSet.name))
+    if self.pivotParameter in dataSet.dims:
+      dims = inputDataset.sizes.keys()
+      if self.pivotParameter is None:
+        if len(dims) > 1:
+          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
+                got inputted!')
+      elif self.pivotParameter not in dims:
+        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
+                requested variables', ','.join(self.parameters['targets']))
+      else:
+        self.dynamic = True
+        self.pivotValue = inputDataset[self.pivotParameter].values
+        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
+          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+          " PostProcessor to synchronize your data before running 'BasicStatistics' PostProcessor."
+          self.raiseAnError(IOError, msg)
     # extract all required ProbabilityWeight
     self.pbPresent = True if 'ProbabilityWeight' in dataSet.keys() else False
     if self.pbPresent:

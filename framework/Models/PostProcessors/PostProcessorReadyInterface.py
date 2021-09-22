@@ -53,6 +53,7 @@ class PostProcessorReadyInterface(PostProcessorInterface):
     self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
                                  # Set default to 'dict', this is consistent with current post-processors
     self._keepInputMeta = False  # Meta keys from input data objects will be added to output data objects
+    self._syncNeeded = False
 
   def keepInputMeta(self, keep=False):
     """
@@ -133,6 +134,9 @@ class PostProcessorReadyInterface(PostProcessorInterface):
     assert type(inputObjs) == list
     inputDict = {'Data':[], 'Files':[]}
     for inp in inputObjs:
+      if self._syncNeeded:
+        if not inp.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+          self.raiseAnError(IOError, "The data provided by the data objects", inp.name, "is not synchronized!")
       if isinstance(inp, Files.File):
         inputDict['Files'].append(inp)
       elif isinstance(inp, DataObject.DataObject):
