@@ -369,6 +369,7 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+
     subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
@@ -937,4 +938,4 @@ class Code(Model):
       if nRuns == 1:
         self.raiseAMessage('job "' + str(prefix) + '" submitted!')
       else:
-        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(prefix) + '" submitted!')
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(kwargs['batchInfo']['batchId']) + '" submitted!')

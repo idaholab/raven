@@ -221,9 +221,14 @@ class RavenSampled(Optimizer):
       self.inputInfo['batchMode'] = True
       batchData = []
       self.batchId += 1
+      # if batching, the prefix represents the batching id
+      # and in each batch there are multiple runs
+      # we log here the startingPrefix and change the
+      # prefix below (that is also used to create subdirectories)
+      startingPrefix = (self.batchId-1)*self.batch
     else:
       self.inputInfo['batchMode'] = False
-    for _ in range(self.batch):
+    for idx in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
       if self.counter == self.limit + 1:
         break
@@ -232,7 +237,7 @@ class RavenSampled(Optimizer):
       point = self.denormalizeData(point)
       # assign a tracking prefix
       # prefix = inputInfo['prefix']
-      prefix = self.inputInfo['prefix']
+      prefix = '{}'.format(startingPrefix+idx+1) if self.inputInfo['batchMode'] else self.inputInfo['prefix']
       inputInfo['prefix'] = prefix
       # register the point tracking information
       self._registerSample(prefix, info)
