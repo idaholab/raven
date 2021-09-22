@@ -61,6 +61,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       A constructor that will appropriately intialize a supervised learning object
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
+      @ Out, None
     """
     # general infrastructure
     SupervisedLearning.__init__(self)
@@ -85,7 +86,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, None
     """
     self.raiseADebug('Training...')
-    self.trainTSASequential(targetVals)
+    self.trainTSASequential(targetVals, self.target)
 
   def __evaluateLocal__(self, featureVals):
     """
