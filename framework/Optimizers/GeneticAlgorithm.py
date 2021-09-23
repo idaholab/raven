@@ -420,8 +420,8 @@ class GeneticAlgorithm(RavenSampled):
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
 
     # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
     if self._constraintFunctions or self._impConstraintFunctions:
-      constraintData = {}
       params = []
       for y in (self._constraintFunctions + self._impConstraintFunctions):
         params += y.parameterNames()
