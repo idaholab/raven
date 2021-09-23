@@ -53,9 +53,9 @@ Note all install methods after "main" take
     <pyside2 source='forge'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray source="pip" skip_check='True'>1.3</ray>
-    <gym source="pip" skip_check='True'/>
-    <rllib source="pip" skip_check='True'/>
+    <ray source="pip" os="mac,linux">1.3</ray>
+    <gym source="pip" os="mac,linux" skip_check='True'/>
+    <rllib source="pip" os="mac,linux" skip_check='True'/>
     <!-- <ray-rllib source="forge" skip_check='True'>1.6</ray-rllib> -->
     <!-- <ray-rllib source="forge" skip_check='True'/> -->
     <!-- ray is not compatible with aioredis 2.0
