@@ -7,8 +7,11 @@
 # @date, 05/05/2021
 # fail if anything here fails
 set -e
+
+#Set RAVEN_INSTALLATION_MANAGER if not set
+RAVEN_INSTALLATION_MANAGER=${RAVEN_INSTALLATION_MANAGER:=CONDA}
 # establish conda
-source ../../../scripts/establish_conda_env.sh --load
+source ../../../scripts/establish_conda_env.sh --load --installation-manager $RAVEN_INSTALLATION_MANAGER
 #../../../scripts/establish_conda_env.sh --load
 echo "start PythonFMU (RAVEN compatible) installation ......"
 # firstly lets check if the resources/binaries folders are empty or not

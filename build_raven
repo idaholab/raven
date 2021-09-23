@@ -21,8 +21,8 @@ LIBS_MODE=0 # 0 is "create", 1 is "load"
 ECE_ARGS=" "
 
 # check installation manager in ravenrc if present
-INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
-if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+export RAVEN_INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$RAVEN_INSTALLATION_MANAGER" == "PIP" ]];
   then
   LIBS_MODE=2
 else
