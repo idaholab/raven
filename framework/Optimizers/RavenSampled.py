@@ -114,6 +114,7 @@ class RavenSampled(Optimizer):
     self.type = 'Sampled Optimizer'  # type
     self.batch = 1  # batch size: 1 means no batching (default)
     self.batchId = 0  # Id of each batch of evaluations
+    self.previousBatchRuns = 0 # previous runs in the batch (For counting in case of variable batch size)
     # _protected
     self._writeSteps = 'final'  # when steps should be written
     self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
@@ -156,6 +157,9 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self.previousBatchRuns = 0
+    self.batch = 1
+    self.batchId = 0
 
   ###############
   # Run Methods #
@@ -221,11 +225,14 @@ class RavenSampled(Optimizer):
       self.inputInfo['batchMode'] = True
       batchData = []
       self.batchId += 1
+
       # if batching, the prefix represents the batching id
       # and in each batch there are multiple runs
       # we log here the startingPrefix and change the
       # prefix below (that is also used to create subdirectories)
-      startingPrefix = (self.batchId-1)*self.batch
+      #startingPrefix = (self.batchId-1)*self.batch
+      startingPrefix = self.previousBatchRuns
+      self.previousBatchRuns += self.batch
     else:
       self.inputInfo['batchMode'] = False
     for idx in range(self.batch):
