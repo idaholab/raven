@@ -719,6 +719,7 @@ class EnsembleModel(Dummy):
       except Exception as e:
         excType, excValue, excTrace = sys.exc_info()
         evaluation = None
+        e = rerror
     else:
       moveOn = False
       while not moveOn:

@@ -38,6 +38,7 @@ from SupervisedLearning.SyntheticHistory   import SyntheticHistory
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.DynamicModeDecompositionControl import DynamicModeDecompositionControl
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
 from .KerasClassifier import KerasClassifier
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
@@ -61,6 +62,7 @@ factory.registerType('SyntheticHistory'      , SyntheticHistory)
 factory.registerType('pickledROM'            , pickledROM)
 factory.registerType('PolyExponential'       , PolyExponential)
 factory.registerType('DMD'                   , DynamicModeDecomposition)
+factory.registerType('DMDC'                  , DynamicModeDecompositionControl)
 factory.registerType('Segments'              , Segments)
 factory.registerType('Clusters'              , Clusters)
 factory.registerType('Interpolated'          , Interpolated)

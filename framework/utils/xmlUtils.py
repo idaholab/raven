@@ -460,38 +460,46 @@ class StaticXmlElement(object):
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
     targ.append(newNode(name, text=value, attrib=attrs))
 
-  def addVector(self, target, name, valueDict, root=None, attrs=None, valueAttrsDict=None):
+  def addVector(self, target, name, valueCont, root=None, attrs=None, valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
         <target>
-          <name>
-            <with_respect_to_name1> value 1 </with_respect_to_name1>
-            <with_respect_to_name2> value 2 </with_respect_to_name2>
-            <with_respect_to_name3> value 3 </with_respect_to_name3>
-          </name>
+          if valueCont is a dict:
+            <name>
+              <with_respect_to_name1> value 1 </with_respect_to_name1>
+              <with_respect_to_name2> value 2 </with_respect_to_name2>
+              <with_respect_to_name3> value 3 </with_respect_to_name3>
+            </name>
+          else:
+            <name> value </name>
         </target>
       </root>
-      The valueDict should be as {with_respect_to_name1: value1, with_respect_to_name2: value2, etc}
+      The valueCont should be as {with_respect_to_name1: value1, with_respect_to_name2: value2, etc}
       For example, if the "name" is sensitivity_coefs, each entry would be the sensitivity of the "target"
         to "with_respect_to_name1" and etc.
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
-      @ In, valueDict, dict, name:value dictionary of metric values
+      @ In, valueCont, dict or str, if dict:
+                                       name:value dictionary of metric values
+                                    else:
+                                       value of node "name"
       @ In, root, xml.etree.ElementTree.Element, optional, node to append to
       @ In, attrs, dict, optional, dictionary of attributes to be stored in the node (name)
       @ In, valueAttrsDict, dict, optional, dictionary of attributes to be stored along the subnodes
-            identified by the valueDict dictionary
+            identified by the valueCont dictionary
       @ Out, None
     """
+    isStr = isinstance(valueCont, str)
     if root is None:
       root = self.getRoot()
     if valueAttrsDict is None:
       valueAttrsDict = {}
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
-    nameNode = newNode(name, attrib=attrs)
-    for key, value in sorted(list(valueDict.items())):
-      nameNode.append(newNode(key, text=value, attrib=valueAttrsDict.get(key, None)))
+    nameNode = newNode(name, attrib=attrs, text=valueCont if isStr else '')
+    if not isStr:
+      for key, value in sorted(list(valueCont.items())):
+        nameNode.append(newNode(key, text=value, attrib=valueAttrsDict.get(key, None)))
     targ.append(nameNode)
 
   def getRoot(self):
