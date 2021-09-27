@@ -92,11 +92,9 @@
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
-      
-      <constant name="unused">1.23456789</constant>
-
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <constant name="unused">1.23456789</constant>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
