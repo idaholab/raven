@@ -757,16 +757,9 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].verbosity = verbosity
     self.romShell[subset]._interfaceROM = self.ROMs[subset]
-    # self.romShell[subset]._interfaceROM = self.romShell[subset].interfaceFactory.returnInstance(self.romShell[subset].subType)
-    # initDict = {'IndexSet'       : 'TotalDegree',
-    #             'PolynomialOrder': '1',
-    #             'Features'       : list(subset),
-    #             'Target'         : self.targets}
-    # self.romShell[subset]._interfaceROM.initializeFromDict(initDict)
     self.romShell[subset].canHandleDynamicData = self.romShell[subset]._interfaceROM.isDynamic()
     self.romShell[subset].supervisedContainer = [self.romShell[subset]._interfaceROM]
     #coordinate SVLs
-    # self.romShell[subset].supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = factory.returnInstance('AdaptiveSparseGrid')
     samp.verbosity      = verbosity
