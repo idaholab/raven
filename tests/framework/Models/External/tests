@@ -18,6 +18,10 @@
   type = 'RavenPython'
   input = 'load_and_run_fmu.py'
   output = 'SerializeWrkd/attenuate_pk2.txt'
+  [./output_check]
+    type = NumericText
+    output = 'ATTENUATE.out'
+  [../]
   prereq = fmu_ext_model
   required_libraries = 'fmpy'
  [../]
