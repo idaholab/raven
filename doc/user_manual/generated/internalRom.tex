@@ -307,17 +307,6 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
-    \item \xmlNode{CV}: \xmlDesc{string}, 
-      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-      \xmlAttr{subType}         ``CrossValidation``.
-      The \xmlNode{CV} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{Model}
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{PostProcessor}
-      \end{itemize}
-
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
       aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
@@ -482,17 +471,6 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
-
-    \item \xmlNode{CV}: \xmlDesc{string}, 
-      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-      \xmlAttr{subType}         ``CrossValidation``.
-      The \xmlNode{CV} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{Model}
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{PostProcessor}
-      \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
@@ -1458,8 +1436,8 @@ user need to specify following information for \xmlNode{Segment}:
          be representative of the full space in the cluster (i.e. the evaluation is always performed
          interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
          is choosen when an evaluation is requested.
-	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
-	 ``random''.
+   \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+   ``random''.
          %If ``centroid'', a ROM ``trained" on the centroids
          %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
          %available yet).

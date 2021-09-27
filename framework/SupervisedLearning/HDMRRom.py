@@ -45,6 +45,8 @@ class HDMRRom(GaussPolynomialRom):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
+    ## cross validation node 'CV' can not be used for HDMRRom
+    specs.popSub('CV')
     specs.description = r"""The \xmlString{HDMRRom} is based on a Sobol decomposition scheme.
                         In Sobol decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
                         a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.

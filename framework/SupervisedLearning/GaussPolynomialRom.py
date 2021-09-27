@@ -51,6 +51,8 @@ class GaussPolynomialRom(SupervisedLearning):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
+    ## cross validation node 'CV' can not be used for GaussPolynomialRom
+    specs.popSub('CV')
     specs.description = r"""The \xmlString{GaussPolynomialRom} is based on a
                         characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
                         expansion (gPC).
