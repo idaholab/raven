@@ -8,6 +8,7 @@
       <seg_index_start>segment_number</seg_index_start>
     </dims>
     <general>
+      <datasetName>romMeta</datasetName>
       <pointwise_meta>ClusterFeature|Signal|Fourier|3.0_cosineAmp|scaled,ClusterFeature|Signal|Fourier|3.0_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|3.0_sineAmp|scaled,ClusterFeature|Signal|Fourier|3.0_sineAmp|unscaled,ClusterFeature|Signal|Fourier|5.0_cosineAmp|scaled,ClusterFeature|Signal|Fourier|5.0_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|5.0_sineAmp|scaled,ClusterFeature|Signal|Fourier|5.0_sineAmp|unscaled,ClusterFeature|Signal|Fourier|fittingIntercept|scaled,ClusterFeature|Signal|Fourier|fittingIntercept|unscaled,ClusterFeature|Signal|arma|std|scaled,ClusterFeature|Signal|arma|std|unscaled,ClusterFeature|Signal|global|mean|scaled,ClusterFeature|Signal|global|mean|unscaled,ClusterLabels,seg_Time_end,seg_Time_start,seg_index_end,seg_index_start</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>

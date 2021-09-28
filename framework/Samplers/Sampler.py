@@ -901,7 +901,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
-    pbWeights = {}
+    # collect initial weights
+    pbWeights = {key:value for key, value in self.inputInfo.items() if 'ProbabilityWeight' in key}
     for varName, varInfo in self.variables2distributionsMapping.items():
       # Handle ND Case
       if varInfo['totDim'] > 1:

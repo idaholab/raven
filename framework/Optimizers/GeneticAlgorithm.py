@@ -418,6 +418,15 @@ class GeneticAlgorithm(RavenSampled):
 
     offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
+
+    # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
+    if self._constraintFunctions or self._impConstraintFunctions:
+      params = []
+      for y in (self._constraintFunctions + self._impConstraintFunctions):
+        params += y.parameterNames()
+      for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
+        constraintData[p] = list(np.atleast_1d(rlz[p].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
     g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
@@ -432,12 +441,15 @@ class GeneticAlgorithm(RavenSampled):
     #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(offSprings):
       newOpt = individual
-      opt = objectiveVal[index]
+      opt = {self._objectiveVar:objectiveVal[index]}
+      for p,v in constraintData.items():
+        opt[p] = v[index]
+
       for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
         if constraint in self._constraintFunctions:
-          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
-          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar = self._objectiveVar,
@@ -878,8 +890,9 @@ class GeneticAlgorithm(RavenSampled):
     """
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)
-    inputs[self._objectiveVar] = opt
-    g = impConstraint.evaluate('impConstrain', inputs)
+    inputs.update(opt)
+
+    g = impConstraint.evaluate('implicitConstraint', inputs)
     return g
 
   # END constraint handling

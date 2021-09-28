@@ -493,10 +493,10 @@ class RavenSampled(Optimizer):
     """
     allOkay = True
     inputs = dict(previous)
-    for impConstrain in self._impConstraintFunctions:
-      okay = impConstrain.evaluate('implicitConstrain', inputs)
+    for impConstraint in self._impConstraintFunctions:
+      okay = impConstraint.evaluate('implicitConstraint', inputs)
       if not okay:
-        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstrain.name))
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstraint.name))
         self.raiseADebug(' ... point:', previous)
       allOkay *= okay
     return bool(allOkay)
