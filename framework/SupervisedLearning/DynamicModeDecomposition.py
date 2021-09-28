@@ -15,7 +15,7 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul, wangc
+  @author: alfoa, talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for DynamicModeDecomposition ROM (transferred from alfoa in SupervisedLearning)
 """
