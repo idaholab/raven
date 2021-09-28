@@ -1477,7 +1477,7 @@ class KerasBase(SupervisedLearning):
         descr=r"""If True, add 1 to the bias of the forget gate at initialization. Setting it to true will also
         force bias\_initializer=``zeros''.""", default=True))
     inputSpecification.addSub(layerInput,InputData.Quantity.zero_to_infinity)
-    
+
     # The following layers only available in certain versions of TensorFlow.Keras
     # ###########################
     # #  SimpleRNNCell Layers
