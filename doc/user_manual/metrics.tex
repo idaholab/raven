@@ -45,11 +45,11 @@ In the RAVEN input file these metrics are defined as follows:
   ...
   <Metrics>
     ...
-    <MetricID name='metricName'>
+    <Metric name='metricName' subType="MetricID">
       ...
      <param1>value</param1>
       ...
-    </MetricID>
+    </Metric>
     ...
   </Metrics>
   ...
@@ -66,24 +66,26 @@ The metrics, that are available in RAVEN, can be categorized into several main c
     \xmlString{dice}, \xmlString{hamming}, \xmlString{yule} and so on.
   \item \textbf{Pairwise Metric}, compute the distance or kernel between each pair of the two collections of input
     or observations in n-dimensional space.
-    \nb These metrics can be only used in the clustering post-processor of data mining. 
+    \nb These metrics can be only used in the clustering post-processor of data mining.
   \item \textbf{Other metric}, such as \xmlString{DTW}.
 \end{itemize}
 
-The valid \textbf{MetricID}s are: \xmlNode{SKL}, \xmlNode{ScipyMetric}, \xmlNode{DTW}, \xmlNode{CDFAreaDifference},
-and \xmlNode{PDFCommonArea}. This XML node requires the following attributes:
+The valid \textbf{MetricID}s are: \xmlAttr{SKL}, \xmlAttr{ScipyMetric}, \xmlAttr{DTW}, \xmlAttr{CDFAreaDifference},
+and \xmlAttr{PDFCommonArea}. This XML node requires the following attributes:
 \begin{itemize}
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this metric. \nb As with other
     objects, this name can be used to refer to this specific entity from other input blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, the desired type of Metric to use.
 \end{itemize}
 
-\nb If you are using \xmlNode{ScipyMetric}, please pay more attention on the weight associated with the metric
+\nb If you are using \xmlAttr{ScipyMetric}, please pay more attention on the weight associated with the metric
 calculations. Scipy does not normalize the weight during the calculation, and the results can be significant difference
 from the normalized weight.
 
-In RAVEN, lots of metrics are just interfaces directly with metrics available within \textbf{Scipy} and
+In RAVEN, lots of metrics are interfaces directly coupled with metrics available within \textbf{Scipy} and
 \textbf{SciKit-Learn}. In this case, the algorithm for the metrics is choosen by the subnode \xmlNode{metricType}
-under the parent node \xmlNode{SKL} (metric from SciKit-Learn) or \xmlNode{ScipyMetric} (metric from Scipy). For
+under the parent node with \xmlAttr{subType} of either \xmlString{SKL} (metric from SciKit-Learn) or
+\xmlString{ScipyMetric} (metric from Scipy). For
 example, \xmlNode{metricType}\xmlString{paired\_distance|euclidean}\xmlNode{/metricType}.
 
 In the following sub-sections, the input requirements for all of the metrics are presented in the following sections.
@@ -161,29 +163,29 @@ In the RAVEN input file, these metrics are defined as follows:
 <Simulation>
   ...
   <Metrics>
-    <SKL name="euclidean">
+    <Metric name="euclidean" subType="SKL">
         <metricType>paired_distance|euclidean</metricType>
-    </SKL>
-    <SKL name="cosine">
+    </Metric>
+    <Metric name="cosine" subType="SKL">
         <metricType>paired_distance|cosine</metricType>
-    </SKL>
-    <SKL name="manhattan">
+    </Metric>
+    <Metric name="manhattan" subType="SKL">
         <metricType>paired_distance|manhattan</metricType>
-    </SKL>
-    <ScipyMetric name="braycurtis">
+    </Metric>
+    <Metric name="braycurtis" subType="ScipyMetric">
       <metricType>paired_distance|braycurtis</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="canberra">
+    </Metric>
+    <Metric name="canberra" subType="ScipyMetric">
         <metricType>paired_distance|canberra</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="correlation">
+    </Metric>
+    <Metric name="correlation" subType="ScipyMetric">
         <metricType>paired_distance|correlation</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="minkowski">
+    </Metric>
+    <Metric name="minkowski" subType="ScipyMetric">
         <metricType>paired_distance|minkowski</metricType>
         <p>5</p>
         <w>0.1, 0.1, 0.1, 0.1, 0.1</w>
-    </ScipyMetric>
+    </Metric>
   </Metrics>
   ...
 </Simulation>
@@ -237,22 +239,22 @@ In the RAVEN input file, these metrics are defined as follows:
 <Simulation>
   ...
   <Metrics>
-    <SKL name="explained_variance_score">
+    <Metric name="explained_variance_score" subType="SKL">
         <metricType>regression|explained_variance_score</metricType>
         <sample_weight>0.1,0.1,0.1,0.05,0.05</sample_weight>
-    </SKL>
-    <SKL name="mean_absolute_error">
+    </Metric>
+    <Metric name="mean_absolute_error" subType="SKL">
         <metricType>regression|mean_absolute_error</metricType>
         <sample_weight>0.1,0.1,0.1,0.05,0.05</sample_weight>
-    </SKL>
-    <SKL name="r2_score">
+    </Metric>
+    <Metric name="r2_score" subType="SKL">
         <metricType>regression|r2_score</metricType>
         <sample_weight>0.1,0.1,0.1,0.05,0.05</sample_weight>
-    </SKL>
-    <SKL name="mean_squared_error">
+    </Metric>
+    <Metric name="mean_squared_error" subType="SKL">
         <metricType>regression|mean_squared_error</metricType>
         <sample_weight>0.1,0.1,0.1,0.05,0.05</sample_weight>
-    </SKL>
+    </Metric>
   </Metrics>
   ...
 </Simulation>
@@ -363,33 +365,33 @@ An example of Boolean metric defined in RAVEN is provided below:
   ...
   <Metrics>
     ...
-    <ScipyMetric name="rogerstanimoto">
+    <Metric name="rogerstanimoto" subType="ScipyMetric">
         <metricType>boolean|rogerstanimoto</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="dice">
+    </Metric>
+    <Metric name="dice" subType="ScipyMetric">
         <metricType>boolean|dice</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="hamming">
+    </Metric>
+    <Metric name="hamming" subType="ScipyMetric">
         <metricType>boolean|hamming</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="jaccard">
+    </Metric>
+    <Metric name="jaccard" subType="ScipyMetric">
         <metricType>boolean|jaccard</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="kulsinski">
+    </Metric>
+    <Metric name="kulsinski" subType="ScipyMetric">
         <metricType>boolean|kulsinski</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="russellrao">
+    </Metric>
+    <Metric name="russellrao" subType="ScipyMetric">
         <metricType>boolean|russellrao</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="sokalmichener">
+    </Metric>
+    <Metric name="sokalmichener" subType="ScipyMetric">
         <metricType>boolean|sokalmichener</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="sokalsneath">
+    </Metric>
+    <Metric name="sokalsneath" subType="ScipyMetric">
         <metricType>boolean|sokalsneath</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="yule">
+    </Metric>
+    <Metric name="yule" subType="ScipyMetric">
         <metricType>boolean|yule</metricType>
-    </ScipyMetric>
+    </Metric>
     ...
   </Metrics>
   ...
@@ -402,8 +404,7 @@ An example of Boolean metric defined in RAVEN is provided below:
 The Dynamic Time Warping (DTW) is a distance metrice that is used to measure similarity
 between two sequences, i.e. temporal sequences.
 
-The specifications of a DTW distance must be defined within the XML block.
-\xmlNode{DTW}.
+The specifications of a DTW distance must be defined within the \xmlNode{Metric} XML block.
 
 This XML node needs to contain the attributes:
 
@@ -425,10 +426,10 @@ An example of Minkowski distance defined in RAVEN is provided below:
   ...
   <Metrics>
     ...
-    <DTW name="example">
+    <Metric name="example" subType="DTW">
       <order>0</order>
       <localDistance>euclidean</localDistance>
-    </DTW>
+    </Metric>
     ...
   </Metrics>
   ...
@@ -455,7 +456,7 @@ An example is provided below:
   ...
   <Metrics>
     ...
-    <CDFAreaDifference name="cdf_diff" />
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
     ...
   </Metrics>
   ...
@@ -482,7 +483,7 @@ An example is provided below:
   ...
   <Metrics>
     ...
-    <PDFCommonArea name="pdf_area" />
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
     ...
   </Metrics>
   ...
@@ -533,7 +534,7 @@ The chi-squared kernel is given by:
 \metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|chi2}
 In addition to this XML subnode, the users can also specify the following subnodes:
 \begin{itemize}
-  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default `1' 
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default `1'
 \end{itemize}
 
 \subsubsection{cosine\_similarity}
@@ -597,4 +598,4 @@ Compute the sigmoid kernel between $X$ and $Y$:
 in previous sections.
 
 In addition to this XML subnode, the users can also specify the corresponding parameters for each `metric' according to
-previous sections. 
+previous sections.

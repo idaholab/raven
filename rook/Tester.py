@@ -176,15 +176,14 @@ class Differ:
     params.add_param('gold_files', '', 'Gold filenames')
     return params
 
-  def __init__(self, name, params, test_dir):
+  def __init__(self, _name, params, test_dir):
     """
       Initializer for the class.
-      @ In, name, string, name of class
+      @ In, _name, string, name of class (currently unused)
       @ In, params, dictionary, dictionary of parameters
       @ In, test_dir, string, path to test directory
       @ Out, None
     """
-    self.__name = name
     self.__test_dir = test_dir
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
@@ -367,14 +366,13 @@ class Tester:
     params.add_param('output_wait_time', '-1', 'Number of seconds to wait for output')
     return params
 
-  def __init__(self, name, params):
+  def __init__(self, _name, params):
     """
       Initializer for the class.  Takes a String name and a dictionary params
-      @ In, name, string, name of the class
+      @ In, _name, string, name of the class (currently unused)
       @ In, params, dictionary, the parameters for this class to use.
       @ Out, None
     """
-    self.__name = name
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()

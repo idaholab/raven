@@ -60,6 +60,23 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
 
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    if obj.type != self.type:
+      self.raiseAnError(IOError,'Only objects of the same type can be copied! {} != {} !'.format(obj.type, self.type))
+    try:
+      #If __getstate__ and __setstate__ available, use them
+      self.__setstate__(obj.__getstate__())
+    except AttributeError:
+      #Otherwise just use object's dictionary
+      self.__dict__.update(obj.__dict__)
+
   def _manipulateInput(self,dataIn):
     """
       Method that is aimed to manipulate the input in order to return a common input understandable by this class

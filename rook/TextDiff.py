@@ -59,23 +59,23 @@ class TextDiff:
       else:
         files_read = True
         try:
-          test_file = open(test_filename)
-          test_lines = [line.split(comment_symbol, 1)[0].strip()
-                        if len(comment_symbol) > 0
-                        else line for line in test_file]
-          test_lines = [line for line in test_lines if len(line) > 0]
-          test_file.close()
+          with open(test_filename) as test_file:
+            test_lines = [line.split(comment_symbol, 1)[0].strip()
+                          if len(comment_symbol) > 0
+                          else line for line in test_file]
+            test_lines = [line for line in test_lines if len(line) > 0]
+            test_file.close()
         except Exception as exp:
           self.__same = False
           self.__messages += "Error reading " + test_filename + ":" + str(exp) + " "
           files_read = False
         try:
-          gold_file = open(gold_filename)
-          gold_lines = [line.split(comment_symbol, 1)[0].strip()
-                        if len(comment_symbol) > 0
-                        else line for line in gold_file]
-          gold_lines = [line for line in gold_lines if len(line) > 0]
-          gold_file.close()
+          with open(gold_filename) as gold_file:
+            gold_lines = [line.split(comment_symbol, 1)[0].strip()
+                          if len(comment_symbol) > 0
+                          else line for line in gold_file]
+            gold_lines = [line for line in gold_lines if len(line) > 0]
+            gold_file.close()
         except Exception as exp:
           self.__same = False
           self.__messages += "Error reading " + gold_filename + ":" + str(exp) + " "

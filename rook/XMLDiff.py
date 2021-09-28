@@ -194,9 +194,9 @@ def compare_unordered_element(a_element, b_element, **kwargs):
         del matchvals[a_entry]
         del diffs[a_entry]
         #since we found the match, remove from other near matches
-        for close_key in diffs:
-          if b_entry in diffs[close_key].keys():
-            del diffs[close_key][b_entry]
+        for close_key, diff_value in diffs.items():
+          if b_entry in diff_value.keys():
+            del diff_value[b_entry]
             del matchvals[close_key][b_entry]
         break
       matchvals[a_entry][b_entry] = matchval

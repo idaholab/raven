@@ -798,6 +798,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
       self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
+      # update in batch mode
+      if self.inputInfo.get('batchMode',False):
+        for b in range(self.inputInfo['batchInfo']['nRuns']):
+          self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'].update(self.constants)
+          self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVarsPb'].update(dict.fromkeys(
+            self.constants.keys(),1.0))
+          self.inputInfo['batchInfo']['batchRealizations'][b].update(
+            dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def _expandVectorVariables(self):
     """
@@ -807,8 +815,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     # by default, just repeat this value into the desired shape.  May be overloaded by other samplers.
     for var,shape in self.variableShapes.items():
-      baseVal = self.inputInfo['SampledVars'][var]
-      self.inputInfo['SampledVars'][var] = np.ones(shape)*baseVal
+      if self.inputInfo.get('batchMode',False):
+        for b in range(self.inputInfo['batchInfo']['nRuns']):
+          baseVal = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][var]
+          self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][var] = np.ones(shape)*baseVal
+      else:
+        baseVal = self.inputInfo['SampledVars'][var]
+        self.inputInfo['SampledVars'][var] = np.ones(shape)*baseVal
 
   def _functionalVariables(self):
     """
@@ -818,9 +831,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     # generate the function variable values
     for var in self.dependentSample.keys():
-      test=self.funcDict[var].evaluate("evaluate",self.values)
-      for corrVar in var.split(","):
-        self.values[corrVar.strip()] = test
+      if self.inputInfo.get('batchMode',False):
+        for b in range(self.inputInfo['batchInfo']['nRuns']):
+          values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
+          test=self.funcDict[var].evaluate("evaluate",values)
+          for corrVar in var.split(","):
+            self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][corrVar.strip()] = test
+      else:
+        test=self.funcDict[var].evaluate("evaluate",self.values)
+        for corrVar in var.split(","):
+          self.values[corrVar.strip()] = test
 
   def _incrementCounter(self):
     """
@@ -869,7 +889,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # assign the SampledVarsPb to the fully correlated vars
     for key in fullyCorrVars:
       for kkey in key.split(","):
-        self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+        if not self.inputInfo.get('batchMode',False):
+          self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
+        else:
+          for b in range(self.inputInfo['nRuns']):
+            self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVarsPb'][kkey] = fullyCorrVars[key]
 
   def _reassignPbWeightToCorrelatedVars(self):
     """
@@ -877,14 +901,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
+    pbWeights = {}
     for varName, varInfo in self.variables2distributionsMapping.items():
       # Handle ND Case
       if varInfo['totDim'] > 1:
         distName = self.variables2distributionsMapping[varName]['name']
-        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
+        pbWeights['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
       if "," in varName:
         for subVarName in varName.split(","):
-          self.inputInfo['ProbabilityWeight-' + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
+          pbWeights['ProbabilityWeight-' + subVarName.strip()] = pbWeights['ProbabilityWeight-' + varName]
+    # update pbWeights
+    self.inputInfo.update(pbWeights)
+    # if batchmode, update batch
+    if self.inputInfo.get('batchMode',False):
+      for b in range(self.inputInfo['batchInfo']['nRuns']):
+        self.inputInfo['batchInfo']['batchRealizations'][b].update(pbWeights)
 
   def generateInput(self,model,oldInput):
     """
@@ -987,20 +1018,35 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, dist, string, the distribution name associated with given variable set
       @ Out, None
     """
-    latentVariablesValues = []
-    listIndex = []
-    manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
-    for index,lvar in enumerate(varsDict['latentVariables']):
-      for var,value in self.values.items():
-        if lvar == var:
+    def _applyTransformation(values):
+      """
+        Wrapper to apply the pca transformation
+        @ In, values, dict, dictionary of sampled vars
+        @ Out, values, dict, the updated set of values
+      """
+      latentVariablesValues = []
+      listIndex = []
+      manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
+      for index,lvar in enumerate(varsDict['latentVariables']):
+        value = values.get(lvar)
+        if lvar is not None:
           latentVariablesValues.append(value)
           listIndex.append(varsDict['latentVariablesIndex'][index])
-    varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
-    varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
-    for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
-      manifestVariablesValues[index2] = varsValues[index1]
-    manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
-    self.values.update(manifestVariablesDict)
+
+      varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
+      varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
+      for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
+        manifestVariablesValues[index2] = varsValues[index1]
+      manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
+      values.update(manifestVariablesDict)
+      return values
+
+    if self.inputInfo.get('batchMode',False):
+      for b in range(self.inputInfo['batchInfo']['nRuns']):
+        values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
+        self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'] =  _applyTransformation(values)
+    else:
+      self.values = _applyTransformation(self.values)
 
   def _checkSample(self):
     """

@@ -25,9 +25,9 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
@@ -46,7 +46,7 @@
         <n_splits>10</n_splits>
         <shuffle>False</shuffle>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <!-- For hands-on remove all following subnodes -->
@@ -61,7 +61,6 @@
       <validationMethod name="CrowdingDistance">
         <threshold>0.2</threshold>
       </validationMethod>
-      
     </HybridModel>
   </Models>
 

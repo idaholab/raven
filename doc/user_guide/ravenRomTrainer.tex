@@ -178,8 +178,7 @@ as when it was pickled in a previous RAVEN run. Take \textbf{AnalyticBateman} fo
 \textbf{Files} object to track the pickled ROM file.
 \xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{Files}
 
-In this example, the subtype \xmlString{NDinvDistWeight} of \xmlNode{ROM} is used instead of \xmlString{pickledROM},
-since the subtype of ROM is already known.
+In this example, the subtype \xmlString{pickledROM} of \xmlNode{ROM} is used  since the hyper-parameters of the ROM can not be changed once the ROM is loaded from a pickled (serialized) file.
 \xmlExample{framework/user_guide/ravenTutorial/RomLoad.xml}{Models}
 
 Two data objects are defined: 1) a \textbf{HistorySet} named ``inputPlaceHolder'' used as a placeholder input for

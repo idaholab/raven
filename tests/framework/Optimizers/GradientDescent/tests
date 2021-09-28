@@ -24,6 +24,10 @@
       type = XML
       output = 'Basic/opt_export.xml'
     [../]
+    [./plot]
+      type = Exists
+      output = 'Basic/opt_path.png'
+    [../]
   [../]
 
   [./ConvergeGradient]
@@ -179,4 +183,14 @@
     [../]
   [../]
 
+  [./Valley]
+    type = 'RavenFramework'
+    input = 'valley.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Valley/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
 []

@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric_scipy_boolean</name>
     <author>wangc</author>
@@ -26,15 +27,15 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="ScipyMetric">rogerstanimoto</Metric>
-      <Metric class="Metrics" type="ScipyMetric">dice</Metric>
-      <Metric class="Metrics" type="ScipyMetric">hamming</Metric>
-      <Metric class="Metrics" type="ScipyMetric">jaccard</Metric>
-      <Metric class="Metrics" type="ScipyMetric">kulsinski</Metric>
-      <Metric class="Metrics" type="ScipyMetric">russellrao</Metric>
-      <Metric class="Metrics" type="ScipyMetric">sokalmichener</Metric>
-      <Metric class="Metrics" type="ScipyMetric">sokalsneath</Metric>
-      <Metric class="Metrics" type="ScipyMetric">yule</Metric>
+      <Metric class="Metrics" type="Metric">rogerstanimoto</Metric>
+      <Metric class="Metrics" type="Metric">dice</Metric>
+      <Metric class="Metrics" type="Metric">hamming</Metric>
+      <Metric class="Metrics" type="Metric">jaccard</Metric>
+      <Metric class="Metrics" type="Metric">kulsinski</Metric>
+      <Metric class="Metrics" type="Metric">russellrao</Metric>
+      <Metric class="Metrics" type="Metric">sokalmichener</Metric>
+      <Metric class="Metrics" type="Metric">sokalsneath</Metric>
+      <Metric class="Metrics" type="Metric">yule</Metric>
     </PostProcessor>
   </Models>
 
@@ -44,7 +45,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="pp1_out">
-        <Output>
+      <Output>
             rogerstanimoto_ans2_ans,
             dice_ans2_ans,
             hamming_ans2_ans,
@@ -61,7 +62,7 @@
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
-  
+
   <OutStreams>
     <Print name="pp1_print">
       <type>csv</type>
@@ -75,33 +76,33 @@
   </OutStreams>
 
   <Metrics>
-    <ScipyMetric name="rogerstanimoto">
-        <metricType>boolean|rogerstanimoto</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="dice">
-        <metricType>boolean|dice</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="hamming">
-        <metricType>boolean|hamming</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="jaccard">
-        <metricType>boolean|jaccard</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="kulsinski">
-        <metricType>boolean|kulsinski</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="russellrao">
-        <metricType>boolean|russellrao</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="sokalmichener">
-        <metricType>boolean|sokalmichener</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="sokalsneath">
-        <metricType>boolean|sokalsneath</metricType>
-    </ScipyMetric>
-    <ScipyMetric name="yule">
-        <metricType>boolean|yule</metricType>
-    </ScipyMetric>
+    <Metric name="rogerstanimoto" subType="ScipyMetric">
+      <metricType>boolean|rogerstanimoto</metricType>
+    </Metric>
+    <Metric name="dice" subType="ScipyMetric">
+      <metricType>boolean|dice</metricType>
+    </Metric>
+    <Metric name="hamming" subType="ScipyMetric">
+      <metricType>boolean|hamming</metricType>
+    </Metric>
+    <Metric name="jaccard" subType="ScipyMetric">
+      <metricType>boolean|jaccard</metricType>
+    </Metric>
+    <Metric name="kulsinski" subType="ScipyMetric">
+      <metricType>boolean|kulsinski</metricType>
+    </Metric>
+    <Metric name="russellrao" subType="ScipyMetric">
+      <metricType>boolean|russellrao</metricType>
+    </Metric>
+    <Metric name="sokalmichener" subType="ScipyMetric">
+      <metricType>boolean|sokalmichener</metricType>
+    </Metric>
+    <Metric name="sokalsneath" subType="ScipyMetric">
+      <metricType>boolean|sokalsneath</metricType>
+    </Metric>
+    <Metric name="yule" subType="ScipyMetric">
+      <metricType>boolean|yule</metricType>
+    </Metric>
   </Metrics>
 
   <Distributions>

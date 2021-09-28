@@ -24,7 +24,6 @@
 
 import numpy as np
 import xarray as xr
-import copy
 from utils import randomUtils
 
 # For mandd: to be updated with RAVEN official tools
@@ -42,8 +41,8 @@ def rouletteWheel(population,**kwargs):
     @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
-  pop = copy.deepcopy(population)
-  fitness = copy.deepcopy(kwargs['fitness'])
+  pop = population
+  fitness = kwargs['fitness']
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -63,7 +62,12 @@ def rouletteWheel(population,**kwargs):
     roulettePointer = randomUtils.random(dim=1, samples=1)
     # initialize Probability
     counter = 0
-    selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
+    if np.all(fitness.data>=0) or np.all(fitness.data<=0):
+      selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
+    else:
+      # shift the fitness to be all positive
+      shiftedFitness = fitness.data + abs(min(fitness.data))
+      selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
 
     while sumProb < roulettePointer :
@@ -84,32 +88,58 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = copy.deepcopy(kwargs['fitness'])
+  fitness = kwargs['fitness']
   nParents= kwargs['nParents']
-  pop = copy.deepcopy(population)
-
+  pop = population
   popSize = population.values.shape[0]
 
+  if 'rank' in kwargs:
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
+    rank = kwargs['rank']
+    multiObjectiveRanking = True
+    matrixOperationRaw = np.zeros((popSize,3))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,2] = np.transpose(rank.data)
+    matrixOperation = np.zeros((popSize,3))
+  else:
+    multiObjectiveRanking = False
+    matrixOperationRaw = np.zeros((popSize,2))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperation = np.zeros((popSize,2))
+
+  indexes = list(np.arange(popSize))
+  indexesShuffled = randomUtils.randomChoice(indexes, size = popSize, replace = False, engine = None)
+
+  for idx, val in enumerate(indexesShuffled):
+    matrixOperation[idx,:] = matrixOperationRaw[val,:]
+
   selectedParent = xr.DataArray(
-      np.zeros((nParents,np.shape(pop)[1])),
-      dims=['chromosome','Gene'],
-      coords={'chromosome':np.arange(nParents),
-              'Gene': kwargs['variables']})
+    np.zeros((nParents,np.shape(pop)[1])),
+    dims=['chromosome','Gene'],
+    coords={'chromosome':np.arange(nParents),
+            'Gene': kwargs['variables']})
 
-  if nParents >= popSize/2.0:
-    # generate combination of 2 with replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
-  else: # nParents < popSize/2.0
-    # generate combination of 2 without replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents))
-
-  selectionList = selectionList.reshape(nParents,2)
-
-  for index,pair in enumerate(selectionList):
-    if fitness[pair[0]]>fitness[pair[1]]:
-      selectedParent[index,:] = pop.values[pair[0],:]
-    else: # fitness[pair[1]]>fitness[pair[0]]:
-      selectedParent[index,:] = pop.values[pair[1],:]
+  if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
+    for i in range(nParents):
+      if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+        index = int(matrixOperation[i,0])
+      else:
+        index = int(matrixOperation[i+1,0])
+      selectedParent[i,:] = pop.values[index,:]
+  else: # multi-objective implementation of tournamentSelection
+    for i in range(nParents-1):
+      if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i,0])
+      elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i+1,0])
+      else: # same rank case
+        if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+          index = int(matrixOperation[i,0])
+        else:
+          index = int(matrixOperation[i+1,0])
+      selectedParent[i,:] = pop.values[index,:]
 
   return selectedParent
 
@@ -124,8 +154,8 @@ def rankSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = copy.deepcopy(kwargs['fitness'])
-  pop = copy.deepcopy(population)
+  fitness = kwargs['fitness']
+  pop = population
 
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
