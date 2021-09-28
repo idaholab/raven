@@ -444,7 +444,6 @@ class GeneticAlgorithm(RavenSampled):
       opt = {self._objectiveVar:objectiveVal[index]}
       for p,v in constraintData.items():
         opt[p] = v[index]
-      #opt = objectiveVal[index]
 
       for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
         if constraint in self._constraintFunctions:
