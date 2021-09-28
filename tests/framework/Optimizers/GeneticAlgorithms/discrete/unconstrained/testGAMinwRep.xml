@@ -13,6 +13,9 @@
     <analytic>
       This test uses myLocalSum's analytic objective function.
     </analytic>
+    <revisions>
+      <revision author="alfoa" date="2021-09-27">added a constant node in the GeneticAlgorithm in order to show that this Optimizer can handle constants. Closes #1665</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
