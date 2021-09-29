@@ -185,7 +185,8 @@ class TSAUser:
   def trainTSASequential(self, trainingVals, varList=None, pivots=None):
     """
       Train TSA algorithms using a sequential removal-and-residual approach.
-      @ In, trainingVals, array, shape = [n_timeStep, n_dimensions], array of time series data
+      NOTE: this is a STATEFUL implementation, not a FUNCTIONAL implementation
+      @ In, trainingVals, array, shape = [n_rlz, n_timeStep, n_dimensions], array of time series data
         NOTE: For now, this should be a single history/realization, not an array of realizations
       @ In, varList, list(str), optional, variable names associated with dimensions of trainingVals
         If not provided, we assume they're in the order defined in by self.getTSATargets()
