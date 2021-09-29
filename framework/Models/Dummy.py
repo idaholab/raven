@@ -83,9 +83,9 @@ class Dummy(Model):
       @ In, dataIn, object, the object that needs to be manipulated
       @ Out, inRun, dict, the manipulated input
     """
-    if len(dataIn)>1:
+    if len(dataIn) > 1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
-    if type(dataIn[0])!=tuple:
+    if not isinstance(dataIn[0], tuple):
       inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:
       inRun = dataIn[0][0]
@@ -133,6 +133,7 @@ class Dummy(Model):
                 localInput[entry] = []
               value = dataSet.isel({dataIN.sampleTag: rlz})[entry].values
               localInput[entry].append(value)
+          localInput['_indexMap'] = dict((k, v) for k, v in dataIN.getDimensions().items() if v)
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs

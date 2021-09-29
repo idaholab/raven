@@ -107,27 +107,28 @@ class ROM(Dummy):
       @ Out, None
     """
     super().__init__()
-    self.amITrained = False               # boolean flag, is the ROM trained?
-    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = 'ROM MODEL'           # label
-    self.cvInstanceName = None            # the name of Cross Validation instance
-    self.cvInstance = None                # Instance of provided cross validation
-    self._estimatorName = None            # the name of estimator instance
-    self._estimator = None                # Instance of provided estimator (ROM)
-    self._interfaceROM = None             # Instance of provided ROM
+    self.amITrained = False       # boolean flag, is the ROM trained?
+    self.supervisedEngine = None  # dict of ROM instances (== number of targets => keys are the targets)
+    self.printTag = 'ROM MODEL'   # label
+    self.cvInstanceName = None    # the name of Cross Validation instance
+    self.cvInstance = None        # Instance of provided cross validation
+    self._estimatorName = None    # the name of estimator instance
+    self._estimator = None        # Instance of provided estimator (ROM)
+    self._interfaceROM = None     # Instance of provided ROM
+    self.trainingSet = None       # Data or instance from which this was trained.
 
-    self.pickled = False # True if ROM comes from a pickled rom
-    self.pivotParameterId = 'time' # The name of pivot parameter
+    self.pickled = False              # True if ROM comes from a pickled rom
+    self.pivotParameterId = 'time'    # The name of pivot parameter
     self.canHandleDynamicData = False # check if the model can autonomously handle the time-dependency
                                       # if not and time-dep data are passed in, a list of ROMs are constructed
-    self.isADynamicModel = False # True if the ROM is time-dependent
-    self.supervisedContainer = [] # List ROM instances
-    self.historySteps = [] # The history steps of pivot parameter
-    self.segment = False # True if segmenting/clustring/interpolating is requested
-    self.numThreads = 1 # number of threads used by the ROM
-    self.seed = None # seed information
-    self._segmentROM = None # segment rom instance
-    self._paramInput = None # the parsed xml input
+    self.isADynamicModel = False      # True if the ROM is time-dependent
+    self.supervisedContainer = []     # List ROM instances
+    self.historySteps = []            # The history steps of pivot parameter
+    self.segment = False              # True if segmenting/clustring/interpolating is requested
+    self.numThreads = 1               # number of threads used by the ROM
+    self.seed = None                  # seed information
+    self._segmentROM = None           # segment rom instance
+    self._paramInput = None           # the parsed xml input
 
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
@@ -307,63 +308,90 @@ class ROM(Dummy):
       @ In, trainingSet, dict or PointSet or HistorySet, data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
       @ Out, None
     """
-    if type(trainingSet).__name__ == 'ROM':
-      self.trainingSet              = copy.copy(trainingSet.trainingSet)
-      self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.supervisedContainer         = copy.deepcopy(trainingSet.supervisedContainer)
-      self.seed = trainingSet.seed
+    # if type(trainingSet).__name__ == 'ROM':
+    if isinstance(trainingSet, ROM):
+      self.trainFromInstance(trainingSet)
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
-      if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
+      if type(trainingSet) != dict and trainingSet.type == 'HistorySet':
         if not trainingSet.checkIndexAlignment(indexesToCheck=self.pivotParameterId):
           self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
                   "The time-dependent ROM requires all the histories are synchonized!")
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
+      # LEGACY SupervisedLearning (SVL) objects train on dictionaries/matrices
+      # New SVL can bypass the data manip and use the dataset directly
+      useDict = self.supervisedContainer[0].needsDictTraining
+      if useDict:
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
+      else:
+        self.trainingSet = trainingSet # TODO none/shallow/deep copy needed?
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
 
       self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
-      # if training using ROMCollection, special treatment
-      if self.segment:
+
+      # if using dataset directly, no special effort needed
+      if not useDict:
         self.supervisedContainer[0].train(self.trainingSet)
+      # if training using ROMCollection, "train" takes special implementation
+      # TODO move time-dependent snapshots to collection from legacy!
+      elif self.segment:
+        self.supervisedContainer[0].train(self.trainingSet)
+      # otherwise, using legacy format
       else:
-        # not a collection # TODO move time-dependent snapshots to collection!
-        ## time-dependent or static ROM?
-        if any(type(x).__name__ == 'list' for x in self.trainingSet.values()):
-          # we need to build a "time-dependent" ROM
-          self.isADynamicModel = True
-          if self.pivotParameterId not in list(self.trainingSet.keys()):
-            self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId),
-                              'A time-dependent-like ROM cannot be created!')
-          if type(self.trainingSet[self.pivotParameterId]).__name__ != 'list':
-            self.raiseAnError(IOError, 'The pivot parameter "{}" is not a list.'.format(self.pivotParameterId),
-                              " Are you sure it is part of the output space of the training set?")
-          self.historySteps = self.trainingSet.get(self.pivotParameterId)[-1]
-          if not len(self.historySteps):
-            self.raiseAnError(IOError, "the training set is empty!")
-          # intrinsically time-dependent or does the Gate need to handle it?
-          if self.canHandleDynamicData:
-            # the ROM is able to manage the time dependency on its own
-            self.supervisedContainer[-1].train(self.trainingSet)
-          else:
-            # TODO we can probably migrate this time-dependent handling to a type of ROMCollection!
-            # we need to construct a chain of ROMs
-            # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
-            # get the time slices
-            newTrainingSet = mathUtils.historySnapShoots(self.trainingSet, len(self.historySteps))
-            assert type(newTrainingSet).__name__ == 'list'
-            # copy the original ROM
-            originalROM = self.supervisedContainer[0]
-            # start creating and training the time-dep ROMs
-            self.supervisedContainer = [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
-            # train
-            for ts in range(len(self.historySteps)):
-              self.supervisedContainer[ts].train(newTrainingSet[ts])
-        # if a static ROM ...
-        else:
-          #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-          self.supervisedContainer[0].train(self.trainingSet)
-      # END if ROMCollection
+        self.trainLegacy()
       self.amITrained = True
+
+  def trainFromInstance(self, rom):
+    """
+      Trains ROM model from an already-trained ROM instance
+      @ In, rom, ROM, rom instance
+      @ Out, None
+    """
+    self.trainingSet = copy.copy(rom.trainingSet)
+    self.amITrained = copy.deepcopy(rom.amITrained)
+    self.supervisedContainer = copy.deepcopy(rom.supervisedContainer)
+    self.seed = rom.seed
+
+  def trainLegacy(self):
+    """
+      Train SLVs in the "older" legacy style, with data manipulations and dynamic behavior checking
+      @ In, None
+      @ Out, None
+    """
+    ## time-dependent or static ROM?
+    if any(isinstance(x, list) for x in self.trainingSet.values()):
+      # we need to build a "time-dependent" ROM
+      self.isADynamicModel = True
+      if self.pivotParameterId not in list(self.trainingSet.keys()):
+        self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId),
+                          'A time-dependent-like ROM cannot be created!')
+      if type(self.trainingSet[self.pivotParameterId]).__name__ != 'list':
+        self.raiseAnError(IOError, 'The pivot parameter "{}" is not a list.'.format(self.pivotParameterId),
+                          " Are you sure it is part of the output space of the training set?")
+      self.historySteps = self.trainingSet.get(self.pivotParameterId)[-1]
+      if not len(self.historySteps):
+        self.raiseAnError(IOError, "the training set is empty!")
+      # intrinsically time-dependent or does the Gate need to handle it?
+      if self.canHandleDynamicData:
+        # the ROM is able to manage the time dependency on its own
+        self.supervisedContainer[-1].train(self.trainingSet, indexMap=self.trainingSet.get('_indexMap', None))
+      else:
+        # TODO we can probably migrate this time-dependent handling to a type of ROMCollection!
+        # we need to construct a chain of ROMs
+        # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
+        # get the time slices
+        newTrainingSet = mathUtils.historySnapShoots(self.trainingSet, len(self.historySteps))
+        assert type(newTrainingSet).__name__ == 'list'
+        # copy the original ROM
+        originalROM = self.supervisedContainer[0]
+        # start creating and training the time-dep ROMs
+        self.supervisedContainer = [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+        # train
+        for ts in range(len(self.historySteps)):
+          self.supervisedContainer[ts].train(newTrainingSet[ts])
+    # if a static ROM ...
+    else:
+      #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      self.supervisedContainer[0].train(self.trainingSet)
 
   def confidence(self,request,target = None):
     """

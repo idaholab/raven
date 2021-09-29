@@ -131,6 +131,7 @@ class SupervisedLearning(BaseInterface):
     self.muAndSigmaFeatures = {}   # normalization parameters
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.needsDictTraining = True  # True if the "train" method expects a dictionary ONLY
 
   def _handleInput(self, paramInput):
     """
@@ -203,17 +204,30 @@ class SupervisedLearning(BaseInterface):
     """
     pass
 
-  def train(self, tdict, indexMap=None):
+  def train(self, trainingData, indexMap=None):
     """
       Method to perform the training of the SupervisedLearning algorithm
-      NB.the SupervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, trainingData, dataset or dict, data to use to train ROM
+      @ In, indexMap, dict, mapping of variables to their dependent indices, if any
+      @ Out, None
+    """
+    if self.needsDictTraining:
+      self.trainOnDictionary(trainingData, indexMap)
+    else:
+      # SVL to extend "train" directly
+      # however, a few standard things do need to be handled that usually happen in trainOnDictionary
+      self.amITrained = True
+      self.muAndSigmaFeatures = dict((f, (0,1)) for f in self.features)
+
+  def trainOnDictionary(self, tdict, indexMap):
+    """
+      Translates in the incoming data as a dicitonary into numpy arrays
       @ In, tdict, dict, training dictionary
       @ In, indexMap, dict, mapping of variables to their dependent indices, if any
       @ Out, None
     """
-    if type(tdict) != dict:
-      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if not isinstance(tdict, dict):
+      self.raiseAnError(RuntimeError, 'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by skl *MultiTask* that
     ## requires multiple targets.
@@ -239,10 +253,12 @@ class SupervisedLearning(BaseInterface):
       for feat in self.features:
         for index in indexMap.get(feat, []):
           if index not in needFeatures and index not in needTargets:
-            needFeatures.append(feat)
+            needFeatures.append(index)
 
-    featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
-    for cnt, feat in enumerate(self.features):
+    # FIXME featureValues is not always square! might be arbitrarily shaped.
+    # -> we really should just be sending in the training data object.
+    featureValues = np.zeros(shape=(len(targetValues), len(needFeatures)))
+    for cnt, feat in enumerate(needFeatures):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
@@ -252,13 +268,13 @@ class SupervisedLearning(BaseInterface):
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
         if len(valueToUse) != featureValues[:,0].size:
-          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
+          self.raiseAWarning('feature values:', featureValues[:,0].size, tag='ERROR')
+          self.raiseAWarning('target values:', len(valueToUse), tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-    self.__trainLocal__(featureValues,targetValues)
+    self.__trainLocal__(featureValues, targetValues)
     self.amITrained = True
 
   def _localNormalizeData(self,values,names,feat):
