@@ -1,10 +1,10 @@
 \section{Optimization Functions}
 
 The functions in this section are models with analytic optimal points.
-
-\subsection{General}
-
-\subsubsection{Beale's Function}
+\setcounter{tocdepth}{4}
+\subsection{Continuous}
+\subsubsection{Unconstrained}
+\paragraph{Beale's Function}
 Beale's function has a two-dimensional input space and a single global/local minimum.
 See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
 
@@ -15,7 +15,7 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
 \end{itemize}
 
 
-\subsubsection{Rosenbrock Function}
+\paragraph{Rosenbrock Function}
 The Rosenbrock function can take a varying number of inputs.  For up to three inputs, a single global minimum
 exists.  For four to seven inputs, there is one local minimum and one global maximum.
 See \url{https://en.wikipedia.org/wiki/Rosenbrock_function}.
@@ -28,7 +28,7 @@ See \url{https://en.wikipedia.org/wiki/Rosenbrock_function}.
 \end{itemize}
 
 
-\subsubsection{Goldstein-Price Function}
+\paragraph{Goldstein-Price Function}
 The Goldstein-Price function is a two-dimensional input function with a single global minimum.
 See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
 
@@ -42,7 +42,7 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
   \item Global Minimum: $f(0,-1)=3$
 \end{itemize}
 
-\subsubsection{McCormick Function}
+\paragraph{McCormick Function}
 The McCormick function is a two-dimensional input function with a single global minimum.
 See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
 
@@ -52,7 +52,7 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
   \item Global Minimum: $f(-0.54719,-1.54719) = -1.9133$
 \end{itemize}
 
-\subsubsection{2D Canyon}
+\paragraph{2D Canyon}
 The two-dimensional canyon offers a low region surrounded by higher walls.
 
 \begin{itemize}
@@ -61,7 +61,7 @@ The two-dimensional canyon offers a low region surrounded by higher walls.
   \item Global Minimum: $f(1.8218,1.8218)=-2.90946$
 \end{itemize}
 
-\subsubsection{Stochastic Diagonal Valley}
+\paragraph{Stochastic Diagonal Valley}
 The stochastic three-dimensional diagonal valley offers a low region surrounded by higher walls.
 
 \begin{itemize}
@@ -70,7 +70,7 @@ The stochastic three-dimensional diagonal valley offers a low region surrounded 
   \item Global Minimum if $stoch =0$: $f(-0.5,0.5)=0$
 \end{itemize}
 
-\subsubsection{Parabolic Valley}
+\paragraph{Parabolic Valley}
 The parabolic valley is dominated by distance from $x=y$ but secondarily motivated by $x+y$.
 
 \begin{itemize}
@@ -79,7 +79,7 @@ The parabolic valley is dominated by distance from $x=y$ but secondarily motivat
   \item Global Minimum: $f(0,0)=0$
 \end{itemize}
 
-\subsubsection{Paraboloid}
+\paragraph{Paraboloid}
 The elliptic paraboloid is a two-dimensional function with a single global minimum.
 
 \begin{itemize}
@@ -88,7 +88,7 @@ The elliptic paraboloid is a two-dimensional function with a single global minim
   \item Global Minimum: $f(-0.5,0.5) = 0$
 \end{itemize}
 
-\subsubsection{Time-Parabola}
+\paragraph{Time-Parabola}
 This model features the sum of a parabola in both $x$ and $y$; however, the parabola in $y$ moves in time and
 has a reduced magnitude as time increases. As such, the minimum is always found at $x=0$ and at $(t-y)=0$, with
 $y$ values at low $t$ being more impactful than at later $t$, and $x$ as impactful as $y(t=0)$.
@@ -99,7 +99,7 @@ $y$ values at low $t$ being more impactful than at later $t$, and $x$ as impactf
   \item Global Minimum: $f(0,y=t,t) = 0$
 \end{itemize}
 
-\subsubsection{Eggholder}
+\paragraph{Eggholder}
 This is a 2D function with a plethora of local minima and maxima (i.e., non-convex). It is challenging for most optimizers to find the global minimum for such a function. Metaheuristic methods are prefered for their ability to avoid getting stuck in local optima.
 
 \begin{itemize}
@@ -108,8 +108,8 @@ This is a 2D function with a plethora of local minima and maxima (i.e., non-conv
 	\item Global Minimum: $f(x=512, y=404.2319) = -959.6407$
 \end{itemize}
 
-\subsection{Constrained}
-\subsubsection{Mishra's Bird Function}
+\subsubsection{Constrained}
+\paragraph{Mishra's Bird Function}
 The Mishra bird function offers a constrained problem with multiple peaks, local minima, and one steep global
 minimum.
 See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
@@ -121,7 +121,7 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
   \item Global Minimum: $f(-3.1302468, -1.5821422) = -106.7645367$
 \end{itemize}
 
-\subsubsection{ND Slant}
+\paragraph{ND Slant}
 This trivial linear problem extends to arbitrary dimension and has optimal points at infinities,
 which is usually outside the domain of exploration.
 \begin{itemize}
@@ -130,7 +130,7 @@ which is usually outside the domain of exploration.
   \item Global Minimum: $f(\{1\}_N) = 0$
 \end{itemize}
 
-% \subsubsection{Rosenbrock with cubic and linear constraints}
+% \paragraph{Rosenbrock with cubic and linear constraints}
 % Here the Rosenbrock is another two dimensional highly nonlinear function. The global maximum is on the intersection of the two constraints which renders this problem challenging for optimizers that uses random decisions for next points such as simulated annealing and genetic algorithms.
 % \begin{itemize}
 % 	\item Objective Function: $f(x,y) = (1-x^2) + 100(y-x^2)^2$
@@ -139,7 +139,7 @@ which is usually outside the domain of exploration.
 % 	\item Global Maximum: $f(1.0,1.0) = 0$
 % \end{itemize}
 
-\subsubsection{Rosenbrock with a disk constraint}
+\paragraph{Rosenbrock with a disk constraint}
 This is the same 2D function, but constrained to a disk. This constraint makes it a little easier than the previous function.
 \begin{itemize}
 	\item Objective Function: $f(x,y) = (1-x^2) + 100(y-x^2)^2$
@@ -148,7 +148,7 @@ This is the same 2D function, but constrained to a disk. This constraint makes i
 	\item Global Maximum: $f(1.0,1.0) = 0$
 \end{itemize}
 
-\subsubsection{Townsend}
+\paragraph{Townsend}
 It is a highly nonlinear non convex function with multiple minima and maxima. The constraint is highly nonlinear and the y-domain is asymmetric.
 \begin{itemize}
 	\item Objective Function: $f(x,y) = -\left[\cos((x-0.1)y)\right]^2-x\sin(3x+y)$
@@ -157,11 +157,63 @@ It is a highly nonlinear non convex function with multiple minima and maxima. Th
 	\item Global Minimum: $f(2.0052938,1.1944509) = -2.0239884$
 \end{itemize}
 
-\subsubsection{Simionescu}
+\paragraph{Simionescu}
 An exteremly simple two dimensional nonlinear function formed from 45-degrees hyperbolas. Subjected to highly nonlinear constraint.
 \begin{itemize}
 	\item Objective Function: $f(x,y) = 0.1xy$
 	\item Domain: $-1.25 \leq x,y \leq 1.25$
 	\item Constraint: $x^2 + y^2 \leq \left[r_{\Gamma}+r_S\cos\left(n \arctan(\frac{x}{y})\right)\right]^2 $; \[ \text{where: } r_{\Gamma}=1, r_S = 0.2, \text{and } n=8 \]
 	\item Global Minimum: $f(\pm 0.84852813,\mp0.84852813) = -0.072$
+\end{itemize}
+\subsection{Discrete}
+\subsubsection{Unconstrained}
+\paragraph{Locally weighted sum without replacement}
+This function computes the sum of the input vector components weighted by the location in the vector (i.e., component/dimension number). The input vector is sampled from a disrete uniform distribution of intergers between an upper bound $ub$, and a lower bound $lb$ without replacement (i.e., if an integer is selected for one variable (a component in the $n$-th dimensional input vector it cannot be selected for the remaining components)).
+\begin{itemize}
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
+	\item Global Minimum: $f(\vec{x}_{opt}|x_i = lb + G - i) = \sum_{i=1}^{G} (lb + G -i) \times i$
+	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = lb + G - i = 1+6-i = \begin{bmatrix}
+	6 & 5 & \dots & 1 \end{bmatrix}$ and the minimum will be $f_{min} = \sum_{i=1}^{G} (1 + 6 -i) \times i = \frac{G(G+1)}{6}[3lb+G-1] = 56$
+	\item Global Maximum: $f(\vec{x}_{opt}|x_i = ub - G + i) = \sum_{i=1}^{G} (ub - G +i) \times i$
+	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = ub - G + i = 20-6+i = \begin{bmatrix}
+	15 & 16 & \dots & 20 \end{bmatrix}$ and the maximum will be $f_{max} = \sum_{i=1}^{G} (20 - 6 +i) \times i = \frac{G(G+1)}{6}[3ub-G+1] = 385$
+\end{itemize}
+
+\paragraph{Locally weighted sum with replacement}
+This function computes the sum of the input vector components weighted by the location in the vector (i.e., component/dimension number). The input vector is sampled from a disrete uniform distribution of intergers between an upper bound $ub$, and a lower bound $lb$ with replacement (i.e., if an integer is selected for one variable, it can be selected again for any or all other variables).
+\begin{itemize}
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/ replacement}} (lb,ub)$
+	\item Global Minimum: $f(\vec{x}_{opt}|x_i = lb) = \sum_{i=1}^{G} lb \times i$
+	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = lb = 1 = \begin{bmatrix}
+	1 & 1 & \dots & 1 \end{bmatrix}$ and the minimum will be $f_{min} = \sum_{i=1}^{G} i = \frac{G(G+1)}{2}[lb] = 21$
+	\item Global Maximum: $f(\vec{x}_{opt}|x_i = ub) = \sum_{i=1}^{G} ub \times i$
+	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = ub = 20 = \begin{bmatrix}
+	20 & 20 & \dots & 20 \end{bmatrix}$ and the maximum will be $f_{max} = \sum_{i=1}^{G} 20 \times i = \frac{G(G+1)}{2}[ub] = 420$
+\end{itemize}
+
+\subsubsection{Constrained}
+\paragraph{Locally weighted sum with replacement linearly constrained}
+It uses the same function but adds a constraint.
+\begin{itemize}
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
+	\item constraint $x_2 \leq 8.5 - 0.5 * x_1$
+	\item Global Minimum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}
+	1 & 1 & 1 \end{bmatrix}) = 6.0$
+	\item Global Maximum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}
+	6 & 5 & 6 \end{bmatrix} = 34.0$
+\end{itemize}
+
+\paragraph{Locally weighted sum with replacement sphere constrained}
+It uses the same function but adds a constraint.
+\begin{itemize}
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
+	\item constraint $x^{2}_{1} + x^{2}_{2} \leq 72$
+	\item Global Minimum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}
+1 & 1 & 1 \end{bmatrix})= 6.0$
+\item Global Maximum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}
+6 & 5 & 6 \end{bmatrix} = 34.0$
 \end{itemize}
