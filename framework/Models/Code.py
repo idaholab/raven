@@ -369,7 +369,15 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+
+    # check if in batch
+    brun = kwargs.get('batchRun')
+    if brun is not None:
+      # if batch, the subDir are a combination of prefix (batch id) and batch run id
+      bid = kwargs['prefix'] if 'prefix' in kwargs.keys() else '1'
+      subDirectory = os.path.join(self.workingDir,'b{}_r{}'.format(bid,brun))
+    else:
+      subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
@@ -891,7 +899,9 @@ class Code(Model):
 
       prefix = kw.get("prefix")
       uniqueHandler = kw.get("uniqueHandler",'any')
-
+      # if batch mode is on, lets record the run id within the batch
+      if batchMode:
+        kw['batchRun'] = i+1
 
       ## These two are part of the current metadata, so they will be added before
       ## the job is started, so that they will be captured in the metadata and match
@@ -919,7 +929,7 @@ class Code(Model):
       ## These variables should not be part of the metadata, so add them after
       ## we copy this dictionary (Caught this when running an ensemble model)
       ## -- DPM 4/11/17
-      nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+      nodesList                = jobHandler.runInfoDict.get('Nodes',[])
       kw['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
       kw['precommand'        ] = jobHandler.runInfoDict['precommand']
       kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
@@ -937,4 +947,4 @@ class Code(Model):
       if nRuns == 1:
         self.raiseAMessage('job "' + str(prefix) + '" submitted!')
       else:
-        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(prefix) + '" submitted!')
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(kwargs['batchInfo']['batchId']) + '" submitted!')
