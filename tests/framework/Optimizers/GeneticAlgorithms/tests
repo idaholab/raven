@@ -24,6 +24,7 @@
   [./MinwReplacementConvAHDpUsingCode]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwRepConvAHDpUsingCode.xml'
+    output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/optimize/b5_r20/out~input.csv' 
     [./data]
       type = OrderedCSV
       output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/opt_export_0.csv'
