@@ -46,7 +46,7 @@
       <variable name="importance">
         <distribution>Importance</distribution>
       </variable>
-
+      <Importance class="Distributions" type="Normal">Importance</Importance>
     </Importance>
   </Samplers>
 

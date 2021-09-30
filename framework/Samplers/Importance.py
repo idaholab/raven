@@ -52,6 +52,11 @@ class Importance(ForwardSampler):
     samplerInitInput.addSub(samplingTypeInput)
     inputSpecification.addSub(samplerInitInput)
 
+    importanceInput = InputData.parameterInputFactory("Importance", contentType=InputTypes.StringType)
+    importanceInput.addParam("type", InputTypes.StringType)
+    importanceInput.addParam("class", InputTypes.StringType)
+    inputSpecification.addSub(importanceInput)
+
     return inputSpecification
 
   def __init__(self):
@@ -66,8 +71,9 @@ class Importance(ForwardSampler):
     self.samplingType = None
     self.limit = None
     self.importance = None
+    self.addAssemblerObject('Importance', InputData.Quantity.one)
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self,xmlNode,paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
@@ -84,7 +90,7 @@ class Importance(ForwardSampler):
 
     # input check
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self,model,myInput):
     """
       Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
@@ -95,19 +101,19 @@ class Importance(ForwardSampler):
     """
     distributions = [key for key in self.distDict.keys()]
     target = distributions[0]
-    importance=distributions[1]
+    importance = self.assemblerDict['Importance'][0][3]
 
-    importanceSample = self.distDict[importance].rvs()
+    importanceSample = importance.rvs()
 
     importanceWeight = self.distDict[target].pdf(
-      importanceSample) / self.distDict[importance].pdf(importanceSample)
+      importanceSample) / importance.pdf(importanceSample)
 
     sample = importanceSample*importanceWeight
     key = target
     for kkey in key.split(','):
       self.values[kkey] = np.atleast_1d(sample)[0]
 
-    self.inputInfo['ProbabilityWeight-'+importance] = importanceWeight
+    self.inputInfo['ProbabilityWeight-importance'] = importanceWeight
     self.inputInfo['ProbabilityWeight-'+target] = self.distDict['target'].pdf(importanceSample)
     self.inputInfo['PointProbability'] = self.distDict[target].pdf(importanceSample)
     self.inputInfo['ProbabilityWeight'] = 0
