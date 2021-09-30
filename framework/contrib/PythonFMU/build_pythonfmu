@@ -74,7 +74,9 @@ then
     OUTPUT=$(cmake --build . --config Release)
     echo "${OUTPUT}"
   else
-    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release)
+    PYTHON_COMMAND=`which python3`
+    echo PYTHON_COMMAND $PYTHON_COMMAND
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPython3_EXECUTABLE=$PYTHON_COMMAND)
     echo "${OUTPUT}"
     OUTPUT=$(cmake --build .)
     echo "${OUTPUT}"
