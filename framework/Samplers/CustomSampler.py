@@ -255,6 +255,11 @@ class CustomSampler(ForwardSampler):
             sourceName = self.nameInSource[subVar]
             # get the value(s) for the variable for this realization
             self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
+            # get supporting indices (like "time")
+            for dim in rlz.dims:
+              if dim not in self.values:
+                self.values[dim] = rlz[self.nameInSource.get(dim, dim)]
+            # -> need to add and dependent variables to the inputInfo!!
             # set the probability weight due to this variable (default to 1)
             pbWtName = 'ProbabilityWeight-'
             self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
