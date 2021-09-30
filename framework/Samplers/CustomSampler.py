@@ -76,6 +76,7 @@ class CustomSampler(ForwardSampler):
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
+    self.sourceIndexMap = {} # index map from source data (_indexMap)
     self.batch = 1    # number of samples in each batch
     self.batchId = 0  # ID for each batch
 
@@ -211,6 +212,7 @@ class CustomSampler(ForwardSampler):
           if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError,"the variable "+ sourceName + " not found in "+ dataObj.type + " " + dataObj.name)
       self.limit = len(self.pointsToSample)
+      self.sourceIndexMap = dataObj.getDimensions()
     # if "index" provided, limit sampling to those points
     if self.indexes is not None:
       self.limit = len(self.indexes)
@@ -279,6 +281,7 @@ class CustomSampler(ForwardSampler):
         # Construct probabilities based on the user provided information
         self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
         self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
+      self.values['_indexMap'] = self.sourceIndexMap
       self.inputInfo['SamplerType'] = 'Custom'
       if self.inputInfo['batchMode']:
         self.inputInfo['SampledVars'] = self.values
