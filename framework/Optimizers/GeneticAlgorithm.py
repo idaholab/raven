@@ -141,10 +141,8 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""A node containing the criterion based on which the parents are selected. This can be a
                   fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
-                  b. \textbf{\textit{stochasticUniversalSampling}},
-                  c. \textbf{\textit{Tournament}},
-                  d. \textbf{\textit{Rank}}, or
-                  e. \textbf{\textit{randomSelection}}""")
+                  b. \textbf{\textit{tournamentSelection}},
+                  c. \textbf{\textit{rankSelection}}, or""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -159,11 +157,9 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    One Point Crossover,
-                                 b.    MultiPoint Crossover,
-                                 c.    Uniform Crossover,
-                                 d.    Whole Arithmetic Recombination, or
-                                 e.    Davis’ Order Crossover.""")
+                  This includes: a.    onePointCrossover,
+                                 b.    twoPointsCrossover,
+                                 c.    uniformCrossover.""")
     crossover.addParam("type", InputTypes.StringType, True,
                        descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -182,11 +178,10 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a.    Bit Flip,
-                                 b.    Random Resetting,
-                                 c.    Swap,
-                                 d.    Scramble, or
-                                 e.    Inversion.""")
+                  This includes: a.    bitFlipMutation,
+                                 b.    swapMutation,
+                                 c.    scrambleMutation, or
+                                 d.    inversionMutation.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
