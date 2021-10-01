@@ -135,7 +135,7 @@ class PhysicsGuidedCoverageMapping(Validation):
 
       # Virtual Measurement
       msr_mean = 0.0
-      msr_std = 0.1*np.std(yapp_std)
+      msr_std = 0.01*np.std(yapp_std)
       msr_numSmpl = 1000
       ymsr = np.random.normal(msr_mean, msr_std, msr_numSmpl)
       binMsr = msr_numSmpl//20
@@ -168,7 +168,7 @@ class PhysicsGuidedCoverageMapping(Validation):
       # Standard Deviation
       pred_std = np.sqrt(pred_var)
       pri_std = np.std(yapp_std)
-      std_reduct = pred_std/pri_std
+      std_reduct = 1.0-pred_std/pri_std
 
       # Generate distribution by pdf_yapp_pred_norm
       bins_pred = np.insert(Y[0, :]+0.5*(Y[0, 1]-Y[0, 0]), 0, Y[0, 0]-0.5*(Y[0, 1]-Y[0, 0]))
