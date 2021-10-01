@@ -32,9 +32,9 @@ class STDReduction(MetricInterface):
     """
     super().__init__()
     # If True the metric needs to be able to handle (value,probability) where value and probability are lists
-    self.acceptsProbability = True
+    #self.acceptsProbability = True
     # If True the metric needs to be able to handle a passed in Distribution
-    self.acceptsDistribution = True
+    #self.acceptsDistribution = True
 
   def run(self, x, y, weights=None, axis=0, **kwargs):
     """
@@ -48,5 +48,6 @@ class STDReduction(MetricInterface):
       @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result, PDF common area
     """
+    ##TODO: This can be generalized to handle a Distribution
     value = MetricUtilities._getSTDReduction(x,y)
     return float(value)
