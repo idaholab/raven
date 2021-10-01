@@ -341,15 +341,27 @@ class SupervisedLearning(BaseInterface):
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
-    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    #### FIXME where is "time" and other indices??
+    # -> for now we assume single-dimension synchronized features (all vectors of same length)
+    # -> but this is surely a bad assumption!
+    addDims = set() # list of all dims used in this rlz
+    for deps in edict.get('_indexMap', [{}])[0].values():
+      addDims.update(deps)
+    addDims = sorted(addDims) # fix order as list
+    # TODO is adding dims to features a terrible idea? We should really be passing in a rlz object
+    self.features.extend([d for d in addDims if d not in self.features])
+    shape = (values[0].size, len(self.features))
+    featureValues = np.zeros(shape=shape)
     for cnt, feat in enumerate(self.features):
+      nameIndex = names.index(feat)
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+        resp = self.checkArrayConsistency(values[nameIndex], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+        loc, scale = self.muAndSigmaFeatures.get(feat, (0, 1))
+        featureValues[:,cnt] = (values[nameIndex] - loc)/scale
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):
