@@ -26,7 +26,7 @@ import string
 import numpy.linalg as LA
 import pandas as pd
 import copy as cp
-from math import*
+#from math import*
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
@@ -41,8 +41,6 @@ class RWD(TimeSeriesCharacterizer):
   r"""
     Randomized Window Decomposition
   """
-  # class attribute
-  ## define the clusterable features for this trainer.
 
 
   @classmethod
@@ -54,16 +52,16 @@ class RWD(TimeSeriesCharacterizer):
         specifying input of cls.
     """
     specs = super(RWD, cls).getInputSpecification()
-    specs.name = 'rwd' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
+    specs.name = 'rwd' 
     specs.description = r"""TimeSeriesAnalysis algorithm for sliding window snapshots to generate features"""
 
-    specs.addSub(InputData.parameterInputFactory('SignatureWindowLength', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('signatureWindowLength', contentType=InputTypes.IntegerType,
                  descr=r"""the size of signature window, which represents as a snapshot for a certain time step;
                        typically represented as $w$ in literature, or $w_sig$ in the code."""))
-    specs.addSub(InputData.parameterInputFactory('FeatureIndex', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('featureIndex', contentType=InputTypes.IntegerType,
                  descr=r""" Index used for feature selection, which requires pre-analysis for now, will be addresses
                  via other non human work required method """))
-    specs.addSub(InputData.parameterInputFactory('SampleType', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('sampleType', contentType=InputTypes.IntegerType,
                  descr=r"""Indicating the type of sampling."""))
     return specs
 
@@ -86,16 +84,16 @@ class RWD(TimeSeriesCharacterizer):
     """
       Reads user inputs into this object.
       @ In, inp, InputData.InputParams, input specifsications
-      @ In, SampleType, integer = 0, 1, 2
-      @     SampleType = 0: Sequentially Sampling
-      @     SampleType = 1: Randomly Sampling
-      @     SampleType = 2: Piecewise Sampling
+      @ In, sampleType, integer = 0, 1, 2
+      @     sampleType = 0: Sequentially Sampling
+      @     sampleType = 1: Randomly Sampling
+      @     sampleType = 2: Piecewise Sampling
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['SignatureWindowLength'] = spec.findFirst('SignatureWindowLength').value
-    settings['FeatureIndex'] = spec.findFirst('FeatureIndex').value
-    settings['SampleType'] = spec.findFirst('SampleType').value
+    settings['signatureWindowLength'] = spec.findFirst('signatureWindowLength').value
+    settings['featureIndex'] = spec.findFirst('featureIndex').value
+    settings['sampleType'] = spec.findFirst('sampleType').value
 
 
     return settings
@@ -107,9 +105,9 @@ class RWD(TimeSeriesCharacterizer):
       @ Out, settings, dict, modified settings
     """
     settings = super().setDefaults(settings)
-    if 'SignatureWindowLength' not in settings:
-      settings['SignatureWindowLength'] = None #len(history)//10
-      settings['SampleType'] = 1
+    if 'signatureWindowLength' not in settings:
+      settings['signatureWindowLength'] = None #len(history)//10
+      settings['sampleType'] = 1
 
     return settings ####
 
@@ -125,48 +123,48 @@ class RWD(TimeSeriesCharacterizer):
     # lazy import statsmodels
     import statsmodels.api
     # settings:
-    #   SignatureWindowLength, int,  Signature window length
-    #   FeatureIndex, list of int,  The index that contains differentiable params
+    #   signatureWindowLength, int,  Signature window length
+    #   featureIndex, list of int,  The index that contains differentiable params
 
 
     params = {}
 
     for tg, target in enumerate(targets):
       history = signal[:, tg]
-      if settings['SignatureWindowLength'] is None:
-        settings['SignatureWindowLength'] = len(history)//10
-      SignatureWindowLength = int(settings['SignatureWindowLength'])
-      fi = int(settings['FeatureIndex'])
-      SampleType = settings['SampleType']
-      AllWindowNumber = int(len(history)-SignatureWindowLength+1)
-      SignatureMatrix = np.zeros((SignatureWindowLength, AllWindowNumber))
-      for i in range(AllWindowNumber):
-        SignatureMatrix[:,i] = np.copy(history[i:i+SignatureWindowLength])
+      if settings['signatureWindowLength'] is None:
+        settings['signatureWindowLength'] = len(history)//10
+      signatureWindowLength = int(settings['signatureWindowLength'])
+      fi = int(settings['featureIndex'])
+      sampleType = settings['sampleType']
+      allWindowNumber = int(len(history)-signatureWindowLength+1)
+      signatureMatrix = np.zeros((signatureWindowLength, allWindowNumber))
+      for i in range(allWindowNumber):
+        signatureMatrix[:,i] = np.copy(history[i:i+signatureWindowLength])
 
       # Sequential sampling
-      if SampleType == 0:
-        BaseMatrix = np.copy(SignatureMatrix)
+      if sampleType == 0:
+        baseMatrix = np.copy(signatureMatrix)
 
       # Randomized sampling
-      elif SampleType == 1:
-        sampleLimit = len(history)-SignatureWindowLength
+      elif sampleType == 1:
+        sampleLimit = len(history)-signatureWindowLength
 
-        WindowNumber = sampleLimit//4
-        sampleIndex = np.random.randint(sampleLimit, size=WindowNumber)
-        BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
-        for i in range(WindowNumber):
-          WindowIndex = sampleIndex[i]
-          BaseMatrix[:,i] = np.copy(history[WindowIndex:WindowIndex+SignatureWindowLength])
+        windowNumber = sampleLimit//4
+        sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
+        baseMatrix = np.zeros((signatureWindowLength, windowNumber))
+        for i in range(windowNumber):
+          windowIndex = sampleIndex[i]
+          baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
       # Piecewise Sampling
       else:
-        WindowNumber = len(history)//SignatureWindowLength
-        BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
-        for i in range(WindowNumber-1):
-          BaseMatrix[:,i] = np.copy(history[i*SignatureWindowLength:(i+1)*SignatureWindowLength])
-      U,s,V = mathUtils.computeTruncatedSingularValueDecomposition(BaseMatrix,0)
-      FeatureMatrix = U.T @ SignatureMatrix
-      params[target] = {'UVec'   : U[:,0:fi],
-                        'Feature': FeatureMatrix}
+        windowNumber = len(history)//signatureWindowLength
+        baseMatrix = np.zeros((signatureWindowLength, windowNumber))
+        for i in range(windowNumber-1):
+          baseMatrix[:,i] = np.copy(history[i*signatureWindowLength:(i+1)*signatureWindowLength])
+      U,s,V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
+      featureMatrix = U.T @ signatureMatrix
+      params[target] = {'uVec'   : U[:,0:fi],
+                        'Feature': featureMatrix}
     return params
 
 
@@ -179,11 +177,11 @@ class RWD(TimeSeriesCharacterizer):
     names = []
     for target in settings['target']:
       base = f'{self.name}__{target}'
-      sw = int(settings['SignatureWindowLength'])
-      fi = int(settings['FeatureIndex'])
+      sw = int(settings['signatureWindowLength'])
+      fi = int(settings['featureIndex'])
       for i in range(fi):
         for j in range(sw):
-          names.append(f'{base}__UVec{i}_{j}')
+          names.append(f'{base}__uVec{i}_{j}')
 
     return names
 
@@ -196,10 +194,10 @@ class RWD(TimeSeriesCharacterizer):
     rlz = {}
     for target, info in params.items():
       base = f'{self.name}__{target}'
-      (k,l) = (info['UVec']).shape
+      (k,l) = (info['uVec']).shape
       for i in range(l):
         for j in range(k):
-          rlz[f'{base}__UVec{i}_{j}'] = info['UVec'][j,i]
+          rlz[f'{base}__uVec{i}_{j}'] = info['uVec'][j,i]
     return rlz
 
 
@@ -215,12 +213,11 @@ class RWD(TimeSeriesCharacterizer):
 
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
-      SigMat_synthetic = params[target]['UVec'] @ params[target]['Feature']
-      synthetic[:, t] = np.hstack((SigMat_synthetic[0,:-1], SigMat_synthetic[:,-1]))
+      sigMatSynthetic = params[target]['uVec'] @ params[target]['Feature']
+      synthetic[:, t] = np.hstack((sigMatSynthetic[0,:-1], sigMatSynthetic[:,-1]))
 
     return synthetic
 
-############## problems
   def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.
@@ -232,13 +229,9 @@ class RWD(TimeSeriesCharacterizer):
     for target, info in params.items():
       base = xmlUtils.newNode(target)
       writeTo.append(base)
-      (m,n) = info["UVec"].shape
+      (m,n) = info["uVec"].shape
       for i in range(n):
-      #U0 = info["UVec"][:,0]
-      #U1 = info["UVec"][:,1]
+        U0 = info["uVec"][:,0]
         counter +=1
         for p, ar in enumerate(U0):
-          base.append(xmlUtils.newNode(f'UVec{i}_{p}', text=f'{float(ar):1.9e}'))
-        #for p, ar in enumerate(U1):
-        #  base.append(xmlUtils.newNode(f'UVec1_{p}', text=f'{float(ar):1.9e}'))
-
+          base.append(xmlUtils.newNode(f'uVec{i}_{p}', text=f'{float(ar):1.9e}'))

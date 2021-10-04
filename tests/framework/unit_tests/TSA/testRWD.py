@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the TSA.Fourier class.
+  This Module performs Unit Tests for the TSA.RWD class.
   It can not be considered part of the active code but of the regression test system
 """
 import os
@@ -210,27 +210,6 @@ def createRWD(targets, SignatureWindowLength, FeatureIndex, SampleType):
   print('createFromXML passed')
   return rwd
 
-'''
-def createRWDSignal(time_series, pivot, intercept=0, plot=False):
-  if plot:
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-  signal = np.zeros(len(pivot)) + intercept
-
-  # moving average: random noise lag
-  for q, theta in enumerate(noise):
-    signal[q+1:] += theta * noise[:-(q+1)]
-  # autoregressive: signal lag
-  for t, time in enumerate(pivot):
-    for p, phi in enumerate(time_series):
-      if t > p:
-        signal[t] += phi * signal[t - p - 1]
-  if plot:
-
-    ax.plot(pivot, signal, 'g.-')
-    plt.show()
-  return signal
-'''
 
 ###################
 #  Simple         #
@@ -241,8 +220,7 @@ pivot = np.linspace(0, 100, 1000)
 N = len(pivot) 
 s = np.linspace(-10,10,1000)
 time_series = 3.5*s+s**2+10
-#noise = rng.random((1000,))*0.02
-#signalA, noise = createRWDSignal(time_series, noise, pivot, plot=plot)
+
 
 signals = np.zeros((len(pivot), 1))
 signals[:, 0] = time_series
@@ -253,11 +231,11 @@ signals[:, 0] = time_series
 rwd = createRWD(targets, 105, 3,0)
 settings = {'SignatureWindowLength':105, 'FeatureIndex': 3, 'SampleType' : 0}
 if 'SignatureWindowLength' not in settings:
-  print('SignatureWindowLength not in settings')
+  print('SignatureWindowLength is not in settings')
 settings = rwd.setDefaults(settings)
 params = rwd.characterize(signals, pivot, targets, settings)
-check = params['A']#['rwd']
-print('check', check.keys())
+check = params['A']
+
 
 
 # code to generate answer
@@ -265,10 +243,7 @@ SignatureWindowLength = 105
 history = np.copy(time_series)
 sampleLimit = len(history)-SignatureWindowLength
 WindowNumber = sampleLimit//4
-#print(sampleLimit)
-print('WindowNumber',WindowNumber)
 sampleIndex = np.random.randint(sampleLimit, size=WindowNumber)
-#print('sampleIndex', sampleIndex)
 BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
 for i in range(WindowNumber):
   WindowIndex = sampleIndex[i]
@@ -288,41 +263,11 @@ assert np.allclose(BaseMatrix, np.dot(U, np.dot(np.diag(S), V)))
 F = U.T @ SignatureMatrix  
 okay_basis = U[:,0]
 okay_feature = F[0:3,0]
-######
-#print('SignatureMatrix ',SignatureMatrix.shape)
-#print(check[0][:,0].any()) #true
-##print(okay_basis)
-#print('len(check)',len(check))
-#print((check[0]).shape)
-#print((check[1]).shape)
-#print(len(check[0][:,0]))
+
 
 checkArray('Simple RWD Basis', okay_basis, check['UVec'][:,0], float, tol=1e-3)
 checkArray('Simple RWD Features', okay_feature, check['Feature'][0:3,0], float, tol=1e-3)
 checkTrue("RWD can characterize", rwd.canCharacterize())
-
-'''
-# predict
-np.random.seed(42) # forces MLE in statsmodels to be deterministic
-new = arma.generate(params, pivot, settings)[:, 0]
-
-# spot check a few values -> could we check full arrays?
-checkFloat('Simple generate 0', -1.0834098074509528, new[0], tol=1e-6)
-checkFloat('Simple generate 250', -3.947707011147049, new[250], tol=1e-6)
-checkFloat('Simple generate 500', -1.4304498185153571, new[500], tol=1e-6)
-checkFloat('Simple generate 999', -1.7825760423361088, new[999], tol=1e-6)
-# now do it again, but set the params how we want to
-params['A']['arma']['const'] = 0
-params['A']['arma']['AR'] = time_series
-params['A']['arma']['MA'] = noise
-params['A']['arma']['var'] = 1
-np.random.seed(42) # forces MLE in statsmodels to be deterministic
-new = arma.generate(params, pivot, settings)[:, 0]
-checkFloat('Simple picked 0', 2.3613260219896035, new[0], tol=1e-6)
-checkFloat('Simple picked 250', -1.4007530275511393, new[250], tol=1e-6)
-checkFloat('Simple picked 500', 0.7956991243820065, new[500], tol=1e-6)
-checkFloat('Simple picked 999', 0.7196164370698425, new[999], tol=1e-6)
-'''
 
 print(results)
 
