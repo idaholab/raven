@@ -962,7 +962,7 @@ class DataSet(DataObject):
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value, np.ndarray):
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
@@ -1154,7 +1154,6 @@ class DataSet(DataObject):
     elif action == 'replace':
       self._data = new
       # general metadata included if first time
-      self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
@@ -1176,7 +1175,9 @@ class DataSet(DataObject):
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(sorted(self._metavars)),
+                                         'datasetName':self.name
       }})
+      self._data.attrs = self._meta
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1218,14 +1219,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
-    if self.isEmpty:
-      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealizations'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1799,7 +1806,10 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    # utf-8-sig is commongly used by Excel when writing CSV files as of this writing (2021).
+    # the BOM for this (first character in file) is \ufeff, causing the first var to be unrecognized
+    # if the encoding isn't right.
+    with open(fileName+'.csv', 'r', encoding='utf-8-sig') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
@@ -2056,18 +2066,19 @@ class DataSet(DataObject):
       toRemove = []
       ## TODO doesn't work for time-dependent requests!
       genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
-      for child in genNode:
-        if child.tag in ['inputs','outputs','pointwise_meta']:
-          vs = []
-          for var in child.text.split(','):
-            if var.strip() in keep:
-              vs.append(var)
-          if len(vs) == 0:
-            toRemove.append(child)
-          else:
-            child.text = ','.join(vs)
-      for r in toRemove:
-        genNode.remove(r)
+      if genNode is not None:
+        for child in genNode:
+          if child.tag in ['inputs','outputs','pointwise_meta']:
+            vs = []
+            for var in child.text.split(','):
+              if var.strip() in keep:
+                vs.append(var)
+            if len(vs) == 0:
+              toRemove.append(child)
+            else:
+              child.text = ','.join(vs)
+        for r in toRemove:
+          genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:

@@ -156,6 +156,8 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self.batch = 1
+    self.batchId = 0
 
   ###############
   # Run Methods #
@@ -223,7 +225,7 @@ class RavenSampled(Optimizer):
       self.batchId += 1
     else:
       self.inputInfo['batchMode'] = False
-    for _ in range(self.batch):
+    for idx in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
       if self.counter == self.limit + 1:
         break
@@ -332,7 +334,12 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
     # further check active unfinished trajectories
-    traj = 0
+    ## FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+    # sanity check: if there's no history (we never got any answers) then report than rather than crash
+    if len(self._optPointHistory[traj]) == 0:
+      self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
+                        'Perhaps the Model failed?')
     opt = self._optPointHistory[traj][-1][0]
     val = opt[self._objectiveVar]
     self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
@@ -488,10 +495,10 @@ class RavenSampled(Optimizer):
     """
     allOkay = True
     inputs = dict(previous)
-    for impConstrain in self._impConstraintFunctions:
-      okay = impConstrain.evaluate('implicitConstrain', inputs)
+    for impConstraint in self._impConstraintFunctions:
+      okay = impConstraint.evaluate('implicitConstraint', inputs)
       if not okay:
-        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstrain.name))
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstraint.name))
         self.raiseADebug(' ... point:', previous)
       allOkay *= okay
     return bool(allOkay)
@@ -605,6 +612,10 @@ class RavenSampled(Optimizer):
     toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
     # additional from from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+    # check for anything else that solution export wants that rlz might provide
+    for var in self._solutionExport.getVars():
+      if var not in toExport and var in rlz:
+        toExport[var] = rlz[var]
     # formatting
     toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
     self._solutionExport.addRealization(toExport)

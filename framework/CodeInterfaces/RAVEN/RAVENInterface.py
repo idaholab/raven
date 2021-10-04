@@ -16,8 +16,6 @@ Created on Sept 10, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import numpy as np
 from sys import platform
@@ -271,7 +269,7 @@ class RAVEN(CodeInterfaceBase):
           raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
         else:
           nodeFileToUse = os.environ["PBS_NODEFILE"]
-      modifDict['RunInfo|mode'] = 'mpi'
+      modifDict['RunInfo|mode'           ] = 'mpi'
       modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
@@ -315,6 +313,7 @@ class RAVEN(CodeInterfaceBase):
     if not os.path.isfile(toCheck):
       print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
+    # check for output CSV (and data)
     if not failure:
       if self.linkedDataObjectOutStreamsNames:
         for filename in self.linkedDataObjectOutStreamsNames:
@@ -393,5 +392,3 @@ class RAVEN(CodeInterfaceBase):
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data
     return dataObjectsToReturn
-
-

@@ -590,7 +590,7 @@ class DynamicEventTree(Grid):
           hist = endInfo['parentNode'].get('happenedEventVarHistory') + [endInfo['branchDist']]
           subGroup.add('happenedEventVarHistory', hist)
         else:
-          subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
+          subGroup.add('happenedEvent',False)
           subGroup.add('happenedEventVarHistory', endInfo['parentNode'].get('happenedEventVarHistory'))
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
