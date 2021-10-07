@@ -187,11 +187,11 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createRWDXML(targets, SignatureWindowLength, FeatureIndex, SampleType):
+def createRWDXML(targets, signatureWindowLength, featureIndex, sampleType):
   xml = xmlUtils.newNode('RWD', attrib={'target':','.join(targets)})
-  xml.append(xmlUtils.newNode('SignatureWindowLength', text=f'{SignatureWindowLength}'))
-  xml.append(xmlUtils.newNode('FeatureIndex', text=f'{FeatureIndex}'))
-  xml.append(xmlUtils.newNode('SampleType', text=f'{SampleType}'))
+  xml.append(xmlUtils.newNode('signatureWindowLength', text=f'{signatureWindowLength}'))
+  xml.append(xmlUtils.newNode('featureIndex', text=f'{featureIndex}'))
+  xml.append(xmlUtils.newNode('sampleType', text=f'{sampleType}'))
   return xml
 
 def createFromXML(xml):
@@ -203,8 +203,8 @@ def createFromXML(xml):
   rwd.handleInput(inputSpec)
   return rwd
 
-def createRWD(targets, SignatureWindowLength, FeatureIndex, SampleType):
-  xml = createRWDXML(targets, SignatureWindowLength, FeatureIndex, SampleType)
+def createRWD(targets, signatureWindowLength, featureIndex, sampleType):
+  xml = createRWDXML(targets, signatureWindowLength, featureIndex, sampleType)
   print('createRWDXML passed')
   rwd = createFromXML(xml)
   print('createFromXML passed')
@@ -229,9 +229,9 @@ signals[:, 0] = time_series
 # Simplest reasonable case
 #
 rwd = createRWD(targets, 105, 3,0)
-settings = {'SignatureWindowLength':105, 'FeatureIndex': 3, 'SampleType' : 0}
-if 'SignatureWindowLength' not in settings:
-  print('SignatureWindowLength is not in settings')
+settings = {'signatureWindowLength':105, 'featureIndex': 3, 'sampleType' : 0}
+if 'signatureWindowLength' not in settings:
+  print('signatureWindowLength is not in settings')
 settings = rwd.setDefaults(settings)
 params = rwd.characterize(signals, pivot, targets, settings)
 check = params['A']
@@ -239,33 +239,33 @@ check = params['A']
 
 
 # code to generate answer
-SignatureWindowLength = 105
+signatureWindowLength = 105
 history = np.copy(time_series)
-sampleLimit = len(history)-SignatureWindowLength
-WindowNumber = sampleLimit//4
-sampleIndex = np.random.randint(sampleLimit, size=WindowNumber)
-BaseMatrix = np.zeros((SignatureWindowLength, WindowNumber))
-for i in range(WindowNumber):
-  WindowIndex = sampleIndex[i]
-  BaseMatrix[:,i] = np.copy(history[WindowIndex:WindowIndex+SignatureWindowLength])
+sampleLimit = len(history)-signatureWindowLength
+windowNumber = sampleLimit//4
+sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
+baseMatrix = np.zeros((signatureWindowLength, windowNumber))
+for i in range(windowNumber):
+  windowIndex = sampleIndex[i]
+  baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
 
-AllWindowNumber = len(history)-SignatureWindowLength+1
-SignatureMatrix = np.zeros((SignatureWindowLength, AllWindowNumber))
+allwindowNumber = len(history)-signatureWindowLength+1
+signatureMatrix = np.zeros((signatureWindowLength, allwindowNumber))
 
-for i in range(AllWindowNumber):
-  SignatureMatrix[:,i] = np.copy(history[i:i+SignatureWindowLength])
+for i in range(allwindowNumber):
+  signatureMatrix[:,i] = np.copy(history[i:i+signatureWindowLength])
 
-BaseMatrix = np.copy(SignatureMatrix)
-U,S,V = LA.svd(BaseMatrix,full_matrices=False)
-assert np.allclose(BaseMatrix, np.dot(U, np.dot(np.diag(S), V)))
+baseMatrix = np.copy(signatureMatrix)
+U,S,V = LA.svd(baseMatrix,full_matrices=False)
+assert np.allclose(baseMatrix, np.dot(U, np.dot(np.diag(S), V)))
 
 
-F = U.T @ SignatureMatrix  
+F = U.T @ signatureMatrix  
 okay_basis = U[:,0]
 okay_feature = F[0:3,0]
 
 
-checkArray('Simple RWD Basis', okay_basis, check['UVec'][:,0], float, tol=1e-3)
+checkArray('Simple RWD Basis', okay_basis, check['uVec'][:,0], float, tol=1e-3)
 checkArray('Simple RWD Features', okay_feature, check['Feature'][0:3,0], float, tol=1e-3)
 checkTrue("RWD can characterize", rwd.canCharacterize())
 
