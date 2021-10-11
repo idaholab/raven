@@ -123,12 +123,16 @@ class DSS(MetricInterface):
     for cnt in range(len(pTime)):
       distanceSquaredSum = 0
       for cnt2 in range(len(pTime[cnt])):
+<<<<<<< HEAD
         if D[cnt][cnt2] == 0 or omegaNormTarget[cnt][cnt2] == 0 or omegaNormScaledFeature[cnt][cnt2] == 0:
             distance[cnt][cnt2] = 0
         else:
             distance[cnt][cnt2] = betaTarget[cnt][cnt2]*abs(D[cnt][cnt2])**0.5*(1/omegaNormTarget[cnt][cnt2]-1/omegaNormScaledFeature[cnt][cnt2])
             if np.isnan(distance[cnt][cnt2]) == True:
               distance[cnt][cnt2] = 0
+=======
+        distance[cnt][cnt2] = betaTarget[cnt][cnt2]*abs(D[cnt][cnt2])**0.5*(1/omegaNormTarget[cnt][cnt2]-1/omegaNormScaledFeature[cnt][cnt2])
+>>>>>>> 07da9b74d537692cedf718050cb8a53fae175673
         distanceSum[cnt] += abs(distance[cnt][cnt2])
         distanceSquaredSum += distance[cnt][cnt2]**2
       sigma[cnt] = (1/len(sigma)*distanceSquaredSum)**0.5
