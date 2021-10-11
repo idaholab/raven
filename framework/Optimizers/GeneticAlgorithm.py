@@ -141,10 +141,8 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""A node containing the criterion based on which the parents are selected. This can be a
                   fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
-                  b. \textbf{\textit{stochasticUniversalSampling}},
-                  c. \textbf{\textit{Tournament}},
-                  d. \textbf{\textit{Rank}}, or
-                  e. \textbf{\textit{randomSelection}}""")
+                  b. \textbf{\textit{tournamentSelection}},
+                  c. \textbf{\textit{rankSelection}}, or""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -159,11 +157,9 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    One Point Crossover,
-                                 b.    MultiPoint Crossover,
-                                 c.    Uniform Crossover,
-                                 d.    Whole Arithmetic Recombination, or
-                                 e.    Davis’ Order Crossover.""")
+                  This includes: a.    onePointCrossover,
+                                 b.    twoPointsCrossover,
+                                 c.    uniformCrossover.""")
     crossover.addParam("type", InputTypes.StringType, True,
                        descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -182,11 +178,10 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a.    Bit Flip,
-                                 b.    Random Resetting,
-                                 c.    Swap,
-                                 d.    Scramble, or
-                                 e.    Inversion.""")
+                  This includes: a.    bitFlipMutation,
+                                 b.    swapMutation,
+                                 c.    scrambleMutation, or
+                                 d.    inversionMutation.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -418,6 +413,15 @@ class GeneticAlgorithm(RavenSampled):
 
     offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
+
+    # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
+    if self._constraintFunctions or self._impConstraintFunctions:
+      params = []
+      for y in (self._constraintFunctions + self._impConstraintFunctions):
+        params += y.parameterNames()
+      for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
+        constraintData[p] = list(np.atleast_1d(rlz[p].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
     g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
@@ -432,12 +436,15 @@ class GeneticAlgorithm(RavenSampled):
     #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(offSprings):
       newOpt = individual
-      opt = objectiveVal[index]
+      opt = {self._objectiveVar:objectiveVal[index]}
+      for p,v in constraintData.items():
+        opt[p] = v[index]
+
       for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
         if constraint in self._constraintFunctions:
-          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
-          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar = self._objectiveVar,
@@ -878,8 +885,9 @@ class GeneticAlgorithm(RavenSampled):
     """
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)
-    inputs[self._objectiveVar] = opt
-    g = impConstraint.evaluate('impConstrain', inputs)
+    inputs.update(opt)
+
+    g = impConstraint.evaluate('implicitConstraint', inputs)
     return g
 
   # END constraint handling
