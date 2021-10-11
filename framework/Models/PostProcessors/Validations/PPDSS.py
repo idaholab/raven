@@ -35,14 +35,14 @@ from utils import InputData, InputTypes
 from utils import xmlUtils
 import Files
 import DataObjects
-from ..Validation import Validation
+from ..ValidationBase import ValidationBase
 #import Distributions
 #import MetricDistributor
 #from .ValidationBase import ValidationBase
 #from Models.PostProcessors import PostProcessor
 #Internal Modules End--------------------------------------------------------------------------------
 
-class PPDSS(Validation):
+class PPDSS(ValidationBase):
   """
     DSS Scaling class.
   """
@@ -214,23 +214,27 @@ class PPDSS(Validation):
       targData = self._getDataFromDatasets(datasets, targ, names)[0]
       if (isinstance(scaleRatioBeta,int) or isinstance(scaleRatioBeta,float)) and (isinstance(scaleRatioOmega,int) or isinstance(scaleRatioOmega,float)) is True:
         if self.scaleType == 'DataSynthesis':
+          timeScalingRatio = 1
+          if abs(1-scaleRatioBeta) > 10**(-4) or abs(1-scaleRatioOmega) > 10**(-4):
+            self.raiseAnError(IOError, "Either beta or omega scaling ratio are not 1. Both must be 1")
+        elif self.scaleType == '2_2_affine':
           timeScalingRatio = scaleRatioBeta/scaleRatioOmega
-        elif self.scaleType == '2_2_Affine':
+        elif self.scaleType == 'dilation':
           timeScalingRatio = 1
           if abs(1-scaleRatioBeta/scaleRatioOmega) > 10**(-4):
-            self.raiseAnError(IOError, "Scaling ratio",scaleRatioBeta,"and",scaleRatioOmega,"are not nearly equivalent")
-        elif self.scaleType == 'Dilation':
+            self.raiseAnError(IOError, "Beta scaling ratio:",scaleRatioBeta,"and Omega scaling ratio:",scaleRatioOmega,"are not nearly equivalent")
+        elif self.scaleType == 'beta_strain':
           timeScalingRatio = scaleRatioBeta
           if abs(1-scaleRatioOmega) > 10**(-4):
-            self.raiseAnError(IOError, "Scaling ratio",scaleRatioOmega,"must be 1")
+            self.raiseAnError(IOError, "Omega scaling ratio:",scaleRatioOmega,"must be 1")
         elif self.scaleType == 'omega_strain':
           timeScalingRatio = 1/scaleRatioOmega
-          if abs(1-scaleRatioOmega) > 10**(-4):
-            self.raiseAnError(IOError, "Scaling ratio",scaleRatioBeta,"must be 1")
+          if abs(1-scaleRatioBeta) > 10**(-4):
+            self.raiseAnError(IOError, "Beta scaling ratio:",scaleRatioBeta,"must be 1")
         elif self.scaleType == 'identity':
           timeScalingRatio = 1
-          if abs(1-scaleRatioBeta) and abs(1-scaleRatioOmega) > 10**(-4):
-            self.raiseAnError(IOError, "Scaling ratio",scaleRatioBeta,"must be 1")
+          if abs(1-scaleRatioBeta) > 10**(-4) or abs(1-scaleRatioOmega) > 10**(-4):
+            self.raiseAnError(IOError, "Either beta or omega scaling ratio are not 1. Both must be 1")
         else:
           self.raiseAnError(IOError, "Scaling Type",self.scaleType, "is not provided")
       else:
@@ -253,9 +257,11 @@ class PPDSS(Validation):
       else:
         y_count = targData.shape[0]
         z_count = targData.shape[1]
+      featureD = np.zeros((y_count,z_count))
       featureProcessTimeNorm = np.zeros((y_count,z_count))
       featureOmegaNorm = np.zeros((y_count,z_count))
       featureBeta = np.zeros((y_count,z_count))
+      NaN_count = np.zeros((y_count,z_count))
       #
       feature = nameFeat[1]
       for cnt2 in range(y_count):
@@ -267,11 +273,37 @@ class PPDSS(Validation):
           interpGrid = timeScalingRatio*pivotTarget
           featureBeta[cnt2] = interpFunction(interpGrid)
         featureOmega = np.gradient(featureBeta[cnt2],interpGrid)
+        #print("featureOmega:",featureOmega)
         featureProcessTime = featureBeta[cnt2]/featureOmega
         featureDiffOmega = np.gradient(featureOmega,interpGrid)
-        featureD = -featureBeta[cnt2]/featureOmega**2*featureDiffOmega
-        featureInt = featureD+1
-        featureProcessAction = simps(featureInt, interpGrid)
+        featureD[cnt2] = -featureBeta[cnt2]/featureOmega**2*featureDiffOmega
+        for cnt3 in range(z_count):
+          if np.isnan(featureD[cnt2][cnt3]) == True:
+            NaN_count[cnt2][cnt3] = 1
+          elif np.isinf(featureD[cnt2][cnt3]) == True:
+            NaN_count[cnt2][cnt3] = 1
+        featureInt = featureD[cnt2]+1
+        # Excluding NaN type data and exclude corresponding time in grid ina
+        # preperation for numpy simpson integration
+        count=0
+        for i in range(len(featureD[cnt2])):
+          if np.isnan(featureD[cnt2][i])==False and np.isinf(featureD[cnt2][i])==False:
+            count += 1
+        if count > 0:
+          featureInt_new = np.zeros(count)
+          interpGrid_new = np.zeros(count)
+          track_count = 0
+          for i in range(len(featureD[cnt2])):
+            if np.isnan(featureD[cnt2][i])==False and np.isinf(featureD[cnt2][i])==False:
+              interpGrid_new[track_count] = interpGrid[i]
+              featureInt_new[track_count] = featureInt[i]
+              track_count += 1
+            else:
+              featureD[cnt2][i] = 0
+        #
+        #print("featureInt_new:",featureInt_new)
+        featureProcessAction = simps(featureInt_new, interpGrid_new)
+        #print("featureProcessAction:",featureProcessAction)
         featureProcessTimeNorm[cnt2] = featureProcessTime/featureProcessAction
         featureOmegaNorm[cnt2] = featureProcessAction*featureOmega
       #
@@ -289,11 +321,37 @@ class PPDSS(Validation):
           interpGrid = 1/timeScalingRatio*pivotFeature
           targetBeta[cnt2] = interpFunction(interpGrid)
         targetOmega = np.gradient(targetBeta[cnt2],interpGrid)
+        #print("targetOmega:",targetOmega)
         targetProcessTime = targetBeta[cnt2]/targetOmega
         targetDiffOmega = np.gradient(targetOmega,interpGrid)
         targetD[cnt2] = -targetBeta[cnt2]/targetOmega**2*targetDiffOmega
+        for cnt3 in range(z_count):
+          if np.isnan(targetD[cnt2][cnt3]) == True:
+            NaN_count[cnt2][cnt3] = 1
+          elif np.isinf(targetD[cnt2][cnt3]) == True:
+            NaN_count[cnt2][cnt3] = 1
         targetInt = targetD[cnt2]+1
-        targetProcessAction = simps(targetInt, interpGrid)
+        # Excluding NaN type data and exclude corresponding time in grid in
+        # preperation for numpy simpson integration
+        count=0
+        for i in range(len(targetD[cnt2])):
+          if np.isnan(targetD[cnt2][i])==False and np.isinf(targetD[cnt2][i])==False:
+            count += 1
+        if count > 0:
+          targetInt_new = np.zeros(count)
+          interpGrid_new = np.zeros(count)
+          track_count = 0
+          for i in range(len(targetD[cnt2])):
+            if np.isnan(targetD[cnt2][i])==False and np.isinf(targetD[cnt2][i])==False:
+              interpGrid_new[track_count] = interpGrid[i]
+              targetInt_new[track_count] = targetInt[i]
+              track_count += 1
+            else:
+              targetD[cnt2][i] = 0
+        #
+        #print("targetInt_new:",targetInt_new)
+        targetProcessAction = simps(targetInt_new, interpGrid_new)
+        #print("targetProcessAction:",targetProcessAction)
         targetProcessTimeNorm[cnt2] = targetProcessTime/targetProcessAction
         targetOmegaNorm[cnt2] = targetProcessAction*targetOmega
       #
@@ -315,6 +373,7 @@ class PPDSS(Validation):
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
       output = metric.evaluate((newfeatureData,newtargetData), multiOutput='raw_values')
+      #print(output)
       for cnt2 in range(y_count):
           distanceSum = abs(np.sum(output[cnt2]))
           sigmaSum = 0
@@ -322,15 +381,22 @@ class PPDSS(Validation):
             distanceTotal[cnt2][cnt3] = distanceSum
             sigmaSum += output[cnt2][cnt3]**2
           for cnt3 in range(z_count):
-            sigma[cnt2][cnt3] = (1/z_count*sigmaSum)**0.5
+            sigma[cnt2][cnt3] = (1/(z_count-np.sum(NaN_count[cnt2]))*sigmaSum)**0.5
       rlz = []
       for cnt in range(y_count):
         outputDict = {}
-        outputDict[name] = np.atleast_1d(output[cnt])
+        outputDict[name] = abs(np.atleast_1d(output[cnt]))
         outputDict['pivot_parameter'] = timeParameter
         outputDict[nameFeat[1]+'_'+nameTarg[1]+'_total_distance'] = distanceTotal[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_beta'] = featureBeta[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_beta'] = targetBeta[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_omega'] = featureOmegaNormScaled[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_omega'] = targetOmegaNorm[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_D'] = featureD[cnt]
+        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_D'] = targetD[cnt]
         outputDict[nameFeat[1]+'_'+nameTarg[1]+'_process_time'] = newfeatureData[1][cnt]
         outputDict[nameFeat[1]+'_'+nameTarg[1]+'_standard_deviation'] = sigma[cnt]
+        #print(newfeatureData[1][cnt])
         rlz.append(outputDict)
       realization_array.append(rlz)
     #---------------
@@ -340,7 +406,6 @@ class PPDSS(Validation):
         for key, val in realization_array[cnt2][cnt].items():
           out[key] = val
       realizations.append(out)
-    #return outputDict
     return realizations
 
   def _getDataFromDatasets(self, datasets, var, names=None):
