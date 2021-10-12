@@ -150,8 +150,8 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True,
-                          descr="number of parents to be considered in the reproduction phase")
+    # reproduction.addParam("nParents", InputTypes.IntegerType, True,
+                          # descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -289,7 +289,9 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
-    self._nParents = reproductionNode.parameterValues['nParents']
+    # self._nParents = reproductionNode.parameterValues['nParents']
+    # self._nChildren = int(2*comb(self._nParents,2))
+    self._nParents = int(np.floor(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')

@@ -63,7 +63,7 @@
 
       <GAparams>
         <populationSize>14</populationSize>
-        <reproduction nParents="6">
+        <reproduction>
           <crossover type="uniformCrossover">
             <crossoverProb>1.0</crossoverProb>
           </crossover>
