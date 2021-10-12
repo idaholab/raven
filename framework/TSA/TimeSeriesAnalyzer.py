@@ -31,23 +31,25 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   ## define the clusterable features for this trainer.
   _features = []
 
-  def canGenerate(self) -> bool:
+  @classmethod
+  def canGenerate(cls) -> bool:
     """
     A predicate function to determine if object instance inherits from TimeSeriesGenerator.
 
     @ In, None
     @ Out, boolean, True if instance can generate
     """
-    return isinstance(self, TimeSeriesGenerator)
+    return issubclass(cls, TimeSeriesGenerator)
 
-  def canCharacterize(self) -> bool:
+  @classmethod
+  def canCharacterize(cls) -> bool:
     """
     A predicate function to determine if object instance inherits from TimeSeriesCharacterizer.
 
     @ In, None
     @ Out, boolean, True if instance can characterize
     """
-    return isinstance(self, TimeSeriesCharacterizer)
+    return issubclass(cls, TimeSeriesCharacterizer)
 
   @classmethod
   def getInputSpecification(cls):
@@ -115,6 +117,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     residual = initial - sample
     return residual
 
+  @abc.abstractclassmethod
   def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.
@@ -122,7 +125,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, params, dict, parameters from training this ROM
       @ Out, None
     """
-    pass # overwrite in subclasses if desired
+
 
 
 class TimeSeriesGenerator(TimeSeriesAnalyzer):
@@ -159,3 +162,11 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
                            params[target variable][characteristic] = value
     """
     pass
+
+  @abc.abstractmethod
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """

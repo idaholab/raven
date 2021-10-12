@@ -95,3 +95,26 @@ def rankNonDominatedFrontiers(data):
     nonDominatedRank[indicesNonDominated] = rank
   nonDominatedRank = list(nonDominatedRank)
   return nonDominatedRank
+
+def crowdingDistance(rank, popSize, objectives):
+  """
+    Method designed to calculate the crowding distance for each front
+    @ In, rank, np.array, array which contains the front ID for each element of the population
+    @ In, popSize, int, size of population
+    @ In, objectives, np.array, matrix contains objective values for each element of the population
+    @ Out, crowdDist, np.array, array of crowding distances
+  """
+  crowdDist = np.zeros(popSize)
+  fronts = np.unique(rank)
+  fronts = fronts[fronts!=np.inf]
+
+  for f in range(len(fronts)):
+    front = np.where(np.asarray(rank)==f+1)[0]
+    fMax = np.max(objectives[front, :], axis=0)
+    fMin = np.min(objectives[front, :], axis=0)
+    for obj in range(np.shape(objectives)[1]):
+      sortedRank = np.argsort(objectives[front, obj])
+      crowdDist[front[sortedRank[0]]] = crowdDist[front[sortedRank[-1]]] = np.inf
+      for i in range(1, len(front)-1):
+        crowdDist[front[sortedRank[i]]] = crowdDist[front[sortedRank[i]]] + (objectives[front[sortedRank[i+1]], obj] - objectives[front[sortedRank[i-1]], obj]) / (fMax[obj]-fMin[obj])
+  return crowdDist

@@ -80,7 +80,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
     output = self.estimator.evaluate(feat,targ)
     return output
 
-  def evaluate(self,pairedData, weights = None, multiOutput='mean'):
+  def evaluate(self,pairedData, weights = None, multiOutput='mean',**kwargs):
     """
       Method to perform the evaluation of given paired data
       @ In, pairedData, tuple, ((featureValues, probabilityWeight), (targetValues, probabilityWeight)), both
@@ -98,7 +98,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
     feat, targ = pairedData
     if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
       self.raiseAMessage('Using feature and target as distributions ...')
-      out = self.estimator.evaluate(feat, targ)
+      out = self.estimator.evaluate(feat, targ,**kwargs)
       dynamicOutput.append(out)
     elif isinstance(feat, Distributions.Distribution):
       self.raiseAMessage('Using feature as distribution ...')
@@ -152,7 +152,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
       # can be biased or uncorrect. The correct way is to use the joint probability weight.
       # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
       if self.canHandleDynamicData:
-        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight)
+        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight,**kwargs)
       else:
         for hist in range(featVals.shape[1]):
           out = self.estimator.evaluate(featVals[:,hist], targVals[:,hist], dataWeight)

@@ -14,7 +14,13 @@ ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_LIB_HANDLER=${ECE_SCRIPT_DIR}/library_handler.py
 
 # fail if ANYTHING this script fails (mostly, there are exceptions)
-set -e
+if [ -o errexit ]
+then
+    export UNSET_ERREXIT=""
+else
+    set -o errexit
+    export UNSET_ERREXIT="true"
+fi
 
 function establish_OS ()
 {
@@ -460,15 +466,15 @@ then
   fi
 fi
 
-# Right before library installation, install ExamplePlugin
-echo Installing ExamplePlugin...
-parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
-
 
 ## install mode
 if [[ $ECE_MODE == 2 ]];
 then
+  # Right before library installation, install ExamplePlugin
+  echo Installing ExamplePlugin...
+  parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+  ${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
   # if libraries already exist, depends on if in "clean" mode or not
   if [[ $LIBS_EXIST == 0 ]];
   then
@@ -514,3 +520,9 @@ then
 fi
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi
+
+if [ "$UNSET_ERREXIT" == "true" ]
+then
+   #Go back to no errexit
+   set +o errexit
+fi
