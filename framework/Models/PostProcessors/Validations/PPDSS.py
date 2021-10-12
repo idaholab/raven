@@ -170,7 +170,7 @@ class PPDSS(ValidationBase):
     names = []
     pivotParameterTarget = self.pivotParameterTarget
     pivotParameterFeature = self.pivotParameterFeature
-    names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+    names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
     #print("names:",names)
     #print("inputIn:",inputIn)
     #print("inputIn['Data'][0][2].indexes:",inputIn['Data'][0][2].indexes)
