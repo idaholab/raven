@@ -291,8 +291,8 @@ class GeneticAlgorithm(RavenSampled):
     reproductionNode = gaParamsNode.findFirst('reproduction')
     # self._nParents = reproductionNode.parameterValues['nParents']
     # self._nChildren = int(2*comb(self._nParents,2))
-    self._nParents = int(np.floor(1/2 + np.sqrt(1+4*self._populationSize)/2))
-    self._nChildren = int(2*comb(self._nParents,2))
+    self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
+    self._nChildren = self._populationSize#int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -356,7 +356,7 @@ class GeneticAlgorithm(RavenSampled):
 
     meta = ['batchId']
     self.addMetaKeys(meta)
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
     for _, init in enumerate(self._initialValues):
@@ -527,20 +527,24 @@ class GeneticAlgorithm(RavenSampled):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children.data[repeated,:] = newChildren.data
+          if len(repeated)> children.shape[0] - self._populationSize:
+            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+            children.data[repeated,:] = newChildren.data
+          else:
+            children = children.drop_sel(chromosome=repeated)
         else:
           flag = False
-
-      self.batch = np.shape(children)[0]
+      # keeping the population size constant by ignoring the excessive children
+      children = children[:self._populationSize,:]
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
+
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(np.shape(daChildren)[0]):
+      for i in range(self.batch):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
