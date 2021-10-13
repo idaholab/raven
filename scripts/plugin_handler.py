@@ -117,7 +117,6 @@ def tellPluginAboutRaven(loc):
   # check for config file; load up a root element either way
   configFile = os.path.join(loc, ravenConfigName)
   if os.path.isfile(configFile):
-    print(configFile)
     root, _ = xmlUtils.loadToTree(configFile)
   else:
     root = xmlUtils.newNode('RavenConfig')
@@ -143,7 +142,6 @@ def loadPluginTree():
     @ Out, root, xml.etree.ElementTree.Element, root of plugin info tree
   """
   # load sources
-  print(pluginTreeFile)
   if os.path.isfile(pluginTreeFile):
     root, _ = xmlUtils.loadToTree(pluginTreeFile)
   else:
