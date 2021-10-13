@@ -11,6 +11,7 @@
       <y1_y2_total_distance>pivot_parameter</y1_y2_total_distance>
     </dims>
     <general>
+      <datasetName>pp2_out</datasetName>
       <outputs>x1_x2_dss,x1_x2_total_distance,x1_x2_process_time,x1_x2_standard_deviation,y1_y2_dss,y1_y2_total_distance,y1_y2_process_time,y1_y2_standard_deviation</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
