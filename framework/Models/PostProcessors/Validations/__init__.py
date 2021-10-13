@@ -11,14 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
-  The Validation module includes algorithms for deploying validation method in RAVEN.
+  The PostProcessor Validation module in RAVEN.
 
-  Created on April, 2021
-  @author: alfoa
+  Created on Sep. 13, 2021
+  @author: wangc
 """
-
-# These lines ensure that we do not have to do something like:
-#from .ValidationBase import ValidationBase
-
-from .Factory import factory
+from .Probabilistic import Probabilistic
