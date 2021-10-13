@@ -454,7 +454,8 @@ class GeneticAlgorithm(RavenSampled):
                                              constraintFunction=g,
                                              type=self._minMax)
 
-    acceptable = 'first' if self.counter==1 else 'accepted'
+    # IT IS NOT USED?
+    #acceptable = 'first' if self.counter==1 else 'accepted'
 
     self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)

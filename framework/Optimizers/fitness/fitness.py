@@ -105,19 +105,20 @@ def feasibleFirst(rlz,**kwargs):
   """
   objVar = kwargs['objVar']
   g = kwargs['constraintFunction']
-  worstObj = max(rlz[objVar].data)
+  data = np.atleast_1d(rlz[objVar].data)
+  worstObj = max(data)
   fitness = []
-  for ind in range(len(rlz[objVar].data)):
+  for ind in range(data.size):
     if np.all(g.data[ind, :]>=0):
-      fit=(rlz[objVar].data[ind])
+      fit=(data[ind])
     else:
       fit = worstObj
-      for constInd,constraint in enumerate(g['Constraint'].data):
+      for constInd,_ in enumerate(g['Constraint'].data):
         fit+=(max(0,-1 * g.data[ind, constInd]))
     fitness.append(-1 * fit)
   fitness = xr.DataArray(np.array(fitness),
                           dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(rlz[objVar].data))})
+                          coords={'chromosome': np.arange(len(data))})
   return fitness
 
 def logistic(rlz,**kwargs):

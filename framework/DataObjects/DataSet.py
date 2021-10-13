@@ -594,7 +594,14 @@ class DataSet(DataObject):
         for index, rl in enumerate(rlzs):
           d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
           rlz[index] =  xr.Dataset.from_dict(d)
-        rlz = xr.concat(rlz,dim=self.sampleTag)
+        if len(rlzs) > 1:
+          # concatenate just in case there are multiple realizations
+          rlz = xr.concat(rlz,dim=self.sampleTag)
+        else:
+          # the following ".copy(deep=True)" is required because of a bug in expend_dims
+          # see https://github.com/pydata/xarray/issues/2891
+          # FIXME: remove ".copy(deep=True)" once xarray mainstream fixes it
+          rlz = rlz[0].expand_dims(self.sampleTag).copy(deep=True)
       return index, rlz
 
   def remove(self,variable):
