@@ -2,7 +2,7 @@
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# You may obtain a copy of the License a# keys = self._stepInstance.getSolutionExportVariableNames()t
 #
 # http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -290,8 +290,6 @@ class GradientDescent(RavenSampled):
     self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
-    # keys = self._stepInstance.getSolutionExportVariableNames()
-    # self.addMetaKeys(list(keys.keys()))
     # if single trajectory, turn off follower termination
     if len(self._initialValues) < 2:
       self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')
