@@ -324,8 +324,21 @@ class Dymola(CodeInterfaceBase):
 
     return currentInputFiles
 
+  def checkForOutputFailure(self, output, workingDir):
+    """
+      Sometimes (e.g. when the license file is missing) the command returns 0 despite failing.
+      Check for creation of the "success" file as a determination of success for Dymola runs.
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
+    """
+    try:
+      open(os.path.join(workingDir, 'success'), 'r')
+    except FileNotFoundError:
+      return True
+    return False
 
-  def finalizeCodeOutput(self, output, workingDir):
+  def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to read the Dymola output file (.mat file). 
       Returns a realization with the time, and parameters and variables asked for by the user.

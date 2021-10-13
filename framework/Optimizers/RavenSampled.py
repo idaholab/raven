@@ -156,6 +156,8 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self.batch = 1
+    self.batchId = 0
 
   ###############
   # Run Methods #
@@ -223,7 +225,7 @@ class RavenSampled(Optimizer):
       self.batchId += 1
     else:
       self.inputInfo['batchMode'] = False
-    for _ in range(self.batch):
+    for idx in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
       if self.counter == self.limit + 1:
         break
@@ -493,10 +495,10 @@ class RavenSampled(Optimizer):
     """
     allOkay = True
     inputs = dict(previous)
-    for impConstrain in self._impConstraintFunctions:
-      okay = impConstrain.evaluate('implicitConstrain', inputs)
+    for impConstraint in self._impConstraintFunctions:
+      okay = impConstraint.evaluate('implicitConstraint', inputs)
       if not okay:
-        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstrain.name))
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstraint.name))
         self.raiseADebug(' ... point:', previous)
       allOkay *= okay
     return bool(allOkay)
