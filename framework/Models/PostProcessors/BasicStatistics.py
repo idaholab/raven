@@ -1076,7 +1076,6 @@ class BasicStatistics(PostProcessorInterface):
     if not skip:
       params = list(set(targets).union(set(features)))
       reducedCovar = getCovarianceSubset(params)
-      dataSet.sel(**{})
       targCoords = reducedCovar.coords['targets'].values
       if self.pivotParameter in reducedCovar.sizes.keys():
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
@@ -1159,9 +1158,6 @@ class BasicStatistics(PostProcessorInterface):
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations).fillna(0)
-
-    # if nan are present, we replace them with 0.0
-    # outputSet = outputSet.fillna(0)
 
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
