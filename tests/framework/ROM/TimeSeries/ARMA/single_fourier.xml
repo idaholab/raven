@@ -48,7 +48,7 @@
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed,Time</outTruncation>
-      <Fourier>86400.000000, 43200.000000</Fourier>
+      <Fourier>86400, 43200</Fourier>
       <P>2</P>
       <Q>1</Q>
     </ROM>
