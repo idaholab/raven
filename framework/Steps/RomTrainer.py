@@ -23,6 +23,7 @@
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Step import Step
+from Models import ROM
 #Internal Modules End--------------------------------------------------------------------------------
 
 class RomTrainer(Step):
@@ -73,7 +74,9 @@ class RomTrainer(Step):
       @ In, inDictionary, dict, the initialization dictionary
       @ Out, None
     """
-    pass
+    for output in inDictionary['Output']:
+      if isinstance(output, ROM):
+        output.initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
 
   def _localTakeAstepRun(self,inDictionary):
     """
