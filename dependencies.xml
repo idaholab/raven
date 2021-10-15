@@ -61,6 +61,7 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <python-sensors source='pip'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
