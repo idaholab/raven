@@ -91,6 +91,34 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
       params[target]['model']['object'] = results
     return params
 
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__intercept')
+      for i in range(1,settings['degree']):
+        names.append(f'{base}__coef{i}')
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      for name, value in info['model'].items():
+        if name == 'object':
+          continue
+        rlz[f'{base}__{name}'] = value
+    return rlz
 
   def generate(self, params, pivot, settings):
     """

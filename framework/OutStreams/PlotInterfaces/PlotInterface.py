@@ -19,6 +19,7 @@ Created on April 1, 2021
 
 from abc import abstractmethod
 from OutStreams import OutStreamInterface, OutStreamEntity
+from utils.utils import displayAvailable
 
 class PlotInterface(OutStreamInterface):
   """
@@ -71,6 +72,21 @@ class PlotInterface(OutStreamInterface):
       @ In, None
       @ Out, None
     """
+
+  def endInstructions(self, instructionString):
+    """
+      Finalize plotter. Called if "pauseAtEnd" is in the Step attributes.
+      @ In, instructionString, string, instructions to execute
+      @ Out, None
+    """
+    if instructionString == 'interactive' and displayAvailable():
+      import matplotlib.pyplot as plt
+      for i in plt.get_fignums():
+        fig = plt.figure(i)
+        try:
+          fig.ginput(n=-1, timeout=0, show_clicks=False)
+        except Exception as e:
+          self.raiseAWarning('There was an error with figure.ginput. Continuing anyway ...')
 
   ##################
   # Utility

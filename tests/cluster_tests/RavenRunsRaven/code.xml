@@ -9,6 +9,11 @@
        Tests running the RAVEN-runs-RAVEN interface on a Code model that reads an
        auxiliary file (for path testing) with parallel both in the OUTER and INNER
     </description>
+    <revisions>
+      <revision author="alfoa" date="2021-04-21">Modified test to add test the internalParallel with outer initialization (RAY) and inner usage (using the new
+         nodes headNode and remoteNodes 
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -23,7 +28,7 @@
     </mode>
     <expectedTime>0:10:0</expectedTime>
     <clusterParameters>-P ops_gen -j oe</clusterParameters>
-    <internalParallel>False</internalParallel>
+    <internalParallel>True</internalParallel>
   </RunInfo>
 
   <Steps>

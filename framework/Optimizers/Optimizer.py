@@ -115,7 +115,7 @@ class Optimizer(AdaptiveSampler):
               the input space of the Model. From a practical point of view, this XML node must contain
               the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
               This external function must contain a method called ``constrain'', which returns True for
-              inputs satisfying the explicit constraints and False otherwise.""")
+              inputs satisfying the explicit constraints and False otherwise. \nb Currently this accepts any number of constraints from the user.""")
     ConstraintInput.addParam("class", InputTypes.StringType, True,
         descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
     ConstraintInput.addParam("type", InputTypes.StringType, True,
@@ -172,10 +172,11 @@ class Optimizer(AdaptiveSampler):
     self._initSampler = None    # sampler to use for picking initial seeds
     self._constraintFunctions = [] # list of constraint functions
     self._impConstraintFunctions = [] # list of implicit constraint functions
+    self._requireSolnExport = True # optimizers only produce result in solution export
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_one)      # Explicit (input-based) constraints
-    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_one)      # Implicit constraints
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
@@ -281,6 +282,9 @@ class Optimizer(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    if solutionExport is None:
+      self.raiseAnError(IOError, 'Optimizers require a SolutionExport DataObject. Please add a <SolutionExport> node in the Step!')
+
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # functional constraints
     for entry in self.assemblerDict.get('Constraint', []):

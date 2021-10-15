@@ -90,7 +90,7 @@ class RavenErrors(Tester):
     """
     missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
-      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+      self.set_skip('skipped (Missing python modules: '+str(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(notQa) > 0:

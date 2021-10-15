@@ -393,10 +393,10 @@ if __name__ == "__main__":
       print()
 
   tester_params = {}
-  for tester in testers:
+  for tester_key, tester_value in testers.items():
     #Note as a side effect, testers can add run types to
     # the tester.
-    tester_params[tester] = testers[tester].get_valid_params()
+    tester_params[tester_key] = tester_value.get_valid_params()
 
   Tester.initialize_current_run_type()
   if args.add_run_types is not None:
