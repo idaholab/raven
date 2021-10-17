@@ -81,8 +81,7 @@
     <ExternalModel ModuleToLoad="XM1_model" name="XM1" subType="">
       <variables>x1,x2,y,z</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="ROM1" subType="KNeighborsRegressor">
       <n_neighbors>1</n_neighbors>
       <Features>x1,x2</Features>
       <Target>y</Target>
