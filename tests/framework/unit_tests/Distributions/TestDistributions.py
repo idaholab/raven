@@ -1118,7 +1118,6 @@ UniformDiscrete = getDistribution(UniformDiscreteElement)
 
 ## Should these be checked?
 initParams = UniformDiscrete.getInitParams()
-
 discardedElems = np.array([5,6])
 
 checkAnswer("UniformDiscrete rvs1",UniformDiscrete.selectedRvs(discardedElems),3)
