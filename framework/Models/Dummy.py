@@ -102,7 +102,6 @@ class Dummy(Model):
       if dataIN.type not in self.admittedData:
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if not isinstance(dataIN, dict):
-      #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
       localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
       if not len(dataIN) == 0:
         dataSet = dataIN.asDataset()
@@ -127,7 +126,8 @@ class Dummy(Model):
             for index in dataIN.indexes:
               if localInput[index] is None:
                 localInput[index] = []
-              localInput[index].append(dataSet.isel(RAVEN_sample_ID=rlz)[index].values)
+                selDict = {dataIN.sampleTag: rlz}
+              localInput[index].append(dataSet.isel(**selDict)[index].values)
             for entry in dataIN.getVars('input') + dataIN.getVars('output'):
               if localInput[entry] is None:
                 localInput[entry] = []
