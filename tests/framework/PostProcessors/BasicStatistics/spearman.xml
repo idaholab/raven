@@ -7,12 +7,15 @@
   </RunInfo>
 
   <TestInfo>
-      <name>framework/PostProcessors/BasicStatistics.spearman</name>
-    <author>wangc</author>
-    <created>2015-12-10</created>
+    <name>framework/PostProcessors/BasicStatistics.spearman</name>
+    <author>alfonsi</author>
+    <created>2021-05-06</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
     <description>
-      This test checks the separman coefficients calculated by basic statistics PP
+      This test checks the separman coefficients calculated by basic statistics PP.
+      The weighted form is used and this
+      test allows for the comparison with the unweighted one that
+      is available in scipy (since we are using a a MonteCarlo here).
     </description>
   </TestInfo>
 
