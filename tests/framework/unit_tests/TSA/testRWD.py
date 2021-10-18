@@ -19,9 +19,7 @@ import os
 import sys
 import copy
 import numpy as np
-np.random.seed(42)
 
-rng = np.random.default_rng(seed=42)
 
 # add RAVEN to path
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4 + ['framework'])))

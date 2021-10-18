@@ -146,7 +146,7 @@ class RWD(TimeSeriesCharacterizer):
         windowNumber = sampleLimit//4
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber):
-          windowIndex = randomIntegers(0, sampleLimit, caller=None, engine=None)
+          windowIndex = randomUtils.randomIntegers(0, sampleLimit, caller=None, engine=None)
           baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
 
       # Piecewise Sampling
