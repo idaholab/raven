@@ -14,6 +14,8 @@
 
 ### External Model
 from ExamplePlugin.src import SumOfExponential
+### ROM
+from ExamplePlugin.src import LinearROM
 ### Outstreams
 from ExamplePlugin.src import CorrelationPlot
 ### PostProcessors

@@ -44,8 +44,7 @@
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
-    <ROM name="svr" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+    <ROM name="svr" subType="SVR">
       <Features>leftTemperature, rightTemperature</Features>
       <Target>k</Target>
       <C>1.0</C>
@@ -59,8 +58,7 @@
       <verbose>False</verbose>
       <max_iter>-1</max_iter>
     </ROM>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="knr" subType="KNeighborsRegressor">
       <Features>leftTemperature, rightTemperature</Features>
       <Target>k</Target>
       <n_neighbors>5</n_neighbors>

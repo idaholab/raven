@@ -14,7 +14,7 @@
 """
   Created on Jan 5, 2020
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from ARMA.py, split for modularity
   Uses TimeSeriesAnalysis (TSA) algorithms to train then generate synthetic histories
 """
@@ -23,9 +23,9 @@ import numpy as np
 from utils import InputData, xmlUtils
 from TSA import TSAUser
 
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 
-class SyntheticHistory(supervisedLearning, TSAUser):
+class SyntheticHistory(SupervisedLearning, TSAUser):
   """
     Leverage TSA algorithms to train then generate synthetic signals.
   """
@@ -33,42 +33,49 @@ class SyntheticHistory(supervisedLearning, TSAUser):
   ## define the clusterable features for this ROM.
   # _clusterableFeatures = TODO # get from TSA
   @classmethod
-  def getInputSpecifications(cls):
+  def getInputSpecification(cls):
     """
       Establish input specs for this class.
       @ In, None
       @ Out, spec, InputData.ParameterInput, class for specifying input template
     """
-    specs = InputData.parameterInputFactory('SyntheticHistory', strictMode=True,
-        descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
-               a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
-               signals based on training signal sets. """)
-    cls.addTSASpecs(specs)
+    specs = super().getInputSpecification()
+    specs.description = r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
+        a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
+        signals based on training signal sets. It is a more general implementation of the ARMA ROM. The available
+        algorithms are discussed in more detail below. The SyntheticHistory ROM uses the TSA algorithms to
+        characterize then reproduce time series in sequence; for example, if using Fourier then ARMA, the
+        SyntheticHistory ROM will characterize the Fourier properties using the Fourier TSA algorithm on a
+        training signal, then send the residual to the ARMA TSA algorithm for characterization. Generating
+        new signals works in reverse, first generating a signal using the ARMA TSA algorithm then
+        superimposing the Fourier TSA algorithm.
+        //
+        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+        \xmlAttr{subType} needs to be \xmlString{SyntheticHistory}."""
+    specs = cls.addTSASpecs(specs)
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, **kwargs)
+    SupervisedLearning.__init__(self)
     TSAUser.__init__(self)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
 
-    inputSpecs = kwargs['paramInput']
-    self.readInputSpecs(inputSpecs)
-
-  def readInputSpecs(self, inp):
+  def _handleInput(self, paramInput):
     """
-      Reads in the inputs from the user
-      @ In, inp, InputData.InputParams, input specifications
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.readTSAInput(inp)
+    SupervisedLearning._handleInput(self, paramInput)
+    self.readTSAInput(paramInput)
 
   def __trainLocal__(self, featureVals, targetVals):
     """

@@ -72,10 +72,9 @@
       <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <ROM name="Acc" subType="SciKitLearn">
+    <ROM name="Acc" subType="LinearSVC">
       <Features>x0,y0</Features>
       <Target>goalFunctionForLimitSurface</Target>
-      <SKLtype>svm|LinearSVC</SKLtype>
       <verbose>1</verbose>
       <tol>0.0001</tol>
       <C>10</C>

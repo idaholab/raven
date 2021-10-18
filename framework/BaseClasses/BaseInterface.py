@@ -124,6 +124,16 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)
 
+  def removeMetaKeys(self, args):
+    """
+      Removes keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to de-register
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys - set(args)
+    for arg in set(args):
+      self.metadataParams.pop(arg, None)
+
   ################################
   # API (legacy) - these should go away as we convert existing systems
   def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):

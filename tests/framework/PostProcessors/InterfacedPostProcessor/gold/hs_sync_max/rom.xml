@@ -2,7 +2,7 @@
   <ROM type="Dynamic">
     <general>
       <ROM>
-        <type>HDMR_ROM(a-b-t)</type>
+        <type>HDMR_ROM</type>
       </ROM>
     </general>
     <t value="0.0">
@@ -30,16 +30,16 @@
         <variance>1.5</variance>
         <samples>5</samples>
         <partialVariance>
-          <y>0.75</y>
           <x>0.75</x>
+          <y>0.75</y>
         </partialVariance>
         <sobolIndices>
-          <y>0.5</y>
           <x>0.5</x>
+          <y>0.5</y>
         </sobolIndices>
         <sobolTotalIndices>
-          <y>0.5</y>
           <x>0.5</x>
+          <y>0.5</y>
         </sobolTotalIndices>
       </b>
     </t>
