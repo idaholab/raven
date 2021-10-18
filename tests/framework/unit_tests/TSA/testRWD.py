@@ -195,7 +195,7 @@ def createRWDXML(targets, signatureWindowLength, featureIndex, sampleType):
 def createFromXML(xml):
   print(vars(RWD))
   rwd = RWD()
-  
+
   inputSpec = rwd.getInputSpecification()()
   inputSpec.parseNode(xml)
   rwd.handleInput(inputSpec)
@@ -215,7 +215,7 @@ def createRWD(targets, signatureWindowLength, featureIndex, sampleType):
 # generate signal
 targets = ['A'] #, 'B', 'C']
 pivot = np.linspace(0, 100, 1000)
-N = len(pivot) 
+N = len(pivot)
 s = np.linspace(-10,10,1000)
 time_series = 3.5*s+s**2+10
 
@@ -258,7 +258,7 @@ U,S,V = LA.svd(baseMatrix,full_matrices=False)
 assert np.allclose(baseMatrix, np.dot(U, np.dot(np.diag(S), V)))
 
 
-F = U.T @ signatureMatrix  
+F = U.T @ signatureMatrix
 okay_basis = U[:,0]
 okay_feature = F[0:3,0]
 
