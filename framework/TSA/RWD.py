@@ -52,7 +52,7 @@ class RWD(TimeSeriesCharacterizer):
         specifying input of cls.
     """
     specs = super(RWD, cls).getInputSpecification()
-    specs.name = 'rwd' 
+    specs.name = 'rwd'
     specs.description = r"""TimeSeriesAnalysis algorithm for sliding window snapshots to generate features"""
 
     specs.addSub(InputData.parameterInputFactory('signatureWindowLength', contentType=InputTypes.IntegerType,
@@ -104,7 +104,7 @@ class RWD(TimeSeriesCharacterizer):
     """
     settings = super().setDefaults(settings)
     if 'signatureWindowLength' not in settings:
-      settings['signatureWindowLength'] = None #len(history)//10
+      settings['signatureWindowLength'] = None
       settings['sampleType'] = 1
     return settings ####
 
@@ -128,12 +128,14 @@ class RWD(TimeSeriesCharacterizer):
 
     for tg, target in enumerate(targets):
       history = signal[:, tg]
+      print('len history', len(history))
       if settings['signatureWindowLength'] is None:
         settings['signatureWindowLength'] = len(history)//10
       signatureWindowLength = int(settings['signatureWindowLength'])
       fi = int(settings['featureIndex'])
       sampleType = settings['sampleType']
       allWindowNumber = int(len(history)-signatureWindowLength+1)
+
       signatureMatrix = np.zeros((signatureWindowLength, allWindowNumber))
       for i in range(allWindowNumber):
         signatureMatrix[:,i] = np.copy(history[i:i+signatureWindowLength])
@@ -151,7 +153,7 @@ class RWD(TimeSeriesCharacterizer):
         for i in range(windowNumber):
           windowIndex = sampleIndex[i]
           baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
-      
+
       # Piecewise Sampling
       else:
         windowNumber = len(history)//signatureWindowLength

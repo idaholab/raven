@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.RWD</name>
+    <author>liyeni</author>
+    <created>2021-01-27</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.RWD</classesTested>
+    <description>
+      Tests the SyntheticHistory ROM using only the RWD TimeSeriesAnalyzer algorithm.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>RWD</WorkingDir>
+    <Sequence>read, train, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+
+  </Steps>
+
+
+  <Files>
+    <Input name="infile">../TrainingData/FourierA.csv</Input>
+  </Files>
+
+
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <rwd target="signal1, signal2">
+        <signatureWindowLength>20</signatureWindowLength>
+        <featureIndex>3</featureIndex>
+        <sampleType>0</sampleType>
+      </rwd>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="UVec">
+      <type>csv</type>
+      <source>UVec</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling</Input>
+      <Output>signal1, signal2</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="UVec">
+      <Input>scaling</Input>
+      <Output>signal1, signal2</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+
+</Simulation>
