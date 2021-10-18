@@ -128,15 +128,17 @@ class HistorySet(DataSet):
     for var in deps:
       indexMap[var] = [pivot]
     rlz['_indexMap'] = np.atleast_1d(indexMap)
-
-    uniqueIndexes  = np.unique(rlz[self.indexes[0]], return_index=True)[-1]
-    unSize = len(uniqueIndexes)
-    indSize = len(rlz[self.indexes[0]])
-    if  unSize !=  indSize:
-      self.raiseAWarning('Index "{}" has duplicated values! Dropping # steps: {}'.format(self.indexes[0], indSize - unSize))
-      for key in rlz.keys():
-        if len(rlz[key]) ==  indSize:
-          rlz[key] =  rlz[key][uniqueIndexes]
+    
+    #TODO: The code below is a first attempt to tackle duplicated values
+    #TODO: Since it is not complete, we keep just for inspiration of the future
+    #uniqueIndexes  = np.unique(rlz[self.indexes[0]], return_index=True)[-1]
+    #unSize = len(uniqueIndexes)
+    #indSize = len(rlz[self.indexes[0]])
+    #if  unSize !=  indSize:
+    #  self.raiseAWarning('Index "{}" has duplicated values! Dropping # steps: {}'.format(self.indexes[0], indSize - unSize))
+    #  for key in rlz.keys():
+    #    if len(rlz[key]) ==  indSize:
+    #      rlz[key] =  rlz[key][uniqueIndexes]
     DataSet.addRealization(self, rlz)
 
 
