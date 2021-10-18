@@ -25,19 +25,17 @@
     <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
       <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
+    <ROM name="ROM1" subType="SVR">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold</Target>
-      <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>
       <coef0>0.0</coef0>
     </ROM>
-    <ROM name="ROMHS" subType="SciKitLearn">
+    <ROM name="ROMHS" subType="SVR">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold,time</Target>
-      <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>

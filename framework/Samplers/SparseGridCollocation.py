@@ -18,10 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 from operator import mul
@@ -196,7 +192,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
-    for SVL in self.ROM.supervisedEngine.supervisedContainer:
+    for SVL in self.ROM.supervisedContainer:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -320,7 +316,7 @@ class SparseGridCollocation(Grid):
       @ Out, SVL, supervisedLearning object, SVL object
     """
     self.ROM = self.assemblerDict['ROM'][0][3]
-    SVLs = self.ROM.supervisedEngine.supervisedContainer
+    SVLs = self.ROM.supervisedContainer
     SVL = utils.first(SVLs)
     self.features = SVL.features
     self.sparseGridType = SVL.sparseGridType.lower()
