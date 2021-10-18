@@ -1098,20 +1098,41 @@ class BasicStatistics(PostProcessorInterface):
     targets,features,skip = startVector(metric)
     if not skip:
       params = list(set(targets).union(set(features)))
-      reducedCovar = getCovarianceSubset(params)
+      spearmanMat = np.zeros((len(params), len(params)))
+      wf, wt = None, None
       targCoords = reducedCovar.coords['targets'].values
-      if self.pivotParameter in reducedCovar.sizes.keys():
+      if self.pivotParameter in dataSet.sizes.keys():
         pivotCoords = dataSet.coords[self.pivotParameter].values
         ds = None
-        for label, group in dataSet.groupby(self.pivotParameter):
-          spearmanMatrix = sc.stats.spearmanr(group.to_array().T)
-          da = xr.DataArray(spearmanMatrix[0], dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        for _, group in dataSet.groupby(self.pivotParameter):
+          for tidx, target in enumerate(params):
+            for fidx in range(0, tidx+1):
+              feat = params[fidx]
+              if self.pbPresent:
+                wf, wt = np.asarray(pbWeights[feat]), np.asarray(pbWeights[target])
+              rankFeature, rankTarget = mathUtils.rankData(np.asarray(group[feat]),wf),  mathUtils.rankData(np.asarray(group[target]),wt)
+              # now we can compute the pearson of such pairs
+              spearman = (np.cov(rankFeature, y=rankTarget, aweights=wt) / np.sqrt(np.cov(rankFeature,y=rankFeature, aweights=wf)*np.cov(rankTarget,y=rankTarget, aweights=wt)))[-1,0]
+              spearmanMat[tidx,fidx] = spearman
+              if tidx != fidx:
+                spearmanMat[fidx,tidx] = spearman
+          da = xr.DataArray(spearmanMat, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
         calculations[metric] = ds
       else:
-        spearmanMatrix,_ = sc.stats.spearmanr(dataSet[params].to_array().T)
-        da = xr.DataArray(spearmanMatrix[0], dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        for tidx, target in enumerate(params):
+          for fidx in range(0, tidx+1):
+            feat = params[fidx]
+            if self.pbPresent:
+              wf, wt = np.asarray(pbWeights[feat]), np.asarray(pbWeights[target])
+            rankFeature, rankTarget = mathUtils.rankData(np.asarray(dataSet[feat]),wf),  mathUtils.rankData(np.asarray(dataSet[target]),wt)
+            # now we can compute the pearson of such pairs
+            spearman = (np.cov(rankFeature, y=rankTarget, aweights=wt) / np.sqrt(np.cov(rankFeature,y=rankFeature, aweights=wf)*np.cov(rankTarget,y=rankTarget, aweights=wt)))[-1,0]
+            spearmanMat[tidx,fidx] = spearman
+            if tidx != fidx:
+              spearmanMat[fidx,tidx] = spearman
+        da = xr.DataArray(spearmanMat, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
     #
     # VarianceDependentSensitivity matrix

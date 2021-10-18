@@ -1110,3 +1110,16 @@ def computeCrowdingDistance(trainSet):
 
   crowdingDist = np.sum(distMat,axis=1)
   return crowdingDist
+
+def rankData(x, w=None):
+  """
+    Method to rank the data (weighted and unweighted)
+    @ In, x, numpy.array (or array-like), array containing values to rank
+    @ In, w, numpy.array (or array-like), optional, array containing weights (if None, equally-weighted)
+    @ Out, rank, numpy.array, the ranked features
+  """
+  weights = w if w is not None else np.ones(len(x))
+  _, inverseArray, num = np.unique(stats.rankdata(x), return_counts = True, return_inverse = True )
+  A = np.bincount(inverseArray, weights)
+  rank = (np.cumsum(A) - A)[inverseArray]+((num + 1)/2 * (A/num))[inverseArray]
+  return rank
