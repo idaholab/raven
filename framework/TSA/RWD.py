@@ -144,8 +144,6 @@ class RWD(TimeSeriesCharacterizer):
       elif sampleType == 1:
         sampleLimit = len(history)-signatureWindowLength
         windowNumber = sampleLimit//4
-        #randomIntegers(low, high, caller=None, engine=None)
-        #sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber):
           windowIndex = randomIntegers(0, sampleLimit, caller=None, engine=None)
