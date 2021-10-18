@@ -168,7 +168,7 @@
   </Models>
 
   <Functions>
-    <External file="SafestPointPP/safest_point_test_g_zr.py" name="g_zr">
+    <External file="safest_point_test_g_zr.py" name="g_zr"><!--SafestPointPP/-->
       <variables>g</variables>
     </External>
   </Functions>
