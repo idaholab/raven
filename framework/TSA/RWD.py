@@ -125,7 +125,6 @@ class RWD(TimeSeriesCharacterizer):
 
     for tg, target in enumerate(targets):
       history = signal[:, tg]
-      print('len history', len(history))
       if settings['signatureWindowLength'] is None:
         settings['signatureWindowLength'] = len(history)//10
       signatureWindowLength = int(settings['signatureWindowLength'])

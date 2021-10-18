@@ -227,7 +227,7 @@ signals[:, 0] = time_series
 
 ##########
 # Simplest reasonable case
-#
+#########
 rwd = createRWD(targets, 105, 3,0)
 settings = {'signatureWindowLength':105, 'featureIndex': 3, 'sampleType' : 0}
 if 'signatureWindowLength' not in settings:
