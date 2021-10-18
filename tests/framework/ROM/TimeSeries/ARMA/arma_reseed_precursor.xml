@@ -41,7 +41,7 @@
       <seed>901017</seed>
       <outTruncation domain="positive">Speed</outTruncation>
       <reseedCopies>False</reseedCopies>
-      <Fourier>604800.000000, 302400.000000, 86400.000000, 43200.000000</Fourier>
+      <Fourier>604800, 302400, 86400, 43200</Fourier>
     </ROM>
   </Models>
 
