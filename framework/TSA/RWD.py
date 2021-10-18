@@ -18,10 +18,7 @@
 import collections
 import numpy as np
 import scipy as sp
-np.random.default_rng(seed=42)
-
 import Decorators
-
 import string
 import numpy.linalg as LA
 import pandas as pd
@@ -34,7 +31,7 @@ statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 import Distributions
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
-
+randomUtils.randomSeed(42, engine=None, seedBoth=False)
 
 # utility methods
 class RWD(TimeSeriesCharacterizer):
@@ -148,10 +145,11 @@ class RWD(TimeSeriesCharacterizer):
       elif sampleType == 1:
         sampleLimit = len(history)-signatureWindowLength
         windowNumber = sampleLimit//4
-        sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
+        #randomIntegers(low, high, caller=None, engine=None)
+        #sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber):
-          windowIndex = sampleIndex[i]
+          windowIndex = randomIntegers(0, sampleLimit, caller=None, engine=None)
           baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
 
       # Piecewise Sampling
