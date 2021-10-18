@@ -29,7 +29,7 @@ import xarray as xr
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import utils, mathUtils, xmlUtils
 from .PostProcessorInterface import PostProcessorInterface
-from . import validationAlgorithms
+from . import ValidationAlgorithms
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import DataObjects
