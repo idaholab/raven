@@ -46,10 +46,9 @@
     <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t</variables>
     </ExternalModel>
-    <ROM name="acceleration_ROM" subType="SciKitLearn">
+    <ROM name="acceleration_ROM" subType="SVC">
       <Features>v0,angle</Features>
       <Target>decision</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-5</tol>

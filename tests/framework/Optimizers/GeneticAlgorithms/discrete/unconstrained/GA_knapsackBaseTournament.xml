@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>simpleKnapsack</WorkingDir>
+    <WorkingDir>simpleKnapsackTournament</WorkingDir>
     <Sequence>opt, print, printExport</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -53,7 +53,7 @@
 
       <GAparams>
         <populationSize>14</populationSize>
-        <reproduction nParents="6">
+        <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.9</crossoverProb>
           </crossover>

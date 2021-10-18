@@ -89,10 +89,9 @@
     <ExternalModel ModuleToLoad="twoIslandsModel" name="PythonModule" subType="">
       <variables>x1,x2,y4,failure</variables>
     </ExternalModel>
-    <ROM name="AccelerationROM" subType="SciKitLearn">
+    <ROM name="AccelerationROM" subType="SVC">
       <Features>x1,x2</Features>
       <Target>goalFunction</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-6</tol>

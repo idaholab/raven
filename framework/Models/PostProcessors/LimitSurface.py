@@ -25,7 +25,7 @@ from collections import OrderedDict
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes, utils, mathUtils
-import LearningGate
+from SupervisedLearning import factory as romFactory
 import GridEntities
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -124,7 +124,11 @@ class LimitSurface(PostProcessorInterface):
     self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity")
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
+      self.ROM = romFactory.returnInstance('KNeighborsClassifier')
+      paramDict = {'Features':list(self.parameters['targets']), 'Target':[self.externalFunction.name]}
+      self.ROM.initializeFromDict(paramDict)
+      settings = {"n_neighbors":1}
+      self.ROM.initializeModel(settings)
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
