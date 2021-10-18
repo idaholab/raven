@@ -1178,6 +1178,15 @@ class BasicStatistics(PostProcessorInterface):
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
+    # in here we fill the NaN with "nan". In this way, we are sure that even if
+    # there might be NaN in any raw for a certain timestep we do not drop the variable
+    # In the past, in a condition such as:
+    # time, A, B, C
+    #    0, 1, NaN, 1
+    #    1, 1, 0.5, 1
+    #    2, 1, 2.0, 2
+    # the variable B would have been dropped (in the printing stage)
+    # with this modification, this should not happen anymore
     outputSet = xr.Dataset(data_vars=calculations).fillna("nan")
 
     if self.outputDataset:
