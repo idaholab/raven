@@ -26,7 +26,7 @@ import string
 import numpy.linalg as LA
 import pandas as pd
 import copy as cp
-#from math import*
+
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
@@ -94,8 +94,6 @@ class RWD(TimeSeriesCharacterizer):
     settings['signatureWindowLength'] = spec.findFirst('signatureWindowLength').value
     settings['featureIndex'] = spec.findFirst('featureIndex').value
     settings['sampleType'] = spec.findFirst('sampleType').value
-
-
     return settings
 
   def setDefaults(self, settings):
@@ -108,7 +106,6 @@ class RWD(TimeSeriesCharacterizer):
     if 'signatureWindowLength' not in settings:
       settings['signatureWindowLength'] = None #len(history)//10
       settings['sampleType'] = 1
-
     return settings ####
 
   def characterize(self, signal, pivot, targets, settings):
@@ -148,13 +145,13 @@ class RWD(TimeSeriesCharacterizer):
       # Randomized sampling
       elif sampleType == 1:
         sampleLimit = len(history)-signatureWindowLength
-
         windowNumber = sampleLimit//4
         sampleIndex = np.random.randint(sampleLimit, size=windowNumber)
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber):
           windowIndex = sampleIndex[i]
           baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
+      
       # Piecewise Sampling
       else:
         windowNumber = len(history)//signatureWindowLength
@@ -182,7 +179,6 @@ class RWD(TimeSeriesCharacterizer):
       for i in range(fi):
         for j in range(sw):
           names.append(f'{base}__uVec{i}_{j}')
-
     return names
 
   def getParamsAsVars(self, params):
