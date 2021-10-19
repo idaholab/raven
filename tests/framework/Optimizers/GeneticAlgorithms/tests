@@ -24,6 +24,7 @@
   [./MinwReplacementConvAHDpUsingCode]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwRepConvAHDpUsingCode.xml'
+    output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/optimize/b5_r6/out~input.csv'
     [./data]
       type = OrderedCSV
       output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/opt_export_0.csv'
@@ -149,7 +150,7 @@
     input = 'discrete/unconstrained/GA_knapsackBaseTournament.xml'
     [./csv]
      type = OrderedCSV
-     output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsack/PrintOptOut_1.csv'
+     output = 'discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_1.csv'
      rel_err = 0.001
     [../]
   [../]

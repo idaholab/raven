@@ -66,10 +66,9 @@
         <upperBound>11.0</upperBound>
       </variable>
     </PostProcessor>
-    <ROM name="Acc" subType="SciKitLearn">
+    <ROM name="Acc" subType="LinearSVC">
       <Features>x0,y0</Features>
       <Target>goalFunctionForLimitSurface</Target>
-      <SKLtype>svm|LinearSVC</SKLtype>
       <verbose>1</verbose>
       <tol>0.0001</tol>
       <C>10</C>

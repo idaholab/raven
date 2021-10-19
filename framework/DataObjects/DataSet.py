@@ -1154,7 +1154,6 @@ class DataSet(DataObject):
     elif action == 'replace':
       self._data = new
       # general metadata included if first time
-      self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
@@ -1176,7 +1175,9 @@ class DataSet(DataObject):
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(sorted(self._metavars)),
+                                         'datasetName':self.name
       }})
+      self._data.attrs = self._meta
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1818,7 +1819,7 @@ class DataSet(DataObject):
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
       @ In, fileName, str, filename (without extension) of the CSV/XML combination
-      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
+      @ Out, dims, dict, dimensionality dictionary with {var:[indices]} structure
     """
     meta = self._fromCSVXML(fileName)
     # if we have meta, use it to load data, as it will be efficient to read from
@@ -1838,8 +1839,9 @@ class DataSet(DataObject):
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
+      # we can infer dimensionality from the user-specified settings
       provided = set(self._identifyVariablesInCSV(fileName))
-      dims = {}
+      dims = dict((v, i) for v, i in self.getDimensions().items() if len(i)>0)
     # check provided match needed
     needed = set(self._orderedVars)
     missing = needed - provided
@@ -2065,18 +2067,19 @@ class DataSet(DataObject):
       toRemove = []
       ## TODO doesn't work for time-dependent requests!
       genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
-      for child in genNode:
-        if child.tag in ['inputs','outputs','pointwise_meta']:
-          vs = []
-          for var in child.text.split(','):
-            if var.strip() in keep:
-              vs.append(var)
-          if len(vs) == 0:
-            toRemove.append(child)
-          else:
-            child.text = ','.join(vs)
-      for r in toRemove:
-        genNode.remove(r)
+      if genNode is not None:
+        for child in genNode:
+          if child.tag in ['inputs','outputs','pointwise_meta']:
+            vs = []
+            for var in child.text.split(','):
+              if var.strip() in keep:
+                vs.append(var)
+            if len(vs) == 0:
+              toRemove.append(child)
+            else:
+              child.text = ','.join(vs)
+        for r in toRemove:
+          genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:

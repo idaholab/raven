@@ -20,6 +20,7 @@
     </revisions>
     <requirements>R-IS-8</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>
@@ -100,8 +101,7 @@
     <ExternalModel ModuleToLoad="InternalParallelScikit/XM1_model" name="XM1" subType="">
       <variables>x1,x2,y,z</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="ROM1" subType="KNeighborsRegressor">
       <n_neighbors>1</n_neighbors>
       <Features>x1,x2</Features>
       <Target>y</Target>

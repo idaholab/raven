@@ -52,11 +52,11 @@ def constrain(raven):
     return False
   return True
 
-def implicitConstrain(raven):
+def implicitConstraint(raven):
   """
     Implicit constrain.
     @ In, raven, object, raven self
-    @ Out, implicitConstrain, point ok or not?
+    @ Out, implicitConstraint, point ok or not?
   """
   x = raven.x
   ans = raven.ans

@@ -22,7 +22,7 @@ import math
 
 from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
-import LearningGate
+from SupervisedLearning import factory as romFactory
 
 
 class LimitSurfaceIntegral(PostProcessorInterface):
@@ -173,19 +173,25 @@ class LimitSurfaceIntegral(PostProcessorInterface):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
-                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':list(self.variableDist.keys()),
-                                                             'Target':[self.target], 'n_jobs': -1})
+    self.functionS = romFactory.returnInstance('KNeighborsClassifier')
+    paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
+    self.functionS.initializeFromDict(paramDict)
+    ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
+    # settings = {'n_jobs': -1}
+    settings = {}
+    self.functionS.initializeModel(settings)
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
     if self.computeErrrorBounds:
       #  create a model for computing the "error"
-      self.errorModel = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
-                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':list(self.variableDist.keys()),
-                                                             'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})
+      self.errorModel = romFactory.returnInstance('KNeighborsClassifier')
+      paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
+      self.errorModel.initializeFromDict(paramDict)
+      ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
+      # settings = {'weights': 'distance', 'n_jobs': -1}
+      settings = {'weights': 'distance'}
+      self.errorModel.initializeModel(settings)
       #modify the self.matrixDict to compute half of the "error"
       indecesToModifyOnes = np.argwhere(self.matrixDict[self.target] > 0.).flatten()
       res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))

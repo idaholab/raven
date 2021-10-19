@@ -115,10 +115,9 @@
     <ExternalModel ModuleToLoad="function" name="function" subType="">
       <variables>x1,x2,y</variables>
     </ExternalModel>
-    <ROM name="mySVM" subType="SciKitLearn">
+    <ROM name="mySVM" subType="SVC">
       <Features>x1,x2</Features>
       <Target>label</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-5</tol>
