@@ -880,14 +880,6 @@ class Clusters(Segments):
       if sub.name == 'clusterEvalMode':
         self._evaluationMode = sub.value
         break
-    #evalMode = params.pop('clusterEvalMode', None)
-    # if evalMode:
-    #   self._evaluationMode = evalMode
-    # TODO
-    #if self._evaluationMode == 'clustered':
-    #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
-    #else:
-    #  self.removeMetaKeys(['cluster_multiplicity'])
     Segments.setAdditionalParams(self, params)
 
   def evaluate(self, edict):
