@@ -84,13 +84,13 @@ class TSAUser:
     if foundTSAType is False:
       options = ', '.join(factory.knownTypes())
       # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
+      raise IOError(f'TSA: No known TSA type found in input. Available options are: {options}')
     if self.target is None:
       # set up all the expected targets from all the TSAs
       self.target = [self.pivotParameterID] + list(self.getTargets())
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
+      raise IOError('TSA: The pivotParameter must be included in the target space.')
 
   def _tsaReset(self):
     """
