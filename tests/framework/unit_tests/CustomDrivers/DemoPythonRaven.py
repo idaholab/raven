@@ -46,7 +46,8 @@ results = raven.getEntity('DataObjects', 'results')
 data = results.asDataset() # see xarray docs
 
 data.plot.scatter(x="v0", y="angle", hue="r")
-plt.show()
+# uncomment for live plotting
+# plt.show()
 
 """
   <TestInfo>
