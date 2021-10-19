@@ -876,9 +876,13 @@ class Clusters(Segments):
       @ In, params, dict, parameters to set, dependent on ROM
       @ Out, None
     """
-    evalMode = params.pop('clusterEvalMode', None)
-    if evalMode:
-      self._evaluationMode = evalMode
+    for sub in params['paramInput'].subparts:
+      if sub.name == 'clusterEvalMode':
+        self._evaluationMode = sub.value
+        break
+    #evalMode = params.pop('clusterEvalMode', None)
+    # if evalMode:
+    #   self._evaluationMode = evalMode
     # TODO
     #if self._evaluationMode == 'clustered':
     #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
@@ -1539,10 +1543,11 @@ class Interpolated(SupervisedLearning):
       @ Out, setAdditionalParams, dict, additional params set
     """
     # max cycles
-    maxCycles = params.pop('maxCycles', None)
-    if maxCycles is not None:
-      self._maxCycles = maxCycles
-      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
+    for sub in params['paramInput'].subparts:
+      if sub.name == 'maxCycles':
+        self._maxCycles = sub.value
+        self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
+        break
     for step, collection in self._macroSteps.items():
       # deepcopy is necessary because clusterEvalMode has to be popped out in collection
       collection.setAdditionalParams(copy.deepcopy(params))
