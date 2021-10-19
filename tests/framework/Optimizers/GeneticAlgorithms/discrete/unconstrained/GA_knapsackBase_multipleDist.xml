@@ -36,17 +36,17 @@
 
   <Distributions>
     <UniformDiscrete name="unif_dist_wRepl_low">
-      <lowerBound>0</lowerBound>   
+      <lowerBound>0</lowerBound>
       <upperBound>4</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
      <UniformDiscrete name="unif_dist_wRepl_med">
-      <lowerBound>10</lowerBound>   
+      <lowerBound>10</lowerBound>
       <upperBound>14</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
     <UniformDiscrete name="unif_dist_wRepl_high">
-      <lowerBound>100</lowerBound>   
+      <lowerBound>100</lowerBound>
       <upperBound>104</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
@@ -62,7 +62,7 @@
 
       <GAparams>
         <populationSize>10</populationSize>
-        <reproduction nParents="6">
+        <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.9</crossoverProb>
           </crossover>

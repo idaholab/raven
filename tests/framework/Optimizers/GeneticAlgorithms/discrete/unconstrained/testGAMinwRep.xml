@@ -63,9 +63,9 @@
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>15</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="5">
+        <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
@@ -105,7 +105,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
+        <limit>15</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x1">

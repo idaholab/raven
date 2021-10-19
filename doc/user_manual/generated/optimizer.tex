@@ -272,6 +272,20 @@
               SPSA, a small value               for the shrink factor is recommended. If an
               optimization path appears to be converging               early, increasing the shrink
               factor might improve the search. \default{1.15}
+
+            \item \xmlNode{window}: \xmlDesc{integer}, 
+              the number of previous gradient evaluations to include when determining a new step
+              direction. Modifying this allows past gradient evaluations to influence future steps,
+              with a decaying influence. Setting this to 1 means only the local gradient evaluation
+              will be used. \default{1}.
+
+            \item \xmlNode{decay}: \xmlDesc{float}, 
+              if including more than one gradient history terms when determining a new step
+              direction,               specifies the rate of decay for previous terms to influence
+              the current direction. The               decay factor has the form $e^(-\lambda t)$,
+              where $t$ counts the gradient terms starting with               the most recent as 0
+              and moving towards the past, and $\lambda$ is this decay factor.               This
+              should generally be a small decimal number. \default{0.2}
           \end{itemize}
 
         \item \xmlNode{ConjugateGradient}:
@@ -392,7 +406,8 @@
       the name of a function defined in the \xmlNode{Functions} block (see
       Section~\ref{sec:functions}).               This external function must contain a method
       called ``constrain'', which returns True for               inputs satisfying the explicit
-      constraints and False otherwise.
+      constraints and False otherwise. \nb Currently this accepts any number of constraints from the
+      user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
@@ -784,7 +799,8 @@ Gradient Descent Example:
       the name of a function defined in the \xmlNode{Functions} block (see
       Section~\ref{sec:functions}).               This external function must contain a method
       called ``constrain'', which returns True for               inputs satisfying the explicit
-      constraints and False otherwise.
+      constraints and False otherwise. \nb Currently this accepts any number of constraints from the
+      user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
@@ -1094,27 +1110,24 @@ Simulated Annealing Example:
           A node containing the criterion based on which the parents are selected. This can be a
           fitness proportional selection such as:                   a.
           \textbf{\textit{rouletteWheel}},                   b.
-          \textbf{\textit{stochasticUniversalSampling}},                   c.
-          \textbf{\textit{Tournament}},                   d. \textbf{\textit{Rank}}, or
-          e. \textbf{\textit{randomSelection}}
+          \textbf{\textit{tournamentSelection}},                   c.
+          \textbf{\textit{rankSelection}}                   for all methods nParents is computed
+          such that the population size is kept constant.                   \[ nChildren = 2 \times
+          {nParents \choose 2} = nParents \times (nParents-1) = popSize \], solving for nParents we
+          get:                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$ This will
+          result in a popSize a little lareger than the initial one, these excessive children will
+          be later thrawn away and only the first popSize child will be kept
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods.                   This accepts subnodes that
           specifies the types of crossover and mutation.
-          The \xmlNode{reproduction} node recognizes the following parameters:
-            \begin{itemize}
-              \item \xmlAttr{nParents}: \xmlDesc{integer, required}, 
-                number of parents to be considered in the reproduction phase
-          \end{itemize}
 
           The \xmlNode{reproduction} node recognizes the following subnodes:
           \begin{itemize}
             \item \xmlNode{crossover}: \xmlDesc{string}, 
               a subnode containing the implemented crossover mechanisms.                   This
-              includes: a.    One Point Crossover,                                  b.    MultiPoint
-              Crossover,                                  c.    Uniform Crossover,
-              d.    Whole Arithmetic Recombination, or                                  e.    Davis’
-              Order Crossover.
+              includes: a.    onePointCrossover,                                  b.
+              twoPointsCrossover,                                  c.    uniformCrossover.
               The \xmlNode{crossover} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1133,9 +1146,8 @@ Simulated Annealing Example:
 
             \item \xmlNode{mutation}: \xmlDesc{string}, 
               a subnode containing the implemented mutation mechanisms.                   This
-              includes: a.    Bit Flip,                                  b.    Random Resetting,
-              c.    Swap,                                  d.    Scramble, or
-              e.    Inversion.
+              includes: a.    bitFlipMutation,                                  b.    swapMutation,
+              c.    scrambleMutation, or                                  d.    inversionMutation.
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1159,12 +1171,18 @@ Simulated Annealing Example:
 
         \item \xmlNode{fitness}: \xmlDesc{string}, 
           a subnode containing the implemented fitness functions.                   This includes:
-          a.    invLinear: $fitness = \frac{1}{a \times obj + b \times penalty}$.
-          b.    logistic: $fitness = \frac{1}{1+e^{a \times (obj-b)}}$
+          
+          a.    invLinear: \[fitness = -a \times obj - b \times \sum_{j=1}^{nConstraints}
+          max(0,-penalty_j)\]                                  b.    logistic: \[fitness =
+          \frac{1}{1+e^{a \times (obj-b)}}\]                                  c.    feasibleFirst:
+          \[fitness =  \begin{cases}
+          -obj & g_j(x) \geq 0 \forall j \\
+          -obj_{worst} - \sum_{j=1}^{nConstraints} <g_j(x)> & o.w. \\
+          \end{cases}\]
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{type}: \xmlDesc{string, required}, 
-                [invLin, logistic]
+                [invLin, logistic, feasibleFirst]
           \end{itemize}
 
           The \xmlNode{fitness} node recognizes the following subnodes:
@@ -1247,7 +1265,8 @@ Simulated Annealing Example:
       the name of a function defined in the \xmlNode{Functions} block (see
       Section~\ref{sec:functions}).               This external function must contain a method
       called ``constrain'', which returns True for               inputs satisfying the explicit
-      constraints and False otherwise.
+      constraints and False otherwise. \nb Currently this accepts any number of constraints from the
+      user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
