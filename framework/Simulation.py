@@ -774,6 +774,7 @@ class Simulation(MessageUser):
     # implicitly, the job finished successfully if we got here.
     self.writeStatusFile()
     self.raiseAMessage('Run complete!', forcePrint=True)
+    return 0
 
   def generateAllAssemblers(self, objectInstance):
     """
