@@ -1826,7 +1826,7 @@ class DataSet(DataObject):
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
       @ In, fileName, str, filename (without extension) of the CSV/XML combination
-      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
+      @ Out, dims, dict, dimensionality dictionary with {var:[indices]} structure
     """
     meta = self._fromCSVXML(fileName)
     # if we have meta, use it to load data, as it will be efficient to read from
@@ -1846,8 +1846,9 @@ class DataSet(DataObject):
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
+      # we can infer dimensionality from the user-specified settings
       provided = set(self._identifyVariablesInCSV(fileName))
-      dims = {}
+      dims = dict((v, i) for v, i in self.getDimensions().items() if len(i)>0)
     # check provided match needed
     needed = set(self._orderedVars)
     missing = needed - provided

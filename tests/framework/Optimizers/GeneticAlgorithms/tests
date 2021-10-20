@@ -299,4 +299,9 @@
       zero_threshold = 1e-5
     [../]
   [../]
+  [./failureOfRuns]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/failureOfRuns.xml'
+    output = 'discrete/constrained/failureOfRuns/optOut.csv' 
+  [../]
 []
