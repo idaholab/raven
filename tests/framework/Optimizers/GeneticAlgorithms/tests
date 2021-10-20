@@ -189,6 +189,16 @@
     [../]
   [../]
 
+  [./failureOfRuns]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/failureOfRuns.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./mishraBirdConstrained]
     type = 'RavenFramework'
     input = 'continuous/constrained/testGAMishraBirdConstrained.xml'
