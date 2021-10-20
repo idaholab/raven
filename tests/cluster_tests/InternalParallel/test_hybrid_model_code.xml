@@ -28,8 +28,7 @@
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
     </Code>
-    <ROM name="svr" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+    <ROM name="svr" subType="SVR">
       <Features>x,y</Features>
       <Target>poly</Target>
       <C>1.0</C>

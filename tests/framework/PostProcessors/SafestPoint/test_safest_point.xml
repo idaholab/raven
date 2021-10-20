@@ -135,10 +135,9 @@
     <ExternalModel ModuleToLoad="safest_point_test_xtr_mdl" name="xtr_mdl" subType="">
       <variables>x1,x2,gammay,g</variables>
     </ExternalModel>
-    <ROM name="accelerated_ROM" subType="SciKitLearn">
+    <ROM name="accelerated_ROM" subType="SVC">
       <Features>x1,x2,gammay</Features>
       <Target>g_zr</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-5</tol>

@@ -1,7 +1,7 @@
 <DataObjectMetadata name="rom_stats">
   <rom type="Static">
     <ROM>
-      <type>HDMR_ROM(ans-ans2)</type>
+      <type>HDMR_ROM</type>
     </ROM>
     <ans>
       <mean>1.35589720456</mean>
@@ -37,22 +37,22 @@
       <samples>49</samples>
       <partialVariance>
         <y1>0.0569618562754</y1>
-        <y3>0.0166831995066</y3>
         <y2>0.00568025665382</y2>
+        <y3>0.0166831995066</y3>
         <y4>0.000397467469312</y4>
         <y5>0.000349021161192</y5>
       </partialVariance>
       <sobolIndices>
         <y1>0.711384726168</y1>
-        <y3>0.208352994243</y3>
         <y2>0.070939538991</y2>
+        <y3>0.208352994243</y3>
         <y4>0.00496388821056</y4>
         <y5>0.00435885238678</y5>
       </sobolIndices>
       <sobolTotalIndices>
         <y1>0.711384726168</y1>
-        <y3>0.208352994243</y3>
         <y2>0.070939538991</y2>
+        <y3>0.208352994243</y3>
         <y4>0.00496388821056</y4>
         <y5>0.00435885238678</y5>
       </sobolTotalIndices>
