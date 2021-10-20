@@ -204,6 +204,12 @@ class MultiRun(SingleRun):
             #collect the failed job index from the list
             currentFailures.append(finishedJobList.index(finishedJob))
         if currentFailures:
+          # In the previous approach, the job was removed directly in the list of jobs on which we were iterating,
+          # determining a messing-up of the loop. Since now we collect only the indices
+          # I need to reverse it so I can remove the jobs starting from the last and back.
+          # For example, if currentFailures=[0,2,4] If we do not sort it (i.e. correntFailures = [4,2,0])
+          # when we start removing the jobs from the list we would mess up the indices...=> If I remove 0 first,
+          # then the index 2 should become 1 and index 4 should become 3 (and so on)
           currentFailures.sort(reverse=True)
           for idx in currentFailures:
             finishedJobList.pop(idx)
