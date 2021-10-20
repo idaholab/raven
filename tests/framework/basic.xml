@@ -1,0 +1,98 @@
+<Simulation>
+  <TestInfo>
+    <name>framework.Basic</name>
+    <author>talbpw</author>
+    <created>2021-10-20</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+       This very simple test provides a basic example of using RAVEN for sampling.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>sample,plot</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../AnalyticModels/projectile.py" name="projectile" subType="">
+      <inputs>v0, angle, timeOption</inputs>
+      <outputs>r, t</outputs>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="vel_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Plot name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>results|Input|v0</x>
+          <y>results|Input|angle</y>
+          <z>results|Output|r</z>
+          <colorMap>results|Output|t</colorMap>
+        </plot>
+        <xlabel>v0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>
