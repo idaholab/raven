@@ -15,147 +15,24 @@
 """
 Created on Feb 20, 2013
 
-@author: crisr
+@author: crisr, maljdan, talbpw
 
 This is the Driver of RAVEN
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-# if in debug mode, activate deprication warnings
-## TODO does this need to be done in all modules, or just this one?
-import warnings
-
-if not __debug__:
-  warnings.filterwarnings("ignore")
-else:
-  warnings.simplefilter("default", DeprecationWarning)
-
 import os
 import sys
-import time
-import threading
-import traceback
-import xml.etree.ElementTree as ET
 
-
-import builtins
-try:
-  builtins.profile
-except (AttributeError,ImportError):
-  # profiler not preset, so pass through
-  builtins.profile = lambda f: f
-
-#warning: this needs to be before importing h5py
-os.environ["MV2_ENABLE_AFFINITY"]="0"
-
-frameworkDir = os.path.dirname(os.path.abspath(__file__))
-
-# library handler is in scripts
-sys.path.append(os.path.join(frameworkDir, '..', "scripts"))
-import library_handler as LH
-sys.path.pop() #remove scripts path for cleanliness
-
-from utils import utils
+from CustomDrivers import DriverUtils as dutils
 import utils.TreeStructure as TS
-utils.find_crow(frameworkDir)
-utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
-utils.add_path(os.path.join(frameworkDir,'contrib'))
-##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
-#Internal Modules
-from Simulation import Simulation
-from Application import __QtAvailable
-from Interaction import Interaction
-#Internal Modules
-
-
-#------------------------------------------------------------- Driver
-def printStatement():
-  """
-    Method to print the BEA header
-    @ In, None
-    @ Out, None
-  """
-  print("""
-Copyright 2017 Battelle Energy Alliance, LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-  """)
-
-def printLogo():
-  """
-    Method to print a RAVEN logo
-    @ In, None
-    @ Out, None
-  """
-  print("""
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .---.        .------######       #####     ###   ###  ########  ###    ###
-     /     \  __  /    --###  ###    ###  ###   ###   ###  ###       #####  ###
-    / /     \(  )/    --###  ###    ###   ###  ###   ###  ######    ### ######
-   //////   ' \/ `   --#######     #########  ###   ###  ###       ###  #####
-  //// / // :    :   -###   ###   ###   ###    ######   ####      ###   ####
- // /   /  /`    '---###    ###  ###   ###      ###    ########  ###    ###
-//          //..\\
-===========UU====UU=============================================================
-           '//||\\`
-             ''``
-    """)
-
-def checkVersions():
-  """
-    Method to check if versions of modules are new enough. Will call sys.exit
-    if they are not in the range specified.
-    @ In, None
-    @ Out, None
-  """
-  # if libraries are not to be checked, we're done here
-  if not LH.checkVersions():
-    return
-  # otherwise, we check for incorrect libraries
-  missing, notQA = LH.checkLibraries()
-  if missing:
-    print('ERROR: Some required Python libraries are missing but required to run RAVEN as configured:')
-    for lib, version in missing:
-      # report the missing library
-      msg = '  -> MISSING: {}'.format(lib)
-      # add the required version if applicable
-      if version is not None:
-        msg += ' version {}'.format(version)
-      print(msg)
-  if notQA:
-    print('ERROR: Some required Python libraries have incorrect versions for running RAVEN as configured:')
-    for lib, found, need in notQA:
-      print('  -> WRONG VERSION: lib "{}" need "{}" but found "{}"'.format(lib, found, need))
-  if missing or notQA:
-    print('Try installing libraries using instructions on RAVEN repository wiki at ' +
-           'https://github.com/idaholab/raven/wiki/Installing_RAVEN_Libraries.')
-    sys.exit(-4)
-  else:
-    print('RAVEN Python dependencies located and checked.')
-  # TODO give a warning for missing libs even if skipping check?
-  # -> this is slow, so maybe not.
-
 
 if __name__ == '__main__':
-  """This is the main driver for the RAVEN framework"""
-  # Retrieve the framework directory path and working dir
-
-  printLogo()
-  printStatement()
-
-  checkVersions()
+  # This is the default driver for the RAVEN framework
+  dutils.doSetup()
+  from Simulation import Simulation
+  from Application import __QtAvailable
+  from Interaction import Interaction
+  from utils import utils
+  frameworkDir = dutils.findFramework()
 
   verbosity      = 'all'
   interfaceCheck = False
