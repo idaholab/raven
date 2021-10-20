@@ -125,7 +125,8 @@ class Sobol(SparseGridCollocation):
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', **initDict)
+      self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom')
+      self.ROMs[combo].initializeFromDict(initDict)
       self.ROMs[combo].initialize(initializeDict)
     #make combined sparse grids
     self.references={}
@@ -165,7 +166,7 @@ class Sobol(SparseGridCollocation):
               'refs':self.references,
               'numRuns':len(self.distinctPoints)}
     #for target in self.targets:
-    self.ROM.supervisedEngine.supervisedContainer[0].initialize(initdict)
+    self.ROM.supervisedContainer[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     """
