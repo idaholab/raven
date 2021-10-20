@@ -31,7 +31,6 @@ tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import supervisedLearning
 from .KerasBase import KerasBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -39,24 +38,30 @@ class KerasClassifier(KerasBase):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
-  ROMType = 'KerasClassifier'
+  info = {'problemtype':'regression', 'normalize':True}
 
-  def __init__(self, **kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{KerasClassifier}
+                        """
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a keras deep neural network object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag = 'KerasClassifier'
-
-  def readInitDict(self, initDict):
-    """
-      Reads in the initialization dict to initialize this instance
-      @ In, initDict, dict, keywords passed to constructor
-      @ Out, None
-    """
-    super().readInitDict(initDict)
 
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
@@ -149,4 +154,3 @@ class KerasClassifier(KerasBase):
     else:
       prediction[self.target[0]] = [round(val[0]) for val in outcome]
     return prediction
-

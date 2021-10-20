@@ -77,7 +77,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet']
+  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())

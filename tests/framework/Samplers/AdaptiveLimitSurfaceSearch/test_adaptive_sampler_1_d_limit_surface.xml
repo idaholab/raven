@@ -30,7 +30,7 @@
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
-      <Output class="DataObjects" type="PointSet">sampledPoints</Output>     
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">sampledPoints</Input>
@@ -82,10 +82,9 @@
     <ExternalModel ModuleToLoad="../Adapt/adaptive_test_model" name="testFunction" subType="">
       <variables>x1,x2,x3,y1,y2</variables>
     </ExternalModel>
-    <ROM name="accelerated_ROM" subType="SciKitLearn">
+    <ROM name="accelerated_ROM" subType="SVC">
       <Features>x1</Features>
       <Target>decision</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-5</tol>
