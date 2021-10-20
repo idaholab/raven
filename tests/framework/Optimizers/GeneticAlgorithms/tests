@@ -189,16 +189,6 @@
     [../]
   [../]
 
-  [./failureOfRuns]
-    type = 'RavenFramework'
-    input = 'discrete/constrained/failureOfRuns.xml'
-    [./csv]
-     type = OrderedCSV
-     output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
-     rel_err = 0.001
-    [../]
-  [../]
-
   [./mishraBirdConstrained]
     type = 'RavenFramework'
     input = 'continuous/constrained/testGAMishraBirdConstrained.xml'
@@ -299,9 +289,14 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
   [./failureOfRuns]
     type = 'RavenFramework'
     input = 'discrete/constrained/failureOfRuns.xml'
-    output = 'discrete/constrained/failureOfRuns/optOut.csv' 
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
   [../]
 []
