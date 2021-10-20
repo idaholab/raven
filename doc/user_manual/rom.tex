@@ -3472,3 +3472,57 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
 %%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{kerasROM.tex}
+
+\subsubsection{SerializePyomo}
+\label{subsubsec:serializepyomo}
+For the purpose of exporting RAVEN trained ROMs in Pyomo format, the platform to print the Pyomo python file is estblished.
+The capabilities implemented enable to retrieve sampled and trained ROMs, pickle (serialize), and output python files as
+defined in the \xmlNode{IOStep}.
+
+The trained file is copied and processed separately to output two files required to run
+Pyomo. The python output file contains the infrastructure inheriting the External Grey Box Model and others included in
+the Pyomo contributions package Pynumero to print a file with Pyomo syntax. The `.pk' output file is the pickled version of the
+trained ROM and can be ran with the python output file.
+
+Since the code developed in ROMs is not a subtype, the code activation is triggered by file type. To ensure developed Pyomo code
+generator is utilized in ROMs, one of the file extensions in the output of the \xmlNode{IOStep} must be `.py'. The subtype of the
+ROM model can be of any kind and is the user's decision to choose the training method.
+
+As noted in pickledRom (\ref{subsubsec:pickledROM}), when loading ROMs from file, the user is expected to know the I/O of a ROM
+and loading of the ROM file must use \xmlNode{IOStep}.
+
+\textbf{Example:} For this example the external model is trained and further loaded as `out_rom'. The loaded trained model is separately
+processed to `rom_out.py' and `rom_pickle.pk'.
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Simulation>
+    ...
+    <Files>
+      <Input name="rom_out.py" type="">rom_out.py</Input>
+      <Input name="rom_pickle.pk" type="">rom_pickle.pk</Input>
+    </Files>
+    ...
+    <Steps>
+      ...
+      <MultiRun name="sample">
+        ...
+        <Model class="Models" type="ExternalModel">attenuate</Model>
+        ...
+        <Output class="DataObjects" type="PointSet">samples</Output>
+      </MultiRun>
+      <RomTrainer name="train">
+        <Input class="DataObjects" type="PointSet">samples</Input>
+        <Output class="Models" type="ROM">out_rom</Output>
+      </RomTrainer>
+      <IOStep name="serialize">
+        <Input class="Models" type="ROM">out_rom</Input>
+        <Output class="Files" type="">out_rom.py</Output>
+      </IOStep>
+      <IOStep name="pickle">
+        <Input class="Models" type="ROM">out_rom</Input>
+        <Output class="Files" type="">out_pickle.pk</Output>
+      </IOStep>
+      ...
+    </Steps>
+    ...
+  </Simulation>
+\end{lstlisting}
