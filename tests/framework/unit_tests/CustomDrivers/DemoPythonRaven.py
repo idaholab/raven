@@ -25,8 +25,8 @@ import matplotlib.pyplot as plt
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(frameworkDir)
 
-frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, 'doc', 'workshop', 'forwardSampling', 'Inputs'))
-targetWorkflow = os.path.join(frameworkTestDir, 'test_1_sample_and_plot.xml')
+frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, 'tests', 'framework'))
+targetWorkflow = os.path.join(frameworkTestDir, 'basic.xml')
 
 # instantiate a RAVEN instance
 from framework import Raven

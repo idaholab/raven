@@ -22,11 +22,11 @@ import os
 import sys
 import unittest
 
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4))) #+['framework'])))
+frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(frameworkDir)
 
 frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, 'tests', 'framework'))
-targetWorkflow = os.path.join(frameworkTestDir, 'test_Lorentz.xml')
+targetWorkflow = os.path.join(frameworkTestDir, 'basic.xml')
 
 from framework import Raven
 
@@ -57,13 +57,13 @@ class TestPythonRaven(unittest.TestCase):
 
   def test_findFileCWD(self):
     """ Find file given path relative to current working directory """
-    fname = os.path.join(*(['..']*2), 'test_Lorentz.xml')
+    fname = os.path.join(*(['..']*2), 'basic.xml')
     target = self.raven._findFile(fname)
     self.assertEqual(targetWorkflow, target)
 
   def test_findFileFramework(self):
     """ Find file given path relative to RAVEN framework """
-    fname = os.path.join('..', 'tests', 'framework', 'test_Lorentz.xml')
+    fname = os.path.join('..', 'tests', 'framework', 'basic.xml')
     target = self.raven._findFile(fname)
     self.assertEqual(targetWorkflow, target)
 
@@ -72,11 +72,11 @@ class TestPythonRaven(unittest.TestCase):
   #
   def test_loadXMLFile(self):
     """ Load an XML Workflow. """
-    self.raven.loadWorkflowFromFile(os.path.join(frameworkTestDir, 'test_Lorentz.xml'))
+    self.raven.loadWorkflowFromFile(targetWorkflow)
 
   def test_runXML(self):
     """ Run an XML Workflow. """
-    self.raven.loadWorkflowFromFile(os.path.join(frameworkTestDir, 'test_Lorentz.xml'))
+    self.raven.loadWorkflowFromFile(targetWorkflow)
     code = self.raven.runWorkflow()
     self.assertEqual(code, 0)
 

@@ -89,6 +89,11 @@ class Raven:
   # UTILITIES
   #
   def _findFile(self, wantFile):
+    """
+      Finds file on disk, trying a few options.
+      @ In, wantFile, str, name and/or location of desired file
+      @ Out, target, str, resolved absolute location of file (or None if not found)
+    """
     target = None
     # option: user provided abs path
     fromAbs = os.path.abspath(wantFile)
