@@ -17,13 +17,14 @@
 """
 import os
 import sys
-framework = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if framework not in sys.path:
-  sys.path.append(framework)
-import Driver     # TODO this shouldn't be the "right way" to load everything
-import Simulation # TODO loading this should load the requisite libs, at least lazily
+
+from . import DriverUtils
+DriverUtils.doSetup()
+
+import Simulation
 import utils.TreeStructure as TS
-from BaseClasses import MessageUser
+
+framework = DriverUtils.findFramework()
 
 class Raven:
   """
