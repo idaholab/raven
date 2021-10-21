@@ -22,7 +22,7 @@
       <runQSUB/>
     </mode>
     <!-- this is a silly rearrangement to test the functionality. -->
-    <MPIExec>mpiexec -f</MPIExec>
+    <MPIExec>mpiexec</MPIExec>
     <NodeParameter> </NodeParameter>
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
