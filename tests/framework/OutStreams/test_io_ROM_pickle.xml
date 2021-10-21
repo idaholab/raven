@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>IO_ROM_PICKLE</WorkingDir>
     <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
@@ -115,13 +116,11 @@
     <ExternalModel ModuleToLoad="XM1_model" name="XM1" subType="">
       <variables>x1,x2,y,z</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>svm|SVC</SKLtype>
+    <ROM name="ROM1" subType="SVC">
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>
-    <ROM name="ROM2" subType="SciKitLearn">
-      <SKLtype>svm|SVC</SKLtype>
+    <ROM name="ROM2" subType="SVC">
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>

@@ -71,8 +71,7 @@
         <valueForXML>3.14159</valueForXML>
       </moreXMLInfo>
     </ExternalModel>
-    <ROM name="out_rom" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
+    <ROM name="out_rom" subType="LinearRegression">
       <Features>y1,y2</Features>
       <Target>ans</Target>
     </ROM>

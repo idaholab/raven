@@ -141,10 +141,13 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""A node containing the criterion based on which the parents are selected. This can be a
                   fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
-                  b. \textbf{\textit{stochasticUniversalSampling}},
-                  c. \textbf{\textit{Tournament}},
-                  d. \textbf{\textit{Rank}}, or
-                  e. \textbf{\textit{randomSelection}}""")
+                  b. \textbf{\textit{tournamentSelection}},
+                  c. \textbf{\textit{rankSelection}}
+                  for all methods nParents is computed such that the population size is kept constant.
+                  \[ nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize \]
+                  solving for nParents we get:
+                  \[nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})\]
+                  This will result in a popSize a little lareger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -152,18 +155,14 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True,
-                          descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    One Point Crossover,
-                                 b.    MultiPoint Crossover,
-                                 c.    Uniform Crossover,
-                                 d.    Whole Arithmetic Recombination, or
-                                 e.    Davis’ Order Crossover.""")
+                  This includes: a.    onePointCrossover,
+                                 b.    twoPointsCrossover,
+                                 c.    uniformCrossover.""")
     crossover.addParam("type", InputTypes.StringType, True,
                        descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -182,11 +181,10 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a.    Bit Flip,
-                                 b.    Random Resetting,
-                                 c.    Swap,
-                                 d.    Scramble, or
-                                 e.    Inversion.""")
+                  This includes: a.    bitFlipMutation,
+                                 b.    swapMutation,
+                                 c.    scrambleMutation, or
+                                 d.    inversionMutation.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -294,7 +292,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
-    self._nParents = reproductionNode.parameterValues['nParents']
+    self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
@@ -324,7 +322,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # Check if the fitness requested is among the constrained optimization fitnesses
     # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
-    ## TODO: @mandd, please explore the possibility to conver the logistic fitness into a constrained optimization fitness.
+    ## TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
     if 'Constraint' in self.assemblerObjects.keys() and self._fitnessType not in ['invLinear','feasibleFirst']:
       self.raiseAnError(IOError, 'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {}'.format(self._fitnessType))
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
@@ -359,7 +357,7 @@ class GeneticAlgorithm(RavenSampled):
 
     meta = ['batchId']
     self.addMetaKeys(meta)
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
     for _, init in enumerate(self._initialValues):
@@ -418,6 +416,15 @@ class GeneticAlgorithm(RavenSampled):
 
     offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
+
+    # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
+    if self._constraintFunctions or self._impConstraintFunctions:
+      params = []
+      for y in (self._constraintFunctions + self._impConstraintFunctions):
+        params += y.parameterNames()
+      for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
+        constraintData[p] = list(np.atleast_1d(rlz[p].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
     g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
@@ -427,17 +434,20 @@ class GeneticAlgorithm(RavenSampled):
                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
     ## FIXME The constraint handling is following the structure of the RavenSampled.py,
-    #        there are many utility functions that can be simplified and/or merged with
+    #        there are many utility functions that can be simplified and/or merged together
     #        _check, _handle, and _apply, for explicit and implicit constraints.
     #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(offSprings):
       newOpt = individual
-      opt = objectiveVal[index]
+      opt = {self._objectiveVar:objectiveVal[index]}
+      for p,v in constraintData.items():
+        opt[p] = v[index]
+
       for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
         if constraint in self._constraintFunctions:
-          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
-          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar = self._objectiveVar,
@@ -518,20 +528,24 @@ class GeneticAlgorithm(RavenSampled):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children.data[repeated,:] = newChildren.data
+          if len(repeated)> children.shape[0] - self._populationSize:
+            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+            children.data[repeated,:] = newChildren.data
+          else:
+            children = children.drop_sel(chromosome=repeated)
         else:
           flag = False
-
-      self.batch = np.shape(children)[0]
+      # keeping the population size constant by ignoring the excessive children
+      children = children[:self._populationSize,:]
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
+
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(np.shape(daChildren)[0]):
+      for i in range(self.batch):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
@@ -878,8 +892,9 @@ class GeneticAlgorithm(RavenSampled):
     """
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)
-    inputs[self._objectiveVar] = opt
-    g = impConstraint.evaluate('impConstrain', inputs)
+    inputs.update(opt)
+
+    g = impConstraint.evaluate('implicitConstraint', inputs)
     return g
 
   # END constraint handling

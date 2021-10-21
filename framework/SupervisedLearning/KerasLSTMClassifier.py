@@ -17,9 +17,6 @@
   @author: wangc
   module for recurrent neural network using short-term model network (LSTM)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 ######
@@ -32,16 +29,44 @@ class KerasLSTMClassifier(KerasClassifier):
     recurrent neural network using short-term model network (LSTM) classifier
     constructed using Keras API in TensorFlow
   """
+  info = {'problemtype':'regression', 'normalize':True}
 
-  def __init__(self, **kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
+        of learning long-term dependencies. They work tremendously well on a large variety of problems, and
+        are now widely used. LSTMs are explicitly designed to avoid the long-term dependency problem. Remembering
+        information for long periods of time is practically their default behavior, not something that they
+        struggle to learn.
+        \zNormalizationPerformed{KerasLSTMClassifier}
+        """
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    KerasClassifier.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'KerasLSTMClassifier'
-    self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
+    self.allowedLayers = self.basicLayers + self.kerasDict['kerasRcurrentLayersList']
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
 
   def _checkLayers(self):
     """

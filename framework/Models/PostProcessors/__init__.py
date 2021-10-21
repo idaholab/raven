@@ -21,4 +21,5 @@
 
 from .PostProcessorInterface import PostProcessorInterface
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
+from .ValidationBase import ValidationBase
 from .Factory import factory

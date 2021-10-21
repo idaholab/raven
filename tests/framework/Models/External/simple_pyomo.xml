@@ -76,8 +76,7 @@
       <inputs>x1,x2,a1,a2,b,c1,c2</inputs>
       <outputs>ans</outputs>
     </ExternalModel>
-    <ROM name="simple_rom" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
+    <ROM name="simple_rom" subType="LinearRegression">
       <Features>x1,x2</Features>
       <Target>ans</Target>
     </ROM>

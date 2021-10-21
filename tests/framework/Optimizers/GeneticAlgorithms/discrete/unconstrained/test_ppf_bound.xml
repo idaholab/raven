@@ -68,7 +68,7 @@
 
         <populationSize>12</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="5">
+        <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>

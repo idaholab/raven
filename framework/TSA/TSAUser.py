@@ -38,7 +38,9 @@ class TSAUser:
     # NOTE we use an assertion here, since only developer actions should be picking subType
     assert subset in (None, 'characterize', 'generate'), f'Invalid subset for TSAUser.addTSASpecs: "{subset}"'
     # need pivot parameter ID, but this might be superceded by a parent class.
-    spec.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType,
+        descr=r"""If a time-dependent ROM is requested, please specifies the pivot
+        variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
     for typ in factory.knownTypes():
       c = factory.returnClass(typ)
       if subset == 'characterize' and not c.canCharacterize():
@@ -46,6 +48,7 @@ class TSAUser:
       elif subset == 'generate' and not c.canGenerate():
         continue
       spec.addSub(c.getInputSpecification())
+    return spec
 
   def __init__(self):
     """
@@ -81,13 +84,13 @@ class TSAUser:
     if foundTSAType is False:
       options = ', '.join(factory.knownTypes())
       # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, f'No known TSA type found in input. Available options are: {options}')
+      raise IOError(f'TSA: No known TSA type found in input. Available options are: {options}')
     if self.target is None:
       # set up all the expected targets from all the TSAs
       self.target = [self.pivotParameterID] + list(self.getTargets())
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
-      self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
+      raise IOError('TSA: The pivotParameter must be included in the target space.')
 
   def _tsaReset(self):
     """
