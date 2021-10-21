@@ -828,3 +828,35 @@ class Simulation(MessageUser):
     """
     with open('.ravenStatus', 'w') as f:
       f.writelines('Success')
+ 
+      
+  def getEntity(self, kind, name):
+    """
+      Return an entity from  simulation
+      @ In, kind, str, type of entity (e.g. DataObject, Sampler)
+      @ In, name, str, identifier for entity (i.e. name of the entity)
+      @ Out, entity, instance, RAVEN instance (None if not found)
+    """
+    # TODO is this the fastest way to get-and-check objects?
+    kindGroup = self.entities.get(kind, None)
+    if kindGroup is None:
+      self.raiseAnError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
+    entity = kindGroup.get(name, None)
+    if entity is None:
+      self.raiseAnError(f'No entity named "{name}" found among "{kind}" entities! Found: {list(self._simulation.entities[kind].keys())}')
+    return entity
+  
+  def loadWorkflowFromFile(self, xmlFile):
+    """
+      Loads the target XML file as a workflow (simulation instance)
+      @ In, xmlFile, string, target xml file to load (cwd?)
+      @ Out, None
+    """
+    import utils.TreeStructure as TS
+    root = TS.parse(open(xmlFile, 'r')).getroot()
+    targetDir = os.path.dirname(xmlFile)
+    self.XMLpreprocess(root, targetDir)
+    self.XMLread(root, runInfoSkip={"DefaultInputFile"}, xmlFilename=xmlFile)
+    self.initialize() # TODO separate method?
+
+
