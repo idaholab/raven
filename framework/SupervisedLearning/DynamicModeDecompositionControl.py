@@ -59,66 +59,79 @@ class DMDc(DMD):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlString{DMDc} ROM aimed to construct a time-dependent (or any other monotonic
-        variable) surrogate model based on Dynamic Mode Decomposition
-        This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
-        series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
-        with a fixed oscillation frequency and decay/growth rate is computed
-        in order to represent the data-set.
+    specs.description = r"""The \xmlString{DMDC} contains a single ROM type similar to DMD, aimed to
+        construct a time-dependent surrogate model based on Dynamic
+        Mode Decomposition with Control (ref. \cite{proctor2016dynamic}).
+        In addition to perform a ``dimensionality reduction regression'' like DMD, this surrogate will
+        calculate the state-space representation matrices A, B and  C in a discrete time domain:
+        \begin{itemize}
+          \item $x[k+1]=A*x[k]+B*u[k]$
+          \item $y[k+1]=C*x[k+1]$
+        \end{itemize}
+        
         In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-        \xmlAttr{subType} needs to be set equal to \xmlString{DMD}.
+        \xmlAttr{subType} needs to be set equal to \xmlString{DMDC}.
         \\
-        Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
-        via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+        Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its
+        parameters/coefficients can be exported into an XML file
+        via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e.
+        \xmlNode{what} node
         in \xmlNode{OutStream} of type \xmlAttr{Print}):
         \begin{itemize}
           \item \xmlNode{rankSVD}, see XML input specifications above
-          \item \xmlNode{energyRankSVD}, see XML input specifications above
-          \item \xmlNode{rankTLSQ}, see XML input specifications above
-          \item \xmlNode{exactModes}, see XML input specifications above
-          \item \xmlNode{optimized}, see XML input specifications above
-          \item \xmlNode{features}, see XML input specifications above
-          \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
-          \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
-          between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
-          \item \xmlNode{eigs}, XML node containing the eigenvalues (imaginary and real part)
-          \item \xmlNode{amplitudes}, XML node containing the amplitudes (imaginary and real part)
-          \item \xmlNode{modes}, XML node containing the dynamic modes (imaginary and real part)
+          \item \xmlNode{actuators}, see XML input specifications above
+          \item \xmlNode{states}, XML node containing the list of system state variables (x)
+          \item \xmlNode{initStates}, XML node containing the list of system state variables
+                (x\_init) that are used for initializing the model in ``evaluation'' mode
+          \item \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial values in the
+                training data
+          \item \xmlNode{XNorm}, XML node containing the norminal values of state variables,
+                which are the initial values in the training data
+          \item \xmlNode{XLast}, XML node containing the last value of state variables,
+                which are the final values in the training data
+          \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
+          \item \xmlNode{YNorm}, XML node containing the norminal values of output variables,
+                which are the initial values in the training data
+          \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space
+          \item \xmlNode{Atilde},  XML node containing the A matrix in discrete time domain
+                (real and imaginary and part, matrix shape, and format note)
+          \item \xmlNode{Btilde}, XML node containing the B matrix in discrete time domain
+                (real and imaginary and part, matrix shape, and format note)
+          \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
+                (real and imaginary and part, matrix shape, and format note)
         \end{itemize}"""
-    specs.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.makeEnumType("dmd", "dmdType", ["dmd", "hodmd"]),
+    specs.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.makeEnumType("dmd", "dmdType", ["dmd"]),
                                                  descr=r"""the type of Dynamic Mode Decomposition to apply.Available are:
                                                   \begin{itemize}
                                                     \item \textit{dmd}, for classical DMD
-                                                    \item \textit{hodmd}, for high order DMD.
                                                   \end{itemize}""", default="dmd"))
-    specs.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType,
-                                                 descr=r"""defines the pivot variable (e.g., time) that represents the
-                                                 independent monotonic variable""", default="time"))
-    specs.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType,
-                                                 descr=r"""defines the truncation rank to be used for the SVD.
-                                                 Available options are:
-                                                 \begin{itemize}
-                                                 \item \textit{-1}, no truncation is performed
-                                                 \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
-                                                 \end{itemize}""", default=None))
-    specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
-                                                 descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
-                                                   as computed rank is the number of the biggest singular values needed to reach the energy identified by
-                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}""", default=None))
-    specs.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputTypes.IntegerType,
-                                                 descr=r"""$int > 0$ that defines the truncation rank to be used for the total
-                                                  least square problem. If not inputted, no truncation is applied""", default=None))
-    specs.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType,
-                                                 descr=r"""True if the exact modes need to be computed (eigenvalues and
-                                                 eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
-    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
-                                                 descr=r"""True if the amplitudes need to be computed minimizing the error
-                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
+    specs.addSub(InputData.parameterInputFactory("actuators", contentType=InputTypes.StringListType,
+                                                 descr=r"""defines the actuators (i.e. system input parameters)
+                                                  of this model. Each actuator variables (u1, u2, etc.) needs to
+                                                  be listed here."""))
+    specs.addSub(InputData.parameterInputFactory("stateVariables", contentType=InputTypes.StringListType,
+                                                 descr=r"""defines the state variables (i.e. system variable vectors)
+                                                  of this model. Each state variable (x1, x2, etc.) needs to be listed
+                                                  here. The variables indicated in \xmlNode{StateVariables} must be
+                                                  listed in the \xmlNode{Target} node too."""))
+    specs.addSub(InputData.parameterInputFactory("initStateVariables", contentType=InputTypes.StringListType,
+                                                 descr=r"""defines the state variables' ids  that should be used as
+                                                  initialization variable
+                                                  in the evaluation stage (for the evaluation of the model).
+                                                  These variables are used for the first time step to initiate
+                                                  the rolling time-step prediction of the state variables, ``exited''
+                                                  by the \xmlNode{actuators} signal. The variables listed in
+                                                  \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
+                                                  node too."""))
+    specs.addSub(InputData.parameterInputFactory("subtractNormUXY", contentType=InputTypes.BoolType,
+                                                 descr=r"""True if the initial values need to be subtracted from the
+                                                 actuators (u), state (x) and outputs (y) if any. False if the subtraction
+                                                 is not needed."""))
     return specs
+
   def __init__(self, messageHandler, **kwargs):
     """
-      DMD constructor
+      DMDc constructor
       @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
                            and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
