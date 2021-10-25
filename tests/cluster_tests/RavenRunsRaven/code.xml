@@ -28,6 +28,8 @@
     </mode>
     <expectedTime>0:10:0</expectedTime>
     <clusterParameters>-P ops_gen -j oe</clusterParameters>
+    <NodeParameter>--hostfile</NodeParameter>
+    <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
     <internalParallel>True</internalParallel>
   </RunInfo>
 

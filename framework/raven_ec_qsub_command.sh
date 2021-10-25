@@ -6,8 +6,9 @@ if test -n "$PBS_O_WORKDIR"; then
     cd $PBS_O_WORKDIR
 fi
 
-#echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
-#source $RAVEN_FRAMEWORK_DIR/../scripts/establish_conda_env.sh --load
+source /etc/profile.d/modules.sh
+echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
+source $RAVEN_FRAMEWORK_DIR/../scripts/establish_conda_env.sh --load
 module load pbs openmpi
 
 which python
