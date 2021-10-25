@@ -103,6 +103,12 @@ class RWD(TimeSeriesCharacterizer):
     if 'signatureWindowLength' not in settings:
       settings['signatureWindowLength'] = None
       settings['sampleType'] = 1
+    if 'gaussianize' not in settings:
+      settings['gaussianize'] = True
+    if 'engine' not in settings:
+      settings['engine'] = randomUtils.newRNG()
+    if 'reduce_memory' not in settings:
+      settings['reduce_memory'] = False
     return settings ####
 
   def characterize(self, signal, pivot, targets, settings):
@@ -119,7 +125,9 @@ class RWD(TimeSeriesCharacterizer):
     # settings:
     #   signatureWindowLength, int,  Signature window length
     #   featureIndex, list of int,  The index that contains differentiable params
-
+    seed = settings['seed']
+    if seed is not None:
+      randomUtils.randomSeed(seed, engine=settings['engine'], seedBoth=True)
 
     params = {}
 
@@ -146,7 +154,7 @@ class RWD(TimeSeriesCharacterizer):
         windowNumber = sampleLimit//4
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber):
-          windowIndex = randomUtils.randomIntegers(0, sampleLimit, caller=None, engine=None)
+          windowIndex = randomUtils.randomIntegers(0, sampleLimit, caller=None)
           baseMatrix[:,i] = np.copy(history[windowIndex:windowIndex+signatureWindowLength])
 
       # Piecewise Sampling

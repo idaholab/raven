@@ -45,7 +45,7 @@
       <Target>signal1, signal2, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <rwd target="signal1, signal2">
+      <rwd target="signal1, signal2" seed='42'>
         <signatureWindowLength>20</signatureWindowLength>
         <featureIndex>3</featureIndex>
         <sampleType>0</sampleType>
@@ -54,9 +54,9 @@
   </Models>
 
   <OutStreams>
-    <Print name="UVec">
+    <Print name="uVec">
       <type>csv</type>
-      <source>UVec</source>
+      <source>uVec</source>
     </Print>
     <Print name="romMeta">
       <type>csv</type>
@@ -73,7 +73,7 @@
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="UVec">
+    <HistorySet name="uVec">
       <Input>scaling</Input>
       <Output>signal1, signal2</Output>
       <options>
