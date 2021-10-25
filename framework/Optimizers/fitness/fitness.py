@@ -65,12 +65,18 @@ def invLinear(rlz,**kwargs):
     penalty = 0.0
   else:
     penalty = kwargs['constraintFunction'].data
-
+  
+  
+  
   objVar = kwargs['objVar']
+  data = np.atleast_1d(rlz[objVar].data)
+  print(rlz)
+  print(rlz[objVar].data)
+  
   fitness = -a * (rlz[objVar].data).reshape(-1,1) - b * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
   fitness = xr.DataArray(np.squeeze(fitness),
                           dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(rlz[objVar].data))})
+                          coords={'chromosome': np.arange(len(data))})
   return fitness
 
 def feasibleFirst(rlz,**kwargs):
@@ -150,11 +156,12 @@ def logistic(rlz,**kwargs):
 
   objVar = kwargs['objVar']
   val = rlz[objVar]
+  data = np.atleast_1d(rlz[objVar].data)
   denom = 1.0 + np.exp(-a * (val - b))
   fitness = 1.0 / denom
   fitness = xr.DataArray(np.array(fitness),
                           dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(rlz[objVar].data))})
+                          coords={'chromosome': np.arange(len(data))})
 
   return fitness
 
