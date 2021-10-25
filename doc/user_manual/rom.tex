@@ -207,11 +207,10 @@ Since the code developed in ROMs is not a subtype, the code activation is trigge
 generator is utilized in ROMs, one of the file extensions in the output of the \xmlNode{IOStep} must be `.py'. The subtype of the
 ROM model can be of any kind and is the user's decision to choose the training method.
 
-As noted in pickledRom (\ref{subsubsec:pickledROM}), when loading ROMs from file, the user is expected to know the I/O of a ROM
-and loading of the ROM file must use \xmlNode{IOStep}.
+When loading ROMs from file, the user is expected to know the I/O of a ROM and loading of the ROM file must use \xmlNode{IOStep}.
 
-\textbf{Example:} For this example the external model is trained and further loaded as `out_rom'. The loaded trained model is separately
-processed to `rom_out.py' and `rom_pickle.pk'.
+\textbf{Example:} For this example the external model is trained and further loaded as `out\_rom'. The loaded trained model is separately
+processed to `rom\_out.py' and `rom\_pickle.pk'.
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
   <Simulation>
     ...
