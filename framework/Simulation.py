@@ -387,6 +387,7 @@ class Simulation(MessageUser):
       @ In, xmlFilename, string, optional, xml filename for relative directory
       @ Out, None
     """
+    self.raiseADebug("Reading XML", xmlFilename)
     #TODO update syntax to note that we read InputTrees not XmlTrees
     unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color','profile'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
