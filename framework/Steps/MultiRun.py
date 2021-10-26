@@ -148,6 +148,9 @@ class MultiRun(SingleRun):
       if not model.amITrained:
         model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
+    #Every reportDeltaTime seconds, write some debug information for this step.
+    reportDeltaTime = 60.0
+    nextReportTime = time.time() + reportDeltaTime
     # run step loop
     while True:
       # collect finished jobs
@@ -234,6 +237,13 @@ class MultiRun(SingleRun):
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
+      currentTime = time.time()
+      if currentTime > nextReportTime:
+        nextReportTime = currentTime + reportDeltaTime
+        self.raiseADebug("Continuing to run. isFinished: %r running: %d unclaimed runs: %d" % (jobHandler.isFinished(), jobHandler.numRunning(), len(jobHandler.getFinishedNoPop())))
+      # Note: calling amIreadyToProvideAnInput can change results,
+      #  but might be helpful for debugging sometimes
+      # "sampler ready with input: %r" sampler.amIreadyToProvideAnInput()
       if not sampler.onlySampleAfterCollecting:
         # NOTE for some reason submission outside collection breaks the DET
         # however, it is necessary i.e. batch sampling
