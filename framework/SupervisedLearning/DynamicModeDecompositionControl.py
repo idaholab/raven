@@ -68,7 +68,7 @@ class DMDc(DMD):
           \item $x[k+1]=A*x[k]+B*u[k]$
           \item $y[k+1]=C*x[k+1]$
         \end{itemize}
-        
+
         In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
         \xmlAttr{subType} needs to be set equal to \xmlString{DMDC}.
         \\
@@ -122,32 +122,20 @@ class DMDc(DMD):
                                                   the rolling time-step prediction of the state variables, ``exited''
                                                   by the \xmlNode{actuators} signal. The variables listed in
                                                   \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
-                                                  node too."""))
+                                                  node too.""", default=[]))
     specs.addSub(InputData.parameterInputFactory("subtractNormUXY", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the initial values need to be subtracted from the
                                                  actuators (u), state (x) and outputs (y) if any. False if the subtraction
-                                                 is not needed."""))
+                                                 is not needed.""", default=False))
     return specs
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self):
     """
       DMDc constructor
-      @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
-                           and printing messages
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
-    DynamicModeDecomposition.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.printTag = 'DMDC'
     self._dynamicFeatures = True
-    ### Extract the Actuator Variable Names (u)
-    self.actuatorsID = kwargs.get("Actuators", None)
-    ### Extract the State Variable Names (x)
-    self.stateID = kwargs.get("StateVariables", None)
-    ### Extract the Initilalization State Variable Names (x). Optional. If not
-    ### found, the state is initialized with the initial values in the state field
-    self.initStateID = kwargs.get("InitStateVariables", [])
-    cUXY =  kwargs.get('SubtractNormUXY',False)
-    self.dmdParams['centerUXY'] = cUXY # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
     self.__Btilde = {} # B matrix
     self.__Ctilde = {} # C matrix
@@ -155,17 +143,34 @@ class DMDc(DMD):
     self.stateVals = None # state values (e.g. X)
     self.outputVals = None # output values (e.g. Y)
     self.parameterValues = None #  parameter values
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['actuators','stateVariables', 'initStateVariables',
+                                                               'subtractNormUXY'])
+    # notFound must be empty
+    assert(not notFound)
+    ### Extract the Actuator Variable Names (u)
+    self.actuatorsID = settings.get('actuators')
+    ### Extract the State Variable Names (x)
+    self.stateID = settings.get('stateVariables')
+    ### Extract the Initilalization State Variable Names (x). Optional. If not
+    ### found, the state is initialized with the initial values in the state field
+    self.initStateID = settings.get('initStateVariables')
+    # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
+    self.dmdParams['centerUXY'] = settings.get('subtractNormUXY')
     # some checks
-    if not self.actuatorsID:
-      self.raiseAnError(IOError,'Actuators XML node must be present for constructing DMDc !')
-    if not self.stateID:
-      self.raiseAnError(IOError,'StateVariables XML node must be present for constructing DMDc !')
     # check if state ids in target
     if not (set(self.stateID) <= set(self.target)):
-      self.raiseAnError(IOError,'StateVariables must also be listed among <Target> variables!')
+      self.raiseAnError(IOError,'stateVariables must also be listed among <Target> variables!')
     # check if state ids in target
     if not (set(self.initStateID) <= set(self.features)):
-      self.raiseAnError(IOError,'InitStateVariables must also be listed among <Features> variables!')
+      self.raiseAnError(IOError,'initStateVariables must also be listed among <Features> variables!')
 
     ### Extract the Output Names (Output, Y)
     # self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
