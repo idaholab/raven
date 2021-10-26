@@ -6,7 +6,8 @@
     <created>2021-01-27</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.RWD</classesTested>
     <description>
-      Tests the TSACharacterizer RWD TimeSeriesAnalyzer algorithm.
+      Tests the SyntheticHistory ROM using RWD TimeSeriesAnalyzer algorithm
+	  to extract features from the time series data.
     </description>
   </TestInfo>
 
