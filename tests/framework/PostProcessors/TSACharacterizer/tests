@@ -7,4 +7,12 @@
     rel_err = 0.02 # limited by ARMA__signal_fa__constant
     zero_threshold = 1e-12
   [../]
+  [./RWD]
+    type = 'RavenFramework'
+    input = 'rwd.xml'
+    output = 'RWD/uVec.xml'
+    csv = 'Basic/uVec.csv'
+    rel_err = 0.02 # limited by ARMA__signal_fa__constant
+    zero_threshold = 1e-12
+  [../]
 []

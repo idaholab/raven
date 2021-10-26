@@ -31,8 +31,6 @@ statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 import Distributions
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
-randomUtils.randomSeed(42, engine=None, seedBoth=False)
-
 # utility methods
 class RWD(TimeSeriesCharacterizer):
   r"""
@@ -60,6 +58,8 @@ class RWD(TimeSeriesCharacterizer):
                  via other non human work required method """))
     specs.addSub(InputData.parameterInputFactory('sampleType', contentType=InputTypes.IntegerType,
                  descr=r"""Indicating the type of sampling."""))
+    specs.addSub(InputData.parameterInputFactory('seed', contentType=InputTypes.IntegerType,
+                 descr=r"""Indicating random seed."""))
     return specs
 
 
@@ -103,12 +103,10 @@ class RWD(TimeSeriesCharacterizer):
     if 'signatureWindowLength' not in settings:
       settings['signatureWindowLength'] = None
       settings['sampleType'] = 1
-    if 'gaussianize' not in settings:
-      settings['gaussianize'] = True
     if 'engine' not in settings:
       settings['engine'] = randomUtils.newRNG()
-    if 'reduce_memory' not in settings:
-      settings['reduce_memory'] = False
+    if 'seed' not in settings:
+      settings['seed'] = 42
     return settings ####
 
   def characterize(self, signal, pivot, targets, settings):

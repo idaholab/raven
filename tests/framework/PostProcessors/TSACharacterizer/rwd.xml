@@ -6,7 +6,7 @@
     <created>2021-01-27</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.RWD</classesTested>
     <description>
-      Tests the SyntheticHistory ROM using only the RWD TimeSeriesAnalyzer algorithm.
+      Tests the TSACharacterizer RWD TimeSeriesAnalyzer algorithm.
     </description>
   </TestInfo>
 
@@ -45,10 +45,11 @@
       <Target>signal1, signal2, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <rwd target="signal1, signal2" seed='42'>
+      <rwd target="signal1, signal2">
         <signatureWindowLength>20</signatureWindowLength>
         <featureIndex>3</featureIndex>
         <sampleType>0</sampleType>
+        <seed>42</seed>
       </rwd>
     </ROM>
   </Models>
