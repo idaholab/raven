@@ -47,16 +47,16 @@
       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
       <!-- <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features> -->
       <!-- Actuator variables u(t) are listed below -->
-      <Actuators>u1</Actuators>
+      <actuators>u1</actuators>
       <!-- StateVariables x(t) are listed below -->
-      <StateVariables>x1,x2,x3</StateVariables>
+      <stateVariables>x1,x2,x3</stateVariables>
       <!-- Initialization Variables-->
-      <InitStateVariables>x1_init,x2_init,x3_init</InitStateVariables>
+      <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
       <!-- Pivot variable (e.g. Time) -->
       <pivotParameter>Time</pivotParameter>
       <rankSVD>-1</rankSVD>
       <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
-      <SubtractNormUXY>True</SubtractNormUXY>
+      <subtractNormUXY>True</subtractNormUXY>
 	  <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
     </ROM>
   </Models>

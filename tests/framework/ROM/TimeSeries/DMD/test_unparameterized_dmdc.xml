@@ -4,7 +4,7 @@
     <name>framework/ROM/TimeSeries/DMD.UnparametrizedDMDC</name>
     <author>alfoa</author>
     <created>2020-12-10</created>
-    <classesTested>ROM.SupervisedLearning.DynamicModeDecompositionControl</classesTested>
+    <classesTested>ROM.SupervisedLearning.DMDC</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMDC ROM using the standard SVD-based
        algorithm. The shows how to construct an un-parameterized DMDC model, which is not dependent on any uncertanty but
@@ -45,18 +45,18 @@
       <!-- Features include all the u(t), x(t), p(s) -->
       <Features>u1,x1_init,x2_init,x3_init</Features>
       <!-- <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features> -->
-      <!-- Actuator variables u(t) are listed below -->
-      <Actuators>u1</Actuators>
-      <!-- StateVariables x(t) are listed below -->
-      <StateVariables>x1,x2,x3</StateVariables>
+      <!-- actuator variables u(t) are listed below -->
+      <actuators>u1</actuators>
+      <!-- stateVariables x(t) are listed below -->
+      <stateVariables>x1,x2,x3</stateVariables>
       <!-- Initialization Variables-->
-      <InitStateVariables>x1_init,x2_init,x3_init</InitStateVariables>
+      <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
       <!-- Pivot variable (e.g. Time) -->
       <pivotParameter>Time</pivotParameter>
       <rankSVD>-1</rankSVD>
       <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
-      <SubtractNormUXY>False</SubtractNormUXY>
-	  <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+      <subtractNormUXY>False</subtractNormUXY>
+	  <!-- subtractNormUXY: True = will subtract the initial values from U,X,Y -->
     </ROM>
   </Models>
 
