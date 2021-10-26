@@ -25,6 +25,7 @@
     <mode>
       mpi
       <runQSUB/>
+      <memory>4gb</memory>
     </mode>
     <expectedTime>0:10:0</expectedTime>
     <clusterParameters>-P ops_gen -j oe</clusterParameters>
