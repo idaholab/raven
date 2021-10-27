@@ -108,7 +108,6 @@ class ROM(Dummy):
     """
     super().__init__()
     self.amITrained = False               # boolean flag, is the ROM trained?
-    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
     self.cvInstanceName = None            # the name of Cross Validation instance
     self.cvInstance = None                # Instance of provided cross validation
@@ -429,10 +428,21 @@ class ROM(Dummy):
                                   'd(feature1)/d(target1)':np.array(...)}. For example,
                                 {"x1/y1":np.array(...),"x2/y1":np.array(...),etc.}
     """
-    inputToROM       = self._inputToInternal(request)
-    derivatives = self.supervisedEngine.derivatives(inputToROM, order=order, feats=feats)
-    for k,v in derivatives.items():
-      derivatives[k] = np.atleast_1d(v)
+    if self.pickled:
+      self.raiseAnError(RuntimeError,'ROM "', self.name, '" has not been loaded yet!  Use an IOStep to load it.')
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not be evaluated!")
+    derivatives = {}
+    if self.segment:
+      derivatives = mathUtils.derivatives(self.supervisedContainer[0].evaluate, request, var=feats, n=order)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = mathUtils.derivatives(rom.evaluate, request, var=feats, n=order)
+        if len(list(derivatives.keys())) == 0:
+          derivatives.update(sliceEvaluation)
+        else:
+          for key in derivatives.keys():
+            derivatives[key] = np.append(derivatives[key],sliceEvaluation[key])
     return derivatives
 
   def _externalRun(self,inRun):
