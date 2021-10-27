@@ -42,7 +42,7 @@
       <Target>Z</Target>
       <partitionPredictor>svm</partitionPredictor>
       <simplification>0.04</simplification>
-      <smooth/>
+      <smooth>True</smooth>
     </ROM>
   </Models>
 

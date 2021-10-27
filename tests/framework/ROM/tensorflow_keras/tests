@@ -23,4 +23,16 @@
     input = 'lstm.xml'
     csv = 'data/outLSTMClassifier.csv'
   [../]
+  [./tf_lstm_regression]
+    type = 'RavenFramework'
+    input = 'keras_lstm_regression.xml'
+    csv = 'LSTMRegression/out_resampled_0.csv LSTMRegression/out_resampled_1.csv'
+    rel_err = 0.0005
+  [../]
+  [./LSTMFromFile]
+    type  = 'RavenFramework'
+    input = 'lstm_from_file.xml'
+    csv = 'data/rom_samples.csv'
+    output = 'data/rom_samples.xml'
+  [../]
 []

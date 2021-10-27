@@ -112,7 +112,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="MCTest">
+    <MultiRun name="MCTest" clearRunDir="False">
       <Input class="Files" type="">twigl_mixing.i</Input>
       <Input class="Files" type="">xs.xml</Input>
       <Input class="Files" type="">alias.xml</Input>

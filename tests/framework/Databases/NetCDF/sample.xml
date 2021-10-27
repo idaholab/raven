@@ -1,0 +1,73 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/NetCDF.Sample</name>
+    <author>talbpaul</author>
+    <created>2021-03-03</created>
+    <classesTested>Databases.NetCDF</classesTested>
+    <description>
+      Tests using NetCDF as a writable database format while sampling.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Sample</WorkingDir>
+    <Sequence>sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">nd_model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="Databases" type="NetCDF">all</Output>
+      <Output class="Databases" type="NetCDF">select</Output>
+    </MultiRun>
+  </Steps>
+
+  <VariableGroups>
+    <Group name="GRO_select">c, f</Group>
+  </VariableGroups>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+  </DataObjects>
+
+  <Databases>
+    <NetCDF name="all" readMode="overwrite"/>
+    <NetCDF name="select" readMode="overwrite">
+      <variables>GRO_select</variables>
+    </NetCDF>
+  </Databases>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/nd_data" name="nd_model" subType="">
+      <variables>a,b,c,x,y,d,e,f</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="a">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>zeroToOne</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+</Simulation>

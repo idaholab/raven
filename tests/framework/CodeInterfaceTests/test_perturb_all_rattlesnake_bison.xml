@@ -6,7 +6,7 @@
     <created>2016-08-29</created>
     <classesTested>Models.Code.MAMMOTH</classesTested>
     <description>
-       An example of using the MAMMOTH code interface (no executable). It checks Bison and RattleSnake. 
+       An example of using the MAMMOTH code interface (no executable). It checks Bison and RattleSnake.
        This test is designed to ensure the MAMMOTH interface mechanics is correctly functional, overal for Neutron
        Cross section perturbation.
     </description>
@@ -128,7 +128,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="perturbAll">
+    <MultiRun name="perturbAll" clearRunDir="False">
       <Input class="Files" type="">bisonInput</Input>
       <Input class="Files" type="">bisonMesh</Input>
       <Input class="Files" type="">rattlesnakeMesh</Input>

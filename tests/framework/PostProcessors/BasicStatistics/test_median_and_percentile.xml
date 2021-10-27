@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/medianAndPercentile</name>
+    <author>ZHOUJ2</author>
+    <created>2020-10-08</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This requirements test checks median calcuation and the percentile calcuation. This test use CustomSampler 
+      to read a pre-genrated data and use BasicStatistic PostProcessor to output the median and the percentile 
+      for some variables. In median calculations, RAVEN will gives a 50 percentile. The interpolation method to use 
+      when the desired percentile lies between two data points $i, j$: RAVEN will return the midpoint: $(i + j) / 2$.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>median</WorkingDir>
+    <Sequence>sample,PP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="PointSet.csv">PointSet.csv</Input>
+  </Files>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <PostProcessor name="median" subType="BasicStatistics" verbosity="debug">
+      <median prefix="median">x0,y0,z0,x01,y01,z02,x,y,z</median>
+      <percentile prefix="percentile">x0,z02</percentile>
+      <percentile prefix="percentile2" percent='40'>x0</percentile>
+    </PostProcessor>
+  </Models>
+
+
+  <Distributions>
+    <Uniform name='x0_distrib'>
+      <lowerBound>0</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <CustomSampler name="custom">
+      <Source class="Files" type="">PointSet.csv</Source>
+      <variable name="x"/>
+      <variable name="y"/>
+      <variable name="z"/>
+      <variable name="x0"/>
+      <variable name="y0"/>
+      <variable name="z0"/>
+      <variable name="x01"/>
+      <variable name="y01"/>
+      <variable name="z01"/>
+      <variable name="x02"/>
+      <variable name="y02"/>
+      <variable name="z02"/>                  
+      <variable name="time"/>
+    </CustomSampler>
+  </Samplers>
+
+  <Steps>
+      <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">custom</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">median</Model>
+      <Output class="DataObjects" type="PointSet">median</Output>
+      <Output class="OutStreams" type="Print">median</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PointSet">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="median">
+      <type>csv</type>
+      <source>median</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x0,y0,z0,time,x01,y01,z01,x02,y02,z02,x,y,z</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x01,y01,z01,x02,y02,z02,x,y,z</Output>
+    </PointSet>
+    <PointSet name="median">
+      <Output>
+        median_vars,
+        percentile_5_x0,
+        percentile_95_x0,
+        percentile_5_z02,
+        percentile_95_z02,
+        percentile2_40_x0
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="median_vars">
+                 median_x0,
+                 median_y0,
+                 median_x01,
+                 median_y01,
+                 median_z02,
+                 median_x,
+                 median_z</Group>
+  </VariableGroups>
+</Simulation>

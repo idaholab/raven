@@ -16,43 +16,35 @@ Created on Noverber 16, 2017
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import inspect
 import abc
-import copy
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import mathUtils
+from BaseClasses import BaseType, MessageUser
 from utils import utils
-import MessageHandler
 import Distributions
+from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
-class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
+class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUser):
   """
     This class represents an interface with all the metrics algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
     metrics
   """
-  def __init__(self, estimator, messageHandler):
+  def __init__(self, estimator):
     """
       A constructor
       @ In, estimator, instance of given metric
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag                = 'MetricDistributor'
-    # object of message handler
-    self.messageHandler          = messageHandler
+    super().__init__()
+    self.printTag = 'MetricDistributor'
     # instance of given Metric
-    self.estimator                = estimator
+    self.estimator = estimator
     # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
     self.canHandleDynamicData = self.estimator.isDynamic()
     # True if the instance of given metric, i.e. 'estimator', can handle pairwise data, else False
@@ -88,7 +80,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     output = self.estimator.evaluate(feat,targ)
     return output
 
-  def evaluate(self,pairedData, weights = None, multiOutput='mean'):
+  def evaluate(self,pairedData, weights = None, multiOutput='mean',**kwargs):
     """
       Method to perform the evaluation of given paired data
       @ In, pairedData, tuple, ((featureValues, probabilityWeight), (targetValues, probabilityWeight)), both
@@ -105,9 +97,11 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         self.raiseAnError(IOError, "Distribution is provided, but the metric ", self.estimator.name, " can not handle it!")
     feat, targ = pairedData
     if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
-      out = self.estimator.evaluate(feat, targ)
+      self.raiseAMessage('Using feature and target as distributions ...')
+      out = self.estimator.evaluate(feat, targ,**kwargs)
       dynamicOutput.append(out)
     elif isinstance(feat, Distributions.Distribution):
+      self.raiseAMessage('Using feature as distribution ...')
       targVals = np.asarray(targ[0])
       for hist in range(targVals.shape[1]):
         if targ[1] is not None:
@@ -118,6 +112,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         out = self.estimator.evaluate(feat, targIn)
         dynamicOutput.append(out)
     elif isinstance(targ, Distributions.Distribution):
+      self.raiseAMessage('Using target as distribution ...')
       featVals = np.asarray(feat[0])
       for hist in range(featVals.shape[1]):
         if feat[1] is not None:
@@ -127,7 +122,8 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
           featIn = featVals[:,hist]
         out = self.estimator.evaluate(featIn, targ)
         dynamicOutput.append(out)
-    elif self.estimator.type in ['CDFAreaDifference', 'PDFCommonArea']:
+    elif self.estimator.isInstanceString(['CDFAreaDifference', 'PDFCommonArea']):
+      self.raiseAMessage('Using PDF/CDF metrics ...')
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
       for hist in range(featVals.shape[1]):
@@ -143,6 +139,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         out = self.estimator.evaluate(featIn, targIn)
         dynamicOutput.append(out)
     else:
+      self.raiseAMessage('Using non-PDF/CDF metrics ...')
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
       assert(featVals.shape[0] == targVals.shape[0])
@@ -155,7 +152,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       # can be biased or uncorrect. The correct way is to use the joint probability weight.
       # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
       if self.canHandleDynamicData:
-        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight)
+        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight,**kwargs)
       else:
         for hist in range(featVals.shape[1]):
           out = self.estimator.evaluate(featVals[:,hist], targVals[:,hist], dataWeight)
@@ -173,31 +170,18 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     output = np.asarray(output)
     return output
 
-__interfaceDict                         = {}
-__interfaceDict['MetricDistributor'      ] = MetricDistributor
-__base                                  = 'Distributor'
+class MetricDistributorFactory(EntityFactory):
+  """
+    Specific factory for metric distributors
+  """
+  def returnInstance(self, Type, estimator):
+    """
+      This function return an instance of the request model type
+      @ In, distributorType, string, string representing the class to retrieve
+      @ In, estimator, list of instance of given metrics
+      @ Out, returnInstance, instance, an instance of this class
+    """
+    return self.returnClass(Type)(estimator)
 
-def returnInstance(distributorType, estimator, caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, estimator, list of instance of given metrics
-    @ In, caller, instance, object that will share its messageHandler instance
-    @ Out, returnInstance, instance, an instance of this class
-  """
-  try:
-    return __interfaceDict[distributorType](estimator, caller.messageHandler)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(distributorType))
-
-def returnClass(distributorType,caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, caller, instnace, object that will share its messageHandler instance
-    @ Out, returnClass, the class definition
-  """
-  try:
-    return __interfaceDict[distributorType]
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+distributorType)
+factory = MetricDistributorFactory('Distributor')
+factory.registerType('MetricDistributor', MetricDistributor)

@@ -190,6 +190,9 @@ block should contain the absolute or relative (with respect to the current worki
 directory) path to the RAVEN framework script (\textbf{raven\_framework}).
 \\ In addition to the attributes and xml nodes reported above, the RAVEN accepts the following XML nodes (required and optional):
 \begin{itemize} % nodes for code
+  \item  \xmlNode{outputDatabase}, \xmlDesc{string, required parameter}
+    will specify the \xmlNode{Database} that will be loaded as outputs of the INNER RAVEN. If this node
+    is not specifed, \xmlNode{outputExportOutStreams} may be used instead.
   \item  \xmlNode{outputExportOutStreams}, \xmlDesc{comma separated list,
     required parameter} will specify the  \xmlNode{OutStreams} that will be loaded as outputs of the SLAVE RAVEN.
     Maximum two  \xmlNode{OutStreams} can be listed here (1 for PointSet and/or 1 for HistorySet).
@@ -671,6 +674,51 @@ The distribution that this variable is following is a Triangular distribution
 We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of
 2880.
 %
+In case of Dynamic Event Tree-based sampling, the input is very similar to the other
+sampling strategies with the only ``limitation'' that the sampled variables
+directly linked to the Dynamic Event Tree must be part of a RELAP5 trip.
+In case, other variables must be sampled, they are considered ``epistemic'' variables and
+should be sampled using the Hybrid Dynamic Event Tree approach.
+
+
+For example, the Dynamic Event Tree sampling and the  Hybrid Dynamic Event Tree sampling would look
+like the following:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <DynamicEventTree name='DET'>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+
+  <DynamicEventTree name='HDET'>
+    <HybridSampler type="MonteCarlo">
+      <!-- in here we specify the epistemic like variables -->
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="200:1">
+        <distribution>missionTimeDist</distribution>
+      </variable>
+    </HybridSampler>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+</Samplers>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a RELAP interface, the \xmlNode{MultiRun} step type will most likely be
@@ -815,7 +863,9 @@ environment gets activated (possibility to sample parameters directly in the con
 Here is a standard example of what can be used to use RELAP7 as the model:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>~path/to/RAVEN-opt</executable></Code>
+    <Code name='MyRAVEN' subType='RAVEN'>
+      <executable>~path/to/RAVEN-opt</executable>
+    </Code>
 </Models>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -920,9 +970,12 @@ In the \xmlNode{Models} block particular MooseBasedApp executable needs to be sp
 Here is a standard example of what can be used to use with a typical MooseBasedApp (Bison) as the model:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name='MyMooseBasedApp' subType='MooseBasedApp'><executable>~path/to/Bison-opt</executable></Code>
+    <Code name='MyMooseBasedApp' subType='MooseBasedApp'>
+      <executable>~path/to/Bison-opt</executable>
+    </Code>
 </Models>
 \end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -1002,8 +1055,41 @@ the variable name in the Sampler input block needs to be named as follows:
 </Samplers>
 ...
 \end{lstlisting}
+
 %
-In case some variables in external (\texttt{Generic} input files) need to be perturbed, 
+In case the variables have multiple entries, for example, variable `w' as shown in the following:
+\begin{lstlisting}[style=XML]
+[Functions]
+  ...
+  [./the_linear_combo]
+    type = LinearCombinationFunction
+    functions = 'xtimes twoxplus1 xsquared tover2'
+    w = '3 -1.2 0.4 3'
+  [../]
+  ...
+[]
+\end{lstlisting}
+The users can append `:' to the end of the variable, and use an integer number to indicate which
+entry value to be perturbed by RAVEN.
+For example, if the user wants to perturb the first
+and third values of `w' in the aboved example, the RAVEN Sampler will be updated as follows:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='Functions|the_linear_combo|w:1'>
+      ...
+    </variable>
+    <variable name='Functions|the_linear_combo|w:3'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+
+%
+In case some variables in external (\texttt{Generic} input files) need to be perturbed,
 the wildcard approach can be used (for those variables):
 \begin{lstlisting}[style=XML]
 ...
@@ -1196,7 +1282,9 @@ utilize curly brackets.
     <plotSettings>
        <plot>
         <type>line</type>
-        <x>MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}</x>
+        <x>
+          MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}
+        </x>
         <y>MCOutData|Output|aveTempLeft</y>
         <kwargs><color>blue</color></kwargs>
       </plot>
@@ -4738,7 +4826,329 @@ If different labels are wanted, they would need to be changed directly in the Ne
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Additional Information}
 The Neutrino interface is used to alter the particle size by modifying the Neutrino input file. The Neutrino interface
-searches for the default SPH solver parameter name: '\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
+searches for the default SPH solver parameter name: `\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
 Neutrino input file, the Neutrino interface must also be changed. Similarly, the Neutrino interface searches for the
-output in the default Measurement field name: '\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
+output in the default Measurement field name: `\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
 if the measurement field name was changed.
+
+
+\subsection{Prescient Interface}
+\label{subsec:prescientInterface}
+
+\subsubsection{General Information}
+The Prescient Interface is used to run the open source Prescient
+production cost modeling platform available from
+\url{https://github.com/grid-parity-exchange/Prescient}
+
+This allows inputs to be perturbed and data to be read out.
+
+\subsubsection{Sampler}
+
+For perturbing inputs, the sampled variable needs to be placed inside
+of \$( )\$ like \verb'$(var)$'. The sampled variable can have a
+constant added or a multiplication factor like \verb'$(var+3.2)$' or
+\verb'$(var*2.1)$' or \verb'$(var*5.0+7.0)$' or \verb'$(a*-2.0)$'
+These can be placed in any of the .dat or .csv files that are listed
+in the \xmlNode{Files} section as \xmlAttr{type="PrescientInput"} An
+example line could be: \verb'Abel 1 $(var)$'
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+\end{lstlisting}
+
+
+\subsubsection{Files}
+
+There are two types of inputs in the \xmlNode{Files} section.  The
+\xmlAttr{type="PrescientRunnerInput"} ones are passed as an argument
+to the \texttt{runner.py} If multiple PrescientRunnerInput files are
+specified then \texttt{runner.py} will be called multiple times (which
+can be used to run a populate and then simulate command).  The
+\xmlAttr{type="PrescientInput"} are just used as additional inputs
+that have the data in them perturbed.
+
+\begin{lstlisting}[style=XML]
+  <Files>
+  <Input name="simulate" type="PrescientRunnerInput"
+  >simulate_day.txt</Input>
+    <Input name="structure" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >ScenarioStructure.dat</Input>
+    <Input name="scenario_1" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_1.dat</Input>
+    <Input name="actuals" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_actuals.dat</Input>
+    <Input name="forcasts" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_forecasts.dat</Input>
+    <Input name="scenarios" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >scenarios.csv</Input>
+  </Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+
+The \xmlNode{Code} model can be used with the
+\xmlAttr{subType="Prescient"} to run the Prescient Code Interface.
+The block currently does not have any option xml nodes.
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="TestPrescient" subType="Prescient">
+      <executable>
+      </executable>
+    </Code>
+  </Models>
+\end{lstlisting}
+
+\subsubsection{Output Files Conversion}
+
+The code interface reads in the \texttt{hourly\_summary.csv} and the
+\texttt{bus\_detail.csv} files. It will generate a \texttt{Date\_Hour}
+variable that can be used as the \xmlNode{pivotParameter} and is a
+string with the date and hour. It also generates an \texttt{Hour}
+variable that is the hour as an integer.  From the hourly summary it
+will generate variables like TotalCosts and the other data that
+appears there.  For each of the busses in the bus detail file it
+generates variables like \texttt{Clay\_LMP} that can be used.
+
+Exactly which variables will appear will vary depending on the
+Prescient input files, but typical ones include \texttt{TotalCosts},
+\texttt{FixedCosts}, \texttt{VariableCosts}, \texttt{LoadShedding},
+\texttt{OverGeneration}, \texttt{ReserveShortfall},
+\texttt{RenewablesUsed}, \texttt{RenewablesCurtailment},
+\texttt{Demand}, \texttt{Price}, and \texttt{NetDemand}. Variables
+that can be included for a typical bus could include ones like
+\texttt{Abel\_LMP}, \texttt{Abel\_LMP\_DA}, \texttt{Abel\_Shortfall},
+and \texttt{Abel\_Overgeneration}.
+
+\begin{lstlisting}[style=XML]
+    <HistorySet name="samples">
+      <Input>var</Input>
+      <Output>Date_Hour, TotalCosts, FixedCosts, VariableCosts, LoadShedding, OverGeneration, ReserveShortfall, RenewablesUsed, RenewablesCurtailment, Demand, Price, NetDemand, Abel_LMP, Clay_LMP </Output>
+      <options>
+        <pivotParameter>Date_Hour</pivotParameter>
+      </options>
+    </HistorySet>
+\end{lstlisting}
+
+
+\subsubsection{Installation of Libraries}
+
+Installing Prescient so that RAVEN can run it requires that RAVEN and
+Prescient have a superset of the libraries that they use so that both
+can run.  One way to set this up is to install RAVEN, and then source
+the conda load script and inside of the conda raven libraries
+environment do the Prescient and Egret install.  This is shown in the
+following listing:
+
+\begin{lstlisting}
+  #first clone raven, Egret and Prescient into a directory
+  git clone git@github.com:idaholab/raven.git
+  git clone git@github.com:grid-parity-exchange/Prescient.git
+  git clone git@github.com:grid-parity-exchange/Egret.git
+  #Switch to raven directory
+  cd raven
+  #install raven libraries
+  ./scripts/establish_conda_env.sh --install
+  #switch to using raven libraries
+  source ./scripts/establish_conda_env.sh --load
+  #Switch to Prescient and install
+  cd ../Prescient
+  python setup.py develop --user
+  conda install -c conda-forge coincbc
+  #Switch to Egret and install
+  cd ../Egret/
+  pip install --user -e .
+\end{lstlisting}
+
+Note that the path to \texttt{runner.py} may need to be added to the PATH variable via a command like: \verb'PATH="$PATH:$HOME/.local/bin"'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%% AccelerateCFD Interface %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{AccelerateCFD Interface}
+\label{subsec:AccelerateCFDInterface}
+This section covers the input specification for running AccelerateCFD
+ (\url{https://github.com/IllinoisRocstar/AccelerateCFD_CE})
+ through RAVEN. It is important to notice
+that this explanation assumes that the user already knows how to use AccelerateCFD. The existing inteface can be used to perturb any parameter
+contained in the AccelerateCFD input file (i.e., podInputs.xml).
+
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all the files needed
+for the code to run should be specified. In the case of AccelerateCFD,
+the files needed are the following:
+\begin{itemize}
+  \item AccelerateCFD input file ``podInputs.xml''. This input file must be tagged with
+          the $type="input"$
+  \item Mesh file for x coordinates'. This input file must be tagged with
+          the $type="mesh-x"$
+  \item Mesh file for y coordinates'. This input file must be tagged with
+          the $type="mesh-y"$
+  \item Mesh file for z coordinates'. This input file must be tagged with
+          the $type="mesh-z"$
+\end{itemize}
+%
+Example:
+\begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="AcceleratedCFDinput" type="input">podInputs.xml</Input>
+    <Input name="Cx" type="mesh-x">Cx</Input>
+    <Input name="Cy" type="mesh-y">Cy</Input>
+    <Input name="Cz" type="mesh-z">Cz</Input>
+  </Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%X
+\subsubsection{Models}
+In the \xmlNode{Models} block, the AccelerateCFD executable needs to be specified.
+The  path to the AccelerateCFD executable must be included.
+Here is a standard example of what can be used:
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="myAccelerateCFD" subType="AccelerateCFD">
+      <executable>./romRun</executable>
+      <outputLocations>
+          <coordinates>
+           (0.0,0.0,0.0) (1.0,1.0,1.0) (min,min,min) (max,max,max) (middle,middle,middle)
+          </coordinates>
+      </outputLocations>
+    </Code>
+  </Models>
+\end{lstlisting}
+
+The \xmlNode{Code} XML node contains the information needed to execute the specific External Code. This
+XML node accepts the following attributes:
+\begin{itemize}
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined identifier of this model.
+    \nb As with other objects, this identifier can be used to reference this specific entity from other input
+    blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the code that needs to be
+    associated to this Model.
+\end{itemize}
+This model can be initialized with the following children:
+\begin{itemize}
+  \item \xmlNode{executable}, \xmlDesc{string, required field}, specifies the path of the executable to
+    be used; \nb Either an absolute or relative path can be used.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines the distributions that are going to be used for the sampling
+of the variables defined in the \xmlNode{Samplers} block. For all the possible distributions and all
+their possible inputs, please see the chapter about Distributions (see~\ref{sec:distributions}). Here is an example of a
+Uniform distribution:
+\begin{lstlisting}[style=XML]
+  <Distributions>
+    <UniformDiscrete name='uni'>
+      <lowerBound>10</lowerBound>
+      <upperBound>30</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled. After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to the AccelerateCFD parameter name (in the XML input file)
+An example of a \xmlNode{Samplers} block is given below:
+\begin{lstlisting}[style=XML]
+ <Samplers>
+    <MonteCarlo name="myMC">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name='velMods'>
+        <distribution>uni</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+In this section, the \xmlNode{MultiRun} will be used. As shown in the following, the AccelerateCFD
+input files are listed in \xmlNode{Files} and are linked here using \xmlNode{Input}, the \xmlNode{Model}
+and \xmlNode{Sampler} defined in previous sections will be used in this \xmlNode{MultiRun}. The
+outputs will be saved in the \textbf{DataObject} `resultPointSet'.
+
+\begin{lstlisting}[style=XML]
+  <Steps>
+    <MultiRun name="run">
+      <Input   class="Files"       type="input">podInputs.xml</Input>
+      <Input   class="Files"       type="mesh-x">Cx</Input>
+      <Input   class="Files"       type="mesh-y">Cy</Input>
+      <Input   class="Files"       type="mesh-x">Cz</Input>
+      <Model   class="Models"      type="Code">AcceleratedCFDCode</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>
+      <Output  class="Databases"   type="HDF5">DataAcceleratedCFD</Output>
+      <Output  class="DataObjects" type="HistorySet">AcceleratedCFDHistorySet</Output>
+      <Output  class="DataObjects" type="PointSet">AcceleratedCFDPointSet</Output>
+    </MultiRun>
+  </Steps>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Output File Conversion}
+The AccelerateCFD software produces CFD-grade results (velocity and scalar fields). The interface
+will extract the results and deploy them using the following format:
+\begin{itemize}
+  \item $variableName-coordinates-axis$. For example: $volVectorField-0\_0\_0\_0\_0\_0-x$ or $volVectorField-min_min_min-x$
+\end{itemize}
+For example, the following example $DataObject$:
+\begin{lstlisting}[style=XML]
+<DataObjects>
+  <PointSet name="AcceleratedCFDPointSet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </PointSet>
+  <HistorySet name="AcceleratedCFDHistorySet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </HistorySet>
+</DataObjects>
+\end{lstlisting}

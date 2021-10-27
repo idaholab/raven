@@ -1,0 +1,210 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/MCMC.MetropolisTenDim</name>
+    <author>wangc</author>
+    <created>2020-12-20</created>
+    <classesTested>MCMC.Metropolis</classesTested>
+    <description>
+      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling for high-dimensional
+      input space (10-dim):
+      likelihood function: N-Dimensional Gaussian distribution with
+      mu ~ Normal(0, 10), analytical mean values:
+      [-3.23840979,  4.32107943,  0.18209698, -5.10287563, -2.01392171,
+       10.67490632, -0.26232032,  5.92550919,  7.70044106,  6.86019041]
+      var ~ LogNormal(0, 1.5), analytical std values:
+      [ 1.58121149,  1.30760725,  0.25210521,  4.22805349,  2.75537484,
+       15.26527159,  0.16109538,  1.0258734 ,  0.0772615 ,  4.86960071]
+      Prior on mean is U(-500, 500)
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TenDim</WorkingDir>
+    <Sequence>mh, print, pp</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>-500</lowerBound>
+      <upperBound>500</upperBound>
+    </Uniform>
+    <Normal name="N1">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="N2">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="N3">
+      <mean>0</mean>
+      <sigma>0.2000104</sigma>
+    </Normal>
+    <Normal name="N4">
+      <mean>0</mean>
+      <sigma>2.06276731</sigma>
+    </Normal>
+    <Normal name="N5">
+      <mean>0</mean>
+      <sigma>1.55779212</sigma>
+    </Normal>
+    <Normal name="N6">
+      <mean>0</mean>
+      <sigma>6.33134638</sigma>
+    </Normal>
+    <Normal name="N7">
+      <mean>0</mean>
+      <sigma>0.18340701</sigma>
+    </Normal>
+    <Normal name="N8">
+      <mean>0</mean>
+      <sigma>0.44157869</sigma>
+    </Normal>
+    <Normal name="N9">
+      <mean>0</mean>
+      <sigma>0.18388237</sigma>
+    </Normal>
+    <Normal name="N10">
+      <mean>0</mean>
+      <sigma>3.5896497</sigma>
+    </Normal>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_10D" name="likelihood" subType="">
+      <variables>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout</variables>
+    </ExternalModel>
+    <PostProcessor name="posteriorMode" subType="BasicStatistics">
+      <expectedValue prefix="mean">x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</expectedValue>
+      <sigma prefix="sigma">x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</sigma>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>10000</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>0</burnIn>
+      </samplerInit>
+      <likelihood log="True">zout</likelihood>
+      <variable name="x1">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N1</proposal>
+      </variable>
+      <variable name="x2">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N2</proposal>
+      </variable>
+      <variable name="x3">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N3</proposal>
+      </variable>
+      <variable name="x4">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N4</proposal>
+      </variable>
+      <variable name="x5">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N5</proposal>
+      </variable>
+      <variable name="x6">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N6</proposal>
+      </variable>
+      <variable name="x7">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N7</proposal>
+      </variable>
+      <variable name="x8">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N8</proposal>
+      </variable>
+      <variable name="x9">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N9</proposal>
+      </variable>
+      <variable name="x10">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N10</proposal>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+    </Metropolis>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Output class="OutStreams" type="Print">dumpExport</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Model class="Models" type="PostProcessor">posteriorMode</Model>
+      <Output class="DataObjects" type="PointSet">posterior_basicStat</Output>
+      <Output class="OutStreams" type="Print">posterior_basicStat_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpExport">
+      <type>csv</type>
+      <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="posterior_basicStat_dump">
+      <type>csv</type>
+      <source>posterior_basicStat</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
+      <Output>zout</Output>
+    </PointSet>
+
+    <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout, AcceptRate</Output>
+    </PointSet>
+
+    <PointSet name="posterior_basicStat">
+      <Output>mean_x1, mean_x2, mean_x3, mean_x4, mean_x5, mean_x6, mean_x7, mean_x8, mean_x9, mean_x10,
+              sigma_x1, sigma_x2, sigma_x3, sigma_x4, sigma_x5, sigma_x6, sigma_x7, sigma_x8, sigma_x9, sigma_x10</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

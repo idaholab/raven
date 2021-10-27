@@ -99,7 +99,7 @@ def updatePluginXML(root, name, location):
     @ In, location, str, location of plugin on disk
     @ Out, match, xml.etree.ElementTree.Element, updated element
   """
-  match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
+  match = root.findall('./plugin/[name=\'{}\']'.format(name))[0]
   oldPath = match.find('location').text
   # nothing to do if old path and new path are the same!
   if oldPath != location:
@@ -125,8 +125,13 @@ def tellPluginAboutRaven(loc):
   if ravenLoc is None:
     ravenLoc = xmlUtils.newNode('FrameworkLocation')
     root.append(ravenLoc)
-  ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
-  xmlUtils.toFile(configFile, root)
+  ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
+  if ravenLoc.text != ravenFrameworkLoc:
+    # we write only in case the location is either different or the file
+    # is not present (so, only one processor in case of RAVENrunningRAVEN
+    # will write the file if not present
+    ravenLoc.text = ravenFrameworkLoc
+    xmlUtils.toFile(configFile, root)
   return ravenLoc.text
 
 def loadPluginTree():

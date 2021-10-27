@@ -9,7 +9,7 @@
       This tests running with mpi and a qsub.
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
     <requirements>R-IS-7</requirements>
   </TestInfo>

@@ -38,7 +38,6 @@ from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
 import utils.TreeStructure as ETS
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
@@ -130,6 +129,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
     if not self.startAdaptive:
       self.startAdaptive = True
+      if len(self.lastOutput) == 0:
+        self.startAdaptive = False
+        return
       for treer in self.TreeInfo.values():
         for _ in treer.iterProvidedFunction(self._checkIfRunning):
           self.startAdaptive = False
@@ -267,7 +269,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     endInfo = info['parentNode'].get('endInfo')
-    del self.inputInfo
+    #del self.inputInfo
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
@@ -279,11 +281,11 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
     # create a subgroup that will be appended to the parent element in the xml tree structure
-    subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
+    subGroup = ETS.HierarchicalNode(rname)
     subGroup.add('parent', info['parentNode'].get('name'))
     subGroup.add('name', rname)
-    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPbr')))
-    condPbC  = float(info['parentNode'].get('conditionalPbr'))
+    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPb')))
+    condPbC  = float(info['parentNode'].get('conditionalPb'))
 
     # Loop over  branchChangedParams (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
@@ -298,10 +300,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       subGroup.add('branchChangedParam',branchParams)
       subGroup.add('branchChangedParamValue',branchChangedParamValue)
       subGroup.add('branchChangedParamPb',branchChangedParamPb)
-    else:
-      pass
     # add conditional probability
-    subGroup.add('conditionalPbr',condPbC)
+    subGroup.add('conditionalPb',condPbC)
     # add initiator distribution info, start time, etc.
     subGroup.add('startTime', info['parentNode'].get('endTime'))
     # initialize the endTime to be equal to the start one... It will modified at the end of this branch
@@ -312,17 +312,21 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     subGroup.add('running',False)
     subGroup.add('queue',True)
     subGroup.add('completedHistory', False)
+    subGroup.add('happenedEvent', True)
+    subGroup.add('triggeredVariable',info['parentNode'].get('triggeredVariable'))
     # Append the new branch (subgroup) info to the parentNode in the tree object
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
-    self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
+    self.inputInfo.update({'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
               'branchChangedParam':subGroup.get('branchChangedParam'),
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-              'conditionalPb':subGroup.get('conditionalPbr'),
+              'conditionalPb':subGroup.get('conditionalPb'),
               'startTime':info['parentNode'].get('endTime'),
+              'happenedEvent':subGroup.get('happenedEvent'),
+              'triggeredVariable':subGroup.get('triggeredVariable'),
               'RAVEN_parentID':subGroup.get('parent'),
-              'RAVEN_isEnding':True}
+              'RAVEN_isEnding':True})
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
@@ -347,7 +351,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
+    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+    self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
     # add additional edits if needed
@@ -436,7 +441,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
-        elm = ETS.HierarchicalNode(self.messageHandler,self.name + '_' + str(len(self.TreeInfo.keys())+1))
+        elm = ETS.HierarchicalNode(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('startTime', 0.0)
         # Initialize the endTime to be equal to the start one...
@@ -469,7 +474,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           elm.add('hybridsamplerCoordinate', hybridSampled)
         self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
+        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 

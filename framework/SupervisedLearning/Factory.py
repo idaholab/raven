@@ -13,100 +13,101 @@
 # limitations under the License.
 """
   Created on May 8, 2018
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
+from EntityFactoryBase import EntityFactory
 
 ################################################################################
+from .SupervisedLearning import SupervisedLearning
 
-from SupervisedLearning.SupervisedLearning import supervisedLearning
-# Forward Samplers
-from SupervisedLearning.ARMA               import ARMA
-from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
-from SupervisedLearning.HDMRRom            import HDMRRom
-from SupervisedLearning.MSR                import MSR
-from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
-from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
-from SupervisedLearning.NDsplineRom        import NDsplineRom
-from SupervisedLearning.SciKitLearn        import SciKitLearn
-from SupervisedLearning.pickledROM         import pickledROM
-from SupervisedLearning.PolyExponential    import PolyExponential
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
-from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
-from .KerasClassifier import KerasClassifier
-from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
-from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
-from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
-from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
+## internal developed or customized ROM
+from .GaussPolynomialRom import GaussPolynomialRom
+from .HDMRRom            import HDMRRom
+from .MSR                import MSR
+from .NDinvDistWeight    import NDinvDistWeight
+from .NDspline           import NDspline
+from .SyntheticHistory   import SyntheticHistory
+from .pickledROM         import pickledROM
+from .PolyExponential    import PolyExponential
+from .DynamicModeDecomposition import DMD
+from .ARMA               import ARMA
+from .ROMCollection      import Segments, Clusters, Interpolated
 
-## [ Add new class here ]
+## Tensorflow-Keras Neural Network Models
+from .KerasMLPClassifier import KerasMLPClassifier
+from .KerasConvNetClassifier import KerasConvNetClassifier
+from .KerasLSTMClassifier import KerasLSTMClassifier
+from .KerasLSTMRegression import KerasLSTMRegression
+
+## import ScikitLearn models
+# DiscriminantAnalysis
+from .ScikitLearn.DiscriminantAnalysis import LinearDiscriminantAnalysis
+from .ScikitLearn.DiscriminantAnalysis import QuadraticDiscriminantAnalysis
+# LinearModel
+from .ScikitLearn.LinearModel.ARDRegression import ARDRegression
+from .ScikitLearn.LinearModel.BayesianRidge import BayesianRidge
+from .ScikitLearn.LinearModel.ElasticNet import ElasticNet
+from .ScikitLearn.LinearModel.ElasticNetCV import ElasticNetCV
+from .ScikitLearn.LinearModel.Lars import Lars
+from .ScikitLearn.LinearModel.LarsCV import LarsCV
+from .ScikitLearn.LinearModel.Lasso import Lasso
+from .ScikitLearn.LinearModel.LassoCV import LassoCV
+from .ScikitLearn.LinearModel.LassoLars import LassoLars
+from .ScikitLearn.LinearModel.LassoLarsCV import LassoLarsCV
+from .ScikitLearn.LinearModel.LassoLarsIC import LassoLarsIC
+from .ScikitLearn.LinearModel.LinearRegression import LinearRegression
+from .ScikitLearn.LinearModel.LogisticRegression import LogisticRegression
+from .ScikitLearn.LinearModel.MultiTaskElasticNet import MultiTaskElasticNet
+from .ScikitLearn.LinearModel.MultiTaskElasticNetCV import MultiTaskElasticNetCV
+from .ScikitLearn.LinearModel.MultiTaskLasso import MultiTaskLasso
+from .ScikitLearn.LinearModel.MultiTaskLassoCV import MultiTaskLassoCV
+from .ScikitLearn.LinearModel.OrthogonalMatchingPursuit import OrthogonalMatchingPursuit
+from .ScikitLearn.LinearModel.OrthogonalMatchingPursuitCV import OrthogonalMatchingPursuitCV
+from .ScikitLearn.LinearModel.PassiveAggressiveClassifier import PassiveAggressiveClassifier
+from .ScikitLearn.LinearModel.PassiveAggressiveRegressor import PassiveAggressiveRegressor
+from .ScikitLearn.LinearModel.Perceptron import Perceptron
+from .ScikitLearn.LinearModel.Ridge import Ridge
+from .ScikitLearn.LinearModel.RidgeCV import RidgeCV
+from .ScikitLearn.LinearModel.RidgeClassifier import RidgeClassifier
+from .ScikitLearn.LinearModel.RidgeClassifierCV import RidgeClassifierCV
+from .ScikitLearn.LinearModel.SGDClassifier import SGDClassifier
+from .ScikitLearn.LinearModel.SGDRegressor import SGDRegressor
+# NaiveBayes
+from .ScikitLearn.NaiveBayes.ComplementNBClassifier import ComplementNB
+from .ScikitLearn.NaiveBayes.CategoricalNBClassifier import CategoricalNB
+from .ScikitLearn.NaiveBayes.BernoulliNBClassifier import BernoulliNB
+from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNB
+from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNB
+# NeuralNetwork
+from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
+from .ScikitLearn.NeuralNetwork.MLPRegressor import MLPRegressor
+# GaussianProcess
+from .ScikitLearn.GaussianProcess.GaussianProcessClassifier import GaussianProcessClassifier
+from .ScikitLearn.GaussianProcess.GaussianProcessRegressor import GaussianProcessRegressor
+# MultiClass
+from .ScikitLearn.MultiClass.OneVsOneClassifier import OneVsOneClassifier
+from .ScikitLearn.MultiClass.OneVsRestClassifier import OneVsRestClassifier
+from .ScikitLearn.MultiClass.OutputCodeClassifier import OutputCodeClassifier
+# Neighbors
+from .ScikitLearn.Neighbors.KNeighborsClassifier import KNeighborsClassifier
+from .ScikitLearn.Neighbors.NearestCentroidClassifier import NearestCentroid
+from .ScikitLearn.Neighbors.RadiusNeighborsRegressor import RadiusNeighborsRegressor
+from .ScikitLearn.Neighbors.KNeighborsRegressor import KNeighborsRegressor
+from .ScikitLearn.Neighbors.RadiusNeighborsClassifier import RadiusNeighborsClassifier
+# SVM
+from .ScikitLearn.SVM.LinearSVC import LinearSVC
+from .ScikitLearn.SVM.LinearSVR import LinearSVR
+from .ScikitLearn.SVM.NuSVC import NuSVC
+from .ScikitLearn.SVM.NuSVR import NuSVR
+from .ScikitLearn.SVM.SVC import SVC
+from .ScikitLearn.SVM.SVR import SVR
+# Tree
+from .ScikitLearn.Tree.DecisionTreeClassifier import DecisionTreeClassifier
+from .ScikitLearn.Tree.DecisionTreeRegressor import DecisionTreeRegressor
+from .ScikitLearn.Tree.ExtraTreeClassifier import ExtraTreeClassifier
+from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
 ################################################################################
 
-
-"""
- Interface Dictionary (factory) (private)
-"""
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'supervisedLearning'
-__interfaceDict                           = {}
-__interfaceDict['NDspline'              ] = NDsplineRom
-__interfaceDict['NDinvDistWeight'       ] = NDinvDistWeight
-__interfaceDict['NDsplineRom'           ] = NDsplineRom
-__interfaceDict['SciKitLearn'           ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'    ] = GaussPolynomialRom
-__interfaceDict['HDMRRom'               ] = HDMRRom
-__interfaceDict['MSR'                   ] = MSR
-__interfaceDict['ARMA'                  ] = ARMA
-__interfaceDict['pickledROM'            ] = pickledROM
-__interfaceDict['PolyExponential'       ] = PolyExponential
-__interfaceDict['DMD'                   ] = DynamicModeDecomposition
-__interfaceDict['Segments'              ] = Segments
-__interfaceDict['Clusters'              ] = Clusters
-__interfaceDict['Interpolated'          ] = Interpolated
-__interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
-__interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
-__interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
-
-def knownTypes():
-  """
-    Returns a list of strings that define the types of instantiable objects for
-    this base factory.
-    @ In, None
-    @ Out, knownTypes, list, the known types
-  """
-  return __interfaceDict.keys()
-
-def returnInstance(Type,caller,**kwargs):
-  """
-    Attempts to create and return an instance of a particular type of object
-    available to this factory.
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the instance
-                  (used for error/debug messaging).
-    @ In, kwargs, dict, a dicitonary specifying hte keywords and values needed to create the instance
-    @ Out, returnInstance, instance, subclass object constructed with no arguments
-  """
-  try:
-    return __interfaceDict[Type](caller.messageHandler,**kwargs)
-  except KeyError as e:
-    if Type not in __interfaceDict:
-      caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
-    else:
-      raise e
-
-def returnClass(Type,caller):
-  """
-    Attempts to return a particular class type available to this factory.
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the class
-                  (used for error/debug messaging).
-    @ Out, returnClass, class, reference to the subclass
-  """
-  try:
-    return __interfaceDict[Type]
-  except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+factory = EntityFactory('SupervisedLearning')
+factory.registerAllSubtypes(SupervisedLearning)

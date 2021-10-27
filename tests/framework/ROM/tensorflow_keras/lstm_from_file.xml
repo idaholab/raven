@@ -1,0 +1,123 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/Samplers/ROM/tensorflow_keras.LSTMFromFile</name>
+    <author>talbpaul</author>
+    <created>2021-09-16</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      Tests loading samples from an on-file DataSet and training LSTM with results.
+      Uses sequential training, where three consecutive integers should yield the next
+      consecutive integer, e.g. $f([4, 5, 6]) = 7$.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>loadTraining, train, loadTesting, sample, print</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="training">training.csv</Input>
+    <Input name="testing">testing.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">lstm</Model>
+      <Sampler class="Samplers" type="CustomSampler">testing</Sampler>
+      <Output class="DataObjects" type="DataSet">rom_samples</Output>
+    </MultiRun>
+    <IOStep name="loadTraining">
+      <Input class="Files" type="">training</Input>
+      <Output class="DataObjects" type="DataSet">training</Output>
+    </IOStep>
+    <IOStep name="loadTesting">
+      <Input class="Files" type="">testing</Input>
+      <Output class="DataObjects" type="DataSet">testing</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">rom_samples</Input>
+      <Output class="OutStreams" type="Print">rom_samples</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="DataSet">training</Input>
+      <Output class="Models" type="ROM">lstm</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Models>
+    <ROM name="lstm" subType="KerasLSTMClassifier">
+      <!-- Common setups -->
+      <Features>presequence</Features>
+      <Target>nextval</Target>
+      <pivotParameter>t</pivotParameter>
+      <loss>categorical_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>20</epochs>
+      <plot_model>False</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>23</num_classes>
+      <random_seed>42</random_seed>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <!-- Setups for LSTM -->
+      <LSTM name="lstm1">
+        <activation>tanh</activation>
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <activation>tanh</activation>
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense">
+        <activation>softmax</activation>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <CustomSampler name="testing">
+      <Source class="DataObjects" type="DataSet">testing</Source>
+      <variable name="presequence"/>
+      <variable name="t"/>
+    </CustomSampler>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <DataSet name="training">
+      <Input>presequence</Input>
+      <Output>nextval</Output>
+      <Index var='t'>presequence</Index>
+    </DataSet>
+    <DataSet name="testing">
+      <Input>presequence</Input>
+      <Index var='t'>presequence</Index>
+    </DataSet>
+    <DataSet name="rom_samples">
+      <Input>presequence</Input>
+      <Output>nextval</Output>
+      <Index var='t'>presequence</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="rom_samples">
+      <type>csv</type>
+      <source>rom_samples</source>
+    </Print>
+  </OutStreams>
+</Simulation>

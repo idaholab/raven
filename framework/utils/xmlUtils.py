@@ -97,8 +97,6 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
     prettifyNode(tree, tabs=startingTabs, ravenNewlines=addRavenNewlines)
     return toString(ET.tostring(tree))
 
-  return toWrite
-
 def newNode(tag, text='', attrib=None):
   """
     Creates a new node with the desired tag, text, and attributes more simply than can be done natively.
@@ -337,6 +335,24 @@ def readExternalXML(extFile, extNode, cwd):
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode, extFile))
   return root
 
+def replaceVariableGroups(node, variableGroups):
+  """
+    Replaces variables groups with variable entries in text of nodes
+    @ In, node, xml.etree.ElementTree.Element, the node to search for replacement
+    @ In, variableGroups, dict, variable group mapping
+    @ Out, None
+  """
+  if node.text is not None and node.text.strip() != '':
+    textEntries = list(t.strip() for t in node.text.split(','))
+    for t,text in enumerate(textEntries):
+      if text in variableGroups.keys():
+        textEntries[t] = variableGroups[text].getVarsString()
+        print('xmlUtils: Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+    #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
+    node.text = str(','.join(textEntries))
+  for child in node:
+    replaceVariableGroups(child, variableGroups)
+
 def findAllRecursive(node, element):
   """
     A function for recursively traversing a node in an elementTree to find
@@ -500,6 +516,17 @@ class StaticXmlElement(object):
       targ = newNode(target)
       root.append(targ)
     return targ
+
+def staticFromString(s):
+  """
+    Parse string as XML.
+    @ In, s, str, XML in string format
+    @ Out, new, StaticXmlElement, xml
+  """
+  new = StaticXmlElement('temp')
+  new._root = ET.fromstring(s)
+  new._tree = ET.ElementTree(element=new._root)
+  return new
 
 #
 # Dynamic version

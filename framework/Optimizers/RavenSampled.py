@@ -25,13 +25,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 from collections import deque
 import numpy as np
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal
+# Internal
 #Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes
 from .Optimizer import Optimizer
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class RavenSampled(Optimizer):
   """
@@ -94,6 +96,7 @@ class RavenSampled(Optimizer):
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
                'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
+               'rejectReason':'discription of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
     return ok
@@ -105,21 +108,23 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    ## Instance Variable Initialization
+    # # Instance Variable Initialization
     # public
-    self.limit = None               # max samples
-    self.type = 'Sampled Optimizer' # type
+    self.limit = None  # max samples
+    self.type = 'Sampled Optimizer'  # type
+    self.batch = 1  # batch size: 1 means no batching (default)
+    self.batchId = 0  # Id of each batch of evaluations
     # _protected
-    self._writeSteps = 'final'      # when steps should be written
-    self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
-    self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
-    self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
-    self._maxHistLen = 2            # FIXME who should set this?
+    self._writeSteps = 'final'  # when steps should be written
+    self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
+    self._stepTracker = {}  # action tracking: what is collected, what needs collecting?
+    self._optPointHistory = {}  # by traj, is a deque (-1 is most recent)
+    self._maxHistLen = 2  # FIXME who should set this?
     # __private
-    self.__stepCounter = {}         # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
+    self.__stepCounter = {}  # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     # additional methods
-    ## register adaptive sample identification criteria
-    self.registerIdentifier('step') # the step within the action
+    # # register adaptive sample identification criteria
+    self.registerIdentifier('step')  # the step within the action
 
   def handleInput(self, paramInput):
     """
@@ -151,6 +156,8 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self.batch = 1
+    self.batchId = 0
 
   ###############
   # Run Methods #
@@ -187,7 +194,7 @@ class RavenSampled(Optimizer):
       @ In, traj, int, the trajectory of interest
       @ Out, None
     """
-    self._stepTracker[traj] = {'opt': None} # add entries in inheritors as needed
+    self._stepTracker[traj] = {'opt': None}  # add entries in inheritors as needed
 
   def amIreadyToProvideAnInput(self):
     """
@@ -200,7 +207,7 @@ class RavenSampled(Optimizer):
     # if any trajectories are still active, we're ready to provide an input
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
-    ready = ready and len(self._submissionQueue)
+    ready = ready and len(self._submissionQueue) != 0
     return ready
 
   def localGenerateInput(self, model, inp):
@@ -212,25 +219,48 @@ class RavenSampled(Optimizer):
       @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    # get point from stack
-    point, info = self._submissionQueue.popleft()
-    point = self.denormalizeData(point)
-    # assign a tracking prefix
-    prefix = self.inputInfo['prefix']
-    # register the point tracking information
-    self._registerSample(prefix, info)
-    # build the point in the way the Sampler expects
-    for var in self.toBeSampled: #, val in point.items():
-      val = point[var]
-      self.values[var] = val # TODO should be np.atleast_1d?
-      ptProb = self.distDict[var].pdf(val)
-      # sampler-required meta information # TODO should we not require this?
-      self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
-      self.inputInfo['SampledVarsPb'][var] = ptProb
-    self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
-    self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
-    self.inputInfo['SamplerType'] = self.type
+    if self.batch > 1:
+      self.inputInfo['batchMode'] = True
+      batchData = []
+      self.batchId += 1
+    else:
+      self.inputInfo['batchMode'] = False
+    for idx in range(self.batch):
+      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
+      if self.counter == self.limit + 1:
+        break
+      # get point from stack
+      point, info = self._submissionQueue.popleft()
+      point = self.denormalizeData(point)
+      # assign a tracking prefix
+      # prefix = inputInfo['prefix']
+      prefix = self.inputInfo['prefix']
+      inputInfo['prefix'] = prefix
+      # register the point tracking information
+      self._registerSample(prefix, info)
+      # build the point in the way the Sampler expects
+      for var in self.toBeSampled:  # , val in point.items():
+        val = point[var] if isinstance(point[var], float) else np.atleast_1d(point[var].data)[0]
+        self.values[var] = val  # TODO should be np.atleast_1d?
+        ptProb = self.distDict[var].pdf(val)
+        # sampler-required meta information # TODO should we not require this?
+        inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+        inputInfo['SampledVarsPb'][var] = ptProb
+      inputInfo['ProbabilityWeight'] = 1  # TODO assume all weight 1? Not well-distributed samples
+      inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
+      inputInfo['SamplerType'] = self.type
+      if self.inputInfo['batchMode']:
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        batchData.append(copy.deepcopy(inputInfo))
+      else:
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        self.inputInfo.update(inputInfo)
+    if self.batch > 1:
+      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
+  # @profile
   def localFinalizeActualSampling(self, job, model, inp):
     """
       Runs after each sample is collected from the JobHandler.
@@ -250,15 +280,25 @@ class RavenSampled(Optimizer):
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
+    if self.batch == 1:
+      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
+    else:
+      # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
+      _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True, first=False)
+    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
+    if self._targetEvaluation.isEmpty:
+      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
     _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    if full is None:
+      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
-    ## testing suggests no big deal on smaller problem
-    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar] + list(self.dependentSample.keys())))
+    # # testing suggests no big deal on smaller problem
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
       rlz[self._objectiveVar] *= -1
+    # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
 
@@ -274,7 +314,7 @@ class RavenSampled(Optimizer):
     bestPoint = None
     s = -1 if self._minMax == 'max' else 1
     # check converged trajectories
-    self.raiseAMessage('*'*80)
+    self.raiseAMessage('*' * 80)
     self.raiseAMessage('Optimizer Final Results:')
     self.raiseADebug('')
     self.raiseADebug(' - Trajectory Results:')
@@ -294,13 +334,18 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
     # further check active unfinished trajectories
-    for traj in self._activeTraj:
-      opt = self._optPointHistory[traj][-1][0]
-      val = opt[self._objectiveVar]
-      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
-      if bestValue is None or val < bestValue:
-        bestValue = val
-        bestTraj = traj
+    ## FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+    # sanity check: if there's no history (we never got any answers) then report than rather than crash
+    if len(self._optPointHistory[traj]) == 0:
+      self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
+                        'Perhaps the Model failed?')
+    opt = self._optPointHistory[traj][-1][0]
+    val = opt[self._objectiveVar]
+    self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+    if bestValue is None or val < bestValue:
+      bestValue = val
+      bestTraj = traj
     bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
     bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
     self.raiseADebug('')
@@ -311,9 +356,9 @@ class RavenSampled(Optimizer):
     self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
     for var, val in bestPoint.items():
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
-    self.raiseAMessage('*'*80)
+    self.raiseAMessage('*' * 80)
     # write final best solution to soln export
-    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final')
+    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
   ###################
   # Utility Methods #
@@ -401,6 +446,23 @@ class RavenSampled(Optimizer):
         modded = True
     return point, modded
 
+  def _checkBoundaryConstraints(self, point):
+    """
+      Checks (NOT fixes) boundary constraints of variables in "point" -> DENORMED point expected!
+      @ In, point, dict, potential point against which to check
+      @ Out, okay, bool, True if no constraints violated
+    """
+    okay = True
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      val = point[var]
+      lower = dist.lowerBound
+      upper = dist.upperBound
+      if val < lower or val > upper:
+        okay = False
+        break
+    return okay
+
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):
     """
@@ -410,6 +472,37 @@ class RavenSampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+
+  def _handleImplicitConstraints(self, previous):
+    """
+      Considers all implicit constraints
+      @ In, previous, dict, NORMALIZED previous opt point
+      @ Out, accept, bool, whether point was satisfied implicit constraints
+    """
+    normed = copy.deepcopy(previous)
+    oldVal = normed[self._objectiveVar]
+    normed.pop(self._objectiveVar, oldVal)
+    denormed = self.denormalizeData(normed)
+    denormed[self._objectiveVar] = oldVal
+    accept = self._checkImpFunctionalConstraints(denormed)
+    return accept
+
+  def _checkImpFunctionalConstraints(self, previous):
+    """
+      Checks that provided point does not violate implicit functional constraints
+      @ In, previous, dict, previous opt point (denormalized)
+      @ Out, allOkay, bool, False if violations found else True
+    """
+    allOkay = True
+    inputs = dict(previous)
+    for impConstraint in self._impConstraintFunctions:
+      okay = impConstraint.evaluate('implicitConstraint', inputs)
+      if not okay:
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstraint.name))
+        self.raiseADebug(' ... point:', previous)
+      allOkay *= okay
+    return bool(allOkay)
+
   # END constraint handling
   # * * * * * * * * * * * *
 
@@ -420,15 +513,15 @@ class RavenSampled(Optimizer):
       Consider and store a new optimal point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, rlz, xr.DataSet, batched realizations
+      @ In, optVal, list of floats, values of objective variable
     """
-    self.raiseADebug('*'*80)
+    self.raiseADebug('*' * 80)
     self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
@@ -437,8 +530,8 @@ class RavenSampled(Optimizer):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      self._updateSolutionExport(traj, rlz, acceptable)
-    self.raiseADebug('*'*80)
+      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
+    self.raiseADebug('*' * 80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -447,8 +540,8 @@ class RavenSampled(Optimizer):
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
-    else: # e.g. rerun
-      pass # nothing to do, just keep moving
+    else:  # e.g. rerun
+      pass  # nothing to do, just keep moving
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
@@ -460,6 +553,7 @@ class RavenSampled(Optimizer):
       @ In, optVal, float, new optimization value
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
 
   @abc.abstractmethod
@@ -490,12 +584,13 @@ class RavenSampled(Optimizer):
       @ In, old, dict, previous optimal point (to resubmit)
     """
 
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _updateSolutionExport(self, traj, rlz, acceptable, rejectReason):
     """
       Stores information to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
     # make a holder for the realization that will go to the solutionExport
@@ -504,6 +599,7 @@ class RavenSampled(Optimizer):
     toExport.update({'iteration': self.getIteration(traj),
                      'trajID': traj,
                      'accepted': acceptable,
+                     'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
     objValue = rlz[self._objectiveVar]
@@ -516,6 +612,10 @@ class RavenSampled(Optimizer):
     toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
     # additional from from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+    # check for anything else that solution export wants that rlz might provide
+    for var in self._solutionExport.getVars():
+      if var not in toExport and var in rlz:
+        toExport[var] = rlz[var]
     # formatting
     toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
     self._solutionExport.addRealization(toExport)
@@ -555,7 +655,7 @@ class RavenSampled(Optimizer):
       try:
         self._submissionQueue.remove(x)
       except ValueError:
-        pass # it must have been submitted since we flagged it for removal
+        pass  # it must have been submitted since we flagged it for removal
     # get prefixes of already-submitted jobs; get all matches, and pop them so we don't track them anymore
     prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
     self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(traj, 'all' if step is None else step), prefixes)
@@ -569,7 +669,7 @@ class RavenSampled(Optimizer):
     """
     traj = Optimizer.initializeTrajectory(self, traj=traj)
     self._optPointHistory[traj] = deque(maxlen=self._maxHistLen)
-    self.__stepCounter[traj] = -1 # allows 0-based counting
+    self.__stepCounter[traj] = -1  # allows 0-based counting
     self._initializeStep(traj)
     return traj
 
@@ -585,3 +685,6 @@ class RavenSampled(Optimizer):
     Optimizer._closeTrajectory(self, traj, action, reason, value)
     # kill jobs associated with trajectory
     self._cancelAssociatedJobs(traj)
+
+
+

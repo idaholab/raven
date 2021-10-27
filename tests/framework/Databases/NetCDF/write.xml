@@ -1,0 +1,112 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/NetCDF.Write</name>
+    <author>talbpaul</author>
+    <created>2021-03-02</created>
+    <classesTested>Databases.NetCDF</classesTested>
+    <description>
+      Tests using NetCDF as a writable database format.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Write</WorkingDir>
+    <Sequence>sample,write</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">nd_model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">0d_data</Output>
+      <Output class="DataObjects" type="HistorySet">1d_data</Output>
+      <Output class="DataObjects" type="DataSet">nd_data</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="PointSet">0d_data</Input>
+      <Input class="DataObjects" type="HistorySet">1d_data</Input>
+      <Input class="DataObjects" type="DataSet">nd_data</Input>
+      <Output class="Databases" type="NetCDF">0d</Output>
+      <Output class="Databases" type="NetCDF">1d</Output>
+      <Output class="Databases" type="NetCDF">nd</Output>
+      <Output class="OutStreams" type="Print">0d</Output>
+      <Output class="OutStreams" type="Print">1d</Output>
+      <Output class="OutStreams" type="Print">nd</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="0d_data">
+      <Input>a</Input>
+      <Output>d</Output>
+    </PointSet>
+    <HistorySet name="1d_data">
+      <Input>b</Input>
+      <Output>e</Output>
+      <options>
+        <pivotParameter>x</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name='nd_data'>
+      <Input>c</Input>
+      <Output>f</Output>
+      <Index var="x">f</Index>
+      <Index var="y">f</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Databases>
+    <NetCDF name="0d" readMode="overwrite"/>
+    <NetCDF name="1d" readMode="overwrite"/>
+    <NetCDF name="nd" readMode="overwrite"/>
+  </Databases>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/nd_data" name="nd_model" subType="">
+      <variables>a,b,c,x,y,d,e,f</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="a">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>zeroToOne</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="0d">
+      <type>csv</type>
+      <source>0d_data</source>
+    </Print>
+    <Print name="1d">
+      <type>csv</type>
+      <source>1d_data</source>
+    </Print>
+    <Print name="nd">
+      <type>csv</type>
+      <source>nd_data</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

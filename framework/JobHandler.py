@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,48 +14,37 @@
 # limitations under the License.
 """
 Created on Mar 5, 2013
-
 @author: alfoa, cogljj, crisr
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
-#External Modules---------------------------------------------------------------
 import time
 import collections
-import subprocess
 import os
 import copy
 import sys
-import abc
 import threading
 from random import randint
 import socket
 import time
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
 from utils import importerUtils as im
 from utils import utils
 from BaseClasses import BaseType
-import MessageHandler
 import Runners
 import Models
 # for internal parallel
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
- import ray
+  import ray
 else:
- import pp
+  import pp
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
 
-class JobHandler(MessageHandler.MessageUser):
+class JobHandler(BaseType):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
     framework
@@ -65,17 +55,18 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    super().__init__()
     ## Print tag of this object
-    self.printTag         = 'Job Handler'
+    self.printTag = 'Job Handler'
     ## Container of the running info (RunInfo block in the input file)
-    self.runInfoDict      = {}
+    self.runInfoDict = {}
     ## Is Ray Initialized?
     self.isRayInitialized = False
     ## Variable containing the info about the RAY parallel server. If None, multi-threading is used
     self.rayServer = None
 
     ## Sleep time for collecting/inquiring/submitting new jobs
-    self.sleepTime  = 1e-4 #0.005
+    self.sleepTime = 1e-4 #0.005
 
     ## Is the execution completed? When True, the JobHandler is shut down
     self.completed = False
@@ -118,25 +109,32 @@ class JobHandler(MessageHandler.MessageUser):
     ## List of submitted job identifiers, includes jobs that have completed as
     ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
-    ## Dict of failed jobs of the form { identifer: metadata }
+    ## Dict of failed jobs of the form { identifier: metadata }
     self.__failedJobs = {}
+    ## Dict containing info about batching
+    self.__batching = collections.defaultdict()
 
-  def initialize(self, runInfoDict, messageHandler):
+  def applyRunInfo(self, runInfo):
     """
-      Method to initialize the JobHandler
-      @ In, runInfoDict, dict, dictionary of run info settings
-      @ In, messageHandler, MessageHandler object, instance of the global RAVEN
-        message handler
+      Allows access to the RunInfo data
+      @ In, runInfo, dict, info from RunInfo
       @ Out, None
     """
-    self.runInfoDict = runInfoDict
-    self.messageHandler = messageHandler
+    self.runInfoDict = runInfo
+
+
+  def initialize(self):
+    """
+      Method to initialize the JobHandler
+      @ In, None
+      @ Out, None
+    """
     # set the maximum queue size (number of jobs to queue past the running number)
-    self.maxQueueSize = runInfoDict['maxQueueSize']
+    self.maxQueueSize = self.runInfoDict['maxQueueSize']
     # defaults to None; if None, then use batchSize instead
     if self.maxQueueSize is None:
-      self.maxQueueSize = runInfoDict['batchSize']
-    # if requsted max size less than 1, we can't do that, so take 1 instead
+      self.maxQueueSize = self.runInfoDict['batchSize']
+    # if requested max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
@@ -174,31 +172,62 @@ class JobHandler(MessageHandler.MessageUser):
   def __initializeRay(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initilizes the RAY implementation (with socketing system) in
+      It initializes the RAY implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
       @ Out, None
     """
-    ## set up enviroment
-    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-    ## Check if the list of unique nodes is present and, in case, initialize the
-    servers = None
     if self.runInfoDict['internalParallel']:
+      ## dashboard?
+      db=self.runInfoDict['includeDashboard']
+      ## Check if the list of unique nodes is present and, in case, initialize the
+      servers = None
+      sys.path.append(self.runInfoDict['WorkingDir'])
+      if 'UPDATE_PYTHONPATH' in self.runInfoDict:
+        sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
+
+      self.rayInstanciatedOutside = False
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
+        uniqueN = list(set(availableNodes))
         ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
-        self.raiseADebug("Local host name is  : ", localHostName)
+        self.raiseADebug("Head host name is   : ", localHostName)
+        # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if not nProcsHead:
+          self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
+          self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        ## initialize ray server with nProcs
-        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
-        ## Get localHost and servers
-        servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
+        # is ray instanciated outside?
+        self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+        if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
+          # create head node cluster
+          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
+          # add names in runInfo
+          self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
+          if _rayAvail:
+            self.raiseADebug("Head host IP      :", address)
+            self.raiseADebug("Head redis pass   :", redisPassword)
+          ## Get servers and run ray remote listener
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          if self.rayInstanciatedOutside:
+            # update the python path and working dir
+            # update head node paths
+            olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+            os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
+          # add names in runInfo
+          self.runInfoDict['remoteNodes'] = servers
+          ## initialize ray server with nProcs
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False,include_dashboard=db) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
+        else:
+          self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
+          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
-                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
+                           pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
@@ -208,11 +237,10 @@ class JobHandler(MessageHandler.MessageUser):
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
-
     else:
       ## We are just using threading
       self.rayServer = None
-
+    # ray is initialized
     self.isRayInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
@@ -225,8 +253,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
-
+      self.raiseADebug('Host "'+nodeId.strip()+'" identified with IP: ', hostNameMapping[nodeId.strip()])
     return hostNameMapping
 
   def __getLocalHost(self):
@@ -237,10 +264,120 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return str(socket.getfqdn()).strip()
 
-  def __runRemoteListeningSockets(self,address):
+  def __shutdownParallel(self):
+    """
+      shutdown the parallel protocol
+      @ In, None
+      @ Out, None
+    """
+    if _rayAvail and self.rayServer is not None and not self.rayInstanciatedOutside:
+      # we need to ssh and stop each remote node cluster (ray)
+      servers = []
+      if 'remoteNodes' in self.runInfoDict:
+        servers += self.runInfoDict['remoteNodes']
+      if 'headNode' in self.runInfoDict:
+        servers += [self.runInfoDict['headNode']]
+      # get local enviroment
+      localEnv = os.environ.copy()
+      localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      for nodeAddress in servers:
+        self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
+        command="ray stop"
+        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
+        rayTerminate.wait()
+        if rayTerminate.returncode != 0:
+          self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
+      # shutdown ray API (object storage, plasma, etc.)
+      ray.shutdown()
+
+  def __runHeadNode(self, nProcs):
+    """
+      Method to activate the head ray server
+      @ In, nProcs, int, the number of processors
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    # get local enviroment
+    localEnv = os.environ.copy()
+    localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
+    if _rayAvail:
+      command = ["ray","start","--head"]
+      if nProcs is not None:
+        command.append("--num-cpus="+str(nProcs))
+      outFile = open("ray_head.ip", 'w')
+      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
+      rayStart.wait()
+      outFile.close()
+      if rayStart.returncode != 0:
+        self.raiseAnError(RuntimeError, "RAY failed to start on the --head node! Return code is {}".format(rayStart.returncode))
+      else:
+        address, redisPassword = self.__getRayInfoFromStart("ray_head.ip")
+    return address, redisPassword
+
+  def __getRayInfoFromStart(self, rayLog):
+    """
+      Read Ray info from shell return script
+      @ In, rayLog, str, the ray output log
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    with open(rayLog, 'r') as rayLogObj:
+      for line in rayLogObj.readlines():
+        if "ray start" in line.strip():
+          ix = line.strip().find("ray start")
+          address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
+          redisPassword = redisPassword.split("=")[-1].replace("'","")
+          address_arg, address = address.replace("'","").split("=")
+          if address_arg.strip() != "--address":
+            self.raiseAWarning("Unexpected ray start:" + line)
+          break
+    return address, redisPassword
+
+  def __updateListeningSockets(self, localHostName):
+    """
+      Update the path in the remote nodes
+      @ In, localHostName, string, the head node name
+      @ Out, None
+    """
+    ## Get the local machine name and the remote nodes one
+    remoteNodesIP = self.__getLocalAndRemoteMachineNames()
+    ## Strip out the nodes' names
+    availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
+    ## Get unique nodes
+    uniqueNodes  = list(set(list(set(availableNodes))) - set([localHostName]))
+    servers      = []
+    self.remoteServers = {}
+    if len(uniqueNodes) > 0:
+      ## There are remote nodes that need to be activated
+      ## Modify the python path used by the local environment
+      localEnv = os.environ.copy()
+      pathSeparator = os.pathsep
+      if "PYTHONPATH" in localEnv and len(localEnv["PYTHONPATH"].strip()) > 0:
+        previousPath = localEnv["PYTHONPATH"].strip()+pathSeparator
+      else:
+        previousPath = ""
+      localEnv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
+      ## Start
+      for nodeId in uniqueNodes:
+        remoteHostName =  remoteNodesIP[nodeId]
+        ## Activate the remote socketing system
+        ## let's build the command and then call the os-agnostic version
+        if _rayAvail:
+          self.raiseADebug("Updating RAY server in node:", nodeId.strip())
+          runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","update_path_in_remote_servers.sh")
+          command=" ".join([runScript,"--remote-node-address",nodeId," --working-dir ",self.runInfoDict['WorkingDir']])
+          self.raiseADebug("command is:", command)
+          command += " --python-path "+localEnv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
+
+  def __runRemoteListeningSockets(self,address, localHostName, redisPassword):
     """
       Method to activate the remote sockets for parallel python
       @ In, address, string, the head node redis address
+      @ In, localHostName, string, the local host name
+      @ In, redisPassword, string, the head node redis password
       @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
@@ -250,21 +387,21 @@ class JobHandler(MessageHandler.MessageUser):
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes  = list(set(availableNodes))
+    uniqueNodes  = list(set(availableNodes) - set([localHostName]))
     servers      = []
-
-    if len(uniqueNodes) > 1:
+    self.remoteServers = {}
+    if len(uniqueNodes) > 0:
       ## There are remote nodes that need to be activated
       ## Modify the python path used by the local environment
-      localenv = os.environ.copy()
+      localEnv = os.environ.copy()
       pathSeparator = os.pathsep
-      localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
+      if "PYTHONPATH" in localEnv and len(localEnv["PYTHONPATH"].strip()) > 0:
+        previousPath = localEnv["PYTHONPATH"].strip()+pathSeparator
+      else:
+        previousPath = ""
+      localEnv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
       ## Start
       for nodeId in uniqueNodes:
-        ## Build the filename
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
-        outFile = open(outFileName, 'w')
-
         ## Check how many processors are available in the node
         ntasks = availableNodes.count(nodeId)
         remoteHostName =  remoteNodesIP[nodeId]
@@ -272,12 +409,16 @@ class JobHandler(MessageHandler.MessageUser):
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
         if _rayAvail:
-          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+          self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
+          runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
+          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
+          self.raiseADebug("command is: "+command)
+          command += " --python-path "+localEnv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
-
-        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localEnv["PYTHONPATH"],"-d"])
+          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         ## update list of servers
         servers.append(nodeId)
 
@@ -297,7 +438,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -314,28 +455,49 @@ class JobHandler(MessageHandler.MessageUser):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, groupInfo, dict, optional, {id:string, size:int}.
+        - "id": it is a special keyword attached to
+          this runner to identify that this runner belongs to a special set of runs that need to be
+          grouped together (all will be retrievable only when all the runs ended).
+        - "size", number of runs in this group self.__batching
+        NOTE: If the "size" of the group is only set the first time a job of this group is added.
+              Consequentially the size is immutable
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
       @ Out, None
     """
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
-                                                          " decorated with RAVEN Parallel decorator"
+           " decorated with RAVEN Parallel decorator"
     if self.rayServer is None or forceUseThreads:
-      internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun.original_function,
-                                               identifier, metadata,
-                                               uniqueHandler,
-                                               profile=self.__profileJobs)
+      internalJob = Runners.factory.returnInstance('SharedMemoryRunner', args,
+                                                   functionToRun.original_function,
+                                                   identifier=identifier,
+                                                   metadata=metadata,
+                                                   uniqueHandler=uniqueHandler,
+                                                   profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
-      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
-                                                    identifier, metadata,
-                                                    uniqueHandler,
-                                                    profile=self.__profileJobs)
-
+      internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
+                                                   functionToRun.remote if _rayAvail else functionToRun.original_function,
+                                                   identifier=identifier,
+                                                   metadata=metadata,
+                                                   uniqueHandler=uniqueHandler,
+                                                   profile=self.__profileJobs)
     # set the client info
     internalJob.clientRunner = clientQueue
+    #  set the groupping id if present
+    if groupInfo is not None:
+      groupId =  groupInfo['id']
+      # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
+      internalJob.groupId = groupId
+      if groupId not in self.__batching:
+        # NOTE: The size of the group is only set once the first job beloning to a group is added
+        #       ***** THE size of a group is IMMUTABLE *****
+        self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
+      self.__batching[groupId]["counter"] += 1
+      if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
+        self.raiseAnError(RuntimeError, "group id {} is full. Size reached:".format(groupId))
+      self.__batching[groupId]["ids"].append(identifier)
     # add the runner in the Queue
     self.reAddJob(internalJob)
 
@@ -377,15 +539,46 @@ class JobHandler(MessageHandler.MessageUser):
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 
+  def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
+    """
+      Takes an already-finished job (for example, a restart realization) and adds it to the finished queue.
+      @ In, data, dict, completed realization
+      @ In, data, dict, fully-evaluated realization
+      @ In, metadata, dict, optional, dictionary of metadata associated with
+        this run
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        this runner. For example, if present, to retrieve this runner using the
+        method jobHandler.getFinished, the uniqueHandler needs to be provided.
+        If uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then at de-construction timing statements will be printed
+      @ Out, None
+    """
+    # create a placeholder runner
+    run = Runners.factory.returnInstance('PassthroughRunner', data, None,
+                                         metadata=metadata,
+                                         uniqueHandler=uniqueHandler,
+                                         profile=profile)
+    # place it on the finished queue
+    with self.__queueLock:
+      self.__finished.append(run)
+
   def isFinished(self):
     """
       Method to check if all the runs in the queue are finished
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
+
+    '''
+    FIXME: The following two lines of codes have been a temporary fix for timing issues
+           on the collections of jobs in the jobHandler. This issue has emerged when
+           performing batching. It is needed to review the relations between jobHandler
+           and the Step when retrieving multiple jobs.
+           An issue has been opened: 'JobHandler and Batching #1402'
+    '''
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
-      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      if len(self.__queue)>0 or len(self.__clientQueue)>0:
         return False
 
       ## Otherwise, let's look at our running lists and see if there is a job
@@ -396,7 +589,8 @@ class JobHandler(MessageHandler.MessageUser):
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
-    if len(self.getFinishedNoPop()) > 0:
+    numFinished = len(self.getFinishedNoPop())
+    if numFinished != 0:
       return False
 
     return True
@@ -512,39 +706,63 @@ class JobHandler(MessageHandler.MessageUser):
         each runner. If provided, just the jobs that have the uniqueIdentifier
         will be retrieved. By default uniqueHandler = 'any' => all the jobs for
         which no uniqueIdentifier has been set up are going to be retrieved
-      @ Out, finished, list, list of finished jobs (InternalRunner or
+      @ Out, finished, list, list of list containing finished jobs (InternalRunner or
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
+        NOTE:
+        - in case the runs belong to a groupID (batching), each element of the list
+         contains a list of the finished runs belonging to that group (Batch)
+        - otherwise a flat list of jobs are returned.
+        For example:
+        finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
+                   or [job1, job2, job3, job4]
     """
-    finished = []
-
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
     if jobIdentifier is None:
       jobIdentifier = ''
 
     with self.__queueLock:
+      finished = []
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
-        or uniqueHandler != run.uniqueHandler:
+           or uniqueHandler != run.uniqueHandler:
           continue
+        ## check if the run belongs to a subgroup and in case
+        if run.groupId in self.__batching:
+          if not run in self.__batching[run.groupId]['finished']:
+            self.__batching[run.groupId]['finished'].append(run)
+        else:
+          finished.append(run)
 
-        finished.append(run)
         if removeFinished:
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
+          ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
+      ## check if batches are ready to be returned
+      for groupId in list(self.__batching.keys()):
+        if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+          self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
+        if removeFinished:
+          if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+            doneBatch = self.__batching.pop(groupId)
+            finished.append(doneBatch['finished'])
+        else:
+          doneBatch = self.__batching[groupId]
+          finished.append(doneBatch['finished'])
 
-      ##Since these indices are sorted, reverse them to ensure that when we
-      ## delete something it will not shift anything to the left (lower index)
-      ## than it.
-      for i in reversed(runsToBeRemoved):
-        self.__finished[i].trackTime('collected')
-        del self.__finished[i]
-    ## end with self.__queueLock
+        ##Since these indices are sorted, reverse them to ensure that when we
+        ## delete something it will not shift anything to the left (lower index)
+        ## than it.
+      if removeFinished:
+        for i in reversed(runsToBeRemoved):
+          self.__finished[i].trackTime('collected')
+          del self.__finished[i]
 
+      ## end with self.__queueLock
     return finished
 
   def getFinishedNoPop(self):
@@ -620,12 +838,19 @@ class JobHandler(MessageHandler.MessageUser):
             ## want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
+              if self.rayServer is not None and 'headNode' in self.runInfoDict:
+                kwargs['headNode'] = self.runInfoDict['headNode']
+                kwargs['redisPassword'] = self.runInfoDict['redisPassword']
+              if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
+                kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
               kwargs['INDEX'] = str(i)
               kwargs['INDEX1'] = str(i+i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+
+
               ## This will not be used since the Code will create a new
               ## directory for its specific files and will spawn a process there
               ## so we will let the Code fill that in. Note, the line below
@@ -705,9 +930,7 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
-    if _rayAvail:
-     ray.shutdown()
-
+    self.__shutdownParallel()
 
   def terminateAll(self):
     """
@@ -750,4 +973,3 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
     if len(ids):
       self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
-
