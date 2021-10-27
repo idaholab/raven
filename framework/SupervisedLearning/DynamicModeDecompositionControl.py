@@ -30,11 +30,11 @@ import matplotlib.pyplot as plt
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
-from SupervisedLearning import supervisedLearning
+from utils import InputData, InputTypes
 from .DynamicModeDecomposition import DMD
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DMDc(DMD):
+class DMDC(DMD):
   """
     This surrogate is aimed to construct a "time-dep" surrogate based on
     Dynamic Mode Decomposition with control.
@@ -135,7 +135,7 @@ class DMDc(DMD):
     """
     super().__init__()
     self.printTag = 'DMDC'
-    self._dynamicFeatures = True
+    self.dynamicFeatures = True
     # variables filled up in the training stages
     self.__Btilde = {} # B matrix
     self.__Ctilde = {} # C matrix
@@ -273,7 +273,7 @@ class DMDc(DMD):
       @ Out, None
     """
     # add description
-    supervisedLearning.writeXMLPreamble(self, writeTo, targets)
+    super().writeXMLPreamble
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     description  = ' This XML file contains the main information of the DMDC ROM.'

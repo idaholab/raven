@@ -31,7 +31,7 @@ from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DMD
-from .DynamicModeDecomposition import DMD
+from .DynamicModeDecompositionControl import DMDC
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated
 
