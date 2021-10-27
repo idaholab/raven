@@ -137,7 +137,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.pivotValue = None # time-dependent statistics pivot parameter values
     self.dynamic        = False # is it time-dependent?
-    self.sampleTag      = 'RAVEN_sample_ID'  # Tag used to track samples
+    self.sampleTag      = None #'RAVEN_sample_ID'  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
@@ -782,6 +782,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     #
     # samples
     #
+    self.sampleTag = list(inputDataset.dims.mapping.mapping.keys())[0]
     self.sampleSize = inputDataset.sizes[self.sampleTag]#'RAVEN_sample_ID'self.sampleTag
     metric = 'samples'
     if len(needed[metric]['targets']) > 0:
@@ -1394,8 +1395,13 @@ class BasicStatistics(PostProcessorReadyInterface):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
-    inputData = self.inputToInternal(inputIn)
-    outputSet = self.__runLocal(inputData)#inputData
+    # inputData = self.inputToInternal(inputIn)
+    try:
+      pbW = inputIn['Data'][0][-1][['ProbabilityWeight-'+var for var in inputIn['Data'][0][0]]]
+    except:
+      pbW = inputIn['Data'][0][-1][['ProbabilityWeight']]
+    data = inputIn['Data'][0][-1][[var for var in inputIn['Data'][0][0]+inputIn['Data'][0][1]]]
+    outputSet = self.__runLocal((data,pbW))
     return outputSet
 
   # def collectOutput(self, finishedJob, output):

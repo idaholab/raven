@@ -18,7 +18,7 @@ Created on July 10, 2013
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import xarray
+import xarray as xr
 from scipy import spatial
 import copy
 #External Modules End--------------------------------------------------------------------------------
@@ -333,9 +333,13 @@ class SafestPoint(PostProcessorInterface):
           probList.append(prob)
       rlz[self.outputName][ncLine] = np.prod(probList)
       rlz['ProbabilityWeight'][ncLine] = np.prod(probList)
-    metadata = {'ProbabilityWeight':xarray.DataArray(rlz['ProbabilityWeight'])}
-    targets = {tar:xarray.DataArray( rlz[tar])  for tar in self.controllableOrd}
-    rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
+    metadata = {'ProbabilityWeight':xr.DataArray(rlz['ProbabilityWeight'])}
+    targets = {tar:xr.DataArray( rlz[tar])  for tar in self.controllableOrd}
+    z = xr.merge([metadata,targets])
+    inputIn={}
+    inputIn['Data'] = [[self.controllableOrd,self.controllableOrd,z]]
+    rlz['ExpectedSafestPointCoordinates'] = self.stat.run(inputIn)
+    # rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
     self.raiseADebug(rlz['ExpectedSafestPointCoordinates'])
     return rlz
 
