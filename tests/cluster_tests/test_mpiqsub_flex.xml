@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMF</WorkingDir>
     <Sequence>FirstMFRun</Sequence>
     <batchSize>3</batchSize>
     <clusterParameters>-W block=true</clusterParameters>
