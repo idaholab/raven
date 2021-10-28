@@ -28,10 +28,10 @@ import xarray as xr
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from .ValidationBase import ValidationBase
+from ..Validation import Validation
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Probabilistic(ValidationBase):
+class Probabilistic(Validation):
   """
     Probabilistic is a base class for validation problems
     It represents the base class for most validation problems
@@ -46,7 +46,7 @@ class Probabilistic(ValidationBase):
       @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(ValidationBase, cls).getInputSpecification()
+    specs = super(Probabilistic, cls).getInputSpecification()
     #specs.addSub(metricInput)
     return specs
 
@@ -57,11 +57,12 @@ class Probabilistic(ValidationBase):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'POSTPROCESSOR ValidationBase'
+    self.printTag = 'POSTPROCESSOR Probabilistic'
     self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea"] #  acceptable metrics
     self.name = 'Probabilistic'
     # self.pivotParameter = None
+<<<<<<< HEAD
 
 
   def inputToInternal(self, currentInputs):
@@ -128,6 +129,8 @@ class Probabilistic(ValidationBase):
     """
     super().initialize(features, targets, **kwargs)
 
+=======
+>>>>>>> 1b84d31b85acf621ebbf11073968d64590bc4e0b
 
   def _handleInput(self, paramInput):
     """

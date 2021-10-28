@@ -26,7 +26,8 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
+
 from . import validationAlgorithms
 from utils import utils, mathUtils, xmlUtils
 from utils import InputData, InputTypes
@@ -35,7 +36,7 @@ import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 
-class Validation(PostProcessorInterface):
+class Validation(PostProcessorReadyInterface):
   """
     Validation class. It will apply the specified validation algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -69,10 +70,7 @@ class Validation(PostProcessorInterface):
     metricInput.addParam("class", InputTypes.StringType)
     metricInput.addParam("type", InputTypes.StringType)
     specs.addSub(metricInput)
-    # registration of validation algorithm
-    for typ in validationAlgorithms.factory.knownTypes():
-      algoInput = validationAlgorithms.factory.returnClass(typ)
-      specs.addSub(algoInput.getInputSpecification())
+
     return specs
 
   def __init__(self):
@@ -98,6 +96,12 @@ class Validation(PostProcessorInterface):
 
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
+    ## dataset option
+    self.setInputDataType('xrDataset')
+    # swith to 'dict' when you are using dict as operations
+    # self.setInputDataType('dict')
+    # If you want to keep the input meta data, please pass True, otherwise False
+    self.keepInputMeta(False)
 
   def _localWhatDoINeed(self):
     """
@@ -114,6 +118,50 @@ class Validation(PostProcessorInterface):
       @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
+
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+
+    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
+    ## ******* Replace:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...
+    ##    <DSS>
+    ##
+    ##    </DSS>
+    ##  </Validation>
+    ##</PostProcessor>
+    ## ******* with:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...
+    ##    <Algorithm type="DSS">
+    ##
+    ##    </Agorithm>
+    ##  </Validation>
+    ##</PostProcessor>
+
+    # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
+    for child in paramInput.subparts:
+      if child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'Features':
+        self.features = child.value
+      elif child.getName() == 'Targets':
+        self.targets = child.value
+    if 'static' not in self.dataType and self.pivotParameter is None:
+      self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
+    if not self.features:
+      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
+    elif len(self.features) != len(self.targets):
+      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -148,123 +196,21 @@ class Validation(PostProcessorInterface):
         variables = [var.split("|")[-1].strip() for var in (self.features + self.targets) if dobj in var]
         if not utils.isASubset(variables,inputs[indx].getVars()):
           self.raiseAnError(IOError, "The variables '{}' not found in input DataObjet '{}'!".format(",".join(list(set(list(inputs[indx].getVars())) - set(variables))), dobj))
-    self.model.initialize(self.features, self.targets, **{'metrics': self.metrics, 'pivotParameter': self.pivotParameter})
 
-  def _handleInput(self, paramInput):
-    """
-      Function to handle the parsed paramInput for this class.
-      @ In, paramInput, ParameterInput, the already parsed input.
-      @ Out, None
-    """
-    super()._handleInput(paramInput)
+    if self.acceptableMetrics:
+      acceptable = [True if metric.estimator.isInstanceString(self.acceptableMetrics) else False for metric in self.metrics]
+      if not all(acceptable):
+        notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
+        self.raiseAnError(IOError,
+            "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
-    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
-    ## ******* Replace:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <DSS>
-    ##
-    ##    </DSS>
-    ##  </Validation>
-    ##</PostProcessor>
-    ## ******* with:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <Algorithm type="DSS">
-    ##
-    ##    </Agorithm>
-    ##  </Validation>
-    ##</PostProcessor>
-    # check algorithms
-    valAlgo = validationAlgorithms.factory.knownTypes()
-    foundAll = [paramInput.findFirst(algo) for algo in valAlgo]
-    nNone =  foundAll.count(None)
-    if nNone != len(valAlgo) - 1:
-      msg =  "Only one validation algorithm at the time can be inputted in PostProcessor {}. Got >= 1. Check your input!".format(self.name)  \
-        if nNone != len(valAlgo) else "No validation algorithm has been specified in PostProcessor {}".format(self.name)
-      self.raiseAnError(IOError, msg)
-    # get validation algorithm to apply
-    modelInputPart = utils.first([x for x in foundAll if x is not None])
-    self._type =  modelInputPart.name
-    # return algo instance
-    self.model = validationAlgorithms.factory.returnInstance(self._type)
-    # handle input in the interface instance
-    self.model._handleInput(modelInputPart)
-    # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
-    for child in paramInput.subparts:
-      if child.getName() == 'pivotParameter':
-        self.pivotParameter = child.value
-      elif child.getName() == 'Features':
-        self.features = child.value
-      elif child.getName() == 'Targets':
-        self.targets = child.value
-    if 'static' not in self.model.dataType and self.pivotParameter is None:
-      self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
-    if not self.features:
-      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
+  # Each individual validation pp should implement their own run method.
+  # def run(self, input):
 
-  def collectOutput(self, finishedJob, output):
+  @staticmethod
+  def getDataSetName(ds):
     """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
-        object that is in charge of running this post-processor
-      @ In, output, dataObjects, A reference to an object where we want
-        to place our computed results
-      @ Out, None
     """
-    if len(output) !=0:
-      self.raiseAnError(IOError,"There is some information already stored in the DataObject",output.name, \
-              "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
-              "Please provide a new empty DataObject for this PostProcessor!")
-    ## When does this actually happen?
-    evaluation = finishedJob.getEvaluation()
-    _, validationDict = evaluation
-
-    self.raiseADebug('Adding output in data object named', output.name)
-    rlz = {}
-    for key, val in validationDict.items():
-      rlz[key] = val
-    output.addRealization(rlz)
-    # add metadata
-    #  in case we want to add specific metdata, we can add the functionality in the evalidation algo base class
-
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case it loads the
-      results to specified dataObject
-      @ In, inputIn, list, dictionary of data to process
-      @ Out, outputDict, dict, dictionary containing the post-processed results
-    """
-    # assert
-    assert(isinstance(inputIn, list))
-    assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
-    # the input can be either be a list of dataobjects or a list of datasets (xarray)
-    datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
-    names = []
-    pivotParameter = self.pivotParameter
-    if isinstance(inputIn[0], DataObjects.DataSet):
-      names =  [inp.name for inp in inputIn]
-      if len(inputIn[0].indexes) and self.pivotParameter is None:
-        if 'dynamic' not in self.model.dataType:
-          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn[0].name))
-        else:
-          pivotParameter = inputIn[0].indexes[0]
-    #  check if pivotParameter
-    if pivotParameter:
-      #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
-      if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-      if not all([True if pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
-
-    if pivotParameter:
-      if len(datasets[0][pivotParameter]) != len(list(evaluation.values())[0]):
-        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
-      if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = datasets[0][pivotParameter]
-    return evaluation
+    datasetMeta = ds.attrs['DataSet'].getRoot()
+    name = xmlUtils.findPath(datasetMeta, 'general/datasetName').text
+    return name
