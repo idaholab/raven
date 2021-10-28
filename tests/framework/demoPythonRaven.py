@@ -91,16 +91,3 @@ data = results.asDataset() # see xarray docs
 data.plot.scatter(x="v0", y="angle", hue="r")
 # uncomment for live plotting
 plt.show()
-
-"""
-  <TestInfo>
-    <name>framework.demo_python_raven</name>
-    <author>talbpaul</author>
-    <created>2021-10-14</created>
-    <classesTested>PythonRaven</classesTested>
-    <description>
-       Demo of using PythonRaven in RAVEN workflows.
-       Different from unit tests in that this is easier to read and unerstand
-    </description>
-  </TestInfo>
-"""

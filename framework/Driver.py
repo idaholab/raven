@@ -255,7 +255,7 @@ if __name__ == '__main__':
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
-
+  
   def raven():
     """
       A worker function that allows the computation of the main RAVEN execution
@@ -311,3 +311,17 @@ if __name__ == '__main__':
       print ('\n\n! Exit called, exiting RAVEN.\n\n')
   else:
     raven()
+
+class ravenCaller():
+  def __init__(self, frameworkDir):
+    self.simulation = Simulation(frameworkDir)
+
+  def loadWorkflowFromFile(self, xmlFile):
+    self.simulation.loadWorkflowFromFile(xmlFile)
+  
+  def run(self):
+    self.simulation.run()
+  
+  def getEntity(self, kind, name):
+    results = self.simulation.getEntity(kind, name)
+    return results
