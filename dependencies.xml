@@ -61,7 +61,7 @@ Note all install methods after "main" take
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
     <python-sensors source='pip'/>
-    <scikit-learn>0.21</scikit-learn>
+    <scikit-learn>1.0</scikit-learn>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
