@@ -23,8 +23,8 @@
     <PostProcess name="Process">
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Model class="Models" type="PostProcessor">tsa_rwd</Model>
-      <Output class="DataObjects" type="PointSet">rwd_chz</Output>
-      <Output class="OutStreams" type="Print">rwd_chz</Output>
+      <Output class="DataObjects" type="PointSet">rwd</Output>
+      <Output class="OutStreams" type="Print">rwd</Output>
     </PostProcess>
   </Steps>
 
