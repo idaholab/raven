@@ -1,89 +1,64 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/SyntheticHistory.RWD</name>
+    <name>framework/PostProcessors/TSACharacterizer.RWD</name>
     <author>liyeni</author>
-    <created>2021-01-27</created>
-    <classesTested>SupervisedLearning.SyntheticHistory,TSA.RWD</classesTested>
+    <created>2021-08-04</created>
+    <classesTested>PostProcessors.TSACharacterizer.RWD</classesTested>
     <description>
-      Tests the SyntheticHistory ROM using RWD TimeSeriesAnalyzer algorithm
-	  to extract features from the time series data.
+      Test basic operation of the TSACharacterizer. Each characterization target should
+      have a test signal designed for it to assure an analytic or reliable result.
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>RWD</WorkingDir>
-    <Sequence>read, train, print</Sequence>
-    <batchSize>1</batchSize>
+    <Sequence>Load,Process</Sequence>
   </RunInfo>
 
   <Steps>
-    <IOStep name="read">
-      <Input class="Files" type="">infile</Input>
-      <Output class="DataObjects" type="HistorySet">indata</Output>
+    <IOStep name="Load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
     </IOStep>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">indata</Input>
-      <Output class="Models" type="ROM">synth</Output>
-    </RomTrainer>
-    <IOStep name="print">
-      <Input class="Models" type="ROM">synth</Input>
-      <Output class="DataObjects" type="DataSet">romMeta</Output>
-      <Output class="OutStreams" type="Print">romMeta</Output>
-    </IOStep>
-
+    <PostProcess name="Process">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Model class="Models" type="PostProcessor">tsa_rwd</Model>
+      <Output class="DataObjects" type="PointSet">rwd_chz</Output>
+      <Output class="OutStreams" type="Print">rwd_chz</Output>
+    </PostProcess>
   </Steps>
 
-
   <Files>
-    <Input name="infile">../TrainingData/FourierA.csv</Input>
+    <Input name="input">../TrainingData/signals.csv</Input>
   </Files>
 
-
-
   <Models>
-    <ROM name="synth" subType="SyntheticHistory">
-      <Target>signal1, signal2, seconds</Target>
-      <Features>scaling</Features>
-      <pivotParameter>seconds</pivotParameter>
-      <rwd target="signal1, signal2">
+    <PostProcessor name="tsa_rwd" subType="TSACharacterizer">
+      <pivotParameter>pivot</pivotParameter>
+      <rwd target="signal_f, signal_fa">
         <signatureWindowLength>20</signatureWindowLength>
         <featureIndex>3</featureIndex>
         <sampleType>0</sampleType>
         <seed>42</seed>
       </rwd>
-    </ROM>
+    </PostProcessor>
   </Models>
 
   <OutStreams>
-    <Print name="uVec">
+    <Print name="rwd_chz">
       <type>csv</type>
-      <source>uVec</source>
-    </Print>
-    <Print name="romMeta">
-      <type>csv</type>
-      <source>romMeta</source>
+      <source>rwd_chz</source>
     </Print>
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="placeholder"/>
-    <HistorySet name="indata">
-      <Input>scaling</Input>
-      <Output>signal1, signal2</Output>
+    <PointSet name="rwd_chz"/>
+    <HistorySet name="input">
+      <Output>signal_f, signal_a, signal_fa</Output>
       <options>
-        <pivotParameter>seconds</pivotParameter>
+        <pivotParameter>pivot</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="uVec">
-      <Input>scaling</Input>
-      <Output>signal1, signal2</Output>
-      <options>
-        <pivotParameter>seconds</pivotParameter>
-      </options>
-    </HistorySet>
-    <DataSet name="romMeta"/>
   </DataObjects>
-
 
 </Simulation>
