@@ -1411,4 +1411,8 @@ class BasicStatistics(PostProcessorReadyInterface):
   #     @ In, output, dataObjects, The object where we want to place our computed results
   #     @ Out, None
   #   """
+<<<<<<< HEAD
   #   super().collectOutput(finishedJob, output)
+=======
+  #   super().collectOutput(finishedJob, output)
+>>>>>>> 2d2455b47826aed0df82a8e3841e3799ee2b48a9
