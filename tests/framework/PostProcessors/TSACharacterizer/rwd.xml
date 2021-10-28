@@ -45,14 +45,14 @@
   </Models>
 
   <OutStreams>
-    <Print name="rwd_chz">
+    <Print name="rwd">
       <type>csv</type>
-      <source>rwd_chz</source>
+      <source>rwd</source>
     </Print>
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="rwd_chz"/>
+    <PointSet name="rwd"/>
     <HistorySet name="input">
       <Output>signal_f, signal_a, signal_fa</Output>
       <options>

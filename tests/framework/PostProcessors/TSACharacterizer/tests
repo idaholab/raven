@@ -10,7 +10,7 @@
   [./RWD]
     type = 'RavenFramework'
     input = 'rwd.xml'
-    output = 'RWD/uVec.xml'
+    output = 'RWD/rwd.xml'
     csv = 'RWD/uVec.csv'
     rel_err = 0.02 # limited by ARMA__signal_fa__constant
     zero_threshold = 1e-12
