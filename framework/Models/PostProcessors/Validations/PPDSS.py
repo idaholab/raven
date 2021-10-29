@@ -387,15 +387,15 @@ class PPDSS(ValidationBase):
         outputDict = {}
         outputDict[name] = abs(np.atleast_1d(output[cnt]))
         outputDict['pivot_parameter'] = timeParameter
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_total_distance'] = distanceTotal[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_beta'] = featureBeta[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_beta'] = targetBeta[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_omega'] = featureOmegaNormScaled[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_omega'] = targetOmegaNorm[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_feature_D'] = featureD[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_target_D'] = targetD[cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_process_time'] = newfeatureData[1][cnt]
-        outputDict[nameFeat[1]+'_'+nameTarg[1]+'_standard_deviation'] = sigma[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_total_distance'] = distanceTotal[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_beta'] = featureBeta[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_beta'] = targetBeta[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_omega'] = featureOmegaNormScaled[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_omega'] = targetOmegaNorm[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_D'] = featureD[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_D'] = targetD[cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_process_time'] = newfeatureData[1][cnt]
+        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_standard_deviation'] = sigma[cnt]
         #print(newfeatureData[1][cnt])
         rlz.append(outputDict)
       realization_array.append(rlz)
