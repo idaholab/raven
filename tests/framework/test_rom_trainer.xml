@@ -24,6 +24,7 @@
     </revisions>
     <requirements>R-RA-4 R-F-1</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
@@ -51,10 +52,9 @@
     <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
       <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
+    <ROM name="ROM1" subType="SVR">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold</Target>
-      <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>

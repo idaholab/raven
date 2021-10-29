@@ -369,7 +369,15 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+
+    # check if in batch
+    brun = kwargs.get('batchRun')
+    if brun is not None:
+      # if batch, the subDir are a combination of prefix (batch id) and batch run id
+      bid = kwargs['prefix'] if 'prefix' in kwargs.keys() else '1'
+      subDirectory = os.path.join(self.workingDir,'b{}_r{}'.format(bid,brun))
+    else:
+      subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
@@ -429,47 +437,50 @@ class Code(Model):
     executable = commandSplit[0]
 
     if os.path.exists(executable):
-      with open(executable, "r+b") as executableFile:
-        firstTwoChars = executableFile.read(2)
-        if firstTwoChars == "#!":
-          realExecutable = shlex.split(executableFile.readline())
-          self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
-          # The below code should work, and would be better than findMsys,
-          # but it doesn't work.
-          # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
-          # print("winExecutable",winExecutable)
-          # realExecutable[0] = winExecutable
-          def findMsys():
-            """
-              Function to try and figure out where the MSYS64 is.
-              @ In, None
-              @ Out, dir, String, If not None, the directory where msys is.
-            """
-            dir = os.getcwd()
-            head, tail = os.path.split(dir)
-            while True:
-              if tail.lower().startswith("msys"):
-                return dir
-              dir = head
-              head, tail = os.path.split(dir)
-            return None
-          msysDir = findMsys()
-          if msysDir is not None:
-            beginExecutable = realExecutable[0]
-            if beginExecutable.startswith("/"):
-              beginExecutable = beginExecutable.lstrip("/")
-            winExecutable = os.path.join(msysDir, beginExecutable)
-            self.raiseAMessage("winExecutable " + winExecutable)
-            if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
-              #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-              maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-              if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
-                winExecutable = maybeWinExecutable
-            realExecutable[0] = winExecutable
-          else:
-            self.raiseAWarning("Could not find msys in "+os.getcwd())
-          commandSplit = realExecutable + [executable] + commandSplit[1:]
-          return commandSplit
+        try:
+          with open(executable, "r+b") as executableFile:
+            firstTwoChars = executableFile.read(2)
+            if firstTwoChars == "#!":
+              realExecutable = shlex.split(executableFile.readline())
+              self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+              # The below code should work, and would be better than findMsys,
+              # but it doesn't work.
+              # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+              # print("winExecutable",winExecutable)
+              # realExecutable[0] = winExecutable
+              def findMsys():
+                """
+                  Function to try and figure out where the MSYS64 is.
+                  @ In, None
+                  @ Out, dir, String, If not None, the directory where msys is.
+                """
+                dir = os.getcwd()
+                head, tail = os.path.split(dir)
+                while True:
+                  if tail.lower().startswith("msys"):
+                    return dir
+                  dir = head
+                  head, tail = os.path.split(dir)
+                return None
+              msysDir = findMsys()
+              if msysDir is not None:
+                beginExecutable = realExecutable[0]
+                if beginExecutable.startswith("/"):
+                  beginExecutable = beginExecutable.lstrip("/")
+                winExecutable = os.path.join(msysDir, beginExecutable)
+                self.raiseAMessage("winExecutable " + winExecutable)
+                if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+                  #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+                  maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+                  if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+                    winExecutable = maybeWinExecutable
+                realExecutable[0] = winExecutable
+              else:
+                self.raiseAWarning("Could not find msys in "+os.getcwd())
+              commandSplit = realExecutable + [executable] + commandSplit[1:]
+              return commandSplit
+        except PermissionError as e:
+            self.raiseAWarning("Permission denied to open executable ! Skipping!")
     return origCommand
 
   @Parallel()
@@ -891,7 +902,9 @@ class Code(Model):
 
       prefix = kw.get("prefix")
       uniqueHandler = kw.get("uniqueHandler",'any')
-
+      # if batch mode is on, lets record the run id within the batch
+      if batchMode:
+        kw['batchRun'] = i+1
 
       ## These two are part of the current metadata, so they will be added before
       ## the job is started, so that they will be captured in the metadata and match
@@ -919,7 +932,7 @@ class Code(Model):
       ## These variables should not be part of the metadata, so add them after
       ## we copy this dictionary (Caught this when running an ensemble model)
       ## -- DPM 4/11/17
-      nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+      nodesList                = jobHandler.runInfoDict.get('Nodes',[])
       kw['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
       kw['precommand'        ] = jobHandler.runInfoDict['precommand']
       kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
@@ -937,4 +950,4 @@ class Code(Model):
       if nRuns == 1:
         self.raiseAMessage('job "' + str(prefix) + '" submitted!')
       else:
-        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(prefix) + '" submitted!')
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(kwargs['batchInfo']['batchId']) + '" submitted!')

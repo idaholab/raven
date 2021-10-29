@@ -123,7 +123,6 @@ class Assembler(MessageUser):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib:
       self.name = xmlNode.attrib['name']
-    self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
     #XXX Once InputData checks numbers of subnodes, everything in this

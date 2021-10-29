@@ -165,6 +165,7 @@ class MultiRun(SingleRun):
           self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
         else:
           finishedJobList = [finishedJobObjs]
+        currentFailures = []
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_collected')
           # update number of collected runs
@@ -200,15 +201,27 @@ class MultiRun(SingleRun):
                 self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
             if sampler.ableToHandelFailedRuns:
               self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
-            #pop the failed job from the list
-            finishedJobList.pop(finishedJobList.index(finishedJob))
+            #collect the failed job index from the list
+            currentFailures.append(finishedJobList.index(finishedJob))
+        if currentFailures:
+          # In the previous approach, the job was removed directly in the list of jobs on which we were iterating,
+          # determining a messing-up of the loop. Since now we collect only the indices
+          # I need to reverse it so I can remove the jobs starting from the last and back.
+          # For example, if currentFailures=[0,2,4] If we do not sort it (i.e. correntFailures = [4,2,0])
+          # when we start removing the jobs from the list we would mess up the indices...=> If I remove 0 first,
+          # then the index 2 should become 1 and index 4 should become 3 (and so on)
+          currentFailures.sort(reverse=True)
+          for idx in currentFailures:
+            finishedJobList.pop(idx)
+
         if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH
           # FIXME: THIS IS DONE BECAUSE CURRENTLY SAMPLERS/OPTIMIZERS RETRIEVE SOME INFO from the Runner instance but it can be
           # FIXME: dangerous if the sampler/optimizer requires info from each job. THIS MUST BE FIXED.
-          sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
+          if finishedJobList:
+            sampler.finalizeActualSampling(finishedJobList[0],model,inputs)
         else:
           # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
           for finishedJob in finishedJobList:

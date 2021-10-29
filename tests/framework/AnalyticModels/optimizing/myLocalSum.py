@@ -47,7 +47,7 @@ def constraint(self):
   g = 6.75 - 0.25* self.x1 - self.x2
   return g
 
-def impConstraint(self):
+def implicitConstraint(self):
   """
     Evaluates the constraint function @ a given point ($\vec(x)$)
     @ In, self, object, RAVEN container
@@ -83,12 +83,3 @@ def constrain(self):
   explicitConstrain = constraint(self)
   return explicitConstrain
 
-def impConstrain(self):
-  """
-    Constrain calls the constraint function.
-    @ In, self, object, RAVEN container
-    @ Out, explicitConstrain, float, positive if the constraint is satisfied
-           and negative if violated.
-  """
-  implicitConstrain = impConstraint(self)
-  return implicitConstrain

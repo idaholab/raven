@@ -37,7 +37,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
     """
     specs = super(PolynomialRegression, cls).getInputSpecification()
     specs.name = 'PolynomialRegression'
-    specs.description = """TimeSeriesAnalysis algorithm for fitting data of degree one or greater."""
+    specs.description = """fits time-series data using a polynomial function of degree one or greater."""
     specs.addSub(InputData.parameterInputFactory('degree', contentType=InputTypes.IntegerType,
                                                  descr="Specifies the degree polynomial to fit the data with."))
     return specs
