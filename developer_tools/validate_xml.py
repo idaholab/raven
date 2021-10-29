@@ -33,7 +33,7 @@ def validateTests():
   print('Beginning test validation...')
   tests = get_coverage_tests.getRegressionTests(skipExpectedFails=True)
   schema = os.path.join(scriptDir, 'XSDSchemas', 'raven.xsd')
-  my_schema = xmlschema.XMLSchema11(schema)
+  mySchema = xmlschema.XMLSchema11(schema)
   res = [0, 0, 0] #run, pass, fail
   failed = {}
   devnull = open(os.devnull, "wb")
@@ -63,7 +63,7 @@ def validateTests():
       screenmsg = colors.neutral + startmsg + ' '
       if result == 0:
         #run xmlschema library
-        result = my_schema.is_valid(fullpath)
+        result = mySchema.is_valid(fullpath)
       if result:# == 0: #success
         res[1] += 1
         endmsg = 'validated'
@@ -71,7 +71,7 @@ def validateTests():
         postprint = ''
       else:
         try:
-          err = my_schema.validate(fullpath)
+          err = mySchema.validate(fullpath)
         except xmlschema.validators.exceptions.XMLSchemaValidationError as ae:
           err = " {}".format(str(ae))
         res[2] += 1
