@@ -306,7 +306,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
         self._makeSubsetRom(toDoSub)
-        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedEngine.supervisedContainer[0]
+        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedContainer[0]
         self.inTraining.append(('subset',toDoSub,self.romShell[toDoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(toDoSub)
@@ -547,7 +547,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     for subset in self.ROMs.keys():
       if subset not in self.useSet.keys() and subset not in include:
         del initDict['ROMs'][subset]
-    rom.supervisedEngine.supervisedContainer[0].initialize(initDict)
+    rom.supervisedContainer[0].initialize(initDict)
 
   def _finalizeSubset(self, subset):
     """
@@ -564,7 +564,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #train the ROM
     self.romShell[subset].train(sampler.solns)
     #store rom in dedicated use set
-    self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
+    self.useSet[subset] = self.romShell[subset].supervisedContainer[0]
 
   def _generateSubsets(self, subset):
     """
@@ -713,7 +713,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     """
     from .Factory import factory
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
-    SVL = self.ROM.supervisedEngine.supervisedContainer[0] #an example SVL for most parameters
+    SVL = self.ROM.supervisedContainer[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict={}
     quadDict={}
@@ -742,7 +742,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
                 'Interpolation'  : SVL.itpDict,
                 'Features'       : list(subset),
                 'Target'         : self.targets}
-    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', **initDict)
+    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom')
+    self.ROMs[subset].initializeFromDict(initDict)
     initializeDict = {'SG'       : self.SQs[subset],
                       'dists'    : distDict,
                       'quads'    : quadDict,
@@ -755,13 +756,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell[subset] = Models.factory.returnInstance('ROM')
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].verbosity = verbosity
-    self.romShell[subset].initializationOptionDict['Target']= self.targets
-    self.romShell[subset].initializationOptionDict['Features']= list(subset)
-    self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
-    self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
-    self.romShell[subset]._initializeSupervisedGate(**self.romShell[subset].initializationOptionDict)
+    self.romShell[subset]._interfaceROM = self.ROMs[subset]
+    self.romShell[subset].canHandleDynamicData = self.romShell[subset]._interfaceROM.isDynamic()
+    self.romShell[subset].supervisedContainer = [self.romShell[subset]._interfaceROM]
     #coordinate SVLs
-    self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = factory.returnInstance('AdaptiveSparseGrid')
     samp.verbosity      = verbosity
@@ -828,10 +826,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       for t in self.targets:
         self.statesFile.writelines('  %12s' %t)
       self.statesFile.writelines('\n')
-      for coeff in utils.first(self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict.values()).keys():
+      for coeff in utils.first(self.romShell[sub].supervisedContainer[0].polyCoeffDict.values()).keys():
         self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
         for t in self.targets:
-          self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
+          self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedContainer[0].polyCoeffDict[t][coeff])
         self.statesFile.writelines('\n')
       #polynomials in training
       if any(sub==item[1] for item in self.inTraining):

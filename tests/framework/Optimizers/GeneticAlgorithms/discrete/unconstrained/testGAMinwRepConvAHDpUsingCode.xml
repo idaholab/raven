@@ -18,11 +18,11 @@
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Files>
       <Input name="proj_inp">input.i</Input>
   </Files>
-  
+
   <Steps>
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="Files" type="">proj_inp</Input>
@@ -64,7 +64,7 @@
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="5">
+        <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
@@ -109,7 +109,7 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-      
+
     </MonteCarlo>
   </Samplers>
 

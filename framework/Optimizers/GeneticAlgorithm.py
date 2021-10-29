@@ -142,7 +142,12 @@ class GeneticAlgorithm(RavenSampled):
                   fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
                   b. \textbf{\textit{tournamentSelection}},
-                  c. \textbf{\textit{rankSelection}}, or""")
+                  c. \textbf{\textit{rankSelection}}
+                  for all methods nParents is computed such that the population size is kept constant.
+                  \[ nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize \]
+                  solving for nParents we get:
+                  \[nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})\]
+                  This will result in a popSize a little lareger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -150,8 +155,6 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True,
-                          descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -289,7 +292,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
-    self._nParents = reproductionNode.parameterValues['nParents']
+    self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
@@ -319,7 +322,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # Check if the fitness requested is among the constrained optimization fitnesses
     # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
-    ## TODO: @mandd, please explore the possibility to conver the logistic fitness into a constrained optimization fitness.
+    ## TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
     if 'Constraint' in self.assemblerObjects.keys() and self._fitnessType not in ['invLinear','feasibleFirst']:
       self.raiseAnError(IOError, 'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {}'.format(self._fitnessType))
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
@@ -354,7 +357,7 @@ class GeneticAlgorithm(RavenSampled):
 
     meta = ['batchId']
     self.addMetaKeys(meta)
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
     for _, init in enumerate(self._initialValues):
@@ -431,7 +434,7 @@ class GeneticAlgorithm(RavenSampled):
                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
     ## FIXME The constraint handling is following the structure of the RavenSampled.py,
-    #        there are many utility functions that can be simplified and/or merged with
+    #        there are many utility functions that can be simplified and/or merged together
     #        _check, _handle, and _apply, for explicit and implicit constraints.
     #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(offSprings):
@@ -453,8 +456,6 @@ class GeneticAlgorithm(RavenSampled):
                                              penalty = None,
                                              constraintFunction=g,
                                              type=self._minMax)
-
-    acceptable = 'first' if self.counter==1 else 'accepted'
 
     self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
@@ -525,20 +526,24 @@ class GeneticAlgorithm(RavenSampled):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children.data[repeated,:] = newChildren.data
+          if len(repeated)> children.shape[0] - self._populationSize:
+            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+            children.data[repeated,:] = newChildren.data
+          else:
+            children = children.drop_sel(chromosome=repeated)
         else:
           flag = False
-
-      self.batch = np.shape(children)[0]
+      # keeping the population size constant by ignoring the excessive children
+      children = children[:self._populationSize,:]
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
+
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(np.shape(daChildren)[0]):
+      for i in range(self.batch):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)

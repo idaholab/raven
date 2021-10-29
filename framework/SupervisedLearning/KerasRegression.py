@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Created on Apr. 13, 2021
-  @author: cogljj
+  @author: cogljj, wangc
   base class for tensorflow and keras regression used for deep neural network
   i.e. Multi-layer perceptron regression, CNN, LSTM
 """
@@ -31,7 +31,6 @@ tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import supervisedLearning
 from .KerasBase import KerasBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -39,24 +38,30 @@ class KerasRegression(KerasBase):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
-  ROMType = 'KerasRegression'
+  info = {'problemtype':'regression', 'normalize':True}
 
-  def __init__(self, **kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{KerasRegression}
+                        """
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a keras deep neural network object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag = 'KerasRegression'
-
-  def readInitDict(self, initDict):
-    """
-      Reads in the initialization dict to initialize this instance
-      @ In, initDict, dict, keywords passed to constructor
-      @ Out, None
-    """
-    super().readInitDict(initDict)
 
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
@@ -148,7 +153,7 @@ class KerasRegression(KerasBase):
     featureValues = np.stack(featureValues, axis=-1)
 
     result = self.__evaluateLocal__(featureValues)
-    pivotParameter = self.initDict['pivotParameter']
+    pivotParameter = self.pivotID
     if type(edict[pivotParameter]) == type([]):
       #XXX this should not be needed since sampler should just provide the numpy array.
       #Currently the CustomSampler provides all the pivot parameter values instead of the current one.
@@ -172,4 +177,3 @@ class KerasRegression(KerasBase):
     for i, target in enumerate(self.target):
       prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
     return prediction
-

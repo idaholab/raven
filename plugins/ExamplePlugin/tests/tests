@@ -8,6 +8,11 @@
       output = 'simpleTest/dumpSumOfExpOutput.csv'
       rel_err = 0.0001
     [../]
+    [./ROM]
+      type = OrderedCSV
+      output = 'simpleTest/ROM_output.csv'
+      rel_err = 0.0001
+    [../]
     [./plot]
       type = Exists
       output = 'simpleTest/pluginPlot.png'
