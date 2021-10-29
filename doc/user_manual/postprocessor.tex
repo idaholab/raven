@@ -130,13 +130,10 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{spearman}: matrix of spearman ranking coefficients. This matrix is computed in its
-    weighted form:
-    $spearman_j = \sum_{i=1}^n (w_i *\Theta(z_i, z_j)) + \frac{1+\sum_{i=1}^{n}  \Gamma(w_i, w_j)} {2} * \frac{\sum_{i=1}^{n} w_i*\Gamma(w_i, w_j)}{\sum_{i=1}^{n} \Gamma(w_i, w_j)}$
-    where: $\Theta (z_i, z_j)=\left\{\begin{matrix}
-1 & if \; w_i = w_j  \\
- 0 & if \; w_i \neq w_j \\
-\end{matrix}\right.$
-    and $\Gamma (w_i, w_j) =\begin{cases}1 \rightarrow if \;  w_i = w_j \\ 0  \rightarrow if \; w_i \neq  w_j\end{cases}$
+    weighted form (see RAVEN theory manual at \cite{RAVENtheoryManual}):
+    \begin{equation}
+\boldsymbol{\mathrm{P}}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})}{\sigma_{R(x)} \sigma_{R(y)}}
+\end{equation}
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
     coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
