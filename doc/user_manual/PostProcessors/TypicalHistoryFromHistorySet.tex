@@ -1,0 +1,35 @@
+\subsubsection{TypicalHistoryFromHistorySet}
+\label{TypicalHistoryFromHistorySet}
+
+This Post-Processor performs a simplified procedure of \cite{wilcox2008users} to form a ``typical'' time series from multiple time series. The input should be a HistorySet, with each history in the HistorySet synchronized. For HistorySet that is not synchronized, use Post-Processor method \textbf{HistorySetSync}  to synchronize the data before running this method.
+
+Each history in input HistorySet is first converted to multiple histories each has maximum time specified in \xmlNode{outputLen} (see below). Each converted history $H_i$ is divided into a set of subsequences $\{H_i^j\}$, and the division is guided by the \xmlNode{subseqLen} node specified in the input XML. The value of \xmlNode{subseqLen} should be a list of positive numbers that specify the length of each subsequence. If the number of subsequence for each history is more than the number of values given in \xmlNode{subseqLen}, the values in \xmlNode{subseqLen} would be reused.
+
+For each variable $x$, the method first computes the empirical CDF (cumulative density function) by using all the data values of $x$ in the HistorySet. This CDF is termed as long-term CDF for $x$. Then for each subsequence $H_i^j$, the method computes the empirical CDF by using all the data values of $x$ in $H_i^j$. This CDF is termed as subsequential CDF. For the first interval window (i.e., $j=1$), the method computes the Finkelstein-Schafer (FS) statistics \cite{finkelstein1971improved} between the long term CDF and the subsequential CDF of $H_i^1$ for each $i$. The FS statistics is defined as following.
+\begin{align*}
+FS & = \sum_x FS_x\\
+FS_x &= \frac{1}{N}\sum_{n=1}^N\delta_n
+\end{align*}
+where $N$ is the number of value reading in the empirical CDF and $\delta_n$ is the absolute difference between the long term CDF and the subsequential CDF at value $x_n$. The subsequence $H_i^1$ with minimal FS statistics will be selected as the typical subsequence for the interval window $j=1$. Such process repeats for $j=2,3,\dots$ until all subsequences have been processed. Then all the typical subsequences will be concatenated to form a complete history.
+
+\ppType{TypicalHistoryFromHistorySet}{TypicalHistoryFromHistorySet}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable
+   \default{Time}
+   \item \xmlNode{subseqLen}, \xmlDesc{integers, required field}, length of the divided subsequence (see above)
+   \item \xmlNode{outputLen}, \xmlDesc{integer, optional field}, maximum value of the temporal variable for the generated typical history
+   \default{Maximum value of the variable with name of \xmlNode{pivotParameter}}
+\end{itemize}
+
+For example, consider history of data collected over three years in one-second increments,
+where the user wants a single \emph{typical year} extracted from the data.
+The user wants this data constructed by combining twelve equal \emph{typical month}
+segments.  In this case, the parameter \xmlNode{outputLen} should be \texttt{31536000} (the number of seconds
+in a year), while the parameter \xmlNode{subseqLen} should be \texttt{2592000} (the number of seconds in a
+month).  Using a value for \xmlNode{subseqLen} that is either much, much smaller than \xmlNode{outputLen} or
+of equal size to \xmlNode{outputLen} might have unexpected results.  In general, we recommend using a
+\xmlNode{subseqLen} that is roughly an order of magnitude smaller than \xmlNode{outputLen}.

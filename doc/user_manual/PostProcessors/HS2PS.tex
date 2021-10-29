@@ -1,0 +1,17 @@
+\subsubsection{HS2PS}
+\label{HS2PS}
+
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
+Assume that each history $H$ is a dictionary (mapping) of $n$ output variables $x_1=[...],x_n=[...]$, then the resulting point $P$ is $P=concat(x_1,...,x_n)$.
+Note: it is here assumed that all histories have been synced so that they have the same length, start point and end point. 
+If you are not sure, do a pre-processing the the original history set.
+
+\ppType{HS2PS}{HS2PS}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified (min, max, avg and value case):
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+\end{itemize}

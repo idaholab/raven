@@ -22,26 +22,23 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
-    <PostProcessor name="pp1" subType="Validation">
+    <PostProcessor name="pp1" subType="Probabilistic">
       <Features>outputDataMC1|ans</Features>
       <Targets>outputDataMC2|ans2</Targets>
-      <!-- <Metric class="Metrics" type="RACDistance">fz_expected</Metric> -->
-      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
-      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
-      <Probabilistic name="myProbMetric">
-         <!--  the Probabilistic Validation does  not -->
-          
-      </Probabilistic>
-      
+      <!--
+        <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
+      -->
+      <Metric class="Metrics" type="Metric">cdf_diff</Metric>
+      <Metric class="Metrics" type="Metric">pdf_area</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff"/>
-    <PDFCommonArea name="pdf_area"/>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
   </Metrics>
 
   <Distributions>

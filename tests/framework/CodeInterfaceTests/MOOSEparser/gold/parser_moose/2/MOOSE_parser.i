@@ -38,16 +38,22 @@
   [../]
 []
 [AuxVariables]
-  rho_1 =
-  heat_source =
-  current_power_density =
+  [./rho_1]
+  [../]
+  [./heat_source]
+  [../]
+  [./current_power_density]
+  [../]
   [./radius]
     order = FIRST
     family = LAGRANGE
   [../]
-  fuel_temperature =
-  graphite_temperature =
-  thermal_conductivity =
+  [./fuel_temperature]
+  [../]
+  [./graphite_temperature]
+  [../]
+  [./thermal_conductivity]
+  [../]
   [./nsh]
     initial_condition = 1226.500730082983
   [../]

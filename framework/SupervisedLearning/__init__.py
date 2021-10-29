@@ -12,38 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The SupervisedLeaerning module includes different types of ROM strategies available in RAVEN
-
-  Created on May 8, 2018
-  @author: talbpaul
-  Originally from SupervisedLearning.py, split in PR #650 in July 2018
-  supercedes SupervisedLearning.py
+  The SupervisedLearning module includes different types of ROM strategies available in RAVEN
 """
 
-from __future__ import absolute_import
-
-# These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from .SupervisedLearning import supervisedLearning
-
-from .ARMA               import ARMA
-from .GaussPolynomialRom import GaussPolynomialRom
-from .HDMRRom            import HDMRRom
-from .MSR                import MSR
-from .NDinterpolatorRom  import NDinterpolatorRom
-from .NDinvDistWeight    import NDinvDistWeight
-from .NDsplineRom        import NDsplineRom
-from .SciKitLearn        import SciKitLearn
-from .SyntheticHistory   import SyntheticHistory
-from .pickledROM         import pickledROM
-from .PolyExponential    import PolyExponential
-from .DynamicModeDecomposition import DynamicModeDecomposition
-from .ROMCollection      import Collection, Segments, Clusters, Interpolated
-
-# KERAS classifiers
+from .SupervisedLearning import SupervisedLearning
+from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
+from .KerasBase import KerasBase
+from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
-from .KerasMLPClassifier import KerasMLPClassifier
-from .KerasConvNetClassifier import KerasConvNetClassifier
-from .KerasLSTMClassifier import KerasLSTMClassifier
+from .ROMCollection import Collection
+from .NDinterpolatorRom  import NDinterpolatorRom
 
 from .Factory import factory

@@ -6,10 +6,10 @@
     <created>2016-02-09</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
-      Tests of the HistorySetSnapShot interfaced post-processor    
+      Tests of the HistorySetSnapShot interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HistorySetSnapShot</WorkingDir>
     <Sequence>FirstMRun,PP,PP1,plot1,PP2,plot2,PP3,plot3,PP4,plot4</Sequence>
@@ -84,32 +84,27 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="historySamplingPP" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="historySamplingPP" subType="HistorySetSnapShot">
       <type>timeSlice</type>
       <numberOfSamples>10</numberOfSamples>
       <extension>zeroed</extension>
       <pivotParameter>time</pivotParameter>
       <timeInstant>0</timeInstant>
     </PostProcessor>
-    <PostProcessor name="historySamplingMin" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="historySamplingMin" subType="HistorySetSnapShot">
       <type>min</type>
       <pivotVar>x</pivotVar>
     </PostProcessor>
-    <PostProcessor name="historySamplingMax" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="historySamplingMax" subType="HistorySetSnapShot">
       <type>max</type>
       <pivotVar>x</pivotVar>
     </PostProcessor>
-    <PostProcessor name="historySamplingAvg" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="historySamplingAvg" subType="HistorySetSnapShot">
       <type>average</type>
       <pivotVar>x</pivotVar>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
-    <PostProcessor name="historySamplingValue" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="historySamplingValue" subType="HistorySetSnapShot">
       <type>value</type>
       <pivotVar>x</pivotVar>
       <pivotVal>8.3</pivotVal>

@@ -13,6 +13,8 @@
   [./ExponentialEggHolder]
     type = 'RavenFramework'
     input = 'ExponentialEggHolder/test_simulatedAnnealing_eggHold.xml'
+    heavy = true
+    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'ExponentialEggHolder/opt_export_0.csv'
@@ -55,6 +57,16 @@
       output = 'CauchySA/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./CauchySAPlot]
+    type = 'RavenFramework'
+    input = 'CauchySA/test_simulatedAnnealing_OptPath.xml'
+    prereq = CauchySA # prevents overlap in same folder
+    [./plot]
+      type = Exists
+      output = 'CauchySA/opt_path.png'
     [../]
   [../]
 

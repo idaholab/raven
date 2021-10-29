@@ -25,11 +25,11 @@ from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, impor
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class ARMA(TimeSeriesAnalyzer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
@@ -47,8 +47,17 @@ class ARMA(TimeSeriesAnalyzer):
     """
     specs = super(ARMA, cls).getInputSpecification()
     specs.name = 'arma' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
-    specs.description = r"""TimeSeriesAnalysis algorithm for determining the stochastic
-                        characteristics of signal with time-invariant variance"""
+    specs.description = r"""characterizes the signal using Auto-Regressive and Moving Average
+        coefficients to stochastically fit the training signal.
+        The ARMA representation has the following form:
+        \begin{equation*}
+          A_t = \sum_{i=1}^P \phi_i A_{t-i} + \epsilon_t + \sum_{j=1}^Q \theta_j \epsilon_{t-j},
+        \end{equation*}
+        where $t$ indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
+        coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
+        term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+        noise lag terms to consider. The ARMA algorithms are developed in RAVEN using the
+        \texttt{statsmodels} Python library."""
     specs.addParam('reduce_memory', param_type=InputTypes.BoolType, required=False,
                    descr=r"""activates a lower memory usage ARMA training. This does tend to result
                          in a slightly slower training time, at the benefit of lower memory usage. For
@@ -56,11 +65,11 @@ class ARMA(TimeSeriesAnalyzer):
                          MiB, but increased training time by 0.4 seconds. No change in results has been
                          observed switching between modes. Note that the ARMA must be
                          retrained to change this property; it cannot be applied to serialized ARMAs.
-                         \default{False}""")
-    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.FloatType,
+                         """, default=False)
+    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))
-    specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
                        regression; typically represented as $Q$ in literature."""))
     return specs
@@ -76,7 +85,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
     self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
@@ -85,7 +94,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['P'] = spec.findFirst('SignalLag').value
     settings['Q'] = spec.findFirst('NoiseLag').value
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
@@ -98,7 +107,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, settings, dict, existing settings
       @ Out, settings, dict, modified settings
     """
-    settings = TimeSeriesAnalyzer.setDefaults(self, settings)
+    settings = super().setDefaults(settings)
     if 'gaussianize' not in settings:
       settings['gaussianize'] = True
     if 'engine' not in settings:
@@ -177,6 +186,40 @@ class ARMA(TimeSeriesAnalyzer):
       if not settings['reduce_memory']:
         params[target]['arma']['results'] = res
     return params
+
+  def getParamNames(self, settings):
+    """
+      Return list of expected variable names based on the parameters
+      @ In, settings, dict, training parameters for this algorithm
+      @ Out, names, list, string list of names
+    """
+    names = []
+    for target in settings['target']:
+      base = f'{self.name}__{target}'
+      names.append(f'{base}__constant')
+      names.append(f'{base}__variance')
+      for p in range(settings['P']):
+        names.append(f'{base}__AR__{p}')
+      for q in range(settings['Q']):
+        names.append(f'{base}__MA__{q}')
+    return names
+
+  def getParamsAsVars(self, params):
+    """
+      Map characterization parameters into flattened variable format
+      @ In, params, dict, trained parameters (as from characterize)
+      @ Out, rlz, dict, realization-style response
+    """
+    rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      rlz[f'{base}__constant'] = info['arma']['const']
+      rlz[f'{base}__variance'] = info['arma']['var']
+      for p, ar in enumerate(info['arma']['ar']):
+        rlz[f'{base}__AR__{p}'] = ar
+      for q, ma in enumerate(info['arma']['ma']):
+        rlz[f'{base}__MA__{q}'] = ma
+    return rlz
 
   def getResidual(self, initial, params, pivot, settings):
     """

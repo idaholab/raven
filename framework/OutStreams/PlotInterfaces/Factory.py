@@ -23,7 +23,11 @@ from EntityFactoryBase import EntityFactory
 from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot
+from .OptPath import OptPath
+from .SyntheticCloud import SyntheticCloud
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
 factory.registerType('SamplePlot', SamplePlot)
+factory.registerType('OptPath', OptPath)
+factory.registerType('SyntheticCloud', SyntheticCloud)

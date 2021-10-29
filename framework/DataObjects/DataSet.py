@@ -581,20 +581,28 @@ class DataSet(DataObject):
           index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)# should we add options=options to this one as well?
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, first=first, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # if as Dataset convert it
       if asDataSet:
-        rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
-        rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
-        dims = self.getDimensions()
-        for index, rl in enumerate(rlzs):
-          d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
-          rlz[index] =  xr.Dataset.from_dict(d)
-        rlz = xr.concat(rlz,dim=self.sampleTag)
+        if not isinstance(rlz, xr.Dataset):
+          rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
+          rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
+          dims = self.getDimensions()
+          for index, rl in enumerate(rlzs):
+            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+            rlz[index] =  xr.Dataset.from_dict(d)
+          if len(rlzs) > 1:
+            # concatenate just in case there are multiple realizations
+            rlz = xr.concat(rlz,dim=self.sampleTag)
+          else:
+            # the following ".copy(deep=True)" is required because of a bug in expend_dims
+            # see https://github.com/pydata/xarray/issues/2891
+            # FIXME: remove ".copy(deep=True)" once xarray mainstream fixes it
+            rlz = rlz[0].expand_dims(self.sampleTag).copy(deep=True)
       return index, rlz
 
   def remove(self,variable):
@@ -962,7 +970,7 @@ class DataSet(DataObject):
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value, np.ndarray):
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
@@ -1154,7 +1162,6 @@ class DataSet(DataObject):
     elif action == 'replace':
       self._data = new
       # general metadata included if first time
-      self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
@@ -1176,7 +1183,9 @@ class DataSet(DataObject):
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(sorted(self._metavars)),
+                                         'datasetName':self.name
       }})
+      self._data.attrs = self._meta
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1218,14 +1227,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
-    if self.isEmpty:
-      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealizations'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1676,7 +1691,7 @@ class DataSet(DataObject):
     return rlz
 
   # @profile
-  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False):
+  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False, first=True):
     """
       Obtains a realization from the data storage using the provided matching (or antimatching) dictionaries.
       For "match", valid entries must be within tol of the provided value for each variable
@@ -1684,11 +1699,23 @@ class DataSet(DataObject):
       @ In, match, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must
+                          be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}).
+                          This can be used only if "first" ==> True. Otherwise we return a Dataset directly
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (rr, rlz), tuple ( (int, dict) or (list(int), Dataset) ), where:
+                                     first element:
+                                       if first:  rr, int, index where match was found OR size of data if not found
+                                       else    :  rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlz, Dataset, Dataset of matching realizatiions
     """
     assert(self._data is not None)
+    if unpackXArray:
+      assert (first)
+
     if match is None:
       match = {}
     if noMatch is None:
@@ -1729,16 +1756,16 @@ class DataSet(DataObject):
         else:
           for val in vals:
             mask *= np.logical_not(self._data[var] == val)
-        # if all potential matches eliminated, stop looking
+        # if all potential  matches eliminated, stop looking
         if sum(mask) == 0:
           break
 
     rlz = self._data.where(mask,drop=True)
     try:
-      idx = rlz[self.sampleTag].item(0)
+      rr = rlz[self.sampleTag].item(0) if first else rlz[self.sampleTag].data.tolist()
     except IndexError:
       return len(self),None
-    return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
+    return (rr, self._getRealizationFromDataByIndex(rr, unpackXArray)) if first else (rr, rlz)
 
   def _getRequestedElements(self, options):
     """
@@ -1799,7 +1826,10 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
+    # utf-8-sig is commongly used by Excel when writing CSV files as of this writing (2021).
+    # the BOM for this (first character in file) is \ufeff, causing the first var to be unrecognized
+    # if the encoding isn't right.
+    with open(fileName+'.csv', 'r', encoding='utf-8-sig') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
@@ -1809,7 +1839,7 @@ class DataSet(DataObject):
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
       @ In, fileName, str, filename (without extension) of the CSV/XML combination
-      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
+      @ Out, dims, dict, dimensionality dictionary with {var:[indices]} structure
     """
     meta = self._fromCSVXML(fileName)
     # if we have meta, use it to load data, as it will be efficient to read from
@@ -1829,8 +1859,9 @@ class DataSet(DataObject):
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
+      # we can infer dimensionality from the user-specified settings
       provided = set(self._identifyVariablesInCSV(fileName))
-      dims = {}
+      dims = dict((v, i) for v, i in self.getDimensions().items() if len(i)>0)
     # check provided match needed
     needed = set(self._orderedVars)
     missing = needed - provided
@@ -2056,18 +2087,19 @@ class DataSet(DataObject):
       toRemove = []
       ## TODO doesn't work for time-dependent requests!
       genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
-      for child in genNode:
-        if child.tag in ['inputs','outputs','pointwise_meta']:
-          vs = []
-          for var in child.text.split(','):
-            if var.strip() in keep:
-              vs.append(var)
-          if len(vs) == 0:
-            toRemove.append(child)
-          else:
-            child.text = ','.join(vs)
-      for r in toRemove:
-        genNode.remove(r)
+      if genNode is not None:
+        for child in genNode:
+          if child.tag in ['inputs','outputs','pointwise_meta']:
+            vs = []
+            for var in child.text.split(','):
+              if var.strip() in keep:
+                vs.append(var)
+            if len(vs) == 0:
+              toRemove.append(child)
+            else:
+              child.text = ','.join(vs)
+        for r in toRemove:
+          genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:

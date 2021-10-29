@@ -27,6 +27,7 @@ from .InputDataUser import InputDataUser
 from .MessageUser import MessageUser
 from .BaseType import BaseType
 from .BaseEntity import BaseEntity
+from .PluginReadyEntity import PluginReadyEntity
 from .Assembler import Assembler
 from .BaseInterface import BaseInterface
 

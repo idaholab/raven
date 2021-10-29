@@ -13,56 +13,101 @@
 # limitations under the License.
 """
   Created on May 8, 2018
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
 from EntityFactoryBase import EntityFactory
 
 ################################################################################
+from .SupervisedLearning import SupervisedLearning
 
-from SupervisedLearning.SupervisedLearning import supervisedLearning
-# Forward Samplers
-from SupervisedLearning.ARMA               import ARMA
-from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
-from SupervisedLearning.HDMRRom            import HDMRRom
-from SupervisedLearning.MSR                import MSR
-from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
-from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
-from SupervisedLearning.NDsplineRom        import NDsplineRom
-from SupervisedLearning.SciKitLearn        import SciKitLearn
-from SupervisedLearning.SyntheticHistory   import SyntheticHistory
-from SupervisedLearning.pickledROM         import pickledROM
-from SupervisedLearning.PolyExponential    import PolyExponential
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
-from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
-from .KerasClassifier import KerasClassifier
-from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
-from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
-from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
-from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
+## internal developed or customized ROM
+from .GaussPolynomialRom import GaussPolynomialRom
+from .HDMRRom            import HDMRRom
+from .MSR                import MSR
+from .NDinvDistWeight    import NDinvDistWeight
+from .NDspline           import NDspline
+from .SyntheticHistory   import SyntheticHistory
+from .pickledROM         import pickledROM
+from .PolyExponential    import PolyExponential
+from .DynamicModeDecomposition import DMD
+from .ARMA               import ARMA
+from .ROMCollection      import Segments, Clusters, Interpolated
 
+## Tensorflow-Keras Neural Network Models
+from .KerasMLPClassifier import KerasMLPClassifier
+from .KerasConvNetClassifier import KerasConvNetClassifier
+from .KerasLSTMClassifier import KerasLSTMClassifier
+from .KerasLSTMRegression import KerasLSTMRegression
+
+## import ScikitLearn models
+# DiscriminantAnalysis
+from .ScikitLearn.DiscriminantAnalysis import LinearDiscriminantAnalysis
+from .ScikitLearn.DiscriminantAnalysis import QuadraticDiscriminantAnalysis
+# LinearModel
+from .ScikitLearn.LinearModel.ARDRegression import ARDRegression
+from .ScikitLearn.LinearModel.BayesianRidge import BayesianRidge
+from .ScikitLearn.LinearModel.ElasticNet import ElasticNet
+from .ScikitLearn.LinearModel.ElasticNetCV import ElasticNetCV
+from .ScikitLearn.LinearModel.Lars import Lars
+from .ScikitLearn.LinearModel.LarsCV import LarsCV
+from .ScikitLearn.LinearModel.Lasso import Lasso
+from .ScikitLearn.LinearModel.LassoCV import LassoCV
+from .ScikitLearn.LinearModel.LassoLars import LassoLars
+from .ScikitLearn.LinearModel.LassoLarsCV import LassoLarsCV
+from .ScikitLearn.LinearModel.LassoLarsIC import LassoLarsIC
+from .ScikitLearn.LinearModel.LinearRegression import LinearRegression
+from .ScikitLearn.LinearModel.LogisticRegression import LogisticRegression
+from .ScikitLearn.LinearModel.MultiTaskElasticNet import MultiTaskElasticNet
+from .ScikitLearn.LinearModel.MultiTaskElasticNetCV import MultiTaskElasticNetCV
+from .ScikitLearn.LinearModel.MultiTaskLasso import MultiTaskLasso
+from .ScikitLearn.LinearModel.MultiTaskLassoCV import MultiTaskLassoCV
+from .ScikitLearn.LinearModel.OrthogonalMatchingPursuit import OrthogonalMatchingPursuit
+from .ScikitLearn.LinearModel.OrthogonalMatchingPursuitCV import OrthogonalMatchingPursuitCV
+from .ScikitLearn.LinearModel.PassiveAggressiveClassifier import PassiveAggressiveClassifier
+from .ScikitLearn.LinearModel.PassiveAggressiveRegressor import PassiveAggressiveRegressor
+from .ScikitLearn.LinearModel.Perceptron import Perceptron
+from .ScikitLearn.LinearModel.Ridge import Ridge
+from .ScikitLearn.LinearModel.RidgeCV import RidgeCV
+from .ScikitLearn.LinearModel.RidgeClassifier import RidgeClassifier
+from .ScikitLearn.LinearModel.RidgeClassifierCV import RidgeClassifierCV
+from .ScikitLearn.LinearModel.SGDClassifier import SGDClassifier
+from .ScikitLearn.LinearModel.SGDRegressor import SGDRegressor
+# NaiveBayes
+from .ScikitLearn.NaiveBayes.ComplementNBClassifier import ComplementNB
+from .ScikitLearn.NaiveBayes.CategoricalNBClassifier import CategoricalNB
+from .ScikitLearn.NaiveBayes.BernoulliNBClassifier import BernoulliNB
+from .ScikitLearn.NaiveBayes.MultinomialNBClassifier import MultinomialNB
+from .ScikitLearn.NaiveBayes.GaussianNBClassifier import GaussianNB
+# NeuralNetwork
+from .ScikitLearn.NeuralNetwork.MLPClassifier import MLPClassifier
+from .ScikitLearn.NeuralNetwork.MLPRegressor import MLPRegressor
+# GaussianProcess
+from .ScikitLearn.GaussianProcess.GaussianProcessClassifier import GaussianProcessClassifier
+from .ScikitLearn.GaussianProcess.GaussianProcessRegressor import GaussianProcessRegressor
+# MultiClass
+from .ScikitLearn.MultiClass.OneVsOneClassifier import OneVsOneClassifier
+from .ScikitLearn.MultiClass.OneVsRestClassifier import OneVsRestClassifier
+from .ScikitLearn.MultiClass.OutputCodeClassifier import OutputCodeClassifier
+# Neighbors
+from .ScikitLearn.Neighbors.KNeighborsClassifier import KNeighborsClassifier
+from .ScikitLearn.Neighbors.NearestCentroidClassifier import NearestCentroid
+from .ScikitLearn.Neighbors.RadiusNeighborsRegressor import RadiusNeighborsRegressor
+from .ScikitLearn.Neighbors.KNeighborsRegressor import KNeighborsRegressor
+from .ScikitLearn.Neighbors.RadiusNeighborsClassifier import RadiusNeighborsClassifier
+# SVM
+from .ScikitLearn.SVM.LinearSVC import LinearSVC
+from .ScikitLearn.SVM.LinearSVR import LinearSVR
+from .ScikitLearn.SVM.NuSVC import NuSVC
+from .ScikitLearn.SVM.NuSVR import NuSVR
+from .ScikitLearn.SVM.SVC import SVC
+from .ScikitLearn.SVM.SVR import SVR
+# Tree
+from .ScikitLearn.Tree.DecisionTreeClassifier import DecisionTreeClassifier
+from .ScikitLearn.Tree.DecisionTreeRegressor import DecisionTreeRegressor
+from .ScikitLearn.Tree.ExtraTreeClassifier import ExtraTreeClassifier
+from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
 ################################################################################
 
-factory = EntityFactory('supervisedLearning')
-factory.registerType('NDspline'              , NDsplineRom)
-factory.registerType('NDinvDistWeight'       , NDinvDistWeight)
-factory.registerType('NDsplineRom'           , NDsplineRom)
-factory.registerType('SciKitLearn'           , SciKitLearn)
-factory.registerType('GaussPolynomialRom'    , GaussPolynomialRom)
-factory.registerType('HDMRRom'               , HDMRRom)
-factory.registerType('MSR'                   , MSR)
-factory.registerType('ARMA'                  , ARMA)
-factory.registerType('SyntheticHistory'      , SyntheticHistory)
-factory.registerType('pickledROM'            , pickledROM)
-factory.registerType('PolyExponential'       , PolyExponential)
-factory.registerType('DMD'                   , DynamicModeDecomposition)
-factory.registerType('Segments'              , Segments)
-factory.registerType('Clusters'              , Clusters)
-factory.registerType('Interpolated'          , Interpolated)
-factory.registerType('KerasMLPClassifier'    , KerasMLPClassifier)
-factory.registerType('KerasConvNetClassifier', KerasConvNetClassifier)
-factory.registerType('KerasLSTMClassifier'   , KerasLSTMClassifier)
+factory = EntityFactory('SupervisedLearning')
+factory.registerAllSubtypes(SupervisedLearning)

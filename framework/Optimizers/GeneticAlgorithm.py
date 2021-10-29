@@ -29,11 +29,11 @@ import numpy as np
 from scipy.special import comb
 from collections import deque, defaultdict
 import xarray as xr
-import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
+from utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
@@ -141,10 +141,13 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""A node containing the criterion based on which the parents are selected. This can be a
                   fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
-                  b. \textbf{\textit{stochasticUniversalSampling}},
-                  c. \textbf{\textit{Tournament}},
-                  d. \textbf{\textit{Rank}}, or
-                  e. \textbf{\textit{randomSelection}}""")
+                  b. \textbf{\textit{tournamentSelection}},
+                  c. \textbf{\textit{rankSelection}}
+                  for all methods nParents is computed such that the population size is kept constant.
+                  \[ nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize \]
+                  solving for nParents we get:
+                  \[nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})\]
+                  This will result in a popSize a little lareger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -152,18 +155,14 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True,
-                          descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    One Point Crossover,
-                                 b.    MultiPoint Crossover,
-                                 c.    Uniform Crossover,
-                                 d.    Whole Arithmetic Recombination, or
-                                 e.    Davis’ Order Crossover.""")
+                  This includes: a.    onePointCrossover,
+                                 b.    twoPointsCrossover,
+                                 c.    uniformCrossover.""")
     crossover.addParam("type", InputTypes.StringType, True,
                        descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -182,11 +181,10 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a.    Bit Flip,
-                                 b.    Random Resetting,
-                                 c.    Swap,
-                                 d.    Scramble, or
-                                 e.    Inversion.""")
+                  This includes: a.    bitFlipMutation,
+                                 b.    swapMutation,
+                                 c.    scrambleMutation, or
+                                 d.    inversionMutation.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -216,10 +214,15 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = \frac{1}{a \times obj + b \times penalty}$.
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a \times (obj-b)}}$""")
+                  This includes: a.    invLinear: $fitness = -a \\times obj - b \\times \\Sum_{j=1}^{nConstraint} max(0,-penalty_j)$.
+                                 b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
+                                 c.    feasibleFirst: $fitness = \[ \\begin{cases}
+                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
+                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
+                                                                    \\end{cases}
+                                                                \]$""")
     fitness.addParam("type", InputTypes.StringType, True,
-                     descr=r"""[invLin, logistic]""")
+                     descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
@@ -289,7 +292,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
-    self._nParents = reproductionNode.parameterValues['nParents']
+    self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
@@ -316,12 +319,17 @@ class GeneticAlgorithm(RavenSampled):
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-    self._objCoeff = fitnessNode.findFirst('a').value
-    self._penaltyCoeff = fitnessNode.findFirst('b').value
+
+    # Check if the fitness requested is among the constrained optimization fitnesses
+    # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
+    ## TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
+    if 'Constraint' in self.assemblerObjects.keys() and self._fitnessType not in ['invLinear','feasibleFirst']:
+      self.raiseAnError(IOError, 'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {}'.format(self._fitnessType))
+    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
+    self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
-    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
-                                                                                # if other repair methods are implemented then
-                                                                                # ##TODO: make the repair type a user input
+    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
+
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -349,10 +357,10 @@ class GeneticAlgorithm(RavenSampled):
 
     meta = ['batchId']
     self.addMetaKeys(meta)
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
-    for _, init in enumerate(self._initialValues): # TODO: this should be single traj
+    for _, init in enumerate(self._initialValues):
       self._submitRun(init,0,self.getIteration(0)+1)
 
   def initializeTrajectory(self, traj=None):
@@ -382,7 +390,7 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
 
-  def _useRealization(self, info, rlz1):
+  def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
@@ -393,11 +401,9 @@ class GeneticAlgorithm(RavenSampled):
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     for t in self._activeTraj[1:]:
-      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)#, None
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)
     self.incrementIteration(traj)
     info['step'] = self.counter
-
-    rlz=copy.deepcopy(rlz1)
 
     # Developer note: each algorithm step is indicated by a number followed by the generation number
     # e.g., '5 @ n-1' refers to step 5 for generation n-1 (i.e., previous generation)
@@ -407,36 +413,91 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
+
+    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
-    acceptable = 'first' if self.counter==1 else 'accepted'
-    population = self._datasetToDataArray(rlz) # TODO: rename
-    self._collectOptPoint(population,fitness,objectiveVal)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
+
+    # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
+    if self._constraintFunctions or self._impConstraintFunctions:
+      params = []
+      for y in (self._constraintFunctions + self._impConstraintFunctions):
+        params += y.parameterNames()
+      for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
+        constraintData[p] = list(np.atleast_1d(rlz[p].data))
+    # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
+    # and all x's (individuals) in the population
+    g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+
+    g = xr.DataArray(g0,
+                     dims=['chromosome','Constraint'],
+                     coords={'chromosome':np.arange(np.shape(offSprings)[0]),
+                             'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+    ## FIXME The constraint handling is following the structure of the RavenSampled.py,
+    #        there are many utility functions that can be simplified and/or merged together
+    #        _check, _handle, and _apply, for explicit and implicit constraints.
+    #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
+    for index,individual in enumerate(offSprings):
+      newOpt = individual
+      opt = {self._objectiveVar:objectiveVal[index]}
+      for p,v in constraintData.items():
+        opt[p] = v[index]
+
+      for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+        if constraint in self._constraintFunctions:
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
+        else:
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
+
+    offSpringFitness = self._fitnessInstance(rlz,
+                                             objVar = self._objectiveVar,
+                                             a = self._objCoeff,
+                                             b = self._penaltyCoeff,
+                                             penalty = None,
+                                             constraintFunction=g,
+                                             type=self._minMax)
+
+    self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        population,fitness,age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
+        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age = self.popAge,
+                                                                                             variables = list(self.toBeSampled),
+                                                                                             population = self.population,
+                                                                                             fitness = self.fitness,
+                                                                                             newRlz = rlz,
+                                                                                             offSpringsFitness = offSpringFitness,
+                                                                                             popObjectiveVal = self.objectiveVal)
         self.popAge = age
-        self.population = population
       else:
-        self.population = population
-      self.objectiveVal = rlz[self._objectiveVar].data
-      self.fitness = fitness
+        self.population = offSprings
+        self.fitness = offSpringFitness
+        self.objectiveVal = rlz[self._objectiveVar].data
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
-      parents = self._parentSelectionInstance(population,variables=list(self.toBeSampled),fitness=fitness,nParents=self._nParents)
+      parents = self._parentSelectionInstance(self.population,
+                                              variables = list(self.toBeSampled),
+                                              fitness = self.fitness,
+                                              nParents = self._nParents)
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      childrenXover = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+      childrenXover = self._crossoverInstance(parents = parents,
+                                              variables = list(self.toBeSampled),
+                                              crossoverProb = self._crossoverProb,
+                                              points = self._crossoverPoints)
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings=childrenXover,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings = childrenXover,
+                                               distDict = self.distDict,
+                                               locs = self._mutationLocs,
+                                               mutationProb = self._mutationProb,
+                                               variables = list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
@@ -452,52 +513,41 @@ class GeneticAlgorithm(RavenSampled):
       if needsRepair:
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
-        children = copy.deepcopy(childrenMutated)
+        children = childrenMutated
       # Make sure no children are exactly similar to parents
       flag = True
       counter = 0
       while flag and counter < self._populationSize:
         counter += 1
         repeated =[]
-        for i in range(np.shape(population.data)[0]):
+        for i in range(np.shape(self.population.data)[0]):
           for j in range(i,np.shape(children.data)[0]):
-            if all(population.data[i,:]==children.data[j,:]):
+            if all(self.population.data[i,:]==children.data[j,:]):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children.data[repeated,:] = newChildren.data
+          if len(repeated)> children.shape[0] - self._populationSize:
+            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+            children.data[repeated,:] = newChildren.data
+          else:
+            children = children.drop_sel(chromosome=repeated)
         else:
           flag = False
-
-      self.batch = np.shape(children)[0]
+      # keeping the population size constant by ignoring the excessive children
+      children = children[:self._populationSize,:]
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
+
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(np.shape(daChildren)[0]):
+      for i in range(self.batch):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
-        self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
-
-  def _datasetToDataArray(self,rlzDataset):
-    """
-      Converts the realization DataSet to a DataArray
-      @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
-      @ Out, dataset, xr.dataarray, a data array containing the realization with
-                     dims = ['chromosome','Gene']
-                     chromosomes are named 0,1,2...
-                     Genes are named after variables to be sampled
-    """
-    dataset = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(rlzDataset[self._objectiveVar].data.size),
-                                      'Gene':list(self.toBeSampled)})
-    return dataset
+        self._submitRun(newRlz, traj, self.getIteration(traj))
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
@@ -514,7 +564,8 @@ class GeneticAlgorithm(RavenSampled):
     info.update({'traj': traj,
                   'step': step
                 })
-    # NOTE: explicit constraints have been checked before this!
+    # NOTE: Currently, GA treats explicit and implicit constraints similarly
+    # while box constraints (Boundary constraints) are automatically handled via limits of the distribution
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
@@ -571,7 +622,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     optPoints,fit,obj = zip(*[[x,y,z] for x,y,z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
-    if (self.counter>1 and obj[0] < self.bestObjective) or self.counter == 1:
+    if (self.counter>1 and obj[0] <= self.bestObjective and fit[0]>=self.bestFitness) or self.counter == 1:
       self.bestPoint = point
       self.bestFitness = fit[0]
       self.bestObjective = obj[0]
@@ -581,23 +632,8 @@ class GeneticAlgorithm(RavenSampled):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
-      @ Out, (acceptable, old, rejectionReason), tuple, tuple which contains the following three items:
-                                                        acceptable, str, acceptability condition for point
-                                                        old, dict, old opt point
-                                                        rejectReason, str, reject reason of opt point, or return None if accepted
     """
-    acceptable = 'accepted'
-    try:
-      old, _ = self._optPointHistory[traj][-1]
-    except IndexError:
-      # if first sample, simply assume it's better!
-      acceptable = 'first'
-      old = None
-    self._acceptHistory[traj].append(acceptable)
-    self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    rejectionReason = None
-
-    return acceptable, old, rejectionReason
+    return
 
   def checkConvergence(self, traj, new, old):
     """
@@ -649,7 +685,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     if ('p' not in kwargs.keys() or kwargs['p'] == None):
       p = 3
     else:
@@ -673,7 +709,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     ahd = self._ahd(old,new)
     self.ahd = ahd
     converged = (ahd < self._convergenceCriteria['AHD'])
@@ -771,7 +807,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    pass
+    return
 
   def _checkForImprovement(self, new, old):
     """
@@ -782,7 +818,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    return True
+    return
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -791,17 +827,77 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
-  pass
+    return
 
-  def _applyFunctionalConstraints(self, suggested, previous):
+  # * * * * * * * * * * * *
+  # Constraint Handling
+  def _handleExplicitConstraints(self, point, constraint):
     """
-      applies functional constraints of variables in "suggested" -> DENORMED point expected!
-      @ In, suggested, dict, potential point to apply constraints to
-      @ In, previous, dict, previous opt point in consideration
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
+      Computes explicit (i.e. input-based) constraints
+      @ In, point, xr.DataArray, the DataArray containing the chromosome (point)
+      @ In, constraint, external function, explicit constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
     """
-    self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
+    g = self._applyFunctionalConstraints(point, constraint)
+    return g
+
+  def _handleImplicitConstraints(self, point, opt,constraint):
+    """
+      Computes implicit (i.e. output- or output-input-based) constraints
+      @ In, point, xr.DataArray, the DataArray containing the chromosome (point)
+      @ In, opt, float, the objective value at this chromosome (point)
+      @ In, constraint, external function, implicit constraint function
+      @ out, g, float,the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    g = self._checkImpFunctionalConstraints(point, opt, constraint)
+    return g
+
+  def _applyFunctionalConstraints(self, point, constraint):
+    """
+      fixes functional constraints of variables in "point" -> DENORMED point expected!
+      @ In, point, xr.DataArray, the dataArray containing potential point to apply constraints to
+      @ In, constraint, external function, constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    # are we violating functional constraints?
+    g = self._checkFunctionalConstraints(point, constraint)
+    return g
+
+  def _checkFunctionalConstraints(self, point, constraint):
+    """
+      evaluates the provided constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, constraint, external function, explicit constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    inputs = dataArrayToDict(point)
+    inputs.update(self.constants)
+    g = constraint.evaluate('constrain', inputs)
+    return g
+
+  def _checkImpFunctionalConstraints(self, point, opt, impConstraint):
+    """
+      evaluates the provided implicit constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, opt, dict, the dictionary containing the chromosome (point)
+      @ In, impConstraint, external function, implicit constraint function
+      @ out, g, float, the value g_j(x, objVar) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x, objVar)<0$, then the contraint is violated
+    """
+    inputs = dataArrayToDict(point)
+    inputs.update(self.constants)
+    inputs.update(opt)
+
+    g = impConstraint.evaluate('implicitConstraint', inputs)
+    return g
+
+  # END constraint handling
+  # * * * * * * * * * * * *
+
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

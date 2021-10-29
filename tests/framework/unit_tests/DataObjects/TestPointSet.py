@@ -441,8 +441,10 @@ checkSame('Metadata DataSet entries',len(treeDS),1) # 2
 general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName, inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'PointSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -485,6 +487,7 @@ data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.sp
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',
            '    <general>',
+           '      <datasetName>PointSet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',

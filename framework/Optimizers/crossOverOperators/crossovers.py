@@ -22,9 +22,7 @@
 
 import numpy as np
 import xarray as xr
-import copy
 from utils import randomUtils
-from copy import deepcopy
 from scipy.special import comb
 from itertools import combinations
 
@@ -69,10 +67,10 @@ def onePointCrossover(parents,**kwargs):
       for i in range(nGenes):
         if len(point)>1:
           raise ValueError('In one Point Crossover a single crossover location should be provided!')
-        children[2*ind:2*ind+2,i] = copy.deepcopy(parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i])
+        children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
     else:
       # Each child is just a copy of the parents
-      children[2*ind:2*ind+2,:] = copy.deepcopy(parent)
+      children[2*ind:2*ind+2,:] = parent
 
   return children
 
@@ -102,8 +100,8 @@ def uniformCrossover(parents,**kwargs):
     parent1 = parentPair[0].values
     parent2 = parentPair[1].values
     children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
-    children[index]   = copy.deepcopy(children1)
-    children[index+1] = copy.deepcopy(children2)
+    children[index]   = children1
+    children[index+1] = children2
     index = index + 1
   return children
 
@@ -150,8 +148,8 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
     parent2 = parents[couples[1]].values
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
 
-    children[index]=copy.deepcopy(children1)
-    children[index+1]=copy.deepcopy(children2)
+    children[index]   = children1
+    children[index+1] = children2
     index = index + 2
 
   return children
@@ -189,8 +187,8 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
     @ Out, children1: first generated array
     @ Out, children2: second generated array
   """
-  children1 = copy.deepcopy(parent1)
-  children2 = copy.deepcopy(parent2)
+  children1 = parent1
+  children2 = parent2
 
   seqB1 = parent1.values[locL:locU+1]
   seqB2 = parent2.values[locL:locU+1]
