@@ -371,7 +371,7 @@ class PPDSS(ValidationBase):
       distanceTotal = np.zeros((y_count,z_count))
       sigma = np.zeros((y_count,z_count))
       for metric in self.metrics:
-        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+        name = "{}_{}_{}".format(metric.estimator.name, targ.split("|")[-1], feat.split("|")[-1])
       output = metric.evaluate((newfeatureData,newtargetData), multiOutput='raw_values')
       #print(output)
       for cnt2 in range(y_count):
@@ -387,15 +387,15 @@ class PPDSS(ValidationBase):
         outputDict = {}
         outputDict[name] = abs(np.atleast_1d(output[cnt]))
         outputDict['pivot_parameter'] = timeParameter
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_total_distance'] = distanceTotal[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_beta'] = featureBeta[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_beta'] = targetBeta[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_omega'] = featureOmegaNormScaled[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_omega'] = targetOmegaNorm[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_feature_D'] = featureD[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_target_D'] = targetD[cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_process_time'] = newfeatureData[1][cnt]
-        outputDict[nameTarg[1]+'_'+nameFeat[1]+'_standard_deviation'] = sigma[cnt]
+        outputDict['total_distance_'+nameTarg[1]+'_'+nameFeat[1]] = distanceTotal[cnt]
+        outputDict['feature_beta_'+nameTarg[1]+'_'+nameFeat[1]] = featureBeta[cnt]
+        outputDict['target_beta_'+nameTarg[1]+'_'+nameFeat[1]] = targetBeta[cnt]
+        outputDict['feature_omega_'+nameTarg[1]+'_'+nameFeat[1]] = featureOmegaNormScaled[cnt]
+        outputDict['target_omega_'+nameTarg[1]+'_'+nameFeat[1]] = targetOmegaNorm[cnt]
+        outputDict['feature_D_'+nameTarg[1]+'_'+nameFeat[1]] = featureD[cnt]
+        outputDict['target_D_'+nameTarg[1]+'_'+nameFeat[1]] = targetD[cnt]
+        outputDict['process_time_'+nameTarg[1]+'_'+nameFeat[1]] = newfeatureData[1][cnt]
+        outputDict['standard_deviation_'+nameTarg[1]+'_'+nameFeat[1]] = sigma[cnt]
         #print(newfeatureData[1][cnt])
         rlz.append(outputDict)
       realization_array.append(rlz)
