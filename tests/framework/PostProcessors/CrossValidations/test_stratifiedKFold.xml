@@ -23,8 +23,7 @@
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
-    <ROM name="surrogate" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
+    <ROM name="surrogate" subType="LinearRegression">
       <Features>x1,x2</Features>
       <Target>ans</Target>
       <fit_intercept>True</fit_intercept>
@@ -38,14 +37,14 @@
         <shuffle>False</shuffle>
         <random_state>10</random_state>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|mean_absolute_error</metricType>
-      </SKL>
+    <Metric name="m1" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
   </Metrics>
 
   <Distributions>

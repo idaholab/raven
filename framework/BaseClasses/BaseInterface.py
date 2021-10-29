@@ -15,16 +15,30 @@
 Created on Mar 16, 2013
 @author: crisr
 """
+from abc import ABCMeta, abstractmethod
 
-from BaseClasses import BaseType
 from utils import mathUtils
+from utils.utils import metaclass_insert
+from BaseClasses import BaseType
+from BaseClasses import Assembler
 
-class BaseInterface(BaseType):
+class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
   """
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
     to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
+
+    Entities in RAVEN request a specific Interface via the subType input attribute. Generally,
+    <Entity name="myName" subType="requestedInterface">
+      ...
+    </Entity>
+    such as
+    <Plot name="my_line" subType="GeneralPlot">
+      ...
+    </Plot>
   """
+  ################################
+  # Core API (confirmed)
   def __init__(self):
     """
       Construct.
@@ -41,17 +55,98 @@ class BaseInterface(BaseType):
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
 
+  def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
+    """
+      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
+      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
+      verbosity (xml attribute)
+      @ In, paramInput, utils.InputData.parameterInput, input data from xml
+      @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
+      @ In, globalAttributes, dict{str:object}, optional, global attributes
+      @ Out, None
+    """
+    self.variableGroups = variableGroups if variableGroups is not None else {}
+    if 'name' in paramInput.parameterValues:
+      self.name = paramInput.parameterValues['name']
+    else:
+      self.raiseAnError(IOError, 'not found name for a '+self.__class__.__name__)
+    #self.type = paramInput.getName() -> we set this in __init__, setting it here to the spec type seems sketchy
+    if self.globalAttributes is not None:
+      self.globalAttributes = globalAttributes
+    if 'verbosity' in paramInput.parameterValues:
+      self.verbosity = paramInput.parameterValues['verbosity'].lower()
+      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+    self._handleInput(paramInput)
+    self.raiseADebug('------Reading Completed for:')
+    self.printMe()
+
+  def initialize(self, *args, **kwargs):
+    """
+      Set up this interface for a particular activity
+      @ In, args, list, positional arguments
+      @ In, kwargs, dict, keyword arguments
+      @ Out, None
+    """
+    pass
+
+  @abstractmethod
+  def run(self, *args, **kwargs):
+    """
+      Main method to "do what you do".
+      @ In, args, list, positional arguments
+      @ In, kwargs, dict, keyword arguments
+      @ Out, None
+    """
+
+  ################################
+  # Utility API
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, (self.metadataKeys, self.metadataParams), tuple, (set(str),dict),
+             expected keys (empty if none) and indexes/dimensions corresponding to expected keys
+    """
+    return self.metadataKeys, self.metadataParams
+
+  def addMetaKeys(self,args, params=None):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    if params is None:
+      params = {}
+    if any(not mathUtils.isAString(a) for a in args):
+      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  def removeMetaKeys(self, args):
+    """
+      Removes keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to de-register
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys - set(args)
+    for arg in set(args):
+      self.metadataParams.pop(arg, None)
+
+  ################################
+  # API (legacy) - these should go away as we convert existing systems
   def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
     """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
+      provide a basic reading capability from the xml input file for what is common to all types in
+      the simulation than calls _readMoreXML that needs to be overloaded and used as API. Each type
+      supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, xmlNode, ET.Element, input xml
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
@@ -68,32 +163,6 @@ class BaseInterface(BaseType):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
-    """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
-      verbosity (xml attribute)
-      @ In, paramInput, InputParameter, input data from xml
-      @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
-      @ In, globalAttributes, dict{str:object}, optional, global attributes
-      @ Out, None
-    """
-    super().handleInput(paramInput)
-    self.variableGroups = variableGroups if variableGroups is not None else {}
-    if 'name' in paramInput.parameterValues:
-      self.name = paramInput.parameterValues['name']
-    else:
-      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type = paramInput.getName()
-    if self.globalAttributes is not None:
-      self.globalAttributes = globalAttributes
-    if 'verbosity' in paramInput.parameterValues:
-      self.verbosity = paramInput.parameterValues['verbosity'].lower()
-      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
-    self._handleInput(paramInput)
-    self.raiseADebug('------Reading Completed for:')
-    self.printMe()
-
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -101,7 +170,7 @@ class BaseInterface(BaseType):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
-    pass
+    super()._readMoreXML(xmlNode)
 
   def _handleInput(self, paramInput):
     """
@@ -112,6 +181,8 @@ class BaseInterface(BaseType):
     """
     pass
 
+  ################################
+  # undecided; are these still useful?
   def whoAreYou(self):
     """
       This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes
@@ -128,7 +199,7 @@ class BaseInterface(BaseType):
     """
       Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getInitParams, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -146,7 +217,7 @@ class BaseInterface(BaseType):
     """
       Function to be overloaded to inject the name and values of the parameters that might change during the simulation
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getCurrentSetting, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -168,27 +239,6 @@ class BaseInterface(BaseType):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
-
-  def provideExpectedMetaKeys(self):
-    """
-      Provides the registered list of metadata keys for this entity.
-      @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
-    """
-    return self.metadataKeys, self.metadataParams
-
-  def addMetaKeys(self,args, params={}):
-    """
-      Adds keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to register
-      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
-        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
-    """
-    if any(not mathUtils.isAString(a) for a in args):
-      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
-    self.metadataKeys = self.metadataKeys.union(set(args))
-    self.metadataParams.update(params)
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """

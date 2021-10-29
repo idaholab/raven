@@ -191,12 +191,6 @@
     </PostProcessor>
   </Models>
 
-  <Functions>
-    <External file="basicStatisticsGeneral/testFunctionComputeProbability" name="testFunctionComputeProbability">
-      <variables>x01</variables>
-    </External>
-  </Functions>
-
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -239,7 +233,6 @@
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
-      <Function class="Functions" type="External">testFunctionComputeProbability</Function>
       <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
       <Output class="DataObjects" type="PointSet">autoCorrelationTest_basicStatPP</Output>
       <Output class="OutStreams" type="Print">autoCorrelationTest_basicStatPP_dump</Output>

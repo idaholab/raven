@@ -14,10 +14,6 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
@@ -81,7 +77,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet']
+  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
@@ -206,10 +202,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias    = {'input':{},'output':{}}
+    # optional specification of the input, output, aux  variables  (needed in case of FMI/FMU export)
+    self.__vars   = {'input': [],'output': [], 'aux': []}
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
+
 
   def _readMoreXML(self,xmlNode):
     """
@@ -251,10 +250,35 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.localInputAndChecks(xmlNode)
     #################
 
+  def _setVariableList(self, type, vars):
+    """
+      Method to set the variable list (input,output,aux)
+      @ In, type, str, one of "input", "output", "aux"
+      @ In, vars, list, the list of variables
+      @ Out, None
+    """
+    assert(type in  self.__vars)
+    self.__vars[type].extend(vars)
+    self.__vars[type] = list(set(self.__vars[type]))
+    # alias system
+    if type in 'aux':
+      return
+    self._replaceVariablesNamesWithAliasSystem(self.__vars[type],type)
+
+  def _getVariableList(self, type):
+    """
+      Method to get the variable list (input,output,aux)
+      @ In, type, str, one of "input", "output", "aux"
+      @ Out, vars, list, the list of variables
+    """
+    assert(type in  self.__vars)
+    vars = self.__vars[type]
+    return vars
+
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
-      @ In , sampledVars, dict, dictionary that are going to be modified
+      @ In, sampledVars, dict or list, dictionary or list that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
       @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
                                                   (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
@@ -263,7 +287,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
                                                   names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
                                                   frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
-      @ Out, originalVariables, dict, dictionary of the original sampled variables
+      @ Out, originalVariables, dict or list, dictionary (or list) of the original sampled variables
     """
     if aliasType =='inout':
       listAliasType = ['input','output']
@@ -274,12 +298,16 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
         notFound = 2**62
-        found = sampledVars.pop(whichVar,[notFound])
-        if not np.array_equal(np.asarray(found), [notFound]):
-          if fromModelToFramework:
-            sampledVars[varFramework] = originalVariables[varModel]
-          else:
-            sampledVars[varModel]     = originalVariables[varFramework]
+        if type(originalVariables).__name__ != 'list':
+          found = sampledVars.pop(whichVar,[notFound])
+          if not np.array_equal(np.asarray(found), [notFound]):
+            if fromModelToFramework:
+              sampledVars[varFramework] = originalVariables[varModel]
+            else:
+              sampledVars[varModel]     = originalVariables[varFramework]
+        else:
+          if whichVar in sampledVars:
+            sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel
     return originalVariables
 
   def _handleInput(self, paramInput):
@@ -446,3 +474,5 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ Out, None.
     """
     pass
+
+

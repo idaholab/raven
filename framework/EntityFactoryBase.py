@@ -19,6 +19,7 @@ Created March 15, 2020
 
 from BaseClasses import MessageUser
 from BaseClasses import InputDataUser
+import PluginManager
 from utils import utils
 
 class EntityFactory(MessageUser):
@@ -34,19 +35,12 @@ class EntityFactory(MessageUser):
       @ In, returnInputParameter, bool, optional, whether this entity can use inputParams (otherwise xml)
       @ Out, None
     """
-    self.name = None                                 # name of entity, e.g. Sampler
+    super().__init__()
+    self.name = name                                 # name of entity, e.g. Sampler
     self.needsRunInfo = needsRunInfo                 # whether entity needs run info
     self.returnInputParameter = returnInputParameter # use xml or inputParams
     self._registeredTypes = {}                       # registered types for this entity
-    self._pluginFactory = None                       # plugin factory, if any; provided by Simulation
-
-  def registerPluginFactory(self, factory):
-    """
-      Creates link to plugin factory
-      @ In, factory, module, PluginFactory
-      @ Out, None
-    """
-    self._pluginFactory = factory
+    self._pluginFactory = PluginManager              # plugin factory, if any; provided by Simulation
 
   def registerType(self, name, obj):
     """
@@ -99,16 +93,17 @@ class EntityFactory(MessageUser):
     # is this from an unloaded plugin?
     # return class from known types
     try:
-      try: # DEBUGG
-        return self._registeredTypes[Type]
-      except TypeError as e:
-        print(f'DEBUGG FAILED on {self.name}.{Type} from {caller}')
-        raise e
+      return self._registeredTypes[Type]
     except KeyError:
-      # otherwise, error
-      msg = f'"{self.name}" module does not recognize type "{Type}"; '
-      msg += f'known types are: {self.knownTypes()}'
-      caller.raiseAnError(NameError, msg)
+      # is this a request from an unloaded plugin?
+      obj = self._checkInUnloadedPlugin(Type)
+      if obj is None:
+        # otherwise, error
+        msg = f'"{self.name}" module does not recognize type "{Type}"; '
+        msg += f'known types are: {", ".join(list(self.knownTypes()))}'
+        self.raiseAnError(NameError, msg)
+      else:
+        return obj
 
   def returnInstance(self, Type, **kwargs):
     """
@@ -132,15 +127,34 @@ class EntityFactory(MessageUser):
       if isinstance(cls, InputDataUser):
         base.addSub(cls.getInputSpecifications())
 
+  def instanceFromXML(self, xml):
+    """
+      Using the provided XML, return the required instance
+      @ In, xml, xml.etree.ElementTree.Element, head element for instance
+      @ In, runInfo, dict, info from runInfo
+      @ Out, kind, str, name of type of entity
+      @ Out, name, str, identifying name of entity
+      @ Out, entity, instance, object from factory
+    """
+    kind = xml.tag
+    name = xml.attrib['name']
+    entity = self.returnInstance(kind)
+    return kind, name, entity
+
+
   #############
   # UTILITIES
-  # NOTE: FUTURE, load plugins
-  # def _checkPluginLoaded(self, typeName):
-  #   """
-  #     Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
-  #     @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
-  #     @ Out, None
-  #   """
-  #   if self._pluginFactory is not None and '.' in typeName:
-  #     pluginName, remainder = typeName.split('.', maxsplit=1)
-  #     new = self._pluginFactory.finishLoadPlugin(pluginName)
+
+  def _checkInUnloadedPlugin(self, typeName):
+    """
+      Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
+      @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
+      @ Out, _checkInUnloadedPlugin, object, requested object if found or None if not.
+    """
+    if self._pluginFactory is not None and '.' in typeName:
+      pluginName, remainder = typeName.split('.', maxsplit=1)
+      loadedNew = self._pluginFactory.finishLoadPlugin(pluginName)
+      if not loadedNew:
+        return None
+      else:
+        return self._registeredTypes.get(typeName, None)

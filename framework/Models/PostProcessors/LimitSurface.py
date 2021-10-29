@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
@@ -25,14 +23,14 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes, utils, mathUtils
-import LearningGate
+from SupervisedLearning import factory as romFactory
 import GridEntities
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LimitSurface(PostProcessor):
+class LimitSurface(PostProcessorInterface):
   """
     LimitSurface filter class. It computes the limit surface associated to a dataset
   """
@@ -47,7 +45,7 @@ class LimitSurface(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurface, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputTypes.StringType)
     inputSpecification.addSub(ParametersInput)
@@ -122,11 +120,15 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity")
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
+      self.ROM = romFactory.returnInstance('KNeighborsClassifier')
+      paramDict = {'Features':list(self.parameters['targets']), 'Target':[self.externalFunction.name]}
+      self.ROM.initializeFromDict(paramDict)
+      settings = {"n_neighbors":1}
+      self.ROM.initializeModel(settings)
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
@@ -234,7 +236,7 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
 
@@ -304,7 +306,7 @@ class LimitSurface(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value

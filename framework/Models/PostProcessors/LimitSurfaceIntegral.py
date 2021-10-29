@@ -20,12 +20,12 @@ import numpy as np
 import xarray
 import math
 
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
-import LearningGate
+from SupervisedLearning import factory as romFactory
 
 
-class LimitSurfaceIntegral(PostProcessor):
+class LimitSurfaceIntegral(PostProcessorInterface):
   """
     This post-processor computes the n-dimensional integral of a Limit Surface
   """
@@ -40,7 +40,7 @@ class LimitSurfaceIntegral(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputTypes.StringType)
@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ Out, None
     """
     super().__init__()
-    from Models import factory as modelsFactory # delay import to allow definition
+    from Models.PostProcessors import factory as ppFactory # delay import to allow definition
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance
@@ -93,7 +93,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.functionS = None # evaluation classifier for the integration
     self.errorModel = None # classifier used for the error estimation
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
-    self.stat = modelsFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = ppFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
     self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
@@ -104,7 +104,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       varName = None
       if child.getName() == 'variable':
@@ -173,19 +173,25 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
-                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':list(self.variableDist.keys()),
-                                                             'Target':[self.target], 'n_jobs': -1})
+    self.functionS = romFactory.returnInstance('KNeighborsClassifier')
+    paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
+    self.functionS.initializeFromDict(paramDict)
+    ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
+    # settings = {'n_jobs': -1}
+    settings = {}
+    self.functionS.initializeModel(settings)
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
     if self.computeErrrorBounds:
       #  create a model for computing the "error"
-      self.errorModel = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
-                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':list(self.variableDist.keys()),
-                                                             'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})
+      self.errorModel = romFactory.returnInstance('KNeighborsClassifier')
+      paramDict = {'Features':list(self.variableDist.keys()), 'Target':[self.target]}
+      self.errorModel.initializeFromDict(paramDict)
+      ##FIXME set n_jobs = -1 will cause "ValueError: unsupported pickle protocol: 5"
+      # settings = {'weights': 'distance', 'n_jobs': -1}
+      settings = {'weights': 'distance'}
+      self.errorModel.initializeModel(settings)
       #modify the self.matrixDict to compute half of the "error"
       indecesToModifyOnes = np.argwhere(self.matrixDict[self.target] > 0.).flatten()
       res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))

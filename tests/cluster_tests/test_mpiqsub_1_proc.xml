@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-      <name>cluster_tests.test_mpiqsub_1_proc</name>
+    <name>cluster_tests.test_mpiqsub_1_proc</name>
     <author>alfoa</author>
     <created>2020-04-22</created>
     <classesTested>MPISimulationMode</classesTested>
@@ -10,7 +10,7 @@
       processor can be used (issue 1023)
     </description>
     <revisions>
-        <revision date="2020-04-22" author="alfoa" >This test shows that issue #1023 is fixed.</revision>
+      <revision author="alfoa" date="2020-04-22">This test shows that issue #1023 is fixed.</revision>
     </revisions>
   </TestInfo>
 

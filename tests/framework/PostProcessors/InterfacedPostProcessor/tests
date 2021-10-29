@@ -1,16 +1,4 @@
 [Tests]
-  [./interfacedPostProcessor]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP.xml'
-    csv    = 'interfacedPostProcessor/PrintPPHistorySet_dump_0.csv'
-    output = 'interfacedPostProcessor/PrintPPHistorySet_dump.xml'
-  [../]
-  [./interfacedPostProcessorParallel]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP_parallel.xml'
-    csv    = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump_0.csv'
-    output = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml'
-  [../]
   [./historySampling]
     type   = 'RavenFramework'
     input  = 'test_historySetSamplingIPP.xml'
@@ -22,7 +10,7 @@
     input  = 'test_historySetSamplingIntervalAve.xml'
     csv    = 'historySamplingIntervalAve/dump_interval_average_0.csv'
     output = 'historySamplingIntervalAve/dump_interval_average.xml historySamplingIntervalAve/1-plot_interval_average_line-scatter.pdf'
-  [../]  
+  [../]
   [./HistorySetSnapShot]
     type   = 'RavenFramework'
     input  = 'test_historySetSnapshot.xml'
@@ -63,13 +51,6 @@
     type   = 'RavenFramework'
     input  = 'test_HS2PS.xml'
     csv    = 'HS2PS/PrintPPPointSet_dump.csv'
-    output = 'HS2PS/PrintPPPointSet_dump.xml'
-  [../]
-  [./interfacedPostProcessor_PointSet]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP_pointset.xml'
-    csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
-    output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
   [../]
   [./typicalHistoryFromHS]
     type   = 'RavenFramework'
@@ -77,26 +58,11 @@
     csv    = 'TypicalHistoryFromHS/writeTypDataOut_0.csv'
     output = 'TypicalHistoryFromHS/writeTypDataOut.csv TypicalHistoryFromHS/writeTypDataOut.xml'
   [../]
-  [./RiskMeasuresDiscrete]
-    type   = 'RavenFramework'
-    input  = 'test_riskMeasuresDiscrete.xml'
-    csv    = 'RiskMeasuresDiscrete/PrintPPS_dump.csv'
-  [../]
   [./metadataUsageInInterfacePP]
     type = 'RavenFramework'
     input = 'test_metadata_usage_in_interfacePP.xml'
     output = 'metadataUsageInInterfacePP/outputDataMChistory.xml metadataUsageInInterfacePP/outputDataMChistory.csv metadataUsageInInterfacePP/historiesSetSyncronized_dump.xml'
     test_interface_only = True
-  [../]
-  [./RiskMeasuresDiscreteMultipleIE]
-    type   = 'RavenFramework'
-    input  = 'test_riskMeasuresDiscreteMultipleIE.xml'
-    csv    = 'RiskMeasuresDiscreteMultipleIE/PrintPPS_dump.csv'
-  [../]
-  [./RiskMeasuresDiscreteTimeDep]
-    type   = 'RavenFramework'
-    input  = 'test_riskMonitor.xml'
-    csv    = 'RiskMeasuresTimeDep/PrintHS_0.csv'
   [../]
   [./HStoPSoperators]
     type   = 'RavenFramework'
@@ -108,5 +74,4 @@
     input  = 'test_historySetSampling_and_sync.xml'
     csv    = 'historySetSampling_and_sync/out_synced_and_reduced_1.csv'
   [../]
-
 []

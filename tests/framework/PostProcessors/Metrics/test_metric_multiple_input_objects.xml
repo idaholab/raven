@@ -27,14 +27,14 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="SKL">mean_squared_error</Metric>
+      <Metric class="Metrics" type="Metric">mean_squared_error</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <SKL name="mean_squared_error">
-        <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    <Metric name="mean_squared_error" subType="SKL">
+      <metricType>regression|mean_squared_error</metricType>
+    </Metric>
   </Metrics>
 
   <Distributions>

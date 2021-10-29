@@ -1,0 +1,9 @@
+endtime,endtime2,cntrlvar_802,ProbabilityWeight,conditionalPb,ProbabilityWeight-endtime2,PointProbability,prefix,RAVEN_parentID,ProbabilityWeight-endtime,triggeredVariable,RAVEN_isEnding,happenedEvent
+16.0,13.52,0.99921,0.18,0.9,0.11,0.18,DET_1-1,DET_1,0.3,endtime,1.0,0.0
+16.0,13.52,0.99921,0.18,0.9,0.11,0.18,DET_2-1,DET_2,0.3,endtime,1.0,0.0
+12.0,13.52,0.99854,0.002,0.01,0.11,0.002,DET_1-2-2,DET_1-2,0.1,endtime,1.0,1.0
+12.0,13.52,0.9996,0.002,0.01,0.11,0.002,DET_2-2-2,DET_2-2,0.1,endtime,1.0,1.0
+29.8,13.52,0.99826,0.0126,0.063,0.11,0.0126,DET_1-2-1-1,DET_1-2-1,0.99,endtime,1.0,0.0
+16.0,13.52,0.99826,0.0054,0.027,0.11,0.0054,DET_1-2-1-2,DET_1-2-1,0.3,endtime,1.0,1.0
+29.8,13.52,0.99959,0.0126,0.063,0.11,0.0126,DET_2-2-1-1,DET_2-2-1,0.99,endtime,1.0,0.0
+16.0,13.52,0.99959,0.0054,0.027,0.11,0.0054,DET_2-2-1-2,DET_2-2-1,0.3,endtime,1.0,1.0

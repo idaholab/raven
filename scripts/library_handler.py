@@ -584,7 +584,7 @@ if __name__ == '__main__':
       elif args.subset == 'forge':
         # take libs from conda-forge
         src = '-c conda-forge '
-        addOptional = False
+        addOptional = args.addOptional
         limit = ['forge']
       elif args.subset == 'pip':
         src = ''

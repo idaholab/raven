@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/tensorflow_keras/keras_lstm_regression</name>
+    <author>@cogljj</author>
+    <created>2021-04-13</created>
+    <revisions>
+    </revisions>
+    <classesTested>KerasLSTMRegression</classesTested>
+    <description>
+      Test the Keras LSTM Regression using a simple sum of sine waves.
+      The data was generated in the spreadsheet LSTMRegression/sine_data.ods
+      Note that a real LSTM would need more training data.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>LSTMRegression</WorkingDir>
+    <Sequence>load, train_lstm, load2, test_lstm</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="sine_data">sine_data.csv</Input>
+    <Input name="sine_data_prev">sine_data_prev.csv</Input>
+  </Files>
+
+  <Models>
+    <ROM name="lstmROM" subType="KerasLSTMRegression">
+      <Features>prev_sum, prev_square, prev_square_sum</Features>
+      <Target>sum, square</Target>
+      <pivotParameter>index</pivotParameter>
+      <loss>mean_squared_error</loss>
+      <epochs>5</epochs>
+      <random_seed>1986</random_seed>
+      <LSTM name="lstm1">
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dense name="dense">
+      </Dense>
+      <layer_layout>lstm1, lstm2, dense</layer_layout>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <CustomSampler name="hs_sample">
+      <Source class="DataObjects" type="HistorySet">samples</Source>
+      <variable name="a" />
+      <variable name="b" />
+      <variable name="c" />
+      <variable name="d" />
+      <variable name="e" />
+      <variable name="f" />
+      <variable name="prev_sum" />
+      <variable name="prev_square" />
+      <variable name="prev_square_sum" />
+    </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">sine_data</Input>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </IOStep>
+    <IOStep name="load2">
+      <Input class="Files" type="">sine_data_prev</Input>
+      <Output class="DataObjects" type="HistorySet">prev_samples</Output>
+    </IOStep>
+    <RomTrainer name="train_lstm">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="Models" type="ROM">lstmROM</Output>
+    </RomTrainer>
+    <MultiRun name="test_lstm">
+      <Input class="DataObjects" type="HistorySet">prev_samples</Input>
+      <Model class="Models" type="ROM">lstmROM</Model>
+      <Sampler class="Samplers" type="CustomSampler">hs_sample</Sampler>
+      <Output class="DataObjects" type="HistorySet">resampled</Output>
+      <Output class="OutStreams" type="Print">out_resampled</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="samples">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>first,second,sum,square,square_sum,prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="resampled">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="prev_samples">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="out_resampled">
+      <type>csv</type>
+      <source>resampled</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
