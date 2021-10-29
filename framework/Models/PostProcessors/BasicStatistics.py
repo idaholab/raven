@@ -1363,3 +1363,27 @@ class BasicStatistics(PostProcessorInterface):
       @ Out, None
     """
     super().collectOutput(finishedJob, output)
+
+
+# module methods
+def spearmanCorrelation(self, covM):
+  """
+      This method calculates the correlation coefficient Matrix (pearson) for the given data.
+      Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
+      Biased unweighted covariance matrix,   weights is None, bias is 1
+      Unbiased weighted covariance matrix,   weights is not None, bias is 0
+      Biased weighted covariance matrix,     weights is not None, bias is 1
+      can be calcuated depending on the selection of the inputs.
+      @ In,  covM, numpy.array, [#targets,#targets] covariance matrix
+      @ Out, covM, numpy.array, [#targets,#targets] correlation matrix
+    """
+    try:
+      d = np.diag(covM)
+    except ValueError:
+      # scalar covariance
+      # nan if incorrect value (nan, inf, 0), 1 otherwise
+      return covM / covM
+    stdDev = np.sqrt(d)
+    covM /= stdDev[:,None]
+    covM /= stdDev[None,:]
+    return covM
