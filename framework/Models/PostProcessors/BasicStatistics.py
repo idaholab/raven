@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa, wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import scipy as sc
@@ -1093,7 +1091,9 @@ class BasicStatistics(PostProcessorInterface):
     #
     # spearman matrix
     #
-    # see comments in covariance for notes on C implementation
+    # see RAVEN theory manual for a detailed explaination
+    # of the formulation used here
+    #
     metric = 'spearman'
     targets,features,skip = startVector(metric)
     if not skip:
