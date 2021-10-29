@@ -52,8 +52,8 @@
     </PointSet>
     <HistorySet name="pp2_out">
       <Output>
-          x1_x2_dss,x1_x2_total_distance,x1_x2_process_time,x1_x2_standard_deviation,
-          y1_y2_dss,y1_y2_total_distance,y1_y2_process_time,y1_y2_standard_deviation
+          x2_x1_dss,x2_x1_total_distance,x2_x1_process_time,x2_x1_standard_deviation,
+          y2_y1_dss,y2_y1_total_distance,y2_y1_process_time,y2_y1_standard_deviation
       </Output>
       <options>
         <pivotParameter>pivot_parameter</pivotParameter>
