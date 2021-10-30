@@ -33,7 +33,7 @@ Note all install methods after "main" take
     <h5py>2.10</h5py>
     <numpy>1.18</numpy>
     <scipy>1.2</scipy>
-    <scikit-learn>0.21</scikit-learn>
+    <scikit-learn>1.0</scikit-learn>
     <pandas>1.1</pandas>
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
@@ -61,6 +61,7 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <python-sensors source='pip'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
