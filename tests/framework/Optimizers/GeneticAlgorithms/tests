@@ -289,4 +289,14 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+  [./failureOfRuns]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/failureOfRuns.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []
