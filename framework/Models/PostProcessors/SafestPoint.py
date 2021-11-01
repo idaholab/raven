@@ -339,7 +339,6 @@ class SafestPoint(PostProcessorInterface):
     inputIn={}
     inputIn['Data'] = [[self.controllableOrd,self.controllableOrd,z]]
     rlz['ExpectedSafestPointCoordinates'] = self.stat.run(inputIn)
-    # rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
     self.raiseADebug(rlz['ExpectedSafestPointCoordinates'])
     return rlz
 
