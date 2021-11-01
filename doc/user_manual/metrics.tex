@@ -70,8 +70,7 @@ The metrics, that are available in RAVEN, can be categorized into several main c
   \item \textbf{Other metric}, such as \xmlString{DTW}.
 \end{itemize}
 
-The valid \textbf{MetricID}s are: \xmlAttr{SKL}, \xmlAttr{ScipyMetric}, \xmlAttr{DTW}, \xmlAttr{CDFAreaDifference},
-and \xmlAttr{PDFCommonArea}. This XML node requires the following attributes:
+The valid \textbf{MetricID}s are: \xmlAttr{SKL}, \xmlAttr{ScipyMetric}, \xmlAttr{DTW}, \xmlAttr{CDFAreaDifference}, \xmlAttr{PDFCommonArea}, and \xmlAttr{DSS}. This XML node requires the following attributes:
 \begin{itemize}
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this metric. \nb As with other
     objects, this name can be used to refer to this specific entity from other input blocks in the XML.
@@ -599,3 +598,33 @@ in previous sections.
 
 In addition to this XML subnode, the users can also specify the corresponding parameters for each `metric' according to
 previous sections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamical System Scaling}
+\label{subsection:DSS}
+The Dynamical System Scaling (DSS) is a distance metrics that is used to measure the separation
+between two time-dependent data sets.
+
+The specifications of a DSS metric is defined within the \xmlNode{Metric} XML block. The attribute \xmlAttr{subType} must be \textbf{PPDSS} (see \ref{subsubsec:Validation}) in the \xmlNode{PostProcessor} for the outputs of the post-processor to be in the right format for DSS metric inputs.
+
+This XML node needs to contain the attributes:
+
+\begin{itemize}
+  \item \xmlNode{actionType}, \xmlDesc{string, required field}, the type time scaling selected for post-processor PPDSS (see \ref{subsubsec:Validation}).
+                                                                The options are: `DataSynthesis', `2_2_affine', `dilation', `beta_strain', `omega_strain', and `identity'.
+\end{itemize}
+
+An example of DSS  defined in RAVEN is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <Metric name="example" subType="DSS">
+      <actionType>DataSynthetic</actionType>
+    </Metric>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
