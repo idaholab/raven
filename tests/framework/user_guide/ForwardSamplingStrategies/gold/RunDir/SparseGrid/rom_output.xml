@@ -2,7 +2,7 @@
   <ROM type="Dynamic">
     <general>
       <ROM>
-        <type>GAUSSgpcROM(r-t)</type>
+        <type>GAUSSgpcROM</type>
       </ROM>
     </general>
     <t value="0.0">

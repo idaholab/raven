@@ -581,20 +581,28 @@ class DataSet(DataObject):
           index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)# should we add options=options to this one as well?
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, first=first, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # if as Dataset convert it
       if asDataSet:
-        rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
-        rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
-        dims = self.getDimensions()
-        for index, rl in enumerate(rlzs):
-          d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
-          rlz[index] =  xr.Dataset.from_dict(d)
-        rlz = xr.concat(rlz,dim=self.sampleTag)
+        if not isinstance(rlz, xr.Dataset):
+          rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
+          rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
+          dims = self.getDimensions()
+          for index, rl in enumerate(rlzs):
+            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+            rlz[index] =  xr.Dataset.from_dict(d)
+          if len(rlzs) > 1:
+            # concatenate just in case there are multiple realizations
+            rlz = xr.concat(rlz,dim=self.sampleTag)
+          else:
+            # the following ".copy(deep=True)" is required because of a bug in expend_dims
+            # see https://github.com/pydata/xarray/issues/2891
+            # FIXME: remove ".copy(deep=True)" once xarray mainstream fixes it
+            rlz = rlz[0].expand_dims(self.sampleTag).copy(deep=True)
       return index, rlz
 
   def remove(self,variable):
@@ -1684,7 +1692,7 @@ class DataSet(DataObject):
     return rlz
 
   # @profile
-  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False):
+  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False, first=True):
     """
       Obtains a realization from the data storage using the provided matching (or antimatching) dictionaries.
       For "match", valid entries must be within tol of the provided value for each variable
@@ -1692,11 +1700,23 @@ class DataSet(DataObject):
       @ In, match, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must
+                          be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}).
+                          This can be used only if "first" ==> True. Otherwise we return a Dataset directly
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (rr, rlz), tuple ( (int, dict) or (list(int), Dataset) ), where:
+                                     first element:
+                                       if first:  rr, int, index where match was found OR size of data if not found
+                                       else    :  rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlz, Dataset, Dataset of matching realizatiions
     """
     assert(self._data is not None)
+    if unpackXArray:
+      assert (first)
+
     if match is None:
       match = {}
     if noMatch is None:
@@ -1737,16 +1757,16 @@ class DataSet(DataObject):
         else:
           for val in vals:
             mask *= np.logical_not(self._data[var] == val)
-        # if all potential matches eliminated, stop looking
+        # if all potential  matches eliminated, stop looking
         if sum(mask) == 0:
           break
 
     rlz = self._data.where(mask,drop=True)
     try:
-      idx = rlz[self.sampleTag].item(0)
+      rr = rlz[self.sampleTag].item(0) if first else rlz[self.sampleTag].data.tolist()
     except IndexError:
       return len(self),None
-    return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
+    return (rr, self._getRealizationFromDataByIndex(rr, unpackXArray)) if first else (rr, rlz)
 
   def _getRequestedElements(self, options):
     """
