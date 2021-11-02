@@ -63,6 +63,75 @@ class Probabilistic(Validation):
     self.name = 'Probabilistic'
     # self.pivotParameter = None
 
+
+  def inputToInternal(self, currentInputs):
+    """
+      Method to convert an input object into the internal format that is
+      understandable by this pp.
+      @ In, currentInputs, list or DataObject, data object or a list of data objects
+      @ Out, measureList, list of (feature, target), the list of the features and targets to measure the distance between
+    """
+    if type(currentInputs) != list:
+      currentInputs = [currentInputs]
+    hasPointSet = False
+    hasHistorySet = False
+    #Check for invalid types
+    for currentInput in currentInputs:
+      inputType = None
+      if hasattr(currentInput, 'type'):
+        inputType = currentInput.type
+
+      if isinstance(currentInput, Files.File):
+        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+      elif isinstance(currentInput, Distributions.Distribution):
+        pass #Allowed type
+      elif inputType == 'HDF5':
+        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+      elif inputType == 'PointSet':
+        hasPointSet = True
+      elif inputType == 'HistorySet':
+        hasHistorySet = True
+        if self.multiOutput == 'raw_values':
+          self.dynamic = True
+          if self.pivotParameter not in currentInput.getVars('indexes'):
+            self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
+          if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+            self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
+          pivotValues = currentInput.asDataset()[self.pivotParameter].values
+          if len(self.pivotValues) == 0:
+            self.pivotValues = pivotValues
+          elif set(self.pivotValues) != set(pivotValues):
+            self.raiseAnError(IOError, "Pivot values for pivot parameter",self.pivotParameter, "in provided HistorySets are not the same")
+      else:
+        self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
+    if self.multiOutput == 'raw_values' and hasPointSet and hasHistorySet:
+        self.multiOutput = 'mean'
+        self.raiseAWarning("Reset 'multiOutput' to 'mean', since both PointSet and HistorySet are provided as Inputs. Calculation outputs will be aggregated by averaging")
+
+    measureList = []
+
+    for cnt in range(len(self.features)):
+      feature = self.features[cnt]
+      target = self.targets[cnt]
+      featureData =  self.__getMetricSide(feature, currentInputs)
+      targetData = self.__getMetricSide(target, currentInputs)
+      measureList.append((featureData, targetData))
+
+    return measureList
+
+  def initialize(self, features, targets, **kwargs):
+    """
+      Set up this interface for a particular activity
+      @ In, features, list, list of features
+      @ In, targets, list, list of targets
+      @ In, kwargs, dict, keyword arguments
+    """
+    super().initialize(features, targets, **kwargs)
+
+=======
+>>>>>>> 1b84d31b85acf621ebbf11073968d64590bc4e0b
+
+>>>>>>> 0208f7c19748198fc9c81c5415dfbe1e4b21ac91:framework/Models/PostProcessors/Validations/Probabilistic.py
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.

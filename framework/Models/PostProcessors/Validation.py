@@ -205,75 +205,13 @@ class Validation(PostProcessorReadyInterface):
             "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
 
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case it loads the
-      results to specified dataObject
-      @ In, inputIn, list, dictionary of data to process
-      @ Out, outputDict, dict, dictionary containing the post-processed results
-    """
-    # assert
-    assert(isinstance(inputIn, list))
-    assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
-    # the input can be either be a list of dataobjects or a list of datasets (xarray)
-    datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
-    names = []
-    pivotParameter = self.pivotParameter
-    if isinstance(inputIn[0], DataObjects.DataSet):
-      names =  [inp.name for inp in inputIn]
-      if len(inputIn[0].indexes) and self.pivotParameter is None:
-        if 'dynamic' not in self.model.dataType:
-          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn[0].name))
-        else:
-          pivotParameter = inputIn[0].indexes[0]
-    #  check if pivotParameter
-    if pivotParameter:
-      #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
-      if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-      if not all([True if pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
+  # Each individual validation pp should implement their own run method.
+  # def run(self, input):
 
-    if pivotParameter:
-      if len(datasets[0][pivotParameter]) != len(list(evaluation.values())[0]):
-        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
-      if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = datasets[0][pivotParameter]
-    return evaluation
-
-
-  ### utility functions
-
-  def _getDataFromDatasets(self, datasets, var, names=None):
+  @staticmethod
+  def getDataSetName(ds):
     """
-      Utility function to retrieve the data from datasets
-      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
-      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
-      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
-      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
     """
-    data = None
-    pw = None
-    dat = None
-    if "|" in var and names is not None:
-      do, feat =  var.split("|")
-      doindex = names.index(do)
-      dat = datasets[doindex][feat]
-    else:
-      for doindex, ds in enumerate(datasets):
-        if var in ds:
-          dat = ds[var]
-          break
-    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
-    elif 'ProbabilityWeight' in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight'].values
-    dim = len(dat.shape)
-    # (numRealizations,  numHistorySteps) for MetricDistributor
-    dat = dat.values
-    if dim == 1:
-      #  the following reshaping does not require a copy
-      dat.shape = (dat.shape[0], 1)
-    data = dat, pw
-    return data
+    datasetMeta = ds.attrs['DataSet'].getRoot()
+    name = xmlUtils.findPath(datasetMeta, 'general/datasetName').text
+    return name
