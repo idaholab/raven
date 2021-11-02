@@ -59,6 +59,11 @@
     heavy = true
   [../]
 
+  [./hdf5_long_array_strings]
+    type = 'RavenFramework'
+    input = 'test_hdf5_long_array_strings'
+    output = 'HDF5_with_strings/reprint_hs.csv'
+  [../]
 
 []
 

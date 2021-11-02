@@ -1110,3 +1110,30 @@ def computeCrowdingDistance(trainSet):
 
   crowdingDist = np.sum(distMat,axis=1)
   return crowdingDist
+
+
+def getBuiltinTypes(typ):
+  """
+    Method to get a dictionary of builtin types
+    @ In, typ, str, the type to get
+    @ Out, bTypes, list, the list of type instances
+  """
+  import builtins as b
+  bTypes = {k:[t] for k, t in b.__dict__.items() if isinstance(t, type)}.get(typ,[])
+  return bTypes
+
+def getNumpyTypes(typ):
+  """
+    Method to get a dictionary of numpy types
+    @ In, typ, str, the type to get
+    @ Out, bTypes, list, the list of type instances
+  """
+  bTypes = []
+  if typ in np.sctypes:
+    bTypes += np.sctypes[typ]
+  else:
+    for t in np.sctypes['others']:
+      if typ in t.__name__:
+        bTypes.append(t)
+  return bTypes
+
