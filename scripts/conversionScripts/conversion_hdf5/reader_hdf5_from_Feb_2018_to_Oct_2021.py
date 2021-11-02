@@ -60,7 +60,7 @@ def _loads(val):
 #  *************************
 #
 
-class OldHDF5Database(InputDataUser, MessageUser):
+class AfterFeb2018ToOct2021HDF5Database(InputDataUser, MessageUser):
   """
     class to create a h5py (hdf5) database
   """
