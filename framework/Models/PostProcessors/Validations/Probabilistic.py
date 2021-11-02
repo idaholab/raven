@@ -28,10 +28,10 @@ import xarray as xr
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from ..Validation import Validation
+from ..ValidationBase import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Probabilistic(Validation):
+class Probabilistic(ValidationBase):
   """
     Probabilistic is a base class for validation problems
     It represents the base class for most validation problems

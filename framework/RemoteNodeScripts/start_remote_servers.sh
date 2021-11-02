@@ -41,16 +41,16 @@ function display_usage()
 	echo '    start_remote_servers.sh'
 	echo ''
 	echo '  Description:'
-	echo '      This script is in charge for instanciating ray servers in remote nodes'
+	echo '      This script is in charge for instantiating ray servers in remote nodes'
 	echo '  ------------------------------------------'
 	echo ''
 	echo '  Options:'
 	echo '    --help'
 	echo '      Displays this text and exits'
-    echo ''
-    echo '    --remote-node-address'
-    echo '      Remote node address (ssh into)'
-    echo ''
+  echo ''
+  echo '    --remote-node-address'
+  echo '      Remote node address (ssh into)'
+  echo ''
 	echo '    --address'
 	echo '      Head node address'
 	echo ''
@@ -72,7 +72,6 @@ function display_usage()
 	echo '     --working-dir'
 	echo '      The workind directory'
 	echo ''
- 
 }
 
 # main
@@ -174,5 +173,3 @@ then
 else
   ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $REMOTE_BASH"
 fi
-
-

@@ -413,6 +413,9 @@ def numpyNearestMatch(findIn,val):
     @ In, val, float or other compatible type, the value for which to find a match
     @ Out, returnMatch, tuple, index where match is and the match itself
   """
+  findIn = np.asarray(findIn)
+  if len(findIn.shape) == 1:
+    findIn = findIn.reshape(-1,1)
   dist = distance(findIn,val)
   idx = dist.argmin()
   #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
