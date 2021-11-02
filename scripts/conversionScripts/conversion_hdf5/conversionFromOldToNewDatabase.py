@@ -36,8 +36,9 @@ if __name__=='__main__':
   if not os.path.isfile(oldDataBase):
     raise IOError('ERROR: File not found:',oldDataBase)
   os.path.dirname(oldDataBase)
-  oldDatabase = OldHDF5Database("old_database", os.path.dirname(oldDataBase),os.path.basename(oldDataBase))
-  newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), mh, os.path.basename(newDataBase), False)
+  
+  oldDatabase = OldHDF5Database("old_database", os.path.dirname(oldDataBase), os.path.basename(oldDataBase), False)
+  newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), os.path.basename(newDataBase), False)
   historyNames = oldDatabase.retrieveAllHistoryNames()
 
   for hist in historyNames:
