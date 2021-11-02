@@ -28,19 +28,12 @@ mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 
 if __name__=='__main__':
-  
+  if len(sys.argv) != 4:
+      raise IOError('Expected 3 arguments, the filename of the database to convert, the new filename and the version of the old database, but instead got %i: %s' %(len(sys.argv)-1,sys.argv[1:]))
+  oldDataBase = sys.argv[1]
+  newDataBase = sys.argv[2]
+  hdf5Version = sys.argv[3].strip()
 
-  
-  #if len(sys.argv) != 4:
-  #    raise IOError('Expected 3 arguments, the filename of the database to convert, the new filename and the version of the old database, but instead got %i: %s' %(len(sys.argv)-1,sys.argv[1:]))
-  #oldDataBase = sys.argv[1]
-  #newDataBase = sys.argv[2]
-  #hdf5Version = sys.argv[3].strip()
-  
-  oldDataBase = "testGridRavenDatabase.h5" 
-  newDataBase = "a.h5"
-  hdf5Version =  "Oct2021"
-  
   sameFileName = oldDataBase == newDataBase
   if sameFileName:
     raise IOError('The filenames must be different!!!')
@@ -62,23 +55,26 @@ if __name__=='__main__':
   print(historyNames)
   for hist in historyNames:
     rlz = {}
-    print("retrieving history '{}'".format(hist))
+    print("retrieving history '{}' from database '{}'" .format(hist, os.path.basename(oldDataBase)))
     # retrieve old data
     if hdf5Version == 'Jan2018':
       histData = oldDatabase.retrieveHistory(hist, filterHist='whole')
     else:
       histData = oldDatabase._getRealizationByName(hist,options = {'reconstruct':True})
     # construct rlz dictionary
-    rlz = dict(zip(histData[1]['inputSpaceHeaders'],histData[1]['inputSpaceValues']))
-    for varIndex,outputKey in enumerate(histData[1]['outputSpaceHeaders']):
-      rlz[outputKey] = histData[0][:,varIndex]
-    metadata = histData[1]['metadata'][-1]
-    rlz.update(metadata)
-    if 'SampledVarsPb' in metadata:
-      for var, value in metadata['SampledVarsPb'].items():
-        rlz['ProbabilityWeight-'+var.strip()] = value
+    if hdf5Version == 'Jan2018':
+      rlz = dict(zip(histData[1]['inputSpaceHeaders'],histData[1]['inputSpaceValues']))
+      for varIndex,outputKey in enumerate(histData[1]['outputSpaceHeaders']):
+        rlz[outputKey] = histData[0][:,varIndex]
+      metadata = histData[1]['metadata'][-1]
+      rlz.update(metadata)
+      if 'SampledVarsPb' in metadata:
+        for var, value in metadata['SampledVarsPb'].items():
+          rlz['ProbabilityWeight-'+var.strip()] = value
+    else:
+      rlz = histData[0]
     # now we have the rlz and we add it in the new database
-    print("re-adding history '{}'".format(hist))
+    print("re-adding  history '{}' into database '{}'".format(hist,os.path.basename(newDataBase)))
     newDatabase.addGroup(rlz)
   newDatabase.closeDatabaseW()
   print("CONVERSION PERFORMED!")
