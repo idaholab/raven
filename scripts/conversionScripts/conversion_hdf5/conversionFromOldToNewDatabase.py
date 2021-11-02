@@ -38,7 +38,7 @@ if __name__=='__main__':
     raise IOError('The filenames must be different!!!')
   if not os.path.isfile(oldDataBase):
     raise IOError('ERROR: File not found:',oldDataBase)
-  
+
   if hdf5Version not in ['Jan2018','Oct2021','v1']:
     raise IOError('ERROR: Only version available are :',str(['Jan2018','Oct2021','v1']))
 

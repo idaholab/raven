@@ -69,7 +69,7 @@ def _checkTypeHDF5(value, neg):
     @ Out, check, bool, the check
   """
   scalarNumpy = mathUtils.getNumpyTypes('float') + mathUtils.getNumpyTypes('int') + mathUtils.getNumpyTypes('uint')
-  scalarBultins = mathUtils.getBuiltinTypes('float') + mathUtils.getBuiltinTypes('int') 
+  scalarBultins = mathUtils.getBuiltinTypes('float') + mathUtils.getBuiltinTypes('int')
   if neg:
     check = type(value) == np.ndarray and value.dtype not in scalarNumpy and type(value) not in scalarBultins
   else:
@@ -137,13 +137,13 @@ class hdf5Database(InputDataUser, MessageUser):
       # check version
       version = self.h5FileW.attrs.get("version","None")
       if version != _hdf5DatabaseVersion:
-        self.raiseAnError(IOError,'HDF5 RAVEN version (read mode) is outdated. ' +  
-                          'Current version is "{}". '.format(_hdf5DatabaseVersion) + 
+        self.raiseAnError(IOError,'HDF5 RAVEN version (read mode) is outdated. ' +
+                          'Current version is "{}". '.format(_hdf5DatabaseVersion) +
                           'Version in HDF5 is "{}".'.format(version) +
                           'Read README file in folder ' +
-                          '"raven/scripts/conversionScripts/conversion_hdf5"' + 
-                          ' to convert your outdated HDF5 into the new format!') 
-      
+                          '"raven/scripts/conversionScripts/conversion_hdf5"' +
+                          ' to convert your outdated HDF5 into the new format!')
+
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the list "self.allGroupEnds" based on the database that already exists
       self.parentGroupName = '/'
@@ -162,7 +162,7 @@ class hdf5Database(InputDataUser, MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = '/'
       self.__createFileLevelInfoDatasets()
-      
+
 
   def __len__(self):
     """
@@ -354,7 +354,7 @@ class hdf5Database(InputDataUser, MessageUser):
     _vdumps = np.vectorize(_dumps)
     # create local dump method (no void)
     _vectDumps = lambda x: _vdumps(x,False)
-    
+
     group.attrs[b'hasScalar'] = False
     group.attrs[b'hasOther'   ] = False
     if self.variables is not None:
@@ -364,10 +364,10 @@ class hdf5Database(InputDataUser, MessageUser):
                           ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
     # get the data floats or arrays
     if self.variables is None:
-      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() 
+      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items()
                          if _checkTypeHDF5(value, False) )
     else:
-      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() 
+      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items()
                          if _checkTypeHDF5(value, False) and key in self.variables)
     # get other dtype data (strings and objects)
     dataOther    = dict( (key, np.atleast_1d(_vectDumps(value))) for (key, value) in rlz.items() if _checkTypeHDF5(value, True) )
@@ -648,4 +648,4 @@ class hdf5Database(InputDataUser, MessageUser):
 
 
 
- 
+
