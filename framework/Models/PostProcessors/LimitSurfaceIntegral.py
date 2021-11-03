@@ -23,7 +23,7 @@ import math
 from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 from SupervisedLearning import factory as romFactory
-
+from DataObjects.DataSet import DataSet
 
 class LimitSurfaceIntegral(PostProcessorInterface):
   """
@@ -256,9 +256,28 @@ class LimitSurfaceIntegral(PostProcessorInterface):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      tgt = {
+        "targets":{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])},
+        "dims": "targets"
+      }
+      # tgt['targets'] = {self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}
+      # tgt['dims'] = 'targets'
+      z = DataSet().load(dataIn=tgt, style='dict')
+      print(isinstance(z,xarray.Dataset))
+      inputIn={}
+      inputIn['Data'] = [[self.target,self.target,z]]
+      pb = self.stat.run(inputIn)[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
+        # boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
+        tgt2 = {
+        "targets":{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])},
+        "dims": "targets"
+        }
+        z2 = xarray.Dataset.from_dict(tgt2)
+        inputIn2={}
+        inputIn2['Data'] = [[self.features,self.target,z2]]
+        pb2 = self.stat.run(inputIn2)[self.computationPrefix +"_"+self.target]
+        boundError = abs(pb-pb2)
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb, boundError
