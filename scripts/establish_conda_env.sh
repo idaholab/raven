@@ -359,7 +359,7 @@ then
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
-    RAVEN_LIBS_NAME=raven_libraries
+    RAVEN_LIBS_NAME=raven_libraries_alt
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... \"${RAVEN_LIBS_NAME}\" not found in global variables or ravenrc, defaulting to ${RAVEN_LIBS_NAME}; fi
   # verbosity to print library name findings in RC file
   else
