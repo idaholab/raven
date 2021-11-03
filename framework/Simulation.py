@@ -271,7 +271,7 @@ class Simulation(MessageUser):
     self.filesDict            = {} #  for each file returns an instance of a Files class
     self.metricsDict          = {}
     self.outStreamsDict       = {}
-    self.stepSequenceList     = [] #the list of step of the simulation
+    self.__stepSequenceList     = [] #the list of step of the simulation
 
     #list of supported queue-ing software:
     self.knownQueueingSoftware = []
@@ -467,8 +467,8 @@ class Simulation(MessageUser):
       outFile = open(fileName,'w')
       outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
       outFile.close()
-    if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
-      self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
+    if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
+      self.raiseAnError(IOError,'The step list: '+str(self.__stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
 
   def initialize(self):
     """
@@ -662,7 +662,7 @@ class Simulation(MessageUser):
         self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
-          self.stepSequenceList.append(stepName.strip())
+          self.__stepSequenceList.append(stepName.strip())
       elif element.tag == 'DefaultInputFile':
         self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
@@ -713,6 +713,91 @@ class Simulation(MessageUser):
     msg=__prntDict(self.entities,msg)
     self.raiseADebug(msg)
 
+  def getEntity(self, kind, name):
+     """
+       Return an entity from RAVEN simulation
+       @ In, kind, str, type of entity (e.g. DataObject, Sampler)
+       @ In, name, str, identifier for entity (i.e. name of the entity)
+       @ Out, entity, instance, RAVEN instance (None if not found)
+     """
+     # TODO is this the fastest way to get-and-check objects?
+     kindGroup = self.entities.get(kind, None)
+     if kindGroup is None:
+       self.raiseAnError(KeyError,f'Entity kind "{kind}" not recognized! Found: {list(self.entities.keys())}')
+     entity = kindGroup.get(name, None)
+     if entity is None:
+       self.raiseAnError(KeyError,'No entity named "{name}" found among "{kind}" entities! Found: {list(self.entities[kind].keys())}')
+     return entity
+
+  def initiateStep(self, stepName):
+    """
+      This method is aimed to assemble and initialize
+      the step to make it ready to be executed
+      @ In, stepName, str, the step to initialize
+      @ Out, (stepInputDict, stepInstance), tuple, tuple of step input dictionary and step instance
+    """
+    stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
+    self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
+    self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
+    stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
+    stepInputDict['Input' ]          = []                         #set the Input to an empty list
+    stepInputDict['Output']          = []                         #set the Output to an empty list
+    #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
+    for [key,b,c,d] in stepInstance.parList:
+      #Only for input and output we allow more than one object passed to the step, so for those we build a list
+      if key == 'Input' or key == 'Output':
+        stepInputDict[key].append(self.getEntity(b,d))
+      else:
+        stepInputDict[key] = self.getEntity(b,d)
+    #add the global objects
+    stepInputDict['jobHandler'] = self.jobHandler
+    #generate the needed assembler to send to the step
+    for key in stepInputDict.keys():
+      if type(stepInputDict[key]) == list:
+        stepindict = stepInputDict[key]
+      else:
+        stepindict = [stepInputDict[key]]
+      # check assembler. NB. If the assembler refers to an internal object the relative dictionary
+      # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
+      for stp in stepindict:
+        self.generateAllAssemblers(stp)
+    return stepInputDict, stepInstance
+
+  def executeStep(self, stepInputDict, stepInstance):
+    """
+      This method is aimed to execute and finalize the step
+      (it can be splitted in 2 in case needed)
+      @ In, stepInputDict, dict, the step dictionary
+      @ In, stepInstance, instance, step instance
+      @ Out, None
+    """
+    stepInstance.takeAstep(stepInputDict)
+    #---------------here what is going on? Please add comments-----------------
+    for output in stepInputDict['Output']:
+      if "finalize" in dir(output):
+        output.finalize()
+    self.raiseAMessage('-'*2+' End step {0:50} '.format(stepInstance.name+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+
+  def finalizeSimulation(self):
+    """
+      This method is called at end of the simulation to finalize it
+      It is in charge of shutting dow the job handler and clean up the execution
+      @ In, None
+      @ Out, None
+    """
+    self.jobHandler.shutdown()
+    self.messageHandler.printWarnings()
+    # implicitly, the job finished successfully if we got here.
+    self.writeStatusFile()
+
+  def stepSequence(self):
+    """
+      Return step sequence
+      @ In, None
+      @ Out, stepSequence, list(str), list of step in sequence
+    """
+    return self.__stepSequenceList
+
   def run(self):
     """
       Run the simulation
@@ -732,46 +817,12 @@ class Simulation(MessageUser):
       self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
-    for stepName in self.stepSequenceList:
-      stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
-      self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
-      stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
-      stepInputDict['Input' ]          = []                         #set the Input to an empty list
-      stepInputDict['Output']          = []                         #set the Output to an empty list
-      #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
-      for [key,b,c,d] in stepInstance.parList:
-        #Only for input and output we allow more than one object passed to the step, so for those we build a list
-        if key == 'Input' or key == 'Output':
-          stepInputDict[key].append(self.entities[b][d])
-        else:
-          stepInputDict[key] = self.entities[b][d]
-      #add the global objects
-      stepInputDict['jobHandler'] = self.jobHandler
-      #generate the needed assembler to send to the step
-      for key in stepInputDict.keys():
-        if type(stepInputDict[key]) == list:
-          stepindict = stepInputDict[key]
-        else:
-          stepindict = [stepInputDict[key]]
-        # check assembler. NB. If the assembler refers to an internal object the relative dictionary
-        # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
-        for stp in stepindict:
-          self.generateAllAssemblers(stp)
-      #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
+    for stepName in self.__stepSequenceList:
+      stepInputDict, stepInstance = self.initiateStep(stepName)
       #running a step
-      stepInstance.takeAstep(stepInputDict)
-      #---------------here what is going on? Please add comments-----------------
-      for output in stepInputDict['Output']:
-        if self.FIXME:
-          self.raiseAMessage('This is for the filter, it needs to go when the filtering strategy is done')
-        if "finalize" in dir(output):
-          output.finalize()
-      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
-    self.jobHandler.shutdown()
-    self.messageHandler.printWarnings()
-    # implicitly, the job finished successfully if we got here.
-    self.writeStatusFile()
+      self.executeStep(stepInputDict, stepInstance)
+    # finalize the simulation
+    self.finalizeSimulation()
     self.raiseAMessage('Run complete!', forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
