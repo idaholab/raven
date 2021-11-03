@@ -8,7 +8,7 @@
 
 # ENVIRONMENT VARIABLES
 # location of conda definitions: CONDA_DEFS (defaults if not set based on OS)
-# name for raven libraries: RAVEN_LIBS_NAME (defaults to raven_libraries if not set)
+# name for raven libraries: RAVEN_LIBS_NAME (defaults to raven_libraries_alt if not set)
 
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_LIB_HANDLER=${ECE_SCRIPT_DIR}/library_handler.py
@@ -176,7 +176,7 @@ function display_usage()
 	echo '    establish_conda_env.sh'
 	echo ''
 	echo '  Description:'
-	echo '      This loads the RAVEN conda environment specified in \$RAVEN_LIBS_NAME \(default raven_libraries\).'
+	echo '      This loads the RAVEN conda environment specified in \$RAVEN_LIBS_NAME \(default raven_libraries_alt\).'
 	echo '      This script is also used for installing these libraries\; see options below.'
 	echo '  ------------------------------------------'
 	echo ''
@@ -206,11 +206,11 @@ function display_usage()
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
 	echo ''
 	echo '    --py3'
-	echo '    When installing, make raven_libraries use Python 3'
+	echo '    When installing, make raven_libraries_alt use Python 3'
 	echo ''
     echo ''
     echo '    --py2'
-    echo '    DEPRECATED: When installing, make raven_libraries use Python 2'
+    echo '    DEPRECATED: When installing, make raven_libraries_alt use Python 2'
     echo ''
     echo ''
 	echo '    --quiet'
@@ -351,12 +351,13 @@ then
     echo ... Using Python command ${PYTHON_COMMAND}
 fi
 
+RAVEN_LIBS_NAME=raven_libraries_alt
 # set raven libraries environment name, if not set
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
   export RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
-  # if not found through the RC file, will be empty string, so default to raven_libraries
+  # if not found through the RC file, will be empty string, so default to raven_libraries_alt
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
     RAVEN_LIBS_NAME=raven_libraries_alt
