@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstML</WorkingDir>
     <Sequence>FirstMLRun</Sequence>
     <batchSize>12</batchSize>
     <clusterParameters>-W block=true</clusterParameters>
