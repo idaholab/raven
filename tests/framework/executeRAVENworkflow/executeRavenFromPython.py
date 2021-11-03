@@ -60,13 +60,17 @@ for name in allSteps:
   inputs, step = ravenSim.initiateStep(name)
   #running a step
   ravenSim.executeStep(inputs, step)
-   
+  print("aaaaa "+name)
   if name == 'test_extract_for_rom_trainer':
+    print()
     # acquire and plot data from a data object while we are running the step
     ps = ravenSim.getEntity('DataObjects', 'Pointset_from_database_for_rom_trainer')
     data = ps.asDataset()# see xarray docs
     data.plot.scatter(x="DeltaTimeScramToAux", y="DG1recoveryTime", hue="CladTempThreshold")
+    # these will be saved in the working directory set by RAVEN (e.g. ./tests/framework/test_rom_trainer/)
+    plt.savefig("firstplot.png")
     data.plot.scatter(x="DeltaTimeScramToAux", y="CladTempThreshold", hue="DG1recoveryTime")
+    plt.savefig("secondplot.png")
     # modify the data before going in the rom trainer
     data['DeltaTimeScramToAux']*=1.01
 # finalize the simulation
