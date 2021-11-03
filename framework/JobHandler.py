@@ -283,7 +283,7 @@ class JobHandler(BaseType):
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
         command="ray stop"
-        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
+        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
@@ -411,14 +411,14 @@ class JobHandler(BaseType):
         if _rayAvail:
           self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
-          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
+          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir']," --raven-framework-dir",self.runInfoDict["FrameworkDir"],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
           self.raiseADebug("command is: "+command)
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localEnv["PYTHONPATH"],"-d"])
-          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
+          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         ## update list of servers
         servers.append(nodeId)
 
