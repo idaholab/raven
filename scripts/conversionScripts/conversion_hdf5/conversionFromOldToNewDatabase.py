@@ -40,19 +40,18 @@ if __name__=='__main__':
   if not os.path.isfile(oldDataBase):
     raise IOError('ERROR: File not found:',oldDataBase)
 
-  if hdf5Version not in ['Jan2018','Oct2021','v1']:
-    raise IOError('ERROR: Only version available are :',str(['Jan2018','Oct2021','v1']))
+  if hdf5Version not in ['Jan2018','Oct2021','v2.1']:
+    raise IOError('ERROR: Only version available are :',str(['Jan2018','Oct2021','v2.1']))
 
   if hdf5Version == 'Jan2018':
     oldDatabase = PriorFeb2018HDF5Database("old_database", os.path.dirname(oldDataBase), os.path.basename(oldDataBase))
   elif hdf5Version == 'Oct2021':
     oldDatabase = AfterFeb2018ToOct2021HDF5Database("old_database", os.path.dirname(oldDataBase), os.path.basename(oldDataBase), True)
-  elif hdf5Version == 'Oct2021':
+  elif hdf5Version == 'v2.1':
     oldDatabase = hdf5Database("old_database", os.path.dirname(oldDataBase), os.path.basename(oldDataBase), True)
 
   newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), os.path.basename(newDataBase), False)
   historyNames = oldDatabase.retrieveAllHistoryNames()
-  print(historyNames)
   for hist in historyNames:
     rlz = {}
     print("retrieving history '{}' from database '{}'" .format(hist, os.path.basename(oldDataBase)))

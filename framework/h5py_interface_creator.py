@@ -32,7 +32,7 @@ from BaseClasses import InputDataUser, MessageUser
 # the database version should be modified
 # everytime a new modification of the internal
 # structure of the data is performed
-_hdf5DatabaseVersion = "v1.0"
+_hdf5DatabaseVersion = "v2.1"
 
 def _dumps(val, void = True):
   """

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Mar 25, 2013
+Created on Oct 31, 2021
+based on h5py_interface_creator.py (commit e903c33d33e468464e3f9cf7be4673e857b4c68a)
+This module is a stripped version of the h5py_interface_creator.py module present in devel
+It is able to read databases generated from Feb 2018 to Oct 2021.
 
 @author: alfoa
 """
