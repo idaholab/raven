@@ -17,6 +17,7 @@ import sys
 import subprocess
 import shutil
 import get_coverage_tests
+import xmlschema
 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 conversionDir = os.path.join(scriptDir, '..', 'scripts', 'conversionScripts')
@@ -31,6 +32,8 @@ def validateTests():
   """
   print('Beginning test validation...')
   tests = get_coverage_tests.getRegressionTests(skipExpectedFails=True)
+  schema = os.path.join(scriptDir, 'XSDSchemas', 'raven.xsd')
+  mySchema = xmlschema.XMLSchema11(schema)
   res = [0, 0, 0] #run, pass, fail
   failed = {}
   devnull = open(os.devnull, "wb")
@@ -59,19 +62,18 @@ def validateTests():
 
       screenmsg = colors.neutral + startmsg + ' '
       if result == 0:
-        #run xmllint
-        schema = os.path.join(scriptDir, 'XSDSchemas', 'raven.xsd')
-        cmd = 'xmllint --noout --schema {schema} {path}'.format(schema=schema, path=fullpath)
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #collect output
-        out, err = proc.communicate()
-        result = proc.returncode
-      if result == 0: #success
+        #run xmlschema library
+        result = mySchema.is_valid(fullpath)
+      if result:# == 0: #success
         res[1] += 1
         endmsg = 'validated'
         endcolor = colors.ok
         postprint = ''
       else:
+        try:
+          err = mySchema.validate(fullpath)
+        except xmlschema.validators.exceptions.XMLSchemaValidationError as ae:
+          err = " {}".format(str(ae))
         res[2] += 1
         endmsg = 'FAILED'
         endcolor = colors.fail
@@ -79,7 +81,6 @@ def validateTests():
         if dr not in failed.keys():
           failed[dr] = []
         failed[dr].append(f)
-      #print 'maxlen: %i len(start): %i len(end): %i' %(maxlen,len(startmsg),len(endmsg))
       screenmsg += colors.neutral + ''.rjust(maxlen - len(startmsg) - len(endmsg) - 1, '.')
       screenmsg += endcolor + endmsg + colors.neutral
 

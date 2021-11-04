@@ -144,6 +144,7 @@ class EntityFactory(MessageUser):
 
   #############
   # UTILITIES
+
   def _checkInUnloadedPlugin(self, typeName):
     """
       Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
