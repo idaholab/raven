@@ -243,7 +243,6 @@ class SupervisedLearning(BaseInterface):
       featureValues = np.zeros(shape=(len(targetValues), featLen,len(self.features)))
     else:
       featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
-    self.featureShape = featureValues.shape
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
@@ -292,10 +291,11 @@ class SupervisedLearning(BaseInterface):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+
     if self.dynamicFeatures:
-      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], self.featureShape[2]))
+      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], len(self.features)))
     else:
-      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1]))
+      featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
@@ -329,15 +329,18 @@ class SupervisedLearning(BaseInterface):
     if type(edict) != dict:
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
+    stepInFeatures = 0
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+      if self.dynamicFeatures:
+        stepInFeatures = max(stepInFeatures,values[index].shape[-1])
     # construct the evaluation matrix
     if self.dynamicFeatures:
-      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], self.featureShape[2]))
+      featureValues = np.zeros(shape=(values[0].size, stepInFeatures, len(self.features)))
     else:
-      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1]))
+      featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
