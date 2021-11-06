@@ -1112,12 +1112,11 @@ Simulated Annealing Example:
           \textbf{\textit{rouletteWheel}},                   b.
           \textbf{\textit{tournamentSelection}},                   c.
           \textbf{\textit{rankSelection}}                   for all methods nParents is computed
-          such that the population size is kept constant.                   \[ nChildren = 2 \times
-          {nParents \choose 2} = nParents \times (nParents-1) = popSize \]                   solving
-          for nParents we get:                   \[nParents = ceil(\frac{1 +
-          \sqrt{1+4*popSize}}{2})\]                   This will result in a popSize a little lareger
-          than the initial one, these excessive children will be later thrawn away and only the
-          first popSize child will be kept
+          such that the population size is kept constant.                   $nChildren = 2 \times
+          {nParents \choose 2} = nParents \times (nParents-1) = popSize$                   solving
+          for nParents we get:                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
+          This will result in a popSize a little lareger than the initial one, these excessive
+          children will be later thrawn away and only the first popSize child will be kept
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods.                   This accepts subnodes that
@@ -1172,13 +1171,11 @@ Simulated Annealing Example:
 
         \item \xmlNode{fitness}: \xmlDesc{string}, 
           a subnode containing the implemented fitness functions.                   This includes:
-          a.    invLinear: $fitness = -a \\times obj - b \\times \\Sum\_{j=1}^{nConstraint}
-          max(0,-penalty\_j)$.                                  b.    logistic: $fitness =
-          \\frac{1}{1+e^{a \\times (obj-b)}}$.                                  c.    feasibleFirst:
-          $fitness = \[ \\begin{cases}
-          -obj & g\_j(x)\\geq 0 \\forall j \\
-          -obj\_{worst} - \\Sigma\_{j=1}^{J}<g\_j(x)> & otherwise \\
-          \\end{cases}                                                                 \]$
+          a.    invLinear: $fitness = -a \times obj - b \times \sum\_{j=1}^{nConstraint}
+          max(0,-penalty\_j) $.                                  b.    logistic: $fitness =
+          \frac{1}{1+e^{a \times (obj-b)}$.                                  c.    feasibleFirst:
+          $fitness = \left\{\begin{matrix} -obj & g\_j(x)\geq 0 \; \forall j \\ -obj\_{worst}-
+          \Sigma\_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right.$
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{type}: \xmlDesc{string, required}, 
