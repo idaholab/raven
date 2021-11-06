@@ -1134,7 +1134,7 @@ def getNumpyTypes(typ):
   """
   nTypes = []
   if typ in np.sctypes:
-    nTypes += np.sctypes[typ]
+    nTypes = np.sctypes[typ]
   else:
     for t in np.sctypes['others']:
       if typ in t.__name__:
