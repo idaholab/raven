@@ -1047,6 +1047,33 @@ Example:
         \item \xmlNode{degree}: \xmlDesc{integer}, 
           Specifies the degree polynomial to fit the data with.
       \end{itemize}
+
+    \item \xmlNode{rwd}:
+      TimeSeriesAnalysis algorithm for sliding window snapshots to generate features
+      The \xmlNode{rwd} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{rwd} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{signatureWindowLength}: \xmlDesc{integer}, 
+          the size of signature window, which represents as a snapshot for a certain time step;
+          typically represented as $w$ in literature, or $w\_sig$ in the code.
+
+        \item \xmlNode{featureIndex}: \xmlDesc{integer}, 
+          Index used for feature selection, which requires pre-analysis for now, will be addresses
+          via other non human work required method
+
+        \item \xmlNode{sampleType}: \xmlDesc{integer}, 
+          Indicating the type of sampling.
+
+        \item \xmlNode{seed}: \xmlDesc{integer}, 
+          Indicating random seed.
+      \end{itemize}
   \end{itemize}
 
 \hspace{24pt}
