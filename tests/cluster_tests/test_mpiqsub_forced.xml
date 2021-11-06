@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMForced</WorkingDir>
     <Sequence>FirstMForcedRun</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>

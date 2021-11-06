@@ -25,12 +25,13 @@ OUTFILE=$1
 HEAD_ADDRESS=$2
 REDIS_PASS=$3
 NUM_CPUS=$4
+RAVEN_FRAMEWORK_DIR=$5
 
 echo starting >> $OUTFILE
 
-if [ $# -eq 5 ]
+if [ $# -eq 6 ]
   then
-  REMOTE_BASH=$5
+  REMOTE_BASH=$6
   source $REMOTE_BASH >> $OUTFILE 2>&1
 fi
 
