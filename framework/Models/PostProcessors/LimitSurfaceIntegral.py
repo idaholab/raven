@@ -256,6 +256,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
+      # pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       tgt = {
         "targets":{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])},
         "dims": "targets"
