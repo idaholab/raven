@@ -166,15 +166,18 @@
   </OutStreams>
 
   <DataObjects>
-    <HistorySet name="TrainData">
+    <PointSet name="dataIn">
+        <Input>x1_init,x2_init,x3_init</Input>
+        <Output>OutplaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outputData">
       <Input>x1_init,x2_init,x3_init</Input>
       <Output>u1,y1,y2,x1,x2,x3,Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="dataIn"/>
-    <HistorySet name="outputData">
+    <HistorySet name="TrainData">
       <Input>x1_init,x2_init,x3_init</Input>
       <Output>u1,y1,y2,x1,x2,x3,Time</Output>
       <options>

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<Simulation verbosity="debug">
+<Simulation>
+
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.ParametrizedDMDC</name>
     <author>alfoa</author>
@@ -16,19 +17,11 @@
     <revisions>
       <revision author="alfoa" date="2020-12-10">Definition of the final test</revision>
     </revisions>
- 
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>DMDC/ParametrizedDMDC</WorkingDir>
-    <Sequence>
-             readTrainData,
-             DMDCTrain,
-             pickleRom,
-             stats,
-             writeOut,
-             runDMDc
-    </Sequence>
+    <Sequence>readTrainData,DMDCTrain,pickleRom,stats,writeOut,runDMDc</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -38,7 +31,7 @@
     <Input name="TrainDataFile">../trainingData/SES_22_TUYX_Selected_hs2.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
-
+  
   <Models>
     <ROM name="DMDrom" subType="DMDC">
       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
@@ -186,18 +179,18 @@
   </OutStreams>
 
   <DataObjects>
-    <HistorySet name="TrainData">
+    <PointSet name="dataIn">
+      <Input>mod,flow,u1,x1_init,x2_init,x3_init</Input>
+      <Output>OutplaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outputData">
       <Input>mod,flow,x1_init,x2_init,x3_init</Input>
       <Output>u1,y1,y2,x1,x2,x3,Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="dataIn">
-      <!-- <Input>mod,flow,u1,x1_init,x2_init,x3_init</Input>
-      <Output>OutplaceHolder</Output> -->
-    </PointSet>
-    <HistorySet name="outputData">
+    <HistorySet name="TrainData">
       <Input>mod,flow,x1_init,x2_init,x3_init</Input>
       <Output>u1,y1,y2,x1,x2,x3,Time</Output>
       <options>
