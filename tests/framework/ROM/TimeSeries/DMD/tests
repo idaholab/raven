@@ -27,14 +27,14 @@
   [./ParametrizedDMDC]
     type = 'RavenFramework'
     input = 'test_parametrized_dmdc.xml'
-    output = 'DMDC/ParametrizedDMDC/ROMpk'
+    output = 'DMDC/ParametrizedDMDC/ROMpk DMDC/ParametrizedDMDC/DMDcCxCoeff.xml'
     csv = 'DMDC/ParametrizedDMDC/outputData_0.csv DMDC/ParametrizedDMDC/outputData_1.csv'
     rel_err = 0.0001
    [../]
 
   [./UnparametrizedDMDC]
     type = 'RavenFramework'
-    input = 'test_unparameterized_dmdc.xml'
+    input = 'test_unparameterized_dmdc.xml DMDC/UnparametrizedDMDC/DMDcCxCoeff.xml'
     csv = 'DMDC/UnparametrizedDMDC/outputData_0.csv'
     rel_err = 0.0001
    [../]
