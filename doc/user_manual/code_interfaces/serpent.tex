@@ -53,6 +53,15 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
       <!-- path to your serpent executable -->
       <executable>/my/path/to/serpent/sss2</executable>
       <clargs arg="" extension=".serpent" type="input"/>
+      <clargs arg="--noplot" type="postpend"/>
+      <traceCutOff>1e-6<traceCutOff/>
+      <isotope_list>mylist.csv<isotope_list/>
+      <!-- or 
+      <isotope_list>
+        1001,290750,34078,38089,411090,451121,
+        481191,501281,531390,571450,611570,671661,882280
+      <isotope_list/>
+      -->
     </Code>
 </Models>
 \end{lstlisting}
@@ -60,7 +69,7 @@ where the \xmlNode{executable} and \xmlNode{clargs} should me modified
 to create the appropriate run command for SERPENT. In this example, the command
 to run raven is:
 \begin{lstlisting}[language=bash]
-/my/path/to/serpent/sss2 [inputFile]
+/my/path/to/serpent/sss2 [inputFile] --noplot
 \end{lstlisting}
 where the \texttt{inputFile} is defined in the \xmlNode{Files} node as:
 \begin{lstlisting}[style=XML]
@@ -68,6 +77,15 @@ where the \texttt{inputFile} is defined in the \xmlNode{Files} node as:
     <Input name="originalInput" type="">serpent_input.serpent</Input>
 </Files>
 \end{lstlisting}
+
+Two additional XML nodes can be added in the bloc:
+
+\begin{itemize}
+   \item \xmlNode{traceCutOff}, \xmlDesc{float, optional parameter},  the trace cut off density.
+   \item \xmlNode{isotope_list}, \xmlDesc{string or comma separated list, required parameter}, This node contains the list
+   of isotopes to track. If a ``csv'' is provided, the list is read from such file, otherwise the isotopes are read from the node
+   directly.
+\end{itemize}
 
 \subsubsection{Files}
 The only input file needed is a complete SERPENT input file,
