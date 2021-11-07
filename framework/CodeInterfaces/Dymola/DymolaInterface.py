@@ -340,7 +340,7 @@ class Dymola(CodeInterfaceBase):
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
-      Called by RAVEN to read the Dymola output file (.mat file). 
+      Called by RAVEN to read the Dymola output file (.mat file).
       Returns a realization with the time, and parameters and variables asked for by the user.
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -380,12 +380,12 @@ class Dymola(CodeInterfaceBase):
       raise KeyError("File structure not supported !")
       # Later : self.raiseAnError(KeyError, 'File structure not supported!')
 
-    # Reading from mat file 
+    # Reading from mat file
     # See https://openmodelica.org/doc/OpenModelicaUsersGuide/latest/technical_details.html
     # to understand the structure of the .mat file
     dataBlockMap = {}  # Map from variable name to number of data block
     columnMap = {}     # Map from variable name to corresponding column in data block
-    
+
      # Get the variables and parameters names from the Dymola model
     _names = strMatTrans(mat['name'])
     __names = []
@@ -398,7 +398,7 @@ class Dymola(CodeInterfaceBase):
           # Later :self.raiseAnError(KeyError, 'The variable: {} could not be found in the Dymola model, \
           #  Check your model and your variables syntax'.format(varName))
         index = _names.index(varName)
-        dataBlockMap[varName] = mat['dataInfo'][0][index] 
+        dataBlockMap[varName] = mat['dataInfo'][0][index]
         columnMap[varName] = mat['dataInfo'][1][index]-1
       __names = self.variablesToLoad
       print("The following variables will be loaded from the .mat results file : {}".format(__names))
@@ -408,7 +408,7 @@ class Dymola(CodeInterfaceBase):
       # systematically enter the names of variables and parameters to load OR raise an exception if too many ?
       for varName in _names:
         index = _names.index(varName)
-        dataBlockMap[varName] = mat['dataInfo'][0][index] 
+        dataBlockMap[varName] = mat['dataInfo'][0][index]
         columnMap[varName] = mat['dataInfo'][1][index]-1
       __names = _names
       print("All variables and parameters will be loaded from the model, this can cause issues \n\
@@ -416,9 +416,9 @@ class Dymola(CodeInterfaceBase):
       # Maybe Later: self.raiseADebug("All variables and parameters will be loaded from the model, this can cause issues \n\
       #  for databases if the model is too large (>300 variables and parameters)")
     # Releasing memory asap for big Dymola models
-    del _names     
+    del _names
 
-    # Extract the trajectory for the variable 'Time' 
+    # Extract the trajectory for the variable 'Time'
     timeStepsArray = np.array([mat['data_2'][0]])
 
     # Output dictionary: realization format
@@ -428,7 +428,7 @@ class Dymola(CodeInterfaceBase):
     response = {}
     traj = []
     # Filling the dictionary with the trajectories for each variable and the value of each parameter
-    for varName in __names: 
+    for varName in __names:
       if dataBlockMap[varName] == 1: #if varName is a parameter's name
         traj = np.array([ mat['data_1'][columnMap[varName]][0] ])
         # data_1 can be an nx2 matrix if the start and stop values of the parameters are saved
