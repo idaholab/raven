@@ -67,6 +67,7 @@ class RELAPparser():
     self.deckLines        = {}
     self.maxNumberOfDecks = 0
     self.presentStopTrip = {}
+    # stop trip nomenclature (either 600 or 0000600 => see below)
     self.stopTripNomenclature = '600'
     prevDeckLineNum       = 0
     self.addMinorEdits    = addMinorEdits
