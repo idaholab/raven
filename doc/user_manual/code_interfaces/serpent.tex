@@ -25,14 +25,17 @@ There are some limitations for this interface:
 \item You cannot run multiple depletion steps
 \end{itemize}
 
-Note that due to the number of isotopes to track,
-we use the \xmlNode{ExternalXML} to import from a file.
-The user must edit the \texttt{isoFile} so that it
+Due to the large number of isotopes that might be tracked,
+a utility script is provided in
+$%RAVEN_HOME%/framework/CodeInterfaces/SERPENT/utilityForCreatingVariables$
+to create the variable names that can be used in a RAVEN input file.
+
+The user can edit the \texttt{isoFile} so that it
 matches the exact isotope nomenclature used in the SERPENT simulations for the isotopes
 to be in the output csv file. To do so:
 
 \begin{enumerate}
-\item Edit \texttt{aux-input-files/isoFile} to match isotope nomenclature in SERPENT
+\item edit \texttt{isoFile} to match isotope nomenclature in SERPENT
 \item run \texttt{python generateCustomVariable.py}
 \end{enumerate}
 
@@ -41,16 +44,14 @@ used in the RAVEN input file.
 
 
 \subsubsection{Models}
-In order to run the code, make sure you have a valid SERPENT input file,
-and generated the \texttt{aux-input-files} to match the isotope nomenclature.
+In order to run the code, make sure you have a valid SERPENT input file.
 
 In the RAVEN input file, your \xmlNode{Models} node should look like:
 \begin{lstlisting}[style=XML]
 <Models>
     <Code name="SERPENT" subType="Serpent">
       <!-- path to your serpent executable -->
-      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
-      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+      <executable>/my/path/to/serpent/sss2</executable>
       <clargs arg="" extension=".serpent" type="input"/>
     </Code>
 </Models>
@@ -59,7 +60,7 @@ where the \xmlNode{executable} and \xmlNode{clargs} should me modified
 to create the appropriate run command for SERPENT. In this example, the command
 to run raven is:
 \begin{lstlisting}[language=bash]
-aprun -n 9 -d 32 /projects/sciteam/bahg/serpent/src/sss2 -omp 32 [inputFile]
+/my/path/to/serpent/sss2 [inputFile]
 \end{lstlisting}
 where the \texttt{inputFile} is defined in the \xmlNode{Files} node as:
 \begin{lstlisting}[style=XML]
@@ -164,8 +165,8 @@ The values under the isotopes are in atomic density.
   \centering
   \resizebox{\textwidth}{!}{
     \begin{tabular}{|l|l|l|l|l|l|l|}
-      \hline
-      f92235 & f94241 & deptime & eoc\_keff & boc\_keff & d92235 & d94241 \\
+      \hline eocKeff
+      f92235 & f94241 & deptime & eocKeff & bocKeff & d92235 & d94241 \\
       \hline
       6.32e-05 &  0.00 & 1.0 & 0.9694 &  9.6065 & 3.79e-03 & 7.07e-41 \\
       \hline

@@ -1,5 +1,5 @@
 
-file = '/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/Serpent/isoFile'
+file = 'isoFile'
 isotopes = []
 
 with open(file, 'r') as isofile:
@@ -11,7 +11,7 @@ with open(customVariableFile, 'w') as cvf:
   for iso in isotopes:
     cvf.write('<variable name="f' + iso + '"/> \n')
 
-featureSpace = 'eatureIsotopes.xml'
+featureSpace = 'featureIsotopes.xml'
 with open(featureSpace, 'w') as fs:
   fs.write('<Group name="featureSpace">')
   for iso in isotopes:
