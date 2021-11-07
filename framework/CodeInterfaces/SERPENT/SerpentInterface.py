@@ -14,12 +14,6 @@ Created May 9th, 2019
 
 @author: alfoa
 """
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3
-
 #External Modules--------------------begin
 import os
 import sys
@@ -46,7 +40,7 @@ class SERPENT(GenericCode):
       @ In, None
       @ Out, None
     """
-    GenericCode.__init__(self) # The base class doesn't actually implement this, but futureproofing.
+    GenericCode.__init__(self)
     self.printTag         = 'SERPENT'# Print Tag
     self.isotope_list_f   = None     # isotope list file (if any)
     self.isotopes         = []       # isotopes to collect
