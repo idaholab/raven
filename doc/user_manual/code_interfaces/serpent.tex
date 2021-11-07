@@ -27,7 +27,7 @@ There are some limitations for this interface:
 
 Due to the large number of isotopes that might be tracked,
 a utility script is provided in
-$%RAVEN_HOME%/framework/CodeInterfaces/SERPENT/utilityForCreatingVariables$
+$RAVEN_HOME/framework/CodeInterfaces/SERPENT/utilityForCreatingVariables$
 to create the variable names that can be used in a RAVEN input file.
 
 The user can edit the \texttt{isoFile} so that it
@@ -82,7 +82,7 @@ Two additional XML nodes can be added in the bloc:
 
 \begin{itemize}
    \item \xmlNode{traceCutOff}, \xmlDesc{float, optional parameter},  the trace cut off density.
-   \item \xmlNode{isotope_list}, \xmlDesc{string or comma separated list, required parameter}, This node contains the list
+   \item \xmlNode{isotope\_list}, \xmlDesc{string or comma separated list, required parameter}, This node contains the list
    of isotopes to track. If a ``csv'' is provided, the list is read from such file, otherwise the isotopes are read from the node
    directly.
 \end{itemize}
