@@ -176,6 +176,10 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     self.__dict__.update(d)
+    #FIXME: REMOVE THIS ONCE HERON GETS UPDATED WITH
+    #FIXME: NEW PICKLED ROMS
+    if 'dynamicFeatures' not in d:
+      self.dynamicFeatures = False
 
   def setEstimator(self, estimator):
     """
