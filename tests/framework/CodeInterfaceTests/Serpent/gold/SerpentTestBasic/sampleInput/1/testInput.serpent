@@ -1,6 +1,6 @@
 set title "MSBR, no Th,U-233 8.5E-11, after 400 days 7.75E-1"
 
-include "/projects/sciteam/bahg/projects/raven/framework/CodeInterfaces/SERPENT/aux-input-files/geom_file"
+include "./geom_file"
 
 % --- Fuel with UF4 mole frac of : 0.2
 mat fuel -3.35 burn 1 vol 1.95057E+07
@@ -67,10 +67,7 @@ mat nobelgs 0.00 burn 1 vol 1.0
 therm gr 900 gr05.32t gr06.32t       % 900K C-12
 
 % --- Cross section data library file path:
-
-%set acelib "/home/dkadkf/serpent/xsdata/sss_jeff32.xsdata"
-%set acelib "/projects/arfc/serpent/core/xsdata/endfb7/sss_endfb7.xsdata" %this for RCaaS
-set acelib "/projects/sciteam/bahg/serpent/xsdata/jeff312/sss_jeff312.xsdata" %this for BW
+set acelib "./serpent/xsdata/jeff312/sss_jeff312.xsdata" %this for BW
 
 
 % --- Periodic boundary condition:
@@ -94,20 +91,9 @@ set nfg  4  0.625E-6  5.5E-3  0.821
 
 set pop 30000 100 20 
 
-% --- Geometry and mesh plots:
-
-%plot 3 2000 2000 1.0
-%plot 2 2000 2000 0.0
-%mesh 3 2000 2000
-%mesh 2 2000 2000
-
 % --- Decay and fission yield libraries:
-%set declib "/home/dkadkf/serpent/xsdata/sss_jeff311.dec"
-%set nfylib "/home/dkadkf/serpent/xsdata/sss_jeff311.nfy"
-%set declib "/projects/arfc/serpent/core/xsdata/endfb7/sss_endfb7.dec" % for RCaaS
-%set nfylib "/projects/arfc/serpent/core/xsdata/endfb7/sss_endfb7.nfy" % for%RCaaS
-set declib "/projects/sciteam/bahg/serpent/xsdata/jeff312/sss_jeff33.dec"       % for BW
-set nfylib "/projects/sciteam/bahg/serpent/xsdata/jeff312/sss_jeff33.nfy"       % for BW
+set declib "./serpent/xsdata/jeff312/sss_jeff33.dec"       % for BW
+set nfylib "./serpent/xsdata/jeff312/sss_jeff33.nfy"       % for BW
 
 
 % --- Reduce energy grid size:
