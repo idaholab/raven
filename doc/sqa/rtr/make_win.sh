@@ -7,7 +7,7 @@ declare -a exts=(txt ps ds)
 
 # Functions definition ---------------------------------------------------------
 # Subroutine to remove files.
-clean_files () { 
+clean_files () {
 	# Remove ald the files with the selected suffixes.
 	for ext in "${exts[@]}"
 	do
@@ -19,10 +19,10 @@ clean_files () {
 }
 
 # Subroutine to generate files.
-gen_files () { 
+gen_files () {
         git log -1 --format="%H %an %aD" .. > ../../version.tex
-        python ../../../scripts/TestHarness/testers/RavenUtils.py --manual-list > dependencies.tex
-	python ../../../developer_tools/createSQAtracebilityMatrix.py -i ../srs/requirements_list.xml -o traceability_matrix.tex 
+        python ../../../scripts/library_handler.py manual > dependencies.tex
+	python ../../../developer_tools/createSQAtracebilityMatrix.py -i ../srs/requirements_list.xml -o traceability_matrix.tex
 	for file in "${files[@]}"
 	do
 		# Generate files.

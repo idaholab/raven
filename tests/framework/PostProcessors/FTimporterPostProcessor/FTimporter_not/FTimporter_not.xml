@@ -1,9 +1,0 @@
-<opsa-mef>
-	<define-fault-tree name="FT">
-		<define-gate name="TOP">
-		  <not>
-		     <basic-event name="BE1"/>
-		  </not>
-		</define-gate>
-	</define-fault-tree>
-</opsa-mef>

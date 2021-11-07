@@ -16,31 +16,19 @@ Created on September 12, 2016
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import collections
-import subprocess
-# try               : import Queue as queue
-# except ImportError: import queue
-import os
-import signal
-import copy
-import abc
+import sys
 import time
 import ctypes
 import inspect
-#import logging, logging.handlers
 import threading
 
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -49,29 +37,19 @@ class SharedMemoryRunner(InternalRunner):
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
+  def __init__(self, args, functionToRun, **kwargs):
     """
       Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message
-        handler object
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, identifier, string, optional, id of this job
-      @ In, metadata, dict, optional, dictionary of metadata associated with
-        this run
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to
-        this runner. For example, if present, to retrieve this runner using the
-        method jobHandler.getFinished, the uniqueHandler needs to be provided.
-        If uniqueHandler == 'any', every "client" can get this runner
-      @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
-      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ In, kwargs, dict, additional arguments to pass to base
       @ Out, None
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler, profile)
+    super().__init__(args, functionToRun, **kwargs)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
@@ -142,6 +120,7 @@ class SharedMemoryRunner(InternalRunner):
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
+      self.exceptionTrace = sys.exc_info()
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
@@ -158,7 +137,6 @@ class SharedMemoryRunner(InternalRunner):
         try:
           self.thread.raiseException(RuntimeError)
         except ValueError:
-          print('DEBUGG was already terminated....')
           self.thread = None
     self.trackTime('runner_killed')
 

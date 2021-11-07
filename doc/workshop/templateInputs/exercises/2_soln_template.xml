@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>workdir</WorkingDir>
+    <Sequence>generate_data,stats,plot</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </MultiRun>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+    </PostProcess>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Input class="DataObjects" type="PointSet">stats</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Print">stats_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,y0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+    <PostProcessor name="stats" subType="BasicStatistics">
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="results">
+      <Input>v0,y0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output></Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Print name="stats_file">
+      <type>csv</type>
+      <source>stats</source>
+      <what>input,output</what>
+    </Print>
+    <Plot name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>results|Input|y0</x>
+          <y>results|Input|angle</y>
+          <z>results|Output|r</z>
+          <colorMap>results|Output|t</colorMap>
+        </plot>
+        <xlabel>y0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>screen, png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

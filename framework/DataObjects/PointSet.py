@@ -16,8 +16,6 @@
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import sys,os
 import functools
@@ -120,23 +118,23 @@ class PointSet(DataSet):
     # data was previously formatted by _formatRealization
     # then select the point we want
     toRemove = []
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not utils.isSingleValued(val):
+      if not mathUtils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:
           method,indic = self._selectInput
         elif var in self._outputs or var in self._metavars:
           # TODO where does metadata get picked from?  Seems like output fits best?
-          method,indic = self._selectOutput
+          method, indic = self._selectOutput
         # pivot variables are included here in "else"; remove them after they're used in operators
         else:
           toRemove.append(var)
           continue
-        if method in ['inputRow','outputRow']:
+        if method in ['inputRow', 'outputRow']:
           # zero-d xarrays give false behavior sometimes
           # TODO formatting should not be necessary once standardized history,float realizations are established
           if type(val) == list:
@@ -145,10 +143,10 @@ class PointSet(DataSet):
             val = val.values
           # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
           if val.size == 1:
-            rlz[var] = float(val)
+            rlz[var] = val[0]
           else:
-            rlz[var] = float(val[indic])
-        elif method in ['inputPivotValue','outputPivotValue']:
+            rlz[var] = val[indic]
+        elif method in ['inputPivotValue', 'outputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
           pivotParam = pivotParam[var][0]
@@ -180,28 +178,32 @@ class PointSet(DataSet):
                 'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
+    startIndex = 0 if 'RAVEN_isEnding' in self.getVars() else start
     # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
     # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
     # In this case, if self.hierarchical is False, the histories are going to be reconstructed
     # (see _constructHierPaths for further explainations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
-      keep = self._getRequestedElements(kwargs)
-      toDrop = list(var for var in self.getVars() if var not in keep)
-      #FIXME: THIS IS EXTREMELY SLOW
-      full = self._constructHierPaths()[start:]
-      # set up data to write
-      mode = 'a' if start > 0 else 'w'
+      if not np.all(self._data['RAVEN_isEnding'].values):
+        keep = self._getRequestedElements(kwargs)
+        toDrop = list(var for var in self.getVars() if var not in keep)
+        #FIXME: THIS IS EXTREMELY SLOW
+        full = self._constructHierPaths()[startIndex:]
+        # set up data to write
+        mode = 'a' if startIndex > 0 else 'w'
 
-      self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
-      # get the list of elements the user requested to write
-      # order data according to user specs # TODO might be time-inefficient, allow user to skip?
-      ordered = list(i for i in self._inputs if i in keep)
-      ordered += list(o for o in self._outputs if o in keep)
-      ordered += list(m for m in self._metavars if m in keep)
-      for data in full:
-        data = data.drop(toDrop)
-        data = data.where(data[self.sampleTag]==data[self.sampleTag].values[-1],drop=True)
-        self._usePandasWriteCSV(fileName,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
-        mode = 'a'
+        self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
+        # get the list of elements the user requested to write
+        # order data according to user specs # TODO might be time-inefficient, allow user to skip?
+        ordered = list(i for i in self._inputs if i in keep)
+        ordered += list(o for o in self._outputs if o in keep)
+        ordered += list(m for m in self._metavars if m in keep)
+        for data in full:
+          data = data.drop(toDrop)
+          data = data.where(data[self.sampleTag]==data[self.sampleTag].values[-1],drop=True)
+          self._usePandasWriteCSV(fileName,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+          mode = 'a'
+      else:
+        DataSet._toCSV(self, fileName, startIndex, **kwargs)
     else:
-      DataSet._toCSV(self, fileName, start, **kwargs)
+      DataSet._toCSV(self, fileName, startIndex, **kwargs)

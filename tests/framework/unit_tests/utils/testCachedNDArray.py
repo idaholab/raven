@@ -24,6 +24,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import os,sys
 import numpy as np
 
+# numpy with version 1.14.0 and upper will change the floating point type and print
+# https://docs.scipy.org/doc/numpy-1.14.0/release.html
+if int(np.__version__.split('.')[1]) > 13:
+  np.set_printoptions(**{'legacy':'1.13'})
+
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
 from utils import cached_ndarray
@@ -93,6 +98,7 @@ checkAnswer('index min',testArray.returnIndexMin(),5)
 #test repr
 msg = str(testArray)
 right = 'array([ -3.14   ,   2.99792,   2.718  ,   8.987  ,   0.618  ,  -6.626  ,\n        12.56   ,   6.67   ])'
+
 if msg == right:
   results['pass']+=1
 else:

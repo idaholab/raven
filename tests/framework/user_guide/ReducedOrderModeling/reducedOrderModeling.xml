@@ -29,17 +29,13 @@
     <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t,x,y,timeOption</variables>
     </ExternalModel>
-    <ROM name="ROMGaussianProcess" subType="SciKitLearn">
+    <ROM name="ROMGaussianProcess" subType="GaussianProcess">
       <Features>v0,angle</Features>
       <Target>r,t</Target>
-      <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
-      <regr>quadratic</regr>
-      <theta0>10</theta0>
     </ROM>
-    <ROM name="ROMsvm" subType="SciKitLearn">
+    <ROM name="ROMsvm" subType="SVR">
       <Features>v0,angle</Features>
       <Target>r,t</Target>
-      <SKLtype>svm|SVR</SKLtype>
       <kernel>rbf</kernel>
       <C>50.0</C>
       <tol>0.000001</tol>
@@ -121,18 +117,18 @@
       <Output class="Models" type="ROM">ROMinverse</Output>
     </RomTrainer>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input  class="DataObjects"      type="HistorySet">histories</Input>
-        <Input  class="DataObjects"      type="PointSet">samples</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesGP</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesInverse</Input>
-        <Input  class="DataObjects"      type="PointSet">samplesSVM</Input>
-        <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
-        <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output class="OutStreams" type="Plot">historyPlot</Output>
-        <Output class="OutStreams" type="Print">samples</Output>
-        <Output class="OutStreams" type="Print">histories</Output>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Input class="DataObjects" type="PointSet">samplesGP</Input>
+      <Input class="DataObjects" type="PointSet">samplesInverse</Input>
+      <Input class="DataObjects" type="PointSet">samplesSVM</Input>
+      <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
+      <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
+      <Output class="OutStreams" type="Plot">historyPlot</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+      <Output class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -160,216 +156,216 @@
     <HistorySet name="histories">
       <Input>v0,angle</Input>
       <Output>x,y,r,t</Output>
-      <options> 
+      <options>
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
 
-<OutStreams>
+  <OutStreams>
     <Print name="samples">
-        <type>csv</type>
-        <source>samples</source>
+      <type>csv</type>
+      <source>samples</source>
     </Print>
     <Print name="histories">
-        <type>csv</type>
-        <source>histories</source>
+      <type>csv</type>
+      <source>histories</source>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>histories|Input|v0</x>
-                <y>histories|Output|r</y>
-                <kwargs>
-                  <color>blue</color>
-                </kwargs>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>range</ylabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>histories|Input|angle</x>
-                <y>histories|Output|r</y>
-                <kwargs>
-                  <color>orange</color>
-                </kwargs>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>angle</xlabel>
-                <ylabel>range</ylabel>
-            </plot>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|v0</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|angle</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>orange</color>
+          </kwargs>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>angle</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMgp" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMsvm" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesPlot3DROMinverse" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <gridSpace>2 1</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|v0</x>
-                <y>samples|Input|angle</y>
-                <z>samples|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samples|Input|v0</x>
+          <y>samples|Input|angle</y>
+          <z>samples|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
-</OutStreams>
+  </OutStreams>
 
 </Simulation>

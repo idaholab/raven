@@ -1,0 +1,9 @@
+[Tests]
+  [./Base]
+    type = 'RavenFramework'
+	input = 'test_neutrino_base.xml'
+	output = 'Neutrino_Base/sampleNeutrino/1/NeutrinoInput.nescene Neutrino_Base/sampleNeutrino/2/NeutrinoInput.nescene Neutrino_Base/sampleNeutrino/3/NeutrinoInput.nescene'
+	UnorderedCsv = 'Neutrino_Base/out_dump.csv'
+	test_interface_only = True
+  [../]
+[]

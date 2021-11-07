@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,16 +28,17 @@ import platform
 import shlex
 import time
 import numpy as np
+import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -59,30 +58,30 @@ class Code(Model):
     """
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
-    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
+    ClargsTypeInput = InputTypes.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
-    ClargsInput.addParam("arg", InputData.StringType, False)
-    ClargsInput.addParam("extension", InputData.StringType, False)
-    ClargsInput.addParam("delimiter", InputData.StringType, False)
+    ClargsInput.addParam("arg", InputTypes.StringType, False)
+    ClargsInput.addParam("extension", InputTypes.StringType, False)
+    ClargsInput.addParam("delimiter", InputTypes.StringType, False)
     inputSpecification.addSub(ClargsInput)
     ## End command line arguments tag
 
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsTypeInput = InputTypes.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
-    FileargsInput.addParam("arg", InputData.StringType, False)
-    FileargsInput.addParam("extension", InputData.StringType, False)
+    FileargsInput.addParam("arg", InputTypes.StringType, False)
+    FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
 
@@ -103,25 +102,34 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
-    self.executable         = ''   #name of the executable (abs path)
-    self.preExec            = None   #name of the pre-executable, if any
-    self.oriInputFiles      = []   #list of the original input files (abs path)
-    self.workingDir         = ''   #location where the code is currently running
-    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
-    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    self.printTag           = 'CODE MODEL'
-    self.createWorkingDir   = True
-    self.foundExecutable    = True # True indicates the executable is found, otherwise not found
-    self.foundPreExec       = True # True indicates the pre-executable is found, otherwise not found
-    self.maxWallTime        = None # If set, this indicates the maximum CPU time a job can take.
+    super().__init__()
+    self.executable = ''         # name of the executable (abs path)
+    self.preExec = None          # name of the pre-executable, if any
+    self.oriInputFiles = []      # list of the original input files (abs path)
+    self.workingDir = ''         # location where the code is currently running
+    self.outFileRoot = ''        # root to be used to generate the sequence of output files
+    self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
+    self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
+    self.printTag = 'CODE MODEL' # label
+    self.createWorkingDir = True # whether to create the requested working dir
+    self.foundExecutable = True  # True indicates the executable is found, otherwise not found
+    self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
+    self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
+    self._ravenWorkingDir = None # RAVEN's working dir
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self._ravenWorkingDir = runInfo['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -226,7 +234,7 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+      if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
           self.executable = os.path.expanduser(self.executable)
         abspath = os.path.abspath(str(self.executable))
@@ -236,7 +244,7 @@ class Code(Model):
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
         self.foundExecutable = False
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+        self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -246,8 +254,8 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
+    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
@@ -299,7 +307,7 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
@@ -309,13 +317,15 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
-    self.currentInputFiles        = None
-    self.outFileRoot              = None
+    self.currentInputFiles = None
+    self.outFileRoot = None
     if not self.foundExecutable:
       path = os.path.join(runInfoDict['WorkingDir'],self.executable)
       if os.path.exists(path):
@@ -359,7 +369,15 @@ class Code(Model):
     if not found:
       self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+
+    # check if in batch
+    brun = kwargs.get('batchRun')
+    if brun is not None:
+      # if batch, the subDir are a combination of prefix (batch id) and batch run id
+      bid = kwargs['prefix'] if 'prefix' in kwargs.keys() else '1'
+      subDirectory = os.path.join(self.workingDir,'b{}_r{}'.format(bid,brun))
+    else:
+      subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
@@ -370,12 +388,13 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
@@ -418,51 +437,53 @@ class Code(Model):
     executable = commandSplit[0]
 
     if os.path.exists(executable):
-      executableFile = open(executable, "r")
-
-      firstTwoChars = executableFile.read(2)
-
-      if firstTwoChars == "#!":
-        realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
-        # The below code should work, and would be better than findMsys,
-        # but it doesn't work.
-        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
-        # print("winExecutable",winExecutable)
-        # realExecutable[0] = winExecutable
-        def findMsys():
-          """
-            Function to try and figure out where the MSYS64 is.
-            @ In, None
-            @ Out, dir, String, If not None, the directory where msys is.
-          """
-          dir = os.getcwd()
-          head, tail = os.path.split(dir)
-          while True:
-            if tail.lower().startswith("msys"):
-              return dir
-            dir = head
-            head, tail = os.path.split(dir)
-          return None
-        msysDir = findMsys()
-        if msysDir is not None:
-          beginExecutable = realExecutable[0]
-          if beginExecutable.startswith("/"):
-            beginExecutable = beginExecutable.lstrip("/")
-          winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable " + winExecutable)
-          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
-            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
-              winExecutable = maybeWinExecutable
-          realExecutable[0] = winExecutable
-        else:
-          self.raiseAWarning("Could not find msys in "+os.getcwd())
-        commandSplit = realExecutable + [executable] + commandSplit[1:]
-        return commandSplit
+        try:
+          with open(executable, "r+b") as executableFile:
+            firstTwoChars = executableFile.read(2)
+            if firstTwoChars == "#!":
+              realExecutable = shlex.split(executableFile.readline())
+              self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+              # The below code should work, and would be better than findMsys,
+              # but it doesn't work.
+              # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+              # print("winExecutable",winExecutable)
+              # realExecutable[0] = winExecutable
+              def findMsys():
+                """
+                  Function to try and figure out where the MSYS64 is.
+                  @ In, None
+                  @ Out, dir, String, If not None, the directory where msys is.
+                """
+                dir = os.getcwd()
+                head, tail = os.path.split(dir)
+                while True:
+                  if tail.lower().startswith("msys"):
+                    return dir
+                  dir = head
+                  head, tail = os.path.split(dir)
+                return None
+              msysDir = findMsys()
+              if msysDir is not None:
+                beginExecutable = realExecutable[0]
+                if beginExecutable.startswith("/"):
+                  beginExecutable = beginExecutable.lstrip("/")
+                winExecutable = os.path.join(msysDir, beginExecutable)
+                self.raiseAMessage("winExecutable " + winExecutable)
+                if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+                  #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+                  maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+                  if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+                    winExecutable = maybeWinExecutable
+                realExecutable[0] = winExecutable
+              else:
+                self.raiseAWarning("Could not find msys in "+os.getcwd())
+              commandSplit = realExecutable + [executable] + commandSplit[1:]
+              return commandSplit
+        except PermissionError as e:
+            self.raiseAWarning("Permission denied to open executable ! Skipping!")
     return origCommand
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -490,7 +511,7 @@ class Code(Model):
 
     precommand = kwargs['precommand']
     postcommand = kwargs['postcommand']
-    bufferSize = kwargs['bufferSize']
+    bufferSize = kwargs['logfileBuffer']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
@@ -552,10 +573,12 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
+    self.raiseADebug(f'shell execution command: "{command}"')
+    ## reset python path
+    localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-
     if self.maxWallTime is not None:
       timeout = time.time() + self.maxWallTime
       while True:
@@ -591,38 +614,44 @@ class Code(Model):
     ## My guess is that every code interface implements this given that the code
     ## below always adds .csv to the filename and the standard output file does
     ## not have an extension. - (DPM 4/6/2017)
-    outputFile = codeLogFile
+    outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
-      ravenCase = False
-      if type(finalCodeOutputFile).__name__ == 'dict':
-        ravenCase = True
-      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
-      if finalCodeOutputFile and not ravenCase:
-        outputFile = finalCodeOutputFile
-
+      ravenCase = type(finalCodeOutput).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
+      # check return of finalizecode output
+      if finalCodeOutput is not None:
+        isDict = isinstance(finalCodeOutput,dict)
+        isStr = isinstance(finalCodeOutput,str)
+        if not isDict and not isStr:
+          self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
+                                          'containing the new output file root or a dict of data!')
+      if finalCodeOutput and not ravenCase:
+        if not isDict:
+          outputFile = finalCodeOutput
+        else:
+          returnDict = finalCodeOutput
     ## If the run was successful
     if returnCode == 0:
-      returnDict = {}
       ## This may be a tautology at this point --DPM 4/12/17
       ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
-      if outputFile is not None and not ravenCase:
+      if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
-        csvData = csvLoader.loadCsvFile(outFile)
-        headers = csvLoader.getAllFieldNames()
+        csvLoader = CsvLoader.CsvLoader()
+        # does this CodeInterface have sufficiently intense (or limited) CSV files that
+        #   it needs to assume floats and use numpy, or can we use pandas?
+        loadUtility = self.code.getCsvLoadUtil()
+        csvData = csvLoader.loadCsvFile(outFile.getAbsFile(), nullOK=False, utility=loadUtility)
+        returnDict = csvLoader.toRealization(csvData)
 
-        ## Numpy by default iterates over rows, thus we transpose the data and
-        ## zip it with the headers in order to do store it very cleanly into a
-        ## dictionary.
-        for header,data in zip(headers, csvData.T):
-          returnDict[header] = data
       if not ravenCase:
+        # check if the csv needs to be printed
+        if self.code.getIfWriteCsv():
+          csvFileName = os.path.join(metaData['subDirectory'],outputFile+'.csv')
+          pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
         returnValue = (kwargs['SampledVars'],returnDict)
@@ -633,14 +662,14 @@ class Code(Model):
         #  -> in addition, we have to fix the probability weights.
         ## get the number of realizations
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
-        numRlz = len(utils.first(finalCodeOutputFile.values()))
+        numRlz = len(utils.first(finalCodeOutput.values()))
         ## set up the return container
         exportDict = {'RAVEN_isBatch':True,'realizations':[]}
         ## set up each realization
         for n in range(numRlz):
           rlz = {}
           ## collect the results from INNER, both point set and history set
-          for dataObj in finalCodeOutputFile.values():
+          for dataObj in finalCodeOutput.values():
             # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
             new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
             rlz.update( new )
@@ -684,12 +713,17 @@ class Code(Model):
       return exportDict
 
     else:
+      self.raiseAMessage("*"*50)
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        if getattr(self.code, 'printFailedRuns', True):
+          self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        else:
+          self.raiseAMessage(f'Ouput is in "{os.path.abspath(absOutputFile)}"')
       else:
         self.raiseAMessage(" No output " + absOutputFile)
+      self.raiseAMessage("*"*50)
 
       ## If you made it here, then the run must have failed
       return None
@@ -732,12 +766,8 @@ class Code(Model):
     evaluation = finishedJob.getEvaluation()
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
-    if evaluation.get('RAVEN_isBatch',False):
+    if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:
         output.addRealization(rlz)
     # otherwise, we received a single realization
@@ -836,10 +866,6 @@ class Code(Model):
       inKey = 'inputs'
       outKey = 'outputs'
 
-    # FIXME: this should be fixed with the new database
-    if output.type == 'HDF5':
-      self.raiseAnError(IOError, "Not yet implemented!")
-
     rlz = {}
     rlz.update(exportDict[inKey])
     rlz.update(exportDict[outKey])
@@ -862,46 +888,66 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix")
-    uniqueHandler = kwargs.get("uniqueHandler",'any')
 
-    ## These two are part of the current metadata, so they will be added before
-    ## the job is started, so that they will be captured in the metadata and match
-    ## the current behavior of the system. If these are not desired, then this
-    ## code can be moved to later.  -- DPM 4/12/17
-    kwargs['executable'] = self.executable
-    kwargs['outfile'] = None
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
 
-    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
-    #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
-    for index, inputFile in enumerate(myInput):
-      if inputFile.getExt() in self.code.getInputExtension():
-        kwargs['outfile'] = 'out~'+myInput[index].getBase()
-        break
-    if kwargs['outfile'] is None:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+    for i in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][i]
+      else:
+        kw = kwargs
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = copy.copy(kwargs)
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      # if batch mode is on, lets record the run id within the batch
+      if batchMode:
+        kw['batchRun'] = i+1
 
-    ## These variables should not be part of the metadata, so add them after
-    ## we copy this dictionary (Caught this when running an ensemble model)
-    ## -- DPM 4/11/17
-    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
-    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
-    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
-    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
-    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
-    kwargs['numberNodes'       ] = len(nodesList)
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-    self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+      ## These two are part of the current metadata, so they will be added before
+      ## the job is started, so that they will be captured in the metadata and match
+      ## the current behavior of the system. If these are not desired, then this
+      ## code can be moved to later.  -- DPM 4/12/17
+      kw['executable'] = self.executable
+      kw['outfile'] = None
+
+      #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+      #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
+      for index, inputFile in enumerate(myInput):
+        if inputFile.getExt() in self.code.getInputExtension():
+          kw['outfile'] = 'out~'+myInput[index].getBase()
+          break
+      if kw['outfile'] is None:
+        self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = copy.copy(kw)
+
+      ## These variables should not be part of the metadata, so add them after
+      ## we copy this dictionary (Caught this when running an ensemble model)
+      ## -- DPM 4/11/17
+      nodesList                = jobHandler.runInfoDict.get('Nodes',[])
+      kw['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
+      kw['precommand'        ] = jobHandler.runInfoDict['precommand']
+      kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+      kw['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+      kw['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+      kw['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+      kw['numberNodes'       ] = len(nodesList)
+
+      ## This may look a little weird, but due to how the parallel python library
+      ## works, we are unable to pass a member function as a job because the
+      ## pp library loses track of what self is, so instead we call it from the
+      ## class and pass self in as the first parameter
+      jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                        uniqueHandler=uniqueHandler, groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      if nRuns == 1:
+        self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+      else:
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(kwargs['batchInfo']['batchId']) + '" submitted!')

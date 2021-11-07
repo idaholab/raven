@@ -16,32 +16,18 @@ Created on Mar 25, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
 from datetime import datetime
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
 import h5py  as h5
 import numpy as np
 import os
 import copy
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 import string
 import difflib
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
-import MessageHandler
-import Files
-#Internal Modules End--------------------------------------------------------------------------------
+from utils import utils, mathUtils
+from BaseClasses import InputDataUser, MessageUser
 
 def _dumps(val):
   """
@@ -58,7 +44,10 @@ def _loads(val):
     @ Out, _loads, any, data decoded
   """
   if hasattr(val,'tostring'):
-    return pk.loads(val.tostring())
+    try:
+      return pk.loads(val.tostring())
+    except UnicodeDecodeError:
+      return pk.loads(val.tostring(),errors='backslashreplace')
   else:
     try:
       return pk.loads(val)
@@ -71,21 +60,21 @@ def _loads(val):
 #  *************************
 #
 
-class hdf5Database(MessageHandler.MessageUser):
+class hdf5Database(InputDataUser, MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler, filename, exist, variables = None):
+  def __init__(self,name, databaseDir, filename, exist, variables=None):
     """
       Constructor
       @ In, name, string, name of this database
       @ In, databaseDir, string, database directory (full path)
-      @ In, messageHandler, MessageHandler, global message handler
       @ In, filename, string, the database filename
       @ In, exist, bool, does it exist?
       @ In, variables, list, the user wants to store just some specific variables (default =None => all variables are stored)
       @ Out, None
     """
+    super().__init__()
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
@@ -99,7 +88,6 @@ class hdf5Database(MessageHandler.MessageUser):
     #self._metavars = []
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
-    self.messageHandler = messageHandler
     # does it exist?
     self.fileExist = exist
     # .H5 file name (to be created or read)
@@ -258,7 +246,7 @@ class hdf5Database(MessageHandler.MessageUser):
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
 
-    groupName = str(prefix if utils.isSingleValued(prefix) else prefix[0])
+    groupName = str(prefix if mathUtils.isSingleValued(prefix) else prefix[0])
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
@@ -393,7 +381,6 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'nVarsIntfloat' ] = len(varKeysIntfloat)
     group.attrs[b'nVarsOther'    ] = len(varKeysOther)
 
-
   def __addGroupRootLevel(self,groupName,rlz):
     """
       Function to add a group into the database (root level)
@@ -403,8 +390,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
-    if self.__returnGroupPath(groupName) != '-$':
-      # the group alread exists
+    while self.__returnGroupPath(groupName) != '-$':
       groupName = groupName + "_" + groupName
 
     parentName = self.parentGroupName.replace('/', '')
@@ -502,17 +488,19 @@ class hdf5Database(MessageHandler.MessageUser):
 
     return workingList
 
-  def __getListOfParentGroups(self, grp, backGroups = []):
+  def __getListOfParentGroups(self, grp, backGroups = None):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
+    backGroups = [] if backGroups is None else backGroups
     if grp.parent and grp.parent != grp:
       parentGroup = grp.parent
       if not parentGroup.attrs.get("rootname",False):
         backGroups.append(parentGroup)
         self.__getListOfParentGroups(parentGroup, backGroups)
+    backGroups = list(set(backGroups))
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):
@@ -531,7 +519,7 @@ class hdf5Database(MessageHandler.MessageUser):
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
       varShapeIntfloat   = _loads(group.attrs[b'data_shapesIntfloat'])
       varKeysIntfloat    = _loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = _loads(group.attrs[b'data_begin_endIntfloat'])
+      begin, end         = _loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
       newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:

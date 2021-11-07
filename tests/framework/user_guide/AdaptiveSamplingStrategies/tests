@@ -7,6 +7,6 @@
     rel_err = 0.002
     required_libraries = 'PIL'
     heavy = true
-    max_time = 1400
+    max_time = 6000
   [../]
 []

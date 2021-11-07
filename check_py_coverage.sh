@@ -45,9 +45,8 @@ update_python_path
 
 cd $SCRIPT_DIR
 
-cd tests/framework
 #coverage help run
-FRAMEWORK_DIR=`(cd ../../framework && pwd)`
+FRAMEWORK_DIR=`(cd framework && pwd)`
 
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
 # get display var
@@ -64,6 +63,8 @@ coverage erase
 #get DISPLAY BACK
 DISPLAY=$DISPLAY_VAR
 
+echo DISPLAY $DISPLAY
+echo Xvfb `which Xvfb`
 if which Xvfb
 then
     Xvfb :8888 &

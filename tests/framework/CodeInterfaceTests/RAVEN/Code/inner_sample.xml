@@ -1,0 +1,92 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>innerRunDir</WorkingDir>
+    <Sequence>sample,stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime='1e-6'>
+      <Input class="Files" type="">proj_inp</Input>
+      <Input class="Files" type="">proj_aux</Input>
+      <Model class="Models" type="Code">projectile</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">inner_samples</Output>
+    </MultiRun>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">inner_samples</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">inner_out</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="proj_inp">../input.i</Input>
+    <Input name="proj_aux" perturbable='False'>../inp.aux</Input>
+  </Files>
+
+  <Models>
+    <Code name="projectile" subType="GenericCode">
+      <executable>projectile.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <fileargs arg="aux" extension=".aux" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">v0,angle,r,t</expectedValue>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Uniform name="v0_dist">
+      <lowerBound>6</lowerBound>
+      <upperBound>7</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>30</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="y0">
+        <function>proj_funcs</function>
+      </variable>
+      <constant name="timeOption">0</constant>
+    </Grid>
+  </Samplers>
+
+  <Functions>
+    <External file="../proj_functions.py" name="proj_funcs">
+      <variables>v0</variables>
+    </External>
+  </Functions>
+
+  <OutStreams>
+    <Print name="inner_out">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inner_samples">
+      <Input>v0,angle,y0</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Input>mean_v0,mean_angle,mean_r,mean_t</Input>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -25,9 +25,9 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
@@ -38,6 +38,7 @@
       <Features>angle</Features>
       <Target>r</Target>
       <p>3</p>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
       <SciKitLearn>
@@ -45,14 +46,13 @@
         <n_splits>10</n_splits>
         <shuffle>False</shuffle>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <!-- For hands-on remove all following subnodes -->
       <Model class="Models" type="ExternalModel">projectile</Model>
       <ROM class="Models" type="ROM">IDW</ROM>
       <TargetEvaluation class="DataObjects" type="PointSet">projectileContainer</TargetEvaluation>
-      <CV class="Models" type="PostProcessor">pp1</CV>
       <settings>
         <tolerance>0.005</tolerance>
         <maxTrainSize>1000</maxTrainSize>

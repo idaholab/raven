@@ -18,15 +18,13 @@ Created on January 12, 2016
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-import MessageHandler
+from BaseClasses import MessageUser
 from Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
@@ -35,26 +33,35 @@ try:
   import PySide.QtCore as qtc
   __QtAvailable = True
 except ImportError as e:
-  __QtAvailable = False
+  try:
+    import PySide2.QtWidgets as qtw
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
 
 if __QtAvailable:
-  class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
+  class InteractiveApplication(qtw.QApplication, MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
       our own signals and slots, create UI elements, and manage inter-thread
       communication
     """
     windowClosed = qtc.Signal(str)
-    def __init__(self, arg1, messageHandler, interactionType=Interaction.Yes):
+
+    def __init__(self, arg1, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
+        @ In, arg1, list, unknown
+        @ In, interactionType, Interaction, boolean-like
+        @ Out, None
       """
+      super().__init__()
       self.printTag = 'RAVEN Application'
       self.UIs = {}
       self.interactionType = interactionType
       qtw.QApplication.__init__(self, arg1)
-      self.messageHandler = messageHandler
       self.setQuitOnLastWindowClosed(False)
 
     def createUI(self, uiType, uiID, params):

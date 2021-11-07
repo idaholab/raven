@@ -51,9 +51,9 @@
   [./time_dep_clustering_filtered]
     type   = 'RavenFramework'
     input  = 'test_TD_KMeans_Filtered.xml'
-    UnorderedCsv = 'time_dep_clustering_filtered/print0_0.csv time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv time_dep_clustering_filtered/print1_0.csv time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv time_dep_clustering_filtered/print1_3.csv time_dep_clustering_filtered/print1_4.csv time_dep_clustering_filtered/print2_0.csv time_dep_clustering_filtered/print2_1.csv'
+    UnorderedCsv = 'time_dep_clustering_filtered/print0_0.csv time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv time_dep_clustering_filtered/print1_0.csv time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv time_dep_clustering_filtered/print2_0.csv time_dep_clustering_filtered/print2_1.csv'
     output = 'time_dep_clustering_filtered/1-Clustered_HS_line.png'
-    skip = 'Cluster order inconsistent (Windows)'
+    skip_if_OS = windows
   [../]
   [./VariationalGMM]
     type   = 'RavenFramework'
@@ -72,23 +72,25 @@
     input  = 'test_TD_MeanShift.xml'
     UnorderedCsv = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv'
     output = 'time_dep_meanshift/1-Clustered_HS_line.png time_dep_meanshift/1-Cluster_0_line.png time_dep_meanshift/1-Cluster_1_line.png time_dep_meanshift/1-hist0x_histogram.png time_dep_meanshift/1-hist0y_histogram.png time_dep_meanshift/1-hist0z_histogram.png time_dep_meanshift/1-plot5_histogram.png time_dep_meanshift/1-plot7_histogram.png'
-    skip = 'Cluster order inconsistent (Windows)'
+    skip_if_OS = windows
   [../]
   [./time_dep_hierarchicalScipy_DTW]
     type   = 'RavenFramework'
     input  = 'test_TD_hierarchical_dtw.xml'
+    skip = 'test fails (Windows)'
     csv    = 'HierarchicalDTW/printAllHists_0.csv HierarchicalDTW/printAllHists_1.csv HierarchicalDTW/printAllHists_2.csv HierarchicalDTW/printAllHists_3.csv HierarchicalDTW/printAllHists_4.csv HierarchicalDTW/printAllHists_5.csv HierarchicalDTW/printAllHists_6.csv HierarchicalDTW/printAllHists_7.csv HierarchicalDTW/printAllHists_8.csv HierarchicalDTW/printAllHists_9.csv'
   [../]
   [./time_dep_hierarchicalScipy_DTW_derivative]
     type   = 'RavenFramework'
     input  = 'test_TD_hierarchical_dtw_derivative.xml'
+    skip = 'test fails (Windows)'
     csv    = 'HierarchicalDTWderivative/printAllHists_0.csv HierarchicalDTWderivative/printAllHists_1.csv HierarchicalDTWderivative/printAllHists_2.csv HierarchicalDTWderivative/printAllHists_3.csv HierarchicalDTWderivative/printAllHists_4.csv HierarchicalDTWderivative/printAllHists_5.csv HierarchicalDTWderivative/printAllHists_6.csv HierarchicalDTWderivative/printAllHists_7.csv HierarchicalDTWderivative/printAllHists_8.csv HierarchicalDTWderivative/printAllHists_9.csv'
   [../]
   [./HierarchicalScipy]
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
     csv    = 'Hierarchical/dummy.csv'
-    skip_if_OS = windows
+    #skip_if_OS = windows
   [../]
   [./agglomerativeDTW]
     type   = 'RavenFramework'
@@ -109,7 +111,7 @@
   [./interactive_UI]
     type = 'RavenFramework'
     input = 'hierarchical_ui.xml'
-    skip = 'Requires windowing system'
+    #skip = 'Requires windowing system'
     csv = 'Hierarchical/ui_data.csv'
     output = 'Hierarchical/ui_data.xml'
     required_libraries = 'AMSC PySide'

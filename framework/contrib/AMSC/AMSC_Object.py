@@ -51,15 +51,13 @@ try:
   import amsc
 except ImportError as e:
   makeFilePath = os.path.realpath(os.path.join(myPath,'..','..','amsc.mk'))
+  sys.stderr.write(str(e)+"\n")
   sys.stderr.write('It appears you do not have the AMSC library. Try '
                    + 'running the following command:' + os.linesep
                    + '\tmake -f ' + makeFilePath + os.linesep)
   sys.exit(1)
 ################################################################################
 
-import sklearn.neighbors
-import sklearn.linear_model
-import sklearn.preprocessing
 
 import scipy.optimize
 import scipy.stats
@@ -226,6 +224,10 @@ class AMSC_Object(object):
           multiplying the probability of the extremum and its saddle, and count
           will make the larger point counts more persistent.
     """
+    import sklearn.neighbors
+    import sklearn.linear_model
+    import sklearn.preprocessing
+
     self.partitions = {}
     self.persistence = 0.
 
@@ -1003,9 +1005,17 @@ class AMSC_Object(object):
     """
     return self.__amsc.Neighbors(idx)
 
-
 try:
   import PySide.QtCore as qtc
+  __QtAvailable = True
+except ImportError as e:
+  try:
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
+
+if __QtAvailable:
 
   TolColors = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
              '#44AA99', '#882255', '#CC6677']
@@ -1240,8 +1250,5 @@ try:
         return False
 
       return True
-
-except ImportError as e:
-  pass
   # sys.stderr.write(str(e) +'\n')
   # sys.exit(1)

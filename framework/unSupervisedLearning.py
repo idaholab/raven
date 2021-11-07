@@ -24,28 +24,38 @@
 
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
-from sklearn import cluster, mixture, manifold, decomposition, covariance, neural_network
-from sklearn import metrics
-from sklearn.neighbors import kneighbors_graph
 import scipy.cluster as hier
 import numpy as np
 import abc
 import ast
 import copy
+import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils
 from utils import mathUtils
-import MessageHandler
-import DataObjects
+from BaseClasses import MessageUser
+from EntityFactoryBase import EntityFactory
 #Internal Modules End-----------------------------------------------------------
 
-class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+# FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
+# test_dataMiningHierarchical.xml in tests/framework/PostProcessors/DataMiningPostProcessor/Clustering
+# For the record, when using dendrogram, we have to force matplotlib.use('Agg')
+# In the future, I think all the plots should moved to OutStreamPlots -- wangc
+#display = utils.displayAvailable()
+#if not display:
+#  matplotlib.use('Agg')
+
+
+if utils.displayAvailable() and platform.system() != 'Windows':
+  import matplotlib
+  matplotlib.use('TkAgg')
+import matplotlib.pylab as plt
+
+class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
@@ -84,14 +94,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     return (True, '')
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for unSupervisedLearning class.
-      @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
+    super().__init__()
     self.printTag = 'unSupervised'
-    self.messageHandler = messageHandler
 
     ## booleanFlag that controls the normalization procedure. If true, the
     ## normalization is performed. Default = True
@@ -135,11 +144,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, features, list(str), list of new features
       @ Out, None
     """
-    if self.amITrained:
-      self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
+    self.raiseAWarning('Features for learning engine type "{}" have been reset, so ROM is untrained!'.format(self.printTag))
+    self.amITrained = False
     self.features = features
 
-  def train(self, tdict, metric = None):
+  def train(self, tdict, metric=None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary
@@ -148,7 +157,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-
     self.metric = metric
     if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -174,8 +182,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(utils.first(tdict.values()),dict):
-      for name,val in tdict.items():
+    if not isinstance(utils.first(tdict.values()), dict):
+      for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
@@ -199,7 +207,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## End Error-handling
     ############################################################################
-
     if metric is None:
       self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
@@ -264,7 +271,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.amITrained = True
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
-  ## under specific settings, namely using a history set.
+  ## under specific settings, namely using a history set. - unknown (maybe Dan?)
   ## -> for the record, I call it to get the labels in the ROMCollection.Clusters - talbpaul
   def evaluate(self, edict):
     """
@@ -276,6 +283,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
+    if not self.amITrained:
+      self.raiseAnError('ROM must be trained before evaluating!')
     if not isinstance(edict, dict):
       self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
 
@@ -375,76 +384,81 @@ class SciKitLearn(unSupervisedLearning):
   """
   modelType = 'SciKitLearn'
   availImpl = {}
-  availImpl['cluster'] = {}  # Generalized Cluster
-  availImpl['cluster']['AffinityPropogation'    ] = (cluster.AffinityPropagation    , 'float')  # Perform Affinity Propagation Clustering of data.
-  availImpl['cluster']['DBSCAN'                 ] = (cluster.DBSCAN                 , 'float')  # Perform DBSCAN clustering from vector array or distance matrix.
-  availImpl['cluster']['KMeans'                 ] = (cluster.KMeans                 , 'float')  # K-Means Clustering
-  availImpl['cluster']['MiniBatchKMeans'        ] = (cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
-  availImpl['cluster']['MeanShift'              ] = (cluster.MeanShift              , 'float')  # Mean Shift Clustering
-  availImpl['cluster']['SpectralClustering'     ] = (cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
-  availImpl['cluster']['Agglomerative'          ] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
-  #  availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
-  #  availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
 
-  #  availImpl['bicluster'] = {}
-  #  availImpl['bicluster']['SpectralBiclustering'] = (cluster.bicluster.SpectralBiclustering, 'float')  # Spectral biclustering (Kluger, 2003).
-  #  availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
-
-  availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
-  availImpl['mixture']['GMM'  ] = (mixture.GMM  , 'float')  # Gaussian Mixture Model
-  ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
-  ## admits that it is not working correctly which also explains why it is buried in
-  ## their documentation.
-  # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
-  availImpl['mixture']['VBGMM'] = (mixture.VBGMM, 'float')  # Variational Inference for the Gaussian Mixture Model
-
-  availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
-  availImpl['manifold']['LocallyLinearEmbedding'  ] = (manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
-  availImpl['manifold']['Isomap'                  ] = (manifold.Isomap                  , 'float')  # Isomap
-  availImpl['manifold']['MDS'                     ] = (manifold.MDS                     , 'float')  # MultiDimensional Scaling
-  availImpl['manifold']['SpectralEmbedding'       ] = (manifold.SpectralEmbedding       , 'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
-  #  availImpl['manifold']['locally_linear_embedding'] = (manifold.locally_linear_embedding, 'float')  # Perform a Locally Linear Embedding analysis on the data.
-  #  availImpl['manifold']['spectral_embedding'      ] = (manifold.spectral_embedding      , 'float')  # Project the sample on the first eigen vectors of the graph Laplacian.
-
-  availImpl['decomposition'] = {}  # Matrix Decomposition
-  availImpl['decomposition']['PCA'                 ] = (decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
- # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
-  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.RandomizedPCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
-  availImpl['decomposition']['KernelPCA'           ] = (decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
-  availImpl['decomposition']['FastICA'             ] = (decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
-  availImpl['decomposition']['TruncatedSVD'        ] = (decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
-  availImpl['decomposition']['SparsePCA'           ] = (decomposition.SparsePCA           , 'float')  # Sparse Principal Components Analysis (SparsePCA)
-  availImpl['decomposition']['MiniBatchSparsePCA'  ] = (decomposition.MiniBatchSparsePCA  , 'float')  # Mini-batch Sparse Principal Components Analysis
-  #  availImpl['decomposition']['ProjectedGradientNMF'] = (decomposition.ProjectedGradientNMF, 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
-  #  availImpl['decomposition']['FactorAnalysis'      ] = (decomposition.FactorAnalysis      , 'float')  # Factor Analysis (FA)
-  #  availImpl['decomposition']['NMF'                 ] = (decomposition.NMF                 , 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
-  #  availImpl['decomposition']['SparseCoder'         ] = (decomposition.SparseCoder         , 'float')  # Sparse coding
-  #  availImpl['decomposition']['DictionaryLearning'  ] = (decomposition.DictionaryLearning  , 'float')  # Dictionary Learning
-  #  availImpl['decomposition']['MiniBatchDictionaryLearning'] = (decomposition.MiniBatchDictionaryLearning, 'float')  # Mini-batch dictionary learning
-  #  availImpl['decomposition']['fastica'                    ] = (decomposition.fastica                    , 'float')  # Perform Fast Independent Component Analysis.
-  #  availImpl['decomposition']['dict_learning'              ] = (decomposition.dict_learning              , 'float')  # Solves a dictionary learning matrix factorization problem.
-
-  #  availImpl['covariance'] = {}  # Covariance Estimators
-  #  availImpl['covariance']['EmpiricalCovariance'] = (covariance.EmpiricalCovariance, 'float')  # Maximum likelihood covariance estimator
-  #  availImpl['covariance']['EllipticEnvelope'   ] = (covariance.EllipticEnvelope   , 'float')  # An object for detecting outliers in a Gaussian distributed dataset.
-  #  availImpl['covariance']['GraphLasso'         ] = (covariance.GraphLasso         , 'float')  # Sparse inverse covariance estimation with an l1-penalized estimator.
-  #  availImpl['covariance']['GraphLassoCV'       ] = (covariance.GraphLassoCV       , 'float')  # Sparse inverse covariance w/ cross-validated choice of the l1 penalty
-  #  availImpl['covariance']['LedoitWolf'         ] = (covariance.LedoitWolf         , 'float')  # LedoitWolf Estimator
-  #  availImpl['covariance']['MinCovDet'          ] = (covariance.MinCovDet          , 'float')  # Minimum Covariance Determinant (MCD): robust estimator of covariance
-  #  availImpl['covariance']['OAS'                ] = (covariance.OAS                , 'float')  # Oracle Approximating Shrinkage Estimator
-  #  availImpl['covariance']['ShrunkCovariance'   ] = (covariance.ShrunkCovariance   , 'float')  # Covariance estimator with shrinkage
-
-  #  availImpl['neuralNetwork'] = {}  # Covariance Estimators
-  #  availImpl['neuralNetwork']['BernoulliRBM'] = (neural_network.BernoulliRBM, 'float')  # Bernoulli Restricted Boltzmann Machine (RBM).
-
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for SciKitLearn class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the SciKitLearn algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
+    if len(self.availImpl) == 0:
+      import sklearn.cluster
+      import sklearn.mixture
+      import sklearn.manifold
+      import sklearn.decomposition
+      self.availImpl['cluster'] = {}  # Generalized Cluster
+      self.availImpl['cluster']['AffinityPropogation'    ] = (sklearn.cluster.AffinityPropagation    , 'float')  # Perform Affinity Propagation Clustering of data.
+      self.availImpl['cluster']['DBSCAN'                 ] = (sklearn.cluster.DBSCAN                 , 'float')  # Perform DBSCAN clustering from vector array or distance matrix.
+      self.availImpl['cluster']['KMeans'                 ] = (sklearn.cluster.KMeans                 , 'float')  # K-Means Clustering
+      self.availImpl['cluster']['MiniBatchKMeans'        ] = (sklearn.cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
+      self.availImpl['cluster']['MeanShift'              ] = (sklearn.cluster.MeanShift              , 'float')  # Mean Shift Clustering
+      self.availImpl['cluster']['SpectralClustering'     ] = (sklearn.cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
+      self.availImpl['cluster']['Agglomerative'          ] = (sklearn.cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
+      #  self.availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
+      #  self.availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
+
+      #  self.availImpl['bicluster'] = {}
+      #  self.availImpl['bicluster']['SpectralBiclustering'] = (cluster.bicluster.SpectralBiclustering, 'float')  # Spectral biclustering (Kluger, 2003).
+      #  self.availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
+
+      self.availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
+      self.availImpl['mixture']['GMM'  ] = (sklearn.mixture.GaussianMixture  , 'float')  # Gaussian Mixture Model
+      ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
+      ## admits that it is not working correctly which also explains why it is buried in
+      ## their documentation.
+      # self.availImpl['mixture']['DPGMM'] = (sklearn.mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
+      self.availImpl['mixture']['VBGMM'] = (sklearn.mixture.BayesianGaussianMixture, 'float')  # Variational Inference for the Gaussian Mixture Model
+
+      self.availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
+      self.availImpl['manifold']['LocallyLinearEmbedding'  ] = (sklearn.manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
+      self.availImpl['manifold']['Isomap'                  ] = (sklearn.manifold.Isomap                  , 'float')  # Isomap
+      self.availImpl['manifold']['MDS'                     ] = (sklearn.manifold.MDS                     , 'float')  # MultiDimensional Scaling
+      self.availImpl['manifold']['SpectralEmbedding'       ] = (sklearn.manifold.SpectralEmbedding       , 'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
+      #  self.availImpl['manifold']['locally_linear_embedding'] = (sklearn.manifold.locally_linear_embedding, 'float')  # Perform a Locally Linear Embedding analysis on the data.
+      #  self.availImpl['manifold']['spectral_embedding'      ] = (sklearn.manifold.spectral_embedding      , 'float')  # Project the sample on the first eigen vectors of the graph Laplacian.
+
+      self.availImpl['decomposition'] = {}  # Matrix Decomposition
+      self.availImpl['decomposition']['PCA'                 ] = (sklearn.decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
+     # self.availImpl['decomposition']['ProbabilisticPCA'    ] = (sklearn.decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
+      self.availImpl['decomposition']['RandomizedPCA'       ] = (sklearn.decomposition.PCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
+      self.availImpl['decomposition']['KernelPCA'           ] = (sklearn.decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
+      self.availImpl['decomposition']['FastICA'             ] = (sklearn.decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
+      self.availImpl['decomposition']['TruncatedSVD'        ] = (sklearn.decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
+      self.availImpl['decomposition']['SparsePCA'           ] = (sklearn.decomposition.SparsePCA           , 'float')  # Sparse Principal Components Analysis (SparsePCA)
+      self.availImpl['decomposition']['MiniBatchSparsePCA'  ] = (sklearn.decomposition.MiniBatchSparsePCA  , 'float')  # Mini-batch Sparse Principal Components Analysis
+      #  self.availImpl['decomposition']['ProjectedGradientNMF'] = (sklearn.decomposition.ProjectedGradientNMF, 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
+      #  self.availImpl['decomposition']['FactorAnalysis'      ] = (sklearn.decomposition.FactorAnalysis      , 'float')  # Factor Analysis (FA)
+      #  self.availImpl['decomposition']['NMF'                 ] = (sklearn.decomposition.NMF                 , 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
+      #  self.availImpl['decomposition']['SparseCoder'         ] = (sklearn.decomposition.SparseCoder         , 'float')  # Sparse coding
+      #  self.availImpl['decomposition']['DictionaryLearning'  ] = (sklearn.decomposition.DictionaryLearning  , 'float')  # Dictionary Learning
+      #  self.availImpl['decomposition']['MiniBatchDictionaryLearning'] = (sklearn.decomposition.MiniBatchDictionaryLearning, 'float')  # Mini-batch dictionary learning
+      #  self.availImpl['decomposition']['fastica'                    ] = (sklearn.decomposition.fastica                    , 'float')  # Perform Fast Independent Component Analysis.
+      #  self.availImpl['decomposition']['dict_learning'              ] = (sklearn.decomposition.dict_learning              , 'float')  # Solves a dictionary learning matrix factorization problem.
+
+      #  self.availImpl['covariance'] = {}  # Covariance Estimators
+      #  self.availImpl['covariance']['EmpiricalCovariance'] = (sklearn.covariance.EmpiricalCovariance, 'float')  # Maximum likelihood covariance estimator
+      #  self.availImpl['covariance']['EllipticEnvelope'   ] = (sklearn.covariance.EllipticEnvelope   , 'float')  # An object for detecting outliers in a Gaussian distributed dataset.
+      #  self.availImpl['covariance']['GraphLasso'         ] = (sklearn.covariance.GraphLasso         , 'float')  # Sparse inverse covariance estimation with an l1-penalized estimator.
+      #  self.availImpl['covariance']['GraphLassoCV'       ] = (sklearn.covariance.GraphLassoCV       , 'float')  # Sparse inverse covariance w/ cross-validated choice of the l1 penalty
+      #  self.availImpl['covariance']['LedoitWolf'         ] = (sklearn.covariance.LedoitWolf         , 'float')  # LedoitWolf Estimator
+      #  self.availImpl['covariance']['MinCovDet'          ] = (sklearn.covariance.MinCovDet          , 'float')  # Minimum Covariance Determinant (MCD): robust estimator of covariance
+      #  self.availImpl['covariance']['OAS'                ] = (sklearn.covariance.OAS                , 'float')  # Oracle Approximating Shrinkage Estimator
+      #  self.availImpl['covariance']['ShrunkCovariance'   ] = (sklearn.covariance.ShrunkCovariance   , 'float')  # Covariance estimator with shrinkage
+
+      #  self.availImpl['neuralNetwork'] = {}  # Covariance Estimators
+      #  self.availImpl['neuralNetwork']['BernoulliRBM'] = (neural_network.BernoulliRBM, 'float')  # Bernoulli Restricted Boltzmann Machine (RBM).
+
     self.printTag = 'SCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -492,17 +506,19 @@ class SciKitLearn(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
+    import sklearn.cluster
+    import sklearn.neighbors
     ## set bandwidth for MeanShift clustering
     if hasattr(self.Method, 'bandwidth'):
       if 'bandwidth' not in self.initOptionDict.keys():
-        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+        self.initOptionDict['bandwidth'] = sklearn.cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
 
     ## We need this connectivity if we want to use structured ward
     if hasattr(self.Method, 'connectivity'):
       ## we should find a smart way to define the number of neighbors instead of
       ## default constant integer value(10)
-      connectivity = kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
+      connectivity = sklearn.neighbors.kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
@@ -579,6 +595,7 @@ class SciKitLearn(unSupervisedLearning):
         else:
           numClusters = len(set(self.Method.labels_))
 
+
         centers = np.zeros([numClusters,len(self.features)])
         counter = np.zeros(numClusters)
         for val,index in enumerate(self.Method.labels_):
@@ -632,8 +649,8 @@ class SciKitLearn(unSupervisedLearning):
             center[cnt] = center[cnt] * sigma + mu
         self.metaDict['means'] = means
 
-      if hasattr(self.Method, 'covars_') :
-        covariance = copy.deepcopy(self.Method.covars_)
+      if hasattr(self.Method, 'covariances_') :
+        covariance = copy.deepcopy(self.Method.covariances_)
 
         for row, rowFeature in enumerate(self.features):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
@@ -692,6 +709,7 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, self.outputdict['confidence'], dict, dictionary of the confidence
       metrics of the algorithms
     """
+    import sklearn.metrics
     self.outputDict['confidence'] = {}
 
     ## I believe you should always have labels populated when dealing with a
@@ -700,7 +718,7 @@ class SciKitLearn(unSupervisedLearning):
       labels = self.outputDict['outputs']['labels']
 
       if np.unique(labels).size > 1:
-        self.outputDict['confidence']['silhouetteCoefficient'] = metrics.silhouette_score(self.normValues , labels)
+        self.outputDict['confidence']['silhouetteCoefficient'] = sklearn.metrics.silhouette_score(self.normValues , labels)
 
       if hasattr(self.Method, 'inertia_'):
         self.outputDict['confidence']['inertia'] = self.Method.inertia_
@@ -708,15 +726,16 @@ class SciKitLearn(unSupervisedLearning):
       ## If we have ground truth labels, then compute some additional confidence
       ## metrics
       if self.labelValues is not None:
-        self.outputDict['confidence']['homogeneity'              ] =          metrics.homogeneity_score(self.labelValues, labels)
-        self.outputDict['confidence']['completenes'              ] =         metrics.completeness_score(self.labelValues, labels)
-        self.outputDict['confidence']['vMeasure'                 ] =            metrics.v_measure_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
+        self.outputDict['confidence']['homogeneity'              ] =          sklearn.metrics.homogeneity_score(self.labelValues, labels)
+        self.outputDict['confidence']['completenes'              ] =         sklearn.metrics.completeness_score(self.labelValues, labels)
+        self.outputDict['confidence']['vMeasure'                 ] =            sklearn.metrics.v_measure_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedRandIndex'        ] =        sklearn.metrics.adjusted_rand_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedMutualInformation'] = sklearn.metrics.adjusted_mutual_info_score(self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
-      self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
-      self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
-      self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
+      if hasattr(self.Method, 'aic'):
+        self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
+        self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
+        self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
 
     return self.outputDict['confidence']
 
@@ -736,14 +755,13 @@ class temporalSciKitLearn(unSupervisedLearning):
     Data mining library to perform SciKitLearn algorithms along temporal data
   """
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for temporalSciKitLearn class.
-      @ In, messageHandler, Message handler object
       @ In, kwargs, arguments for the SciKitLearn algorithm
       @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'TEMPORALSCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -756,7 +774,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn', **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}
@@ -1275,14 +1293,13 @@ class Scipy(unSupervisedLearning):
   availImpl['cluster'] = {}
   availImpl['cluster']['Hierarchical'] = (hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for Scipy class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the Scipy algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SCIPY'
     if 'SCIPYtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
@@ -1314,16 +1331,16 @@ class Scipy(unSupervisedLearning):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
+        self.advDendrogram(self.linkage,
+                           p                = float(self.initOptionDict['p']),
+                           leaf_rotation    = 90.,
+                           leaf_font_size   = 12.,
+                           truncate_mode    = self.initOptionDict['truncationMode'],
+                           show_leaf_counts = self.initOptionDict['leafCounts'],
+                           show_contracted  = self.initOptionDict['showContracted'],
+                           annotate_above   = self.initOptionDict['annotatedAbove'],
+                           #orientation      = self.initOptionDict['orientation'],
+                           max_d            = self.initOptionDict['level'])
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
@@ -1335,7 +1352,6 @@ class Scipy(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
-    import matplotlib.pylab as plt
     plt.figure()
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:
@@ -1363,7 +1379,6 @@ class Scipy(unSupervisedLearning):
       title = 'dendrogram.pdf'
     plt.savefig(title)
     plt.close()
-    return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):
     """
@@ -1384,35 +1399,7 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
-__interfaceDict = {}
-__interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
-__interfaceDict['Scipy'] = Scipy
-
-__base = 'unSuperVisedLearning'
-
-def returnInstance(modelClass, caller, **kwargs):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the instance to create
-    @ In, caller, object, object that will share its messageHandler instance
-    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-    @ Out, object, an instance of a Model
-  """
-  try:
-    return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError as ae:
-    # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
-
-def returnClass(modelClass, caller):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the class to retrieve
-    @ In, caller, object, object that will share its messageHandler instance
-    @ Out, the class definition of the Model
-  """
-  try:
-    return __interfaceDict[modelClass]
-  except KeyError:
-    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)
+factory = EntityFactory('unSuperVisedLearning')
+factory.registerType('SciKitLearn', SciKitLearn)
+factory.registerType('temporalSciKitLearn', temporalSciKitLearn)
+factory.registerType('Scipy', Scipy)

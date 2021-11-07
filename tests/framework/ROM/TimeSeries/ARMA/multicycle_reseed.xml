@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.MulticycleReseed</name>
+    <author>talbpaul</author>
+    <created>2019-05-15</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       Tests that the number of sampled cycles can be changed on an ARMA during unserialization.
+       It takes the pickled ARMA from ``multicycles'' and changes the number of cycles as well as
+       the growth rate. The resulting DataSet CSV should have Cycles 0 and 1 only, and the values
+       for Cycle 1 should be notably higher than Cycle 0 on average.
+       As a check, for each realization, the ratio between cycle 1 and cycle 0 should be near 2.5.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Multicycle</WorkingDir>
+    <Sequence>load, sample, dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="DataSet">reseedData</Output>
+    </MultiRun>
+    <IOStep name="dump">
+      <Input class="DataObjects" type="DataSet">reseedData</Input>
+      <Output class="OutStreams" type="Print">reseedData</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="pickledROM">
+      <seed>42</seed>
+      <Multicycle>
+        <cycles>2</cycles>
+        <growth mode="linear" targets="Speed">150</growth>
+      </Multicycle>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+    <Print name="reseedData">
+      <type>csv</type>
+      <source>reseedData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="reseedData">
+      <Input>scaling</Input>
+      <Output>Speed</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Cycle">Speed</Index>
+    </DataSet>
+  </DataObjects>
+
+</Simulation>

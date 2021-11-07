@@ -10,18 +10,20 @@
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
  # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
- [./Basic]
+  [./Basic]
    type = 'RavenFramework'
    input = 'basic.xml'
    output = 'Basic/romMeta.csv'
    UnorderedXml = 'Basic/romMeta.xml'
    rel_err = 1e-6
   [../]
+
   [./ARMAparallel]
    type = 'RavenFramework'
    input = 'test_ARMA_parallel.xml'
    output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
   [../]
+
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
@@ -42,6 +44,7 @@
       output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
     [../]
   [../]
+
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
@@ -74,7 +77,7 @@
     [../]
   [../]
 
- [./SingleFourier]
+  [./SingleFourier]
    type = 'RavenFramework'
    input = 'single_fourier.xml'
    csv = 'SingleFourier/synthetic_0.csv'
@@ -100,12 +103,25 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
-   max_time = 500
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.csv VARMA/rommeta.xml VARMA/samples_0.csv'
     [./stats]
       type = OrderedCSV
       output = 'VARMA/stats.csv'
       rel_err = 1e-1
+    [../]
+  [../]
+
+  [./VARMAheavy]
+   type = 'RavenFramework'
+   input = 'varma_heavy.xml'
+   output = 'VARMAheavy/plot_VARMA.png VARMAheavy/plot_input.png VARMAheavy/stats.xml VARMAheavy/rommeta.xml VARMAheavy/rommeta.csv VARMAheavy/samples_0.csv'
+   heavy = true
+   # 3/23/2020, on master, this test took ~342s
+   max_time = 450
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMAheavy/stats.csv'
+      rel_err = 1e-3
     [../]
   [../]
 
@@ -139,12 +155,37 @@
       rel_err = 1e-5
     [../]
   [../]
+
   [./Clustered]
     type = 'RavenFramework'
     input = 'clustered.xml'
+    # TODO signal test!
     [./rom_meta]
       type = XML
       output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./Clustered_Truncated]
+    type = 'RavenFramework'
+    input = 'clustered_truncated.xml'
+    # TODO signal test!
+    [./rom_meta]
+      type = XML
+      unordered = true
+      output = 'ClusteredTruncated/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./ClusteredRand]
+    type = 'RavenFramework'
+    input = 'clustered_choice_rand.xml'
+    # signal test!
+    [./rom_meta]
+      type = OrderedCSV
+      output = 'ClusteredRand/samples_0.csv'
       rel_err = 1e-5
     [../]
   [../]
@@ -162,9 +203,89 @@
       rel_err = 1e-5
     [../]
     [./sample_ldc]
+      # Even with identical seeds and inputs, the Fourier linear regressor fit produces
+      # different coefficients and intercept values on different operating systems, even
+      # multiple linux-based systems. Windows seems to be the most different, and as a
+      # result the CDF bin metric can be sufficiently different on Windows as to not pass
+      # the test.
+      # This is exacerbated by the fact that manually performing the y=Ax+b calculation
+      # (where b is the intercept, x is the Fourier signal, and A is the amplitudes matrix)
+      # yields a slightly (1e-6 rel err) difference from using the linear engine's
+      # prediction for the same. That change in this PR resulted in a change in the "metric"
+      # between the expected and actual CDF bins on Windows from 0.63 to 0.65.
+
       type = OrderedCSV
       output = 'PreserveCdf/metric.csv'
-      rel_err = 1e-6
+      rel_err = 5e-2
+    [../]
+  [../]
+
+  [./Multicycle]
+    type = 'RavenFramework'
+    input = 'multicycle.xml'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Multicycle/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./samples]
+      type = OrderedCSV
+      output = 'Multicycle/final_out_0.csv Multicycle/final_out_1.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./MulticycleReseed]
+    type = 'RavenFramework'
+    input = 'multicycle_reseed.xml'
+    prereq = Multicycle
+    [./samples]
+      type = OrderedCSV
+      output = 'Multicycle/reseedData.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./Peaks]
+    type = 'RavenFramework'
+    input = 'peaks.xml'
+    output = 'Peaks/romMeta.csv'
+    UnorderedXml = 'Peaks/romMeta.xml'
+    rel_err = 1e-6
+  [../]
+
+  [./Interpolated]
+    type = 'RavenFramework'
+    input = 'interpolated.xml'
+    skip = 'inconsistent see 1351'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Interpolated/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./csv]
+      type = OrderedCSV
+      output = 'Interpolated/synthetic.csv Interpolated/resynthetic.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./InterpolatedMaxCycles]
+    type = 'RavenFramework'
+    input = 'interpolated_maxcycles.xml'
+    csv = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
+    skip = 'inconsistent see 1351'
+  [../]
+
+  [./CloudPlot]
+    type = 'RavenFramework'
+    input = 'cloud_plot.xml'
+    prereq = Interpolated
+    [./plots]
+      type = Exists
+      output = 'Interpolated/cloud_0.png Interpolated/cloud_1.png Interpolated/cloud_2.png Interpolated/cloud_3.png Interpolated/cloud_4.png Interpolated/cloud_5.png Interpolated/cloud_6.png Interpolated/cloud_7.png Interpolated/cloud_8.png Interpolated/cloud_9.png'
     [../]
   [../]
 []

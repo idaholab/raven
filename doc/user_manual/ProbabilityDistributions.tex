@@ -903,6 +903,50 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+\paragraph{Uniform Discrete Distribution}
+\label{subsec:UniformDiscrete}
+
+The \textbf{UniformDiscrete} distribution is a discrete distribution which describes a random variable 
+that can have $N$ values having equal probability value.
+This distribution allows the user to choose two kinds of sampling strategies: with or without replacement.
+In case the ``without replacement'' strategy is used, the distribution samples from the set of specified $N$ values 
+reduced by the previously sampled values. 
+After, the sampler has generated values for all variables, the distribution is 
+resetted (i.e., the set of values that can be sampled is returned to $N$).
+In case the ``with replacement'' strategy is used, the distribution samples always from the complete set of specified $N$ values.
+
+\specBlock{a}{Uniform Discrete}
+%
+\attrIntro
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+\subnodeIntro
+\begin{itemize}
+  \item \xmlNode{lowerBound}, \xmlDesc{float, required parameter}, lower bound.
+  \item \xmlNode{upperBound}, \xmlDesc{float, required parameter}, upper bound.
+  \item \xmlNode{nPoints},    \xmlDesc{integer, optional parameter}, number of points between lower and upper bound
+  \item \xmlNode{strategy},   \xmlDesc{string,  required parameter}, type of sampling strategy 
+  (withReplacement or withoutReplacement).
+  %
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+    <UniformDiscrete name="UD_dist">
+      <lowerBound>3</lowerBound>
+      <upperBound>8</upperBound>
+      <strategy>orderedWithReplacement</strategy>
+    </UniformDiscrete>
+  ...
+</Distributions>
+\end{lstlisting}
+
 \paragraph{Markov Categorical Distribution}
 \label{subsec:markovCategorical}
 

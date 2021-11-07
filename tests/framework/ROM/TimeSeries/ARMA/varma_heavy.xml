@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.VARMAheavy</name>
+    <author>talbpaul</author>
+    <created>2018-05-15</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       This test checks the possibility to train a correlated ARMA model and its
+       capability to generate intrinsically stochastic time series with correlated results.
+       The data is generated using dataGenerator in the working directory.
+       The plot output ``plot_input.png'' shows the original training data, while ``plot_VARMA.png''
+       plots the sampled values.  B should only be slightly off from A at all points.  If this
+       same calculation is done without correlation, both A and B independently range over the
+       value space, and B can be far from A for each Time value.  This provides a quick view norm
+       to see that the correlation is working correctly.
+    </description>
+    <revisions>
+      <revision author='talbpaul' date='2019-10-16'>split off for a heavy test for statistical convergence</revision>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>VARMAheavy</WorkingDir>
+    <Sequence>read,train,rommeta,sample,write,load,stats</Sequence>
+    <!-- NOTE: the dump, unpickle steps have been removed until statsmodel 0.9 is in RAVEN's library set. See issue #916. -->
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">source</Input>
+      <Output class="DataObjects" type="HistorySet">training</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">training</Input>
+      <Output class="Models" type="ROM">VARMA</Output>
+    </RomTrainer>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">VARMA</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">VARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">training</Input>
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="OutStreams" type="Print">samples</Output>
+      <Output class="OutStreams" type="Plot">plot_samples</Output>
+      <Output class="OutStreams" type="Plot">plot_training</Output>
+    </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">synthetic</Input>
+      <Output class="DataObjects" type="PointSet">asPoints</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">asPoints</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="pk">varma.pk</Input>
+    <Input name="source">correlated.csv</Input>
+    <Input name="synthetic">samples_0.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+    </PointSet>
+    <PointSet name="asPoints">
+      <Input>Time</Input>
+      <Output>A,B,D</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output>
+        mean_A, var_A,
+        mean_B, var_B,
+        mean_D, var_D,
+        covar_A_B,
+        covar_B_A
+      </Output>
+    </PointSet>
+    <HistorySet name="training">
+      <Input>scaling</Input>
+      <Output>A,B,D</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>A,B,D</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rommeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="unpk" subType="pickledROM"/>
+    <ROM name="VARMA" subType="ARMA">
+      <Target>A,B,D,Time</Target>
+      <Features>scaling</Features>
+      <seed>901017</seed>
+      <correlate>A,B</correlate>
+      <pivotParameter>Time</pivotParameter>
+      <reseedCopies>False</reseedCopies>
+      <P>0</P>
+      <Q>1</Q>
+    </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">A,B,D</expectedValue>
+      <variance prefix="var">A,B,D</variance>
+      <covariance prefix="covar">
+        <targets>A,B</targets>
+        <features>A,B</features>
+      </covariance>
+      <multipleFeatures>False</multipleFeatures>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>2</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+      <what>input,output</what>
+    </Print>
+    <Plot name="plot_samples" overwrite="false">
+      <filename>plot_VARMA</filename>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>samples|Output|Time</x>
+          <y>samples|Output|A</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>samples|Output|Time</x>
+          <y>samples|Output|B</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
+      </plotSettings>
+      <actions>
+        <title>
+          <text>A,B VARMA</text>
+        </title>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="plot_training" overwrite="false">
+      <filename>plot_input</filename>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>training|Output|Time</x>
+          <y>training|Output|A</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>training|Output|Time</x>
+          <y>training|Output|B</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
+      </plotSettings>
+      <actions>
+        <title>
+          <text>A,B Original</text>
+        </title>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

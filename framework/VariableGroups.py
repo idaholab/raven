@@ -19,8 +19,6 @@ Module aimed to define the methods to group variables in the RAVEN frameworl
 
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -50,20 +48,23 @@ class VariableGroup(BaseClasses.BaseType):
     self.variables      = []             #list of variable names
     self.initialized    = False          #true when initialized
 
-  def readXML(self, node, messageHandler, varGroups):
+  def readXML(self, node, varGroups):
     """
       reads XML for more information
       @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ In, varGroups, dict, other variable groups including ones this depends on (if any)
       @ Out, None
     """
-    self.messageHandler = messageHandler
     #establish the name
     if 'name' not in node.attrib.keys():
       self.raiseAnError(IOError,'VariableGroups require a "name" attribute!')
     self.name = node.attrib['name']
+    if node.text is None:
+      node.text = ''
     # loop through variables and expand list
     for dep in [s.strip() for s in node.text.split(',')]:
+      if dep == '':
+        continue
       # get operator if provided
       operator = '+'
       if dep[0] in '+-^%':

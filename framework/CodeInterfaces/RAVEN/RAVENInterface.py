@@ -16,19 +16,13 @@ Created on Sept 10, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import os
-import copy
 import numpy as np
+from sys import platform
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
-import csvUtilities
-
-from MessageHandler import MessageHandler
+import Databases
 
 class RAVEN(CodeInterfaceBase):
   """
@@ -36,9 +30,11 @@ class RAVEN(CodeInterfaceBase):
   """
   def __init__(self):
     CodeInterfaceBase.__init__(self)
+    self.preCommand = "" # this is the precommand (bash.exe in case of win)
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
+    self.outDatabases = {} # as outStreams, but {name: path/and/file} for databases
     # path to the module that contains the function to modify and convert the sampled vars (optional)
     # 2 methods are going to be inquired (if present and needed):
     # - convertNotScalarSampledVariables
@@ -49,10 +45,12 @@ class RAVEN(CodeInterfaceBase):
     self.hasMethods                = {'noscalar':False, 'scalar':False}
     # inner workind directory
     self.innerWorkingDir = ''
-    # linked DataObjects
+    # linked DataObjects and Databases
     self.linkedDataObjectOutStreamsNames = None
+    self.linkedDatabaseName = None
     # input manipulation module
     self.inputManipulationModule = None
+    self.printFailedRuns = False  # whether to print failed runs to the screen
 
   def addDefaultExtension(self):
     """
@@ -63,7 +61,7 @@ class RAVEN(CodeInterfaceBase):
     """
     self.addInputExtension(['xml'])
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
@@ -73,14 +71,25 @@ class RAVEN(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    if os.path.basename(xmlNode.find("executable").text) != 'raven_framework':
-      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)!')
+    baseName = os.path.basename(xmlNode.find("executable").text)
+    if baseName not in ['raven_framework','Driver.py']:
+      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
-    if linkedDataObjects is None:
-      raise IOError(self.printTag+' ERROR: outputExportOutStreams node not present. You must input at least one OutStream (max 2)!')
-    self.linkedDataObjectOutStreamsNames = linkedDataObjects.text.split(",")
-    if len(self.linkedDataObjectOutStreamsNames) > 2:
+    linkedDatabases = xmlNode.find('outputDatabase')
+    if linkedDataObjects is None and linkedDatabases is None:
+      raise IOError(self.printTag+' ERROR: Neither <outputExportOutStreams> nor <outputDatabase> node is present. '+
+                    'You must indicate an output from the inner run!')
+    if linkedDataObjects is not None and linkedDatabases is not None:
+      raise IOError(self.printTag+' ERROR: Only one of <outputExportOutStreams> or <outputDatabase> can be present!')
+    if linkedDataObjects is not None:
+      self.linkedDataObjectOutStreamsNames = linkedDataObjects.text.split(",")
+    elif linkedDatabases is not None:
+      self.linkedDatabaseName = linkedDatabases.text.strip()
+
+    if self.linkedDataObjectOutStreamsNames is not None and len(self.linkedDataObjectOutStreamsNames) > 2:
+      raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
+    if self.linkedDatabaseName is not None and len(self.linkedDatabaseName.split(',')) > 1:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
 
     # load conversion modules
@@ -89,13 +98,14 @@ class RAVEN(CodeInterfaceBase):
     if child is not None:
       for moduleNode in child:
         # get the module to be used for conversion
-        source = moduleNode.attrib.get('source',None)
+        source = moduleNode.attrib.get('source', None)
         if source is None:
           raise IOError(self.printTag+' ERROR: no module "source" listed in "conversion" subnode attributes!')
         # fix up the path
+        ## should be relative to the working dir!
         source = os.path.expanduser(source)
         if not os.path.isabs(source):
-          source = os.path.abspath(source)
+          source = os.path.abspath(os.path.join(self._ravenWorkingDir, source))
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
@@ -155,10 +165,14 @@ class RAVEN(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
-    executeCommand = [('serial',executable+ ' '+inputFiles[index].getFilename())]
+    pre = ""
+    if "python" not in executable.lower() or not executable.endswith(".py"):
+      pre = self.preCommand.strip() + " "
+    executeCommand = [('serial',pre + executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -173,29 +187,43 @@ class RAVEN(CodeInterfaceBase):
     index = self.__findInputFile(oriInputFiles)
     parser = RAVENparser.RAVENparser(oriInputFiles[index].getAbsFile())
     # get the OutStreams names
-    self.outStreamsNamesAndType = parser.returnOutstreamsNamesAnType()
+    self.outStreamsNamesAndType, self.outDatabases = parser.returnOutputs()
     # check if the linked DataObjects are among the Outstreams
-    pointSetNumber, historySetNumber = 0, 0
-    for outstream, dataObj in self.outStreamsNamesAndType.items():
-      if outstream in self.linkedDataObjectOutStreamsNames:
-        if dataObj[1].strip() == 'PointSet':
-          pointSetNumber+=1
-        else:
-          historySetNumber+=1
-        if pointSetNumber > 1 or historySetNumber > 1:
-          raise IOError(self.printTag+' ERROR: Only one OutStream for PointSet and/or one for HistorySet can be linked as output export!')
-    if pointSetNumber == 0 and historySetNumber == 0:
-      raise IOError(self.printTag+' ERROR: No one of the OutStreams linked to this interface have been found in the SLAVE RAVEN!'
-                                 +' Expected: "'+' '.join(self.linkedDataObjectOutStreamsNames)+'" but found "'
-                                 +' '.join(self.outStreamsNamesAndType.keys())+'"!')
+    if self.linkedDataObjectOutStreamsNames:
+      pointSetNumber, historySetNumber = 0, 0
+      for outstream, dataObj in self.outStreamsNamesAndType.items():
+        if outstream in self.linkedDataObjectOutStreamsNames:
+          if dataObj[1].strip() == 'PointSet':
+            pointSetNumber+=1
+          else:
+            historySetNumber+=1
+          if pointSetNumber > 1 or historySetNumber > 1:
+            raise IOError(self.printTag+' ERROR: Only one OutStream for PointSet and/or one for HistorySet can be linked as output export!')
+      if pointSetNumber == 0 and historySetNumber == 0:
+        raise IOError(self.printTag+' ERROR: No one of the OutStreams linked to this interface have been found in the SLAVE RAVEN!'
+                                  +' Expected: "'+' '.join(self.linkedDataObjectOutStreamsNames)+'" but found "'
+                                  +' '.join(self.outStreamsNamesAndType.keys())+'"!')
+    else: # self.linkedDatabaseName
+      for dbName, dbXml in self.outDatabases.items():
+        if dbName == self.linkedDatabaseName:
+          break
+      else:
+        # the one we want wasn't found!
+        raise IOError(f'{self.printTag} ERROR: The Database named "{self.linkedDatabaseName}" listed '+
+                      'in <outputDatabase> was not found among the written Databases in active Steps in the inner RAVEN! '+
+                      f'Found: {list(self.outDatabases.keys())}')
+
     # get variable groups
     varGroupNames = parser.returnVarGroups()
     ## store globally
     self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
+    # check operating system and define prefix if needed
+    if platform.startswith("win") and utils.which("bash.exe") is not None:
+      self.preCommand = 'bash.exe'
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -214,7 +242,7 @@ class RAVEN(CodeInterfaceBase):
     modifDict = Kwargs['SampledVars']
 
     # apply conversion scripts
-    for source,convDict in self.conversionDict.items():
+    for source, convDict in self.conversionDict.items():
       module = utils.importFromPath(source)
       varVals = dict((var,np.asarray(modifDict[var])) for var in convDict['variables'])
       # modify vector+ variables that need to be flattened
@@ -230,30 +258,39 @@ class RAVEN(CodeInterfaceBase):
       if convDict['scalar']:
         # call conversion, value changes happen in-place
         module.manipulateScalarSampledVariables(modifDict)
-
     # we work on batchSizes here
     newBatchSize = Kwargs['NumMPI']
     internalParallel = Kwargs.get('internalParallel',False)
     if int(Kwargs['numberNodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
       nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
-      if os.path.exists(nodeFileToUse):
-        modifDict['RunInfo|mode'           ] = 'mpi'
-        modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
-      else:
-        raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist!')
+      if not os.path.exists(nodeFileToUse):
+        if "PBS_NODEFILE" not in os.environ:
+          raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
+        else:
+          nodeFileToUse = os.environ["PBS_NODEFILE"]
+      modifDict['RunInfo|mode'           ] = 'mpi'
+      modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
-      modifDict['RunInfo|batchSize'       ] = newBatchSize
+      modifDict['RunInfo|batchSize'] = newBatchSize
+
+    if 'headNode' in Kwargs:
+      modifDict['RunInfo|headNode'] = Kwargs['headNode']
+      modifDict['RunInfo|redisPassword'] = Kwargs['redisPassword']
+    if 'remoteNodes' in Kwargs:
+      if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
+        modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
+
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
+    modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
     # modify tree
     if self.inputManipulationModule is not None:
       module = utils.importFromPath(self.inputManipulationModule)
       modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
     # write input file
-    parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
+    parser.printInput(modifiedRoot, currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
     return currentInputFiles
@@ -271,32 +308,36 @@ class RAVEN(CodeInterfaceBase):
     """
     failure = False
     # check for log file
-    try:
-      outputToRead = open(os.path.join(workingDir,output),"r")
-    except IOError:
-      print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
-      return True
-    # check for completed run
-    readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-20:]):
-      del readLines
+    ## NOTE this can be falsely accepted if the run dir isn't cleared before running,
+    ##      which it automatically is but can be disabled
+    toCheck = os.path.join(workingDir, self.innerWorkingDir, '.ravenStatus')
+    if not os.path.isfile(toCheck):
+      print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
     # check for output CSV (and data)
     if not failure:
-      for filename in self.linkedDataObjectOutStreamsNames:
-        outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
-        try:
-          fileObj = open(outStreamFile,"r")
-        except IOError:
-          print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outStreamFile)+'" does not exist!')
-          failure = True
-        if not failure:
-          readLines = fileObj.readlines()
-          if any("nan" in x.lower() for x in readLines):
+      if self.linkedDataObjectOutStreamsNames:
+        for filename in self.linkedDataObjectOutStreamsNames:
+          outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
+          try:
+            fileObj = open(outStreamFile,"r")
+          except IOError:
+            print(self.printTag+' ERROR: The RAVEN INNER output file "'+str(outStreamFile)+'" does not exist!')
             failure = True
-            print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outStreamFile)+'!')
-            break
-          del readLines
+          if not failure:
+            readLines = fileObj.readlines()
+            if any("nan" in x.lower() for x in readLines):
+              failure = True
+              print(self.printTag+' ERROR: Found nan in RAVEN INNER output "'+str(outStreamFile)+'!')
+              break
+            del readLines
+      else:
+        dbName = self.linkedDatabaseName
+        path = self.outDatabases[dbName]
+        fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
+        if not os.path.isfile(fullPath):
+          print(f'{self.printTag} ERROR: The RAVEN INNER output file "{os.path.abspath(fullPath)}" was not found!')
+          failure = True
     return failure
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -309,7 +350,6 @@ class RAVEN(CodeInterfaceBase):
       @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
-
     ##### TODO This is an exception to the way CodeInterfaces usually run.
     # The return dict for this CodeInterface is a dictionary of data objects (either one or two of them, up to one each point set and history set).
     # Normally, the end result of this method is producing a CSV file with the data to load.
@@ -319,29 +359,37 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
-    messageHandler = MessageHandler()
-    messageHandler.initialize({'verbosity':'quiet'})
-    for filename in self.linkedDataObjectOutStreamsNames:
-      # load the output CSV into a data object, so we can return that
-      ## load the XML initialization information and type
-      dataObjectInfo = self.outStreamsNamesAndType[filename]
-      # create an instance of the correct data object type
-      data = DataObjects.returnInstance(dataObjectInfo[1],None)
-      # initialize the data object by reading the XML
-      data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
-      # set the name, then load the data
-      data.name = filename
-      data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
-      # check consistency of data object number of realizations
-      if numRlz is None:
-        # set the standard if you're the first data object
-        numRlz = len(data)
-      else:
-        # otherwise, check that the number of realizations is appropriate
-        if len(data) != numRlz:
-          raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" received "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz))
-      # store the object to return
-      dataObjectsToReturn[dataObjectInfo[0]] = data
+    if self.linkedDataObjectOutStreamsNames:
+      for filename in self.linkedDataObjectOutStreamsNames:
+        # load the output CSV into a data object, so we can return that
+        ## load the XML initialization information and type
+        dataObjectInfo = self.outStreamsNamesAndType[filename]
+        # create an instance of the correct data object type
+        data = DataObjects.factory.returnInstance(dataObjectInfo[1])
+        # initialize the data object by reading the XML
+        data.readXML(dataObjectInfo[2], variableGroups=self.variableGroups)
+        # set the name, then load the data
+        data.name = filename
+        data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
+        # check consistency of data object number of realizations
+        if numRlz is None:
+          # set the standard if you're the first data object
+          numRlz = len(data)
+        else:
+          # otherwise, check that the number of realizations is appropriate
+          if len(data) != numRlz:
+            raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" received "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz))
+        # store the object to return
+        dataObjectsToReturn[dataObjectInfo[0]] = data
+    else: # self.linkedDatabaseName
+      dbName = self.linkedDatabaseName
+      path = self.outDatabases[dbName]
+      fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
+      data = DataObjects.factory.returnInstance('DataSet')
+      info = {'WorkingDir': self._ravenWorkingDir}
+      db = Databases.factory.returnInstance('NetCDF')
+      db.applyRunInfo(info)
+      db.databaseDir, db.filename = os.path.split(fullPath)
+      db.loadIntoData(data)
+      dataObjectsToReturn[dbName] = data
     return dataObjectsToReturn
-
-

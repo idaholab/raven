@@ -1,0 +1,45 @@
+<DataObjectMetadata name="romMeta">
+  <DataSet type="Static">
+    <dims>
+      <Speed_fourier>Time</Speed_fourier>
+      <Speed_gaussianed>Time</Speed_gaussianed>
+      <Speed_nofourier>Time</Speed_nofourier>
+      <Speed_original>Time</Speed_original>
+    </dims>
+    <general>
+      <pointwise_meta>Speed_fourier,Speed_gaussianed,Speed_nofourier,Speed_original</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+  <arma type="Static">
+    <ROM>
+      <type>ARMA</type>
+    </ROM>
+    <Multicycle>
+      <num_cycles>3</num_cycles>
+      <growth_factors>
+        <Speed end_index="2" mode="exponential" start_index="0">50.0</Speed>
+      </growth_factors>
+    </Multicycle>
+    <Speed>
+      <Fourier>
+        <SignalIntercept>4.586502254e-01</SignalIntercept>
+        <period>1.000000000e+02
+          <frequency>1.000000000e-02</frequency>
+          <amplitude>1.467630514e+00</amplitude>
+          <phase>7.804580832e-01</phase>
+        </period>
+        <period>5.000000000e+00
+          <frequency>2.000000000e-01</frequency>
+          <amplitude>1.954112793e+00</amplitude>
+          <phase>-3.680658063e-02</phase>
+        </period>
+      </Fourier>
+      <ARMA_params>
+        <std>1.48978689931</std>
+      </ARMA_params>
+    </Speed>
+  </arma>
+  
+</DataObjectMetadata>

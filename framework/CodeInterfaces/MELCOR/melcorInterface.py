@@ -16,8 +16,6 @@
   @author: Matteo Donorio (University of Rome La Sapienza)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
@@ -96,11 +94,12 @@ class MelcorApp(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, the data dictionary {var1:array,var2:array, etc}
     """
     outfile = os.path.join(workingDir,output+'.out')
     outputobj=MELCORdata.MELCORdata(outfile)
-    outputobj.writeCsv(os.path.join(workingDir,output+'.csv'))
+    response = outputobj.returnData()
+    return response
 
   def checkForOutputFailure(self,output,workingDir):
     """

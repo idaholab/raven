@@ -6,7 +6,7 @@
     <created>2017-09-16</created>
     <classesTested>CodeInterfaces.Dymola</classesTested>
     <description>
-       The purpose of this test is to exercise the Dymola external code interface without needing to have a built 
+       The purpose of this test is to exercise the Dymola external code interface without needing to have a built
          executable.  This special case shows how to load just few output varibles from the Dymola outputs (e.g. .mat files).
          In this case only the variables e,g and h will be loaded
     </description>
@@ -48,7 +48,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1">
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="DymolaInitialisation">dsin.txt</Input>
       <Model class="Models" type="Code">BouncingBall</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>

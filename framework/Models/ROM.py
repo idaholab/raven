@@ -12,236 +12,79 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module where the base class and the specialization of different type of Model are
+  Created on May 17, 2017
+  @author: alfoa, wangc
+  Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import copy
-import inspect
 import itertools
 import numpy as np
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-import SupervisedLearning
-from utils import utils
-from utils import xmlUtils
-from utils import InputData
-import Files
-import LearningGate
+import Decorators
+from SupervisedLearning import factory
+from utils import utils, xmlUtils, mathUtils
+from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
+# set enviroment variable to avoid parallelim degradation in some surrogate models
+os.environ["MKL_NUM_THREADS"]="1"
 
 class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
-
+  interfaceFactory = factory
+  segmentNameToClass = {'segment': 'Segments',
+                 'cluster': 'Clusters',
+                 'interpolate': 'Interpolated'}
   @classmethod
-  def getInputSpecification(cls):
+  def getInputSpecification(cls, xml=None):
     """
       Method to get a reference to a class that specifies the input data for
       class cls. This one seems a bit excessive, are all of these for this class?
       @ In, cls, the class for which we are retrieving the specification
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ROM, cls).getInputSpecification()
-
-    IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
-    CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
-    # general
-    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
-    # segmenting and clustering
-    segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster'])
-    segment.addParam('grouping', segmentGroups)
-    subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
-    subspace.addParam('divisions', InputData.IntegerType, False)
-    subspace.addParam('pivotLength', InputData.FloatType, False)
-    subspace.addParam('shift', InputData.StringType, False)
-    segment.addSub(subspace)
-    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
-    clsfr.addParam('class', InputData.StringType, True)
-    clsfr.addParam('type', InputData.StringType, True)
-    segment.addSub(clsfr)
-    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
-    metric.addParam('class', InputData.StringType, True)
-    metric.addParam('type', InputData.StringType, True)
-    segment.addSub(metric)
-    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
-    feature.addParam('weight', InputData.FloatType)
-    segment.addSub(feature)
-    inputSpecification.addSub(segment)
-    # unsorted
-    inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("graph", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("knn", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("smooth", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("tol", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("compute_score", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("normalize", InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("verbose", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_iter", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("warm_start", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("positive", InputData.StringType)) #bool?
-    inputSpecification.addSub(InputData.parameterInputFactory("eps", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("precompute", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_path", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("criterion", CriterionInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory("penalty", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("dual", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("C", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("class_weight", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("random_state", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("epsilon", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("eta0", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("alphas", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scoring", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gcv_mode", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("store_cv_values", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("power_t", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("multi_class", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("degree", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gamma", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("coef0", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("probability", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("shrinking", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("cache_size", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nu", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("code_size", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_prior", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("class_prior", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("binarize", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("weights", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("algorithm", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("metric", InputData.StringType)) #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("radius", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("outlier_label", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("priors", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reg_param", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("splitter", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("max_features", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_depth", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("regr", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("corr", InputData.StringType)) #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("beta0", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("storage_mode", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("theta0", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaL", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaU", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
-    # GaussPolynomialROM and HDMRRom
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", contentType=IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
-    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
-    InterpolationInput.addParam("quad", InputData.StringType, False)
-    InterpolationInput.addParam("poly", InputData.StringType, False)
-    InterpolationInput.addParam("weight", InputData.FloatType, False)
-    inputSpecification.addSub(InterpolationInput)
-    # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
-    ### ARMA zero filter
-    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
-    zeroFilt.addParam('tol', InputData.FloatType)
-    inputSpecification.addSub(zeroFilt)
-    ### ARMA out truncation
-    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType)
-    domainEnumType = InputData.makeEnumType('domain', 'truncateDomainType', ['positive', 'negative'])
-    outTrunc.addParam('domain', domainEnumType, True)
-    inputSpecification.addSub(outTrunc)
-    ### ARMA specific fourier
-    specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
-    specFourier.addParam("variables", InputData.StringListType, True)
-    specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
-    inputSpecification.addSub(specFourier)
-    # inputs for neural_network
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("momentum", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", InputData.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", InputData.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
-    # PolyExp
-    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
-    coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
-    inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
-    # DMD
-    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
-
-    #Estimators can include ROMs, and so because baseNode does a copy, this
-    #needs to be after the rest of ROMInput is defined.
-    EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=inputSpecification)
-    EstimatorInput.addParam("estimatorType", InputData.StringType, False)
-    #The next lines are to make subType and name not required.
-    EstimatorInput.addParam("subType", InputData.StringType, False)
-    EstimatorInput.addParam("name", InputData.StringType, False)
-    inputSpecification.addSub(EstimatorInput)
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.description = r"""A Reduced Order Model (ROM) is a mathematical model consisting of a fast
+                                        solution trained to predict a response of interest of a physical system.
+                                        The ``training'' process is performed by sampling the response of a physical
+                                        model with respect to variations of its parameters subject, for example, to
+                                        probabilistic behavior.
+                                        The results (outcomes of the physical model) of the sampling are fed into the
+                                        algorithm representing the ROM that tunes itself to replicate those results.
+                                        RAVEN supports several different types of ROMs, both internally developed and
+                                        imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
+                                        Currently in RAVEN, the user can use the \xmlAttr{subType} to select the ROM.
+                                      """
+    inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType,
+        descr=r"""specify the type of ROM that will be used""")
+    ######################
+    # dynamically loaded #
+    ######################
+    # assert xml is not None
+    if xml is not None:
+      subType = xml.attrib.get('subType')
+      validClass = cls.interfaceFactory.returnClass(subType)
+      validSpec = validClass.getInputSpecification()
+      inputSpecification.mergeSub(validSpec)
+      ## Add segment input specifications
+      segment = xml.find('Segment')
+      if segment is not None:
+        segType = segment.attrib.get('grouping', 'segment')
+        validClass = cls.interfaceFactory.returnClass(cls.segmentNameToClass[segType])
+        validSpec = validClass.getInputSpecification()
+        inputSpecification.mergeSub(validSpec)
 
     return inputSpecification
 
@@ -255,23 +98,42 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {}          # ROM initialization options
-    self.amITrained                = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = 'ROM MODEL'
+    super().__init__()
+    self.amITrained = False               # boolean flag, is the ROM trained?
+    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
+    self.printTag = 'ROM MODEL'           # label
+    self.cvInstanceName = None            # the name of Cross Validation instance
+    self.cvInstance = None                # Instance of provided cross validation
+    self._estimatorName = None            # the name of estimator instance
+    self._estimator = None                # Instance of provided estimator (ROM)
+    self._interfaceROM = None             # Instance of provided ROM
+
+    self.pickled = False # True if ROM comes from a pickled rom
+    self.pivotParameterId = 'time' # The name of pivot parameter
+    self.canHandleDynamicData = False # check if the model can autonomously handle the time-dependency
+                                      # if not and time-dep data are passed in, a list of ROMs are constructed
+    self.isADynamicModel = False # True if the ROM is time-dependent
+    self.supervisedContainer = [] # List ROM instances
+    self.historySteps = [] # The history steps of pivot parameter
+    self.segment = False # True if segmenting/clustring/interpolating is requested
+    self.numThreads = 1 # number of threads used by the ROM
+    self.seed = None # seed information
+    self._segmentROM = None # segment rom instance
+    self._paramInput = None # the parsed xml input
 
     # for Clustered ROM
-    self.addAssemblerObject('Classifier','-1',True)
-    self.addAssemblerObject('Metric','-n',True)
+    self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('estimator', InputData.Quantity.zero_to_one)
 
   def __getstate__(self):
     """
@@ -280,6 +142,9 @@ class ROM(Dummy):
       @ Out, d, dict, things to serialize
     """
     d = copy.copy(self.__dict__)
+    if not self.amITrained:
+      supervisedEngineObj = d.pop("supervisedContainer")
+      del supervisedEngineObj
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
@@ -292,9 +157,21 @@ class ROM(Dummy):
       @ Out, None
     """
     # default setstate behavior
-    self.__dict__ = d
+    self.__dict__.update(d)
+    if not d['amITrained']:
+      # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
+      modelInstance = self.interfaceFactory.returnInstance(self.subType)
+      self.supervisedContainer  = [modelInstance]
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self.numThreads = runInfo.get('NumThreads', 1)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -303,108 +180,64 @@ class ROM(Dummy):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Dummy._readMoreXML(self, xmlNode)
-    self.initializationOptionDict['name'] = self.name
-    paramInput = ROM.getInputSpecification()()
+    super()._readMoreXML(xmlNode)
+    paramInput = self.getInputSpecification(xml=xmlNode)()
     paramInput.parseNode(xmlNode)
-    def tryStrParse(s):
-      """
-        Trys to parse if it is stringish
-        @ In, s, string, possible string
-        @ Out, s, string, original type, or possibly parsed string
-      """
-      return utils.tryParse(s) if type(s).__name__ in ['str','unicode'] else s
+    self._paramInput = paramInput
+    cvNode = paramInput.findFirst('CV')
+    if cvNode is not None:
+      self.cvInstanceName = cvNode.value
+    estimatorNode = paramInput.findFirst('estimator')
+    self._estimatorName = estimatorNode.value if estimatorNode is not None else None
 
-    for child in paramInput.subparts:
-      if len(child.parameterValues) > 0:
-        if child.getName() == 'alias':
-          continue
-        if child.getName() not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.getName()]={}
-        # "tuple" here allows values to be listed, probably not great but works
-        key = child.value if not isinstance(child.value,list) else tuple(child.value)
-        self.initializationOptionDict[child.getName()][key]=child.parameterValues
-      else:
-        if child.getName() == 'estimator':
-          self.initializationOptionDict[child.getName()] = {}
-          for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
-        else:
-          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+    self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
+    segmentNode = paramInput.findFirst('Segment')
+    ## remove Segment node before passing input xml to SupervisedLearning ROM
+    if segmentNode is not None:
+      self.segment = True
+      # determine type of segment to load -> limited by InputData to specific options
+      segType = segmentNode.parameterValues.get('grouping', 'segment')
+      self._segmentROM =  self.interfaceFactory.returnInstance(self.segmentNameToClass[segType])
+      segment = xmlNode.find('Segment')
+      romXml = copy.deepcopy(xmlNode)
+      romXml.remove(segment)
+    else:
+      romXml = xmlNode
+    self._interfaceROM._readMoreXML(romXml)
+
+    if self.segment:
+      romInfo = {'name':self.name, 'modelInstance': self._interfaceROM}
+      self._segmentROM.setTemplateROM(romInfo)
+      self._segmentROM._handleInput(paramInput)
+      self.supervisedContainer = [self._segmentROM]
+    else:
+      self.supervisedContainer = [self._interfaceROM]
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
-      self.initializationOptionDict['pickled'] = True
-    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
-    #the ROM is instanced and initialized
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
+      self.pickled = True
 
-  def _initializeSupervisedGate(self,**initializationOptions):
-    """
-      Method to initialize the supervisedGate class
-      @ In, initializationOptions, dict, the initialization options
-      @ Out, None
-    """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
+    pivot = paramInput.findFirst('pivotParameter')
+    if pivot is not None:
+      self.pivotParameterId = pivot.value
 
-  def writePointwiseData(self, writeTo):
-    """
-      Called by the OutStreamPrint object to cause the ROM to print information about itself
-      @ In, writeTo, DataObject, data structure to add data to
-      @ Out, None
-    """
-    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
-    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
-    engines = self.supervisedEngine.supervisedContainer
-    for engine in engines:
-      engine.writePointwiseData(writeTo)
+    self.canHandleDynamicData = self._interfaceROM.isDynamic()
 
-  def writeXML(self, what='all'):
+  def initialize(self,runInfo,inputs,initDict=None):
     """
-      Called by the OutStreamPrint object to cause the ROM to print itself
-      @ In, what, string, optional, keyword requesting what should be printed
-      @ Out, xml, xmlUtils.StaticXmlElement, written meta
+      Method to initialize this class
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    #determine dynamic or static
-    dynamic = self.supervisedEngine.isADynamicModel
-    # determine if it can handle dynamic data
-    handleDynamicData = self.supervisedEngine.canHandleDynamicData
-    # get pivot parameter
-    pivotParameterId = self.supervisedEngine.pivotParameterId
-    # find some general settings needed for either dynamic or static handling
-    ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
-    ## establish requested targets
-    targets = ROMtargets if what=='all' else what.split(',')
-    ## establish sets of engines to work from
-    engines = self.supervisedEngine.supervisedContainer
-    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
-    #    on whether the engine is naturally dynamic or whether we need to handle that part.
-    if dynamic and not handleDynamicData:
-      # time-dependent, but we manage the output (chopped)
-      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
-      ## pre-print printing
-      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
-      for s,rom in enumerate(engines):
-        pivotValue = self.supervisedEngine.historySteps[s]
-        #for target in targets: # should be handled by SVL engine or here??
-        #  #skip the pivot param
-        #  if target == pivotParameterId:
-        #    continue
-        #otherwise, call engine's print method
-        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
-        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
-        rom.writeXML(subXML, skip = [pivotParameterId])
-        for element in subXML.getRoot():
-          xml.addScalarNode(element, pivotValue)
-        #xml.addScalarNode(subXML.getRoot(), pivotValue)
-    else:
-      # directly accept the results from the engine
-      xml = xmlUtils.StaticXmlElement(self.name)
-      ## pre-print printing
-      engines[0].writeXMLPreamble(xml)
-      engines[0].writeXML(xml)
-    return xml
+    # retrieve cross validation object
+    if self.cvInstance is None and self.cvInstanceName is not None:
+      self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstanceName)
+      self.cvInstance.initialize(runInfo, inputs, initDict)
+
+    # only initialize once
+    if self._estimator is None and self._estimatorName is not None:
+      self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimatorName)
+      self._interfaceROM.setEstimator(self._estimator)
 
   def reset(self):
     """
@@ -412,8 +245,18 @@ class ROM(Dummy):
       @ In,  None
       @ Out, None
     """
-    self.supervisedEngine.reset()
-    self.amITrained   = False
+    for rom in self.supervisedContainer:
+      rom.reset()
+    self.amITrained = False
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROM.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    for rom in self.supervisedContainer:
+      rom.reseed(seed)
 
   def getInitParams(self):
     """
@@ -424,8 +267,39 @@ class ROM(Dummy):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = self.supervisedEngine.getInitParams()
+    paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
+
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child engine is also polled for its keys.
+      @ In, None
+      @ Out, metaKeys, set(str), names of meta variables being provided
+      @ Out, metaParams, dict, the independent indexes related to expected keys
+    """
+    # load own keys and params
+    metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
+    # add from specific rom
+    keys, params = self.supervisedContainer[-1].provideExpectedMetaKeys()
+    metaKeys = metaKeys.union(keys)
+    metaParams.update(params)
+    return metaKeys, metaParams
+
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      Also train this model.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    # save reseeding parameters from pickledROM
+    loadSettings = {'seed': self.seed, 'paramInput': self._paramInput}
+    # train the ROM from the unpickled object
+    self.train(obj)
+    self.setAdditionalParams(loadSettings)
+    self.pickled = False
 
   def train(self,trainingSet):
     """
@@ -434,23 +308,62 @@ class ROM(Dummy):
       @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
-      self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
+      self.supervisedContainer         = copy.deepcopy(trainingSet.supervisedContainer)
+      self.seed = trainingSet.seed
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
-        pivotParameterId = self.supervisedEngine.pivotParameterId
-        if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
+        if not trainingSet.checkIndexAlignment(indexesToCheck=self.pivotParameterId):
           self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      # grab assembled stuff and pass it through
-      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
-      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
-      self.amITrained = self.supervisedEngine.amITrained
+
+      self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
+      # if training using ROMCollection, special treatment
+      if self.segment:
+        self.supervisedContainer[0].train(self.trainingSet)
+      else:
+        # not a collection # TODO move time-dependent snapshots to collection!
+        ## time-dependent or static ROM?
+        if any(type(x).__name__ == 'list' for x in self.trainingSet.values()):
+          # we need to build a "time-dependent" ROM
+          self.isADynamicModel = True
+          if self.pivotParameterId not in list(self.trainingSet.keys()):
+            self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId),
+                              'A time-dependent-like ROM cannot be created!')
+          if type(self.trainingSet[self.pivotParameterId]).__name__ != 'list':
+            self.raiseAnError(IOError, 'The pivot parameter "{}" is not a list.'.format(self.pivotParameterId),
+                              " Are you sure it is part of the output space of the training set?")
+          self.historySteps = self.trainingSet.get(self.pivotParameterId)[-1]
+          if not len(self.historySteps):
+            self.raiseAnError(IOError, "the training set is empty!")
+          # intrinsically time-dependent or does the Gate need to handle it?
+          if self.canHandleDynamicData:
+            # the ROM is able to manage the time dependency on its own
+            self.supervisedContainer[-1].train(self.trainingSet)
+          else:
+            # TODO we can probably migrate this time-dependent handling to a type of ROMCollection!
+            # we need to construct a chain of ROMs
+            # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
+            # get the time slices
+            newTrainingSet = mathUtils.historySnapShoots(self.trainingSet, len(self.historySteps))
+            assert type(newTrainingSet).__name__ == 'list'
+            # copy the original ROM
+            originalROM = self.supervisedContainer[0]
+            # start creating and training the time-dep ROMs
+            self.supervisedContainer = [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+            # train
+            for ts in range(len(self.historySteps)):
+              self.supervisedContainer[ts].train(newTrainingSet[ts])
+        # if a static ROM ...
+        else:
+          #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+          self.supervisedContainer[0].train(self.trainingSet)
+      # END if ROMCollection
+      self.amITrained = True
 
   def confidence(self,request,target = None):
     """
@@ -460,22 +373,46 @@ class ROM(Dummy):
       @ In, request, datatype, feature coordinates (request)
       @ Out, confidenceDict, dict, the dict containing the confidence on each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM = self._inputToInternal(request)
-    confidenceDict = self.supervisedEngine.confidence(inputToROM)
+    request = self._inputToInternal(request)
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM "+self.name+" has not been trained yet and, consequentially, can not be evaluated!")
+    confidenceDict = {}
+    for rom in self.supervisedContainer:
+      sliceEvaluation = rom.confidence(request)
+      if len(list(confidenceDict.keys())) == 0:
+        confidenceDict.update(sliceEvaluation)
+      else:
+        for key in confidenceDict.keys():
+          confidenceDict[key] = np.append(confidenceDict[key],sliceEvaluation[key])
     return confidenceDict
 
-  def evaluate(self,request):
+  @Decorators.timingProfile
+  def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
-      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
+      @ Out, resultsDict, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM       = self._inputToInternal(request)
-    outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    request = self._inputToInternal(request)
+    if self.pickled:
+      self.raiseAnError(RuntimeError,'ROM "', self.name, '" has not been loaded yet!  Use an IOStep to load it.')
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not be evaluated!")
+    resultsDict = {}
+    if self.segment:
+      resultsDict = self.supervisedContainer[0].run(request)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = rom.run(request)
+        if len(list(resultsDict.keys())) == 0:
+          resultsDict.update(sliceEvaluation)
+        else:
+          for key in resultsDict.keys():
+            resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
-    for k,v in outputEvaluation.items():
-      outputEvaluation[k] = np.atleast_1d(v)
-    return outputEvaluation
+    for k,v in resultsDict.items():
+      resultsDict[k] = np.atleast_1d(v)
+    return resultsDict
 
   def _externalRun(self,inRun):
     """
@@ -488,6 +425,7 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -513,11 +451,116 @@ class ROM(Dummy):
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
-  def reseed(self,seed):
+  def setAdditionalParams(self, params):
     """
-      Used to reset the seed of the underlying ROM.
-      @ In, seed, int, new seed to use
+      Used to set parameters at a time other than initialization (such as deserializing).
+      @ In, params, dict, new params to set (internals depend on ROM)
       @ Out, None
     """
-    self.supervisedEngine.reseed(seed)
+    for rom in self.supervisedContainer:
+      rom.setAdditionalParams(params)
 
+  def convergence(self,trainingSet):
+    """
+      This is to get the cross validation score of ROM
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvScore, dict, the dict containing the score of cross validation
+    """
+    cvScore = self._crossValidationScore(trainingSet)
+    return cvScore
+
+  def _crossValidationScore(self, trainingSet):
+    """
+      The function calculates the cross validation score on ROMs
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvMetrics, dict, the calculated cross validation metrics
+    """
+    if len(self.supervisedContainer) > 1:
+      self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
+    cvMetrics = None
+    if self._checkCV(len(trainingSet)):
+      # reset the ROM before perform cross validation
+      cvMetrics = {}
+      self.reset()
+      outputMetrics = self.cvInstance._pp.run([self, trainingSet])
+      exploredTargets = []
+      for cvKey, metricValues in outputMetrics.items():
+        info = self.cvInstance._pp._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        if info['targetName'] in exploredTargets:
+          self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
+        exploredTargets.append(info['targetName'])
+        cvMetrics[self.name] = (info['metricType'], metricValues)
+    return cvMetrics
+
+  def _checkCV(self, trainingSize):
+    """
+      The function will check whether we can use Cross Validation or not
+      @ In, trainingSize, int, the size of current training size
+      @ Out, None
+    """
+    useCV = True
+    initDict =  self.cvInstance._pp.initializationOptionDict
+    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
+      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
+        useCV = False
+    else:
+      useCV = False
+    return useCV
+
+  def writePointwiseData(self, writeTo):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print information about itself
+      @ In, writeTo, DataObject, data structure to add data to
+      @ Out, None
+    """
+    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
+    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
+    for engine in self.supervisedContainer:
+      engine.writePointwiseData(writeTo)
+
+  def writeXML(self, what='all'):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print itself
+      @ In, what, string, optional, keyword requesting what should be printed
+      @ Out, xml, xmlUtils.StaticXmlElement, written meta
+    """
+    #determine dynamic or static
+    dynamic = self.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.canHandleDynamicData
+    # get pivot parameter
+    pivotParameterId = self.pivotParameterId
+    # find some general settings needed for either dynamic or static handling
+    ## get all the targets the ROMs have
+    ROMtargets = self.supervisedContainer[0].target
+    ## establish requested targets
+    targets = ROMtargets if what=='all' else what.split(',')
+    ## establish sets of engines to work from
+    engines = self.supervisedContainer
+    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
+    #    on whether the engine is naturally dynamic or whether we need to handle that part.
+    if dynamic and not handleDynamicData:
+      # time-dependent, but we manage the output (chopped)
+      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
+      for s,rom in enumerate(engines):
+        pivotValue = self.historySteps[s]
+        #for target in targets: # should be handled by SVL engine or here??
+        #  #skip the pivot param
+        #  if target == pivotParameterId:
+        #    continue
+        #otherwise, call engine's print method
+        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
+        subXML = xmlUtils.StaticXmlElement(self.supervisedContainer[0].printTag)
+        rom.writeXML(subXML, skip = [pivotParameterId])
+        for element in subXML.getRoot():
+          xml.addScalarNode(element, pivotValue)
+        #xml.addScalarNode(subXML.getRoot(), pivotValue)
+    else:
+      # directly accept the results from the engine
+      xml = xmlUtils.StaticXmlElement(self.name)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml)
+      engines[0].writeXML(xml)
+    return xml

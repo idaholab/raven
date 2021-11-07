@@ -166,3 +166,17 @@ hybridModel/runCode/hybridModelCode/
 unit_tests/utils/parse/fromGetpotToGetpot.i
 unit_tests/utils/parse/fromXmltoGetpot.i
 user_guide/EnsembleModel/run_basic/sample/
+ROM/TimeSeries/ARMA/ARMAreseed/
+ROM/TimeSeries/ARMA/Segmented/arma.pk
+ROM/TimeSeries/ARMA/Multicycle/arma.pk
+DataObjects/StringIO/sample/
+CodeInterfaceTests/RAVEN/Code/sample/
+CodeInterfaceTests/Neutrino/Neutrino_Base/sampleNeutrino/[1-3]
+CodeInterfaceTests/MOOSEBaseApps/MooseExample18WithGenericFile/myMC/[12]
+CodeInterfaceTests/MOOSEBaseApps/MooseExample18OnlyGenericFile/myMC/[12]
+CodeInterfaceTests/MOOSEBaseApps/MooseExample18OnlyGenericFile/myMC/ex18.i
+CodeInterfaceTests/MOOSEBaseApps/MooseExample18WithGenericFile/myMC/ex18.i
+CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/formattest.i
+CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/out~formattest
+CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/formattest.i
+hybridModel/logicalCode/logicalModelCode/

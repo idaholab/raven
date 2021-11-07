@@ -17,19 +17,14 @@ Created on Sept 10, 2017
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 import os
 import shutil
 import copy
-import numpy as np
 from collections import OrderedDict
-
-from utils import xmlUtils, utils
-import MessageHandler # to give VariableGroups a messageHandler and handle messages
+from utils import utils, xmlUtils, mathUtils
 
 class RAVENparser():
   """
@@ -44,6 +39,7 @@ class RAVENparser():
     self.printTag  = 'RAVEN_PARSER' # print tag
     self.inputFile = inputFile      # input file name
     self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
+    self.databases = {}             # {name: full rel path to file with filename}
     self.varGroups = {}             # variable groups, names and values
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
@@ -60,12 +56,7 @@ class RAVENparser():
     # get the NAMES of the variable groups
     variableGroupNode = self.tree.find('VariableGroups')
     if variableGroupNode is not None:
-      # make a messageHandler and messageUsesr to handle variable group creation
-      ## if made generally available to this parser, this can be relocated and used generally
-      messageHandler = MessageHandler.MessageHandler()
-      messageHandler.initialize({'verbosity':'quiet'})
-      messageUser = MessageHandler.MessageUser()
-      self.varGroups = xmlUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
+      self.varGroups = mathUtils.readVariableGroups(variableGroupNode)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
@@ -77,6 +68,7 @@ class RAVENparser():
         raise IOError(self.printTag+' ERROR: Only one level of RAVEN runs are allowed (Not a chain of RAVEN runs). Found a <Code> of subType RAVEN!')
     # find steps and check if there are active outstreams (Print)
     foundOutStreams = False
+    foundDatabases = False
     for step in self.tree.find('.//Steps'):
       if step.attrib['name'] in sequence:
         for role in step:
@@ -85,7 +77,7 @@ class RAVENparser():
             if mainClass == 'OutStreams' and subType == 'Print':
               outStream = self.tree.find('.//OutStreams/Print[@name="'+role.text.strip()+ '"]'+'/source')
               if outStream is None:
-                raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" has not been found!')
+                continue # can have an outstream in inner but still use database return
               dataObjectType = None
               linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
               if linkedDataObjectPointSet is None:
@@ -100,19 +92,56 @@ class RAVENparser():
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
               self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType,xmlNode]
               foundOutStreams = True
-    if not foundOutStreams:
-      raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
+            elif mainClass == 'Databases' and subType == 'NetCDF':
+              rName = role.text.strip()
+              db = self.tree.find(f'.//Databases/NetCDF[@name="{rName}"]')
+              if db is None:
+                continue # can have a database in inner but still use outsream return
+              if db.attrib['readMode'] == 'overwrite':
+                dirs = db.attrib.get('directory', 'DatabaseStorage')
+                name = db.attrib.get('filename', db.attrib['name']+'.nc')
+                full = os.path.join(dirs, name)
+                self.databases[rName] = full
+                foundDatabases = True
+
+    if not foundOutStreams and not foundDatabases:
+      raise IOError(self.printTag+' ERROR: No <OutStreams><Print> or <Databases><NetCDF readMode="overwrite"> found in the active <Steps> of inner RAVEN!')
+
     # Now we grep the paths of all the inputs the SLAVE RAVEN contains in the workind directory.
     self.workingDir = self.tree.find('.//RunInfo/WorkingDir').text.strip()
     # Find the Files
-    self.slaveInputFiles = []
-    filesNode = self.tree.find('.//Files')
-    if filesNode is not None:
-      for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib.get('subDirectory','')
-        self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,subDirectory,child.text.strip())))
+    self.slaveInputFiles = self.findSlaveFiles(self.tree, self.workingDir)
 
-    externalModels = self.tree.findall('.//Models/ExternalModel')
+  def findSlaveFiles(self, tree, workingDir):
+    """
+      find Slave Files
+      @ In, tree, xml.etree.ElementTree.Element, main node of RAVEN
+      @ In, workingDir, string, current working directory
+      @ Out, slaveFiles, list, list of slave input files
+    """
+    slaveFiles = [] # NOTE: this is only perturbable files
+    # check in files
+    filesNode = tree.find('.//Files')
+    if filesNode is not None:
+      for child in tree.find('.//Files'):
+        # if the file is noted to be in a subdirectory, grab that
+        subDirectory = child.attrib.get('subDirectory','')
+        # this is the absolute path of the file on the system
+        absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, subDirectory, child.text.strip())))
+        # is this file meant to be perturbed? Default to true.
+        perturbable = utils.stringIsTrue(child.attrib.get('perturbable', 't'))
+        if perturbable:
+          # since it will be perturbed, track it so we can copy it to the eventual inner workdir
+          slaveFiles.append(absPath)
+          # we're going to copy it to the working dir, so just leave the file name
+          child.text = os.path.basename(absPath)
+        else:
+          # change the path to be absolute so the inner workflow still knows where it is
+          ## make sure we don't have a subdirectory messing with stuff
+          child.attrib.pop('subDirectory', None)
+          child.text = absPath
+    # check in external models
+    externalModels = tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
       for extModel in externalModels:
         if 'ModuleToLoad' in extModel.attrib:
@@ -120,34 +149,40 @@ class RAVENparser():
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
+            absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
           else:
-            self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
+            absPath = os.path.abspath(os.path.expanduser(moduleToLoad))
+          # because ExternalModels aren't perturbed, just update the path to be absolute
+          extModel.attrib['ModuleToLoad'] = absPath
         else:
           if 'subType' not in extModel.attrib or len(extModel.attrib['subType']) == 0:
             raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad" or "subType" with an available plugin name!')
-
-    externalFunctions = self.tree.findall('.//Functions/External')
+    # check in external functions
+    externalFunctions = tree.findall('.//Functions/External')
     if len(externalFunctions) > 0:
       for extFunct in externalFunctions:
         if 'file' in extFunct.attrib:
           moduleToLoad = extFunct.attrib['file']
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
-          if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
+          if workingDir not in moduleToLoad:
+            absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
           else:
-            self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
+            absPath = os.path.abspath(os.path.expanduser(moduleToLoad))
+          # because ExternalFunctions aren't perturbed, just update the path to be absolute
+          extFunct.attrib['file'] = absPath
         else:
           raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
+    # make the paths absolute
+    return slaveFiles
 
-  def returnOutstreamsNamesAnType(self):
+  def returnOutputs(self):
     """
       Method to return the Outstreams names and linked DataObject name
       @ In, None
       @ Out, outStreamsNames, dict, the dictionary of outstreams of type print {'outStreamName':[DataObjectName,DataObjectType]}
     """
-    return self.outStreamsNames
+    return self.outStreamsNames, self.databases
 
   def returnVarGroups(self):
     """
@@ -157,28 +192,27 @@ class RAVENparser():
     """
     return self.varGroups
 
-  def copySlaveFiles(self,currentDirName):
+  def copySlaveFiles(self, currentDirName):
     """
       Method to copy the slave input files
       @ In, currentDirName, str, the current directory (destination of the copy procedure)
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
-      # full path
-      slaveInputFullPath = os.path.abspath(os.path.join(dirName,slaveInput))
-      # check if exists
-      if os.path.exists(slaveInputFullPath):
-        slaveInputBaseDir = os.path.dirname(slaveInput)
-        slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
-        if not os.path.exists(slaveDir):
-          os.makedirs(slaveDir)
-        shutil.copy(slaveInputFullPath,slaveDir)
-      else:
-        raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
-
+      slaveDir = os.path.join(currentDirName, self.workingDir)
+      # if not exist then make the directory
+      try:
+        os.makedirs(slaveDir)
+      # if exist, print message, since no access to message handler
+      except FileExistsError:
+        print('current working dir {}'.format(slaveDir))
+        print('already exists, this might imply deletion of present files')
+      try:
+        shutil.copy(slaveInput, slaveDir)
+      except FileNotFoundError:
+        raise IOError('{} ERROR: File "{}" has not been found!'.format(self.printTag, slaveInput))
 
   def printInput(self,rootToPrint,outfile=None):
     """
@@ -297,7 +331,7 @@ class RAVENparser():
             getFirstElement.append(subElement)
             getFirstElement = subElement
           # in the event of vector entries, handle those here
-          if utils.isSingleValued(val):
+          if mathUtils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:
@@ -312,7 +346,7 @@ class RAVENparser():
           nodeToChange = foundNodes[0]
           pathNode     = './/'
           # in the event of vector entries, handle those here
-          if utils.isSingleValued(val):
+          if mathUtils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:

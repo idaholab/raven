@@ -11,18 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
  This file contains the mathematical methods used in the framework.
  Some of the methods were in the PostProcessor.py
  created on 03/26/2015
  @author: senrs
-'''
+"""
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
-import sys
 import math
 import functools
 import copy
@@ -30,7 +25,13 @@ import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 import six
-from utils.utils import UreturnPrintTag,UreturnPrintPostTag
+from numpy import linalg
+
+from utils.utils import UreturnPrintTag, UreturnPrintPostTag
+from .graphStructure import graphObject
+
+import MessageHandler # makes sure getMessageHandler is defined
+mh = getMessageHandler()
 
 def normal(x,mu=0.0,sigma=1.0):
   """
@@ -98,23 +99,6 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
         return highFill
   return myInterp
 
-def simpson(f, a, b, n):
-  """
-    Simpson integration rule
-    @ In, f, instance, the function to integrate
-    @ In, a, float, lower bound
-    @ In, b, float, upper bound
-    @ In, n, int, number of integration steps
-    @ Out, sumVar, float, integral
-  """
-  h = (b - a) / float(n)
-  y = np.zeros(n+1)
-  x = np.zeros(n+1)
-  for i in range(0, n+1):
-    x[i] = a + i*h
-    y[i] = f(x[i])
-  return integrate.simps(y, x)
-
 def countBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data
@@ -165,7 +149,7 @@ def hyperdiagonal(lengths):
   """
     Obtains the length of a diagonal of a hyperrectangle given the lengths of the sides.  Useful for high-dimensional distance scaling.
     @ In, lengths, list(float), lengths of the sides of the ND rectangle
-    @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
+    @ Out, diag, float, the length of the diagonal between farthest-separated corners of the hypercube
   """
   try:
     return np.sqrt(np.sum(lengths*lengths))
@@ -429,30 +413,33 @@ def numpyNearestMatch(findIn,val):
     @ In, val, float or other compatible type, the value for which to find a match
     @ Out, returnMatch, tuple, index where match is and the match itself
   """
+  findIn = np.asarray(findIn)
+  if len(findIn.shape) == 1:
+    findIn = findIn.reshape(-1,1)
   dist = distance(findIn,val)
   idx = dist.argmin()
   #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
   returnMatch = idx,findIn[idx]
   return returnMatch
 
-def relativeDiff(f1,f2):
+def relativeDiff(f1, f2):
   """
     Given two floats, safely compares them to determine relative difference.
     @ In, f1, float, first value (the value to compare to f2, "measured")
     @ In, f2, float, second value (the value being compared to, "actual")
     @ Out, relativeDiff, float, (safe) relative difference
   """
-  if not isinstance(f1,float):
+  if not isinstance(f1, float):
     try:
       f1 = float(f1)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  First argument is %s type %s' %(str(f1),type(f1)))
-  if not isinstance(f2,float):
+  if not isinstance(f2, float):
     try:
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(diffWithInfinites(f1,f2))
+  diff = abs(diffWithInfinites(f1, f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0
@@ -492,7 +479,6 @@ def NDInArray(findIn,val,tol=1e-12):
   """
   if len(findIn)<1:
     return False,None,None
-  targ = []
   found = False
   for idx,looking in enumerate(findIn):
     num = looking - val
@@ -513,33 +499,45 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data, low=None, alternateOkay=True):
+def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
     @ In, low, int, minimum number of bins
     @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
+    @ In, binOps, int, optional, optional method choice for computing optimal bins
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  iqr = np.percentile(data, 75) - np.percentile(data, 25)
-  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-  if iqr > 0.0:
-    size = 2.0 * iqr / np.cbrt(data.size)
-    numBins = int(np.ceil((max(data) - min(data))/size))
-  # if there's not, with approval we can use the sqrt of the number of entries instead
-  elif alternateOkay:
+  # binOps: default to draconis, but allow other options
+  ## TODO additional options could be easily added in the future.
+  # option 2: square root rule
+  if binOps == 2:
     numBins = int(np.ceil(np.sqrt(data.size)))
+  # default option: try draconis, then fall back on square root rule
   else:
-    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+    try:
+      iqr = np.percentile(data, 75) - np.percentile(data, 25)
+    # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+      if iqr > 0.0:
+        size = 2.0 * iqr / np.cbrt(data.size)
+        numBins = int(np.ceil((max(data) - min(data))/size))
+      else:
+        raise TypeError
+    except:
+    # if there's not, with approval we can use the sqrt of the number of entries instead
+      if alternateOkay:
+        numBins = int(np.ceil(np.sqrt(data.size)))
+      else:
+        raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
   # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
-  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  binEdges = np.linspace(start=np.asarray(data).min(), stop=np.asarray(data).max(), num=numBins+1)
   return numBins, binEdges
 
-def diffWithInfinites(a,b):
+def diffWithInfinites(a, b):
   """
     Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
     inf - (- inf) = inf.
@@ -555,7 +553,7 @@ def diffWithInfinites(a,b):
     else: # b > a
       res = -np.inf
   else:
-    res = a-b
+    res = a - b
   return res
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
@@ -622,16 +620,16 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   eigvals  = lowrankEigenvals.astype(complex)
   return eigvals, eigvects
 
-def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
   """
     @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
     @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
     @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
-    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+    @ In, optimized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
                           if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
     @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
   """
-  if optmized:
+  if optimized:
     L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
@@ -648,6 +646,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
     @ In, minBins, int, optional, minimum number of bins to use
     @ In, weights, np.array(float), optional, weights for each sample within the distribution
     @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+    @ Out, histogram, tuple, (counts, edges) the frequency and bins of the histogram
   """
   # determine the number of bins to use in the empirical distribution
   if bins is None:
@@ -655,7 +654,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
   counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
   counts = np.asarray(counts) / float(len(signal))
   dist = stats.rv_histogram((counts, edges))
-  return dist
+  return dist, (counts, edges)
 
 def convertSinCosToSinPhase(A, B):
   """
@@ -669,3 +668,445 @@ def convertSinCosToSinPhase(A, B):
   p = np.arctan2(B, A)
   C = A / np.cos(p)
   return C, p
+
+def evalFourier(period,C,p,t):
+  """
+    Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
+    @ In, C, float, equivalent sine-only amplitude
+    @ In, p, float, phase shift of sine-only waveform
+    @ In, t, np.array, list of values for the time
+    @ Out fourier, np.array, results of the transfered signal
+  """
+  fourier = C * np.sin(2. * np.pi * t / period + p)
+  return fourier
+
+def orderClusterLabels(originalLabels):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels
+
+# determining types
+## NOTE: REQUIRES six and numpy, do not move to utils!
+def isSingleValued(val, nanOk=True, zeroDOk=True):
+  """
+    Determine if a single-entry value (by traditional standards).
+    Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
+    @ Out, isSingleValued, bool, result
+  """
+  # TODO most efficient order for checking?
+  if zeroDOk:
+    # if a zero-d numpy array, then technically it's single-valued, but we need to get into the array
+    val = npZeroDToEntry(val)
+  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+
+def isAString(val):
+  """
+    Determine if a string value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isAString, bool, result
+  """
+  return isinstance(val, six.string_types)
+
+def isAFloatOrInt(val,nanOk=True):
+  """
+    Determine if a float or integer value
+    Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloatOrInt, bool, result
+  """
+  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
+
+def isAFloat(val,nanOk=True):
+  """
+    Determine if a float value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloat, bool, result
+  """
+  if isinstance(val,(float,np.number)):
+    # exclude ints, which are numpy.number
+    if isAnInteger(val):
+      return False
+    # numpy.float32 (or 16) is niether a float nor a numpy.float (it is a numpy.number)
+    if nanOk:
+      return True
+    elif val not in [np.nan, np.inf]:
+      return True
+  return False
+
+def isAnInteger(val,nanOk=False):
+  """
+    Determine if an integer value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAnInteger, bool, result
+  """
+  if isinstance(val, six.integer_types) or isinstance(val, np.integer):
+    # exclude booleans
+    if isABoolean(val):
+      return False
+    return True
+  # also include inf and nan, if requested
+  if nanOk and isinstance(val,float) and val in [np.nan, np.inf]:
+    return True
+  return False
+
+def isABoolean(val):
+  """
+    Determine if a boolean value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isABoolean, bool, result
+  """
+  return isinstance(val, (bool, np.bool_))
+
+def npZeroDToEntry(a):
+  """
+    Cracks the shell of the numpy array and gets the sweet sweet value inside
+    @ In, a, object, thing to crack open (might be anything, hopefully a zero-d numpy array)
+    @ Out, a, object, thing that was inside the thing in the first place
+  """
+  if isinstance(a, np.ndarray) and a.shape == ():
+    # make the thing we're checking the thing inside to the numpy array
+    a = a.item()
+  return a
+
+def toListFromNumpyOrC1array(array):
+  """
+    This method converts a numpy or c1darray into list
+    @ In, array, numpy or c1array,  array to be converted
+    @ Out, response, list, the casted value
+  """
+  response = array
+  if type(array).__name__ == 'ndarray':
+    response = array.tolist()
+  elif type(array).__name__.split(".")[0] == 'c1darray':
+    response = np.asarray(array).tolist()
+  return response
+
+def toListFromNumpyOrC1arrayIterative(array):
+  """
+    Method aimed to convert all the string-compatible content of
+    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
+    @ In, array, object,  object whose content needs to be converted
+    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+  """
+  if type(array) == list:
+    return [toListFromNumpyOrC1array(x) for x in array]
+  elif type(array) == dict:
+    if len(array.keys()) == 0:
+      return None
+    tempdict = {}
+    for key,value in array.items():
+      tempdict[np.toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+    return tempdict
+  else:
+    return np.toBytes(array)
+
+def sizeMatch(var,sizeToCheck):
+  """
+    This method is aimed to check if a variable has an expected size
+    @ In, var, python datatype, the first variable to compare
+    @ In, sizeToCheck, int, the size this variable should have
+    @ Out, sizeMatched, bool, is the size ok?
+  """
+  sizeMatched = True
+  if len(np.atleast_1d(var)) != sizeToCheck:
+    sizeMatched = False
+  return sizeMatched
+
+def readVariableGroups(xmlNode):
+  """
+    Reads the XML for the variable groups and initializes them
+    Placed in mathUtils because it uses VariableGroups, which inherit from BaseClasses
+    -> and hence all the rest of the required libraries.
+    NOTE: maybe we should have a thirdPartyUtils that is different from utils and mathUtils?
+    @ In, xmlNode, ElementTree.Element, xml node to read in
+    @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
+  """
+  import VariableGroups
+  # first find all the names
+  names = [node.attrib['name'] for node in xmlNode]
+
+  # find dependencies
+  deps = {}
+  nodes = {}
+  initials = []
+  for child in xmlNode:
+    name = child.attrib['name']
+    nodes[name] = child
+    if child.text is None:
+      needs = [''] # needs to be an empty string, not simply []
+    else:
+      needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
+    for n in needs:
+      if n not in deps and n not in names:
+        deps[n] = []
+    deps[name] = needs
+    if len(deps[name]) == 0:
+      initials.append(name)
+  graph = graphObject(deps)
+  # sanity checking
+  if graph.isALoop():
+    mh.error('mathUtils', IOError, 'VariableGroups have circular dependency!')
+  # ordered list (least dependencies first)
+  hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
+
+  # build entities
+  varGroups = {}
+  for name in hierarchy:
+    if len(deps[name]):
+      varGroup = VariableGroups.VariableGroup()
+      varGroup.readXML(nodes[name], varGroups)
+      varGroups[name] = varGroup
+
+  return varGroups
+
+def calculateMultivectorMagnitude(vector):
+  """
+    Given a list of potentially mixed scalars and numpy arrays, obtains the magnitude as if every
+    entry were part of one larger array
+    @ In, vector, list, mixed float/np.array elements where all scalars should be treated with same weighting
+    @ Out, mag, float, magnitude of combined elements
+  """
+  # reshape so numpy can perform Frobenius norm
+  # -> do this by calculating the norm of vector entries first
+  # --> note that np norm fails on length-1 arrays so we protect against that
+  new = [np.linalg.norm(x) if len(np.atleast_1d(x)) > 1 else np.atleast_1d(x)[0] for x in vector]
+  mag = np.linalg.norm(new)
+  return mag
+
+def calculateMagnitudeAndVersor(vector, normalizeInfinity=True):
+  """
+    Generates a magnitude and versor for provided vector.
+    @ In, vector, list or np.array, potentially mixed float/np.array elements
+    @ In, normalizeInfinity, bool, optional, if True then normalize vector if infinites present
+    @ Out, mag, float, magnitude of vector
+    @ Out, versor, np.array, vector divided by magnitude
+    @ Out, foundInf, bool, if True than infinity calcs were used
+  """
+  # protect original data
+  vector = copy.deepcopy(vector)
+  # check if infinites were detected
+  foundInf = False
+  mag = calculateMultivectorMagnitude(vector)
+  if normalizeInfinity and mag == np.inf:
+    foundInf = True
+    for e, entry in enumerate(vector):
+      # if we're working with infinites, then recalculate by "dividing by infinity"
+      vector[e][-np.inf < entry < np.inf] = 0.0
+      # since np.inf / np.inf is nan, manually define quotient as 1
+      vector[e][entry == np.inf] = 1.0
+      vector[e][entry == -np.inf] = -1.0
+    mag = calculateMultivectorMagnitude(vector)
+  # create versor (if divisor is not zero)
+  if mag != 0.0:
+    for e, entry in enumerate(vector):
+      vector[e] = entry / mag
+      # fix up vector/scalars: len 1 vectors are scalars
+      #if len(entry) == 1:
+      #  vector[e] = float(vector[e])
+  return mag, vector, foundInf
+
+def angleBetweenVectors(a, b):
+  """
+    Calculates the angle between two N-dimensional vectors in DEGREES
+    @ In, a, np.array, vector of floats
+    @ In, b, np.array, vector of floats
+    @ Out, ang, float, angle in degrees
+  """
+  # if either vector is all zeros, then angle between is also
+  normA = np.linalg.norm(a)
+  normB = np.linalg.norm(b)
+  if normA == 0:
+    ang = 0
+  elif normB == 0:
+    ang = 0
+  else:
+    dot = np.dot(a, b) / normA / normB
+    ang = np.arccos(np.clip(dot, -1, 1))
+  ang = np.rad2deg(ang)
+  return ang
+
+# utility function for defaultdict
+def giveZero():
+  """
+    Utility function for defaultdict to 0
+    Needed only to avoid lambda pickling issues for defaultdicts
+    @ In, None
+    @ Out, giveZero, int, zero
+  """
+  return 0
+
+##########################
+# empirical distribution #
+##########################
+def characterizeCDF(data, binOps=None, minBins=1):
+  """
+    Constructs an empirical CDF from the given data
+    @ In, data, np.array(float), values to fit CDF to
+    @ In, binOps, int, setting for picking binning strategy
+    @ In, minBins, int, minimum bins for empirical CDF
+    @ Out, params, dict, essential parameters for CDF
+  """
+  # calculate number of bins
+  # binOps=Length or value
+  nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
+  # construct histogram
+  counts, edges = np.histogram(data, bins=nBins, density=False)
+  counts = np.array(counts) / float(len(data))
+  # numerical CDF, normalizing to 0..1
+  cdf = np.cumsum(counts)
+  # set lowest value as first entry,
+  ## from Jun implementation, min of CDF set to 0 for ?numerical issues?
+  cdf = np.insert(cdf, 0, 0)
+  # store parameters
+  params = {'bins': edges,
+            'counts':counts,
+            'pdf' : counts * nBins,
+            'cdf' : cdf,
+            'lens' : len(data)}
+  return params
+
+def gaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF into Gaussian distribution
+    @ In, data, np.array, values to "gaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, normed, np.array, gaussian version of "data"
+  """
+  cdfVals = sampleCDF(data, cdf)
+  normed = stats.norm.ppf(cdfVals) # TODO could use RAVEN dist, but this is more modular
+  return normed
+
+def degaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF from Gaussian distribution
+    Opposite of "gaussianize" above
+    @ In, data, np.array, "normal" values to "degaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, denormed, np.array, empirical version of "data"
+  """
+  cdfVals = stats.norm.cdf(data)
+  denormed = sampleICDF(cdfVals, cdf)
+  return denormed
+
+def sampleCDF(x, cdfParams):
+  """
+    Samples the empirical distribution's CDF at requested value(s)
+    @ In, x, float/np.array, value(s) at which to sample CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical CDF at x
+  """
+  # TODO could this be covered by an empirical distribution from Distributions?
+  # set up I/O
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['bins'][0]
+  aboveMask = x >= cdfParams['bins'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['cdf'][0]
+  y[aboveMask] = cdfParams['cdf'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['bins'], x[inMask])
+  x0 = cdfParams['bins'][indices-1]
+  y0 = cdfParams['cdf'][indices-1]
+  xf = cdfParams['bins'][indices]
+  yf = cdfParams['cdf'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  # numerical errors can happen due to not-sharp 0 and 1 in empirical cdf
+  ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
+  y[y >= 1.0] = 1.0 - np.finfo(float).eps
+  y[y <= 0.0] = np.finfo(float).eps
+  return y
+
+def sampleICDF(x, cdfParams):
+  """
+    Samples the inverse CDF defined by "cdfParams" to get values
+    @ In, x, float/np.array, value(s) at which to sample inverse CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical inverse CDF at x
+  """
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['cdf'][0]
+  aboveMask = x >= cdfParams['cdf'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['bins'][0]
+  y[aboveMask] = cdfParams['bins'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['cdf'], x[inMask])
+  x0 = cdfParams['cdf'][indices - 1]
+  y0 = cdfParams['bins'][indices - 1]
+  xf = cdfParams['cdf'][indices]
+  yf = cdfParams['bins'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  return y
+
+def interpolateDist(x, y, x0, xf, y0, yf, mask):
+  """
+    Interpolates values for samples "x" to get dependent values "y" given bins
+    @ In, x, np.array, sampled points (independent var)
+    @ In, y, np.array, sampled points (dependent var)
+    @ In, x0, np.array, left-nearest neighbor in empirical distribution for each x
+    @ In, xf, np.array, right-nearest neighbor in empirical distribution for each x
+    @ In, y0, np.array, value at left-nearest neighbor in empirical distribution for each x
+    @ In, yf, np.array, value at right-nearest neighbor in empirical distribution for each x
+    @ In, mask, np.array, boolean mask in "y" where the distribution values apply
+    @ Out, y, np.array, same "y" but with values inserted
+  """
+  ### handle divide-by-zero problems first, specially
+  # check for where div zero problems will occur
+  divZeroMask = x0 == xf
+  # careful with double masking -> doesn't always do what you think it does
+  zMask = [a[divZeroMask] for a in np.where(mask)]
+  y[tuple(zMask)] = 0.5 * (yf[divZeroMask] + y0[divZeroMask])
+  ### interpolate all other points as y = low + slope * frac
+  okayMask = np.logical_not(divZeroMask)
+  dy = yf[okayMask] - y0[okayMask]
+  dx = xf[okayMask] - x0[okayMask]
+  frac = x[mask][okayMask] - x0[okayMask]
+  okayWhere = [a[okayMask] for a in np.where(mask)]
+  y[tuple(okayWhere)] = y0 + dy/dx * frac
+  return y
+
+def computeCrowdingDistance(trainSet):
+  """
+    This function will compute the Crowding distance coefficients among the input parameters
+    @ In, trainSet, numpy.array, array contains values of input parameters
+    @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
+  """
+  dim = trainSet.shape[1]
+  distMat = np.zeros((dim, dim))
+
+  for i in range(dim):
+    for j in range(i):
+      distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
+      distMat[j,i] = distMat[i,j]
+
+  crowdingDist = np.sum(distMat,axis=1)
+  return crowdingDist

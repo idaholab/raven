@@ -17,14 +17,10 @@ talbpaul, 2016-05
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
+from utils.utils import toString, getRelativeSortedListEntry
 import xml.etree.ElementTree as ET
 import re
 import os
-import VariableGroups
-from .utils import isAString, toString, getRelativeSortedListEntry
-from .graphStructure import graphObject
-warnings.simplefilter('default', DeprecationWarning)
 
 #define type checking
 def isComment(node):
@@ -100,8 +96,6 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
     # NOTE must use utils.toString because ET.tostring returns bytestring in python3
     prettifyNode(tree, tabs=startingTabs, ravenNewlines=addRavenNewlines)
     return toString(ET.tostring(tree))
-
-  return toWrite
 
 def newNode(tag, text='', attrib=None):
   """
@@ -241,14 +235,19 @@ def findPathEllipsesParents(root, path, docLevel=0):
   curNode.append(foundNode)
   return newRoot
 
-def loadToTree(filename):
+def loadToTree(filename, preserveComments=False):
   """
     loads a file into an XML tree
     @ In, filename, string, the file to load
+    @ In, preserveComments, bool, optional, if True then preserve comments in XML tree
     @ Out, root, xml.etree.ElementTree.Element, root of tree
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree read from file
   """
-  tree = ET.parse(filename)
+  if preserveComments:
+    parser = ET.XMLParser(target=CommentedTreeBuilder())
+  else:
+    parser = None
+  tree = ET.parse(filename, parser=parser)
   root = tree.getroot()
   return root, tree
 
@@ -258,10 +257,7 @@ def fixXmlText(msg):
     @ In, msg, string, tag/text/attribute
     @ Out, msg, string, fixed string
   """
-  #if not a string, pass it back through
-  if not isAString(msg):
-    return msg
-  #otherwise, replace illegal characters with "?"
+  # replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
   RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
                  u'|' + \
@@ -269,7 +265,10 @@ def fixXmlText(msg):
                   ('\ud800', '\udbff', '\udc00', '\udfff',
                    '\ud800', '\udbff', '\udc00', '\udfff',
                    '\ud800', '\udbff', '\udc00', '\udfff')
-  msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  try:
+    msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  except TypeError:
+    pass # not a string, so don't replace illegals, just pass on.
   return msg
 
 def fixXmlTag(msg):
@@ -278,16 +277,17 @@ def fixXmlTag(msg):
     @ In, msg, string, tag/text/attribute
     @ Out, msg, string, fixed string
   """
-  #if not a string, pass it back through
-  if not isAString(msg):
-    return msg
   #define some presets
   letters = u'([a-zA-Z])'
   notAllTagChars = '(^[a-zA-Z0-9-_.]+$)'
   notTagChars = '([^a-zA-Z0-9-_.])'
   #rules:
   #  1. Can only contain letters, digits, hyphens, underscores, and periods
-  if not bool(re.match(notAllTagChars, msg)):
+  try:
+    matched = re.match(notAllTagChars, msg)
+  except TypeError:
+    return msg # not a string, so don't continue
+  if not bool(matched):
     pre = msg
     msg = re.sub(notTagChars, '.', msg)
     print('XML UTILS: Replacing illegal tag characters in "{}": {}'.format(pre, msg))
@@ -335,6 +335,24 @@ def readExternalXML(extFile, extNode, cwd):
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode, extFile))
   return root
 
+def replaceVariableGroups(node, variableGroups):
+  """
+    Replaces variables groups with variable entries in text of nodes
+    @ In, node, xml.etree.ElementTree.Element, the node to search for replacement
+    @ In, variableGroups, dict, variable group mapping
+    @ Out, None
+  """
+  if node.text is not None and node.text.strip() != '':
+    textEntries = list(t.strip() for t in node.text.split(','))
+    for t,text in enumerate(textEntries):
+      if text in variableGroups.keys():
+        textEntries[t] = variableGroups[text].getVarsString()
+        print('xmlUtils: Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+    #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
+    node.text = str(','.join(textEntries))
+  for child in node:
+    replaceVariableGroups(child, variableGroups)
+
 def findAllRecursive(node, element):
   """
     A function for recursively traversing a node in an elementTree to find
@@ -350,49 +368,40 @@ def findAllRecursive(node, element):
     result.append(elem)
   return result
 
-def readVariableGroups(xmlNode, messageHandler, caller):
+def toFile(name, root, pretty=True):
   """
-    Reads the XML for the variable groups and initializes them
-    @ In, xmlNode, ElementTree.Element, xml node to read in
-    @ In, messageHandler, MessageHandler.MessageHandler instance, message handler to assign to the variable group objects
-    @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
-    @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
+    Writes out XML element "root" to file named "name". By default, applies prettifier.
+    @ In, name, str, name of destination file
+    @ In, root, xml.etree.ElementTree.Element, node to write
+    @ In, pretty, bool, optional, whether to prettify tree
+    @ Out, None
   """
-  # first find all the names
-  names = [node.attrib['name'] for node in xmlNode]
+  if pretty:
+    s = prettify(root)
+  with open(os.path.abspath(os.path.expanduser(name)), 'w') as f:
+    f.write(s)
+#
+# XML Reader Customization
+#
+#
+class CommentedTreeBuilder(ET.TreeBuilder):
+  """
+    Comment-preserving tree reader.
+    Taken from https://stackoverflow.com/questions/33573807/faithfully-preserve-comments-in-parsed-xml-python-2-7
+  """
+  def __init__(self, *args, **kwargs):
+    super(CommentedTreeBuilder, self).__init__(*args, **kwargs)
+    # self._parser.CommentHandler = self.comment
 
-  # find dependencies
-  deps = {}
-  nodes = {}
-  initials = []
-  for child in xmlNode:
-    name = child.attrib['name']
-    nodes[name] = child
-    needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
-    for n in needs:
-      if n not in deps and n not in names:
-        deps[n] = []
-    deps[name] = needs
-    if len(deps[name]) == 0:
-      initials.append(name)
-  graph = graphObject(deps)
-  # sanity checking
-  if graph.isALoop():
-    caller.raiseAnError(IOError, 'VariableGroups have circular dependency!')
-  # ordered list (least dependencies first)
-  hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
-
-  # build entities
-  varGroups = {}
-  for name in hierarchy:
-    if len(deps[name]):
-      varGroup = VariableGroups.VariableGroup()
-      varGroup.readXML(nodes[name], messageHandler, varGroups)
-      varGroups[name] = varGroup
-
-  return varGroups
-
-
+  def comment(self, data):
+    """
+      Typifies comments in the XML tree
+      @ In, data, instance, internal ElementTree data structure
+      @ Out, None
+    """
+    self.start(ET.Comment, {})
+    self.data(data)
+    self.end(ET.Comment)
 
 #
 # Classes for standardized RAVEN XML writing (outputs of DataObjects, ROMs, etc)
@@ -507,6 +516,17 @@ class StaticXmlElement(object):
       targ = newNode(target)
       root.append(targ)
     return targ
+
+def staticFromString(s):
+  """
+    Parse string as XML.
+    @ In, s, str, XML in string format
+    @ Out, new, StaticXmlElement, xml
+  """
+  new = StaticXmlElement('temp')
+  new._root = ET.fromstring(s)
+  new._tree = ET.ElementTree(element=new._root)
+  return new
 
 #
 # Dynamic version

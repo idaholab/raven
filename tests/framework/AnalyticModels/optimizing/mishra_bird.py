@@ -21,20 +21,23 @@
 import numpy as np
 
 def evaluate(x,y):
+  """
+    Evaluates Mishra bird function.
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, evaluate, value at x, y
+  """
   return np.sin(y)*np.exp(1.-np.cos(x))**2 + np.cos(x)*np.exp(1.-np.sin(y))**2 + (x-y)**2
-
-def constraint(x,y):
-  condition = 25.
-  if (x+5.)**2 + (y+5.)**2 < condition:
-    return True
-  return False
 
 ###
 # RAVEN hooks
 ###
 
 def run(self,Inputs):
+  """
+    RAVEN API
+    @ In, self, object, RAVEN container
+    @ In, Inputs, dict, additional inputs
+    @ Out, None
+  """
   self.ans = evaluate(self.x,self.y)
-
-def constrain(self):
-  return constraint(self.x,self.y)

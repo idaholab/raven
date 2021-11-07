@@ -1,0 +1,156 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/ROM/tensorflow_keras.tf_mlpc</name>
+    <author>wangc</author>
+    <created>2019-02-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      Test the capability of multilayer perceptron classifier (mlpc) using TensorFlow/Keras
+      The train (row 1-728) and test (row 729-768) data are generated from  "Pima Indians Diabetes Database".
+      CustomSampler is used to convert the csv format data into PointSet, and it is also used to test the trained
+      mlpc with the test data. (https://www.kaggle.com/kumargh/pimaindiansdiabetescsv)
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>diabetes</WorkingDir>
+    <Sequence>CustomSampler,train,stats,resample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="train.csv" type="">train.csv</Input>
+    <Input name="test.csv" type="">test.csv</Input>
+  </Files>
+
+  <Samplers>
+    <CustomSampler name="customSamplerFileTrain">
+      <Source class="Files" type="">train.csv</Source>
+      <variable name="x1"/>
+      <variable name="x2"/>
+      <variable name="x3"/>
+      <variable name="x4"/>
+      <variable name="x5"/>
+      <variable name="x6"/>
+      <variable name="x7"/>
+      <variable name="x8"/>
+      <variable name="y"/>
+    </CustomSampler>
+    <CustomSampler name="customSamplerFileTest">
+      <Source class="Files" type="">test.csv</Source>
+      <variable name="x1"/>
+      <variable name="x2"/>
+      <variable name="x3"/>
+      <variable name="x4"/>
+      <variable name="x5"/>
+      <variable name="x6"/>
+      <variable name="x7"/>
+      <variable name="x8"/>
+    </CustomSampler>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="trainingData">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="outData">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyINTest">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="CustomSampler">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFileTrain</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">dummyINTest</Input>
+      <Model class="Models" type="ROM">modelUnderTest</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFileTest</Sampler>
+      <Output class="DataObjects" type="PointSet">outData</Output>
+    </MultiRun>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">modelUnderTest</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">outData</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">outPrint</Output>
+      <Output class="OutStreams" type="Print">romXML</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">modelUnderTest</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ROM name="modelUnderTest" subType="KerasMLPClassifier">
+      <Features>x1,x2,x3,x4,x5,x6,x7,x8</Features>
+      <Target>y</Target>
+      <loss>binary_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>10</batch_size>
+      <epochs>60</epochs>
+      <num_classes>1</num_classes>
+      <plot_model>False</plot_model>
+      <validation_split>0.25</validation_split>
+      <random_seed>1986</random_seed>
+      <Dense name="layer1">
+          <activation>relu</activation>
+          <dim_out>12</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="layer2">
+          <activation>relu</activation>
+          <dim_out>8</dim_out>
+      </Dense>
+      <Dropout name="dropout2">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="outLayer">
+          <activation>sigmoid</activation>
+      </Dense>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <layer_layout>layer1, dropout1, layer2, dropout2, outLayer</layer_layout>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="outPrint">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outMLPClassifier</filename>
+      <what>input,output</what>
+    </Print>
+    <Print name="romXML">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+</Simulation>

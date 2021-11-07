@@ -58,6 +58,10 @@ def getpot_to_input_node(getpot):
     @ In, getpot, file, file object with getpot syntax
     @ Out, tree, InputNode, node with sorted information
   """
+  # protect against empty
+  if not len(getpot.read(10)):
+    return InputNode()
+  getpot.seek(0)
   #root = Node()
   parentNodes = []#root]
   currentNode = None

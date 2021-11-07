@@ -18,29 +18,18 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import numpy as np
 from operator import mul
 from functools import reduce
 import itertools
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
-from utils import utils
+from utils import utils, InputData
 import Distributions
 import SupervisedLearning
 import Quadratures
 import IndexSets
-import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
 
 class Sobol(SparseGridCollocation):
   """
@@ -53,10 +42,9 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    Grid.__init__(self)
+    super().__init__()
     self.type           = 'SobolSampler'
     self.printTag       = 'SAMPLER SOBOL'
-    self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
     self.indexSetType   = None  #the type of index set to use, queried from the sobol ROM
@@ -70,7 +58,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
-    self.addAssemblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM', InputData.Quantity.one)
 
   def _localWhatDoINeed(self):
     """
@@ -122,24 +110,24 @@ class Sobol(SparseGridCollocation):
         quadDict[c]=self.quadDict[c]
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
-      iset=IndexSets.returnInstance(SVL.indexSetType,self)
+      iset = IndexSets.factory.returnInstance(SVL.indexSetType)
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
-      self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
-      self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+      self.SQs[combo] = Quadratures.factory.returnInstance(self.sparseGridType)
+      self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler)
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
-                'Features'       :','.join(combo),       # input variables
-                'Target'         :','.join(SVL.target)}# set below, per-case basis
+                'Features'       :combo,       # input variables
+                'Target'         :SVL.target}# set below, per-case basis
       #initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+      self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom')
+      self.ROMs[combo].initializeFromDict(initDict)
       self.ROMs[combo].initialize(initializeDict)
-      self.ROMs[combo].messageHandler = self.messageHandler
     #make combined sparse grids
     self.references={}
     for var in self.features:
@@ -178,7 +166,7 @@ class Sobol(SparseGridCollocation):
               'refs':self.references,
               'numRuns':len(self.distinctPoints)}
     #for target in self.targets:
-    self.ROM.supervisedEngine.supervisedContainer[0].initialize(initdict)
+    self.ROM.supervisedContainer[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     """
@@ -223,4 +211,3 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
-

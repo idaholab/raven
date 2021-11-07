@@ -19,14 +19,11 @@ Created on Jun 5, 2015
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
-from sklearn import neighbors
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -72,20 +69,22 @@ class csvUtilityClass(object):
       head = myFile.readline().decode()
       for _ in range(linesToSkipAfterHeader):
         myFile.readline()
-      all_field_names = head.split(delimeter)
-      for index in range(len(all_field_names)):
-        all_field_names[index] = all_field_names[index].strip()
-      if all_field_names[-1] == "":
-        all_field_names.pop(-1) # it means there is a trailing "'" at the end of the file
+      allFieldNames = head.split(delimeter)
+      for index in range(len(allFieldNames)):
+        allFieldNames[index] = allFieldNames[index].strip()
+      if allFieldNames[-1] == "":
+        allFieldNames.pop(-1) # it means there is a trailing "'" at the end of the file
       isAlreadyIn = False
 
       # load the table data (from the csv file) into a numpy nd array
-      data = np.loadtxt(myFile, delimiter=delimeter, usecols=tuple([i for i in range(len(all_field_names))]))
+      data = np.atleast_2d(np.loadtxt(myFile,
+                                      delimiter=delimeter,
+                                      usecols=tuple([i for i in range(len(allFieldNames))])))
       # close file
       myFile.close()
-      self.allHeaders.extend(all_field_names)
+      self.allHeaders.extend(allFieldNames)
       # store the data
-      self.dataContainer[filename] = {"headers":all_field_names,"data":data}
+      self.dataContainer[filename] = {"headers":allFieldNames,"data":data}
 
   def mergeCSV(self,outputFileName, options = {}):
     """
@@ -161,6 +160,7 @@ class csvUtilityClass(object):
       raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
     dataFinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
+    from sklearn import neighbors
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
     for filename, data in self.dataContainer.items():
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):

@@ -7,7 +7,7 @@
     <classesTested>Models.Code.Rattlesnake, Sampler.MonteCarlo</classesTested>
     <description>
        An example of using the code interface RattleSnake.
-       This test is aimed to check the functionality (running the code) of the Rattlesnake interface (perturbing only RattleSnake and not 
+       This test is aimed to check the functionality (running the code) of the Rattlesnake interface (perturbing only RattleSnake and not
        the YAK library) when a MonteCarlo sampling approach is used.
     </description>
     <revisions>
@@ -74,7 +74,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="MCTestRattlesnake">
+    <MultiRun name="MCTestRattlesnake" clearRunDir="False">
       <Input class="Files" type="">twigl_mixing.i</Input>
       <Input class="Files" type="">xs.xml</Input>
       <Model class="Models" type="Code">Rattlesnake</Model>

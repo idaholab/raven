@@ -66,6 +66,7 @@
     input  = 'test_dataMiningIsomap.xml'
     csv    = 'Isomap/dummy.csv'
     output = 'Isomap/1-PlotIris_dataMining.png'
+    ignore_sign = True
   [../]
   [./LocallyLinearEmbedding]
     type   = 'RavenFramework'

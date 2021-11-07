@@ -20,7 +20,7 @@ then
     fi
     if test "$CONDA_RAVEN_STRATEGY" == qa_version;
     then
-        `python scripts/TestHarness/testers/RavenUtils.py --conda-install`
+        `python scripts/library_handler.py conda --action install`
     fi
     conda list
 fi

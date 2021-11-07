@@ -18,16 +18,12 @@ Created on September 2017
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import sklearn
 import ast
 from utils import utils
-from sklearn import model_selection as cross_validation
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,32 +37,37 @@ class SciKitLearn(CrossValidation):
   # Minimum requirement for SciKit-Learn is 0.18
   # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
   availImpl = {}
-  availImpl['KFold'                  ] = (cross_validation.KFold,                  'float')
-  availImpl['StratifiedKFold'        ] = (cross_validation.StratifiedKFold,        'float')
-  availImpl['LeaveOneOut'            ] = (cross_validation.LeaveOneOut,            'float')
-  availImpl['LeavePOut'              ] = (cross_validation.LeavePOut,              'float')
-  availImpl['ShuffleSplit'           ] = (cross_validation.ShuffleSplit,           'float')
-  availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
-  availImpl['LabelKFold'             ] = (cross_validation.GroupKFold,             'float')
-  availImpl['LabelShuffleSplit'      ] = (cross_validation.GroupShuffleSplit,      'float')
-  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneGroupOut,       'float')
-  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePGroupsOut,         'float')
-  # Method may needed
-  #availImpl['PredefinedSplit'         ] = (cross_validation.PredefinedSplit,        'float')
-  #availImpl['TimeSeriesSplit'         ] = (cross_validation.TimeSeriesSplit,        'float')
-  # Methods available for SciKit-Learn version >= 0.19
-  #availImpl['RepeatedKFold'           ] = (cross_validation.RepeatedKFold,          'float')
-  #availImpl['RepeatedStratifiedKFold' ] = (cross_validation.RepeatedStratifiedKFold,'float')
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor for SciKitLearn class
-      @ In, messageHandler, MessageHandler, Message handler object
       @ In, kwargs, dict, arguments for the SciKitLearn
       @ Out, None
     """
-    CrossValidation.__init__(self, messageHandler, **kwargs)
+    CrossValidation.__init__(self, **kwargs)
     self.printTag = 'SKLearn Cross Validation'
+
+    if len(self.availImpl) == 0:
+      import sklearn
+      from sklearn import model_selection as cross_validation
+
+      self.availImpl['KFold'                  ] = (cross_validation.KFold,                  'float')
+      self.availImpl['StratifiedKFold'        ] = (cross_validation.StratifiedKFold,        'float')
+      self.availImpl['LeaveOneOut'            ] = (cross_validation.LeaveOneOut,            'float')
+      self.availImpl['LeavePOut'              ] = (cross_validation.LeavePOut,              'float')
+      self.availImpl['ShuffleSplit'           ] = (cross_validation.ShuffleSplit,           'float')
+      self.availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
+      self.availImpl['LabelKFold'             ] = (cross_validation.GroupKFold,             'float')
+      self.availImpl['LabelShuffleSplit'      ] = (cross_validation.GroupShuffleSplit,      'float')
+      self.availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneGroupOut,       'float')
+      self.availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePGroupsOut,         'float')
+      # Method may needed
+      #self.availImpl['PredefinedSplit'         ] = (cross_validation.PredefinedSplit,        'float')
+      #self.availImpl['TimeSeriesSplit'         ] = (cross_validation.TimeSeriesSplit,        'float')
+      # Methods available for SciKit-Learn version >= 0.19
+      #self.availImpl['RepeatedKFold'           ] = (cross_validation.RepeatedKFold,          'float')
+      #self.availImpl['RepeatedStratifiedKFold' ] = (cross_validation.RepeatedStratifiedKFold,'float')
+
 
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, 'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')

@@ -5,6 +5,7 @@
 <!-- *********************************************************************** -->
   <xsd:complexType name="DatabaseType">
     <xsd:sequence>
+      <xsd:element name="NetCDF" type="HDF5Type" minOccurs="0" maxOccurs="unbounded" />
       <xsd:element name="HDF5" type="HDF5Type" minOccurs="0" maxOccurs="unbounded" />
     </xsd:sequence>
   </xsd:complexType>

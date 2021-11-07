@@ -1,0 +1,8 @@
+[FromOuter]
+a = 1
+b = 2
+[FromInner]
+x = 3
+y = 4
+[Output]
+output = out.csv

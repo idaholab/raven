@@ -7,7 +7,7 @@ declare -a exts=(txt ps ds)
 
 # Functions definition ---------------------------------------------------------
 # Subroutine to remove files.
-clean_files () { 
+clean_files () {
 	# Remove ald the files with the selected suffixes.
 	for ext in "${exts[@]}"
 	do
@@ -19,7 +19,7 @@ clean_files () {
 }
 
 # Subroutine to generate files.
-gen_files () { 
+gen_files () {
 
         if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
         then
@@ -29,7 +29,7 @@ gen_files () {
         fi
 
         git log -1 --format="%H %an %aD" .. > ../version.tex
-        python ../../scripts/TestHarness/testers/RavenUtils.py --manual-list > libraries.tex
+        python ../../scripts/library_handler.py manual > libraries.tex
 	for file in "${files[@]}"
 	do
 		# Generate files.

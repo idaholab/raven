@@ -23,11 +23,7 @@
   </Files>
 
   <Models>
-    <ROM name="rom" subType="NDinvDistWeight">
-      <Features>sigma-A,decay-A</Features>
-      <Target>A, time</Target>
-      <p>3</p>
-    </ROM>
+    <ROM name="rom" subType="pickledROM" />
   </Models>
 
   <Distributions>

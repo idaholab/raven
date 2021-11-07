@@ -3,8 +3,6 @@ Created on June 19th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 from decimal import Decimal

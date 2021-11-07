@@ -1,0 +1,4 @@
+ParticleSize,prefix,ProbabilityWeight,ProbabilityWeight-ParticleSize,PointProbability,filename
+0.1435994902727193,1,1.0,1.0,10.0,out_dump_0.csv
+0.11850820815155941,2,1.0,1.0,10.0,out_dump_1.csv
+0.1025926227920206,3,1.0,1.0,10.0,out_dump_2.csv

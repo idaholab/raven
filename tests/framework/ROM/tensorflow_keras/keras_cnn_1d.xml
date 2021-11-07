@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/Samplers/ROM/tensorflow_keras.tf_cnn_dump</name>
+    <author>wangc</author>
+    <created>2019-02-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+        Test the capability of convolutional neural network (CNN) 1D using TensorFlow/Keras
+        The constructed rom can be dumped into a file.
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      readIn,
+      train,
+      dumpRom
+    </Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="rawData">../rawData/dummy.csv</Input>
+    <Input name="cnn1d" type="">cnn1d.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="modelUnderTest" subType="KerasConvNetClassifier">
+      <!-- Common setups -->
+      <Features>x1,x2</Features>
+      <Target>labels</Target>
+      <loss>binary_crossentropy</loss>
+      <pivotParameter>Time</pivotParameter>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>15</epochs>
+      <plot_model>False</plot_model>
+      <validation_split>0.1</validation_split>
+      <num_classes>1</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <!-- Setups for CNN -->
+      <Conv1D name="firstConv1D">
+        <activation>relu</activation>
+        <strides>1</strides>
+        <kernel_size>2</kernel_size>
+        <padding>valid</padding>
+        <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
+        <strides>2</strides>
+        <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
+        <activation>relu</activation>
+        <strides>1</strides>
+        <kernel_size>2</kernel_size>
+        <padding>valid</padding>
+        <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
+        <strides>2</strides>
+        <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
+        <activation>relu</activation>
+        <dim_out>10</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dropout name="dropout2">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense2">
+        <activation>sigmoid</activation>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
+    </ROM>
+  </Models>
+  
+  <Steps>
+    <IOStep name="readIn">
+      <Input class="Files" type="">rawData</Input>  
+      <Output class='DataObjects' type='HistorySet'>trainingData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">modelUnderTest</Output>
+    </RomTrainer>
+    <IOStep name="dumpRom">
+      <Input class="Models" type="ROM">modelUnderTest</Input>
+      <Output class="Files" type="">cnn1d</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="trainingData">
+      <Input>n</Input>
+      <Output>x1,x2,labels</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

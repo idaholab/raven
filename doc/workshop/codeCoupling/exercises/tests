@@ -4,5 +4,6 @@
     input = 'sample_new_code_interface.xml'
     UnorderedCsv = 'sampleProjectile/to_file.csv'
     output = 'sampleProjectile/to_plot_scatter.png'
+    skip = "needs to be converted to exercise test"
   [../]
 []

@@ -16,6 +16,18 @@ rm -Rf ${RAVEN_DIR}/build
 find ${RAVEN_DIR}/framework  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/scripts  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/rook  -name '*.pyc' -exec rm '{}' \;
+find ${RAVEN_DIR}/tests  -name '*.pyc' -exec rm '{}' \;
+find ${RAVEN_DIR}/plugins  -name '*.pyc' -exec rm '{}' \;
+find ${RAVEN_DIR}/framework  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/scripts  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/rook  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/tests  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/plugins  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/framework  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/scripts  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/rook  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/tests  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/plugins  -name '__pycache__' -exec rm -Rf '{}' \;
 
 rm -f ${CROW_DIR}/control_modules/_distribution1D.so \
    ${CROW_DIR}/control_modules/_crowtools.so \

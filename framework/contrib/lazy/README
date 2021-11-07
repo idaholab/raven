@@ -1,0 +1,4 @@
+lazy_loader.py originally copyied from:
+https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/python/util/lazy_loader.py
+Commit id: 64e362bb910e9121480cbdf27162968496533bcd
+Part of tensorflow: https://github.com/tensorflow/tensorflow

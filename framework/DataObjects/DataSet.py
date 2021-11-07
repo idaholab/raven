@@ -18,20 +18,11 @@
   needs, depending on any combination of "index" dimensions (time, space, etc).
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
-import os
-import sys
 import copy
 import itertools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
-import xml.etree.ElementTree as ET
+import pickle as pk
 
-import abc
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -41,21 +32,9 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
-from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
-# for profiling with kernprof
-try:
-  import __builtin__
-  __builtin__.profile
-except (AttributeError,ImportError):
-  # profiler not preset, so pass through
-  def profile(func):
-    """
-      Dummy for when profiler is missing.
-      @ In, func, method, method to run
-      @ Out, func, method, method to run
-    """
-    return func
+import CsvLoader
+from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 #
 #
@@ -66,11 +45,9 @@ class DataSet(DataObject):
     This class outlines the behavior for the basic in-memory DataObject, including support
     for ND and ragged input/output variable data shapes.  Other in-memory DataObjects are
     specialized implementations of this class.
-
     DataObject developed Oct 2017 with the intent to obtain linear performance from data objects when appending, over
     thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
     for final form.  Subclasses are shortcuts (recipes) for this most general case.
-
     The interface for these data objects is specific.  The methods under "EXTERNAL API", "INITIALIZATION",
     and "BUILTINS" are the only methods that should be called to interact with the object.
   """
@@ -106,26 +83,29 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self,keys, params={}):
+  def addExpectedMeta(self, keys, params={}, overwrite=False):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
+      @ In, overwrite, bool, optional, if True then allow existing data while changing keys
+      @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
-      return
+      return keys
     # CANNOT add expected meta after samples are started
-    assert(self._data is None)
-    assert(self._collector is None or len(self._collector) == 0)
+    if not overwrite:
+      assert(self._data is None)
+      assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
+    return keys
 
   def addMeta(self, tag, xmlDict = None, node = None):
     """
@@ -174,7 +154,7 @@ class DataSet(DataObject):
           # Otherwise, scalarMetric
           else:
             # sanity check to make sure suitable values are passed in
-            assert(utils.isSingleValued(value))
+            assert(mathUtils.isSingleValued(value))
             destination.addScalar(target,metric,value)
     # otherwise if a node was provided directly ...
     else:
@@ -182,7 +162,7 @@ class DataSet(DataObject):
       ## TODO check structure?
       self._meta[tag] = node
 
-  def addRealization(self,rlz):
+  def addRealization(self, rlz):
     """
       Adds a "row" (or "sample") to this data object.
       This is the method to add data to this data object.
@@ -193,16 +173,45 @@ class DataSet(DataObject):
                          "val" is a np.ndarray of values.
       @ Out, None
     """
+    #########
+    # A note about what we're expecting in "rlz":
+    #
+    # Each entry in "rlz" should be a variable name, with exceptions described below.
+    # For each entry, the contents should be a numpy nd array:
+    #   - For a scalar, it's a length-one array with a single value as {'pi': np.array([3.14])}
+    #   - For a history, it's a single-dimensional array with the history values {'fib': np.array([0,1,1,2,3,5])}
+    #   - For a high-dimensional object, it's a numpy ndarray with each dimension depending on a different index
+    #          for example {'fibgrow': np.array([[0,1,1,2,3,5], [0,2,2,4,6,10]])}
+    #       IN THIS CASE (for high-dimensional objects), a unique special node needs to be passed with the
+    #         realization "_indexMap" that describes what order the numpy array dimensions show up in.
+    #
+    #       For example, if my realization has one high-dimensional variable H(X, Y) depending on
+    #         indices X and Y, and say that X has 3 values (0, 1, 2) and Y has 2 values (0.5, 1.5), then
+    #         "rlz" should be as follows (with all [] as np.array([])):
+    #         rlz = {'H': [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4]],
+    #                'X': [0, 1, 2],
+    #                'Y': [0.5, 1.5],
+    #                '_indexMap': ['Y', 'X']}
+    #         Note the order, H has shape (2, 3) so the first index is Y and the second is X.
+    #         A sanity check is that H.shape == tuple(var.size for var in rlz['_indexMap'])
+    #
+    #  Yours truly, talbpw, May 2019
+    #########
     # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
+    # if index map was included, remove that now before checking variables
+    indexMap = rlz.pop('_indexMap', None)
+    if indexMap is not None:
+      # keep only those parts of the indexMap that correspond to variables we care about.
+      indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
+      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
     except KeyError as e:
-      self.raiseADebug('Variables provided:',rlz.keys())
+      self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
-    if not self._checkRealizationFormat(rlz):
+    if not self._checkRealizationFormat(rlz, indexMap=indexMap):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
@@ -226,7 +235,7 @@ class DataSet(DataObject):
     #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     ## set realizations as a list of realizations (which are ordered lists)
-    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0],dtype=object)
+    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0], dtype=object)
     newData = newData[:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -290,18 +299,20 @@ class DataSet(DataObject):
     """
       Casts this dataObject as dictionary or an xr.Dataset depending on outType.
       @ In, outType, str, optional, type of output object (xr.Dataset or dictionary).
-      @ Out, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
+      @ Out, data, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
     """
+    data = None
     if outType == 'xrDataset':
       # return reference to the xArray
-      return self._convertToXrDataset()
+      data = self._convertToXrDataset()
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
-      return self._convertToDict()
+      data = self._convertToDict()
     else:
       # raise an error
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
+    return data
 
   def checkIndexAlignment(self,indexesToCheck=None):
     """
@@ -311,7 +322,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if utils.isAString(indexesToCheck):
+    if mathUtils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -322,6 +333,8 @@ class DataSet(DataObject):
         self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
     # check the alignment of each index by checking for NaN values in each slice
     data = self.asDataset()
+    if data is None:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     for index in indexesToCheck:
       # check that index is indeed an index
       assert(index in self.indexes)
@@ -339,7 +352,7 @@ class DataSet(DataObject):
     # if you haven't returned False by now, you must be aligned
     return True
 
-  def constructNDSample(self,vals,dims,coords,name=None):
+  def constructNDSample(self, vals, dims, coords, name=None):
     """
       Constructs a single realization instance (for one variable) from a realization entry.
       @ In, vals, np.ndarray, should have shape of (len(coords[d]) for d in dims)
@@ -348,7 +361,7 @@ class DataSet(DataObject):
       @ Out, obj, xr.DataArray, completed realization instance suitable for sending to "addRealization"
     """
     # while simple, this API will allow easier extensibility in the future.
-    obj = xr.DataArray(vals,dims=dims,coords=coords)
+    obj = xr.DataArray(vals, dims=dims, coords=coords)
     obj.rename(name)
     return obj
 
@@ -403,6 +416,16 @@ class DataSet(DataObject):
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
+  def getData(self):
+    """
+      Acquire the data for this dataset, as might go into an on-file database.
+      @ In, None
+      @ Out, data, xr.Dataset, sample data
+      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+    """
+    self.asDataset()
+    return self._data, self._meta
+
   def getVars(self,subset=None):
     """
       Gives list of variables that are part of this dataset.
@@ -435,7 +458,9 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if utils.isAString(var):
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -449,7 +474,7 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,dataIn,style='netCDF',**kwargs):
+  def load(self, dataIn, style='netCDF', **kwargs):
     """
       Reads this dataset from disk based on the format.
       @ In, dataIn, str, path and name of file to read
@@ -463,7 +488,7 @@ class DataSet(DataObject):
       dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(dataIn,**kwargs)
+      self._fromNetCDF(dataIn, **kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
       if dataIn.endswith('.csv'):
@@ -479,22 +504,36 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
+  # @profile
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, first = True):
     """
       Method to obtain a realization from the data, either by index or matching value.
-      Either "index" or "matchDict" must be supplied.
+      Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
-      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
-      @ Out, rlz, dict, realization requested (None if not found)
+      @ In, asDataSet, bool, optional, return realization from the data as a DataSet
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (index, rlz), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                 first element:
+                                   if first: int, index where match was found OR size of data if not found
+                                   else    : list, list of indices where matches were found OR size of data if not found
+                                 second element:
+                                   if first:
+                                     if asDataSet: xarray.Dataset, first matching realization as xarray.Dataset OR None if not found
+                                     else        : dict, first matching realization as {var:value} OR None if not found
+                                   else    :
+                                     if asDataSet: xarray.Dataset, all matching realizations as xarray.Dataset OR None if not found
+                                     else        : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
-    if (index is None and matchDict is None) or (index is not None and matchDict is not None):
-      self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
+    if (index is None and (matchDict is None and noMatchDict is None)) or (index is not None and (matchDict is not None or noMatchDict is not None)):
+      self.raiseAnError(TypeError,'Either "index" OR ("matchDict" and/or "noMatchDict") (not both) must be specified to use "realization!"')
     numInData = len(self._data[self.sampleTag]) if self._data is not None else 0
     numInCollector = len(self._collector) if self._collector is not None else 0
     ## next, depends on if we're doing an index lookup or a realization match
@@ -526,6 +565,8 @@ class DataSet(DataObject):
         ## otherwise, grab the entry from the collector
         else:
           rlz = self._getRealizationFromCollectorByIndex(index)
+      # add index map where necessary
+      rlz = self._addIndexMapToRlz(rlz)
       return rlz
     ## END select by index
     ## START collect by matching realization
@@ -534,18 +575,35 @@ class DataSet(DataObject):
       if numInData == 0:
         # if nothing in data OR collector, we can't have a match
         if numInCollector == 0:
-          return 0,None
+          return 0, None
         # otherwise, get it from the collector
         else:
-          index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # otherwise, first try to find it in the data
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, first=first, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
-      return index,rlz
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
+      # if as Dataset convert it
+      if asDataSet:
+        if not isinstance(rlz, xr.Dataset):
+          rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
+          rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
+          dims = self.getDimensions()
+          for index, rl in enumerate(rlzs):
+            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+            rlz[index] =  xr.Dataset.from_dict(d)
+          if len(rlzs) > 1:
+            # concatenate just in case there are multiple realizations
+            rlz = xr.concat(rlz,dim=self.sampleTag)
+          else:
+            # the following ".copy(deep=True)" is required because of a bug in expend_dims
+            # see https://github.com/pydata/xarray/issues/2891
+            # FIXME: remove ".copy(deep=True)" once xarray mainstream fixes it
+            rlz = rlz[0].expand_dims(self.sampleTag).copy(deep=True)
+      return index, rlz
 
   def remove(self,variable):
     """
@@ -623,7 +681,7 @@ class DataSet(DataObject):
     if old in self._scaleFactors:
       self._scaleFactors[new] = self._scaleFactors.pop(old)
     if self._data is not None:
-      self._data.rename({old:new},inplace=True)
+      self._data = self._data.rename({old:new})
 
   def reset(self):
     """
@@ -637,6 +695,35 @@ class DataSet(DataObject):
     self._meta = {}
     self._alignedIndexes = {}
     self._scaleFactors = {}
+
+  def setData(self, data, meta):
+    """
+      Directly set the data for this data object, such as from an on-file database.
+      @ In, data, xr.Dataset, structured data set including the sampleID with realizations
+      @ In, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+      @ Out, None
+    """
+    assert isinstance(data, xr.Dataset)
+    self._collector = None
+    self._data = data
+    self._meta = meta
+    # if we have meta information, we can reconstruct the IO space for this DO
+    if 'DataSet' in meta:
+      self._setStructureFromMetaXML(meta['DataSet'])
+    # otherwise, we don't know where anything goes, so dump it all in output
+    else:
+      self._pivotParams = {}
+      # index map
+      for var in data:
+        indices = list(data[var].coords.keys())
+        for idx in indices:
+          if idx == self.sampleTag:
+            continue
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+        self._outputs.append(var)
+      self._metavars = self._outputs[:]
 
   def sliceByIndex(self,index):
     """
@@ -658,7 +745,7 @@ class DataSet(DataObject):
     # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "index"
     return slices
 
-  def write(self,fileName,style='netCDF',**kwargs):
+  def write(self, fileName, style='netCDF', **kwargs):
     """
       Writes this dataset to disk based on the format.
       @ In, fileName, str, path and name of file to write
@@ -669,14 +756,14 @@ class DataSet(DataObject):
     """
     self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
-      self._toNetCDF(fileName,**kwargs)
+      self._toNetCDF(fileName, **kwargs)
     elif style.lower() == 'csv':
-      if len(self)==0: #TODO what if it's just metadata?
+      if len(self) == 0:
         self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
       else:
         #first write the CSV
         firstIndex = kwargs.get('firstIndex',0)
-        self._toCSV(fileName,start=firstIndex,**kwargs)
+        self._toCSV(fileName, start=firstIndex, **kwargs)
       # then the metaxml
       if len(self._meta):
         self._toCSVXML(fileName,**kwargs)
@@ -744,6 +831,21 @@ class DataSet(DataObject):
     return list(self._pivotParams.keys())
 
   ### INTERNAL USE FUNCTIONS ###
+  def _addIndexMapToRlz(self, rlz):
+    """
+      Adds the special key _indexMap along with index mapping
+      for any N-dimensional entries in "rlz", if N > 1.
+      @ In, rlz, dict, single-sample realization
+      @ Out, rlz, dict, same dict with _indexMap added if necessary
+    """
+    if rlz is None:
+      return rlz
+    # an index map is needed if you're not a scalar; i.e. you depend on at least 1 non-null index
+    need = any(val.size > 1 for val in rlz.values() if hasattr(val, 'size'))
+    if need:
+      rlz['_indexMap'] = self.getDimensions()
+    return rlz
+
   def _changeVariableValue(self,index,var,value):
     """
       Changes the value of a variable for a particular realization in the data object, in collector or data.
@@ -755,7 +857,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     assert(var in self._orderedVars)
-    assert(utils.isSingleValued(value)) #['float','str','int','unicode','bool'])
+    assert(mathUtils.isSingleValued(value)) #['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
@@ -785,7 +887,7 @@ class DataSet(DataObject):
           closeEnough = False
         else:
           # "close enough" if float/int, otherwise require exactness
-          if utils.isAFloatOrInt(rlz[index][0]):
+          if mathUtils.isAFloatOrInt(rlz[index][0]):
             closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
           else:
             closeEnough = all(rlz[index] == self._alignedIndexes[index])
@@ -813,34 +915,111 @@ class DataSet(DataObject):
         # otherwise, you're misaligned, and have been since before this realization, no action.
     return
 
-  def _checkRealizationFormat(self,rlz):
+  def _checkRealizationFormat(self, rlz, indexMap=None):
     """
       Checks that a passed-in realization has a format acceptable to data objects.
       Data objects require a CSV-like result with either float or np.ndarray instances.
       @ In, rlz, dict, realization with {key:value} pairs.
       @ Out, okay, bool, True if acceptable or False if not
     """
-    if not isinstance(rlz,dict):
+    # check that indexMap and expected indexes line up
+    ## This check can be changed when we can automatically collapse dimensions intelligently
+    ## NOTE that if this dataset is non-indexed, don't check index alignment
+    if indexMap is not None and self.indexes:
+      okay = True         # track if the indexes provided are okay
+      mapIndices = set()  # these are the indices provided by the realization
+      mapIndices.update(*list(indexMap.values()))
+      # see if the provided indices match the required indices for this data object
+      if mapIndices != set(self.indexes):
+        extra = mapIndices-set(self.indexes)      # extra indices not expected
+        missing = set(self.indexes) - mapIndices  # indices expected but not provided
+        if extra:
+          # perhaps someday we can collapse dimensions intelligently, but for not, this is an error state
+          okay = False # if there's extra indices listed that aren't part of the DataObject, we don't handle this yet
+        elif missing:
+          # if the variables depending on an index ONLY depend on that one index, we can infer the
+          #   structure and allow the contributing source to not explicitly provide the index map.
+          #   Should we be, though? Should this be an action of the CSV loader? a Realization class?
+          for missed in missing:
+            # the missing index has to be in the provided realization for us to infer the structure and values
+            if missed in rlz:
+              # update the mapping for each variable that is meant to depend on this index
+              for var in self._pivotParams[missed]:
+                if var in indexMap:
+                  # this variable already has dependencies, but not the missed dependency, so we
+                  # cannot infer the structure without help from the data source
+                  okay = False
+                  break
+                else:
+                  indexMap[var] = [missed]
+              if not okay:
+                break
+            else:
+              okay = False
+              break
+        if not okay:
+          # update extra/missing in case there have been changes
+          extra = mapIndices-set(self.indexes)
+          missing = set(self.indexes) - mapIndices
+          self.raiseAWarning('Realization indexes do not match expected indexes!\n',
+                            f'Extra from realization: {extra}\n',
+                            f'Missing from realization: {missing}')
+          return False
+    if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
-    for key,value in rlz.items():
+    for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
       # FIXME: this check will not work in case of variables depending on multiple indexes.
       #    When this need comes, we will change this check(alfoa)
       if self.indexes:
-        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning(('Variable "{}" with shape {} '+
-                              'is not consistent with respect its index "{}" with shape {}!')
-                              .format(key,
-                                      rlz[key].shape,
-                                      self._fromVarToIndex[key],
-                                      rlz[self._fromVarToIndex[key]].shape)
-                              )
-          return False
+        dims = self.getDimensions(var)[var] # NOTE we assume this is always in the same order, which should be true.
+        # if this variable depends on no dimensions, no check needed
+        # if this variable depends on one dimension, check length trivially
+        if len(dims) == 1:
+          dim = dims[0]
+          correctShape = rlz[dim].shape
+          if rlz[var].shape != correctShape:
+            self.raiseAWarning(f'Variable "{var}" with shape {rlz[var].shape} ' +
+                               f'is not consistent with respect its index "{dim}" with shape {correctShape} for DataSet "{self.name}"!')
+            return False
+        # if this variable depends on multiple dimensions, check shape
+        elif len(dims) > 1:
+          # the model should have provided an index map for the shaping of the variables
+          if indexMap is None:
+            self.raiseAWarning('No variable index map "_indexMap" was provided in model realization, but ' +
+                               'a multidimensional variable ("{}") is expected!'.format(var))
+            return False
+          try:
+            rlzDimOrder = list(indexMap[var]) # want a list for the equality comparison below
+          # if the realization order wasn't provided, return a useful error describing the problem
+          except KeyError:
+            self.raiseAWarning('Variable "{}" is multidimensional, but no entry '.format(var) +
+                               'was given in the "_indexMap" for "{}" in the model realization!'.format(var))
+            self.raiseAWarning('Received entries for: {}'.format(list(indexMap.keys())))
+
+            return False
+          # check that the realization is consistent
+          ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now
+          correctShape = tuple(rlz[idx].size for idx in rlzDimOrder)
+          if rlz[var].shape != correctShape:
+            self.raiseAWarning(('Variable "{}" with shape {} '+
+                                'is not consistent with respect its indices "{}" with shapes {}!')
+                               .format(var,
+                                       rlz[var].shape,
+                                       rlzDimOrder,
+                                       correctShape))
+            return False
+          # re-order the provided realization to fit the expected dims order, if needed
+          if rlzDimOrder != dims:
+            sourceOrder = range(len(dims))
+            destOrder = list(dims.index(dim) for dim in rlzDimOrder)
+            rlz[var] = np.moveaxis(rlz[var], sourceOrder, destOrder)
+            assert rlz[var].shape == tuple(rlz[idx].size for idx in dims)
     # all conditions for failing formatting were not met, so formatting is fine
     return True
 
@@ -900,7 +1079,13 @@ class DataSet(DataObject):
     i = -1
     while dataType is type(None):
       i += 1
-      dataType = type(data[i])
+      try:
+        dataType = type(data[i])
+      except IndexError:
+        self.raiseADebug('Could not find a type for "{}"; using None.'.format(var))
+        dataType = type(None)
+        i = 0
+        break
     # if "type" predetermined, override it (but we still needed "i" so always do the loop above)
     # TODO this can be sped up probably, by checking the "type" directly with dtype; but we ALSO need to know if
     #   it's a history or not, so we need to check the first non-NaN entry....
@@ -908,7 +1093,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if utils.isSingleValued(data[i]):
+    if mathUtils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -919,9 +1104,7 @@ class DataSet(DataObject):
       # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
       # ONCE #
       #if method == 'once':
-      val = dict((i,data[i]) for i in range(len(data)))
-      val = xr.Dataset(data_vars=val)
-      val = val.to_array(dim=self.sampleTag) # TODO labels preserved?
+      val = xr.concat(data, self.sampleTag)
       val.coords[self.sampleTag] = labels
       # SPLIT # currently unused, but could be for parallel performance
       #elif method == 'split':
@@ -944,6 +1127,17 @@ class DataSet(DataObject):
       self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0])))
     array.rename(var)
     return array
+
+  @staticmethod
+  def _clearDuplicates(toClear):
+    """
+      Clears out duplicate coordinates from a xr.DataArray
+      @ In, toClear, xr.DataArray, data array to remove duplicate coordinates
+      @ Out, toClear, xr.DataArray, new data array with no duplicates
+    """
+    for dim in toClear.coords.dims:
+      toClear = toClear.isel({dim:np.unique(toClear[dim], return_index=True)[1]})
+    return toClear
 
   def _convertArrayListToDataset(self,array,action='return'):
     """
@@ -968,11 +1162,10 @@ class DataSet(DataObject):
     elif action == 'replace':
       self._data = new
       # general metadata included if first time
-      self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
-        if name not in self._inputs + self._outputs:
+        if name not in self._inputs + self._outputs + self._metavars:
           continue
         dims = list(var.dims)
         # don't list if only entry is sampleTag
@@ -990,7 +1183,9 @@ class DataSet(DataObject):
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(sorted(self._metavars)),
+                                         'datasetName':self.name
       }})
+      self._data.attrs = self._meta
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1032,12 +1227,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealizations'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1081,7 +1284,7 @@ class DataSet(DataObject):
       # storage array for each variable's xr.DataArray with all rlz data from every rlz
       arrays = {}
       # loop over variables IN ORDER of collector storage to collapse data into nice xr.DataArray of realization data
-      for v,var in enumerate(self._orderedVars):
+      for v, var in enumerate(self._orderedVars):
         # only converting variables, so ignore indexes (they'll be used by the variables)
         if var in self.indexes:
           continue
@@ -1092,27 +1295,28 @@ class DataSet(DataObject):
           dims = self.getDimensions(var)[var]
           # make sure "dims" isn't polluted
           assert(self.sampleTag not in dims)
-          # TODO not ready for ND; this only uses single-dependency cases, but should be easily extensible
-          if len(dims) > 1:
-            self.raiseAnError(NotImplementedError,'Currently cannot handle more than 1 pivot per variable')
-          # loop over indexes (just one for now) and create data
-          for index in dims:
-            # if aligned, grab the data into one large chunk and make a datarray with all rlzs
-            if index in self._alignedIndexes.keys():
+          # loop over indexes (just one for now?) and create data
+          ## SPECIAL CASE: if only histories/scalars, and histories are aligned, we can shortcut this
+          if len(dims) == 1 and dims[0] in self._alignedIndexes:
+            # since aligned, grab the data into one large chunk and make a datarray with all rlzs
               data = np.vstack(self._collector[:,v]).astype(dtype)
-              coords = dict((idx,self._alignedIndexes[idx]) for idx in dims)
-              arrays[var] = self.constructNDSample(data,dims=[self.sampleTag]+dims,coords=coords)
-            # otherwise, we're better off making one dataarray for each rlz, then collapsing
-            else:
-              # first make a datarray out of each realization value
-              for r in range(len(self._collector)):
-                values = self._collector[r,v]
-                dtype = self._getCompatibleType(values[0])
-                values = np.array(values,dtype=dtype)
-                coords = dict((idx,self._collector[r,self._orderedVars.index(idx)]) for idx in dims)
-                self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
-              # then collapse these entries into a single datarray
-              arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
+              coords = {dims[0]: self._alignedIndexes[dims[0]]}
+              #coords[self.sampleTag] = np.arange(len(self._collector))
+              arrays[var] = self.constructNDSample(data, dims=[self.sampleTag]+dims, coords=coords)
+          else:
+            for r in range(len(self._collector)):
+              values = self._collector[r, v]
+              dtype = self._getCompatibleType(values[0])
+              values = np.array(values,dtype=dtype)
+              coords = {}
+              for idx in dims:
+                val = self._alignedIndexes.get(idx, None)
+                if val is None:
+                  val = self._collector[r, self._orderedVars.index(idx)]
+                coords[idx] = val
+              self._collector[r][v] = self.constructNDSample(values, dims, coords, name=str(r))
+            # then collapse these entries into a single datarray
+            arrays[var] = self._collapseNDtoDataArray(self._collector[:,v], var, dtype=dtype)
         # if it's a dataarray, then that's old-style histories, no-can do right now
         elif isinstance(self._collector[0,v],xr.DataArray):
           self.raiseAnError(NotImplementedError,'History entries should be numpy arrays, not data arrays!')
@@ -1126,7 +1330,7 @@ class DataSet(DataObject):
               self.raiseAWarning('NaN detected, but no safe casting NaN to "{}" so switching to "object" type. '.format(dtype) \
                   + ' This may cause problems with other entities in RAVEN.')
               varData = self._collector[:,v][:]
-              dtype=object
+              dtype = object
             # otherwise, let error be raised.
             else:
               raise e
@@ -1134,7 +1338,10 @@ class DataSet(DataObject):
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
         # END if for variable data type (ndarray, xarray, or scalar)
         # re-index samples
-        arrays[var][self.sampleTag] += firstSample
+        #was arrays[var][self.sampleTag] += firstSample
+        #This line works because arrays[var][self.sampleTag] is [0],
+        # or because firstSample is 0
+        arrays[var] = arrays[var].assign_coords({self.sampleTag:arrays[var][self.sampleTag]+firstSample})
       # collect all data into dataset, and update self._data
       self._convertArrayListToDataset(arrays,action='extend')
       # reset collector
@@ -1161,12 +1368,11 @@ class DataSet(DataObject):
     if self._collector is None or len(self._collector) == 0:
       for var in self._pivotParams.keys():
         dtype = self._getCompatibleType(rlz[var][0])
-        current = rlz[var].dtype
         # Note, I don't like this action happening here, but I don't have an alternative way to assure
         # indexes have the correct dtype.  In the first pass, they aren't going into the collector, but into alignedIndexes.
         rlz[var] = np.array(rlz[var],dtype=dtype)
     # for now, leave them as the arrays they are, except single entries need converting
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       # if an index variable, skip it
       if var in self._pivotParams:
         continue
@@ -1199,20 +1405,31 @@ class DataSet(DataObject):
     arrays = {}
     for var in self.getVars():
       if var in dims.keys():
-        data = df[[var,self.sampleTag]+dims[var]]
-        data.set_index(self.sampleTag,inplace=True)
+        varDims = dims[var]
+        data = df[[var, self.sampleTag] + dims[var]]
+        data.set_index(self.sampleTag, inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
-        for s,sample in enumerate(samples):
+        for s, sample in enumerate(samples):
           # set dtype on first pass
           if s == 0:
             dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
           vals = data[places].dropna().set_index(dims[var])
-          #vals.drop('dim_1')
-          # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
-          ndat[s] = xr.DataArray(vals.values[:,0],
-                                 dims=dims[var],
-                                 coords=dict((var,vals.index.values) for var in dims[var]))
+          if len(varDims) > 1:
+            useVals = vals.values.reshape(vals.index.levshape) #[:, 0], -> why :, 0??
+            coords = dict((dim, vals.index.levels[vals.index.names.index(dim)].values) for dim in dims[var])
+          else:
+            useVals = vals.values[:, 0]
+            coords = dict((var, vals.index.values) for var in varDims)
+          # slower, but more clear:
+          #coords = {}
+          #for dim in dims[var]:
+          #  pdIndexLevel = vals.index.names.index(dim)
+          #  coords[dim] = vals.index.levels[pdIndexLevel].values
+          # I think this is fixed now. - talbpw -> TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
+          ndat[s] = xr.DataArray(useVals,
+                                 dims=varDims,
+                                 coords=coords) #dict((var,vals.index.values) for var in dims[var]))
         # END for sample in samples
         arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples,dtype=dtype)
       else:
@@ -1314,25 +1531,11 @@ class DataSet(DataObject):
     # collapse into xr.Dataset
     self.asDataset()
 
-  def _fromNetCDF(self,fileName, **kwargs):
-    """
-      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
-      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fileName, str, path/name to read file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    self._data = xr.open_dataset(fileName)
-    # NOTE: open_dataset does NOT close the file object after loading (lazy loading)
-    ## -> if you try to rm the file in Windows before closing, it will fail with WindowsError 32: file in use!
-    # convert metadata back to XML files
-    for key,val in self._data.attrs.items():
-      self._meta[key] = pk.loads(val.encode('utf-8'))
-
   def _fromXarrayDataset(self,dataset):
     """
+      Loads data from an xarray dataset
+      @ In, dataset, xarray.Dataset, the data set containg the data
+      @ Out, None
     """
     if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
@@ -1378,14 +1581,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if utils.isAFloat(val):
+    if mathUtils.isAFloat(val):
       _type = float
-    elif utils.isABoolean(val):
+    elif mathUtils.isABoolean(val):
       _type = bool
-    elif utils.isAnInteger(val):
+    elif mathUtils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif utils.isAString(val):
+    elif mathUtils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1400,43 +1603,80 @@ class DataSet(DataObject):
     """
     assert(self._collector is not None)
     assert(index < len(self._collector))
-    rlz = dict(zip(self._orderedVars,self._collector[index]))
+    rlz = dict(zip(self._orderedVars, self._collector[index]))
     # don't forget the aligned indices! If indexes stored there instead of in collector, retrieve them
     for var,vals in self._alignedIndexes.items():
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self,toMatch,tol=1e-15):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, first=True):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
+      @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (r, rlz) or (rr, rlzs), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                     first element:
+                                       if first:  r, int, index where match was found OR size of data if not found
+                                       else    : rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlzs, list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
+    if toMatch is None:
+      toMatch = {}
+
     assert(self._collector is not None)
+
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    lookingFor = list(toMatch.values())
-    for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in toMatch.keys())]):
+    matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
+    avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
+    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    if not first:
+      rr, rlz = [], []
+    for r, row in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
       match = True
-      for e,element in enumerate(row):
-        # check for matching based on if a number or not
-        if utils.isAFloatOrInt(element):
-          match &= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
-        else:
-          match &= lookingFor[e] == element
-        # if this element doesn't match, the row doesn't match
-        if not match:
-          break
-      # if each element matched, we found a match, so stop looking
+      # find matches first
+      if toMatch:
+        possibleMatch = self._collector[r, matchIndices]
+        for e, element in enumerate(np.atleast_1d(possibleMatch)):
+          if mathUtils.isAFloatOrInt(element):
+            match &= mathUtils.compareFloats(matchVals[e], element, tol=tol)
+          else:
+            match &= matchVals[e] == element
+          if not match:
+            break
+      # avoid antimatches if we match so far
+      if match and noMatch:
+        # NOTE there may be multiple entries per var in noMatch
+        possibleAvoid = self._collector[r, tuple(self._orderedVars.index(var) for var in avoidVars)]
+        for e, element in enumerate(np.atleast_1d(possibleAvoid)):
+          var = avoidVars[e]
+          if mathUtils.isAFloatOrInt(element):
+            for avoid in np.atleast_1d(avoidVals[e]):
+              match &= not mathUtils.compareFloats(avoid, element, tol=tol)
+              if not match:
+                break
+          else:
+            match &= element not in np.atleast_1d(avoidVals[e]) # TODO histories?
+          if not match:
+            break
       if match:
-        break
-    # did we find a match?
+        if first:
+          break
+        else:
+          rr.append(r)
+          rlz.append(self._getRealizationFromCollectorByIndex(r))
     if match:
-      return r,self._getRealizationFromCollectorByIndex(r)
+      if first:
+        return r, self._getRealizationFromCollectorByIndex(r)
+      else:
+        return rr, rlz
     else:
-      return len(self),None
+      return len(self), None
 
   def _getRealizationFromDataByIndex(self,index, unpackXArray=False):
     """
@@ -1450,55 +1690,91 @@ class DataSet(DataObject):
     rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
-  def _getRealizationFromDataByValue(self,match, tol=1e-15, unpackXArray=False):
+  # @profile
+  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False, first=True):
     """
-      Obtains a realization from the data storage using the provided index.
+      Obtains a realization from the data storage using the provided matching (or antimatching) dictionaries.
+      For "match", valid entries must be within tol of the provided value for each variable
+      For "noMatch", valid entries must NOT be within tol of the provided value for each variable
       @ In, match, dict, elements to match
+      @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must
+                          be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}).
+                          This can be used only if "first" ==> True. Otherwise we return a Dataset directly
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (rr, rlz), tuple ( (int, dict) or (list(int), Dataset) ), where:
+                                     first element:
+                                       if first:  rr, int, index where match was found OR size of data if not found
+                                       else    :  rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlz, Dataset, Dataset of matching realizatiions
     """
     assert(self._data is not None)
+    if unpackXArray:
+      assert (first)
+
+    if match is None:
+      match = {}
+    if noMatch is None:
+      noMatch = {}
+    matchVars = list(match.keys())
+    avoidVars = list(noMatch.keys())
+    # TODO what if a variable is in both??
     # TODO this could be slow, should do KD tree instead
     mask = 1.0
-    for var,val in match.items():
+    for var in matchVars: #, val in match.items():
+      val = match[var]
       # float instances are relative, others are absolute
-      if utils.isAFloatOrInt(val):
+      if mathUtils.isAFloatOrInt(val):
         # scale if we know how
-        try:
-          loc,scale = self._scaleFactors[var]
-        #except TypeError:
-        #  # self._scaleFactors is None, so set them
-        #  self._setScalingFactors(var)
-        except KeyError: # IndexError?
-        # variable doesn't have a scale factor (yet? Why not?)
-          loc = 0.0
-          scale = 1.0
-        if scale == 0:
-          # TODO: Seem to me, we need to find a better way to compare data
-          # The scale will be zero if Grid Sampler is used, reset to 1.0
-          scale = 1.0
-        scaleVal = (val-loc)/scale
+        loc, scale = self._getScalingFactors(var)
+        scaleVal = (val-loc) / scale
         # create mask of where the dataarray matches the desired value
         mask *= abs((self._data[var]-loc)/scale - scaleVal) < tol
       else:
         mask *= self._data[var] == val
+      # if all potential matches eliminated, stop looking
+      if not np.any(mask):
+        break
+    # continue checking for avoidance variables
+    ## NOTE that there may be multiple entries per avoidance variable
+    if np.any(mask) and avoidVars:
+      for var in avoidVars:
+        vals = np.atleast_1d(noMatch[var]) # values to AVOID matching # TODO what about histories?
+        # float instances are relative, others are absolute
+        if mathUtils.isAFloatOrInt(vals[0]):
+          # scale if we know how
+          loc, scale = self._getScalingFactors(var)
+          # create mask of where the dataarray matches the desired value
+          dataVal = (self._data[var] - loc) / scale
+          for val in vals:
+            scaleVal = (val-loc) / scale
+            mask *= np.logical_not(abs(dataVal - scaleVal) < tol)
+        else:
+          for val in vals:
+            mask *= np.logical_not(self._data[var] == val)
+        # if all potential  matches eliminated, stop looking
+        if sum(mask) == 0:
+          break
+
     rlz = self._data.where(mask,drop=True)
     try:
-      idx = rlz[self.sampleTag].item(0)
+      rr = rlz[self.sampleTag].item(0) if first else rlz[self.sampleTag].data.tolist()
     except IndexError:
       return len(self),None
-    return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
+    return (rr, self._getRealizationFromDataByIndex(rr, unpackXArray)) if first else (rr, rlz)
 
-  def _getRequestedElements(self,options):
+  def _getRequestedElements(self, options):
     """
       Obtains a list of the elements to be written, based on defaults and options[what]
       @ In, options, dict, general list of options for writing output files
       @ Out, keep, list(str), list of variables that will be written to file
     """
     if 'what' in options.keys():
-      elements = options['what'].split(',')
+      elements = options['what']
       keep = []
       for entry in elements:
         small = entry.strip().lower()
@@ -1519,6 +1795,22 @@ class DataSet(DataObject):
       keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload)
     return keep
 
+  def _getScalingFactors(self, var):
+    """
+      Returns (or defaults) scaling factors.
+      @ In, var, str, name of variable for which factors should be obtained
+      @ Out, loc, float, translation scalar
+      @ Out, scale, float, scaling scalar
+    """
+    try:
+      loc, scale = self._scaleFactors[var]
+    except KeyError:
+      loc = 0.0
+      scale = 1.0
+    if scale == 0:
+      scale = 1.0
+    return loc, scale
+
   def _getVariableIndex(self,var):
     """
       Obtains the index in the list of variables for the requested var.
@@ -1534,7 +1826,10 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','rU') as f:
+    # utf-8-sig is commongly used by Excel when writing CSV files as of this writing (2021).
+    # the BOM for this (first character in file) is \ufeff, causing the first var to be unrecognized
+    # if the encoding isn't right.
+    with open(fileName+'.csv', 'r', encoding='utf-8-sig') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
@@ -1544,7 +1839,7 @@ class DataSet(DataObject):
       If found, update stateful parameters.
       If not available, check the CSV itself for the available variables.
       @ In, fileName, str, filename (without extension) of the CSV/XML combination
-      @ Out, dims, dict, dimensionality dictionary with {index:[vars]} structure
+      @ Out, dims, dict, dimensionality dictionary with {var:[indices]} structure
     """
     meta = self._fromCSVXML(fileName)
     # if we have meta, use it to load data, as it will be efficient to read from
@@ -1554,19 +1849,26 @@ class DataSet(DataObject):
       dims = meta.get('pivotParams',{})
       if len(dims)>0:
         self.setPivotParams(dims)
+      # vector metavars is also stored in 'DataSet/dims' node
+      metavars = meta.get('metavars',[])
+      # get dict of vector metavars
+      params = {key:val for key, val in dims.items() if key in metavars}
       # add metadata, so we get probability weights and etc
-      self.addExpectedMeta(meta.get('metavars',[]))
+      self.addExpectedMeta(metavars,params)
       # check all variables desired are available
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
     else:
+      # we can infer dimensionality from the user-specified settings
       provided = set(self._identifyVariablesInCSV(fileName))
-      dims = {}
+      dims = dict((v, i) for v, i in self.getDimensions().items() if len(i)>0)
     # check provided match needed
     needed = set(self._orderedVars)
     missing = needed - provided
     if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fileName,missing))
+      extra = provided - needed
+      self.raiseAnError(IOError, f'Not all variables requested for data object "{self.name}" were found in csv "{fileName}.csv"!' +
+                        f'\nNeeded: {needed}; \nUnused: {extra}; \nMissing: {missing}')
     # otherwise, return happily and continue loading the CSV
     return dims
 
@@ -1581,7 +1883,7 @@ class DataSet(DataObject):
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
 
-  def _readPandasCSV(self,fname,nullOK=None):
+  def _readPandasCSV(self, fname, nullOK=None):
     """
       Reads in a CSV and does some simple checking.
       @ In, fname, str, name of file to read in (WITH the .csv extension)
@@ -1594,19 +1896,8 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    # first try reading the file
-    try:
-      df = pd.read_csv(fname)
-    except pd.errors.EmptyDataError:
-      # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fname+'.csv'))
-      return
-    else:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fname))
-    # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
-    if (not nullOK) and (pd.isnull(df).values.sum() != 0):
-      bad = pd.isnull(df).any(1).nonzero()[0][0]
-      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad+1,fname))
+    loader = CsvLoader.CsvLoader()
+    df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 
   def _resetScaling(self):
@@ -1634,7 +1925,7 @@ class DataSet(DataObject):
     """
     if self.types is None:
       self.types = [None]*len(self.getVars())
-      for v,name in enumerate(self.getVars()):
+      for v, name in enumerate(self.getVars()):
         val = rlz[name]
         self.types[v] = self._getCompatibleType(val)
 
@@ -1668,7 +1959,46 @@ class DataSet(DataObject):
       except Exception:
         self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
-  def _toCSV(self,fileName,start=0,**kwargs):
+  def _setStructureFromMetaXML(self, meta):
+    """
+      Sets this DataSet's structure based on structured meta XML
+      @ In, meta, xmlUtils.StaticXmlElement, xml structure
+      @ Out, None
+    """
+    root = meta.getRoot()
+    # locate index map
+    dims = root.find('dims')
+    varToDim = {}
+    if dims is not None:
+      for child in dims:
+        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
+    # inputs, outputs, indices meta
+    inputs = root.find('general/inputs')
+    if inputs is not None:
+      if inputs.text is None:
+        self._inputs = []
+      else:
+        self._inputs = list(x.strip() for x in inputs.text.split(','))
+    outputs = root.find('general/outputs')
+    if outputs is not None:
+      if outputs.text is None:
+        self._outputs = []
+      else:
+        self._outputs = list(x.strip() for x in outputs.text.split(','))
+    self._orderedVars = self._inputs + self._outputs
+    self._pivotParams = {}
+    for var in self._orderedVars:
+      if var in varToDim:
+        indices = varToDim[var]
+        for idx in indices:
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
+    if pointwiseMeta:
+      self.addExpectedMeta(pointwiseMeta, overwrite=True)
+
+  def _toCSV(self, fileName, start=0, **kwargs):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fileName, str, path/name to write file
@@ -1757,18 +2087,19 @@ class DataSet(DataObject):
       toRemove = []
       ## TODO doesn't work for time-dependent requests!
       genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
-      for child in genNode:
-        if child.tag in ['inputs','outputs','pointwise_meta']:
-          vs = []
-          for var in child.text.split(','):
-            if var.strip() in keep:
-              vs.append(var)
-          if len(vs) == 0:
-            toRemove.append(child)
-          else:
-            child.text = ','.join(vs)
-      for r in toRemove:
-        genNode.remove(r)
+      if genNode is not None:
+        for child in genNode:
+          if child.tag in ['inputs','outputs','pointwise_meta']:
+            vs = []
+            for var in child.text.split(','):
+              if var.strip() in keep:
+                vs.append(var)
+            if len(vs) == 0:
+              toRemove.append(child)
+            else:
+              child.text = ','.join(vs)
+        for r in toRemove:
+          genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:
@@ -1779,20 +2110,6 @@ class DataSet(DataObject):
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
-
-  def _toNetCDF(self,fileName,**kwargs):
-    """
-      Writes this data object to file in netCDF4.
-      @ In, fileName, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
-                                    One good option is format='NETCDF4' to assure netCDF4 is used
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    # convert metadata into writeable
-    self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
-    self._data.to_netcdf(fileName,**kwargs)
 
   def _usePandasWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """
@@ -1900,7 +2217,6 @@ class DataSet(DataObject):
   #    np.savetxt(outFile,data,header=header,fmt=types)
   #  # format data?
 
-
   ### HIERARCHICAL STUFF ###
   def _constructHierPaths(self):
     """
@@ -1909,6 +2225,8 @@ class DataSet(DataObject):
       @ Out, results, list(xr.Dataset), dataset containing only the path information
     """
     # TODO can we do this without collapsing? Should we?
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     data = self.asDataset()
     paths = self._generateHierPaths()
     results = [None] * len(paths)
@@ -1931,6 +2249,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None:
+          break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()
@@ -1967,4 +2287,3 @@ class DataSet(DataObject):
       fromData = []
     endings = fromColl + fromData
     return endings
-

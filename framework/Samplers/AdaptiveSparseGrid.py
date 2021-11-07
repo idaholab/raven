@@ -18,12 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import copy
@@ -41,13 +35,12 @@ else:
 from .SparseGridCollocation import SparseGridCollocation
 from .AdaptiveSampler import AdaptiveSampler
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Quadratures
 import IndexSets
-import MessageHandler
 #Internal Modules End-------------------------------------------------------------------------------
 
-class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
+class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
   """
    Adaptive Sparse Grid Collocation sampling strategy
   """
@@ -63,19 +56,19 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     inputSpecification = super(AdaptiveSparseGrid, cls).getInputSpecification()
 
-    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.StringType)
-    convergenceInput.addParam("target", InputData.StringType, True)
-    convergenceInput.addParam("maxPolyOrder", InputData.IntegerType)
-    convergenceInput.addParam("persistence", InputData.IntegerType)
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputTypes.StringType)
+    convergenceInput.addParam("target", InputTypes.StringType, True)
+    convergenceInput.addParam("maxPolyOrder", InputTypes.IntegerType)
+    convergenceInput.addParam("persistence", InputTypes.IntegerType)
 
     inputSpecification.addSub(convergenceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputTypes.IntegerType))
 
-    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
-    targetEvaluationInput.addParam("type", InputData.StringType)
-    targetEvaluationInput.addParam("class", InputData.StringType)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
+    targetEvaluationInput.addParam("type", InputTypes.StringType)
+    targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
 
     return inputSpecification
@@ -87,8 +80,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
-    SparseGridCollocation.__init__(self)
+    super().__init__()
     #identification
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
@@ -122,8 +114,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
 
-    self.addAssemblerObject('TargetEvaluation','1')
-
   def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
@@ -141,7 +131,12 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.convType     = convnode.attrib.get('target','variance')
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
-    self.maxRuns      = convnode.attrib.get('maxRuns',None)
+    maxRunsNode = xmlNode.find('maxRuns')
+    if maxRunsNode is not None:
+      self.maxRuns = int(maxRunsNode.text)
+    else:
+      self.maxRuns = None
+
     self.convValue    = float(convnode.text)
     if logNode is not None:
       self.logFile = logNode.text
@@ -202,7 +197,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     #create the index set
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
+    self.indexSet = IndexSets.factory.returnInstance('AdaptiveSet')
     self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
@@ -456,7 +451,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
-    for SVL in rom.supervisedEngine.supervisedContainer:
+    for SVL in rom.supervisedContainer:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -515,10 +510,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
-    sg.messageHandler   = self.messageHandler
-    iset.messageHandler = self.messageHandler
-    rom.messageHandler  = self.messageHandler
-    for svl in rom.supervisedEngine.supervisedContainer:
+    # reset supervisedContainer since some information is lost during deepcopy, such as 'features' and 'target'
+    rom.supervisedContainer = [rom._interfaceROM]
+    for svl in rom.supervisedContainer:
       svl.initialize({'SG'   :sg,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -536,12 +530,12 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, points, list(tuple(int)), optional, points
       @ Out, sparseGrid, SparseGrid object, new sparseGrid using self's points plus points' points
     """
-    sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
-    iset = IndexSets.returnInstance('Custom',self)
+    sparseGrid = Quadratures.factory.returnInstance(self.sparseGridType)
+    iset = IndexSets.factory.returnInstance('Custom')
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
-    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
+    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler)
     return sparseGrid
 
   def _printToLog(self):
@@ -620,7 +614,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = self._makeARom(self.sparseGrid,self.indexSet)
     for poly in self.indexSet.points:
       for t in self.targets:
-        impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
+        impact = self._convergence(poly,rom.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
   # disabled until we determine a consistent way to do this without bypassing dataobjects

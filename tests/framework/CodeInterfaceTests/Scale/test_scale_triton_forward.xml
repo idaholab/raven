@@ -46,9 +46,9 @@
       <constant name="lastBurn">6.0</constant>
     </Grid>
   </Samplers>
- 
+
   <Steps>
-    <MultiRun name="sampleScale" >
+    <MultiRun name="sampleScale"  clearRunDir="False">
       <Input class="Files" type="triton">triton_input</Input>
       <Model class="Models" type="Code">MyScale</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>

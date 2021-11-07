@@ -14,11 +14,9 @@
 """
   Utility module containing methods commonly used throughout the Python framework.
 """
-
+# NOTE we still import these from __future__ here because many machines still running
+# python 2.X need to use this file (for example the plugin installer)
 from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *
@@ -26,15 +24,17 @@ warnings.simplefilter('default',DeprecationWarning)
 # are used by --library-report, this can cause diagnostic messages to fail. *
 # ***************************************************************************
 import bisect
-import sys, os, errno
+import sys
+import os
+import errno
+import shutil
 import inspect
 import subprocess
 import platform
-import copy
-import numpy
-import six
+from importlib import import_module
+# import numpy # DO NOT import! See note above.
+# import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
-import importlib
 
 class Object(object):
   """
@@ -63,6 +63,31 @@ class byPass(object):
       @ Out, None
     """
     pass
+
+class StringPartialFormatDict(dict):
+  """
+    Allows partially formatting a template string.
+    See https://stackoverflow.com/questions/17215400/python-format-string-unused-named-arguments
+    Use as '{a} {b} {a}'.format_map(StringPartialFormatDict(a='one')) -> 'one {b} one'
+  """
+  def __missing__(self, key):
+    """
+      Replaces missing keys with formatting entries. May not work for any formats like {b:1.3e}.
+      @ In, key, str, formatting string key (the friend between the braces)
+      @ Out, key, str, re-formatted string
+    """
+    return '{' + key + '}'
+
+def partialFormat(msg, info):
+  """
+    Automates the partial formatting of a string (msg) with a format dictionary (info).
+    Example: '{a} {b} {c}'.partialFormat({b:'two'}) -> '{a} two {c}'
+    Note formatting is lost or may cause errors; that is,
+    Example: '{a:3s} {b:2d} {c:3s}'.partialFormat({b=2}) -> '{a}  2 {c}'
+    @ In, msg, string, string to partially format
+    @ In, info, dict, keywords to apply
+  """
+  return msg.format_map(StringPartialFormatDict(**info))
 
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
@@ -150,6 +175,29 @@ def removeFile(pathAndFileName):
   if os.path.isfile(pathAndFileName):
     os.remove(pathAndFileName)
 
+def removeDir(strPath):
+  """
+    Method to remove a directory.
+    @ In, strPath, string, path to directory to remove
+    @ Out, None
+  """
+  path = os.path.abspath(os.path.expanduser(strPath))
+  shutil.rmtree(path, onerror=_removeDirErrorHandler)
+
+def _removeDirErrorHandler(func, path, excinfo):
+  """
+    Handles errors arising from using shutil.rmtree
+    Argument descriptions from shutil documentation
+    @ In, func, is the function which raised the exception; it depends on the platform and
+                implementation
+    @ In, path, will be the path name passed to function
+    @ In, excinfo, will be the exception information returned by sys.exc_info()
+    @ Out, None
+  """
+  print('utils.removeDir WARNING: unable to remove {path} using {func}, ' +
+        'raising the following exception: {excinfo}. Continuing ...'
+        .format(path=path, func=func, excinfo=excinfo))
+
 def returnImportModuleString(obj,moduleOnly=False):
   """
     Method to return a list of strings that represent the
@@ -224,23 +272,34 @@ def convertMultipleToBytes(sizeString):
     except:
       raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
-def stringsThatMeanTrue():
-  """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
-  """
-  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
-  return listOfStrings
+# I don't think there's a reason to make this an enum, but it could be done.
+trueThingsFull = ('True', 'Yes', '1')
+trueThings = tuple(x[0].lower() for x in trueThingsFull)
 
-def stringsThatMeanFalse():
+def stringIsTrue(s):
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
+    Determines if provided entity corresponds to a truth statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsTrue, bool, True if string is recognized by RAVEN as evaluating to True
   """
-  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
-  return listOfStrings
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(trueThings)
+
+# I don't think there's a reason to make this an enum, but it could be done.
+falseThingsFull = ('False', 'No', '0')
+falseThings = tuple(x[0].lower() for x in falseThingsFull)
+def stringIsFalse(s):
+  """
+    Determines if provided entity corresponds to a falsehood statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsFalse, bool, False if string is recognized by RAVEN as evaluating to False
+  """
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(falseThings)
+
+boolThingsFull = tuple(list(trueThingsFull)+list(falseThingsFull))
 
 def stringsThatMeanSilent():
   """
@@ -284,9 +343,9 @@ def interpretBoolean(inArg):
     else:
       return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-    if inArg.lower().strip() in stringsThatMeanTrue():
+    if stringIsTrue(inArg):
       return True
-    elif inArg.lower().strip() in stringsThatMeanFalse():
+    elif stringIsFalse(inArg):
       return False
     else:
       raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
@@ -391,79 +450,6 @@ def toBytes(s):
   else:
     return s
 
-def isSingleValued(val,nanOk=True):
-  """
-    Determine if a single-entry value (by traditional standards).
-    Single entries include strings, numbers, NaN, inf, None
-    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isSingleValued, bool, result
-  """
-  # TODO most efficient order for checking?
-  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
-
-def isAString(val):
-  """
-    Determine if a string value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isAString, bool, result
-  """
-  return isinstance(val, six.string_types)
-
-def isAFloatOrInt(val,nanOk=True):
-  """
-    Determine if a float or integer value
-    Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloatOrInt, bool, result
-  """
-  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
-
-def isAFloat(val,nanOk=True):
-  """
-    Determine if a float value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloat, bool, result
-  """
-  if isinstance(val,(float,numpy.number)):
-    # exclude ints, which are numpy.number
-    if isAnInteger(val):
-      return False
-    # numpy.float32 (or 16) is niether a float nor a numpy.float (it is a numpy.number)
-    if nanOk:
-      return True
-    elif val not in [numpy.nan,numpy.inf]:
-      return True
-  return False
-
-def isAnInteger(val,nanOk=False):
-  """
-    Determine if an integer value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAnInteger, bool, result
-  """
-  if isinstance(val,six.integer_types) or isinstance(val,numpy.integer):
-    # exclude booleans
-    if isABoolean(val):
-      return False
-    return True
-  # also include inf and nan, if requested
-  if nanOk and isinstance(val,float) and val in [numpy.nan,numpy.inf]:
-    return True
-  return False
-
-def isABoolean(val):
-  """
-    Determine if a boolean value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isABoolean, bool, result
-  """
-  return isinstance(val,(bool,numpy.bool_))
-
 def toBytesIterative(s):
   """
     Method aimed to convert all the string-compatible content of
@@ -482,38 +468,6 @@ def toBytesIterative(s):
     return tempdict
   else:
     return toBytes(s)
-
-def toListFromNumpyOrC1array(array):
-  """
-    This method converts a numpy or c1darray into list
-    @ In, array, numpy or c1array,  array to be converted
-    @ Out, response, list, the casted value
-  """
-  response = array
-  if type(array).__name__ == 'ndarray':
-    response = array.tolist()
-  elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
-  return response
-
-def toListFromNumpyOrC1arrayIterative(array):
-  """
-    Method aimed to convert all the string-compatible content of
-    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
-    @ In, array, object,  object whose content needs to be converted
-    @ Out, response, object, a copy of the object in which the string-compatible has been converted
-  """
-  if type(array) == list:
-    return [toListFromNumpyOrC1array(x) for x in array]
-  elif type(array) == dict:
-    if len(array.keys()) == 0:
-      return None
-    tempdict = {}
-    for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
-    return tempdict
-  else:
-    return toBytes(array)
 
 def toStrish(s):
   """
@@ -559,14 +513,6 @@ def first(c):
   """
   return next(iter(c))
 
-def iter_len(c):
-  """
-    Method to count the number of elements in an iterable.
-    @ In, c, the iterable
-    @ Out, the number of items in the first level of the iterable
-  """
-  return sum(1 for _ in c)
-
 def importFromPath(filename, printImporting = True):
   """
     Method to import a module from a given path
@@ -582,81 +528,13 @@ def importFromPath(filename, printImporting = True):
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
+    pythonPath = os.environ.get("PYTHONPATH","")
+    absPath = os.path.abspath(path)
+    if absPath not in pythonPath:
+      os.environ['PYTHONPATH'] = pythonPath+ os.pathsep + absPath
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
-
-def index(a, x):
-  """
-    Method to locate the leftmost value exactly equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the leftmost value exactly equal to x
-  """
-  i = bisect.bisect_left(a, x)
-  if i != len(a) and a[i] == x:
-    return i
-  return None
-
-def find_lt(a, x):
-  """
-    Method to Find rightmost value less than x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the Find rightmost value less than x
-  """
-  i = bisect.bisect_left(a, x)
-  if i:
-    return a[i-1],i-1
-  return None,None
-
-def find_le_index(a,x):
-  """
-    Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the rightmost value less than or equal to x
-  """
-  i = bisect.bisect_right(a, x)
-  if i:
-    return i
-  return None
-
-def find_le(a, x):
-  """
-    Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
-  """
-  i = bisect.bisect_right(a, x)
-  if i:
-    return a[i-1],i-1
-  return None,None
-
-def find_gt(a, x):
-  """
-    Method to Find the leftmost value greater than x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] -> the leftmost value greater than x, tuple[1] -> index
-  """
-  i = bisect.bisect_right(a, x)
-  if i != len(a):
-    return a[i],i
-  return None,None
-
-def find_ge(a, x):
-  """
-    Method to Find the leftmost item greater than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
-  """
-  i = bisect.bisect_left(a, x)
-  if i != len(a):
-    return a[i],i
-  return None,None
 
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   """
@@ -780,11 +658,13 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
+        # we add it in pythonpath too
+        os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
         raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
 
 def add_path(absolutepath):
   """
@@ -795,6 +675,11 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+  # we add it in pythonpath too
+  newPath = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
+    print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
+  os.environ['PYTHONPATH'] = newPath
 
 def add_path_recursively(absoluteInitialPath):
   """
@@ -817,11 +702,11 @@ def findCrowModule(name):
   # find the module
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    module = importlib.import_module("crow_modules.{}{}".format(name,ext))
-  except ImportError as ie:
+    module = import_module("crow_modules.{}{}".format(name,ext))
+  except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
       raise ie
-    module = importlib.import_module("{}{}".format(name,ext))
+    module = import_module("{}{}".format(name,ext))
   return module
 
 def getPythonCommand():
@@ -847,7 +732,6 @@ def getPythonCommand():
   #  pythonCommand = "python"
   #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
   return pythonCommand
-
 
 def printCsv(csv,*args):
   """
@@ -988,19 +872,6 @@ def typeMatch(var,varTypeStr):
         match = True
   return match
 
-def sizeMatch(var,sizeToCheck):
-  """
-    This method is aimed to check if a variable has an expected size
-    @ In, var, python datatype, the first variable to compare
-    @ In, sizeToCheck, int, the size this variable should have
-    @ Out, sizeMatched, bool, is the size ok?
-  """
-  sizeMatched = True
-  if len(numpy.atleast_1d(var)) != sizeToCheck:
-    sizeMatched = False
-  return sizeMatched
-
-
 def isASubset(setToTest,pileList):
   """
     Check if setToTest is ordered subset of pileList in O(n)
@@ -1109,3 +980,86 @@ def getAllSubclasses(cls):
     @ Out, getAllSubclasses, list of class objects for each subclass of cls.
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
+
+def displayAvailable():
+  """
+    The return variable for backend default setting of whether a display is
+    available or not. For instance, if we are running on the HPC without an X11
+    instance, then we don't have the ability to display the plot, only to save it
+    to a file
+    @ In, None
+    @ Out, dispaly, bool, return True if platform is Windows or environment varialbe
+      'DISPLAY' is available, otherwise return False
+  """
+  display = False
+  if platform.system() == 'Windows':
+    display = True
+  else:
+    if os.getenv('DISPLAY'):
+      display = True
+    else:
+      display = False
+  return display
+
+def which(cmd):
+  """
+    Emulate the which method in shutil.
+    Return the path to an executable which would be run if the given cmd was called.
+    If no cmd would be called, return None.
+    @ In, cmd, str, the exe to check
+    @ Out, which, str, the full path or None if not found
+  """
+  def _access_check(fn):
+    """
+      Just check if the path is executable
+      @ In, fn, string, the file to check
+      @ Out, _access_check, bool, if accessable or not?
+    """
+    return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
+  if os.path.dirname(cmd):
+    if _access_check(cmd):
+      return cmd
+    return None
+  path = os.environ.get("PATH", os.defpath)
+  if not path:
+    return None
+  path = path.split(os.pathsep)
+  if sys.platform == "win32":
+    if not os.curdir in path:
+      path.insert(0, os.curdir)
+    pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+    if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
+      files = [cmd]
+    else:
+      files = [cmd + ext for ext in pathext]
+  else:
+    files = [cmd]
+  seen = set()
+  for dir in path:
+    normdir = os.path.normcase(dir)
+    if not normdir in seen:
+      seen.add(normdir)
+      for thefile in files:
+        name = os.path.join(dir, thefile)
+        if _access_check(name):
+          return name
+  return None
+
+def orderClusterLabels(originalLables):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels

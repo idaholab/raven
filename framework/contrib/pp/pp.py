@@ -38,17 +38,36 @@ import sys
 import types
 import time
 import atexit
-import user
-#import dill as pickle
-import cPickle as pickle
-import cloudpickle
-#import pickle
+try:
+    import user
+except ImportError:
+    user = types  # using as a stub
+#Add directory for cload pickle
+_pp_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(_pp_dir))
+#RAVEN CHANGE: switching to cloudpickle
+import cloudpickle as pickle
+def importable(func): # the original code
+    #get lines of the source and adjust indent
+    sourcelines = inspect.getsourcelines(func)[0]
+    if sourcelines[0].strip().startswith("@"):
+      #ALFOA: temporary fix (but soon we remove Parallel Python,
+      #       so I did not want to spend more time in fixing this)
+      sourcelines.pop(0)
+    #remove indentation from the first line
+    sourcelines[0] = sourcelines[0].lstrip()
+    return "".join(sourcelines)
+def getname(obj): # just get __name__
+    return obj.__name__
+def _wrap(f): # do nothing
+    return f
+import six
 import pptransport
 import ppauto
-import ppcommon
+import ppcommon as ppc
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
-version = "1.6.4"
+__version__ = version = "1.6.4.4"
 
 # Reconnect persistent rworkers in seconds.
 RECONNECT_WAIT_TIME = 5
@@ -60,7 +79,7 @@ SHOW_EXPECTED_EXCEPTIONS = False
 try:
     set
 except NameError:
-    from sets import Set as set
+    from sets import Set as set 
 
 _USE_SUBPROCESS = False
 try:
@@ -68,6 +87,8 @@ try:
     _USE_SUBPROCESS = True
 except ImportError:
     import popen2
+
+
 
 class _Task(object):
     """Class describing single task (job)
@@ -118,10 +139,10 @@ class _Task(object):
 
     def __unpickle(self):
         """Unpickles the result of the task"""
-        self.result, sout = pickle.loads(self.sresult)
+        self.result, sout = pickle.loads(ppc.b_(self.sresult))
         self.unpickled = True
         if len(sout) > 0:
-            print sout,
+            six.print_(sout, end=' ')
         if self.callback:
             args = self.callbackargs + (self.result, )
             self.callback(*args)
@@ -132,7 +153,7 @@ class _Worker(object):
     """
     command = [sys.executable, "-u", "-m", "ppworker"]
 
-    #command.append("2>/dev/null")
+    command.append("2>/dev/null")
 
     def __init__(self, restart_on_free, pickle_proto):
         """Initializes local worker"""
@@ -144,14 +165,19 @@ class _Worker(object):
         """Starts local worker"""
         if _USE_SUBPROCESS:
             proc = subprocess.Popen(self.command, stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE)#, stderr=subprocess.PIPE)
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.t = pptransport.CPipeTransport(proc.stdout, proc.stdin)
         else:
             self.t = pptransport.CPipeTransport(
                     *popen2.popen3(self.command)[:2])
 
+       #open('/tmp/pp.debug', 'a+').write('Starting _Worker\n')
+       #open('/tmp/pp.debug', 'a+').write('receiving... \n')
         self.pid = int(self.t.receive())
+       #open('/tmp/pp.debug', 'a+').write('received: %s\n' % self.pid)
+       #open('/tmp/pp.debug', 'a+').write('sending: %s\n' % self.pickle_proto)
         self.t.send(str(self.pickle_proto))
+       #open('/tmp/pp.debug', 'a+').write('...sent \n')
         self.is_free = True
 
     def stop(self):
@@ -198,16 +224,20 @@ class _RWorker(pptransport.CSocketTransport):
 
     def connect(self, message=None):
         """Connects to a remote server"""
+       #open('/tmp/pp.debug', 'a+').write('connect: %s\n' % repr(message))
         while True and not self.server._exiting:
             try:
-                pptransport.SocketTransport.__init__(self, None, self.socket_timeout)
-                self._connect(self.host, self.port)
+                pptransport.SocketTransport.__init__(self, None, self.socket_timeout) 
+                self._connect(self.host, self.port)                
+               #open('/tmp/pp.debug', 'a+').write('connected: %s\n' % self.port)
                 if not self.authenticate(self.secret):
                     self.server.logger.error("Authentication failed for host=%s, port=%s"
                             % (self.host, self.port))
                     return False
+               #open('/tmp/pp.debug', 'a+').write('authenticated \n')
                 if message:
                     self.send(message)
+                   #open('/tmp/pp.debug', 'a+').write('sent: %s\n' % repr(message))
                 self.is_free = True
                 return True
             except:
@@ -294,7 +324,7 @@ class Server(object):
                    custom passphrase for all network connections.
            restart - whether to restart worker process after each task completion
            proto - protocol number for pickle module
-           socket_timeout - socket timeout in seconds which is also the maximum
+           socket_timeout - socket timeout in seconds which is also the maximum 
                    time a remote job could be executed. Increase this value
                    if you have long running jobs or decrease if connectivity
                    to remote ppservers is often lost.
@@ -352,7 +382,7 @@ class Server(object):
             if len(ppserver)>1:
                 port = int(ppserver[1])
             else:
-                port = Server.default_port
+                port = ppc.randomport()
             if host.find("*") == -1:
                 self.ppservers.append((host, port))
             else:
@@ -364,12 +394,12 @@ class Server(object):
                         (broadcast, port)))
         self.__stats_lock = threading.Lock()
         if secret is not None:
-            if not isinstance(secret, types.StringType):
+            if not isinstance(secret, str):
                 raise TypeError("secret must be of a string type")
             self.secret = str(secret)
         elif hasattr(user, "pp_secret"):
             secret = getattr(user, "pp_secret")
-            if not isinstance(secret, types.StringType):
+            if not isinstance(secret, str):
                 raise TypeError("secret must be of a string type")
             self.secret = str(secret)
         else:
@@ -379,8 +409,9 @@ class Server(object):
         self.logger.info("pp local server started with %d workers"
                 % (self.__ncpus, ))
 
+    #RAVEN CHANGE: adding functionToSkip
     def submit(self, func, args=(), depfuncs=(), modules=(),
-            callback=None, callbackargs=(), group='default', globals=None, functionToSkip = None):
+               callback=None, callbackargs=(), group='default', globals=None, functionToSkip = None):
         """Submits function to the execution queue
 
             func - function to be executed
@@ -419,11 +450,12 @@ class Server(object):
             raise TypeError("globals argument must be a dictionary")
 
         for module in modules:
-            if not isinstance(module, types.StringType):
-              raise TypeError("modules argument must be a list of strings." + "Got "+ type(module).__name__)
+            if not isinstance(module, str):
+                raise TypeError("modules argument must be a list of strings")
 
         tid = self.__gentid()
 
+        other_type = types.FunctionType if six.PY3 else types.ClassType
         if globals:
             modules += tuple(self.__find_modules("", globals))
             modules = tuple(set(modules))
@@ -431,7 +463,7 @@ class Server(object):
                     (tid, str(modules)))
             for object1 in globals.values():
                 if isinstance(object1, types.FunctionType) \
-                        or isinstance(object1, types.ClassType):
+                        or isinstance(object1, other_type):
                     depfuncs += (object1, )
 
         task = _Task(self, tid, callback, callbackargs, group)
@@ -441,18 +473,24 @@ class Server(object):
         self.__waittasks_lock.release()
 
         # if the function is a method of a class add self to the arguments list
-        if isinstance(func, types.MethodType) and func.im_self is not None:
-            args = (func.im_self, ) + args
+        if isinstance(func, types.MethodType):
+            func_self = func.__self__ if six.PY3 else func.im_self
+            if func_self is not None:
+                args = (func_self, ) + args
 
-        # if there is an instance of a user deined class in the arguments add
+        # if there is an instance of a user defined class in the arguments add
         # whole class to dependancies
         for arg in args:
             # Checks for both classic or new class instances
-            if isinstance(arg, types.InstanceType) \
-                    or str(type(arg))[:6] == "<class":
+            if (six.PY2 and isinstance(arg, types.InstanceType)) \
+                        or str(type(arg))[:6] == "<class":
+                # in PY3, all instances are <class... so skip the builtins
+                if getattr(inspect.getmodule(arg), '__name__', None) \
+                   in ['builtins', '__builtin__', None]: pass
                 # do not include source for imported modules
-                if ppcommon.is_not_imported(arg, modules):
-                    clshier = ppcommon.get_class_hierarchy(arg.__class__)
+                elif ppc.is_not_imported(arg, modules):
+                    #RAVEN CHANGE: adding functionToSkip removing.
+                    clshier = ppc.get_class_hierarchy(arg.__class__)
                     if functionToSkip != None:
                       tempclshier = []
                       clshierstr = [str(elem) for elem in clshier] # we use string in order to avoid baseclass identity!
@@ -461,6 +499,7 @@ class Server(object):
                         if clshierfun not in functionToSkipSet: tempclshier.append(clshier[cnt])
                       clshier = tempclshier
                     depfuncs += tuple(clshier)
+
         # if there is a function in the arguments add this
         # function to dependancies
         for arg in args:
@@ -468,17 +507,14 @@ class Server(object):
                 depfuncs += (arg, )
 
         sfunc = self.__dumpsfunc((func, ) + depfuncs, modules)
-        sargs = cloudpickle.dumps(args, self.__pickle_proto)
-        # add local directory and sys.path to PYTHONPATH
-        # pythondirs = [os.getcwd()] + sys.path
+        sargs = pickle.dumps(args, self.__pickle_proto)
 
-        # pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
         self.__queue_lock.acquire()
-        self.__queue.append((task, sfunc, sargs)) #, pytpath))
+        self.__queue.append((task, sfunc, sargs))
         self.__queue_lock.release()
 
         self.logger.debug("Task %i submited, function='%s'" %
-                (tid, func.func_name))
+                (tid, getname(func)))
         self.__scheduler()
         return task
 
@@ -513,7 +549,7 @@ class Server(object):
         if ncpus < 0:
             raise ValueError("ncpus must be an integer > 0")
         if ncpus > len(self.__workers):
-            self.__workers.extend([_Worker(self.__restart_on_free,
+            self.__workers.extend([_Worker(self.__restart_on_free, 
                     self.__pickle_proto) for x in\
                     range(ncpus - len(self.__workers))])
         self.__stats["local"].ncpus = ncpus
@@ -541,37 +577,34 @@ class Server(object):
                     stat.time = 0.0
         return self.__stats
 
-    def collect_stats_in_list(self):
-        """collect job execution statistics in list. Useful for benchmarking on
-           clusters"""
-        returnList = []
-        returnList.append("Job execution statistics:")
-        walltime = time.time() - self.__creation_time
-        statistics = self.get_stats().items()
-        totaljobs = 0.0
-        for ppserver, stat in statistics:
-            totaljobs += stat.njobs
-        returnList.append(" job count | % of all jobs | job time sum | time per job | job server")
-        for ppserver, stat in statistics:
-            if stat.njobs:
-                returnList.append("    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
-                        % (stat.njobs, 100.0*stat.njobs/totaljobs, stat.time,
-                        stat.time/stat.njobs, ppserver, ))
-        returnList.append("Time elapsed since server creation " + str(walltime))
-        returnList.append(str(self.__active_tasks)+ " active tasks," +  str(self.get_ncpus()) + " cores")
-        #print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
-
-        if not self.__accurate_stats:
-            returnList.append("WARNING: statistics provided above is not accurate due to job rescheduling")
-        return returnList
-
-
     def print_stats(self):
         """Prints job execution statistics. Useful for benchmarking on
            clusters"""
-        for row in self.collect_stats_in_list(): print(row)
+
+        print("Job execution statistics:")
+        walltime = time.time() - self.__creation_time
+        statistics = list(self.get_stats().items())
+        totaljobs = 0.0
+        for ppserver, stat in statistics:
+            totaljobs += stat.njobs
+        print(" job count | % of all jobs | job time sum | " \
+                "time per job | job server")
+        for ppserver, stat in statistics:
+            if stat.njobs:
+                print("    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
+                        % (stat.njobs, 100.0*stat.njobs/totaljobs, stat.time,
+                        stat.time/stat.njobs, ppserver, ))
+        print("Time elapsed since server creation %s" % walltime)
+        print("%s active tasks, %s cores" % (self.__active_tasks, \
+                                               self.get_ncpus()))
+
+        if not self.__accurate_stats:
+            print("WARNING: statistics provided above is not accurate" \
+                  " due to job rescheduling")
+        print("")
 
     # all methods below are for internal use only
+
     def insert(self, sfunc, sargs, task=None):
         """Inserts function into the execution queue. It's intended for
            internal use only (ppserver.py).
@@ -588,29 +621,34 @@ class Server(object):
         return task
 
     def connect1(self, host, port, persistent=True):
-        """Conects to a remote ppserver specified by host and port"""
+        """Conects to a remote ppserver specified by host and port"""        
         hostid = host+":"+str(port)
         lock = self.__connect_locks.setdefault(hostid, threading.Lock())
         lock.acquire()
         try:
             if hostid in self.autopp_list:
                 return
+           #open('/tmp/pp.debug', 'a+').write('_RWorker(STAT)\n')
             rworker = _RWorker(host, port, self.secret, self, "STAT", persistent, self.socket_timeout)
             ncpus = int(rworker.receive())
+           #open('/tmp/pp.debug', 'a+').write('_RWorker: %s\n' % ncpus)
             self.__stats[hostid] = _Statistics(ncpus, rworker)
 
             for x in range(ncpus):
+               #open('/tmp/pp.debug', 'a+').write('_RWorker(EXEC)\n')
                 rworker = _RWorker(host, port, self.secret, self, "EXEC", persistent, self.socket_timeout)
                 self.__update_active_rworkers(rworker.id, 1)
                 # append is atomic - no need to lock self.__rworkers
                 self.__rworkers.append(rworker)
             #creating reserved rworkers
             for x in range(ncpus):
+               #open('/tmp/pp.debug', 'a+').write('_RWorker(EXEC)_\n')
                 rworker = _RWorker(host, port, self.secret, self, "EXEC", persistent, self.socket_timeout)
                 self.__update_active_rworkers(rworker.id, 1)
                 self.__rworkers_reserved.append(rworker)
             self.logger.debug("Connected to ppserver (host=%s, port=%i) \
                     with %i workers" % (host, port, ncpus))
+           #open('/tmp/pp.debug', 'a+').write('_RWorker(sched)\n')
             self.__scheduler()
         except:
             if SHOW_EXPECTED_EXCEPTIONS:
@@ -621,11 +659,11 @@ class Server(object):
     def __connect(self):
         """Connects to all remote ppservers"""
         for ppserver in self.ppservers:
-            ppcommon.start_thread("connect1",  self.connect1, ppserver)
+            ppc.start_thread("connect1",  self.connect1, ppserver)
 
         self.discover = ppauto.Discover(self, True)
         for ppserver in self.auto_ppservers:
-            ppcommon.start_thread("discover.run", self.discover.run, ppserver)
+            ppc.start_thread("discover.run", self.discover.run, ppserver)
 
     def __detect_ncpus(self):
         """Detects the number of effective CPUs in the system"""
@@ -653,8 +691,9 @@ class Server(object):
         hashs = hash(funcs + modules)
         if hashs not in self.__sfuncHM:
             sources = [self.__get_source(func) for func in funcs]
-            self.__sfuncHM[hashs] = cloudpickle.dumps(
-                    (funcs[0].func_name, sources, modules),
+            # should probably just 'try' above, if fail rely on dill.dumps
+            self.__sfuncHM[hashs] = pickle.dumps(
+                    (getname(funcs[0]), sources, modules),
                     self.__pickle_proto)
         return self.__sfuncHM[hashs]
 
@@ -687,7 +726,7 @@ class Server(object):
                 self.__add_to_active_tasks(1)
                 try:
                     self.__stats["local"].njobs += 1
-                    ppcommon.start_thread("run_local",  self._run_local, task+(worker, ))
+                    ppc.start_thread("run_local",  self._run_local, task+(worker, ))
                 except:
                     pass
             else:
@@ -696,7 +735,7 @@ class Server(object):
                         rworker.is_free = False
                         task = self.__queue.pop(0)
                         self.__stats[rworker.id].njobs += 1
-                        ppcommon.start_thread("run_remote",  self._run_remote, task+(rworker, ))
+                        ppc.start_thread("run_remote",  self._run_remote, task+(rworker, ))
                         break
                 else:
                     if len(self.__queue) > self.__ncpus:
@@ -705,7 +744,7 @@ class Server(object):
                                 rworker.is_free = False
                                 task = self.__queue.pop(0)
                                 self.__stats[rworker.id].njobs += 1
-                                ppcommon.start_thread("run_remote",  self._run_remote, task+(rworker, ))
+                                ppc.start_thread("run_remote",  self._run_remote, task+(rworker, ))                                
                                 break
                         else:
                                 break
@@ -718,11 +757,7 @@ class Server(object):
         """Fetches source of the function"""
         hashf = hash(func)
         if hashf not in self.__sourcesHM:
-            #get lines of the source and adjust indent
-            sourcelines = inspect.getsourcelines(func)[0]
-            #remove indentation from the first line
-            sourcelines[0] = sourcelines[0].lstrip()
-            self.__sourcesHM[hashf] = "".join(sourcelines)
+            self.__sourcesHM[hashf] = importable(func)
         return self.__sourcesHM[hashf]
 
     def _run_local(self,  job, sfunc, sargs, worker):
@@ -735,10 +770,15 @@ class Server(object):
         start_time = time.time()
 
         try:
+           #open('/tmp/pp.debug', 'a+').write('_local: %s\n' % repr(sfunc))
             worker.t.csend(sfunc)
+           #open('/tmp/pp.debug', 'a+').write('_local: %s\n' % repr(sargs))
             worker.t.send(sargs)
+           #open('/tmp/pp.debug', 'a+').write('_local: \n')
             sresult = worker.t.receive()
+           #open('/tmp/pp.debug', 'a+').write('_local: %s\n' % repr(sresult))
             job.finalize(sresult)
+           #open('/tmp/pp.debug', 'a+').write('_local: _\n')
         except:
             if self._exiting:
                 return
@@ -759,16 +799,21 @@ class Server(object):
         self.logger.debug("Task %i ended",  job.tid)
         self.__scheduler()
 
-    def _run_remote(self, job, sfunc, sargs, rworker): #, pytpath):
+    def _run_remote(self, job, sfunc, sargs, rworker):
         """Runs a job remotelly"""
         self.logger.debug("Task (remote) %i started",  job.tid)
 
         try:
+           #open('/tmp/pp.debug', 'a+').write('_remote: %s\n' % repr(sfunc))
             rworker.csend(sfunc)
+           #open('/tmp/pp.debug', 'a+').write('_remote: %s\n' % repr(sargs))
             rworker.send(sargs)
+           #open('/tmp/pp.debug', 'a+').write('_remote: %s\n')
             sresult = rworker.receive()
+           #open('/tmp/pp.debug', 'a+').write('_remote: %s\n' % repr(sresult))
             rworker.is_free = True
             job.finalize(sresult)
+           #open('/tmp/pp.debug', 'a+').write('_remote: _%s\n')
         except:
             self.logger.debug("Task %i failed due to broken network " \
                     "connection - rescheduling",  job.tid)
@@ -847,5 +892,5 @@ class Server(object):
 
 class DestroyedServerError(RuntimeError):
     pass
-
+    
 # Parallel Python Software: http://www.parallelpython.com

@@ -27,6 +27,18 @@
   type = 'RavenPython'
   input = 'testParse.py'
  [../]
+ [./inputData]
+  type = 'RavenPython'
+  input = 'testInputData.py'
+ [../]
+ [./Debugging]
+  type = 'RavenPython'
+  input = 'testDebugging.py'
+ [../]
+ [./frontUtils]
+  type = 'RavenPython'
+  input = 'testFrontUtils.py'
+ [../]
 []
 
 
