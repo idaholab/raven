@@ -214,13 +214,13 @@ def parse_dep(depfile, write_py=False, make_mats=True):
 
     # Remove imaterial information from the top of Serpent2 *_dep.m file
     f = _delete_imaterial(f)
-    
+
     # Keep comments around
     f = _replace_comments(f)
 
     # Replace matlab Arrays
     f = _replace_arrays(f)
-    
+
     # Now to find and convert arrays that have comments in them
     comment_arrays = re.findall("(" + _comment_array_pattern + ")", f)
     for ca in comment_arrays:
