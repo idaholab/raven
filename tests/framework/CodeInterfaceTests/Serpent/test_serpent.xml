@@ -79,7 +79,7 @@
   <DataObjects>
     <PointSet name="outPointSet">
       <Input>deptime</Input>
-      <Output>boc_keff, eoc_keff</Output>
+      <Output>bocKeff, eocKeff</Output>
     </PointSet>
   </DataObjects>
 
