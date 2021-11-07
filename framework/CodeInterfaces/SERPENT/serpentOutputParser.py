@@ -14,16 +14,8 @@ Created May 9th, 2019
 
 @author: alfoa
 """
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3
-
 #External Modules--------------------begin
-import numpy as np
 import csv
-from pathlib import Path
 #External Modules--------------------end
 
 #Internal Modules--------------------begin
