@@ -1,7 +1,7 @@
 [Tests]
- [./SerpentTest1]
+ [./SerpentTestBasic]
   type = 'RavenFramework'
-  input = 'RAVENinput.xml'
+  input = 'test_serpent.xml'
   text = 'SerpentTest1/sampleInput/1/testInput.serpent SerpentTest1/sampleInput/2/testInput.serpent'
   output = 'SerpentTest1/sampleInput/1/out~testInput.csv SerpentTest1/sampleInput/2/out~testInput.csv'
   csv = 'SerpentTest1/RAVENout.csv'
