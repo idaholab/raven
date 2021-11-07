@@ -1,0 +1,158 @@
+\subsection{Generic Interface}
+\label{subsec:genericInterface}
+The GenericCode interface is meant to handle a wide variety of generic codes
+that take straightforward input files and produce output CSV files.  There are
+some limitations for this interface.
+If a code: \vspace{-20pt}
+\begin{itemize}
+\item accepts a keyword-based input file with no cross-dependent inputs,
+\item has no more than one filetype extension per command line flag,
+\item and returns a CSV with the input parameters and output parameters,
+\end{itemize}\vspace{-20pt}
+the GenericCode interface should cover the code for RAVEN.
+
+The GenericCode interface leverages a wildcard-based approach to editing input files. Using the
+special wildcard format \texttt{\$RAVEN-\$}, RAVEN parses text-based inputs and replaces the
+wildcards with sampled values. For example, consider RAVEN sampling variables named
+\texttt{initial\_velocity} and \texttt{initial\_angle}. Assume we're using a projectile tracking model
+with keyword based entry input files; for example,
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = 35     # starting angle, degrees
+  initial_velocity = 40  # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+ \end{lstlisting}
+Since we want to sample \texttt{initial\_velocity} and \texttt{initial\_angle}, we create a new
+template input and replace the values where samples should go with the wildcard and the variable
+name:
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = $RAVEN-initial_angle$ # starting angle, degrees
+  initial_velocity = $RAVEN-initial_velocity$ # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+\end{lstlisting}
+See more discussion of replacing the output case and auxiliary file names below. When RAVEN samples
+values for the initial height and velocity, it will generate a new input file with those values in
+place, for example,
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = 22.7589 # starting angle, degrees
+  initial_velocity = 47.2076 # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+\end{lstlisting}
+
+If a code contains cross-dependent data, the generic interface is not able to
+edit the correct values.  For example, if a geometry-building script specifies
+inner\_radius, outer\_radius, and thickness, the generic interface cannot
+calculate the thickness given the outer and inner radius, or vice versa.
+In this case, the \textit{function} method explained in the Samplers (see \ref{sec:Samplers})
+and Optimizers (see \ref{sec:Optimizers}) sections can be used.
+
+ An example of the code interface is shown here.  The input parameters are read
+ from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
+ The code is run using \texttt{python}, so that is part of the \xmlNode{clargs} node with the \xmlAttr{type} equal \xmlString{prepend}.
+ The command line entry to normally run the code is
+\begin{lstlisting}[language=bash]
+python poly_inp.py -i gen.one -a gen.two -o myOut
+\end{lstlisting}
+and produces the output \texttt{myOut.csv}.
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input'   arg='-i' extension='.one'/>
+      <clargs type='input'   arg='-a' extension='.two'/>
+      <clargs type='output'  arg='-o'/>
+    </Code>
+\end{lstlisting}
+
+If a code doesn't accept necessary Raven-editable auxiliary input files
+or output filenames through the command line, the GenericCode interface
+can also edit the input files and insert the filenames there.  For example,
+in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, \texttt{gen.one} has the following lines:
+\begin{lstlisting}[language=python]
+...
+auxfile = gen.two
+case = myOut
+...
+\end{lstlisting}
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs type='output'  arg='out'/>
+    </Code>
+\end{lstlisting}
+and the corresponding template input file lines would be changed to read
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two$
+case = $RAVEN-out$
+...
+\end{lstlisting}
+
+
+%%%%
+If a code has hard-coded output file names that are not changeable,
+the GenericCode interface can be invoked using the \xmlNode{outputFile}
+node in which the output file name (CSV only) must be specified.
+For example, in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, the code always produce a CSV file named ``fixed\_output.csv'';
+
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <outputFile>fixed_output.csv</outputFile>
+    </Code>
+\end{lstlisting}
+
+In addition, the ``wild-cards'' above can contain two special and optional symbols:
+\begin{itemize}
+  \item  \texttt{:}, that defines an eventual default value;
+  \item  \texttt{|}, that defines the format of the value. The  Generic Interface currently supports the following formatting options (* in the examples means blank space):
+    \begin{itemize}
+       \item \textbf{plain integer}, in this case  the value that is going to be replaced by the Generic Interface, will be left-justified with a string length equal to the integer value specified here (e.g. ``\texttt{|}6'', the value is left-justified with a string length of 6);
+      \item \textbf{d}, signed integer decimal, the value is going to be formatted as an integer (e.g.  if the value is 9 and the format ``\texttt{|}10d'', the replaced value will be formatted as follows: ``*********9'');
+      \item \textbf{e}, floating point exponential format (lowercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3e'', the replaced value will be formatted as follows: ``*9.123e+00'' );
+      \item \textbf{E}, floating point exponential format (uppercase), the value is going to be formatted as a float in scientific notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3E'', the replaced value will be formatted as follows: ``*9.123E+00'' );
+      \item \textbf{f or F}, floating point decimal format, the value is going to be formatted as a float in decimal notation (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3f'', the replaced value will be formatted as follows: ``*****9.123'' );
+      \item \textbf{g}, floating point format. Uses lowercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 9.1234 and the format ``\texttt{|}10.3g'', the replaced value will be formatted as follows: ``******9.12'' );
+      \item \textbf{G}, floating point format. Uses uppercase exponential format if exponent is less than -4 or not less than precision, decimal format otherwise (e.g. if the value is 0.000009 and the format ``\texttt{|}10.3G'', the replaced value will be formatted as follows: ``*****9E-06'' ).
+    \end{itemize}|
+\end{itemize}
+For example:
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two:3$
+case = $RAVEN-out:5|10$
+...
+\end{lstlisting}
+Where,
+\begin{itemize}
+  \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
+  \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
+\end{itemize}
+

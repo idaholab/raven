@@ -1,0 +1,135 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% DYMOLA INTERFACE  %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dymola Interface}
+Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic,
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/p-
+roducts/dymola/), which is a commercial modeling and simulation environment based on the Modelica modeling language.
+A standard Modelica example called BouncingBall, which simulates the trajectory of an object falling in one dimension from a height, is shown as an example:
+\begin{lstlisting}
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  parameter Real hstart = 10 "height of ball at time zero";
+  parameter Real vstart = 0 "velocity of ball at time zero";
+  Real h(start=hstart,fixed=true) "height of ball";
+  Real v(start=vstart,fixed=true) "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+  annotation (uses(Modelica(version="3.2.1")),
+    experiment(StopTime=10, Interval=0.1),
+    __Dymola_experimentSetupOutput);
+
+end BouncingBall;
+\end{lstlisting}
+
+\subsubsection{Files}
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model and the corresponding executable code
+(i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.  After the executable is generated, it may be run multiple times (with Dymola license).
+A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.  The RAVEN Dymola interface
+modifies input parameters by changing copies of this file.  Both the executable and TEXT parameter file (or simulation initialization file) names must be provided to RAVEN. The TEXT parameter file must be of type 'DymolaInitialisation'.  In the case of
+the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='dsin.txt' type='DymolaInitialisation'>dsin.txt</Input>
+</Files>
+\end{lstlisting}
+
+The Dymola interface can only pass scalar values into the TEXT parameter file. If the user wants to pass vector information to Dymola, he can do so by providing an optional TEXT vector file to Dymola. This file must have the type 'DymolaVectors'. This additional file can then be read by the Dymola model. If vecor data is passed from RAVEN to the Dymola interface and the TEXT vector file is not specified, the interface will display an error and stop the Dymola execution. If the TEXT vector file is specified (and vector data is passed to the interface), the interface will write the datd into the specified file, but also display a warning, saying that the Dymola interface found vector data to be passed and if this data is supposed to go into the simulation initialisation file of type 'DymolaInitialisation' the array must be split into scalars. The \textless Files\textgreater specification for the vector data look as follows:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='timeSeriesData.txt' type='DymolaVectors'>timeSeriesData.txt</Input>
+</Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating or simulating the
+Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola Application Programming Interface (API)-routines.
+To generate an executable and a simulation initialization file, use the Dymola API-routines (or Dymola GUI) to translate the model as follows:
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+\begin{enumerate}
+\item Change to the directory containing the .mo file to generate an executable.  In Dymola GUI, this corresponds to File/Change Directory in menus:
+\begin{lstlisting}
+>> cd("C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola");
+C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola
+ = true
+\end{lstlisting}
+\item Reads the specified file and displays its window.  In Dymola GUI, this corresponds to File/Open in the menus:
+\begin{lstlisting}
+>> openModel("BouncingBall.mo")
+ = true
+\end{lstlisting}
+\item Compile the model (with current settings), and create the model executable and the corresponding simulation initialization file.  In Dymola GUI, this corresponds to Translate Model in the menus:
+\begin{lstlisting}
+>> translateModel("BouncingBall");
+ = true
+\end{lstlisting}
+At this point the model executable and the simulation initialization file should have been created in the same directory as the original model file.
+Additionally, they could be created by simulating the model.  The following command corresponds to Simulate in the menus in Dymola GUI:
+\begin{lstlisting}
+>> simulateModel("BouncingBall", stopTime=10, numberOfIntervals=0, outputInterval=0.1, method="dassl", resultFile="BouncingBall");
+ = true
+\end{lstlisting}
+The file extension (.mat) is automatically added to a output file (resultFile), e.g., BouncingBall.mat.  If the generated executable code is triggered directly from a
+command prompt, the output file is always named as "dsres.mat".
+\end{enumerate}
+The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "Dymola">
+      <executable>dymosim.exe</executable>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}
+RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default
+.mat output type needs to be converted to .csv output.
+The Dymola interface will automatically convert the .mat output to human-readable
+forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
+\\In order to speed up the reading and conversion of the .mat file, the user can specify
+the list of variables (in addition to the Time variable) that need to be imported and
+converted into a csv file minimizing
+the IO memory usage as much as possible. Within the \xmlNode{Code} the following
+XML
+node (in addition ot the \xmlNode{executable} one) can be inputted:
+
+\begin{itemize}
+   \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional
+   parameter}, a space separated list of variables that need be exported from the .mat
+   file (in addition to the Time variable). \default{all the variables in the .mat file}.
+\end{itemize}
+For example:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "Dymola">
+      <executable>dymosim.exe</executable>
+      <outputVariablesToLoad>var1 var2 var3</outputVariablesToLoad>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}

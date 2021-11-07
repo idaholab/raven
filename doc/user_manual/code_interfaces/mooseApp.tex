@@ -1,0 +1,768 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MooseBasedApp INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MooseBasedApp Interface}
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of any MooseBasedApp, the files typically needed are the following:
+\begin{itemize}
+  \item MooseBasedApp GetPot input file
+  \item Restart Files (if the calculation is instantiated from a restart point)
+  \item Mesh Files (in case the mesh is externally specified)
+  \item Any other generic input file (CSVs with Power histories, boundary conditions files, etc.)
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='mooseBasedApp.i' type=''>mooseBasedApp.i</Input>
+  <Input name='0020_mesh.cpr' type=''>0020_mesh.cpr</Input>
+  <Input name='0020.xdr.0000' type="">0020.xdr.0000</Input>
+  <Input name='0020.rd-0' type="">0020.rd-0</Input>
+  <Input name='exodus_mesh.e' type="">exodus_mesh.e</Input>
+  <Input name='a_generic_additional_input_file.csv' type="Generic">a_generic_additional_input_file.csv</Input>
+</Files>
+\end{lstlisting}
+If any file is tagged with the type \texttt{Generic}, it will be perturbable with the approach (wildcards)
+ explained in the generic code interface (see  \ref{subsec:genericInterface}).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+In the \xmlNode{Models} block particular MooseBasedApp executable needs to be specified.
+%
+Here is a standard example of what can be used to use with a typical MooseBasedApp (Bison) as the model:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name='MyMooseBasedApp' subType='MooseBasedApp'>
+      <executable>~path/to/Bison-opt</executable>
+    </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers}
+block.
+%
+For all the possible distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we give a general example of three different distributions:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions>
+    <Normal name='ThermalConductivity1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+    <Normal name='SpecificHeat'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+    <Triangular name='ThermalConductivity2'>
+        <apex>1</apex>
+        <min>0.1</min>
+        <max>4</max>
+    </Triangular>
+</Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block we want to define the variables that are going
+to be sampled.
+%
+\textbf{Example}:
+We want to do the sampling of 3 variables:
+\begin{itemize}
+  \item Thermal Conductivity of the Fuel;
+  \item Specific Heat Transfer Ratio of the Cladding;
+  \item Thermal Conductivity of the Cladding.
+\end{itemize}
+
+We are going to sample these 3 variables using two different sampling methods:
+Grid and Monte-Carlo.
+
+In order to perturb any MooseBasedApp, the user needs to specify the variables to be
+sampled indicating the path to the value separated with the symbol ``$|$''. For example,
+if the variable that we want to perturb is specified in the input as follows:
+\begin{lstlisting}[style=XML]
+[Materials]
+  ...
+  [./heatStructure]
+     ...
+     thermal_conductivity = 1.0
+     ...
+  [../]
+  ...
+[]
+\end{lstlisting}
+the variable name in the Sampler input block needs to be named as follows:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='Materials|heatStructure|thermal_conductivity'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+
+%
+In case the variables have multiple entries, for example, variable `w' as shown in the following:
+\begin{lstlisting}[style=XML]
+[Functions]
+  ...
+  [./the_linear_combo]
+    type = LinearCombinationFunction
+    functions = 'xtimes twoxplus1 xsquared tover2'
+    w = '3 -1.2 0.4 3'
+  [../]
+  ...
+[]
+\end{lstlisting}
+The users can append `:' to the end of the variable, and use an integer number to indicate which
+entry value to be perturbed by RAVEN.
+For example, if the user wants to perturb the first
+and third values of `w' in the aboved example, the RAVEN Sampler will be updated as follows:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='Functions|the_linear_combo|w:1'>
+      ...
+    </variable>
+    <variable name='Functions|the_linear_combo|w:3'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+
+%
+In case some variables in external (\texttt{Generic} input files) need to be perturbed,
+the wildcard approach can be used (for those variables):
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='aWildCard1'>
+      ...
+    </variable>
+        <variable name='aWildCard2'>
+      ...
+    </variable>
+    <variable name='Materials|heatStructure|thermal_conductivity'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+In this case the tagged file (\texttt{Generic}) will be parsed to find the variables
+\texttt{\$RAVEN-aWildCard1\$} and \texttt{\$RAVEN-aWildCard1\$} and to replace their values
+with the corresponding sampled variables (for more details, see  \ref{subsec:genericInterface})
+
+In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+    <Grid name='myGrid'>
+      <variable name='Materials|heatStructure1|thermal_conductivity' >
+        <distribution>ThermalConductivity1</distribution>
+        <grid         type='value' construction='custom' >0.6 0.7 0.8</grid>
+      </variable>
+      <variable name='Materials|heatStructure1|specific_heat' >
+        <distribution >SpecificHeat</distribution>
+        <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
+      </variable>
+      <variable name='Materials|heatStructure2|thermal_conductivity'>
+        <distribution  >ThermalConductivity2</distribution>
+        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+      </variable>
+      <variable name='aWildCard1'>
+        <distribution  >ThermalConductivity2</distribution>
+        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+      </variable>
+    </Grid>
+  <MonteCarlo name='MC_Sampler' limit='1000'>
+      <variable name='Materials|heatStructure1|thermal_conductivity' >
+        <distribution>ThermalConductivity1</distribution>
+      </variable>
+      <variable name='Materials|heatStructure1|specific_heat' >
+        <distribution >SpecificHeat</distribution>
+      </variable>
+      <variable name='Materials|heatStructure2|thermal_conductivity'>
+        <distribution  >ThermalConductivity2</distribution>
+      </variable>
+      <variable name='aWildCard1'>
+        <distribution  >ThermalConductivity2</distribution>
+      </variable>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MooseBasedApp, the \xmlNode{MultiRun} step type will most likely be
+used, as first step.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{Sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' >
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item MooseBasedApp YAML input file;
+  \item eventual restart files (optional);
+  \item other auxiliary files (e.g., powerHistory tables, etc.).
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>mooseBasedApp.i</Input>
+    <Input   class='Files' type=''>0020_mesh.cpr</Input>
+    <Input   class='Files' type=''>0020.xdr.0000</Input>
+    <Input   class='Files' type=''>0020.rd-0</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyMooseBasedApp</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file) and a DataObject of type PointSet, to use in sub-sequential
+post-processing.
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
+\end{lstlisting}
+
+Following is the example of two MultiRun steps which use different sampling
+methods (grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input  class='Files' type=''>mooseBasedApp.i</Input>
+    <Input  class='Files' type=''>0020_mesh.cpr</Input>
+    <Input  class='Files' type='' >0020.xdr.0000</Input>
+    <Input  class='Files' type=''>0020.rd-0</Input>
+    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+    <Output  class='DataObjects' type='PointSet'>gridOutData</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input  class='Files' type=''>mooseBasedApp.i</Input>
+    <Input  class='Files' type=''>0020_mesh.cpr</Input>
+    <Input  class='Files' type='' >0020.xdr.0000</Input>
+    <Input  class='Files' type=''>0020.rd-0</Input>
+    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
+    <Sampler class='Samplers'  type='MonteCarlo' >MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5' >MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Databases}
+As shown in the \xmlNode{Steps} block, the code is creating two database objects
+called \texttt{Grid\_out} and \texttt{MC\_out}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<Databases>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
+</Databases>
+\end{lstlisting}
+As listed before, this will create two databases.
+%
+The files will have names corresponding to their \xmlAttr{name} appended with
+the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{DataObjects}
+As shown in the \xmlNode{Steps} block, the code is creating two DataObjects of type PointSet
+called \texttt{gridOutData} and \texttt{MCOutData}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<DataObjects>
+    <PointSet name='gridOutData'>
+      <Input>
+          Materials|heatStructure2|thermal_conductivity,
+          Materials|heatStructure1|specific_heat,
+          Materials|heatStructure2|thermal_conductivity
+      </Input>
+      <Output>aveTempLeft</Output>
+    </PointSet>
+    <PointSet name='MCOutData'>
+      <Input>
+          Materials|heatStructure2|thermal_conductivity,
+          Materials|heatStructure1|specific_heat,
+          Materials|heatStructure2|thermal_conductivity
+      </Input>
+      <Output>aveTempLeft</Output>
+    </PointSet>
+</DataObjects>
+\end{lstlisting}
+As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{OutStreams}
+As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
+he needs to create an \textbf{OutStream} in the \xmlNode{OutStreams} XML block.
+\\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$
+for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
+utilize curly brackets.
+\begin{lstlisting}[style=XML]
+<OutStreams>
+  <Print name='gridOutDataDumpCSV'>
+    <type>csv</type>
+    <source>gridOutData</source>
+  </Print>
+   <Plot verbosity='debug' name='test'   overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>line</type>
+        <x>
+          MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}
+        </x>
+        <y>MCOutData|Output|aveTempLeft</y>
+        <kwargs><color>blue</color></kwargs>
+      </plot>
+    </plotSettings>
+    <actions><how>screen,png</how></actions>
+  </Plot>
+</OutStreams>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Moose VectorPostProcessor INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MooseVPP Interface}
+
+The Moose Vector Post Processor is used mainly in the solid mechanics analysis.
+This interface loads the values of the vector ouput processor to a \xmlNode{DataObjects} object.
+
+To use this interface the [DomainIntegral] needs to be present in the MooseBasedApp's
+ input file and the subnode \xmlNode{fileargs} should be defined in the subnode \xmlNode{Code} in
+ the \xmlNode{Models} block of the RAVEN input file. The \xmlNode{fileargs} is required to have attributes with
+the below specified values:
+
+\begin{itemize}
+    \item \xmlAttr{type}, \xmlDesc{string, required field}, must be "MooseVPP"
+    \item \xmlAttr{arg}, \xmlDesc{string, required field}, the string value attached to the vector post processor action
+         while creating the output files.
+\end{itemize}
+
+This interface is actually identical to the MooseBasedApp interface, however there is
+ few constraints on defining the output values of the post processor.
+The definition of these outputs in the \xmlNode{DataObjects} depends on the definition of
+ the [DomainIntegral].
+
+The location of the value outputted is defined as \textit{ID\#} and the value is as
+\textit{value\#}. The ''\#'' defines
+the number of the location. The example below contains 3 locations in the [DomainIntegral]
+where the values are outputted.
+
+%
+Example:
+\begin{lstlisting}[style=XML]
+ ...
+  <Models>
+    <Code name="MOOSETestApp" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../moose/
+        modules/combined/modules-%METHOD%</executable>
+      <fileargs type = "MooseVPP" arg = "_J_1_" />
+      <alias variable = "poissonsRatio" >
+        Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable = "youngModulus"  >
+        Materials|stiffStuff|youngs_modulus</alias>
+    </Code>
+  </Models>
+ ...
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>youngModulus,poissonsRatio</Input>
+      <Output>ID1,ID2,ID3,value1,value2,value3</Output>
+    </PointSet>
+  </DataObjects>
+ ...
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mesh Generation Coupled Interfaces}
+Some software requires a provided mesh that requires a separate code run to generate.
+In these cases, we use sampled geometric
+variables to generate a new mesh for each perturbation of the original problem, then run the input with
+the remainder of the perturbed parameters and the perturbed mesh.  RAVEN currently provides two interfaces for
+this type of calculation, listed below.
+
+%%%%%%%%%% CUBIT MOOSE INTERFACE %%%%%%%%%%
+\subsubsection{MooseBasedApp and Cubit Interface}
+Many MOOSE-based applications use Cubit (\url{https://cubit.sandia.gov}) to generate Exodus II files as
+geometry and meshing for calculations.  To use the developed interface, Cubit's
+bin directory must be added to the user's PYTHONPATH.  Input parameters for Cubit can be listed in a journal
+(\texttt{.jou}) file.  Parameter values
+are typically hardcoded into the Cubit command syntax, but variables may be
+predefined in a journal file through Aprepro syntax.  This is an example of a journal
+file that generates a rectangle of given height and width, meshes it, defines its
+volume and sidesets, lists its element type, and writes it as an Exodus file:
+
+%Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National
+%Laboratory used to create two- and three-dimensional finite element meshes with
+%various options for defining geometric properties as a part of the grid. It is
+%capable of reading and writing a variety of standard mesh file types, including
+%Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for
+%meshes and results, Cubit is commonly used to generate meshes for problems of
+%interest.  Cubit commands are used to create the geometry, mesh the object, and
+%identify volumes, sidesets, and nodesets for a mesh.  These commands may be
+%placed in journal files (*.jou) to be used as input to Cubit.  Parameter values
+%are typically hardcoded into the Cubit command syntax, but variables may be
+%predefined in a journal file through Aprepro syntax.  An example of a journal
+%file that generates a rectangle of given height and width, meshes it, defines its
+%volume and sidesets, lists its element type, and writes it as an Exodus file is given:
+
+\begin{lstlisting}
+#{x = 3}
+#{y = 3}
+#{out_name = "'out_mesh.e'"}
+create surface rectangle width {x} height {y} zplane
+mesh surface 1
+set duplicate block elements off
+block 1 surface 1
+Sideset 1 curve 3
+Sideset 2 curve 4
+Sideset 3 curve 1
+Sideset 4 curve 2
+Block all element type QUAD4
+export genesis {out_name} overwrite
+\end{lstlisting}
+
+The first three lines are the Aprepro variable definitions that RAVEN requires to
+insert sampled variables.  All variables that RAVEN samples
+need to be defined as Aprepro variables in the journal
+file.
+%These are typically geometric parameters, though almost anything that Cubit
+%quantifies in a command may be defined as a variable and sampled through RAVEN
+%such as internal mesh refinement values.
+One essential caveat to running
+this interface is that an Aprepro variable MUST be defined with the name "out\_name".
+In order to run this script without RAVEN inserting the correct syntax for the
+output file name and properly generate the Exodus file for a mesh, the output file
+name is REQUIRED to be in both single and double quotation marks with the file
+extension appended to the end of the file base name (e.g. '"output\_file.e"').
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlNode{type} should only be specified for inputs
+that RAVEN will perturb.  For Moose input files, \xmlNode{type} should be \xmlString{MooseInput} and for
+Cubit journal files, the \xmlNode{type} should be \xmlString{CubitInput}.  The node should contain the
+path to the file from the working directory.  The following is an example
+of a typical \xmlNode{Files} block.
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='moose_test' type='MooseInput'>simple_diffusion.i</Input>
+  <Input name='mesh_in'    type='CubitInput'>rectangle.jou</Input>
+  <Input name='other_file' type=''          >some_file_moose_input_needs.ext</Input>
+</Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
+subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
+subType specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the MooseBasedApp that RAVEN will use to run generated input
+files.  The absolute or relative path to the Cubit executable is specified within
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, the
+MooseBasedApp interface is probably preferable to the Cubit-Moose interface.
+
+Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with
+the internal RAVEN variable name chosen with the node containing the model
+variable name.  The Cubit-Moose interface uses the same syntax as the
+MooseBasedApp to refer to model variables, with pipes separating terms starting
+with the highest YAML block going down to the individual parameter that RAVEN
+will change.  To specify variables that are going to be used in the Cubit
+journal file, the syntax is "Cubit|aprepro\_var".  The Cubit-Moose interface
+will look for the Cubit tag in all variables passed to it and upon finding it,
+send it to the Cubit interface.  If the model variable does not begin with \xmlString{Cubit},
+the variable MUST be specified in the MooseBasedApp input file.  While the model
+variable names are not required to have aliases defined (the \xmlNode{alias}
+blocks are optional), it is highly suggested to do so not only to ensure brevity
+throughout the RAVEN input, but to easily identify where variables are being sent
+in the interface.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="moose-modules" subType="CubitMoose">
+    <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/...
+      modules-%METHOD%</executable>
+    <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
+    <alias variable="length">Cubit@y</alias>
+    <alias variable="bot_BC">BCs|bottom|value</alias>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name or the alias name specifed in
+\xmlNode{Models}.  If the sampled variable is a geometric property
+that will be used to generate a mesh with Cubit, remember the syntax for
+variables being passed to journal files (Cubit|aprepro\_var).
+
+For listings of available samplers
+refer to the Samplers chapter (see~\ref{sec:Samplers}).
+
+See the following for an example of a grid based sampler for
+length and the bottom boundary condition (both of which have aliases
+defined in \xmlNode{Models}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="length" >
+      <distribution>length_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="bot_BC">
+      <distribution>bot_BC_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{File Cleanup}
+The Cubit-Moose interface automatically removes files that are commonly
+unwanted after the RAVEN run reaches completion. Cubit has been described as
+"talkative" due to additional journal files with execution information
+being generated by the program after every completed journal file run.
+The quantity of these files can quickly become unwieldly if the working
+directory is not kept clean; thus these files are removed.  In addition, some users
+may wish to remove Exodus files after the RAVEN run is complete as
+the typical size of each file is quite large and it is assumed that any
+output quantities of interest will be collected by appropriate postprocessors
+and the OutStreams.  Exodus files are not automatically removed,
+but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
+may specify the Exodus extension to save a fair amount of storage space
+after RAVEN completes a sequence. For example:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  ...
+  <deleteOutExtension>e</deleteOutExtension>
+  ...
+</RunInfo>
+\end{lstlisting}
+
+%%%%%%%%%% BISON MESH SCRIPT MOOSE INTERFACE %%%%%%%%%%
+\subsubsection{MooseBasedApp and Bison Mesh Script Interface}
+For BISON users, a Python mesh generation script is included in
+the \%BISON\_DIR\%/tools/UO2/ directory.  This script generates
+3D or 2D (RZ) meshes for nuclear fuel rods using Cubit with
+templated commands.  The BISON Mesh Script (BMS) is capable of
+generating rods with discrete fuel pellets of various size in
+assorted configurations.  To use this interface, Cubit's bin
+directory must be added to the user's PYTHONPATH.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+Similar to the Cubit-Moose interface, the BisonAndMesh interface
+requires users to specify all files required to run their input
+so that these file may be copied into the respective sequence's
+working directory.  The user will give each file an internal
+RAVEN designation with the name attribute, and the MooseBasedApp
+and BISON Mesh Script inputs must be assigned their respective types
+in another attribute of the \xmlNode{Input} node.  An example follows.
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='bison_test' type='MooseInput'>simple_bison_test.i</Input>
+  <Input name='mesh_in'    type='BisonMeshInput'>coarse_input.py</Input>
+  <Input name='other_file' type=''>some_file_moose_input_needs.ext</Input>
+</Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the MooseBasedApp that RAVEN will use to run generated input
+files.  The absolute or relative path to the mesh script python file is specified within
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, use the
+MooseBasedApp interface.
+
+Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with
+the internal RAVEN variable name chosen with the node containing the model
+variable name.  The BisonAndMesh interface uses the same syntax as the
+MooseBasedApp to refer to model variables, with pipes separating terms starting
+with the highest YAML block going down to the individual parameter that RAVEN
+will change.  To specify variables that are going to be used in the BISON Mesh Script
+python input, the syntax is "Cubit|dict\_name|var\_name".  The interface
+will look for the Cubit tag in all variables passed to it and upon finding the tag,
+send it to the BISON Mesh Script interface.  If the model variable does not begin with Cubit,
+the variable MUST be specified in the MooseBasedApp input file.  While the model
+variable names are not required to have aliases defined (the \xmlNode{alias}
+blocks are optional), it is highly suggested to do so not only to ensure brevity
+throughout the RAVEN input, but to easily identify where variables are being sent
+in the interface.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Bison-opt" subType="BisonAndMesh">
+    <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
+    <alias variable="pellet_radius" >Cubit@Pellet1|outer_radius</alias>
+    <alias variable="clad_thickness">Cubit@clad|clad_thickness</alias>
+    <alias variable="fuel_k"        >Materials|fuel_thermal|thermal_conductivity</alias>
+    <alias variable="clad_k"        >Materials|clad_thermal|thermal_conductivity</alias>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name or the alias name specified in
+\xmlNode{Models}.  If the sampled variable is a geometric property
+that will be used to generate a mesh with Cubit, remember the syntax for
+variables being passed to journal files (Cubit|aprepro\_var).
+
+For listings of available samplers
+refer to the Samplers chapter (see~\ref{sec:Samplers}).
+
+See the following for an example of a grid based sampler for
+length and the bottom boundary condition (both of which have aliases
+defined in \xmlNode{Models}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="length" >
+      <distribution>length_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="bot_BC">
+      <distribution>bot_BC_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{File Cleanup}
+The BisonAndMesh interface automatically removes files that are commonly
+unwanted after the RAVEN run reaches completion. Cubit has been described as
+"talkative" due to additional journal files with execution information
+being generated by the program after every completed journal file run.
+The BISON Mesh Script creates a journal file to run with cubit after reading input parameters;
+so Cubit will generate its "redundant" journal files, and .pyc files will
+litter the working directory as artifacts of the python mesh script
+reading from the .py input files.  The quantity of these files can quickly
+become unwieldly if the working directory is not kept clean, thus these
+files are removed.  Some users
+may wish to remove Exodus files after the RAVEN run is complete as
+the typical size of each file is quite large and it is assumed that any
+output quantities of interest will be collected by appropriate postprocessors
+and the OutStreams.  Exodus files are not automatically removed,
+but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
+may specify the Exodus extension (*.e) to save a fair amount of storage space
+after RAVEN completes a sequence. For example:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  ...
+  <deleteOutExtension>e</deleteOutExtension>
+  ...
+</RunInfo>
+\end{lstlisting}

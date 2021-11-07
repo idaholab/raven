@@ -1,0 +1,142 @@
+\subsection{Prescient Interface}
+\label{subsec:prescientInterface}
+
+\subsubsection{General Information}
+The Prescient Interface is used to run the open source Prescient
+production cost modeling platform available from
+\url{https://github.com/grid-parity-exchange/Prescient}
+
+This allows inputs to be perturbed and data to be read out.
+
+\subsubsection{Sampler}
+
+For perturbing inputs, the sampled variable needs to be placed inside
+of \$( )\$ like \verb'$(var)$'. The sampled variable can have a
+constant added or a multiplication factor like \verb'$(var+3.2)$' or
+\verb'$(var*2.1)$' or \verb'$(var*5.0+7.0)$' or \verb'$(a*-2.0)$'
+These can be placed in any of the .dat or .csv files that are listed
+in the \xmlNode{Files} section as \xmlAttr{type="PrescientInput"} An
+example line could be: \verb'Abel 1 $(var)$'
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+\end{lstlisting}
+
+
+\subsubsection{Files}
+
+There are two types of inputs in the \xmlNode{Files} section.  The
+\xmlAttr{type="PrescientRunnerInput"} ones are passed as an argument
+to the \texttt{runner.py} If multiple PrescientRunnerInput files are
+specified then \texttt{runner.py} will be called multiple times (which
+can be used to run a populate and then simulate command).  The
+\xmlAttr{type="PrescientInput"} are just used as additional inputs
+that have the data in them perturbed.
+
+\begin{lstlisting}[style=XML]
+  <Files>
+  <Input name="simulate" type="PrescientRunnerInput"
+  >simulate_day.txt</Input>
+    <Input name="structure" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >ScenarioStructure.dat</Input>
+    <Input name="scenario_1" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_1.dat</Input>
+    <Input name="actuals" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_actuals.dat</Input>
+    <Input name="forcasts" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >Scenario_forecasts.dat</Input>
+    <Input name="scenarios" type="PrescientInput"
+    subDirectory="scenarios/pyspdir_twostage/2020-07-10/"
+    >scenarios.csv</Input>
+  </Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+
+The \xmlNode{Code} model can be used with the
+\xmlAttr{subType="Prescient"} to run the Prescient Code Interface.
+The block currently does not have any option xml nodes.
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="TestPrescient" subType="Prescient">
+      <executable>
+      </executable>
+    </Code>
+  </Models>
+\end{lstlisting}
+
+\subsubsection{Output Files Conversion}
+
+The code interface reads in the \texttt{hourly\_summary.csv} and the
+\texttt{bus\_detail.csv} files. It will generate a \texttt{Date\_Hour}
+variable that can be used as the \xmlNode{pivotParameter} and is a
+string with the date and hour. It also generates an \texttt{Hour}
+variable that is the hour as an integer.  From the hourly summary it
+will generate variables like TotalCosts and the other data that
+appears there.  For each of the busses in the bus detail file it
+generates variables like \texttt{Clay\_LMP} that can be used.
+
+Exactly which variables will appear will vary depending on the
+Prescient input files, but typical ones include \texttt{TotalCosts},
+\texttt{FixedCosts}, \texttt{VariableCosts}, \texttt{LoadShedding},
+\texttt{OverGeneration}, \texttt{ReserveShortfall},
+\texttt{RenewablesUsed}, \texttt{RenewablesCurtailment},
+\texttt{Demand}, \texttt{Price}, and \texttt{NetDemand}. Variables
+that can be included for a typical bus could include ones like
+\texttt{Abel\_LMP}, \texttt{Abel\_LMP\_DA}, \texttt{Abel\_Shortfall},
+and \texttt{Abel\_Overgeneration}.
+
+\begin{lstlisting}[style=XML]
+    <HistorySet name="samples">
+      <Input>var</Input>
+      <Output>Date_Hour, TotalCosts, FixedCosts, VariableCosts, LoadShedding, OverGeneration, ReserveShortfall, RenewablesUsed, RenewablesCurtailment, Demand, Price, NetDemand, Abel_LMP, Clay_LMP </Output>
+      <options>
+        <pivotParameter>Date_Hour</pivotParameter>
+      </options>
+    </HistorySet>
+\end{lstlisting}
+
+
+\subsubsection{Installation of Libraries}
+
+Installing Prescient so that RAVEN can run it requires that RAVEN and
+Prescient have a superset of the libraries that they use so that both
+can run.  One way to set this up is to install RAVEN, and then source
+the conda load script and inside of the conda raven libraries
+environment do the Prescient and Egret install.  This is shown in the
+following listing:
+
+\begin{lstlisting}
+  #first clone raven, Egret and Prescient into a directory
+  git clone git@github.com:idaholab/raven.git
+  git clone git@github.com:grid-parity-exchange/Prescient.git
+  git clone git@github.com:grid-parity-exchange/Egret.git
+  #Switch to raven directory
+  cd raven
+  #install raven libraries
+  ./scripts/establish_conda_env.sh --install
+  #switch to using raven libraries
+  source ./scripts/establish_conda_env.sh --load
+  #Switch to Prescient and install
+  cd ../Prescient
+  python setup.py develop --user
+  conda install -c conda-forge coincbc
+  #Switch to Egret and install
+  cd ../Egret/
+  pip install --user -e .
+\end{lstlisting}
+
+Note that the path to \texttt{runner.py} may need to be added to the PATH variable via a command like: \verb'PATH="$PATH:$HOME/.local/bin"'
+
