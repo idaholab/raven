@@ -18,7 +18,6 @@ Created on July 10, 2013
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
-import scipy as sc
 import os
 import copy
 from collections import OrderedDict, defaultdict
@@ -1334,7 +1333,6 @@ class BasicStatistics(PostProcessorInterface):
   def spearmanCorrelation(self, featVars, targVars, featSamples, targSamples, pbWeights):
     """
       This method computes the spearman correlation coefficients
-
       @ In, featVars, list, list of feature variables
       @ In, targVars, list, list of target variables
       @ In, featSamples, numpy.ndarray, [#samples, #features] array of features
