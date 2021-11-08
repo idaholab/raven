@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMQ</WorkingDir>
     <Sequence>FirstMQRun</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>

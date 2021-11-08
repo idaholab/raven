@@ -37,7 +37,7 @@ Note all install methods after "main" take
     <pandas>1.1</pandas>
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
-    <matplotlib source='forge'>3.2</matplotlib>
+    <matplotlib>3.2</matplotlib>
     <statsmodels/>
     <cloudpickle>1.6</cloudpickle>
     <tensorflow>2.0</tensorflow>
@@ -50,7 +50,7 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
-    <pyside2 source='forge'/>
+    <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <ray os="mac,linux" source="pip">1.3</ray>
@@ -61,6 +61,7 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <xmlschema source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
