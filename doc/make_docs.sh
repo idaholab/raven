@@ -46,10 +46,16 @@ then
     git describe | sed 's/_/\\_/g' > new_version.tex
     echo "\\\\" >> new_version.tex
     git log -1 --format="%H %an\\\\%aD" . >> new_version.tex
-    if diff new_version.tex version.tex
+    if test -e version.tex;
     then
-        echo No change in version.tex
+        if diff new_version.tex version.tex
+        then
+            echo No change in version.tex
+        else
+            mv new_version.tex version.tex
+        fi
     else
+        echo version.tex is not found, generate new one
         mv new_version.tex version.tex
     fi
 fi
@@ -90,6 +96,3 @@ mkdir pdfs
 for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf plugins_manual/raven_plugins_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/
 done
-
-
-
