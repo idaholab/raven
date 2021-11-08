@@ -90,7 +90,12 @@ for DIR in  user_manual user_guide theory_manual tests plugins_manual; do
 done
 
 cd sqa
-./make_docs.sh
+if [[ 1 -eq $VERB ]]
+then
+    ./make_docs.sh --verbose
+else
+    ./make_docs.sh
+fi
 cd ..
 mkdir pdfs
 for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf plugins_manual/raven_plugins_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
