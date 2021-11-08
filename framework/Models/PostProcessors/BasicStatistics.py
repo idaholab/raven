@@ -1393,9 +1393,3 @@ class BasicStatistics(PostProcessorInterface):
       @ Out, None
     """
     super().collectOutput(finishedJob, output)
-
-
-# module methods
-
-
-
