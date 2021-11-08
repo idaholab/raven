@@ -1842,7 +1842,7 @@ Example to export the coefficients of trained DMD ROM:
   note)           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
   (real and imaginary and part, matrix shape, and format note)         \end{itemize}
 
-  The \xmlNode{DMDC} node recognizes the following parameters:
+  The \xmlNode{ROM} DMDC node recognizes the following parameters:
     \begin{itemize}
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
@@ -1852,7 +1852,7 @@ Example to export the coefficients of trained DMD ROM:
         specify the type of ROM that will be used
   \end{itemize}
 
-  The \xmlNode{DMDC} node recognizes the following subnodes:
+  The \xmlNode{ROM} DMDC node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
       specifies the names of the features of this ROM.         \nb These parameters are going to be
@@ -1892,12 +1892,6 @@ Example to export the coefficients of trained DMD ROM:
             either ``input'' or ``output''.
       \end{itemize}
 
-    \item \xmlNode{dmdType}: \xmlDesc{[dmd, hodmd]}, 
-      the type of Dynamic Mode Decomposition to apply.Available are:
-      \begin{itemize}                                                     \item \textit{dmd}, for
-      classical DMD                                                     \item \textit{hodmd}, for
-      high order DMD.                                                   \end{itemize}
-
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that represents the
       independent monotonic variable
@@ -1936,7 +1930,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{actuators}: \xmlDesc{comma-separated strings}, 
       defines the actuators (i.e. system input parameters)
-      of this model. Each actuator variables (u1, u2, etc.) needs to
+      of this model. Each actuator variable (u1, u2, etc.) needs to
       be listed here.
 
     \item \xmlNode{stateVariables}: \xmlDesc{comma-separated strings}, 

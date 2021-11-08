@@ -100,19 +100,14 @@ class DMDC(DMD):
           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
                 (real and imaginary and part, matrix shape, and format note)
         \end{itemize}"""
-    specs.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.makeEnumType("dmd", "dmdType", ["dmd"]),
-                                                 descr=r"""the type of Dynamic Mode Decomposition to apply.Available are:
-                                                  \begin{itemize}
-                                                    \item \textit{dmd}, for classical DMD
-                                                  \end{itemize}""", default="dmd"))
     specs.addSub(InputData.parameterInputFactory("actuators", contentType=InputTypes.StringListType,
                                                  descr=r"""defines the actuators (i.e. system input parameters)
-                                                  of this model. Each actuator variables (u1, u2, etc.) needs to
+                                                  of this model. Each actuator variable (u1, u2, etc.) needs to
                                                   be listed here."""))
     specs.addSub(InputData.parameterInputFactory("stateVariables", contentType=InputTypes.StringListType,
                                                  descr=r"""defines the state variables (i.e. system variable vectors)
                                                   of this model. Each state variable (x1, x2, etc.) needs to be listed
-                                                  here. The variables indicated in \xmlNode{StateVariables} must be
+                                                  here. The variables indicated in \xmlNode{stateVariables} must be
                                                   listed in the \xmlNode{Target} node too."""))
     specs.addSub(InputData.parameterInputFactory("initStateVariables", contentType=InputTypes.StringListType,
                                                  descr=r"""defines the state variables' ids  that should be used as
@@ -173,7 +168,6 @@ class DMDC(DMD):
       self.raiseAnError(IOError,'initStateVariables must also be listed among <Features> variables!')
 
     ### Extract the Output Names (Output, Y)
-    # self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
     self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
