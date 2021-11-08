@@ -128,7 +128,6 @@ class HistorySet(DataSet):
     for var in deps:
       indexMap[var] = [pivot]
     rlz['_indexMap'] = np.atleast_1d(indexMap)
-
     DataSet.addRealization(self, rlz)
 
 
