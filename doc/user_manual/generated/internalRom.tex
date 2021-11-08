@@ -1868,16 +1868,16 @@ Example to export the coefficients of trained DMD ROM:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
-    \item \xmlNode{CV}: \xmlDesc{string}, 
-      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-      \xmlAttr{subType}         ``CrossValidation``.
-      The \xmlNode{CV} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{Model}
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{PostProcessor}
-      \end{itemize}
+    %\item \xmlNode{CV}: \xmlDesc{string},
+    %  The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+    %  \xmlAttr{subType}         ``CrossValidation``.
+    %  The \xmlNode{CV} node recognizes the following parameters:
+    %    \begin{itemize}
+    %      \item \xmlAttr{class}: \xmlDesc{string, optional},
+    %        should be set to \xmlString{Model}
+    %      \item \xmlAttr{type}: \xmlDesc{string, optional},
+    %        should be set to \xmlString{PostProcessor}
+    %  \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
