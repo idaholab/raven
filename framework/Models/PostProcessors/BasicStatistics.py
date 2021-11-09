@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa, wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import os
@@ -60,6 +58,7 @@ class BasicStatistics(PostProcessorInterface):
   vectorVals = ['sensitivity',
                 'covariance',
                 'pearson',
+                'spearman',
                 'NormalizedSensitivity',
                 'VarianceDependentSensitivity']
   # quantities that the standard error can be computed
@@ -1061,6 +1060,8 @@ class BasicStatistics(PostProcessorInterface):
         @ In, desired, list(str), list of parameters to extract from covariance matrix
         @ Out, reducedCov, xarray.DataArray, reduced covariance matrix
       """
+      if self.pivotParameter in desired:
+        self.raiseAnError(RuntimeError, 'The pivotParameter "{}" is among the parameters requested for performing statistics. Please remove!'.format(self.pivotParameter))
       reducedCov = calculations['covariance'].sel(**{'targets':desired,'features':desired})
       return reducedCov
     #
@@ -1086,6 +1087,38 @@ class BasicStatistics(PostProcessorInterface):
         corrMatrix = self.corrCoeff(reducedCovar.values)
         da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
+    #
+    # spearman matrix
+    #
+    # see RAVEN theory manual for a detailed explaination
+    # of the formulation used here
+    #
+    metric = 'spearman'
+    targets,features,skip = startVector(metric)
+    #NOTE sklearn expects the transpose of what we usually do in RAVEN, so #samples by #features
+    if not skip:
+      #for spearman matrix, we don't use numpy/scipy methods to calculate matrix operations,
+      #so we loop over targets and features
+      params = list(set(targets).union(set(features)))
+      dataSet = inputDataset[params]
+      relWeight = pbWeights[params] if self.pbPresent else None
+      if self.pivotParameter in dataSet.sizes.keys():
+        dataSet = dataSet.to_array().transpose(self.pivotParameter,self.sampleTag,'variable')
+        featSet = dataSet.sel(**{'variable':features}).values
+        targSet = dataSet.sel(**{'variable':targets}).values
+        pivotVals = dataSet.coords[self.pivotParameter].values
+        da = None
+        for i in range(len(pivotVals)):
+          ds = self.spearmanCorrelation(features,targets,featSet[i,:,:],targSet[i,:,:],relWeight)
+          da = ds if da is None else xr.concat([da,ds], dim=self.pivotParameter)
+        da.coords[self.pivotParameter] = pivotVals
+      else:
+        # construct target and feature matrices
+        dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
+        featSet = dataSet.sel(**{'variable':features}).values
+        targSet = dataSet.sel(**{'variable':targets}).values
+        da = self.spearmanCorrelation(features,targets,featSet,targSet,relWeight)
+      calculations[metric] = da
     #
     # VarianceDependentSensitivity matrix
     # The formula for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
@@ -1130,7 +1163,16 @@ class BasicStatistics(PostProcessorInterface):
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
-    outputSet = xr.Dataset(data_vars=calculations)
+    # in here we fill the NaN with "nan". In this way, we are sure that even if
+    # there might be NaN in any raw for a certain timestep we do not drop the variable
+    # In the past, in a condition such as:
+    # time, A, B, C
+    #    0, 1, NaN, 1
+    #    1, 1, 0.5, 1
+    #    2, 1, 2.0, 2
+    # the variable B would have been dropped (in the printing stage)
+    # with this modification, this should not happen anymore
+    outputSet = xr.Dataset(data_vars=calculations).fillna("nan")
 
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
@@ -1286,6 +1328,51 @@ class BasicStatistics(PostProcessorInterface):
         sensCoef = covYX / covX
         senMatrix[:,p] = sensCoef
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+    return da
+
+  def spearmanCorrelation(self, featVars, targVars, featSamples, targSamples, pbWeights):
+    """
+      This method computes the spearman correlation coefficients
+      @ In, featVars, list, list of feature variables
+      @ In, targVars, list, list of target variables
+      @ In, featSamples, numpy.ndarray, [#samples, #features] array of features
+      @ In, targSamples, numpy.ndarray, [#samples, #targets] array of targets
+      @ In, pbWeights, dataset, probability weights
+      @ Out, da, xarray.DataArray, contains the calculations of spearman coefficients
+    """
+    spearmanMat = np.zeros((len(targVars), len(featVars)))
+    wf, wt = None, None
+    # compute unbiased factor
+    if self.pbPresent:
+      fact = (self.__computeUnbiasedCorrection(2, self.realizationWeight)).to_array().values if not self.biased else 1.0
+      vp = self.__computeVp(1,self.realizationWeight)['ProbabilityWeight'].values
+      varianceFactor = fact*(1.0/vp)
+    else:
+      fact = 1.0 / (float(featSamples.shape[0]) - 1.0) if not self.biased else 1.0 / float(featSamples.shape[0])
+      varianceFactor = fact
+
+    for tidx, target in enumerate(targVars):
+      for fidx, feat in enumerate(featVars):
+        if self.pbPresent:
+          wf, wt = np.asarray(pbWeights[feat]), np.asarray(pbWeights[target])
+        rankFeature, rankTarget = mathUtils.rankData(featSamples[:,fidx],wf),  mathUtils.rankData(targSamples[:,tidx],wt)
+        # compute covariance of the ranked features
+        cov  = np.cov(rankFeature, y=rankTarget, aweights=wt)
+        covF = np.cov(rankFeature,y=rankFeature, aweights=wf)
+        covT = np.cov(rankTarget,y=rankTarget, aweights=wf)
+        # apply correction factor (for biased or unbiased) (off diagonal)
+        cov[~np.eye(2,dtype=bool)] *= fact
+        covF[~np.eye(2,dtype=bool)] *= fact
+        covT[~np.eye(2,dtype=bool)] *= fact
+        # apply correction factor (for biased or unbiased) (diagonal)
+        cov[np.eye(2,dtype=bool)] *= varianceFactor
+        covF[~np.eye(2,dtype=bool)] *= varianceFactor
+        covT[~np.eye(2,dtype=bool)] *= varianceFactor
+        # now we can compute the pearson of such pairs
+        spearman = (cov / np.sqrt(covF * covT))[-1,0]
+        spearmanMat[tidx,fidx] = spearman
+
+    da = xr.DataArray(spearmanMat, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
     return da
 
   def run(self, inputIn):
