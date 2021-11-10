@@ -24,7 +24,7 @@ import numpy as np
 import xarray as xr
 from utils import randomUtils
 from scipy.special import comb
-from itertools import combinations
+from itertools import combinations, permutations
 
 # @profile
 def onePointCrossover(parents,**kwargs):
@@ -106,7 +106,7 @@ def uniformCrossover(parents,**kwargs):
   return children
 
 
-def twoPointsCrossover(parents, parentIndexes,**kwargs):
+def twoPointsCrossover(parents, **kwargs):
   """
     Method designed to perform a two point crossover on 2 parents:
     Partition each parents in three sequences (A,B,C):
@@ -116,7 +116,7 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
     children1 = A1 B2 C1
     children2 = A2 B1 C2
     @ In, parents, xr.DataArray, parents involved in the mating process
-    @ In, parentIndexes, list, list containing pairs of parents
+    @ In, parentPairs, list, list containing pairs of parents
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -130,12 +130,13 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
   index = 0
-  for couples in parentIndexes:
+  parentPairs = list(combinations(parents,2))
+  for couples in parentPairs:
     locRangeList = list(range(0,nGenes))
-    index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+    index1 = randomUtils.randomIntegers(0, len(locRangeList)-1, caller=None, engine=None)
     loc1 = locRangeList[index1]
     locRangeList.pop(loc1)
-    index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+    index2 = randomUtils.randomIntegers(0, len(locRangeList)-1, caller=None, engine=None)
     loc2 = locRangeList[index2]
     if loc1>loc2:
       locL=loc2
@@ -144,8 +145,8 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
       locL=loc1
       locU=loc2
 
-    parent1 = parents[couples[0]].values
-    parent2 = parents[couples[1]].values
+    parent1 = couples[0]
+    parent2 = couples[1]
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
 
     children[index]   = children1
