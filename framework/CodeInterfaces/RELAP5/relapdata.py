@@ -187,7 +187,7 @@ class relapdata:
               if totLen == totTs:
                 minorDict[k].extend(minorBlock.get(k))
               else:
-                print('RELAP5 Interface: WARNING: Redondant variable "{}". Keep it only one!'.format(k))
+                print('RELAP5 Interface: WARNING: Redundant variable "{}". Keep it only one!'.format(k))
             else:
               minorDict[k] =  minorBlock[k]
     timeBlock = []
