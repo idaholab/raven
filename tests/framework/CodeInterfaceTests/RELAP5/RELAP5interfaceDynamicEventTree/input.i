@@ -11,5 +11,5 @@
 301      cntrlvar           802
 414 time     0 ge null     0  0.0 l
 454 time     0 ge null     0  0.0 l
-0000600 301 
+0000600 301
 .
