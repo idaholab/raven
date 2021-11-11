@@ -16,9 +16,6 @@
   @author: wangc
   module for Convolutional neural network (CNN)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 ######
@@ -30,17 +27,52 @@ class KerasConvNetClassifier(KerasClassifier):
   """
     Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
   """
+  info = {'problemtype':'regression', 'normalize':True}
 
-  def __init__(self,messageHandler,**kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""Convolutional Neural Network (CNN) is a deep learning algorithm which can take in an input image, assign
+        importance to various objects in the image and be able to differentiate one from the other. The
+        architecture of a CNN is analogous to that of the connectivity pattern of Neurons in the Human Brain
+        and was inspired by the organization of the Visual Cortex. Individual neurons respond to stimuli only
+        in a restricted region of the visual field known as the Receptive Field. A collection of such fields
+        overlap to cover the entire visual area. CNN is able to successfully capture the spatial and temporal
+        dependencies in an image through the applicaiton of relevant filters. The architecture performs
+        a better fitting to the image dataset due to the reduction in the number of parameters involved
+        and reusability of weights. In other words, the network can be trained to understand the sophistication
+        of the image better.
+        \\
+        \zNormalizationPerformed{KerasConvNetClassifier}
+        \\
+        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+        be \xmlString{KerasConvNetClassifier}."""
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    KerasClassifier.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.printTag = 'KerasConvNetClassifier'
-    self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
+    self.allowedLayers = self.basicLayers + self.kerasDict['kerasConvNetLayersList'] + self.kerasDict['kerasPoolingLayersList']
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
 
   def _preprocessInputs(self,featureVals):
     """

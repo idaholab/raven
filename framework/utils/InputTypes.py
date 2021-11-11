@@ -18,7 +18,6 @@ Created on 2020-Jan-07
 
 This a library for defining the data. Split from InputData module.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
 from utils import utils, mathUtils
 
@@ -151,7 +150,9 @@ class IntegerType(InputType):
       @ Out, convert, int, the converted value
     """
     if mathUtils.isAString(value):
-      value = float(value)
+      value = float(value) #XXX Is this a bug?
+      #(tho' this does allow converting something like "1.0" to an integer,
+      #but that would fail the xsd check.)
     return int(value)
 
 IntegerType.createClass("integer", "xsd:integer")
@@ -175,7 +176,6 @@ class FloatType(InputType):
     return float(value)
 
 FloatType.createClass("float", "xsd:double")
-
 #
 #
 #
@@ -209,6 +209,70 @@ class FloatOrIntType(InputType):
     return 'float or integer'
 
 FloatOrIntType.createClass("float_or_int", "xsd:string")
+#
+#
+#
+#
+class IntegerOrStringType(InputType):
+  """
+    A type for integer or string data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, integer or string, the converted value
+    """
+    try:
+      val = int(value)
+      return val
+    except ValueError:
+      return val
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'integer or string'
+
+IntegerOrStringType.createClass("integer_or_string", "xsd:string")
+#
+#
+#
+#
+class FloatOrStringType(InputType):
+  """
+    A type for floating point or string data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, float or string, the converted value
+    """
+    try:
+      val = float(value)
+      return val
+    except ValueError:
+      return val
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'float or string'
+
+FloatOrStringType.createClass("float_or_string", "xsd:string")
 
 #
 #
@@ -397,6 +461,39 @@ class IntegerTupleType(InputType):
 
 IntegerTupleType.createClass("integer_list", "xsd:string")
 
+#
+#
+#
+#
+class IntegerTupleListType(InputType):
+  """
+    A type for integer tuple list "(1, 2), (3, 4), (5, 6)" -> [(1,2), (3,4), (5,6)]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, list of integer tuples, the converted value
+    """
+    convertedValue = []
+    val = value.replace(' ', '').replace('\n', '').strip('()')
+    val = val.split('),(')
+    for s in val:
+      convertedValue.append(tuple(int(x) for x in s.split(",")))
+    return convertedValue
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated list of comma separated integer tuples'
+
+IntegerTupleListType.createClass("integer_tuple_list", "xsd:string")
 #
 #
 #

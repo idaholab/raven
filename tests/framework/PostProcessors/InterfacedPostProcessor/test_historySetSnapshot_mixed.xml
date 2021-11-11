@@ -9,7 +9,7 @@
       Tests of HistorySetSnapShot and its mixed type of snapshot techniques
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HistorySetSnapShotMixed</WorkingDir>
     <Sequence>FirstMRun,snap,snap2</Sequence>
@@ -42,14 +42,12 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="mampp" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="mampp" subType="HistorySetSnapShot">
       <type>mixed</type>
       <min>x</min>
       <max>y</max>
     </PostProcessor>
-    <PostProcessor name="mampp2" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
+    <PostProcessor name="mampp2" subType="HistorySetSnapShot">
       <type>mixed</type>
       <average>x</average>
       <value pivotVar="time" pivotVal="0.245">y</value>

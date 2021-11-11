@@ -23,9 +23,6 @@ from __future__ import absolute_import
 from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
+from .SimulatedAnnealing import SimulatedAnnealing
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
-
-
+from .Factory import factory

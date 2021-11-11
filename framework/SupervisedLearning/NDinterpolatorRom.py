@@ -14,13 +14,10 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: mandd, talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for NDinterpolatorRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -29,23 +26,21 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
 interpolationND = utils.findCrowModule("interpolationND")
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-
-class NDinterpolatorRom(supervisedLearning):
+class NDinterpolatorRom(SupervisedLearning):
   """
   A Reduced Order Model for interpolating N-dimensional data
   """
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables
@@ -73,10 +68,18 @@ class NDinterpolatorRom(supervisedLearning):
       @ Out, None
     """
     self.__dict__.update(state)
-    self.__initLocal__()
+    self.setInterpolator()
     #only train if the original copy was trained
     if self.amITrained:
       self.__trainLocal__(self.featv,self.targv)
+
+  def setInterpolator(self):
+    """
+      Set up the interpolator
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -115,7 +118,7 @@ class NDinterpolatorRom(supervisedLearning):
       for n_sample in range(featureVals.shape[0]):
         featv = interpolationND.vectd(featureVals[n_sample][:])
         prediction[target][n_sample] = self.interpolator[index].interpolateAt(featv)
-      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
+      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.name + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):

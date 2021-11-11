@@ -16,38 +16,33 @@ Created on Mar 25, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
 from datetime import datetime
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
 import h5py  as h5
 import numpy as np
 import os
 import copy
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 import string
 import difflib
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils
-import MessageHandler
-import Files
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import InputDataUser, MessageUser
 
-def _dumps(val):
+# the database version should be modified
+# everytime a new modification of the internal
+# structure of the data is performed
+_hdf5DatabaseVersion = "v2.1"
+
+def _dumps(val, void = True):
   """
     Method to convert an arbitary value to something h5py can store
     @ In, val, any, data to encode
+    @ In, void, bool, optional, use np void to cast the pickled data?
     @ Out, _dumps, np.void, encoded data
   """
-  return np.void(pk.dumps(val, protocol=0))
+  serialized = pk.dumps(val, protocol=0)
+  return np.void(serialized) if void else serialized
 
 def _loads(val):
   """
@@ -66,27 +61,42 @@ def _loads(val):
     except UnicodeDecodeError:
       return pk.loads(val,errors='backslashreplace')
 
+def _checkTypeHDF5(value, neg):
+  """
+    Local utility function to check the type
+    @ In, value, object, the value to check
+    @ In, neg, bool, to use the "not" or not
+    @ Out, check, bool, the check
+  """
+  scalarNumpy = mathUtils.getNumpyTypes('float') + mathUtils.getNumpyTypes('int') + mathUtils.getNumpyTypes('uint')
+  scalarBultins = mathUtils.getBuiltinTypes('float') + mathUtils.getBuiltinTypes('int')
+  if neg:
+    check = type(value) == np.ndarray and value.dtype not in scalarNumpy and type(value) not in scalarBultins
+  else:
+    check = type(value) == np.ndarray and value.dtype in scalarNumpy or type(value) in scalarBultins
+  return check
+
 #
 #  *************************
 #  *  HDF5 DATABASE CLASS  *
 #  *************************
 #
 
-class hdf5Database(MessageHandler.MessageUser):
+class hdf5Database(InputDataUser, MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler, filename, exist, variables = None):
+  def __init__(self,name, databaseDir, filename, exist, variables=None):
     """
       Constructor
       @ In, name, string, name of this database
       @ In, databaseDir, string, database directory (full path)
-      @ In, messageHandler, MessageHandler, global message handler
       @ In, filename, string, the database filename
       @ In, exist, bool, does it exist?
       @ In, variables, list, the user wants to store just some specific variables (default =None => all variables are stored)
       @ Out, None
     """
+    super().__init__()
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
@@ -100,7 +110,6 @@ class hdf5Database(MessageHandler.MessageUser):
     #self._metavars = []
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
-    self.messageHandler = messageHandler
     # does it exist?
     self.fileExist = exist
     # .H5 file name (to be created or read)
@@ -125,6 +134,16 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAnError(IOError,'database file has not been found, searched Path is: ' + self.filenameAndPath )
       # Open file
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'r+')
+      # check version
+      version = self.h5FileW.attrs.get("version","None")
+      if version != _hdf5DatabaseVersion:
+        self.raiseAnError(IOError,'HDF5 RAVEN version (read mode) is outdated. ' +
+                          'Current version is "{}". '.format(_hdf5DatabaseVersion) +
+                          'Version in HDF5 is "{}".'.format(version) +
+                          'Read README file in folder ' +
+                          '"raven/scripts/conversionScripts/conversion_hdf5"' +
+                          ' to convert your outdated HDF5 into the new format!')
+
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the list "self.allGroupEnds" based on the database that already exists
       self.parentGroupName = '/'
@@ -133,8 +152,6 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = True
     else:
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
-      if os.path.exists(self.filenameAndPath):
-        os.remove(self.filenameAndPath)
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append(b"/")
@@ -145,6 +162,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = '/'
       self.__createFileLevelInfoDatasets()
+
 
   def __len__(self):
     """
@@ -161,6 +179,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    self.h5FileW.attrs["version"] = _hdf5DatabaseVersion
     self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
     self.h5FileW["allGroupPaths"].resize((max(len(self.allGroupPaths)*2,2000),))
     self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
@@ -279,7 +298,6 @@ class hdf5Database(MessageHandler.MessageUser):
     self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
-
   def addGroupInit(self,groupName,attributes=None):
     """
       Function to add an empty group to the database
@@ -323,19 +341,6 @@ class hdf5Database(MessageHandler.MessageUser):
     self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
-  def __checkTypeHDF5(self, value, neg):
-    """
-      Local utility function to check the type
-      @ In, value, object, the value to check
-      @ In, neg, bool, to use the "not" or not
-      @ Out, check, bool, the check
-    """
-    if neg:
-      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
-    else:
-      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
-    return check
-
   def __populateGroup(self, group, name,  rlz):
     """
       This method is a common method between the __addGroupRootLevel and __addSubGroup
@@ -345,7 +350,12 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, rlz, dict, dictionary with the data and metadata to add
       @ Out, None
     """
-    group.attrs[b'hasIntfloat'] = False
+    # vectorize method
+    _vdumps = np.vectorize(_dumps)
+    # create local dump method (no void)
+    _vectDumps = lambda x: _vdumps(x,False)
+
+    group.attrs[b'hasScalar'] = False
     group.attrs[b'hasOther'   ] = False
     if self.variables is not None:
       # check if all variables are contained in the rlz dictionary
@@ -354,26 +364,28 @@ class hdf5Database(MessageHandler.MessageUser):
                           ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
     # get the data floats or arrays
     if self.variables is None:
-      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) )
+      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items()
+                         if _checkTypeHDF5(value, False) )
     else:
-      dataIntFloat = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, False) and key in self.variables)
+      dataScalar = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items()
+                         if _checkTypeHDF5(value, False) and key in self.variables)
     # get other dtype data (strings and objects)
-    dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
+    dataOther    = dict( (key, np.atleast_1d(_vectDumps(value))) for (key, value) in rlz.items() if _checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = list(dataIntFloat.keys())
-    if len(varKeysIntfloat) > 0:
-      varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
+    varKeysScalar = list(dataScalar.keys())
+    if len(varKeysScalar) > 0:
+      varShapeScalar = [dataScalar[key].shape for key in varKeysScalar]
       # get data names
-      group.attrs[b'data_namesIntfloat'] = _dumps(varKeysIntfloat)
+      group.attrs[b'data_namesScalar'] = _dumps(varKeysScalar)
       # get data shapes
-      group.attrs[b'data_shapesIntfloat'] = _dumps(varShapeIntfloat)
+      group.attrs[b'data_shapesScalar'] = _dumps(varShapeScalar)
       # get data shapes
-      end   = np.cumsum(varShapeIntfloat)
+      end   = np.cumsum(varShapeScalar)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = _dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endScalar'] = _dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( list(dataIntFloat.values())).ravel()))
-      group.attrs[b'hasIntfloat'] = True
+      group.create_dataset(name + "_dataScalar", dtype="float", data=(np.concatenate( list(dataScalar.values())).ravel()))
+      group.attrs[b'hasScalar'] = True
     # get size of each data variable (other type)
     varKeysOther = list(dataOther.keys())
     if len(varKeysOther) > 0:
@@ -386,16 +398,17 @@ class hdf5Database(MessageHandler.MessageUser):
       end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
       group.attrs[b'data_begin_endOther'] = _dumps((begin.tolist(),end.tolist()))
-      # get data names
-      group.attrs[name + '_dataOther'] = _dumps(np.concatenate( list(dataOther.values())).ravel().tolist())
+      # construct single data array
+      vals = np.concatenate( list(dataOther.values())).ravel()
+      # create dataset
+      group.create_dataset(name + '_dataOther', dtype=vals.dtype,  data=vals)
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
     group.attrs[b'endGroup'      ] = True
     group.attrs[b'RAVEN_parentID'] = group.parent.name
-    group.attrs[b'nVarsIntfloat' ] = len(varKeysIntfloat)
+    group.attrs[b'nVarsScalar' ] = len(varKeysScalar)
     group.attrs[b'nVarsOther'    ] = len(varKeysOther)
-
 
   def __addGroupRootLevel(self,groupName,rlz):
     """
@@ -406,8 +419,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
-    if self.__returnGroupPath(groupName) != '-$':
-      # the group alread exists
+    while self.__returnGroupPath(groupName) != '-$':
       groupName = groupName + "_" + groupName
 
     parentName = self.parentGroupName.replace('/', '')
@@ -507,17 +519,19 @@ class hdf5Database(MessageHandler.MessageUser):
                      utils.toString(k).strip() not in ['/',self.parentGroupName]]
     return workingList
 
-  def __getListOfParentGroups(self, grp, backGroups = []):
+  def __getListOfParentGroups(self, grp, backGroups = None):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
+    backGroups = [] if backGroups is None else backGroups
     if grp.parent and grp.parent != grp:
       parentGroup = grp.parent
       if not parentGroup.attrs.get("rootname",False):
         backGroups.append(parentGroup)
         self.__getListOfParentGroups(parentGroup, backGroups)
+    backGroups = list(set(backGroups))
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):
@@ -527,29 +541,27 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
-    newData = None
-    hasIntfloat = group.attrs.get('hasIntfloat',False)
-    hasOther    = group.attrs.get('hasOther',False)
-    if hasIntfloat:
-      dataSetIntFloat = group[name + "_dataIntFloat"]
+    newData = {}
+    hasScalar = group.attrs['hasScalar']
+    hasOther    = group.attrs['hasOther']
+    if hasScalar:
+      dataSetScalar = group[name + "_dataScalar"]
       # Get some variables of interest
-      nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
-      varShapeIntfloat   = _loads(group.attrs[b'data_shapesIntfloat'])
-      varKeysIntfloat    = _loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = _loads(group.attrs[b'data_begin_endIntfloat'])
+      varShapeScalar   = _loads(group.attrs[b'data_shapesScalar'])
+      varKeysScalar    = _loads(group.attrs[b'data_namesScalar'])
+      begin, end         = _loads(group.attrs[b'data_begin_endScalar'])
       # Reconstruct the dataset
-      newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
+      newData = {key : np.reshape(dataSetScalar[begin[cnt]:end[cnt]], varShapeScalar[cnt]) for cnt,key in enumerate(varKeysScalar)}
     if hasOther:
+      unvect = np.vectorize(_loads)
       # get the "other" data
-      datasetOther = _loads(group.attrs[name + "_dataOther"])
+      datasetOther = group[name + "_dataOther"]
       # Get some variables of interest
-      nVarsOther      = group.attrs[b'nVarsOther']
       varShapeOther   = _loads(group.attrs[b'data_shapesOther'])
       varKeysOther    = _loads(group.attrs[b'data_namesOther'])
       begin, end       = _loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
-      newData = newData if newData is not None else {}
-      newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
+      newData.update({key : unvect(np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt])) for cnt,key in enumerate(varKeysOther)})
     return newData
 
   def _getRealizationByName(self,name,options = {}):
@@ -634,5 +646,9 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       parentGroupName = '/'
     return parentGroupName
+
+
+
+
 
 

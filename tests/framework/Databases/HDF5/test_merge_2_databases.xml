@@ -1,0 +1,148 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/HDF5.test_merge_2_databases</name>
+    <author>alfoa</author>
+    <created>2015-03-03</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+       This test is aimed to check the possiblity in RAVEN to merge 2 different  Databases of type HDF5.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">some tests slipped through</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="maljdan" date="2016-05-23">Changing and regolding a test case that uses an external model when unnecessary.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>test_merge_2_databases</WorkingDir>
+    <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="passThrough" name="Simple" subType="">
+      <variables>x,out1,out2,time</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc3">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>Gauss1</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="MonteCarlo">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">Simple</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
+      <Output class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Output>
+    </MultiRun>
+    <IOStep name="test_extract">
+      <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
+      <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
+      <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
+      <Output class="OutStreams" type="Print">Pointset_from_database_dump</Output>
+      <Output class="OutStreams" type="Print">Historyset_from_database_dump</Output>
+    </IOStep>
+    <IOStep name="test_push_in">
+      <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
+      <Input class="DataObjects" type="PointSet">Pointset_from_database</Input>
+      <Output class="Databases" type="HDF5">MC_MERGE_PUSH_STEP</Output>
+      <Output class="Databases" type="HDF5">MC_MERGE_PUSH_STEP</Output>
+    </IOStep>
+    <IOStep name="test_extract_again">
+      <Input class="Databases" type="HDF5">MC_MERGE_PUSH_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_MERGE_PUSH_STEP</Input>
+      <Output class="DataObjects" type="HistorySet">HistorySet_IN_database</Output>
+      <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
+      <Output class="OutStreams" type="Print">Pointset_IN_database_dump</Output>
+      <Output class="OutStreams" type="Print">Historyset_IN_database_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="MC_MERGE_EXTRACT_STEP" readMode="overwrite"/>
+    <HDF5 name="MC_MERGE_PUSH_STEP" readMode="overwrite"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="Pointset_from_database_dump">
+      <type>csv</type>
+      <source>Pointset_from_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="Pointset_IN_database_dump">
+      <type>csv</type>
+      <source>Pointset_IN_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="Historyset_from_database_dump">
+      <type>csv</type>
+      <source>HistorySet_from_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="Historyset_IN_database_dump">
+      <type>csv</type>
+      <source>HistorySet_IN_database</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Pointset_from_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>x</Input>
+      <Output>out1,out2,time</Output>
+    </PointSet>
+    <PointSet name="Pointset_IN_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>x</Input>
+      <Output>out1,out2,time</Output>
+    </PointSet>
+    <HistorySet name="HistorySet_from_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>x</Input>
+      <Output>out1,out2,time</Output>
+    </HistorySet>
+    <HistorySet name="HistorySet_IN_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>x</Input>
+      <Output>out1,out2,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

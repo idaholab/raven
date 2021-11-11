@@ -36,7 +36,7 @@
         <metric>euclidean</metric>
         <level>0.3</level>
         <criterion>distance</criterion>
-        <dendrogram>true</dendrogram>
+        <dendrogram>false</dendrogram>
         <truncationMode>lastp</truncationMode>
         <p>20</p>
         <leafCounts>True</leafCounts>

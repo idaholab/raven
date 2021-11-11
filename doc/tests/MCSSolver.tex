@@ -1,0 +1,35 @@
+\section{MCSSolver}
+This test evaluates the MCSSolver model for a specific case found in literature (see pages 108-110 
+of N. J. McCormick, ``Reliability and Risk Analysis'', Academic Press inc. (1981)).
+Provided this set of minimal cuts sets (MCSs) for the top event TopEvent:
+\begin{equation}
+  TopEvent = A + BD + BE + CD + CE
+\end{equation}
+the probability of TopEvent can be calculated as 
+\begin{equation}
+  P(TopEvent) = [A + BD + BE + CD + CE]
+              - [ABD + ABE + ACD + ACE + BCD + BCE + BDE + CDE + 2*BCDE]
+              + [ABCD + ABCE + ABDE + ACDE + 4*BCDE + 2*ABCDE]
+              - [BCDE + 4*ABCDE]
+              + [ABCDE]
+\end{equation}
+
+Give these probability values for the basic events:
+\begin{itemize}
+  \item $P(A)=0.01$
+  \item $P(B)=P(C)=P(D)=P(E)=0.1$
+\end{itemize}
+then the analytical values for $P(TopEvent)$ for each order are as follows:
+
+\begin{table}
+\begin{tabular}{cc}
+Order &  $P(TopEvent)$\\
+\hline
+1 & 0.05     \\
+2 & 0.0454   \\
+3 & 0.045842 \\
+4 & 0.045738 \\
+5 & 0.045739 \\
+\hline  
+\end{tabular}
+\end{table}

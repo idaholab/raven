@@ -18,10 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import copy
@@ -42,10 +38,9 @@ from utils import utils
 from utils import InputData, InputTypes
 import Quadratures
 import IndexSets
-import MessageHandler
 #Internal Modules End-------------------------------------------------------------------------------
 
-class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
+class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
   """
    Adaptive Sparse Grid Collocation sampling strategy
   """
@@ -85,8 +80,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
-    SparseGridCollocation.__init__(self)
-    AdaptiveSampler.__init__(self)
+    super().__init__()
     #identification
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
@@ -203,7 +197,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     #create the index set
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
+    self.indexSet = IndexSets.factory.returnInstance('AdaptiveSet')
     self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
@@ -457,7 +451,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
-    for SVL in rom.supervisedEngine.supervisedContainer:
+    for SVL in rom.supervisedContainer:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -516,10 +510,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
-    sg.messageHandler   = self.messageHandler
-    iset.messageHandler = self.messageHandler
-    rom.messageHandler  = self.messageHandler
-    for svl in rom.supervisedEngine.supervisedContainer:
+    # reset supervisedContainer since some information is lost during deepcopy, such as 'features' and 'target'
+    rom.supervisedContainer = [rom._interfaceROM]
+    for svl in rom.supervisedContainer:
       svl.initialize({'SG'   :sg,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -537,12 +530,12 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, points, list(tuple(int)), optional, points
       @ Out, sparseGrid, SparseGrid object, new sparseGrid using self's points plus points' points
     """
-    sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
-    iset = IndexSets.returnInstance('Custom',self)
+    sparseGrid = Quadratures.factory.returnInstance(self.sparseGridType)
+    iset = IndexSets.factory.returnInstance('Custom')
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
-    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
+    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler)
     return sparseGrid
 
   def _printToLog(self):
@@ -621,7 +614,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = self._makeARom(self.sparseGrid,self.indexSet)
     for poly in self.indexSet.points:
       for t in self.targets:
-        impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
+        impact = self._convergence(poly,rom.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
   # disabled until we determine a consistent way to do this without bypassing dataobjects
