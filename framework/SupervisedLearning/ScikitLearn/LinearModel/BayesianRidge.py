@@ -82,12 +82,11 @@ class BayesianRidge(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("lambda_2", contentType=InputTypes.FloatType,
                                                  descr=r"""Hyper-parameter : inverse scale parameter (rate parameter) for
                                                  the Gamma distribution prior over the lambda parameter.""", default=1e-6))
-    # new in sklearn version 0.22
-    # specs.addSub(InputData.parameterInputFactory("alpha_init", contentType=InputTypes.FloatType,
-    #                                              descr=r"""Initial value for alpha (precision of the noise).
-    #                                               If not set, alpha_init is $1/Var(y)$.""", default=None))
-    # specs.addSub(InputData.parameterInputFactory("lambda_init", contentType=InputTypes.FloatType,
-    #                                              descr=r"""Initial value for lambda (precision of the weights).""", default='1.'))
+    specs.addSub(InputData.parameterInputFactory("alpha_init", contentType=InputTypes.FloatType,
+                                                 descr=r"""Initial value for alpha (precision of the noise).
+                                                  If not set, alpha_init is $1/Var(y)$.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("lambda_init", contentType=InputTypes.FloatType,
+                                                 descr=r"""Initial value for lambda (precision of the weights).""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("compute_score", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, compute the objective function at each step of the
                                                  model.""", default=False))
