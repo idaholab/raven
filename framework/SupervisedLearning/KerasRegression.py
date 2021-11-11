@@ -71,7 +71,7 @@ class KerasRegression(KerasBase):
       @ In, layerDict, dict, layer details
       @ Out, layer, tensorflow.python.keras.layers, new layer
     """
-    return layerInstant(layerSize,input_shape=[None,self.featv.shape[-1]], **layerDict)
+    return layerInstant(layerSize,input_shape=[self.featv.shape[-1]], **layerDict)
 
   def _getLastLayer(self, layerInstant, layerDict):
     """
@@ -81,7 +81,7 @@ class KerasRegression(KerasBase):
       @ In, layerDict, dict, layer details
       @ Out, layer, tensorflow.python.keras.layers, new layer
     """
-    return tf.keras.layers.TimeDistributed(layerInstant(len(self.targv),**layerDict))
+    return layerInstant(self.targv.shape[-1],**layerDict)
 
   def _getTrainingTargetValues(self, names, values):
     """
@@ -89,7 +89,7 @@ class KerasRegression(KerasBase):
       on if this is a regression or classifier.
       @ In, names, list of names
       @ In, values, list of values
-      @ Out, targetValues, numpy.ndarray of shape (numSamples, numTimesteps, numFeatures)
+      @ Out, targetValues, numpy.ndarray of shape (numSamples, numTimesteps, numFeatures) or shape (numSamples, numFeatures)
     """
     # Features must be 3d i.e. [numSamples, numTimeSteps, numFeatures]
 
@@ -98,11 +98,17 @@ class KerasRegression(KerasBase):
         self.raiseAnError(IOError,'The target '+target+' is not in the training set')
 
     firstTarget = values[names.index(self.target[0])]
-    targetValues = np.zeros((len(firstTarget), len(firstTarget[0]),
-                             len(self.target)))
-    for i, target in enumerate(self.target):
-      self._localNormalizeData(values, names, target)
-      targetValues[:, :, i] = self._scaleToNormal(values[names.index(target)], target)
+    if type(firstTarget) == type(np.array(1)) and len(firstTarget.shape) == 1:
+      targetValues = np.zeros((len(firstTarget), len(self.target)))
+      for i, target in enumerate(self.target):
+        self._localNormalizeData(values, names, target)
+        targetValues[:, i] = self._scaleToNormal(values[names.index(target)], target)
+    else:
+      targetValues = np.zeros((len(firstTarget), len(firstTarget[0]),
+                               len(self.target)))
+      for i, target in enumerate(self.target):
+        self._localNormalizeData(values, names, target)
+        targetValues[:, :, i] = self._scaleToNormal(values[names.index(target)], target)
     return targetValues
 
 
@@ -145,7 +151,6 @@ class KerasRegression(KerasBase):
           featureValuesShape = fval.shape
         if featureValuesShape != fval.shape:
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
-        self._localNormalizeData(values,names,feat)
         fval = self._scaleToNormal(fval, feat)
         featureValues.append(fval)
       else:
@@ -154,7 +159,9 @@ class KerasRegression(KerasBase):
 
     result = self.__evaluateLocal__(featureValues)
     pivotParameter = self.pivotID
-    if type(edict[pivotParameter]) == type([]):
+    if pivotParameter not in edict:
+      pass #don't need to do anything
+    elif type(edict[pivotParameter]) == type([]):
       #XXX this should not be needed since sampler should just provide the numpy array.
       #Currently the CustomSampler provides all the pivot parameter values instead of the current one.
       self.raiseAWarning("Adjusting pivotParameter because incorrect type provided")
@@ -175,5 +182,8 @@ class KerasRegression(KerasBase):
     prediction = {}
     outcome = self._ROM.predict(featureVals)
     for i, target in enumerate(self.target):
-      prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
+      if len(outcome.shape) == 3:
+        prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
+      else:
+        prediction[target] = self._invertScaleToNormal(outcome[0, i], target)
     return prediction
