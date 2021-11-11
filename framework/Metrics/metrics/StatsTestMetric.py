@@ -16,14 +16,32 @@ Created on 2021 September 12
 
 @author: Robert Flanagan
 """
+import numpy as np
+from scipy import stats
 
 from .MetricInterface import MetricInterface
 from Metrics.metrics import MetricUtilities
-from scipy import stats
-class CDFAreaDifference(MetricInterface):
+from utils import InputData
+import StatsTestUtils as sU
+
+class StatsTestMetric(MetricInterface):
   """
-    Metric to compare two datasets using the CDF Area Difference.
+    Metric to compare two datasets using statistical tests.
   """
+  available_tests = {}
+  available_tests['full']['f_test'] = stats.f_oneway
+  available_tests['full']['chi_square'] = stats.chi_square
+  available_tests['full']['ks_test'] = stats.ks_2samp
+  available_tests['seg']['f_test'] = sU.compare_segments_f
+  available_tests['seg']['chi_square'] = sU.compare_segments_chi
+  available_tests['seg']['ks_test'] = sU.compare_segments_ks
+  available_tests['int']['f_test'] = sU.compare_interval_f
+  available_tests['int']['chi_square'] = sU.compare_interval_chi
+  available_tests['int']['ks_test'] = sU.compare_interval_ks
+  available_tests['seg_sum']['f_test'] = sU.compare_sums_f
+  available_tests['seg_sum']['chi_square'] = sU.compare_sums_chi
+  available_tests['seg_sum']['ks_test'] = sU.compare_sums_ks
+
   def __init__(self):
     """
       Constructor
@@ -33,6 +51,23 @@ class CDFAreaDifference(MetricInterface):
     super().__init__()
     # If True the metric needs to be able to handle a passed in Distribution
     self.acceptsDistribution = True
+    self.metricType = None
+
+  def handleInput(self, paramInput):
+    """
+      Method that reads the portion of the xml input that belongs to this specialized class
+      and initialize internal parameters
+      @ In, paramInput, InputData.parameterInput, input specs
+      @ Out, None
+    """
+    self.distParams = {}
+    for child in paramInput.subparts:
+      if child.getName() == "metricType":
+        self.metricType = list(elem.strip() for elem in child.value.split('|'))
+      else:
+        self.distParams[child.getName()] = child.value
+    if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
+      self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
 
   def run(self, x, y, weights=None, axis=0, **kwargs):
     """
@@ -46,115 +81,17 @@ class CDFAreaDifference(MetricInterface):
       @ In, kwargs,dict, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result, CDF area difference
     """
-    value = MetricUtilities._getCDFAreaDifference(x,y)
-    return float(value)
+    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      assert x.shape == y.shape, "Input data x, y should have the same shape!"
+      dictTemp = utils.mergeDictionaries(kwargs, self.distParams)
+      try:
+        value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, y, metricType[2])
+      except TypeError as e:
+        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type', self.metricType[1])
+        self.raiseAnError(TypeError, 'Input parameters error: \n', str(e), '\n')
+    else:
+      self.raiseAnError(IOError, "Input data type is not correct!")
+    return value
 
-  def build_segments(array, seg_length: int):
-  """
-    This method groups elements of an array into segments of length seg_length
-    @ In array, array-like containing data to be grouped into segments.
-    @ Out, array of segments of length seg_length
-  """
-    s = math.floor(len(array)/seg_length)
-    segments = []
-    for i in range(s+1):
-        segments.append(array[i*seg_length:(i+1)*seg_length])
-    return np.array(segments)
 
-  def build_interval_segs(array, interval: int):
-  """
-    This method groups elements of an array into segments based on an interval.
-    
-    @ In array, array-like containing data to be grouped into segments.
-    @ Out, array of segments of length seg_length
-  """
-    inter_segs = []
-    for i in range(interval):
-        intervals.append(array[i::interval])    
-    return np.array(inter_segs)
-
-  def sum_segments(array):
-  """
-    This method sums the elements of an array of segments to perform other metric comparisons. 
-    @ In array, an array-like containing segments from the build_segments function.
-    @ Out, an array of floats representing the sum of each segment. 
-  """
-    sum_segs = []
-    for seg in array:
-        sum_segs.append(sum(seg))
-    return np.array(sum_segs)
         
-  def compare_segments_ks(array1, array2):
-  """
-    This method comes segments arrays built using the build_segments method using a KS-test.
-    @In array1, an array-like containing segments from the build_segments function.
-    @In array2, an array-like containing segments from the build_segments function.
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
-  """
-      results = []
-      cols = ['segment','statistic', 'p-value']
-      if len(array1) != len(array2) or len(array1[0]) != len(array2[0]):
-          print('Warning you are attempting to compare two arrays of uneven length or with uneven length components')
-          return
-      for i in range(len(array1)):
-          results.append(i, stats.ks_2samp(array1[i], array2[i]))
-      return pd.DataFrame(results, columns=cols)
-
-  def compare_segments_f(array1, array2):
-  """
-    This method comes segments arrays built using the build_segments method using an oneway f-test.
-    @In array1, an array-like containing segments from the build_segments function.
-    @In array2, an array-like containing segments from the build_segments function.
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the one way f-test. 
-  """
-      results = []
-      cols = ['segment','statistic', 'p-value']
-      if len(array1) != len(array2) or len(array1[0]) != len(array2[0]):
-          print('Warning you are attempting to compare two arrays of uneven length or with uneven length components')
-          return
-      for i in range(len(array1)):
-          results.append(i, stats.f_oneway(array1[i], array2[i]))
-      return pd.DataFrame(results, columns=cols)
-
-  def compare_segments_chi(array1, array2):
-  """
-    This method comes segments arrays built using the build_segments method using a chisquare test.
-    @In array1, an array-like containing segments from the build_segments function.
-    @In array2, an array-like containing segments from the build_segments function.
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of a chisquare test. 
-  """
-      results = []
-      cols = ['segment','statistic', 'p-value']
-      if len(array1) != len(array2) or len(array1[0]) != len(array2[0]):
-          print('Warning you are attempting to compare two arrays of uneven length or with uneven length components')
-          return
-      for i in range(len(array1)):
-          results.append(i, stats.chisquare(array1[i], array2[i]))
-      return pd.DataFrame(results, columns=cols)
-
-  def compare_sums_ks(array1, array2):
-  """
-    This method compares the summed segments from the sum_segments arrays using a KS-test.
-    @In array1, an array-like from the sum_segments function.
-    @In array2, an array-like from the sum_segments function.
-    @ Out, the output of a scipy two samples KS test.  
-  """
-      return stats.ks_2samp(array1, array2)
-
-  def compare_sums_f(array1, array2):
-  """
-    This method compares the summed segments from the sum_segments arrays using an one-way f-test.
-    @In array1, an array-like from the sum_segments function.
-    @In array2, an array-like from the sum_segments function.
-    @ Out, the output of a scipy one-way f-test.  
-  """
-      return stats.f_oneway(array1, array2)
-
-  def compare_sums_chi(array1, array2):
-  """
-    This method compares the summed segments from the sum_segments arrays using a chisquare test.
-    @In array1, an array-like from the sum_segments function.
-    @In array2, an array-like from the sum_segments function.
-    @ Out, the output of a scipy chisquare test.  
-  """
-      return stats.chisquare(array1, array2)
