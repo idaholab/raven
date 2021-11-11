@@ -158,7 +158,8 @@ class MPISimulationMode(Simulation.SimulationMode):
                "-l","walltime="+runInfoDict["expectedTime"],
                "-l","place="+self.__place,"-v",
                'COMMAND="{} '.format(raven)+
-               " ".join(runInfoDict["SimulationFiles"])+'"',
+               " ".join(runInfoDict["SimulationFiles"])+'",'+
+               'RAVEN_FRAMEWORK_DIR="{}"'.format(frameworkDir),
                runInfoDict['RemoteRunCommand']]
     # Set parameters for the run command
     remoteRunCommand = {}
