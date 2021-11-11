@@ -88,7 +88,7 @@ class BayesianRidge(ScikitLearnBase):
                                                  descr=r"""Initial value for alpha (precision of the noise).
                                                   If not set, alpha_init is $1/Var(y)$.""", default=None))
     specs.addSub(InputData.parameterInputFactory("lambda_init", contentType=InputTypes.FloatType,
-                                                 descr=r"""Initial value for lambda (precision of the weights).""", default='1.'))
+                                                 descr=r"""Initial value for lambda (precision of the weights).""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("compute_score", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, compute the objective function at each step of the
                                                  model.""", default=False))
