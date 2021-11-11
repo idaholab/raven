@@ -36,6 +36,7 @@ from .ROMCollection      import Segments, Clusters, Interpolated
 
 ## Tensorflow-Keras Neural Network Models
 from .KerasMLPClassifier import KerasMLPClassifier
+from .KerasMLPRegression import KerasMLPRegression
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
 from .KerasLSTMRegression import KerasLSTMRegression

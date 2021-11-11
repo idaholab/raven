@@ -19,6 +19,8 @@
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import utils.importerUtils
+tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 ######
 #Internal Modules------------------------------------------------------------------------------------
 from .KerasRegression import KerasRegression
@@ -80,6 +82,26 @@ class KerasLSTMRegression(KerasRegression):
         if not self.initOptionDict[layerName].get('return_sequences'):
           self.initOptionDict[layerName]['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
+
+  def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
+    """
+      Creates the first hidden layer
+      @ In, layerInstant, class, layer type from tensorflow.python.keras.layers
+      @ In, layerSize, int, nodes in layer
+      @ In, layerDict, dict, layer details
+      @ Out, layer, tensorflow.python.keras.layers, new layer
+    """
+    return layerInstant(layerSize,input_shape=[None,self.featv.shape[-1]], **layerDict)
+
+  def _getLastLayer(self, layerInstant, layerDict):
+    """
+      Creates the last layer
+      @ In, layerInstant, class, layer type from tensorflow.python.keras.layers
+      @ In, layerSize, int, nodes in layer
+      @ In, layerDict, dict, layer details
+      @ Out, layer, tensorflow.python.keras.layers, new layer
+    """
+    return tf.keras.layers.TimeDistributed(layerInstant(len(self.targv),**layerDict))
 
   def _preprocessInputs(self,featureVals):
     """

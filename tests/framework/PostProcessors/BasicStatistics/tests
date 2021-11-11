@@ -183,4 +183,10 @@
     UnorderedXml = 'timeDepMeta/Back_to_MASTER.xml'
     output = 'timeDepMeta/Back_to_MASTER.csv timeDepMeta/Back_to_MASTER_0.csv'
   [../]
+  [./spearman]
+    type = 'RavenFramework'
+    input = 'spearman.xml'
+    UnorderedCsv = 'basicStatsSpearman/InputOutput_basicStatPP_dump.csv'
+  [../]
+
 []
