@@ -20,7 +20,7 @@
     type = 'RavenFramework'
     test_interface_only = 'True'
     input = 'test_relapPhisics_interface.xml'
-    output = 'phisicsRelap5/phisicsRelap5Test/1/relapPhisics.csv phisicsRelap5/phisicsRelap5Test/2/relapPhisics.csv'
+    output = 'phisicsRelap5/phisicsRelap5Test/1/out~ex_3a_R_CR_nom.csv phisicsRelap5/phisicsRelap5Test/2/out~ex_3a_R_CR_nom.csv'
     csv = 'phisicsRelap5/out_streams_RAVEN.csv'
     text = 'phisicsRelap5/phisicsRelap5Test/1/ex_3a_R_CR_nom.i'
     UnorderedXml = 'phisicsRelap5/phisicsRelap5Test/1/mat.xml'

@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Peaks</name>
+    <author>ZHOUJ</author>
+    <created>2019-05-29</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       This test is aimed to check the possibility to train an ARMA+Fourier+Peaks model and its
+       capability to generate intrinsically stochastic time series
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Peaks</WorkingDir>
+    <Sequence>read, train, printrom, sample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="printrom">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </IOStep>
+
+  </Steps>
+
+  <Files>
+    <Input name="rawDataFile">dataSet.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>19901017</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <outTruncation domain="positive">Signal</outTruncation>
+      <P>0</P>
+      <Q>0</Q>
+      <Segment>
+        <subspace pivotLength="120" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Peaks target='Signal' threshold='2' period='24'>
+        <window width='4' >-2,3</window>
+        <window width='5' >12,16</window>
+      </Peaks>
+
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synData</source>
+      <what>input, output</what>
+    </Print>
+
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Signal,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Signal,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

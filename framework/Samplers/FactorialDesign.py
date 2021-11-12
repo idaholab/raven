@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -31,7 +29,7 @@ import sys
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class FactorialDesign(Grid):
@@ -51,11 +49,11 @@ class FactorialDesign(Grid):
     inputSpecification = super(FactorialDesign, cls).getInputSpecification()
 
     factorialSettingsInput = InputData.parameterInputFactory("FactorialSettings")
-    algorithmTypeInput = InputData.parameterInputFactory("algorithmType", contentType=InputData.StringType)
+    algorithmTypeInput = InputData.parameterInputFactory("algorithmType", contentType=InputTypes.StringType)
     factorialSettingsInput.addSub(algorithmTypeInput)
 
-    factorialSettingsInput.addSub(InputData.parameterInputFactory("gen", contentType=InputData.StringType))
-    factorialSettingsInput.addSub(InputData.parameterInputFactory("genMap", contentType=InputData.StringType))
+    factorialSettingsInput.addSub(InputData.parameterInputFactory("gen", contentType=InputTypes.StringType))
+    factorialSettingsInput.addSub(InputData.parameterInputFactory("genMap", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(factorialSettingsInput)
 

@@ -8,22 +8,30 @@
     <description>
       Tests decomposition with PCA and a pivot parameter.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
-                <Sequence>sampleGen,pp1,output</Sequence>
+    <Sequence>sampleGen,pp1,output</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <Models>
     <ExternalModel ModuleToLoad="../data_generator" name="DataGeneratorModel" subType="">
       <variables>n,Time,x1,x2,x3,x4</variables>
     </ExternalModel>
-        <PostProcessor name="PCA" subType="DataMining">
-          <KDD lib="SciKitLearn">
-                <Features>x1,x2,x3,x4</Features>
-                <SKLtype>decomposition|PCA</SKLtype>
-                <n_components>2</n_components>
-          </KDD>
+    <PostProcessor name="PCA" subType="DataMining">
+      <KDD lib="SciKitLearn">
+        <Features>x1,x2,x3,x4</Features>
+        <SKLtype>decomposition|PCA</SKLtype>
+        <n_components>2</n_components>
+      </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
@@ -33,19 +41,19 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">gridSampler</Sampler>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
+      <Output class="DataObjects" type="HistorySet">mDataRaw</Output>
     </MultiRun>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">drInfo</Input>
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
-    <PostProcess name='pp1' pauseAtEnd='True'>
-      <Input  class='DataObjects' type='HistorySet'   >mData</Input>
-      <Model  class='Models'      type='PostProcessor'>PCA</Model>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mDataRaw</Input>
+      <Model class="Models" type="PostProcessor">PCA</Model>
       <SolutionExport class="DataObjects" type="PointSet">drInfo</SolutionExport>
-      <Output class='DataObjects' type='HistorySet'   >mData</Output>
-      <Output class='OutStreams'  type='Print'        >dummy</Output>
-      <Output class='OutStreams'  type='Plot'         >plotPCAData</Output>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Plot">plotPCAData</Output>
     </PostProcess>
   </Steps>
 
@@ -60,13 +68,13 @@
     <Grid name="gridSampler">
       <variable name="n">
         <distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
+        <grid construction="equal" steps="149" type="value">0.0 149.0</grid>
       </variable>
-        </Grid>
-   </Samplers>
+    </Grid>
+  </Samplers>
 
   <OutStreams>
-                <Print name='dummy'>
+    <Print name="dummy">
       <type>csv</type>
       <source>mData</source>
     </Print>
@@ -74,33 +82,33 @@
       <type>csv</type>
       <source>drInfo</source>
     </Print>
-                <Plot  name="plotPCAData" overwrite="True" >
-                        <plotSettings>
-                                <gridSpace>2 1</gridSpace>
-                                <plot>
-                                        <type>line</type>
-                                        <x>mData|Output|Time</x>
-                                        <y>mData|Output|PCADimension1</y>
-                                        <interpPointsX>300</interpPointsX>
-                                        <gridLocation>
-                                                <x>0</x>
-                                                <y>0</y>
-                                        </gridLocation>
-                                </plot>
-                                <plot>
-                                        <type>line</type>
-                                        <x>mData|Output|Time</x>
-                                        <y>mData|Output|PCADimension2</y>
-                                        <interpPointsX>300</interpPointsX>
-                                        <gridLocation>
-                                                <x>1</x>
-                                                <y>0</y>
-                                        </gridLocation>
-                                </plot>
-                        </plotSettings>
-                        <actions>
-                                <how>png</how>
-                        </actions>
+    <Plot name="plotPCAData" overwrite="True">
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>mData|Output|Time</x>
+          <y>mData|Output|PCADimension1</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>mData|Output|Time</x>
+          <y>mData|Output|PCADimension2</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
   </OutStreams>
 
@@ -111,16 +119,24 @@
     </PointSet>
     <HistorySet name="mData">
       <Input>n</Input>
-      <Output>x1,x2,x3,x4</Output>
+      <Output>x1,x2,x3,x4,PCADimension1,PCADimension2</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name='drInfo'>
+    <HistorySet name="drInfo">
       <Output>x1,x2,x3,x4, ExplainedVarianceRatio</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="mDataRaw">
+      <Input>n</Input>
+      <Output>x1,x2,x3,x4</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

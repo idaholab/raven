@@ -1,0 +1,56 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>SyntheticHistoryROM</type>
+    </ROM>
+    <Fourier>
+      <signal1>
+        <fit_intercept>-7.841890334e-16</fit_intercept>
+        <waveform frequency="5.000000000e-01" period="2.000000000e+00">
+          <amplitude>5.000000000e-01</amplitude>
+          <phase>4.984886936e-15</phase>
+        </waveform>
+        <waveform frequency="3.333333333e-01" period="3.000000000e+00">
+          <amplitude>7.760188935e-16</amplitude>
+          <phase>-2.821744927e-01</phase>
+        </waveform>
+        <waveform frequency="2.000000000e-01" period="5.000000000e+00">
+          <amplitude>1.000000000e+00</amplitude>
+          <phase>7.853981634e-01</phase>
+        </waveform>
+        <waveform frequency="1.428571429e-01" period="7.000000000e+00">
+          <amplitude>3.730351795e-15</amplitude>
+          <phase>3.270662154e-01</phase>
+        </waveform>
+        <waveform frequency="1.000000000e-01" period="1.000000000e+01">
+          <amplitude>2.000000000e+00</amplitude>
+          <phase>-3.141592654e+00</phase>
+        </waveform>
+      </signal1>
+      <signal2>
+        <fit_intercept>0.000000000e+00</fit_intercept>
+        <waveform frequency="5.000000000e-01" period="2.000000000e+00">
+          <amplitude>4.446516413e-15</amplitude>
+          <phase>1.621098370e+00</phase>
+        </waveform>
+        <waveform frequency="3.333333333e-01" period="3.000000000e+00">
+          <amplitude>2.000000000e+00</amplitude>
+          <phase>3.141592654e+00</phase>
+        </waveform>
+        <waveform frequency="2.000000000e-01" period="5.000000000e+00">
+          <amplitude>1.019796491e-15</amplitude>
+          <phase>2.099869396e+00</phase>
+        </waveform>
+        <waveform frequency="1.428571429e-01" period="7.000000000e+00">
+          <amplitude>9.543438954e-16</amplitude>
+          <phase>2.284154425e+00</phase>
+        </waveform>
+        <waveform frequency="1.000000000e-01" period="1.000000000e+01">
+          <amplitude>3.122876641e-15</amplitude>
+          <phase>1.113643194e+00</phase>
+        </waveform>
+      </signal2>
+    </Fourier>
+  </synth>
+  
+</DataObjectMetadata>

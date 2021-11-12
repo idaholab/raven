@@ -19,14 +19,16 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
 from matplotlib import cm, colors
 import numpy as np
 import itertools
-from PySide.QtGui import QColor
+
+try:
+  from PySide.QtGui import QColor
+except ImportError as e:
+  from PySide2.QtGui import QColor
 
 minPenColor = QColor(33,102,172)
 minBrushColor = QColor(67,147,195)

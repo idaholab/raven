@@ -8,7 +8,14 @@
     <description>
       Tests manifold with LocallyLinearEmbedding and a pivot paramater.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>LocallyLinearEmbedding</WorkingDir>
     <Sequence>sampleGen,pp1</Sequence>
@@ -38,14 +45,14 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">gridSampler</Sampler>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
+      <Output class="DataObjects" type="HistorySet">mDataRaw</Output>
     </MultiRun>
-    <PostProcess name='pp1' pauseAtEnd='True'>
-      <Input   class='DataObjects'       type='HistorySet'      >mData</Input>
-      <Model   class='Models'            type='PostProcessor' >PCA</Model>
-      <Output  class='DataObjects' type='HistorySet'>mData</Output>
-      <Output   class='OutStreams'  type='Print'         >dummy</Output>
-      <Output   class='OutStreams'  type='Plot'          >plotPCAData</Output>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mDataRaw</Input>
+      <Model class="Models" type="PostProcessor">PCA</Model>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Plot">plotPCAData</Output>
     </PostProcess>
   </Steps>
 
@@ -60,23 +67,23 @@
     <Grid name="gridSampler">
       <variable name="n">
         <distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
+        <grid construction="equal" steps="149" type="value">0.0 149.0</grid>
       </variable>
-        </Grid>
+    </Grid>
   </Samplers>
 
   <OutStreams>
-    <Print name='dummy'>
+    <Print name="dummy">
       <type>csv</type>
       <source>mData</source>
     </Print>
-    <Plot  name="plotPCAData" overwrite="True" >
+    <Plot name="plotPCAData" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector1</y>
+          <y>mData|Output|PCADimension1</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>0</x>
@@ -86,7 +93,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector2</y>
+          <y>mData|Output|PCADimension2</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>1</x>
@@ -107,10 +114,18 @@
     </PointSet>
     <HistorySet name="mData">
       <Input>n</Input>
+      <Output>x1,x2,x3,x4,PCADimension1,PCADimension2</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="mDataRaw">
+      <Input>n</Input>
       <Output>x1,x2,x3,x4</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

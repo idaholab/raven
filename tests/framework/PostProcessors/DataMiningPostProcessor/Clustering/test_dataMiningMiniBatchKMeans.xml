@@ -8,7 +8,14 @@
     <description>
       Tests clustering with the MiniBatchKMeans model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>MiniBatchKMeans</WorkingDir>
     <Sequence>readIn,MiniBatchKMeansBlobs,MiniBatchKMeansCircles,MiniBatchKMeansMoons,output</Sequence>
@@ -49,29 +56,33 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsII</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsIII</Input>
       <Output class="OutStreams" type="Plot">PlotBlobs</Output>
       <Output class="OutStreams" type="Plot">PlotCircles</Output>
       <Output class="OutStreams" type="Plot">PlotMoons</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummyII</Output>
+      <Output class="OutStreams" type="Print">dummyIII</Output>
     </IOStep>
     <PostProcess name="MiniBatchKMeansBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansCircles" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansCircles</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsII</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansMoons" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansMoons</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsIII</Output>
     </PostProcess>
   </Steps>
 
@@ -79,7 +90,17 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
-      <what>Output|CircleLabels,Output|MoonLabels,Output|BlobLabels</what>
+      <what>Output|BlobLabels</what>
+    </Print>
+    <Print name="dummyII">
+      <type>csv</type>
+      <source>DataSets</source>
+      <what>Output|CircleLabels</what>
+    </Print>
+    <Print name="dummyIII">
+      <type>csv</type>
+      <source>DataSets</source>
+      <what>Output|MoonLabels</what>
     </Print>
     <Plot name="PlotBlobs" overwrite="false">
       <plotSettings>
@@ -109,10 +130,10 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>DataSets|Input|y1</x>
-          <y>DataSets|Input|y2</y>
+          <x>DataSetsII|Input|y1</x>
+          <y>DataSetsII|Input|y2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|CircleLabels</colorMap>
+          <colorMap>DataSetsII|Output|CircleLabels</colorMap>
           <range>
             <xmin>-4</xmin>
             <xmax>4</xmax>
@@ -133,10 +154,10 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>DataSets|Input|z1</x>
-          <y>DataSets|Input|z2</y>
+          <x>DataSetsIII|Input|z1</x>
+          <y>DataSetsIII|Input|z2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MoonLabels</colorMap>
+          <colorMap>DataSetsIII|Output|MoonLabels</colorMap>
           <range>
             <xmin>-4</xmin>
             <xmax>4</xmax>
@@ -156,9 +177,21 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="DataSets">
+    <PointSet name="DataSetsIII">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,MoonLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,BlobLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsII">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,CircleLabels</Output>
     </PointSet>
   </DataObjects>
 

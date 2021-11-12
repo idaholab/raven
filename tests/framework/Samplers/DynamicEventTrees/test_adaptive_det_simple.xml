@@ -7,11 +7,13 @@
     <created>2015-01-26</created>
     <revisions>
         <revision date="2016-04-27" author="@alfoa">Updating the test in order to accept the new subdirectories' structure</revision>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
     <classesTested>Samplers.AdaptiveDET</classesTested>
     <description>
         This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code)
     </description>
+    
   </TestInfo>
 
   <!-- RunInfo. 1 Step is performed in this case -->

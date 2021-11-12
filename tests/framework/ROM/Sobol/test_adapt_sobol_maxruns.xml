@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>AdaptSobolMax</WorkingDir>
-    <Sequence>make,train,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/AdaptiveSobolMaxRuns</name>
     <author>talbpaul</author>
@@ -14,7 +9,16 @@
       This tests using the AdaptiveSobol sampler to construct HDMRRom ROMs, but restricted by
       a specified number of samples (maxRuns in the sampler).
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AdaptSobolMax</WorkingDir>
+    <Sequence>make,train,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">
@@ -23,9 +27,13 @@
       <Sampler class="Samplers" type="AdaptiveSobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="PointSet">rom_meta</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Input class="Models" type="ROM">rom</Input>
+      <Input class="DataObjects" type="PointSet">rom_meta</Input>
       <Output class="OutStreams" type="Print">maxruns_dump</Output>
       <Output class="OutStreams" type="Print">maxruns_dumprom</Output>
     </IOStep>
@@ -90,6 +98,7 @@
       <Input>x1,x2,x3,x4</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="rom_meta"/>
   </DataObjects>
 
   <OutStreams>
@@ -99,9 +108,8 @@
       <what>input,output</what>
     </Print>
     <Print name="maxruns_dumprom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_meta</source>
     </Print>
   </OutStreams>
 

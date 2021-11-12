@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,7 +33,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -55,10 +53,10 @@ class Grid(ForwardSampler):
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
     # grid input
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
-    gridInput.addParam("type", InputData.StringType)
-    gridInput.addParam("construction", InputData.StringType)
-    gridInput.addParam("steps", InputData.IntegerType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
     # old outer distribution input
     oldSubOutDist =  inputSpecification.popSub("Distribution")
     newOuterDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSubOutDist)
@@ -81,13 +79,13 @@ class Grid(ForwardSampler):
     @ In, None
     @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.printTag = 'SAMPLER GRID'
-    self.axisName             = []           # the name of each axis (variable)
-    self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value
-    self.externalgGridCoord   = False        # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.gridCoordinate       = []           # current grid coordinates
-    self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
+    self.axisName = []                 # the name of each axis (variable)
+    self.gridInfo = {}                 # {'name of the variable':Type}  --> Type: CDF/Value
+    self.externalgGridCoord = False    # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.gridCoordinate = []           # current grid coordinates
+    self.gridEntity = None
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -96,11 +94,13 @@ class Grid(ForwardSampler):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    self.gridEntity = GridEntities.factory.returnInstance('GridEntity')
     #TODO remove using xmlNode
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
-    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
+    ##FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
+    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"], dimTagsPrefix={"Distribution":"<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
@@ -179,8 +179,10 @@ class Grid(ForwardSampler):
           distLB = self.distDict[varName].lowerBound[dim]
           distUB = self.distDict[varName].upperBound[dim]
         if gridLB < distLB or gridUB > distUB:
-          self.raiseAnError(IOError, 'Grids defined for', varName, 'in range (', gridLB, gridUB,
-          ') is outside the range of given distribution', self.distDict[varName].type, '(',distLB, distUB,')!')
+          self.raiseAnError(IOError, ('Grids defined for "{var}" in range ({glow}, {ghi}) are outside the range' +\
+                                      'of the given distribution "{dist}" ({dlow}, {dhi})')
+                                      .format(var=varName, glow=gridLB, ghi=gridUB,
+                                              dist=self.distDict[varName].type, dlow=distLB, dhi=distLB))
       else:
         self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
     if self.externalgGridCoord:
@@ -222,7 +224,7 @@ class Grid(ForwardSampler):
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
-        if self.distDict[varName].getDisttype() == 'Discrete':
+        if self.distDict[varName].getDistType() == 'Discrete':
           gridWeight = self.distDict[varName].pdf(coordinates[varName])
         else:
           if self.gridInfo[varName]=='CDF':
@@ -243,7 +245,7 @@ class Grid(ForwardSampler):
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+              midPlusValue = (self.values[key]+coordinatesPlusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0

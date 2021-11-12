@@ -14,37 +14,23 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: maljdan, talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for MSR (Morse-Smale Regression) Rom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
 import sys
+import utils.importerUtils
+from utils import InputData, InputTypes
+sklearn = utils.importerUtils.importModuleLazy("sklearn", globals())
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .NDinterpolatorRom import NDinterpolatorRom
-from .SupervisedLearning import supervisedLearning
-from sklearn import neighbors, svm
 #Internal Modules End--------------------------------------------------------------------------------
-
-def _toStr(s):
-  """
-    Removes unicode from strings in Python 2 so amsc can use it.
-    @ In, s, unicode or str, String to convert to plain str
-    @ Out, s, str, Converted str
-  """
-  if sys.version_info.major > 2:
-    return s
-  return s.encode('ascii')
 
 class MSR(NDinterpolatorRom):
   """
@@ -52,15 +38,124 @@ class MSR(NDinterpolatorRom):
     from an input point cloud consisting of an arbitrary number of input
     parameters and one or more response values per input point
   """
-  def __init__(self, messageHandler, **kwargs):
+
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{MSR} contains a class of ROMs that perform a topological
+                            decomposition of the data into approximately monotonic regions and fits weighted
+                            linear patches to the identified monotonic regions of the input space. Query
+                            points have estimated probabilities that they belong to each cluster. These
+                            probabilities can eitehr be used to give a smooth, weighted prediction based on
+                            the associated linear models, or a hard categorization  to a particular local
+                            linear model which is then used for prediction. Currently, the probability
+                            prediction can be done using kernel density estimation (KDE) or through a
+                            one-versus-one support vector machine (SVM).
+                            \\
+                            \zNormalizationNotPerformed{MSR}
+                            \\
+                            In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                            be \xmlString{MSR}
+                        """
+    specs.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies how
+                                                 to define the hierarchical simplification by assigning a value to each local
+                                                 minimum and maximum according to the one of the strategy options below:
+                                                 \begin{itemize}
+                                                   \item \texttt{difference} - The function value difference between the
+                                                   extremum and its closest-valued neighboring saddle.
+                                                   \item \texttt{probability} - The probability integral computed as the
+                                                   sum of the probability of each point in a cluster divided by the count of
+                                                   the cluster.
+                                                   \item \texttt{count} - The count of points that flow to or from the
+                                                   extremum.
+                                                 \end{itemize}""", default='difference'))
+    specs.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies the
+                                                 method used for estimating the gradient, available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{steepest}
+                                                 \end{itemize}""", default='steepest'))
+    specs.addSub(InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType,
+                                                 descr=r"""specifies the
+                                                 amount of noise reduction to apply before returning labels.""", default=0))
+    specs.addSub(InputData.parameterInputFactory("graph", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies the type
+                                                 of neighborhood graph used in the algorithm, available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{beta skeleton}
+                                                   \item \texttt{relaxed beta skeleton}
+                                                   \item \texttt{approximate knn}
+                                                 \end{itemize}""", default='beta skeleton'))
+    specs.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType,
+                                                 descr=r"""in range: $(0, 2])$. It is
+                                                 only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+                                                 \texttt{relaxed beta skeleton}.""", default=1.0))
+    specs.addSub(InputData.parameterInputFactory("knn", contentType=InputTypes.IntegerType,
+                                                 descr=r"""is the number of
+                                                 neighbors when using the \texttt{approximate knn} for the \xmlNode{graph}
+                                                 sub-node and used to speed up the computation of other graphs by using the
+                                                 approximate knn graph as a starting point for pruning. -1 means use a fully
+                                                 connected graph.""", default=-1))
+    specs.addSub(InputData.parameterInputFactory("weighted", contentType=InputTypes.BoolType,
+                                                 descr=r"""a flag that specifies
+                                                 whether the regression models should be probability weighted.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("partitionPredictor", contentType=InputTypes.StringType,
+                                                 descr=r"""a flag that
+                                                 specifies how the predictions for query point categorization  should be
+                                                 performed. Available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{kde}
+                                                   \item \texttt{svm}
+                                                 \end{itemize}""", default='kde'))
+    specs.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.BoolType,
+                                                 descr=r"""if this node is present, the ROM will blend the
+                                                 estimates of all of the local linear models weighted by the probability the
+                                                 query point is categorized as belonging to that partition of the input space.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType,
+                                                 descr=r"""this option is only
+                                                 used when the \xmlNode{partitionPredictor} is set to \texttt{kde} and
+                                                 specifies the type of kernel to use in the kernel density estimation.
+                                                 Available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{uniform}
+                                                   \item \texttt{triangular}
+                                                   \item \texttt{gaussian}
+                                                   \item \texttt{epanechnikov}
+                                                   \item \texttt{biweight} or \texttt{quartic}
+                                                   \item \texttt{triweight}
+                                                   \item \texttt{tricube}
+                                                   \item \texttt{cosine}
+                                                   \item \texttt{logistic}
+                                                   \item \texttt{silverman}
+                                                   \item \texttt{exponential}
+                                                 \end{itemize}""", default='gaussian'))
+    specs.addSub(InputData.parameterInputFactory("bandwidth", contentType=InputTypes.FloatOrStringType,
+                                                 descr=r"""this
+                                                 option is only used when the \xmlNode{partitionPredictor} is set to
+                                                 \texttt{kde} and specifies the scale of the fall-off. A higher bandwidth
+                                                 implies a smooother blending. If set to \texttt{variable}, then the bandwidth
+                                                 will be set to the distance of the $k$-nearest neighbor of the query point
+                                                 where $k$ is set by the \xmlNode{knn} parameter.""", default=1.0))
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']
@@ -71,6 +166,9 @@ class MSR(NDinterpolatorRom):
                                 'biweight', 'quartic', 'triweight', 'tricube',
                                 'gaussian', 'cosine', 'logistic', 'silverman',
                                 'exponential']
+    self.X      = []
+    self.Y      = []
+    self.kdTree = None
     self.__amsc = []                      # AMSC object
     # Some sensible default arguments
     self.gradient = 'steepest'            # Gradient estimate methodology
@@ -107,77 +205,40 @@ class MSR(NDinterpolatorRom):
                                           #  kde approach
     self.bandwidth = 1.                   # The bandwidth for the kde approach
 
-    # Read everything in first, and then do error checking as some parameters
-    # will not matter, but we can still throw a warning message that they may
-    # want to clean up there input file. In some cases, we will have to do
-    # value checking in place since the type cast can fail.
-    for key,val in kwargs.items():
-      if key.lower() == 'graph':
-        self.graph = _toStr(val.strip()).lower()
-      elif key.lower() == "gradient":
-        self.gradient = _toStr(val.strip()).lower()
-      elif key.lower() == "beta":
-        try:
-          self.beta = float(val)
-        except ValueError:
-          # If the user has specified a graph, use it, otherwise be sure to use
-          #  the default when checking whether this is a warning or an error
-          if 'graph' in kwargs:
-            graph = _toStr(kwargs['graph'].strip()).lower()
-          else:
-            graph = self.graph
-          if graph.endswith('beta skeleton'):
-            self.raiseAnError(IOError, 'Requested invalid beta value:',
-                              val, '(Allowable range: (0,2])')
-          else:
-            self.raiseAWarning('Requested invalid beta value:', self.beta,
-                               '(Allowable range: (0,2]), however beta is',
-                               'ignored when using the', graph,
-                               'graph structure.')
-      elif key.lower() == 'knn':
-        try:
-          self.knn = int(val)
-        except ValueError:
-          self.raiseAnError(IOError, 'Requested invalid knn value:',
-                            val, '(Should be an integer value, knn <= 0 implies'
-                            ,'use of the fully connected point set)')
-      elif key.lower() == 'simplification':
-        try:
-          self.simplification = float(val)
-        except ValueError:
-          self.raiseAnError(IOError, 'Requested invalid simplification level:',
-                            val, '(should be a floating point value)')
-      elif key.lower() == 'bandwidth':
-        if val == 'variable' or val == 'auto':
-          self.bandwidth = val
-        else:
-          try:
-            self.bandwidth = float(val)
-          except ValueError:
-            # If the user has specified a strategy, use it, otherwise be sure to
-            #  use the default when checking whether this is a warning or an error
-            if 'partitionPredictor' in kwargs:
-              partPredictor = _toStr(kwargs['partitionPredictor'].strip()).lower()
-            else:
-              partPredictor = self.partitionPredictor
-            if partPredictor == 'kde':
-              self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
-                                val,'(should be a positive floating point value)')
-            else:
-              self.raiseAWarning('Requested invalid bandwidth value:',val,
-                                 '(bandwidth > 0 or \"variable\"). However, it is ignored when',
-                                 'using the', partPredictor, 'partition',
-                                 'predictor')
-      elif key.lower() == 'persistence':
-        self.persistence = _toStr(val.strip()).lower()
-      elif key.lower() == 'partitionpredictor':
-        self.partitionPredictor = _toStr(val.strip()).lower()
-      elif key.lower() == 'smooth':
-        self.blending = True
-      elif key.lower() == "kernel":
-        self.kernel = val
+  # Read everything in first, and then do error checking as some parameters
+  # will not matter, but we can still throw a warning message that they may
+  # want to clean up there input file. In some cases, we will have to do
+  # value checking in place since the type cast can fail.
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    nodes, notFound = paramInput.findNodesAndExtractValues(['persistence', 'gradient', 'simplification', 'graph',
+                                                            'beta', 'knn', 'weighted','partitionPredictor',
+                                                            'smooth', 'kernel', 'bandwidth'])
+    self.graph = nodes.get('graph')
+    self.gradient = nodes.get('gradient')
+    self.beta = nodes.get('beta')
+    self.knn = nodes.get('knn')
+    self.simplification = nodes.get('simplification')
+    self.bandwidth = nodes.get('bandwidth')
+    self.persistence = nodes.get('persistence')
+    self.partitionPredictor = nodes.get('partitionPredictor')
+    self.kernel = nodes.get('kernel')
+    self.blending = nodes.get('smooth')
+
+    if type(self.bandwidth) is float and self.bandwidth <= 0:
+      if self.partitionPredictor == 'kde':
+        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                          self.bandwidth,'(should be a positive floating point value)')
       else:
-        pass
+        self.raiseAWarning('Requested invalid bandwidth value:',self.bandwidth,
+                           '(bandwidth > 0 or \"variable\"). However, it is ignored when',
+                           'using the', self.partitionPredictor, 'partition',
+                           'predictor')
 
     # Morse-Smale specific error handling
     if self.graph not in self.acceptedGraphParam:
@@ -205,16 +266,6 @@ class MSR(NDinterpolatorRom):
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
                         '\"'+repr(self.partitionPredictor)+'\"','(Available options:',
                         self.acceptedPredictorParam,')')
-    if self.bandwidth <= 0:
-      if self.partitionPredictor == 'kde':
-        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
-                          self.bandwidth, '(bandwidth > 0)')
-      else:
-        self.raiseAWarning(IOError, 'Requested invalid bandwidth value:',
-                          self.bandwidth, '(bandwidth > 0). However, it is',
-                          'ignored when using the', self.partitionPredictor,
-                          'partition predictor')
-
     if self.kernel not in self.acceptedKernelParam:
       if self.partitionPredictor == 'kde':
         self.raiseAnError(IOError, 'Requested unknown kernel:',
@@ -225,7 +276,6 @@ class MSR(NDinterpolatorRom):
                            '(Available options:', self.acceptedKernelParam,
                            '), however the kernel is ignored when using the',
                            self.partitionPredictor,'partition predictor.')
-    self.__resetLocal__()
 
   def __getstate__(self):
     """
@@ -277,7 +327,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [_toStr(name) for name in self.features + self.target]
+    names = [name for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -297,7 +347,7 @@ class MSR(NDinterpolatorRom):
       self.__amsc[index].BuildLinearModels(self.simplification)
 
     # We need a KD-Tree for querying neighbors
-    self.kdTree = neighbors.KDTree(self.X)
+    self.kdTree = sklearn.neighbors.KDTree(self.X)
 
     distances,_ = self.kdTree.query(self.X,k=self.knn)
     distances = distances.flatten()
@@ -532,7 +582,7 @@ class MSR(NDinterpolatorRom):
         # In order to make this deterministic for testing purposes, let's fix
         # the random state of the SVM object. Maybe, this could be exposed to the
         # user, but it shouldn't matter too much what the seed is for this.
-        svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
+        svc = sklearn.svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
         svc.fit(self.X,labels)
         probabilities = svc.predict_proba(featureVals)
 
@@ -578,7 +628,6 @@ class MSR(NDinterpolatorRom):
           returnDict[target] = predictions
       return returnDict
 
-
   def __resetLocal__(self):
     """
       Reset ROM. After this method the ROM should be described only by the initial parameter settings
@@ -589,4 +638,3 @@ class MSR(NDinterpolatorRom):
     self.Y      = []
     self.__amsc = []
     self.kdTree = None
-

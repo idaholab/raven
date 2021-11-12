@@ -102,6 +102,20 @@ for x in toPopulate:
   sortedList,index,match = utils.getRelativeSortedListEntry(sortedList,x,tol=1e-6)
 checkArray('Maintaining sorted list',sortedList,desired)
 
+
+# partial string formatting
+s = '{a} {b} {a}'
+correct = 'one {b} one'
+got = s.format_map(utils.StringPartialFormatDict(a='one'))
+checkTrue('Partial string formatting', got, correct)
+
+s = '{a:3s} {b:2d} {c:3s}'
+correct = '{a}  2 {c}'
+got = utils.partialFormat(s, {'b': 2})
+checkTrue('Partial string formatting 2', got, correct)
+
+checkTrue('Partial string formatting 2', got, correct)
+
 print(results)
 
 sys.exit(results["fail"])
@@ -118,6 +132,7 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """

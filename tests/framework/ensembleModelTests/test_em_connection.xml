@@ -33,22 +33,22 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="alpha" name="Alpha" subType="">
+    <ExternalModel ModuleToLoad="../Models/alpha" name="Alpha" subType="">
       <variables>A,B,C</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="beta" name="Beta" subType="">
+    <ExternalModel ModuleToLoad="../Models/beta" name="Beta" subType="">
       <variables>C,D,E</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="gamma" name="Gamma" subType="">
+    <ExternalModel ModuleToLoad="../Models/gamma" name="Gamma" subType="">
       <variables>D,G</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="delta" name="Delta" subType="">
+    <ExternalModel ModuleToLoad="../Models/delta" name="Delta" subType="">
       <variables>F,E</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="epsilon" name="Epsilon" subType="">
+    <ExternalModel ModuleToLoad="../Models/epsilon" name="Epsilon" subType="">
       <variables>H,G</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="rho" name="Rho" subType="">
+    <ExternalModel ModuleToLoad="../Models/rho" name="Rho" subType="">
       <variables>D, I</variables>
     </ExternalModel>
 

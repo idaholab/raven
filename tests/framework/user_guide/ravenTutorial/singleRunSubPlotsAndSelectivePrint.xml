@@ -77,7 +77,9 @@
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|A</y>
-                <color>blue</color>
+                <kwargs>
+                  <color>blue</color>
+                </kwargs>
                 <gridLocation>
                   <x>0</x>
                   <y>0</y>
@@ -87,7 +89,9 @@
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|B</y>
-                <color>red</color>
+                <kwargs>
+                  <color>orange</color>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>0</y>
@@ -97,7 +101,9 @@
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|C</y>
-                <color>yellow</color>
+                <kwargs>
+                  <color>green</color>
+                </kwargs>
                 <gridLocation>
                     <x>0</x>
                     <y>1</y>
@@ -107,7 +113,9 @@
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|D</y>
-                <color>black</color>
+                <kwargs>
+                  <color>red</color>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>1</y>

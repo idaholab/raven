@@ -8,7 +8,14 @@
     <description>
       Tests clustering with the MeanShift model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>MeanShift</WorkingDir>
@@ -48,27 +55,31 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsII</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsIII</Input>
       <Output class="OutStreams" type="Plot">PlotMeanShift</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummyII</Output>
+      <Output class="OutStreams" type="Print">dummyIII</Output>
     </IOStep>
     <PostProcess name="MeanShiftBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MeanShiftBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
     </PostProcess>
     <PostProcess name="MeanShiftCircles" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MeanShiftCircles</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsII</Output>
     </PostProcess>
     <PostProcess name="MeanShiftMoons" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">MeanShiftMoons</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsIII</Output>
     </PostProcess>
   </Steps>
 
@@ -76,9 +87,19 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
-      <what>Output|MeanShiftCirclesLabels,Output|MeanShiftBlobsLabels,Output|MeanShiftMoonsLabels</what>
+      <what>Output|MeanShiftBlobsLabels</what>
     </Print>
-    <Plot  name="PlotMeanShift" overwrite="false">
+    <Print name="dummyII">
+      <type>csv</type>
+      <source>DataSetsII</source>
+      <what>Output|MeanShiftCirclesLabels</what>
+    </Print>
+    <Print name="dummyIII">
+      <type>csv</type>
+      <source>DataSetsIII</source>
+      <what>Output|MeanShiftMoonsLabels</what>
+    </Print>
+    <Plot name="PlotMeanShift" overwrite="false">
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>
@@ -103,10 +124,10 @@
         </plot>
         <plot>
           <type>scatter</type>
-          <x>DataSets|input|y1</x>
-          <y>DataSets|input|y2</y>
+          <x>DataSetsII|input|y1</x>
+          <y>DataSetsII|input|y2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MeanShiftCirclesLabels</colorMap>
+          <colorMap>DataSetsII|Output|MeanShiftCirclesLabels</colorMap>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -123,10 +144,10 @@
         </plot>
         <plot>
           <type>scatter</type>
-          <x>DataSets|input|z1</x>
-          <y>DataSets|input|z2</y>
+          <x>DataSetsIII|input|z1</x>
+          <y>DataSetsIII|input|z2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MeanShiftMoonsLabels</colorMap>
+          <colorMap>DataSetsIII|Output|MeanShiftMoonsLabels</colorMap>
           <gridLocation>
             <x>2</x>
             <y>0</y>
@@ -151,6 +172,18 @@
 
   <DataObjects>
     <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,MeanShiftBlobsLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsII">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,MeanShiftCirclesLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsIII">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,MeanShiftMoonsLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
     </PointSet>

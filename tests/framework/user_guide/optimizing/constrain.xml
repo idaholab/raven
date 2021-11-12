@@ -1,13 +1,17 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/user_guide/Constrain</name>
+    <name>framework/user_guide.Constrain</name>
     <author>talbpaul</author>
     <created>2017-06-30</created>
     <classesTested>Optimizer</classesTested>
     <description>
       Provides a user case of the "constraints" function in action for the user guide.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2020-08-21">Optimizer rework compatability</revision>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -17,7 +21,7 @@
 
   <Steps>
     <MultiRun name="optimize">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
@@ -31,35 +35,49 @@
 
   <Functions>
     <External file='./constraint' name='constraint'>
-      <variable>x</variable>
-      <variable>y</variable>
+      <variables>x,y</variables>
     </External>
   </Functions>
 
   <Optimizers>
-    <SPSA name="opter">
-      <initialization>
-        <initialSeed>1234</initialSeed>
-      </initialization>
-      <Function class="Functions" type="External">constraint</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <convergence>
-        <gainGrowthFactor>1.5</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
-      </convergence>
+    <GradientDescent name="opter">
+      <objective>ans</objective>
       <variable name='x'>
-        <upperBound>4.5</upperBound>
-        <lowerBound>-4.5</lowerBound>
+        <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
       <variable name='y'>
-        <upperBound>4.5</upperBound>
-        <lowerBound>-4.5</lowerBound>
+        <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
-      <objectVar>ans</objectVar>
-    </SPSA>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>5000</limit>
+        <initialSeed>1234</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <SPSA/>
+      </gradient>
+      <stepSize>
+        <GradientHistory/>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <gradient>1e-1</gradient>
+      </convergence>
+      <Constraint class="Functions" type="External">constraint</Constraint>
+    </GradientDescent>
   </Optimizers>
+
+  <Distributions>
+    <Uniform name='beale_domain'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
 
   <Models>
     <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
@@ -68,18 +86,15 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x,y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
+    <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
+      <Output>iteration,x,y,ans</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>

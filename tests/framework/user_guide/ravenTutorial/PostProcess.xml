@@ -33,8 +33,6 @@
     <Input name="referenceInput.xml" type="input">
         ../commonFiles/referenceInput_generic_CI.xml
     </Input>
-    <Input name="output_1" type="">static.xml</Input>
-    <Input name="output_2" type="">time.xml</Input>
   </Files>
 
   <Models>

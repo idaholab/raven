@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Basic</name>
+    <author>alfoa</author>
+    <created>2017-02-02</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       This test is aimed to check the possibility to train an ARMA+Fourier model and its
+       capability to generate intrinsically stochastic time series
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+      <revision author="talbpaul" date="2018-06-14">Now tests history statistics instead of points</revision>
+      <revision author="talbpaul" date="2018-12-20">Renamed from ARMA to Basic and added rom printing</revision>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author='talbpaul' date='2019-01-30'>reduced test to match what is tested, removed stat printing in favor of rom meta XML</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="rawDataFile">dataSet.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <outTruncation domain="positive">Speed</outTruncation>
+      <Fourier>604800, 302400, 86400, 43200</Fourier>
+      <P>2</P>
+      <Q>1</Q>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

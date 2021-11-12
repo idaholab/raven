@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>AdaptiveStochasticPolyVar</WorkingDir>
-    <Sequence>make,train,print,print2</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/AdaptiveOnVariance</name>
     <author>talbpaul</author>
@@ -15,6 +9,12 @@
     </description>
   </TestInfo>
 
+  <RunInfo>
+    <WorkingDir>AdaptiveStochasticPolyVar</WorkingDir>
+    <Sequence>make, train, stats, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
   <Steps>
     <MultiRun name="make" sleepTime="1e-4" verbosity="silent">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -23,17 +23,19 @@
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="print" verbosity="silent">
-      <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreams" type="Print">dump</Output>
-    </IOStep>
-    <IOStep name="print2" verbosity="silent">
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Output class="OutStreams" type="Print">data</Output>
+      <Output class="OutStreams" type="Print">dump</Output>
     </IOStep>
     <RomTrainer name="train" verbosity="silent">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <Distributions>
@@ -46,9 +48,6 @@
   <Samplers>
     <AdaptiveSparseGrid name="SG" verbosity="debug">
       <Convergence target="variance">1e-9</Convergence>
-      <convergenceStudy>
-        <runStatePoints>5,10,15</runStatePoints>
-      </convergenceStudy>
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>
@@ -82,19 +81,18 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
     <Print name="dump" verbosity="silent">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
-      <target>all</target>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
     <Print name="data" verbosity="silent">
       <type>csv</type>
       <source>solns</source>
-      <what>input,output</what>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

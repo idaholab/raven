@@ -1,10 +1,5 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Emake,Etrain,Etest,Eprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/exponential</name>
     <author>talbpaul</author>
@@ -14,6 +9,12 @@
       This tests using SparseGridCollocation with exponential-distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Emake, Etrain, Etest, stats, Eprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Exponential name="ExpDist">
@@ -63,7 +64,7 @@
     </MultiRun>
     <IOStep name="Eprint">
       <Input class="DataObjects" type="PointSet">Etests</Input>
-      <Input class="Models" type="ROM">EROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Edump</Output>
       <Output class="OutStreams" type="Print">Edumprom</Output>
     </IOStep>
@@ -71,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">Esolns</Input>
       <Output class="Models" type="ROM">EROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">EROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -86,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -95,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Edumprom">
-      <type>xml</type>
-      <source>EROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

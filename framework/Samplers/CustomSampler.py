@@ -19,8 +19,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,7 +28,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData, utils
+from utils import InputData, InputTypes, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
@@ -48,17 +46,18 @@ class CustomSampler(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(CustomSampler, cls).getInputSpecification()
-    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
-    sourceInput.addParam("type", InputData.StringType)
-    sourceInput.addParam("class", InputData.StringType)
+    sourceInput = InputData.parameterInputFactory("Source", contentType=InputTypes.StringType)
+    sourceInput.addParam("type", InputTypes.StringType)
+    sourceInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(sourceInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.IntegerListType))
 
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
-    var.addParam("nameInSource", InputData.StringType, required=False)
+    var.addParam("nameInSource", InputTypes.StringType, required=False)
     inputSpecification.addSub(var)
+    inputSpecification.addSub(InputData.parameterInputFactory('batch', contentType=InputTypes.IntegerType))
 
     return inputSpecification
 
@@ -69,14 +68,16 @@ class CustomSampler(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.pointsToSample = {}
     self.infoFromCustom = {}
     self.nameInSource = {} # dictionary to map the variable's sampled name to the name it has in Source
-    self.addAssemblerObject('Source','1',True)
+    self.addAssemblerObject('Source', InputData.Quantity.one)
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
+    self.batch = 1    # number of samples in each batch
+    self.batchId = 0  # ID for each batch
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -86,27 +87,41 @@ class CustomSampler(ForwardSampler):
     """
     #TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     self.nameInSource = {}
-    for child in xmlNode:
-      if child.tag == 'variable':
+    for child in paramInput.subparts:
+      if child.getName() == 'variable':
         # acquire name
-        name = child.attrib['name']
+        name = child.parameterValues['name']
         # check for an "alias" source name
-        self.nameInSource[name] = child.attrib.get('nameInSource',name)
+        self.nameInSource[name] = child.parameterValues.get('nameInSource',name)
         # determine if a sampling function is used
-        funct = child.find("function")
+        funct = child.findFirst("function")
         if funct is None:
           # custom samples use a "custom" distribution
           self.toBeSampled[name] = 'custom'
         else:
-          self.dependentSample[name] = funct.text.strip()
-      elif child.tag == 'Source'  :
-        if child.attrib['class'] not in ['Files','DataObjects']:
-          self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-      elif child.tag == 'index':
-        self.indexes = list(int(x) for x in child.text.split(','))
+          self.dependentSample[name] = funct.value
+
+      elif child.getName() == 'constant':
+        name, value = self._readInConstant(child)
+        self.constants[name] = value
+
+      elif child.getName() == 'Source':
+        okaySourceClasses = ['Files', 'DataObjects']
+        sourceClass = child.parameterValues.get('class')
+        if sourceClass not in okaySourceClasses:
+          self.raiseAnError(IOError, ('For CustomSampler "{name}" node "<Source>" with attribute ' +
+                                      '"class", received "{got}" but must be one of {okay}!')
+                                      .format(name=self.name, got=sourceClass, okay=okaySourceClasses))
+      elif child.getName() == 'index':
+        self.indexes = child.value
+      elif child.getName() == 'batch':
+        self.batch = max(child.value,1)
     if len(self.toBeSampled.keys()) == 0:
-      self.raiseAnError(IOError,"no variables got inputted!!!!!!")
+      self.raiseAnError(IOError, 'CustomSampler "{}" has no variables to sample!'.format(self.name))
 
   def _localWhatDoINeed(self):
     """
@@ -169,7 +184,7 @@ class CustomSampler(ForwardSampler):
                     + csvFile.getFilename())
           self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
           subVarPb = 'ProbabilityWeight-'
-          if subVarPb in headers:
+          if subVarPb+sourceName in headers:
             self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
           else:
             self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
@@ -181,6 +196,7 @@ class CustomSampler(ForwardSampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
+
       self.limit = len(utils.first(self.pointsToSample.values()))
     else:
       self.readingFrom = 'DataObject'
@@ -204,6 +220,8 @@ class CustomSampler(ForwardSampler):
     #TODO: add restart capability here!
     if self.restartData:
       self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+    if self.batch > 1:
+      self.addMetaKeys(["batchId"])
 
   def localGenerateInput(self,model,myInput):
     """
@@ -215,37 +233,52 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.indexes is None:
-      index = self.counter - 1
+    if self.batch > 1:
+      self.inputInfo['batchMode'] = True
+      batchData = []
+      self.batchId += 1
     else:
-      index = self.indexes[self.counter-1]
-
-    if self.readingFrom == 'DataObject':
-      # data is stored as slices of a data object, so take from that
-      rlz = self.pointsToSample[index]
-      for var in self.toBeSampled.keys():
-        for subVar in var.split(','):
-          subVar = subVar.strip()
-          sourceName = self.nameInSource[subVar]
-          # get the value(s) for the variable for this realization
-          self.values[subVar] = rlz[sourceName].values
-          # set the probability weight due to this variable (default to 1)
-          pbWtName = 'ProbabilityWeight-'
-          self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
-      # get realization-level required meta information, or default to 1
-      for meta in ['PointProbability','ProbabilityWeight']:
-        self.inputInfo[meta] = rlz.get(meta,1.0)
-    elif self.readingFrom == 'File':
-      # data is stored in file, so we already parsed the values
-      # create values dictionary
-      for var in self.toBeSampled.keys():
-        for subVar in var.split(','):
-          subVar = subVar.strip()
-          # assign the custom sampled variables values to the sampled variables
-          self.values[subVar] = self.pointsToSample[subVar][index]
-          # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
-      # Construct probabilities based on the user provided information
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
-      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
-    self.inputInfo['SamplerType'] = 'Custom'
+      self.inputInfo['batchMode'] = False
+    for _ in range(self.batch):
+      if self.indexes is None:
+        index = self.counter - 1
+      else:
+        index = self.indexes[self.counter-1]
+      if self.counter == self.limit + 1:
+        break
+      if self.readingFrom == 'DataObject':
+        # data is stored as slices of a data object, so take from that
+        rlz = self.pointsToSample[index]
+        for var in self.toBeSampled.keys():
+          for subVar in var.split(','):
+            subVar = subVar.strip()
+            sourceName = self.nameInSource[subVar]
+            # get the value(s) for the variable for this realization
+            self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
+            # set the probability weight due to this variable (default to 1)
+            pbWtName = 'ProbabilityWeight-'
+            self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
+        # get realization-level required meta information, or default to 1
+        for meta in ['PointProbability','ProbabilityWeight']:
+          self.inputInfo[meta] = rlz.get(meta,1.0)
+      elif self.readingFrom == 'File':
+        # data is stored in file, so we already parsed the values
+        # create values dictionary
+        for var in self.toBeSampled.keys():
+          for subVar in var.split(','):
+            subVar = subVar.strip()
+            # assign the custom sampled variables values to the sampled variables
+            self.values[subVar] = self.pointsToSample[subVar][index]
+            # This is the custom sampler, assign the ProbabilityWeights based on the provided values
+            self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
+        # Construct probabilities based on the user provided information
+        self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
+        self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
+      self.inputInfo['SamplerType'] = 'Custom'
+      if self.inputInfo['batchMode']:
+        self.inputInfo['SampledVars'] = self.values
+        self.inputInfo['batchId'] = self.name + str(self.batchId)
+        batchData.append(copy.deepcopy(self.inputInfo))
+        self._incrementCounter()
+    if self.inputInfo['batchMode']:
+      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}

@@ -15,8 +15,10 @@
       <revision author="cogljj" date="2016-01-15">Rename step in sobol test to avoid directry name collision. Closes #400. Both test_redundant_scgpc and test_redundant_sobol were using the directory RedundantInputs/sim_py_SC which could cause test failures. This renames the one that redundant_sobol uses.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sobol_redundant</Sequence>
@@ -94,12 +96,10 @@
 
   <Functions>
     <External file="RedundantInputs/d_calc.py" name="raven_d_calc">
-      <variable>a</variable>
-      <variable>c</variable>
+      <variables>a,c</variables>
     </External>
     <External file="RedundantInputs/e_calc.py" name="raven_e_calc">
-      <variable>b</variable>
-      <variable>c</variable>
+      <variables>b,c</variables>
     </External>
   </Functions>
 

@@ -5,6 +5,7 @@
     csv = 'data/myDump1.csv data/myDump2.csv data/myDump3.csv data/myDump4.csv'
     output = 'data/myDump1.xml data/myDump2.xml data/myDump3.xml data/myDump4.xml'
     required_libraries = 'AMSC'
+    rel_err = 1.0e-5
     python3_only = true
   [../]
 
@@ -77,7 +78,8 @@
     skip = 'Requires windowing system'
     csv = 'data/interactive.csv'
     output = 'data/interactive.xml'
-    required_libraries = 'AMSC PySide'
+    required_libraries = 'AMSC PySide2'
     interactive = 'true'
+    python3_only = true
   [../]
 []

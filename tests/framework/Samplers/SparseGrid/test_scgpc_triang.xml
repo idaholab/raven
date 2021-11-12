@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Tmake,Ttrain,Ttest,Tprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/triang</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with triangular-distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Tmake, Ttrain, Ttest, stats, Tprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Triangular name="TriDist">
@@ -65,7 +65,7 @@
     </MultiRun>
     <IOStep name="Tprint">
       <Input class="DataObjects" type="PointSet">Ttests</Input>
-      <Input class="Models" type="ROM">TROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Tdump</Output>
       <Output class="OutStreams" type="Print">Tdumprom</Output>
     </IOStep>
@@ -73,6 +73,10 @@
       <Input class="DataObjects" type="PointSet">Tsolns</Input>
       <Output class="Models" type="ROM">TROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">TROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -88,6 +92,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -97,9 +102,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Tdumprom">
-      <type>xml</type>
-      <source>TROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

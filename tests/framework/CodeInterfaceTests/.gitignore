@@ -87,3 +87,15 @@ Scale/SCALE_triton_origen_combined/sampleScale/2/decay_origen.inp
 Scale/SCALE_triton_origen_combined/sampleScale/2/input_triton.inp
 Scale/SCALE_triton_origen_combined/sampleScale/decay_origen.inp
 Scale/SCALE_triton_origen_combined/sampleScale/input_triton.inp
+RELAP5/RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP++1
+RELAP5/RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP++2
+RELAP5/RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++1
+RELAP5/RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++2
+RELAP5/RELAP5ensemble2relaps/testEnsemble2Relaps
+RELAP5/RELAP5interfaceTest/testDummyStep
+RELAP5/RELAP5interfaceTestAlias/testDummyStep
+RELAP5/RELAP5interfaceTestMultiDeck/testDummyStep
+RELAP5/RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep
+RELAP5/RELAP5interfaceTestOperator/testDummyStep
+RELAP5/RELAP5interfaceTestSingleRun/testDummyStep
+RELAP5interfaceTestModifiedVersionINSS/

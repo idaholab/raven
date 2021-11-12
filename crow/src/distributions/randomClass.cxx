@@ -24,15 +24,34 @@ public:
 };
 
 RandomClass::RandomClass() : _rng(new RandomClassImpl()), _range(_rng->_backend.max() - _rng->_backend.min()) {
+    _counter=0;
+    _seed=0;
 }
 
-void RandomClass::seed(unsigned int seed) {
+void RandomClass::seed(unsigned long int seed) {
+
+    _counter = 0;
+    _seed = seed;
     _rng->_backend.seed(seed);
   }
 
 double RandomClass::random() {
+    _counter++;
     return (_rng->_backend()-_rng->_backend.min())/_range;
   }
+
+int RandomClass::get_rng_state() {
+    return _counter;
+}
+
+void RandomClass::forward_seed(unsigned int counts){
+    _counter = counts;
+    _rng->_backend.discard(counts);
+}
+
+int RandomClass::get_rng_seed(){
+  return _seed;
+}
 
 RandomClass::~RandomClass(){
   delete _rng;

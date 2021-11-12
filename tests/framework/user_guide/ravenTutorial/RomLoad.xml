@@ -23,11 +23,7 @@
   </Files>
 
   <Models>
-    <ROM name="rom" subType="NDinvDistWeight">
-      <Features>sigma-A,decay-A</Features>
-      <Target>A, time</Target>
-      <p>3</p>
-    </ROM>
+    <ROM name="rom" subType="pickledROM" />
   </Models>
 
   <Distributions>
@@ -100,7 +96,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|A</y>
-                <color>blue</color>
+                <kwargs>
+                  <color>blue</color>
+                </kwargs>
             </plot>
             <xlabel>time (s)</xlabel>
             <ylabel>evolution A(kg)</ylabel>

@@ -46,16 +46,16 @@ manipulate/use in her/his own python function, the variables need to be
 specified in the \xmlNode{External} input block.
 %
 The user needs to input, within this block, only the variables directly used by
-the external code and not the local variables that the user does not want,
+the external function and not the local variables that the user does not want,
 for example, those stored in a RAVEN internal object.
 %
-These variables are named within consecutive
-\xmlNode{variable} XML nodes:
+These variables are inputted in a single
+\xmlNode{variables} XML node:
 \begin{itemize}
-  \item \xmlNode{variable}, \xmlDesc{string, required parameter}, in the body of
-  this XML node, the user needs to specify the name of the variable.
+  \item \xmlNode{variables}, \xmlDesc{comma separated list, required parameter}, in the body of
+  this XML node, the user needs to specify the name of the variables (separated by commas).
   %
-  This variable needs to match a variable used/defined in the external python
+  This variables need to match variables used/defined in the external python
   function.
   %
 \end{itemize}
@@ -85,8 +85,7 @@ Example XML Input:
     ...
     <External name='whatever' file='path_to_python_file'>
      ...
-     <variable>var1</variable>
-     <variable>var2</variable>
+     <variables>var1,var2</variables>
      ...
     </External>
     ...

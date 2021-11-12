@@ -8,7 +8,14 @@
     <description>
       Testing clustering with VBGMM (Variational Bayesian Gaussian Mixture Modeling) and pivot parameter.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>VariationalGMM</WorkingDir>
     <Sequence>sampleGen,pp1,writeOut</Sequence>
@@ -88,10 +95,10 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">useless</Sampler>
-      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="DataObjects" type="HistorySet">mDataRaw</Output>
     </MultiRun>
     <PostProcess name="pp1" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Input class="DataObjects" type="HistorySet">mDataRaw</Input>
       <Model class="Models" type="PostProcessor">VBGMM1</Model>
       <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="HistorySet">mData</Output>
@@ -116,8 +123,7 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-
-    <Plot  name="plotRawData" overwrite="True" >
+    <Plot name="plotRawData" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -149,7 +155,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataLabel" overwrite="True" >
+    <Plot name="plotPPDataLabel" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -162,8 +168,7 @@
         <how>png</how>
       </actions>
     </Plot>
-
-    <Plot  name="plotPPDataCentroid" overwrite="True" >
+    <Plot name="plotPPDataCentroid" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -206,14 +211,21 @@
       <Input>labels</Input>
       <Output>x,y</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="mData">
       <Input>cluster,dx,dy,ddx,ddy</Input>
+      <Output>x,y,labels</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="mDataRaw">
+      <Input>cluster,dx,dy,ddx,ddy</Input>
       <Output>x,y</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

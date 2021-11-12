@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
     <description>Workshop test: Time dependent data mining with KMeans analysis</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -65,10 +71,10 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="DataObjects" type="HistorySet">outMCRaw</Output>
     </MultiRun>
     <PostProcess name="clustering" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="HistorySet">outMC</Output>
@@ -172,6 +178,10 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z,labels</Output>
+    </HistorySet>
+    <HistorySet name="outMCRaw">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

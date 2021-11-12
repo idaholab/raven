@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.StuckCorner</name>
+    <author>talbpaul</author>
+    <created>2020-11-19</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Shows that FiniteDifference can easily be trapped by constraints and therefore be unable to
+      evaluate a local gradient. This example uses the bounds (0, 1) for ($x, y$) with the
+      constraint ($y >= x$). The response surface is a parabola as $ans = (x-0.05)^2 + (y-0.01)^2$,
+      whose minimum is at (0.05, 0.01) but is outside the constraints. When the opt point is at (0,
+      0), FiniteDifference cannot sample two orthogonal vectors from which to estimate the local gradient.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>StuckCorner</WorkingDir>
+    <Sequence>optimize</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">goal</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='dist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GradientDescent name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>dist</distribution>
+        <initial>0.7</initial>
+      </variable>
+      <variable name="y">
+        <distribution>dist</distribution>
+        <initial>0.9</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>500</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <FiniteDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.2</growthFactor>
+          <shrinkFactor>1.1</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <gradient>1e-8</gradient>
+        <persistence>3</persistence>
+        <stepSize>1e-4</stepSize>
+      </convergence>
+      <Constraint class='Functions' type='External'>goal</Constraint>
+    </GradientDescent>
+  </Optimizers>
+
+  <Functions>
+    <External file="offset_parabola" name="goal">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="offset_parabola" name="goal" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient,rejectReason</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-04-24">
         added a function to show how the constant variables can be used in conjunction with a function
       </revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -62,11 +63,11 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-          <distribution>DistTri1</distribution>
-          <grid construction="custom" type="CDF">0.5</grid>
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="CDF">0.5</grid>
       </variable>
       <variable name="multiplyTheConstantByTwo">
-          <function>multiply_the_constant</function>
+        <function>multiply_the_constant</function>
       </variable>
       <constant name="aConstant"> 20021986 </constant>
     </Grid>
@@ -108,8 +109,7 @@
 
   <Functions>
     <External file="multiply_the_constant.py" name="multiply_the_constant">
-        <variable>aConstant</variable>
-        <variable>TestOnePoint</variable>
+      <variables>aConstant,TestOnePoint</variables>
     </External>
   </Functions>
 

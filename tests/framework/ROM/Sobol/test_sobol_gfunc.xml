@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
-  <RunInfo>
-    <WorkingDir>SobolGFunc</WorkingDir>
-    <Sequence>make,train,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/sobolGFunction</name>
     <author>talbpaul</author>
@@ -17,7 +12,16 @@
       dumprom.xml has analytic mean and variance, but is poorly converged for this model.  It is documented
       in the analytic test documentation under "Sobol G-Function"
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SobolGFunc</WorkingDir>
+    <Sequence>make,train,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">
@@ -26,11 +30,13 @@
       <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreams" type="Print">dump</Output>
-      <Output class="OutStreams" type="Print">dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -106,11 +112,6 @@
       <type>csv</type>
       <source>solns</source>
       <what>input,output</what>
-    </Print>
-    <Print name="dumprom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
     </Print>
   </OutStreams>
 

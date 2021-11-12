@@ -1,6 +1,5 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation verbosity="debug">
-    
   <TestInfo>
     <name>framework/ROM/TimeSeries/PolyExponential.PolyExpNearest</name>
     <author>alfoa</author>
@@ -11,120 +10,129 @@
        regression, the nearest algorithm regression
     </description>
     <revisions>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
       <revision author="alfoa" date="2018-04-25">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-  
-    <RunInfo>
-        <WorkingDir>PolyExpNearest</WorkingDir>
-	    <Sequence>
+
+  <RunInfo>
+    <WorkingDir>PolyExpNearest</WorkingDir>
+    <Sequence>
              readIn,
              PolyTrain,
              pickleRom,
+             stats,
              runPoly,
-             writeOut</Sequence>
-        <batchSize>1</batchSize>
-    </RunInfo>
-    <Files>
-        <Input name="rawDataFile">../data/decay_heat.csv</Input>
-        <Input name="ROMpk" type="">ROMpk</Input>
-    </Files>
-    <Distributions>
-		<Uniform name="enrichmentDist">
-			<lowerBound>3.4</lowerBound>
-			<upperBound>9.9</upperBound>
-		</Uniform>
-        <Uniform name="burnupDist">
-            <lowerBound>16.501</lowerBound>
-            <upperBound>26.402</upperBound>
-        </Uniform>
-	</Distributions>
+             writeOut
+    </Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-	<Samplers>
-		<MonteCarlo name="mcSampler">
-			<samplerInit>
-                <limit>4</limit>
-                <initialSeed>20021986</initialSeed>
-			</samplerInit>
-			<variable name="enrichment">
-				<distribution>enrichmentDist</distribution>
-			</variable>
-            <variable name="burnup">
-                <distribution>burnupDist</distribution>
-            </variable>
-        </MonteCarlo>
-	</Samplers>
+  <Files>
+    <Input name="rawDataFile">../data/decay_heat.csv</Input>
+    <Input name="ROMpk" type="">ROMpk</Input>
+  </Files>
 
-	<Models>
-		<ROM name='PolyExp' subType='PolyExponential'>
-			<Target>t,decay_heat,decay_heat_pu</Target>
-			<Features>enrichment,burnup</Features>
-			<pivotParameter>t</pivotParameter>
-            <coeffRegressor>nearest</coeffRegressor>
-            <numberExpTerms>2</numberExpTerms>
-            <max_iter>30000</max_iter>
-            <tol>0.001</tol>
-		</ROM>
-    </Models>
-    <Steps>
-        <IOStep name='readIn'>
-         <Input       class = 'Files'       type = ''              >rawDataFile</Input>
-         <Output      class = 'DataObjects' type = 'HistorySet'    >rawData</Output>
-        </IOStep>
-		<RomTrainer name='PolyTrain'>
-			<Input    class = 'DataObjects' type = 'HistorySet'    >rawData</Input>
-			<Output   class='Models'        type ='ROM'  	       >PolyExp</Output>
-		</RomTrainer>
-        <IOStep name='pickleRom'>
-            <Input    class = 'Models'      type = 'ROM'           >PolyExp</Input>
-            <Output   class="Files"         type=""                >ROMpk</Output>
-            <Output   class='OutStreams'    type ='Print'          >ROMCoefficientsXML</Output>
-        </IOStep>
-		<MultiRun name='runPoly'>
-			<Input    class = 'DataObjects' type = 'PointSet'      >dataIn</Input>
-			<Model    class='Models'        type = 'ROM'           >PolyExp</Model>
-            <Sampler  class="Samplers"      type="MonteCarlo"      >mcSampler</Sampler>
-			<Output   class = 'DataObjects' type = 'HistorySet'    >synDataPolyExp</Output>
-		</MultiRun>
-        <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'  type = 'HistorySet'   >synDataPolyExp</Input>
-            <Output   class = 'OutStreams'   type = 'Print'        >outputPolyNearest</Output>
-		</IOStep>
-    </Steps>
-    <OutStreams>
-        <Print name = 'outputPolyNearest' dir="outputPoly">
-            <type>csv</type>
-            <source>synDataPolyExp</source>
-        </Print>
-        <Print name = 'ROMCoefficientsXML'>
-            <type>xml</type>
-            <source>PolyExp</source>
-            <what>coefficients,timeScale</what>
-        </Print>
-    </OutStreams>
-	
-    <DataObjects>
-      <PointSet name="dataIn">
-        <Input>enrichment,burnup</Input>
-        <Output>OutputPlaceHolder</Output>
-      </PointSet>
-      <HistorySet name="rawData">
-        <Input>enrichment,burnup</Input>
-        <Output>decay_heat,decay_heat_pu</Output>
-        <options>
-            <pivotParameter>t</pivotParameter>
-        </options>
-      </HistorySet>
-      <HistorySet name="synDataPolyExp" >
-       <Input>enrichment,burnup</Input>
-       <Output>decay_heat,decay_heat_pu</Output>
-       <options>
-           <pivotParameter>t</pivotParameter>
-       </options>
-      </HistorySet>
-    </DataObjects>
+  <Distributions>
+    <Uniform name="enrichmentDist">
+      <lowerBound>3.4</lowerBound>
+      <upperBound>9.9</upperBound>
+    </Uniform>
+    <Uniform name="burnupDist">
+      <lowerBound>16.501</lowerBound>
+      <upperBound>26.402</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="enrichment">
+        <distribution>enrichmentDist</distribution>
+      </variable>
+      <variable name="burnup">
+        <distribution>burnupDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="PolyExp" subType="PolyExponential">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <coeffRegressor>nearest</coeffRegressor>
+      <numberExpTerms>2</numberExpTerms>
+      <max_iter>30000</max_iter>
+      <tol>0.001</tol>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="PolyTrain">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">PolyExp</Output>
+    </RomTrainer>
+    <IOStep name="pickleRom">
+      <Input class="Models" type="ROM">PolyExp</Input>
+      <Output class="Files" type="">ROMpk</Output>
+    </IOStep>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">PolyExp</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <MultiRun name="runPoly">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">PolyExp</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synDataPolyExp</Output>
+    </MultiRun>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">synDataPolyExp</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">outputPolyNearest</Output>
+      <Output class="OutStreams" type="Print">ROMCoefficientsXML</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outputPolyNearest" dir="outputPoly">
+      <type>csv</type>
+      <source>synDataPolyExp</source>
+    </Print>
+    <Print name="ROMCoefficientsXML">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>enrichment,burnup</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>enrichment,burnup</Input>
+      <Output>decay_heat,decay_heat_pu</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synDataPolyExp">
+      <Input>enrichment,burnup</Input>
+      <Output>decay_heat,decay_heat_pu</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
 </Simulation>
-
-
-
-

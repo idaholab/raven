@@ -17,8 +17,6 @@ Created on Jan 28, 2015
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
@@ -26,6 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+import CsvLoader
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
@@ -43,10 +42,14 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, None
       @ Out, None
     """
-    self.inputExtensions = []            # list of input extensions
-    self._runOnShell = True               # True if the specified command by the code interfaces will be executed through shell.
+    self.inputExtensions = []    # list of input extensions
+    self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
+    self._ravenWorkingDir = None # location of RAVEN's main working directory
+    self._csvLoadUtil = 'pandas' # utility to use to load CSVs
+    self.printFailedRuns = True  # whether to print failed runs to the screen
+    self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
 
-  def setRunOnShell(self,shell=True):
+  def setRunOnShell(self, shell=True):
     """
       Method used to set the the executation of code command through shell if shell=True
       @ In, shell, Boolean, True if the users want to execute their code through shell
@@ -62,7 +65,37 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return self._runOnShell
 
-  def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
+  def getIfWriteCsv(self):
+    """
+      Returns self._writeCSV. True if a CSV is requested by the user even if
+      the code interface returns the data to RAVEN directly
+      @ In, None
+      @ Out, getIfWriteCsv, bool, should we write the csv?
+    """
+    return self._writeCSV
+
+  def getCsvLoadUtil(self):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, None
+      @ Out, getCsvLoadUtil, str, name of utility to use
+    """
+    # default to pandas, overwrite to 'numpy' if all of the following:
+    # - all entries are guaranteed to be floats
+    # - results CSV have a large number of headers (>1000)
+    return self._csvLoadUtil
+
+  def setCsvLoadUtil(self, util):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, getCsvLoadUtil, str, name of utility to use
+    """
+    ok = CsvLoader.CsvLoader.acceptableUtils
+    if util not in ok:
+      raise TypeError(f'Unrecognized CSV loading utility: "{util}"! Expected one of: {ok}')
+    self._csvLoadUtil = util
+
+  def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       This method checks a boolean environment variable called 'RAVENinterfaceCheck':
@@ -77,21 +110,27 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
 
-    if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(os.environ.get('RAVENinterfaceCheck','False')):
       return [('parallel','echo')],outputfileroot
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode, ravenWorkingDir):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ In, ravenWorkingDir, str, location of RAVEN's working directory
       @ Out, None
     """
+    self._ravenWorkingDir = ravenWorkingDir
     self._readMoreXML(xmlNode)
+    # read global options
+    # should we print CSV even if the data can be directly returned to RAVEN?
+    csvLog = xmlNode.find("csv")
+    self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and
       initialize some members based on inputs. This can be overloaded in specialized code interface in order
@@ -102,7 +141,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass
 
   @abc.abstractmethod
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
@@ -115,7 +154,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     return
 
   @abc.abstractmethod
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -166,18 +205,32 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.addInputExtension(['i','inp','in'])
 
-  def finalizeCodeOutput(self,command,output,workingDir):
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    # store working dir for future needs
+    self._ravenWorkingDir = runInfo['WorkingDir']
+
+  def finalizeCodeOutput(self, command, output, workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, output, string or dict, optional, if present and string:
+                                                 in case the root of the output file gets changed in this method (and a CSV is produced);
+                                               if present and dict:
+                                                 in case the output of the code is directly stored in a dictionary and can be directly used
+                                                 without the need that RAVEN reads an additional CSV
     """
     return output
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by RAVEN at the end of each run if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0

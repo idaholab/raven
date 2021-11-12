@@ -12,6 +12,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2016-10-04">Adding an additional example that addresses Josh's comment.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -22,30 +23,27 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-<!-- The external methods will be defined in the files pointed to by these guys -->
-<Functions>
+  <!-- The external methods will be defined in the files pointed to by these guys -->
+  <Functions>
     <External file="partitionHistorySet" name="partitionHistorySet">
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>time</variable>
+      <variables>x,y,z,time</variables>
     </External>
-</Functions>
+  </Functions>
 
   <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="20021986">
-      <Input   class="DataObjects" type="PointSet"     >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"   >MC_external</Sampler>
-      <Output  class="DataObjects" type="HistorySet"   >originalHistorySet</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">originalHistorySet</Output>
     </MultiRun>
     <!-- Perform the partitioning of the history set -->
     <PostProcess name="applyFunctions">
-        <Input  class="DataObjects" type="HistorySet"   >originalHistorySet</Input>
-        <Model  class="Models"      type="PostProcessor">functionPP</Model>
-        <Output class="DataObjects" type="HistorySet"   >partitionedHistorySet</Output>
-        <Output class="OutStreams"  type="Print"        >partitionedHistorySet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">originalHistorySet</Input>
+      <Model class="Models" type="PostProcessor">functionPP</Model>
+      <Output class="DataObjects" type="HistorySet">partitionedHistorySet</Output>
+      <Output class="OutStreams" type="Print">partitionedHistorySet_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -56,12 +54,11 @@
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
-
     <!-- This post-processor will call methods defined in an external python
      script compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">
-        <method>time,x,y,z</method>
-        <Function class="Functions" type="External">partitionHistorySet</Function>
+      <method>time,x,y,z</method>
+      <Function class="Functions" type="External">partitionHistorySet</Function>
     </PostProcessor>
   </Models>
 
@@ -84,7 +81,9 @@
   <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
-      <samplerInit> <limit>100</limit> </samplerInit>
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>
@@ -120,11 +119,11 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="partitionedHistorySet">
-        <Input>x0,y0,z0</Input>
-        <Output>partitionHistorySet_time, partitionHistorySet_x,partitionHistorySet_y,partitionHistorySet_z</Output>
-        <options>
-            <pivotParameter>partitionHistorySet_time</pivotParameter>
-        </options>
+      <Input>x0,y0,z0</Input>
+      <Output>partitionHistorySet_time, partitionHistorySet_x,partitionHistorySet_y,partitionHistorySet_z</Output>
+      <options>
+        <pivotParameter>partitionHistorySet_time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

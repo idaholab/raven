@@ -15,21 +15,25 @@
    type = 'RavenFramework'
    input = 'test_index_TP.xml'
    csv = 'grid/TPdump.csv'
+   rel_err = 1.0e-7
  [../]
  [./totalDegreeGrid]
    type = 'RavenFramework'
    input = 'test_index_TD.xml'
    csv = 'grid/TDdump.csv'
+   rel_err = 1.0e-7
  [../]
  [./hyperbolicCrossGrid]
    type = 'RavenFramework'
    input = 'test_index_HC.xml'
    csv = 'grid/HCdump.csv'
+   rel_err = 1.0e-7
  [../]
  [./customGrid]
    type = 'RavenFramework'
    input = 'test_index_custom.xml'
    csv = 'grid/Cdump.csv'
+   rel_err = 1.0e-7
  [../]
  [./anisotropicGrid]
    type = 'RavenFramework'

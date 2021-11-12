@@ -14,16 +14,10 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Class implementation for the GaussPolynomialRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
 from numpy import average
 import sys
 
@@ -34,15 +28,125 @@ from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 
-class GaussPolynomialRom(supervisedLearning):
+class GaussPolynomialRom(SupervisedLearning):
   """
     Gauss Polynomial Rom Class
   """
+
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    ## cross validation node 'CV' can not be used for GaussPolynomialRom
+    specs.popSub('CV')
+    specs.description = r"""The \xmlString{GaussPolynomialRom} is based on a
+                        characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
+                        expansion (gPC).
+                        \\
+                        In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty
+                        are used to represent the original model.  The method converges moments of the original
+                        model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
+                        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                        be \xmlString{GaussPolynomialRom}.
+                        \\
+                        The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+                        SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+                        \begin{table}[htb]
+                          \centering
+                          \begin{tabular}{c | c c}
+                            Unc. Distribution & Default Quadrature & Default Polynomials \\ \hline
+                            Uniform & Legendre & Legendre \\
+                            Normal & Hermite & Hermite \\ \hline
+                            Gamma & Laguerre & Laguerre \\
+                            Beta & Jacobi & Jacobi \\ \hline
+                            Other & Legendre* & Legendre*
+                          \end{tabular}
+                          \caption{GaussPolynomialRom defaults}
+                          \label{tab:gpcCompatible}
+                        \end{table}
+                        \nb This ROM type must be trained from a collocation quadrature set.
+                        Thus, it can only be trained from the outcomes of a SparseGridCollocation sampler.
+                        Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
+                        accurately produce the necessary sparse grid points to train this ROM.
+                        \zNormalizationNotPerformed{GaussPolynomialRom}
+                        \\
+                        When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the available metrics are:
+                        \begin{itemize}
+                          \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+                          \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
+                          \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
+                          \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances,
+                          \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
+                            listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
+                            shown in the XML print.
+                        \end{itemize}
+                        """
+    specs.addSub(InputData.parameterInputFactory("IndexSet", contentType=InputTypes.makeEnumType("IndexSet", "IndexSetType", ["TensorProduct", "TotalDegree", "HyperbolicCross", "Custom"]),
+                                                 descr=r"""specifies the rules by which to construct multidimensional polynomials.  The options are
+                                                 \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+                                                 \xmlString{HyperbolicCross}, and \xmlString{Custom}.
+                                                 Total degree is efficient for
+                                                 uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
+                                                 for low-regularity input spaces.
+                                                 If \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required."""))
+    specs.addSub(InputData.parameterInputFactory("PolynomialOrder", contentType=InputTypes.IntegerType,
+                                                 descr=r"""indicates the maximum polynomial order in any one dimension to use in the
+                                                 polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
+                                                 \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
+                                                 importance might exceed this value; however, this value is still used to limit the
+                                                 relative overall order."""))
+    specs.addSub(InputData.parameterInputFactory("SparseGrid", contentType=InputTypes.makeEnumType("SparseGrid", "SparseGrid", ["smolyak", "tensor"]),
+                                                 descr=r"""allows specification of the multidimensional
+                                                   quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.""",
+                                                   default="smolyak"))
+    specs.addSub(InputData.parameterInputFactory("IndexPoints", contentType=InputTypes.IntegerTupleListType,
+                                                 descr=r"""used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
+                                                 entered as comma-separated values between parenthesis, with each tuple separated by a comma.
+                                                 Any amount of whitespace is acceptable.  For example, \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
+                                                 \nb{Using custom index sets
+                                                 does not guarantee accurate convergence.}""", default=None))
+    interpolationParam = InputData.parameterInputFactory("Interpolation", contentType=InputTypes.StringType,
+                                                 descr=r"""offers the option to specify quadrature, polynomials, and importance weights for the given
+                                                 variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
+                                                 dimensionality of the input space.""", default=None)
+    interpolationParam.addParam("quad", InputTypes.StringType, required=False,
+                  descr=r"""specifies the quadrature type to use for collocation in this dimension.  The default options
+                  depend on the uncertainty distribution of the input dimension, as shown in Table
+                  \ref{tab:gpcCompatible}. Additionally, Clenshaw Curtis quadrature can be used for any
+                  distribution that doesn't include an infinite bound.
+                  \default{see Table \ref{tab:gpcCompatible}.}
+                  \nb For an uncertain distribution aside from the four listed on Table
+                  \ref{tab:gpcCompatible}, this ROM
+                  makes use of the uniform-like range of the distribution's CDF to apply quadrature that is
+                  suited uniform uncertainty (Legendre).  It converges more slowly than the four listed, but are
+                  viable choices.  Choosing polynomial type Legendre for any non-uniform distribution will
+                  enable this formulation automatically.""")
+    interpolationParam.addParam("poly", InputTypes.StringType, required=False,
+                  descr=r"""specifies the interpolating polynomial family to use for the polynomial expansion in this
+                  dimension.  The default options depend on the quadrature type chosen, as shown in Table
+                  \ref{tab:gpcCompatible}.  Currently, no polynomials are available outside the
+                  default. \default{see Table \ref{tab:gpcCompatible}.}""")
+    interpolationParam.addParam("weight", InputTypes.FloatType, required=False,
+                  descr=r"""delineates the importance weighting of this dimension.  A larger importance weight will
+                  result in increased resolution for this dimension at the cost of resolution in lower-weighted
+                  dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
+    specs.addSub(interpolationParam)
+    return specs
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -75,17 +179,16 @@ class GaussPolynomialRom(supervisedLearning):
     """
     pass
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'
+    self.printTag      = 'GAUSSgpcROM'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.indexSetVals  = []   #list of tuples, custom index set to use if CustomSet is the index set type
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
@@ -106,8 +209,50 @@ class GaussPolynomialRom(supervisedLearning):
     self.sdx           = None
     self.partialVariances = None
     self.sparseGridType    = 'smolyak' #type of sparse quadrature to use,default smolyak
-    self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['IndexSet','IndexPoints', 'PolynomialOrder',
+                                                               'SparseGrid'])
+    # notFound must be empty
+    assert(not notFound)
+    self.indexSetType = settings.get('IndexSet')
+    self.indexSetVals = settings.get('IndexPoints')
+    self.raiseADebug('points',self.indexSetVals)
+    self.maxPolyOrder = settings.get('PolynomialOrder')
+    self.sparseGridType = settings.get('SparseGrid')
+    interpolationList = paramInput.findAll('Interpolation')
+    for elem in interpolationList:
+      var = elem.value
+      poly = elem.parameterValues.get('poly', 'DEFAULT')
+      quad = elem.parameterValues.get('quad', 'DEFAULT')
+      weight = elem.parameterValues.get('weight', 1.0)
+      self.itpDict[var]={'poly'  : poly,
+                         'quad'  : quad,
+                         'weight': weight}
+
+    if self.indexSetType=='Custom':
+      if len(self.indexSetVals)<1:
+        self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
+      else:
+        for i in self.indexSetVals:
+          if len(i)<len(self.features):
+            self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
+    if self.maxPolyOrder < 1:
+      self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
+
+  def initializeFromDict(self, kwargs):
+    """
+      Function which initializes the ROM given a the information contained in inputDict
+      @ In, kwargs, dict, dictionary containing the values required to initialize the ROM
+      @ Out, None
+    """
+    super().initializeFromDict(kwargs)
     for key,val in kwargs.items():
       if key=='IndexSet':
         self.indexSetType = val
@@ -133,8 +278,8 @@ class GaussPolynomialRom(supervisedLearning):
             else:
               self.raiseAnError(IOError,'Unrecognized option: '+atrName)
       elif key == 'SparseGrid':
-        if val.lower() not in self.sparseQuadOptions:
-          self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(self.sparseQuadOptions)))
+        if val.lower() not in ['smolyak','tensor']:
+          self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(['smolyak','tensor'])))
         self.sparseGridType = val
 
     if not self.indexSetType:
@@ -151,25 +296,19 @@ class GaussPolynomialRom(supervisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+
+  def writeXML(self, writeTo, requests = None, skip = None):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, requests, list, optional, list of requests for whom to write
+      @ In, skip, list, optional, list of targets to skip (often a pivot parameter)
       @ Out, None
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
-    #reset stats so they're fresh for this calculation
-    self.mean=None
-    sobolIndices = None
-    partialVars = None
-    sobolTotals = None
-    variance = None
+    if skip is None:
+      skip = []
     #establish what we can handle, and how
     scalars = ['mean','expectedValue','variance','samples']
     vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
@@ -177,71 +316,59 @@ class GaussPolynomialRom(supervisedLearning):
     #lowercase for convenience
     scalars = list(s.lower() for s in scalars)
     vectors = list(v.lower() for v in vectors)
-    #establish requests, defaulting to "all"
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-    else:
-      requests =['all']
-    # Target
-    target = options.get('Target',self.target[0])
-    #handle "all" option
-    if 'all' in requests:
-      requests = canDo
-    # loop over the requested items
-    for request in requests:
-      request=request.strip()
-      if request.lower() in scalars:
-        if request.lower() in ['mean','expectedvalue']:
-          #only calculate the mean once per printing
-          if self.mean is None:
-            self.mean = self.__mean__(target)
-          val = self.mean
-        elif request.lower() == 'variance':
-          if variance is None:
-            variance = self.__variance__(target)
-          val = variance
-        elif request.lower() == 'samples':
-          if self.numRuns!=None:
-            val = self.numRuns
-          else:
-            val = len(self.sparseGrid)
-        outFile.addScalar(target,request,val,pivotVal=pivotVal)
-      elif request.lower() in vectors:
-        if request.lower() == 'polycoeffs':
-          valueDict = OrderedDict()
-          valueDict['inputVariables'] = ','.join(self.features)
-          keys = list(self.polyCoeffDict[target].keys())
-          keys.sort()
-          for key in keys:
-            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
-        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
-          if sobolIndices is None or partialVars is None:
-            sobolIndices,partialVars = self.getSensitivities(target)
-          if sobolTotals is None:
+    for target in self.target:
+      if target in skip:
+        continue
+      if requests is None:
+        requests = canDo
+      # loop over the requested items
+      for request in requests:
+        request=request.strip()
+        if request.lower() in scalars:
+          if request.lower() in ['mean','expectedvalue']:
+            val = self.__mean__(target)
+          elif request.lower() == 'variance':
+            val = self.__variance__(target)
+          elif request.lower() == 'samples':
+            if self.numRuns != None:
+              val = self.numRuns
+            else:
+              val = len(self.sparseGrid)
+          writeTo.addScalar(target,request,val)
+        elif request.lower() in vectors:
+          if request.lower() == 'polycoeffs':
+            valueDict = OrderedDict()
+            valueDict['inputVariables'] = ','.join(self.features)
+            keys = list(self.polyCoeffDict[target].keys())
+            keys.sort()
+            for key in keys:
+              valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
+          elif request.lower() in ['partialvariance', 'sobolindices', 'soboltotalindices']:
+            sobolIndices, partialVars = self.getSensitivities(target)
             sobolTotals = self.getTotalSensitivities(sobolIndices)
-          #sort by value
-          entries = []
-          if request.lower() in ['partialvariance','sobolindices']:
-            #these both will have same sort
-            for key in sobolIndices.keys():
-              entries.append( ('.'.join(key),partialVars[key],key) )
-          elif request.lower() in ['soboltotalindices']:
-            for key in sobolTotals.keys():
-              entries.append( ('.'.join(key),sobolTotals[key],key) )
-          entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          #add entries to results list
-          valueDict=OrderedDict()
-          for entry in entries:
-            name,_,key = entry
-            if request.lower() == 'partialvariance':
-              valueDict[name] = partialVars[key]
-            elif request.lower() == 'sobolindices':
-              valueDict[name] = sobolIndices[key]
-            elif request.lower() == 'soboltotalindices':
-              valueDict[name] = sobolTotals[key]
-        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
-      else:
-        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
+            #sort by value
+            entries = []
+            if request.lower() in ['partialvariance','sobolindices']:
+              #these both will have same sort
+              for key in sobolIndices.keys():
+                entries.append( ('.'.join(key),partialVars[key],key) )
+            elif request.lower() in ['soboltotalindices']:
+              for key in sobolTotals.keys():
+                entries.append( ('.'.join(key),sobolTotals[key],key) )
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
+            #add entries to results list
+            valueDict=OrderedDict()
+            for entry in entries:
+              name,_,key = entry
+              if request.lower() == 'partialvariance':
+                valueDict[name] = partialVars[key]
+              elif request.lower() == 'sobolindices':
+                valueDict[name] = sobolIndices[key]
+              elif request.lower() == 'soboltotalindices':
+                valueDict[name] = sobolTotals[key]
+          writeTo.addVector(target,request,valueDict)
+        else:
+          self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
   def _localNormalizeData(self,values,names,feat):
     """

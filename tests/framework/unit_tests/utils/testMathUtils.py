@@ -16,19 +16,17 @@
   It cannot be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import os,sys
 import numpy as np
+import xml.etree.ElementTree as ET
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
+
 from utils import mathUtils
-import numpy as np
 
 print (mathUtils)
+mh = getMessageHandler()
+mh.verbosity = 'debug'
 
 results = {"pass":0,"fail":0}
 
@@ -141,18 +139,6 @@ for test in tests:
 
 ### check "createInterp"
 # TODO
-
-### check "simpson"
-def f(x):
-  """
-    Simple squaring function.
-    @ In, x, float, value
-    @ Out, f, float, square value
-  """
-  return x*x
-
-simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.
@@ -345,7 +331,6 @@ checkAnswer('InfDiff -inf   - inf'   ,mathUtils.diffWithInfinites(-n, n),-i)
 checkAnswer('InfDiff -inf   - finite',mathUtils.diffWithInfinites(-n, 0),-i)
 checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
 
-
 ##########################
 #      TYPE CHECKING     #
 ##########################
@@ -375,7 +360,7 @@ checkAnswer('isSingleValued dict'   ,mathUtils.isSingleValued({1:2}        ),Fal
 
 # isAString
 # TODO how to get a string (not unicode) after import unicode literals?
-#checkAnswer('isAString string',mathUtils.isAString(bytes_to_native_str(b'alpha')),True)
+#checkAnswer('isAString string',utils.isAString(bytes_to_native_str(b'alpha')),True)
 checkAnswer('isAString strish' ,mathUtils.isAString('alpha'),True)
 checkAnswer('isAString unicode',mathUtils.isAString(u'beta'),True)
 checkAnswer('isAString float'  ,mathUtils.isAString(1.0    ),False)
@@ -424,6 +409,98 @@ checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
 checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
 checkAnswer('isABoolean long' ,mathUtils.isABoolean(123456789012345678901234567890),False)
 
+### check "computeCrowdingDistance"
+testArray = np.array([[12, 0],
+                       [11.5, 0.5],
+                       [11, 1],
+                       [10.8, 1.2],
+                       [10.5, 1.5],
+                       [10.3, 1.8],
+                       [9.5, 2],
+                       [9, 2.5],
+                       [7, 3],
+                       [5, 4],
+                       [2.5, 6],
+                       [2, 10],
+                       [1.5, 11],
+                       [1, 11.5],
+                       [0.8, 11.7],
+                       [0, 12]])
+
+coefficients = mathUtils.computeCrowdingDistance(np.transpose(testArray))
+answerCrowDist = np.array([119.08161951276647,
+                           109.2619226092585,
+                           100.8790871063812,
+                           98.10139629904984,
+                           94.8017490328036,
+                           92.91272785789454,
+                           89.93788160742562,
+                           88.57611185090744,
+                           90.17330254797025,
+                           96.24681848299262,
+                           110.60453537188977,
+                           124.83521571274046,
+                           133.45644952194021,
+                           140.37420550092074,
+                           143.72992359213447,
+                           154.22771732002948])
+checkArray('computeCrowdingDistance',coefficients,answerCrowDist,1e-7)
+
+###################
+# Variable Groups #
+###################
+
+print('')
+# all ( a, b, d)
+# d (some a, some b)
+# ab (a, b)
+# ce (c, e)
+# f is isolated
+example = """<VariableGroups>
+  <Group name="a">a1, a2, a3</Group>
+  <Group name="b">b1, b2, b3</Group>
+  <Group name="c">c1, c2, c3</Group>
+  <Group name="d">a1, b1</Group>
+  <Group name="e">e1, e2 ,e3</Group>
+  <Group name="f">f1, f2, f3</Group>
+  <Group name="ce">c, e</Group>
+  <Group name="ab">a,b</Group>
+  <Group name="abd">a,b,d</Group>
+  <Group name="plus">a,c</Group>
+  <Group name="minus">a,-d</Group>
+  <Group name="intersect">a,^d</Group>
+  <Group name="symmdiff">a,%d</Group>
+  <Group name="symmrev">d,%a</Group>
+</VariableGroups>"""
+node = ET.fromstring(example)
+groups = mathUtils.readVariableGroups(node)
+
+# test contents
+def testVarGroup(groups,g,right):
+  got = groups[g].getVarsString()
+  if got == right:
+    results['pass']+=1
+  else:
+    print('ERROR: Vargroups group "{}" should be "{}" but got "{}"!'.format(g,right,got))
+    results['fail']+=1
+
+# note that order matters for these solutions!
+testVarGroup(groups,'a','a1,a2,a3')             # a and b are first basic sets
+testVarGroup(groups,'b','b1,b2,b3')             # a and b are first basic sets
+testVarGroup(groups,'c','c1,c2,c3')             # c and e are second basic sets
+testVarGroup(groups,'d','a1,b1')                # d is just a1 and b1, to test one-entry-per-variable
+testVarGroup(groups,'e','e1,e2,e3')             # c and e are second basic sets
+testVarGroup(groups,'f','f1,f2,f3')             # f is isolated; nothing else uses it
+testVarGroup(groups,'ce','c1,c2,c3,e1,e2,e3')   # ce combines c and e
+testVarGroup(groups,'ab','a1,a2,a3,b1,b2,b3')   # ab combines a and b
+testVarGroup(groups,'abd','a1,a2,a3,b1,b2,b3')  # ab combines a and b
+testVarGroup(groups,'plus','a1,a2,a3,c1,c2,c3') # plus is OR for a and c
+testVarGroup(groups,'minus','a2,a3')            # minus is a but not d
+testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
+testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
+testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
+
+
 print(results)
 
 sys.exit(results["fail"])
@@ -440,6 +517,7 @@ sys.exit(results["fail"])
     <revisions>
       <revision author="talbpaul" date="2016-11-08">Relocated utils tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """

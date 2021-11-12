@@ -16,8 +16,10 @@
       <revision author="alfoa" date="2017-12-14">
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurfaceWithRegressor</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
@@ -40,8 +42,6 @@
       <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    
-
     <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>negative</side>
@@ -57,15 +57,15 @@
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name="Acc" subType="NDinvDistWeight">
-        <Features>x0,y0</Features>
-        <Target>goalFunctionForLimitSurface</Target>
-        <p>3</p>
+      <Features>x0,y0</Features>
+      <Target>goalFunctionForLimitSurface</Target>
+      <p>3</p>
     </ROM>
   </Models>
 
   <Functions>
     <External file="../limitSurface/goalFunctionTest" name="goalFunctionForLimitSurface">
-      <variable>z</variable>
+      <variables>z</variables>
     </External>
   </Functions>
 

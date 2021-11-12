@@ -14,8 +14,10 @@
     <revisions>
       <revision author="maljdan" date="2017-01-17">Added an additional example that addresses Josh's comment</revision>
       <revision author="alfoa" date="2016-10-04">Adding test descriptions for the tests related to the ExternalPostProcessor</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>testHistorySetDeletingHistories</WorkingDir>
@@ -23,35 +25,28 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-<!-- The external methods will be defined in the files pointed to by these guys -->
-<Functions>
+  <!-- The external methods will be defined in the files pointed to by these guys -->
+  <Functions>
     <External file="partitionHistorySetAndRemoveSomeHistories" name="partitionHistorySetAndRemoveSomeHistories">
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>x0</variable>
-        <variable>y0</variable>
-        <variable>z0</variable>
-        <variable>time</variable>
+      <variables>x,y,z,x0,y0,z0,time</variables>
     </External>
-</Functions>
-
+  </Functions>
 
   <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="20021986">
-      <Input   class="DataObjects" type="PointSet"     >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"   >MC_external</Sampler>
-      <Output  class="DataObjects" type="HistorySet"   >originalHistorySet</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">originalHistorySet</Output>
     </MultiRun>
     <!-- Perform the partitioning of the history set -->
     <PostProcess name="applyFunctions">
-        <Input  class="DataObjects" type="HistorySet"   >originalHistorySet</Input>
-        <Model  class="Models"      type="PostProcessor">functionPP</Model>
-        <Output class="DataObjects" type="HistorySet"   >partitionedHistorySet</Output>
-        <Output class="OutStreams"  type="Print"        >originalHistorySet_dump</Output>
-        <Output class="OutStreams"  type="Print"        >partitionedHistorySet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">originalHistorySet</Input>
+      <Model class="Models" type="PostProcessor">functionPP</Model>
+      <Output class="DataObjects" type="HistorySet">partitionedHistorySet</Output>
+      <Output class="OutStreams" type="Print">originalHistorySet_dump</Output>
+      <Output class="OutStreams" type="Print">partitionedHistorySet_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -62,12 +57,11 @@
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
-
     <!-- This post-processor will call methods defined in two external python
      scripts compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">
-        <method>time,x,y,z</method>
-        <Function class="Functions" type="External">partitionHistorySetAndRemoveSomeHistories</Function>
+      <method>time,x,y,z</method>
+      <Function class="Functions" type="External">partitionHistorySetAndRemoveSomeHistories</Function>
     </PostProcessor>
   </Models>
 
@@ -90,7 +84,9 @@
   <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
-      <samplerInit> <limit>100</limit> </samplerInit>
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>
@@ -126,16 +122,16 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="partitionedHistorySet">
-        <Input>x0,y0,z0</Input>
-        <Output>
+      <Input>x0,y0,z0</Input>
+      <Output>
             partitionHistorySetAndRemoveSomeHistories_time,
             partitionHistorySetAndRemoveSomeHistories_x,
             partitionHistorySetAndRemoveSomeHistories_y,
             partitionHistorySetAndRemoveSomeHistories_z
        </Output>
-        <options>
-            <pivotParameter>partitionHistorySetAndRemoveSomeHistories_time</pivotParameter>
-        </options>
+      <options>
+        <pivotParameter>partitionHistorySetAndRemoveSomeHistories_time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

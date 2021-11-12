@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>AdaptSobol</WorkingDir>
-    <Sequence>make,train,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/pca_sobol/test_adaptive_sobol_attenu_correlation</name>
     <author>wangc</author>
@@ -18,7 +13,16 @@
       This test is analytic in mean and variance using the "attenuation" and "tensor polynomial" analytic models
       documented in the analytic tests.
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AdaptSobol</WorkingDir>
+    <Sequence>make,train,rom_stats,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">
@@ -27,9 +31,13 @@
       <Sampler class="Samplers" type="AdaptiveSobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
+    <IOStep name="rom_stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Input class="Models" type="ROM">rom</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">dump</Output>
       <Output class="OutStreams" type="Print">dumprom</Output>
     </IOStep>
@@ -113,6 +121,7 @@
       <Input>y1,y2,y3,y4,y5,x1,x2,x3,x4,x5</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -122,9 +131,8 @@
       <what>input, output</what>
     </Print>
     <Print name="dumprom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

@@ -1,0 +1,147 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>transform</WorkingDir>
+    <Sequence>FirstMRun,computeRank</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/pca_grid/transformationMatrix</name>
+    <author>wangc</author>
+    <created>2016-07-15</created>
+    <classesTested>PostProcessors.ImportanceRank</classesTested>
+    <description>
+      Tests the ImportanceRank postprocessor to output transformation and inverse transformation matrices.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-13">convert test to use the new dataobjects</revision>
+    </revisions>
+  </TestInfo>
+
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="test_importantRank" subType="ImportanceRank">
+      <what>transformation,inverseTransformation,manifestSEnsitivity,pcaIndex</what>
+      <targets>x,y,z</targets>
+      <features>
+        <manifest>
+          <variables>z0,x0,y0</variables>
+          <dimensions>3,1,2</dimensions>
+        </manifest>
+        <latent>
+          <variables>y1,x1</variables>
+          <dimensions>2,1</dimensions>
+        </latent>
+      </features>
+      <mvnDistribution class="Distributions" type="MultivariateNormal">MVN</mvnDistribution>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <MultivariateNormal method="pca" name="MVN">
+      <transformation>
+        <rank>2</rank>
+      </transformation>
+      <mu>0.0 60.0 60.0</mu>
+      <covariance type="abs">
+            1.0       0.8      -0.5
+            0.8       1.0      0.3
+            -0.5  0.3  0.8
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution dim="1">MVN</distribution>
+      </variable>
+      <variable name="y1">
+        <distribution dim="2">MVN</distribution>
+      </variable>
+      <variablesTransformation distribution="MVN">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>x0,y0,z0</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <PostProcess name="computeRank">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Model class="Models" type="PostProcessor">test_importantRank</Model>
+      <Output class="DataObjects" type="PointSet">test_importantRank_Dataset</Output>
+      <Output class="OutStreams" type="Print">test_importantRank_transform_Dataset_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="importantRank">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="test_importantRank_transform_Dataset_dump">
+      <type>csv</type>
+      <source>test_importantRank_Dataset</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="solns">
+      <Input>x0,y0,z0,x1,y1</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="test_importantRank_Dataset">
+      <Output>test_importantRank_vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="test_importantRank_vars">transformation_z0_y1,
+                 transformation_z0_x1,
+                 transformation_x0_y1,
+                 transformation_x0_x1,
+                 transformation_y0_y1,
+                 transformation_y0_x1,
+                 inverseTransformation_y1_z0,
+                 inverseTransformation_y1_x0,
+                 inverseTransformation_y1_y0,
+                 inverseTransformation_x1_z0,
+                 inverseTransformation_x1_x0,
+                 inverseTransformation_x1_y0,
+                 manifestSensitivity_x_z0,
+                 manifestSensitivity_x_x0,
+                 manifestSensitivity_x_y0,
+                 manifestSensitivity_y_z0,
+                 manifestSensitivity_y_x0,
+                 manifestSensitivity_y_y0,
+                 manifestSensitivity_z_z0,
+                 manifestSensitivity_z_x0,
+                 manifestSensitivity_z_y0,
+                 pcaIndex_y1,
+                 pcaIndex_x1</Group>
+  </VariableGroups>
+
+</Simulation>

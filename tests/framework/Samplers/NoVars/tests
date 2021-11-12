@@ -1,0 +1,23 @@
+[Tests]
+  [./MC]
+    type = 'RavenFramework'
+    input = 'mc.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'MC/samples.csv'
+      gold_files = 'gold/samples.csv'
+    [../]
+  [../]
+
+  [./Grid]
+    type = 'RavenErrors'
+    input = 'grid.xml'
+    expect_err = '<Grid> sampler named "sampler" requires at least one sampled <variable>!'
+  [../]
+
+  [./Stratified]
+    type = 'RavenErrors'
+    input = 'stratified.xml'
+    expect_err = '<Stratified> sampler named "sampler" requires at least one sampled <variable>!'
+  [../]
+[]

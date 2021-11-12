@@ -13,21 +13,47 @@
 # limitations under the License.
 from distutils.core import setup, Extension
 import subprocess
+import sys
 try:
-  eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"])
+  if sys.version_info.major > 2:
+    eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"]).decode("ascii")
+  else:
+    eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"])
 except:
   eigen_flags = ""
 include_dirs=['include/distributions','include/utilities','contrib/include']
 if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
-swig_opts=['-c++','-Iinclude/distributions','-Iinclude/utilities']
+if sys.version_info.major > 2:
+  swig_opts=['-c++','-py3','-Iinclude/distributions','-Iinclude/utilities']
+  ext = 'py3'
+else:
+  swig_opts=['-c++','-Iinclude/distributions','-Iinclude/utilities']
+  ext = 'py2'
 extra_compile_args=['-std=c++11']
-ext = 'py2'
 setup(name='crow',
       version='0.8',
       ext_package='crow_modules',
-      ext_modules=[Extension('_distribution1D'+ext,['crow_modules/distribution1D'+ext+'.i','src/distributions/distribution.cxx','src/utilities/MDreader.cxx','src/utilities/inverseDistanceWeigthing.cxx','src/utilities/microSphere.cxx','src/utilities/NDspline.cxx','src/utilities/ND_Interpolation_Functions.cxx','src/distributions/distributionNDBase.cxx','src/distributions/distributionNDNormal.cxx','src/distributions/distributionFunctions.cxx','src/distributions/DistributionContainer.cxx','src/distributions/distribution_1D.cxx','src/distributions/randomClass.cxx','src/distributions/distributionNDCartesianSpline.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
-                   Extension('_randomENG'+ext,['crow_modules/randomENG'+ext+'.i','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
-                   Extension('_interpolationND'+ext,['crow_modules/interpolationND'+ext+'.i','src/utilities/ND_Interpolation_Functions.cxx','src/utilities/NDspline.cxx','src/utilities/microSphere.cxx','src/utilities/inverseDistanceWeigthing.cxx','src/utilities/MDreader.cxx','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
+      ext_modules=[
+        Extension('_distribution1D'+ext,
+                  ['crow_modules/distribution1D'+ext+'.i',
+                   'src/distributions/distribution.cxx',
+                   'src/utilities/MDreader.cxx',
+                   'src/utilities/inverseDistanceWeigthing.cxx',
+                   'src/utilities/microSphere.cxx',
+                   'src/utilities/NDspline.cxx',
+                   'src/utilities/ND_Interpolation_Functions.cxx',
+                   'src/distributions/distributionNDBase.cxx',
+                   'src/distributions/distributionNDNormal.cxx',
+                   'src/distributions/distributionFunctions.cxx',
+                   'src/distributions/DistributionContainer.cxx',
+                   'src/distributions/distribution_1D.cxx',
+                   'src/distributions/randomClass.cxx',
+                   'src/distributions/distributionNDCartesianSpline.cxx'],
+                include_dirs=include_dirs,
+                swig_opts=swig_opts,
+                extra_compile_args=extra_compile_args),
+        Extension('_randomENG'+ext,['crow_modules/randomENG'+ext+'.i','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
+        Extension('_interpolationND'+ext,['crow_modules/interpolationND'+ext+'.i','src/utilities/ND_Interpolation_Functions.cxx','src/utilities/NDspline.cxx','src/utilities/microSphere.cxx','src/utilities/inverseDistanceWeigthing.cxx','src/utilities/MDreader.cxx','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
       py_modules=['crow_modules.distribution1D'+ext,'crow_modules.randomENG'+ext,'crow_modules.interpolationND'+ext],
       )

@@ -8,18 +8,27 @@
     <description>
       Tests clustering with KMeans and a pivot parameter.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>readIn,pp1,writeOut</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
+
   <Files>
     <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
   </Files>
+
   <Models>
-    <PostProcessor name='KMeans1' subType='DataMining'>
-      <KDD lib='SciKitLearn'  labelFeature='labels'>
+    <PostProcessor name="KMeans1" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>
@@ -32,36 +41,37 @@
   </Models>
 
   <Steps>
-    <IOStep name='readIn' pauseAtEnd = 'True'>
-      <Input  class='Files'       type=''          >rawDataFile</Input>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">mDataRaw</Output>
     </IOStep>
-    <PostProcess name='pp1' pauseAtEnd = 'True'>
-      <Input class='DataObjects' type='HistorySet'   >mData</Input>
-      <Model class='Models'      type='PostProcessor'>KMeans1</Model>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mDataRaw</Input>
+      <Model class="Models" type="PostProcessor">KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
-      <Output class='OutStreams'  type='Print'     >dummy</Output>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
-    <IOStep name='writeOut' pauseAtEnd = 'True'>
-      <Input  class='DataObjects' type='HistorySet'>mData</Input>
-      <Input  class='DataObjects' type='HistorySet'>clusterInfo</Input>
-      <Output class='OutStreams'  type='Plot'      >plotRawData</Output>
-      <Output class='OutStreams'  type='Plot'      >plotPPDataLabel</Output>
-      <Output class='OutStreams'  type='Plot'      >plotPPDataCentroid</Output>
-      <Output class='OutStreams'  type='Print'     >centroid</Output>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Input class="DataObjects" type="HistorySet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">plotRawData</Output>
+      <Output class="OutStreams" type="Plot">plotPPDataLabel</Output>
+      <Output class="OutStreams" type="Plot">plotPPDataCentroid</Output>
+      <Output class="OutStreams" type="Print">centroid</Output>
     </IOStep>
   </Steps>
+
   <OutStreams>
-    <Print name='dummy'>
+    <Print name="dummy">
       <type>csv</type>
       <source>mData</source>
     </Print>
-    <Print name='centroid'>
+    <Print name="centroid">
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot  name="plotRawData" overwrite="True" >
+    <Plot name="plotRawData" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -93,7 +103,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataLabel" overwrite="True" >
+    <Plot name="plotPPDataLabel" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -106,7 +116,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataCentroid" overwrite="True" >
+    <Plot name="plotPPDataCentroid" overwrite="True">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -141,19 +151,27 @@
   </OutStreams>
 
   <DataObjects>
-    <HistorySet name='clusterInfo'>
+    <HistorySet name="clusterInfo">
       <Input>labels</Input>
       <Output>x1,x2</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="mData">
       <Input>n</Input>
+      <Output>x1,x2,labels</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="mDataRaw">
+      <Input>n</Input>
       <Output>x1,x2</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

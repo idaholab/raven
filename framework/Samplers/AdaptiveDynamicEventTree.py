@@ -21,8 +21,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,6 @@ import numpy as np
 from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
-from sklearn import neighbors
 import itertools
 #External Modules End--------------------------------------------------------------------------------
 
@@ -40,9 +37,7 @@ import itertools
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
-from utils import InputData
 import utils.TreeStructure as ETS
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
@@ -134,6 +129,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
     if not self.startAdaptive:
       self.startAdaptive = True
+      if len(self.lastOutput) == 0:
+        self.startAdaptive = False
+        return
       for treer in self.TreeInfo.values():
         for _ in treer.iterProvidedFunction(self._checkIfRunning):
           self.startAdaptive = False
@@ -151,6 +149,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         - if not self.hybridDETstrategy and branch found     -> returnTuple = (valBranch,cdfValues)
         - if not self.hybridDETstrategy and branch not found -> returnTuple = (None,cdfValues)
     """
+    from sklearn import neighbors
+
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
@@ -161,7 +161,12 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
       if key not in self.epistemicVariables.keys():
         cdfValues[key] = self.distDict[key].cdf(value)
-        lowerCdfValues[key] = utils.find_le(self.branchProbabilities[key],cdfValues[key])[0]
+        try:
+          index = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[key]) <= cdfValues[key]).nonzero())[-1]
+          val = self.branchProbabilities[key][index]
+        except (ValueError, IndexError):
+          val = None
+        lowerCdfValues[key] = val
         self.raiseADebug("CDF value       : "+str(cdfValues[key]))
         self.raiseADebug("Lower CDF found : "+str(lowerCdfValues[key]))
       self.raiseADebug("_"*50)
@@ -218,7 +223,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      valBranch = self._checkValidityOfBranch(neigh.kneighbors([lowerCdfValues.values()]),mapping)
+      valBranch = self._checkValidityOfBranch(neigh.kneighbors([list(lowerCdfValues.values())]),mapping)
       if self.hybridDETstrategy is not None:
         returnTuple = valBranch,cdfValues,treer
       else:
@@ -264,7 +269,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     endInfo = info['parentNode'].get('endInfo')
-    del self.inputInfo
+    #del self.inputInfo
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
@@ -276,11 +281,11 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
     # create a subgroup that will be appended to the parent element in the xml tree structure
-    subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
+    subGroup = ETS.HierarchicalNode(rname)
     subGroup.add('parent', info['parentNode'].get('name'))
     subGroup.add('name', rname)
-    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPbr')))
-    condPbC  = float(info['parentNode'].get('conditionalPbr'))
+    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPb')))
+    condPbC  = float(info['parentNode'].get('conditionalPb'))
 
     # Loop over  branchChangedParams (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
@@ -295,10 +300,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       subGroup.add('branchChangedParam',branchParams)
       subGroup.add('branchChangedParamValue',branchChangedParamValue)
       subGroup.add('branchChangedParamPb',branchChangedParamPb)
-    else:
-      pass
     # add conditional probability
-    subGroup.add('conditionalPbr',condPbC)
+    subGroup.add('conditionalPb',condPbC)
     # add initiator distribution info, start time, etc.
     subGroup.add('startTime', info['parentNode'].get('endTime'))
     # initialize the endTime to be equal to the start one... It will modified at the end of this branch
@@ -309,17 +312,21 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     subGroup.add('running',False)
     subGroup.add('queue',True)
     subGroup.add('completedHistory', False)
+    subGroup.add('happenedEvent', True)
+    subGroup.add('triggeredVariable',info['parentNode'].get('triggeredVariable'))
     # Append the new branch (subgroup) info to the parentNode in the tree object
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
-    self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
+    self.inputInfo.update({'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
               'branchChangedParam':subGroup.get('branchChangedParam'),
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-              'conditionalPb':subGroup.get('conditionalPbr'),
+              'conditionalPb':subGroup.get('conditionalPb'),
               'startTime':info['parentNode'].get('endTime'),
+              'happenedEvent':subGroup.get('happenedEvent'),
+              'triggeredVariable':subGroup.get('triggeredVariable'),
               'RAVEN_parentID':subGroup.get('parent'),
-              'RAVEN_isEnding':True}
+              'RAVEN_isEnding':True})
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
@@ -331,7 +338,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[key] for key in cdfValues.keys()]
-    self.inputInfo['PbThreshold'           ] = cdfValues.values()
+    self.inputInfo['PbThreshold'           ] = list(cdfValues.values())
     self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
     self.inputInfo['SampledVars'           ] = {}
     self.inputInfo['SampledVarsPb'         ] = {}
@@ -344,7 +351,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
+    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+    self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
     # add additional edits if needed
@@ -358,7 +366,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if endInfo:
       subGroup.add('endInfo',copy.deepcopy(endInfo))
 
-  def localStillReady(self,ready): #, lastOutput= None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
@@ -366,7 +374,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     if self.counter == 0:
-      return     True
+      return True
     if len(self.RunQueue['queue']) != 0:
       detReady = True
     else:
@@ -374,7 +382,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
-      #if self._endJobRunnable != 1: self._endJobRunnable = 1
       data = self.lastOutput.asDataset()
       endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
       numCompletedHistories = len(endingData['RAVEN_isEnding'])
@@ -419,8 +426,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
-        ind = utils.find_le_index(self.branchProbabilities[key],value)
-        if not ind:
+        try:
+          ind = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[key]) <= value).nonzero())[-1]
+        except (IndexError, ValueError):
           ind = 0
         if value not in self.branchProbabilities[key]:
           self.branchProbabilities[key].insert(ind,value)
@@ -433,7 +441,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
-        elm = ETS.HierarchicalNode(self.messageHandler,self.name + '_' + str(len(self.TreeInfo.keys())+1))
+        elm = ETS.HierarchicalNode(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('startTime', 0.0)
         # Initialize the endTime to be equal to the start one...
@@ -445,7 +453,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         elm.add('completedHistory', False)
         branchedLevel = {}
         for key,value in cdfValues.items():
-          branchedLevel[key] = utils.index(self.branchProbabilities[key],value)
+          branchedLevel[key] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[key]) == value).nonzero())[-1]
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
@@ -466,7 +474,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           elm.add('hybridsamplerCoordinate', hybridSampled)
         self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
+        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 
@@ -524,13 +532,12 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       else:
         self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(xmlNode.attrib['updateGrid']):
         self.insertAdaptBPb = True
     # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
     for  val in self.branchProbabilities.values():
       if min(val) != 1e-3:
         val.insert(0, 1e-3)
-
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
@@ -559,7 +566,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if self.hybridDETstrategy == 1:
         gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
         # construct an hybrid DET through an XML node
-        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid"/> </InitNode>')
+        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid" name="none"/> </InitNode>')
         for varName, dist in self.distDict.items():
           if varName.replace('<distribution>','') in self.epistemicVariables.keys():
             # found an epistemic

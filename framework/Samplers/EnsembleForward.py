@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData
+from utils import InputData, InputTypes
 from .ForwardSampler        import ForwardSampler
 from .MonteCarlo            import MonteCarlo
 from .Grid                  import Grid
@@ -70,7 +68,7 @@ class EnsembleForward(ForwardSampler):
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
 
-    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
 
     inputSpecification.addSub(samplerInitInput)
     return inputSpecification
@@ -98,7 +96,7 @@ class EnsembleForward(ForwardSampler):
     """
     #TODO remove using xmlNode
     # this import happens here because a recursive call is made if we attempt it in the header
-    from .Factory import returnInstance,knownTypes
+    from .Factory import factory
     for child in xmlNode:
       #sampler initialization
       if child.tag == 'samplerInit':
@@ -106,9 +104,11 @@ class EnsembleForward(ForwardSampler):
       # read in samplers
       elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
-        self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
+        self.instanciatedSamplers[child.tag] = factory.returnInstance(child.tag)
         #FIXME the variableGroups needs to be fixed
-        self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+        self.instanciatedSamplers[child.tag].readXML(child, variableGroups={}, globalAttributes=self.globalAttributes)
+        # fill toBeSampled so that correct check for samplable variables occurs
+        self.toBeSampled.update(self.instanciatedSamplers[child.tag].toBeSampled)
       # function variables are defined outside the individual samplers
       elif child.tag=='variable':
         for childChild in child:
@@ -120,7 +120,7 @@ class EnsembleForward(ForwardSampler):
       elif child.tag == 'constant':
         pass
       # some samplers aren't eligible for ensembling
-      elif child.tag in knownTypes():
+      elif child.tag in factory.knownTypes():
         self.raiseAnError(IOError,'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.format(child.tag,self.type,", ".join(self.acceptableSamplers)))
       # catch-all for bad inputs
       else:
@@ -133,6 +133,8 @@ class EnsembleForward(ForwardSampler):
       @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
+    # clear out toBeSampled, since ForwardSampler uses it for assembling
+    self.toBeSampled = {}
     needDict = ForwardSampler._localWhatDoINeed(self)
     for combSampler in self.instanciatedSamplers.values():
       preNeedDict = combSampler.whatDoINeed()
@@ -165,7 +167,6 @@ class EnsembleForward(ForwardSampler):
       if "evaluate" not in self.funcDict[key].availableMethods():
         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
 
-
   def localInitialize(self):
     """
       Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
@@ -175,6 +176,7 @@ class EnsembleForward(ForwardSampler):
     self.limit = 1
     cnt = 0
     lowerBounds, upperBounds = {}, {}
+    metadataKeys, metaParams = [], {}
     for samplingStrategy in self.instanciatedSamplers.keys():
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
@@ -186,9 +188,13 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
       cnt+=1
+      mKeys, mParams = self.instanciatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      metadataKeys.extend(mKeys)
+      metaParams.update(mParams)
+    metadataKeys = list(set(metadataKeys))
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
-    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
+    self.gridEnsemble = GridEntities.factory.returnInstance('GridEntity')
     initDict = {'dimensionNames':self.instanciatedSamplers.keys(),
                 'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]),
                 'lowerBounds':lowerBounds,
@@ -197,7 +203,8 @@ class EnsembleForward(ForwardSampler):
                 'constructTensor':False,
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
-
+    # add meta data keys
+    self.addMetaKeys(metadataKeys, params=metaParams)
 
   def localGenerateInput(self,model,myInput):
     """

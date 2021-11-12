@@ -2,13 +2,16 @@
 <Simulation verbosity="debug">
   <!-- TestInfo -->
   <TestInfo>
-    <name>framework/testAdaptiveDynamicEventTreeRAVEN</name>
+    <name>framework.testAdaptiveDynamicEventTreeRAVEN</name>
     <author>@alfoa</author>
     <created>2015-05-01</created>
-    <classesTested>Databases.HDF5</classesTested>
+    <classesTested>Samplers.AdaptiveDynamicEventTree</classesTested>
     <description>
         This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code) in a larger case
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
   <!-- RunInfo. 1 Step is performed in this case -->
   <RunInfo>
@@ -46,12 +49,11 @@
   <!-- Functions.  1 Function is listed. The goal function for the adaptive search. -->
   <Functions>
     <External file="AdaptiveDET/relapFunction.py" name="relapFunction">
-      <variable type="numpy.float64">DG1_time_ratio</variable>
-      <variable type="numpy.float64">DG1recoveryTime</variable>
-      <variable type="numpy.float64">CladTempBranched</variable>
-      <variable type="numpy.float64">SecPGrecoveryTime</variable>
-      <variable type="numpy.float64">PrimPGrecoveryTime</variable>
-      <variable type="numpy.float64">CladDamaged</variable>
+      <variables>
+          DG1_time_ratio,DG1recoveryTime,
+          CladTempBranched,SecPGrecoveryTime,
+          PrimPGrecoveryTime,CladDamaged
+      </variables>
     </External>
   </Functions>
   

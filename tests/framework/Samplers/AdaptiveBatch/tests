@@ -84,14 +84,14 @@
   remove_unicode_identifier = true
  [../]
  [./InvalidScoringStrategy]
-  type = 'RavenFramework'
+  type = 'RavenErrors'
   input = 'test_invalid_score.xml'
-  xml = ''
+  expect_err = ' Requested unknown scoring type: '
  [../]
  [./InvalidBatchStrategy]
-  type = 'RavenFramework'
+  type = 'RavenErrors'
   input = 'test_invalid_batch.xml'
-  xml = ''
+  expect_err = 'Requested unknown batch strategy:'
  [../]
  [./InvalidThickness]
   type = 'RavenFramework'

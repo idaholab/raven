@@ -3,15 +3,18 @@
     type = 'RavenFramework'
     input = 'scgpc_trainer_1.xml'
     output = 'run/training_data.csv run/scgpc_1.pk run/rom_stats_1.xml'
+    skip = "needs to be converted to exercise test"
   [../]
   [./scTrain2]
     type = 'RavenFramework'
     input = 'scgpc_trainer_2.xml'
     output = 'run/scgpc_2.pk run/rom_stats_2.xml'
+    skip = "needs to be converted to exercise test"
   [../]
   [./scTrian3]
     type = 'RavenFramework'
     input = 'scgpc_trainer_3.xml'
     output = 'run/scgpc_3.pk run/rom_stats_3.xml'
+    skip = "needs to be converted to exercise test"
   [../]
 []

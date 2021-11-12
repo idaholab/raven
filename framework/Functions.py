@@ -21,21 +21,26 @@ This module contains interfaces to import external functions
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import utils
+from EntityFactoryBase import EntityFactory
+from BaseClasses import BaseEntity, InputDataUser
+from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Function(BaseType):
+class FunctionCollection(InputData.ParameterInput):
+  """
+    Class for reading in a collection of Functions
+  """
+
+FunctionCollection.createClass("Functions")
+
+class External(BaseEntity, InputDataUser):
   """
     This class is the base class for different wrappers for external functions
     providing the tools to solve F(x)=0 where at least one of the components of
@@ -43,77 +48,89 @@ class Function(BaseType):
     inequalities in the input space that are considered by the
     supportBoundingTest
   """
-  def __init__(self,runInfoDict):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, class, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addParam("file", InputTypes.StringType, True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
+    return inputSpecification
+
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    self.workingDir                      = runInfoDict['WorkingDir']
-    self.__functionFile                  = ''                                # function file name
-    self.__actionDictionary              = {}                                # action dictionary
+    super().__init__()
+    self.workingDir = None                # working directory
+    self.__functionFile = ''              # function file name
+    self.__actionDictionary = {}          # action dictionary
+    self.__inputVariables = []            # list of variables' names' given in input (xml)
+    self.__inputFromWhat = {}             # dictionary of input data type
     # dictionary of implemented actions
-    self.__actionImplemented             = {'residuumSign':False,'supportBoundingTest':False,'residuum':False,'gradient':False}
-    self.__inputVariables                = []                                # list of variables' names' given in input (xml)
-    self.__inputFromWhat                 = {}                                # dictionary of input data type
-    self.__inputFromWhat['dict']         = self.__inputFromDict
-    #self.__inputFromWhat['Data']         = self.__inputFromData
-    self.printTag                        = 'FUNCTIONS'
+    self.__actionImplemented = {'residuumSign': False,
+                                'supportBoundingTest': False,
+                                'residuum': False,
+                                'gradient':False}
+    self.__inputFromWhat['dict'] = self.__inputFromDict
+    self.printTag  = 'FUNCTIONS'
 
-  def _readMoreXML(self,xmlNode):
+  def applyRunInfo(self, runInfo):
     """
-      Function to read the portion of the xml input that belongs to this
-      specialized class and initialize some variables based on the inputs
-      received.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      Use RunInfo
+      @ In, runInfo, dict, run info
       @ Out, None
     """
-    if 'file' in xmlNode.attrib.keys():
-      self.functionFile = xmlNode.attrib['file']
-      # get the module to load and the filename without path
-      moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(self, self.functionFile, self.workingDir)
-      # import the external function
-      importedModule = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-      if not importedModule:
-        self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
-      #here the methods in the imported file are brought inside the class
-      for method in importedModule.__dict__.keys():
-        if method in ['__residuumSign__','__residuumSign','residuumSign',
-                      '__supportBoundingTest__','__supportBoundingTest','supportBoundingTest',
-                      '__residuum__','__residuum','residuum','__gradient__','__gradient','gradient']:
-          if method in ['__residuumSign__','__residuumSign','residuumSign']:
-            self.__residuumSign                                =  importedModule.__dict__[method]
-            self.__actionDictionary['residuumSign' ]           = self.__residuumSign
-            self.__actionImplemented['residuumSign']           = True
-          if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
-            self.__supportBoundingTest                         =  importedModule.__dict__[method]
-            self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
-            self.__actionImplemented['supportBoundingTest']    = True
-          if method in ['__residuum__','__residuum','residuum']:
-            self.__residuum                                    =  importedModule.__dict__[method]
-            self.__actionDictionary['residuum' ]               = self.__residuum
-            self.__actionImplemented['residuum']               = True
-          if method in ['__gradient__','__gradient','gradient']:
-            self.__gradient                                    =  importedModule.__dict__[method]
-            self.__actionDictionary['gradient']                = self.__gradient
-            self.__actionImplemented['gradient']               = True
-        else:
-          #custom
-          self.__actionDictionary[method]                    = importedModule.__dict__[method]
-          self.__actionImplemented[method]                   = True
-    else:
-      self.raiseAnError(IOError,'No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
-    cnt = 0
-    for child in xmlNode:
-      if child.tag=='variable':
-        execCommand('self.'+child.text+' = None',self=self)
-        self.__inputVariables.append(child.text)
-        cnt +=1
-        if len(child.attrib.keys()) > 0:
-          self.raiseAnError(IOError,'variable block in the definition of the function '+self.name + ' should not have any attribute!')
-    if cnt == 0:
-      self.raiseAnError(IOError,'not variable found in the definition of the function '+self.name)
+    super().applyRunInfo(runInfo)
+    self.workingDir = runInfo['WorkingDir']
+
+  def _handleInput(self, paramInput, **kwargs):
+    """
+      Method to handle the External Function parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    self.functionFile = paramInput.parameterValues["file"]
+    # get the module to load and the filename without path
+    moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(self, self.functionFile, self.workingDir)
+    # import the external function
+    importedModule = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+    if not importedModule:
+      self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
+    #here the methods in the imported file are brought inside the class
+    for method, action in importedModule.__dict__.items():
+      if method in ['__residuumSign__','__residuumSign','residuumSign',
+                    '__supportBoundingTest__','__supportBoundingTest',
+                    'supportBoundingTest', '__residuum__','__residuum',
+                    'residuum','__gradient__','__gradient','gradient']:
+        if method in ['__residuumSign__','__residuumSign','residuumSign']:
+          self.__actionDictionary['residuumSign' ] = action
+          self.__actionImplemented['residuumSign'] = True
+        if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
+          self.__actionDictionary['supportBoundingTest' ] = action
+          self.__actionImplemented['supportBoundingTest'] = True
+        if method in ['__residuum__','__residuum','residuum']:
+          self.__actionDictionary['residuum' ] = action
+          self.__actionImplemented['residuum'] = True
+        if method in ['__gradient__','__gradient','gradient']:
+          self.__actionDictionary['gradient'] = action
+          self.__actionImplemented['gradient'] = True
+      else:
+        #custom
+        self.__actionDictionary[method] = action
+        self.__actionImplemented[method] = True
+    # get variables
+    self.__inputVariables = paramInput.findFirst("variables").value
+    # initialize variables
+    for var in self.__inputVariables:
+      execCommand('self.'+var+' = None',self=self)
 
   def getInitParams(self):
     """
@@ -156,7 +173,7 @@ class Function(BaseType):
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, None
     """
-    if type(myInput)==dict:
+    if isinstance(myInput,dict):
       self.__inputFromWhat['dict'](myInput)
     else:
       self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
@@ -208,33 +225,16 @@ class Function(BaseType):
     """
     return self.__inputVariables[:]
 
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'function'
-__interFaceDict = {}
-__interFaceDict['External'] = Function
-__knownTypes                = __interFaceDict.keys()
+factory = EntityFactory('function', needsRunInfo=True, returnInputParameter=True)
+factory.registerType('External', External)
 
+# add input specifications in FunctionCollection
+FunctionCollection.addSub(External.getInputSpecification())
 
-def knownTypes():
+def returnInputParameter():
   """
-    Returns known types.
-    @ In, None
-    @ Out, __knownTypes, list, list of known types
+    Function returns the InputParameterClass that can be used to parse the
+    whole collection.
+    @ Out, returnInputParameter, FunctionCollection, class for parsing.
   """
-  return __knownTypes
-
-needsRunInfo = True
-
-def returnInstance(Type,runInfoDict, caller):
-  """
-    Returns an object construction pointer from this module.
-    @ In, Type, string, requested object
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the object
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type](runInfoDict)
-  else:
-    caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)
+  return FunctionCollection()

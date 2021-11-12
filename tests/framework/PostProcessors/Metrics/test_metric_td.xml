@@ -1,23 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>metricTD</WorkingDir>
-    <Sequence>mcRun, PP1</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
-    <name>framework/PostProcessors/Metric/test_metric_td</name>
+    <name>framework/PostProcessors/Metric/testMetricTD</name>
     <author>wangc</author>
     <created>2017-11-20</created>
     <classesTested>PostProcessors.Metric</classesTested>
     <description>
       This test checks the Metric PostProcessor to handle time-dependent data
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2019-01-09">no writing directly to files from postprocessors</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="output_metric" type="">output_metric_td.xml</Input>
-  </Files>
+  <RunInfo>
+    <WorkingDir>metricTD</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/lorentzAttractor_disc.py" name="poly" subType="">
@@ -28,13 +28,13 @@
       <Targets type="variable">y0, y, z</Targets>
       <multiOutput>raw_values</multiOutput>
       <pivotParameter>time</pivotParameter>
-      <Metric class="Metrics" type="SKL">EVC</Metric>
-      <Metric class="Metrics" type="SKL">MAE</Metric>
-      <Metric class="Metrics" type="SKL">R2</Metric>
-      <Metric class="Metrics" type="SKL">MSE</Metric>
+      <Metric class="Metrics" type="Metric">EVC</Metric>
+      <Metric class="Metrics" type="Metric">MAE</Metric>
+      <Metric class="Metrics" type="Metric">R2</Metric>
+      <Metric class="Metrics" type="Metric">MSE</Metric>
     </PostProcessor>
   </Models>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder2">
       <Input>x0,y0,z0</Input>
@@ -63,7 +63,7 @@
       </Output>
     </HistorySet>
   </DataObjects>
-  
+
   <OutStreams>
     <Print name="pp1_print">
       <type>csv</type>
@@ -72,18 +72,18 @@
   </OutStreams>
 
   <Metrics>
-    <SKL name="EVC">
+    <Metric name="EVC" subType="SKL">
       <metricType>regression|explained_variance_score</metricType>
-    </SKL>
-    <SKL name="MAE">
+    </Metric>
+    <Metric name="MAE" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
-    </SKL>
-    <SKL name="R2">
+    </Metric>
+    <Metric name="R2" subType="SKL">
       <metricType>regression|r2_score</metricType>
-    </SKL>
-    <SKL name="MSE">
+    </Metric>
+    <Metric name="MSE" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Distributions>
@@ -100,7 +100,7 @@
       <sigma>1</sigma>
     </Normal>
   </Distributions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -131,7 +131,6 @@
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="DataObjects" type="HistorySet">pp1_out</Output>
       <Output class="OutStreams" type="Print">pp1_print</Output>
-      <Output class="Files" type="">output_metric</Output>
     </PostProcess>
   </Steps>
 

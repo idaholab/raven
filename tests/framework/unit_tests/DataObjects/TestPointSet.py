@@ -320,12 +320,43 @@ checkRlz('PointSet append 1 idx 2',data.realization(index=2),rlz2)
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
-m,match = data.realization(matchDict={'a':11.0})
-checkSame('PointSet append 1 match index',m,1)
-checkRlz('PointSet append 1 match',match,rlz1)
-idx,rlz = data.realization(matchDict={'x':1.0})
+print('DEBUGG data:', data._collector)
+m, match = data.realization(matchDict={'a':11.0})
+checkSame('PointSet append 1 match index', m, 1)
+checkRlz('PointSet append 1 match', match, rlz1)
+idx, rlz = data.realization(matchDict={'x':1.0})
 checkSame('PointSet find bogus match index',idx,3)
 checkNone('PointSet find bogus match',rlz)
+print('DEBUGG\n\n')
+
+data2 = copy.deepcopy(data)
+# add a realization that is the same as one, but different in one element
+rlz3 = {'a' :11.0,
+        'b': 12.0,
+        'x': 14.0,
+        'z': 16.0,
+        'prefix': 'fourth',
+       }
+formatRealization(rlz3)
+data2.addRealization(rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+print('DEBUGG match3:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+print('DEBUGG match1:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
+
+# now as a datset
+data2.asDataset()
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
 
 ######################################
 #        COLLAPSING DATA SET         #
@@ -375,7 +406,7 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
@@ -404,14 +435,16 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata DataSet',treeDS.tag,'DataSet')
 checkSame('Metadata DataSet entries',len(treeDS),1) # 2
 general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-sampleTag,inputs,outputs,pointwise_meta = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName, inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'PointSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -425,9 +458,9 @@ checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sampl
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'DataSet\'}',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (DataSet)',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -449,15 +482,16 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 # to CSV
 ## test writing to file
 csvname = 'PointSetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',
            '    <general>',
-           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '      <datasetName>PointSet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
            '    </general>',
            '  </DataSet>',
            '  ',

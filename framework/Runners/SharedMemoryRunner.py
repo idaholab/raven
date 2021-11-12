@@ -16,28 +16,19 @@ Created on September 12, 2016
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import collections
-import subprocess
-# try               : import Queue as queue
-# except ImportError: import queue
-import os
-import signal
-import copy
-import abc
-#import logging, logging.handlers
+import sys
+import time
+import ctypes
+import inspect
 import threading
 
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -46,29 +37,19 @@ class SharedMemoryRunner(InternalRunner):
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
+  def __init__(self, args, functionToRun, **kwargs):
     """
       Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message
-        handler object
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, identifier, string, optional, id of this job
-      @ In, metadata, dict, optional, dictionary of metadata associated with
-        this run
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to
-        this runner. For example, if present, to retrieve this runner using the
-        method jobHandler.getFinished, the uniqueHandler needs to be provided.
-        If uniqueHandler == 'any', every "client" can get this runner
-      @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
-      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ In, kwargs, dict, additional arguments to pass to base
       @ Out, None
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler, profile)
+    super().__init__(args, functionToRun, **kwargs)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
@@ -130,13 +111,16 @@ class SharedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = threading.Thread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.args))
+      self.thread = InterruptibleThread(target = lambda q, *arg : q.append(self.functionToRun(*arg)),
+                                     name = self.identifier,
+                                     args=(self.subque,) + tuple(self.args))
 
       self.thread.daemon = True
       self.thread.start()
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
+      self.exceptionTrace = sys.exc_info()
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
@@ -146,6 +130,59 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
-    os.kill(self.thread.pid, signal.SIGTERM)
+    if self.thread is not None:
+      self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
+      while self.thread is not None and self.thread.isAlive():
+        time.sleep(0.1)
+        try:
+          self.thread.raiseException(RuntimeError)
+        except ValueError:
+          self.thread = None
     self.trackTime('runner_killed')
+
+## The following code is extracted from stack overflow with some minor cosmetic
+## changes in order to adhere to RAVEN code standards:
+## https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python
+def _asyncRaise(tid, exceptionType):
+  """
+    Raises an exception in the threads with id tid
+    @ In, tid, integer, this variable represents the id of the thread to raise an exception
+    @ In, exceptionType, Exception, the type of exception to throw
+    @ Out, None
+  """
+  if not inspect.isclass(exceptionType):
+    raise TypeError("Only types can be raised (not instances)")
+  res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exceptionType))
+  if res == 0:
+    raise ValueError("invalid thread id")
+  elif res != 1:
+    # "if it returns a number greater than one, you're in trouble,
+    # and you should call it again with exc=NULL to revert the effect"
+    ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+    raise SystemError("PyThreadState_SetAsyncExc failed")
+
+class InterruptibleThread(threading.Thread):
+  """
+    A thread class that supports raising exception in the thread from another thread.
+  """
+  def raiseException(self, exceptionType):
+    """
+      Raises the given exception type in the context of this thread.
+      If the thread is busy in a system call (time.sleep(), socket.accept(), ...), the exception is simply ignored.
+      If you are sure that your exception should terminate the thread, one way to ensure that it works is:
+       t = InterruptibleThread( ... )
+        ...
+        t.raiseException( SomeException )
+        while t.isAlive():
+          time.sleep( 0.1 )
+          t.raiseException( SomeException )
+      If the exception is to be caught by the thread, you need a way to check that your thread has caught it.
+      CAREFUL : this function is executed in the context of the caller thread, to raise an excpetion in the context of the
+                thread represented by this instance.
+      @ In, exceptionType, Exception, the type of exception to raise in this thread
+      @ Out, None
+    """
+    if self.isAlive():
+      ## Assuming Python 2.6+, we can remove the need for the _get_my_tid as
+      ## specifed in the Stack Overflow answer
+      _asyncRaise( self.ident, exceptionType )

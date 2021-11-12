@@ -73,25 +73,33 @@
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|A</y>
-                <c>blue</c>
+                <kwargs>
+                  <color>blue</color>
+                </kwargs>
             </plot>
             <plot>
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|B</y>
-                <c>red</c>
+                <kwargs>
+                  <color>orange</color>
+                </kwargs>
             </plot>
             <plot>
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|C</y>
-                <c>yellow</c>
+                <kwargs>
+                  <color>green</color>
+                </kwargs>
             </plot>
             <plot>
                 <type>line</type>
                 <x>history|Output|time</x>
                 <y>history|Output|D</y>
-                <c>black</c>
+                <kwargs>
+                  <color>red</color>
+                </kwargs>
             </plot>
             <xlabel>time (s)</xlabel>
             <ylabel>evolution (kg)</ylabel>

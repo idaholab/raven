@@ -1,10 +1,10 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
   <RunInfo>
     <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Nmake,Ntrain,Ntest,Nprint</Sequence>
+    <Sequence>Nmake, Ntrain, Ntest, stats, Nprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/normal</name>
     <author>talbpaul</author>
@@ -64,7 +64,7 @@
     </MultiRun>
     <IOStep name="Nprint">
       <Input class="DataObjects" type="PointSet">Ntests</Input>
-      <Input class="Models" type="ROM">NROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Ndump</Output>
       <Output class="OutStreams" type="Print">Ndumprom</Output>
     </IOStep>
@@ -72,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">Nsolns</Input>
       <Output class="Models" type="ROM">NROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">NROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -87,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -96,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Ndumprom">
-      <type>xml</type>
-      <source>NROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

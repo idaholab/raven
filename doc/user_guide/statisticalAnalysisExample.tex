@@ -21,8 +21,8 @@ In addition, RAVEN fully supports the computation of all of the statistical mome
 ``measure'' the correlation among variables/parameters/FOMs:
 \begin{enumerate}
   \item \textit{Covariance matrix}
-  \item \textit{Normalized Sensitivity  matrix}
-  \item \textit{Variance Dependent Sensitivity  matrix}
+  \item \textit{Normalized Sensitivity matrix}
+  \item \textit{Variance Dependent Sensitivity matrix}
   \item \textit{Sensitivity matrix}
   \item \textit{Pearson matrix}.
 \end{enumerate}
@@ -37,47 +37,34 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{RunInfo}
-   As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run
-   using forty processors (\xmlNode{batchSize}).
+   As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis. The number of steps specified in (\xmlNode{Sequence}) are sequentially run, two steps in this specific case, using the number of processors assigned in (\xmlNode{batchSize}).
    \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor.
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Files}
-   Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
-   the attribute  \xmlAttr{name} represents the alias that is going to be
-   used in all the other input blocks in order to refer to this file.
-   \\In addition, the output file of the \textit{PostProcess} \textbf{Step} is
-   here defined (XML format).
    \item \textbf{\textit{Models}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Models}
  The goal of this example is to show how the
  principal statistical FOMs can be computed through RAVEN.
- \\Indeed, in addition to the previously explained Code
- model, a Post-Processor model (BasicStatistics) is here specified.
-Note that the post-process step is
-performed on all the variables with respect to the parameters used in this example ( $A,\, B,\, C \, and \, D$
-with respect to $sigma-A,\,sigma-B,\, decay-A,$ and $decay-B$).
+ \\We use an External model and specify a Post-Processor model (BasicStatistics). The post-process step is performed on all the output FOMs used in this example ($r and t$).
    \item \textbf{\textit{Distributions}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Distributions}
-  In the Distributions XML section, the stochastic models for the
-  uncertainties are reported. In
-  this case 2 distributions are defined:
+  In the Distributions XML section, the stochastic model for the
+  uncertainties are reported. In this case 2 distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties
-    associated with  the Model \textit{sigma-A} and \textit{sigma-B}
-    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to
-    model the uncertainties
-    associated with  the Model \textit{decay-A} and \textit{decay-B}.
+    \item $vel\_dist \sim \mathbb{N}(30,5)$, used to model the uncertainties
+    associated with  the \textit{velocity};
+    \item  $angle\_dist \sim \mathbb{U}(5,85)$,  used to
+    model the uncertainties associated with the \textit{angle}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Samplers}
-  In order to obtained the data-set through which the statistical FOMs need to be computed, a \textit{MonteCarlo} sampling approach is here employed.
+  In order to obtain the data-set on which the data mining algorithms are going to be applied, a \textit{MonteCarlo} sampling approach is employed here.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{DataObjects}
-  Int this block, two \textit{DataObjects} are defined:
-  1) PointSet named ``samplesMC'' used to collect the final outcomes of
+  In this block, three \textit{DataObjects} are defined:
+  1) PointSet named ``samples'' used to collect the final outcomes of
   the code,
-  2) HistorySet named ``histories'' in which the full time responses of the
-  variables $A,B,C,D$ are going to be stored.
+  2) PointSet named ``dummyIN'' used as a placeholder for the \textit{Multirun} step,
+  3) HistorySet named ``histories'' in which the full time responses of the
+  variables $x,y,t$ are going to be stored.
 
    \item \textbf{\textit{Steps}}:
      \xmlExample{framework/user_guide/StatisticalAnalysis/statisticalAnalysis.xml}{Steps}
@@ -94,7 +81,7 @@ with respect to $sigma-A,\,sigma-B,\, decay-A,$ and $decay-B$).
      collect the outputs in the two \textit{DataObjects}. As it can be
      seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
-     be perturbed through the Grid sampling strategy.
+     be perturbed through the MonteCarlo sampling strategy.
      \item \xmlNode{PostProcess} named ``statisticalAnalysisMC'', used
      compute all the statistical moments and FOMs based on the
      data obtained through the sampling strategy. As it can be noticed,
@@ -107,88 +94,66 @@ Tables \ref{ScalarMoments}-\ref{SensitivityComputed} show all the results of the
 step.
 
 
-\begin{landscape}
 \begin{table}[h!]
 \centering
-\caption{Computed Moments and Cumulants.}
+\caption{Computed Moments and Cumulants}
 \label{ScalarMoments}
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|}
 \hline
-{\ul \textit{\textbf{Computed Quantities}}} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{decay-A} & \textbf{decay-B} & \textbf{sigma-A} & \textbf{sigma-B} \\ \hline
-\textit{expected value}                     & 5.97E-02   & 3.97E-01   & 9.82E-01   & 1.50E+00   & 5.57E-08         & 5.61E-08         & 5.07E+02         & 4.73E+02         \\ \hline
-\textit{median}                             & 2.45E-02   & 3.06E-01   & 9.89E-01   & 1.54E+00   & 5.73E-08         & 5.62E-08         & 5.11E+02         & 4.70E+02         \\ \hline
-\textit{variance}                           & 8.19E-03   & 6.00E-02   & 1.19E-02   & 1.49E-02   & 7.00E-16         & 6.83E-16         & 8.52E+04         & 8.64E+04         \\ \hline
-\textit{sigma}                              & 9.05E-02   & 2.45E-01   & 1.09E-01   & 1.22E-01   & 2.64E-08         & 2.61E-08         & 2.92E+02         & 2.94E+02         \\ \hline
-\textit{variation coefficient}              & 1.52E+00   & 6.17E-01   & 1.11E-01   & 8.15E-02   & 4.75E-01         & 4.66E-01         & 5.75E-01         & 6.21E-01         \\ \hline
-\textit{skewness}                           & 2.91E+00   & 9.88E-01   & -1.49E-01  & -9.64E-01  & -6.25E-02        & -5.75E-02        & -2.18E-02        & 7.62E-02         \\ \hline
-\textit{kurtosis}                           & 9.56E+00   & -1.12E-01  & -6.98E-01  & -1.50E-01  & -1.24E+00        & -1.21E+00        & -1.21E+00        & -1.20E+00        \\ \hline
-\textit{percentile 5\%}                     & 2.87E-03   & 1.48E-01   & 7.89E-01   & 1.24E+00   & 1.42E-08         & 1.45E-08         & 5.08E+01         & 2.97E+01         \\ \hline
-\textit{percentile 95\%}                    & 2.51E-01   & 9.19E-01   & 1.16E+00   & 1.63E+00   & 9.54E-08         & 9.48E-08         & 9.59E+02         & 9.49E+02         \\ \hline
+{\ul \textit{\textbf{Computed Quantities}}} & \textbf{r} & \textbf{t} \\ \hline
+\textit{expected value}                     & 65.88   & 3.94   \\ \hline
+\textit{median}                             & 61.74   & 4.12   \\ \hline
+\textit{variance}                           & 1022.01 & 3.53   \\ \hline
+\textit{sigma}                              & 31.97   & 1.89  \\ \hline
+\textit{variation coefficient}              & 0.48    & 0.48   \\ \hline
+\textit{skewness}                           & 0.55    & -0.03  \\ \hline
+\textit{kurtosis}                           & -0.01   & -0.96  \\ \hline
+\textit{percentile 5\%}                     & 20.21   & 0.85   \\ \hline
+\textit{percentile 95\%}                    & 122.83  & 6.90   \\ \hline
 \end{tabular}
 \end{table}
 \begin{table}[h!]
 \centering
 \caption{Covariance matrix.}
 \label{covarianceComputed}
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|}
 \hline
-{\ul \textit{\textbf{Covariance}}} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{decay-A} & \textbf{decay-B} & \textbf{sigma-A} & \textbf{sigma-B} \\ \hline
-\textbf{A}                         & 8.19E-03   & -1.11E-03  & -3.09E-03  & -1.13E-04  & -1.28E-09        & 5.14E-11         & -1.49E+01        & -3.74E-01        \\ \hline
-\textbf{B}                         & -1.11E-03  & 6.00E-02   & 2.26E-03   & -2.96E-02  & -7.80E-11        & -6.02E-09        & 7.00E+00         & -1.47E+00        \\ \hline
-\textbf{C}                         & -3.09E-03  & 2.26E-03   & 1.19E-02   & 7.15E-04   & -1.44E-09        & -4.11E-12        & 2.63E+01         & 3.19E-01         \\ \hline
-\textbf{D}                         & -1.13E-04  & -2.96E-02  & 7.15E-04   & 1.49E-02   & -1.21E-10        & 3.01E-09         & 1.12E+00         & 8.01E-01         \\ \hline
-\textbf{decay-A}                   & -1.28E-09  & -7.80E-11  & -1.44E-09  & -1.21E-10  & 7.00E-16         & -1.73E-17        & -1.26E-07        & 2.07E-07         \\ \hline
-\textbf{decay-B}                   & 5.14E-11   & -6.02E-09  & -4.11E-12  & 3.01E-09   & -1.73E-17        & 6.83E-16         & -1.86E-07        & 3.91E-08         \\ \hline
-\textbf{sigma-A}                   & -1.49E+01  & 7.00E+00   & 2.63E+01   & 1.12E+00   & -1.26E-07        & -1.86E-07        & 8.52E+04         & 1.79E+03         \\ \hline
-\textbf{sigma-B}                   & -3.74E-01  & -1.47E+00  & 3.19E-01   & 8.01E-01   & 2.07E-07         & 3.91E-08         & 1.79E+03         & 8.64E+04         \\ \hline
+{\ul \textit{\textbf{Covariance}}} & \textbf{r} & \textbf{t} \\ \hline
+\textit{velocity}                     & 95.36   & 3.29   \\ \hline
+\textit{angle}                        & 25.29   & 40.42   \\ \hline
 \end{tabular}
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Correlation matrix.}
+\caption{Correlation matrix}
 \label{pearsonComputed}
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|}
 \hline
-{\ul \textit{\textbf{Correlation}}} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{decay-A} & \textbf{decay-B} & \textbf{sigma-A} & \textbf{sigma-B} \\ \hline
-\textbf{A}                          & 1.00E+00   & -5.02E-02  & -3.13E-01  & -1.03E-02  & -5.35E-01        & 2.17E-02         & -5.63E-01        & -1.40E-02        \\ \hline
-\textbf{B}                          & -5.02E-02  & 1.00E+00   & 8.47E-02   & -9.90E-01  & -1.20E-02        & -9.41E-01        & 9.80E-02         & -2.04E-02        \\ \hline
-\textbf{C}                          & -3.13E-01  & 8.47E-02   & 1.00E+00   & 5.37E-02   & -4.98E-01        & -1.44E-03        & 8.25E-01         & 9.96E-03         \\ \hline
-\textbf{D}                          & -1.03E-02  & -9.90E-01  & 5.37E-02   & 1.00E+00   & -3.75E-02        & 9.43E-01         & 3.14E-02         & 2.23E-02         \\ \hline
-\textbf{decay-A}                    & -5.35E-01  & -1.20E-02  & -4.98E-01  & -3.75E-02  & 1.00E+00         & -2.50E-02        & -1.64E-02        & 2.67E-02         \\ \hline
-\textbf{decay-B}                    & 2.17E-02   & -9.41E-01  & -1.44E-03  & 9.43E-01   & -2.50E-02        & 1.00E+00         & -2.44E-02        & 5.08E-03         \\ \hline
-\textbf{sigma-A}                    & -5.63E-01  & 9.80E-02   & 8.25E-01   & 3.14E-02   & -1.64E-02        & -2.44E-02        & 1.00E+00         & 2.08E-02         \\ \hline
-\textbf{sigma-B}                    & -1.40E-02  & -2.04E-02  & 9.96E-03   & 2.23E-02   & 2.67E-02         & 5.08E-03         & 2.08E-02         & 1.00E+00         \\ \hline
+{\ul \textit{\textbf{Correlation}}} & \textbf{r} & \textbf{t} \\ \hline
+\textit{velocity}                     & 0.61   & 0.36   \\ \hline
+\textit{angle}                        & 0.03   & 0.92   \\ \hline
 \end{tabular}
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Variance Dependent Sensitivity matrix.}
+\caption{Variance Dependent Sensitivity matrix}
 \label{VarDepSensitivityComputed}
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|}
 \hline
-{\ul \textit{\textbf{Variance Sensitivity}}} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{decay-A} & \textbf{decay-B} & \textbf{sigma-A} & \textbf{sigma-B} \\ \hline
-\textbf{A}                                   & 1.00E+00   & -1.36E-01  & -3.77E-01  & -1.38E-02  & -1.56E-07        & 6.27E-09         & -1.82E+03        & -4.56E+01        \\ \hline
-\textbf{B}                                   & -1.86E-02  & 1.00E+00   & 3.77E-02   & -4.94E-01  & -1.30E-09        & -1.00E-07        & 1.17E+02         & -2.45E+01        \\ \hline
-\textbf{C}                                   & -2.60E-01  & 1.90E-01   & 1.00E+00   & 6.01E-02   & -1.21E-07        & -3.46E-10        & 2.21E+03         & 2.68E+01         \\ \hline
-\textbf{D}                                   & -7.60E-03  & -1.99E+00  & 4.80E-02   & 1.00E+00   & -8.11E-09        & 2.02E-07         & 7.51E+01         & 5.37E+01         \\ \hline
-\textbf{decay-A}                             & -1.83E+06  & -1.11E+05  & -2.05E+06  & -1.73E+05  & 1.00E+00         & -2.47E-02        & -1.81E+08        & 2.96E+08         \\ \hline
-\textbf{decay-B}                             & 7.52E+04   & -8.82E+06  & -6.02E+03  & 4.40E+06   & -2.53E-02        & 1.00E+00         & -2.72E+08        & 5.72E+07         \\ \hline
-\textbf{sigma-A}                             & -1.75E-04  & 8.22E-05   & 3.08E-04   & 1.32E-05   & -1.48E-12        & -2.19E-12        & 1.00E+00         & 2.10E-02         \\ \hline
-\textbf{sigma-B}                             & -4.33E-06  & -1.70E-05  & 3.69E-06   & 9.27E-06   & 2.40E-12         & 4.52E-13         & 2.07E-02         & 1.00E+00         \\ \hline
+{\ul \textit{\textbf{Variance Sensitivity}}} & \textbf{r} & \textbf{t} \\ \hline
+\textit{velocity}                     & -1.69   & 0.08   \\ \hline
+\textit{angle}                        & -3.31   & 0.07   \\ \hline
 \end{tabular}
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Sensitivity matrix.}
+\caption{Sensitivity matrix}
 \label{SensitivityComputed}
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|}
 \hline
-{\ul \textit{\textbf{Sensitivity (I/O)}}} & \textbf{decay-A} & \textbf{decay-B} & \textbf{sigma-A} & \textbf{sigma-B} \\ \hline
-\textbf{A}                                & 3.83E-06         & -1.78E-04        & -2.07E+04        & -1.86E+06        \\ \hline
-\textbf{B}                                & -1.36E-05        & 6.28E-05         & -8.80E+06        & -3.14E+05        \\ \hline
-\textbf{C}                                & 2.17E-06         & 3.05E-04         & 2.64E+04         & -2.00E+06        \\ \hline
-\textbf{D}                                & 6.96E-06         & 2.25E-05         & 4.40E+06         & -6.19E+04        \\ \hline
+{\ul \textit{\textbf{Sensitivity (I/O)}}} & \textbf{r} & \textbf{t} \\ \hline
+\textit{velocity}                     & 3.95   & 0.12   \\ \hline
+\textit{angle}                        & 0.01   & 0.07   \\ \hline
 \end{tabular}
 \end{table}
-\end{landscape}
 

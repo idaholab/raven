@@ -1,0 +1,3 @@
+#!/bin/bash
+
+pylint --disable=fixme,too-few-public-methods,len-as-condition,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements,too-many-instance-attributes,too-many-arguments,no-self-use,similarities,broad-except,consider-using-enumerate --const-rgx '(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$' --indent-string "  " rook/*.py scripts/TestHarness/testers/*.py

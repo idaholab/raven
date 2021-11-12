@@ -1,0 +1,4 @@
+<IOStep name="print">
+  <Input class="DataObjects" type="PointSet">samples</Input>
+  <Output class="OutStreams" type="Print">samples</Output>
+</IOStep>

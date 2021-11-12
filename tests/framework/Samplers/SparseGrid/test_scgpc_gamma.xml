@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Gmake,Gtrain,Gtest,Gprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/gamma</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with gamma-distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Gmake, Gtrain, Gtest, stats, Gprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Gamma name="GammaDist">
@@ -64,7 +64,7 @@
     </MultiRun>
     <IOStep name="Gprint">
       <Input class="DataObjects" type="PointSet">Gtests</Input>
-      <Input class="Models" type="ROM">GROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Gdump</Output>
       <Output class="OutStreams" type="Print">Gdumprom</Output>
     </IOStep>
@@ -72,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">Gsolns</Input>
       <Output class="Models" type="ROM">GROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">GROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -87,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -96,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Gdumprom">
-      <type>xml</type>
-      <source>GROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

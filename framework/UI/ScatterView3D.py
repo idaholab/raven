@@ -18,21 +18,26 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+
 
 from .BaseTopologicalView import BaseTopologicalView
 
 import matplotlib
-matplotlib.use('Qt4Agg')
+#Is the below needed?
+#matplotlib.use('Qt5Agg')
 
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import mpl_toolkits
 import matplotlib.pyplot
@@ -78,8 +83,8 @@ class ScatterView3D(BaseTopologicalView):
     self.fig = Figure(facecolor='white')
     self.mplCanvas = FigureCanvas(self.fig)
     self.mplCanvas.axes = self.fig.add_subplot(111, projection='3d')
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
+    # We want the axes cleared every time plot() is called,
+    # so axes.hold used to be called, but now that has been removed.
     self.colorbar = None
 
     mySplitter.addWidget(self.mplCanvas)
@@ -251,6 +256,7 @@ class ScatterView3D(BaseTopologicalView):
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 
+    string_type = '|U7' #If python 2 compatibility is needed, use '|S7'
     for key,cmb in self.cmbVars.items():
       if cmb.currentText() == 'Predicted from Linear Fit':
         allValues[key] = self.amsc.PredictY(None)
@@ -269,7 +275,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Segment':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair]
@@ -279,7 +285,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Maximum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[1]]
@@ -289,7 +295,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Minimum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[0]]
@@ -319,7 +325,7 @@ class ScatterView3D(BaseTopologicalView):
       lines2 = []
       lineIdxs = []
       for row in rows + minIdxs + maxIdxs:
-        cols = self.amsc.GetNeighbors(row)
+        cols = self.amsc.GetNeighbors(int(row))
         for col in cols:
           if col in rows + minIdxs + maxIdxs:
             if row < col:
@@ -344,7 +350,6 @@ class ScatterView3D(BaseTopologicalView):
 
       lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(lines,colors=lineColors,linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
-      self.mplCanvas.axes.hold(True)
 
     if self.cmbVars['Color'].currentText() not in specialColorKeywords:
       myPlot = self.mplCanvas.axes.scatter(values['X'], values['Y'],
@@ -365,7 +370,6 @@ class ScatterView3D(BaseTopologicalView):
       self.colorbar.set_label(self.cmbVars['Color'].currentText(),size=fontSize,labelpad=10)
       self.colorbar.set_ticks(np.linspace(mins['Color'],maxs['Color'],5))
       self.colorbar.ax.tick_params(labelsize=smallFontSize)
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -390,7 +394,6 @@ class ScatterView3D(BaseTopologicalView):
                                            values['Z'], c=values['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -433,7 +436,6 @@ class ScatterView3D(BaseTopologicalView):
     for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()+self.mplCanvas.axes.get_zticklabels()):
       label.set_fontsize(smallFontSize)
 
-    self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
 
   def test(self):
@@ -476,7 +478,7 @@ class ScatterView3D(BaseTopologicalView):
     self.updateScene()
 
     self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
-    pair = self.amsc.GetCurrentLabels()[0]
+    pair = list(self.amsc.GetCurrentLabels())[0]
     self.amsc.SetSelection([pair,pair[0],pair[1]])
     self.updateScene()
 

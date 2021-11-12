@@ -1,0 +1,8 @@
+[FromOuter]
+a = $RAVEN-a$
+b = $RAVEN-b$
+[FromInner]
+x = $RAVEN-x$
+y = $RAVEN-y$
+[Output]
+output = $RAVEN-output$.csv

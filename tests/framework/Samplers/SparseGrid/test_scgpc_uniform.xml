@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Umake,Utrain,Utest,Uprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/uniform</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with uniformly-distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Umake, Utrain, Utest, stats, Uprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Uniform name="UniDist">
@@ -64,7 +64,7 @@
     </MultiRun>
     <IOStep name="Uprint">
       <Input class="DataObjects" type="PointSet">Utests</Input>
-      <Input class="Models" type="ROM">UROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Udump</Output>
       <Output class="OutStreams" type="Print">Udumprom</Output>
     </IOStep>
@@ -72,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">Usolns</Input>
       <Output class="Models" type="ROM">UROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">UROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -87,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -96,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Udumprom">
-      <type>xml</type>
-      <source>UROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

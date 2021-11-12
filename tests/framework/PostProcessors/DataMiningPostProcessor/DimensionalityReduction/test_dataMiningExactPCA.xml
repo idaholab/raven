@@ -9,7 +9,14 @@
       Tests decomposition with PCA model.
     </description>
     <requirements>R-RA-6</requirements>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
@@ -33,7 +40,7 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
@@ -42,7 +49,7 @@
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="PCAIris" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
       <SolutionExport class="DataObjects" type="PointSet">drInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
@@ -60,7 +67,7 @@
       <type>csv</type>
       <source>drInfo</source>
     </Print>
-    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -81,10 +88,14 @@
   <DataObjects>
     <PointSet name="DataSets">
       <Input>x2,x3,labels,x1, x4</Input>
-      <Output>Output</Output>
+      <Output>Output,PCADimension1,PCADimension2</Output>
     </PointSet>
     <PointSet name="drInfo">
       <Input>x1,x2,x3,x4,PCADimension</Input>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
+      <Input>x2,x3,labels,x1, x4</Input>
+      <Output>Output</Output>
     </PointSet>
   </DataObjects>
 

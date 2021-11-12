@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation>
-  <RunInfo>
-    <WorkingDir>grid</WorkingDir>
-    <Sequence>Amake,Atrain,Atest,Aprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/anisotropicGrid</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests the creation of an anisotropic sparse grid (using the interpolation weights in the ROM).
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>grid</WorkingDir>
+    <Sequence>Amake, Atrain, Atest, stats, Aprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Uniform name="UniDist">
@@ -64,7 +64,7 @@
     </MultiRun>
     <IOStep name="Aprint">
       <Input class="DataObjects" type="PointSet">Atests</Input>
-      <Input class="Models" type="ROM">AROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Adump</Output>
       <Output class="OutStreams" type="Print">Adumprom</Output>
     </IOStep>
@@ -72,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">Asolns</Input>
       <Output class="Models" type="ROM">AROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">AROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -87,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -96,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Adumprom">
-      <type>xml</type>
-      <source>AROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

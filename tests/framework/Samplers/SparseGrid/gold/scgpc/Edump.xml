@@ -1,33 +1,10 @@
-<data name="Edump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Edump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation'], 
-      dtype='&lt;U23')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'},
-       {u'x2': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}', u'x1': '{"xMin": 0.0, "type": "ExponentialDistribution", "low": 0.0, "lambda": 1.5}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674},
-       {u'x2': 1.4553407206298674, u'x1': 1.4553407206298674}], dtype=object)</SampledVars><ProbabilityWeight>array([ 0.30864198,  0.49382716,  0.30864198,  0.49382716,  0.79012346,
-        0.49382716,  0.30864198,  0.49382716,  0.30864198])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9'], 
-      dtype='|S1')</prefix><PointProbability>array([None, None, None, None, None, None, None, None, None], dtype=object)</PointProbability><SampledVarsPb>array([{u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878},
-       {u'x2': 0.1690524980688878, u'x1': 0.1690524980688878}], dtype=object)</SampledVarsPb><PointsProbability>array([ 1.77142125,  0.99821063,  0.225     ,  0.99821063,  0.5625    ,
-        0.12678937,  0.225     ,  0.12678937,  0.02857875])</PointsProbability></metadata></data>
+<DataObjectMetadata name="Etests">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

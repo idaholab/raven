@@ -83,7 +83,8 @@ if __name__=='__main__':
   # In most cases, when writing text files 'w' should be used.  However, in this case the file is being fed directly to
   #   a LaTeX processor.  On Windows, using 'w' mode will cause an extra line feed to be added which will be result in extra
   #   line feeds when the XML is rendered into the user guide.
-  outFile = file('raven_temp_tex_xml.tex','wb')
+  #Note that it has been changed back to 'w' for python 3 compatability.
+  outFile = open('raven_temp_tex_xml.tex','w')
   # On windows the output of os.path.join will use backslashes as path separators, which gives LaTeX a problem.  Since printName is
   #   being used to display the original file name, lets just convert it back to forward slashes.  That means we also have to
   #   remove '..\' as well as '../'.

@@ -1,4 +1,3 @@
 #!/bin/bash
 cd `dirname $0`
-source scripts/establish_conda_env.sh --quiet --load
-./backend_run_tests --re=framework --skip-config-check "$@"
+./run_tests --re=framework "$@"

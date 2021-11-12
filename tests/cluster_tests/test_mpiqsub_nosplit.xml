@@ -11,11 +11,12 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMN</WorkingDir>
     <Sequence>FirstMNRun</Sequence>
     <batchSize>3</batchSize>
     <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>1</NumThreads>
+    <threadParameter>--n-threads=%NUM_CPUS%</threadParameter>
     <mode>
       mpilegacy
       <runQSUB/>
@@ -81,14 +82,9 @@
       <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
-      <Output class="Databases" type="HDF5">testDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
   </Steps>
-
-  <Databases>
-    <HDF5 name="testDatabase" readMode="overwrite"/>
-  </Databases>
 
   <DataObjects>
     <HistorySet name="stories">

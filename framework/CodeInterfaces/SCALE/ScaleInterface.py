@@ -19,8 +19,6 @@ Created on April 04, 2018
 comments: Interface for Scale Simulation (current Origen and Triton)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy

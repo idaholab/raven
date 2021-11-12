@@ -1,0 +1,46 @@
+<DataObjectMetadata name="solns">
+  <DataSet type="Static">
+    <general>
+      <inputs>x,y,z</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+  <rom type="Static">
+    <ROM>
+      <type>HDMR_ROM</type>
+    </ROM>
+    <ans>
+      <mean>0.998046875</mean>
+      <expectedValue>0.998046875</expectedValue>
+      <variance>0.673271484375</variance>
+      <samples>61</samples>
+      <partialVariance>
+        <x>0.193798828125</x>
+        <x.y>0.030625</x.y>
+        <x.z>0.030625</x.z>
+        <y>0.193798828125</y>
+        <y.z>0.030625</y.z>
+        <z>0.193798828125</z>
+      </partialVariance>
+      <sobolIndices>
+        <x>0.287846481876</x>
+        <x.y>0.045486851457</x.y>
+        <x.z>0.045486851457</x.z>
+        <y>0.287846481876</y>
+        <y.z>0.045486851457</y.z>
+        <z>0.287846481876</z>
+      </sobolIndices>
+      <sobolTotalIndices>
+        <x>0.37882018479</x>
+        <x.y>0.045486851457</x.y>
+        <x.z>0.045486851457</x.z>
+        <y>0.37882018479</y>
+        <y.z>0.045486851457</y.z>
+        <z>0.37882018479</z>
+      </sobolTotalIndices>
+    </ans>
+  </rom>
+  
+</DataObjectMetadata>

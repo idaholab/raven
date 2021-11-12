@@ -14,15 +14,10 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for HDMRRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -30,6 +25,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
+from utils import InputData, InputTypes
 from .GaussPolynomialRom import GaussPolynomialRom
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -37,6 +33,50 @@ class HDMRRom(GaussPolynomialRom):
   """
     High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space.
   """
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    ## cross validation node 'CV' can not be used for HDMRRom
+    specs.popSub('CV')
+    specs.description = r"""The \xmlString{HDMRRom} is based on a Sobol decomposition scheme.
+                        In Sobol decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
+                        a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.
+                        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                        be \xmlString{HDMRRom}.
+                        \\
+                        The HDMRRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+                        Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+                        \\
+                        \nb This ROM type must be trained from a Sobol decomposition training set.
+                        Thus, it can only be trained from the outcomes of a Sobol sampler.
+                        Also, this ROM must be referenced in the Sobol sampler in order to
+                        accurately produce the necessary sparse grid points to train this ROM.
+                        Experience has shown order 2 Sobol decompositions to include the great majority of
+                        uncertainty in most models.
+                        \zNormalizationNotPerformed{HDMRRom}
+                        \\
+                        When Printing this ROM via an OutStream (see \ref{sec:printing}), the available metrics are:
+                        \begin{itemize}
+                          \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+                          \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
+                            was trained.
+                          \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
+                          \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances.
+                        \end{itemize}"""
+    specs.addSub(InputData.parameterInputFactory("SobolOrder", contentType=InputTypes.IntegerType,
+                                                 descr=r"""indicates the maximum cardinality of the input space used in the subset functionals.  For example, order 1
+                                                 includes only functionals of each independent dimension separately, while order 2 considers pair-wise interactions."""))
+    return specs
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -61,16 +101,15 @@ class HDMRRom(GaussPolynomialRom):
     """
     pass
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
-    GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.initialized   = False #true only when self.initialize has been called
-    self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
+    self.printTag      = 'HDMR_ROM'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
@@ -79,38 +118,47 @@ class HDMRRom(GaussPolynomialRom):
     self.anova         = None #converted true ANOVA terms, stores coefficients not polynomials
     self.partialVariances = None #partial variance contributions
 
-    for key,val in kwargs.items():
-      if key=='SobolOrder':
-        self.sobolOrder = int(val)
-
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def _handleInput(self, paramInput):
     """
-      Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['SobolOrder'])
+    # notFound must be empty
+    assert(not notFound)
+    self.sobolOrder = settings.get('SobolOrder')
+
+  def writeXML(self, writeTo, requests = None, skip = None):
+    """
+      Adds requested entries to XML node.
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, requests, list, optional, list of requests for whom to write
+      @ In, skip, list, optional, list of targets to skip
+      @ Out, None
+    """
+
     #inherit from GaussPolynomialRom
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-      if 'all' in requests:
-        requests = canDo
-      #protect against things SCgPC can do that HDMR can't
-      if 'polyCoeffs' in requests:
-        self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
-        requests.remove('polyCoeffs')
-      options['what'] = ','.join(requests)
+    ## TODO allow picking variables to include
+    #if 'what' in options.keys():
+    #  requests = list(o.strip() for o in options['what'].split(','))
+    #  if 'all' in requests:
+    if requests is None:
+      requests = canDo
+    ## TODO allow picking variables to include
+    #  #protect against things SCgPC can do that HDMR can't
+    #  if 'polyCoeffs' in requests:
+    #    self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
+    #    requests.remove('polyCoeffs')
+    #  options['what'] = ','.join(requests)
     else:
       self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
-    GaussPolynomialRom._localPrintXML(self,outFile,pivotVal,options)
+    GaussPolynomialRom.writeXML(self, writeTo, requests=requests, skip=skip)
 
   def initialize(self,idict):
     """
@@ -364,4 +412,3 @@ class HDMRRom(GaussPolynomialRom):
     for subset,value in self.partialVariances[target].items():
       self.sdx[target][subset] = value / totVar
     return self.sdx[target],self.partialVariances[target]
-

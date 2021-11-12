@@ -20,11 +20,9 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Files/>
   <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-
 
   <OutStreams>
     <Plot name='test'   interactive='True' overwrite='True'>

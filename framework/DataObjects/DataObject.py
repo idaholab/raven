@@ -14,30 +14,10 @@
 """
   Base class for both in-memory and in-disk data structures.
 """
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
-import os
-import sys
-import copy
-import functools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
-import xml.etree.ElementTree as ET
-
 import abc
-import numpy as np
-import pandas as pd
-import xarray as xr
 
-from BaseClasses import BaseType
-from Files import StaticXMLOutput
-from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
-from MessageHandler import MessageHandler
+from BaseClasses import BaseEntity
+from utils import utils, InputData, InputTypes
 
 class DataObjectsCollection(InputData.ParameterInput):
   """
@@ -48,13 +28,12 @@ DataObjectsCollection.createClass("DataObjects")
 #
 #
 #
-class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     Base class.  Data objects are RAVEN's method for storing data internally and passing it from one
     RAVEN entity to another.  Fundamentally, they consist of a collection of realizations, each of
     which contains inputs, outputs, and pointwise metadata.  In addition, the data object has global
     metadata.  The pointwise inputs and outputs could be floats, time-dependent, or ND-dependent variables.
-
     This base class is used to force the consistent API between all data containers
   """
   ### INPUT SPECIFICATION ###
@@ -66,35 +45,35 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     inputSpecification = super(DataObject,cls).getInputSpecification()
-    inputSpecification.addParam('hierarchical', InputData.BoolType)
+    inputSpecification.addParam('hierarchical', InputTypes.BoolType)
 
-    inputInput = InputData.parameterInputFactory('Input',contentType=InputData.StringType) #TODO list
+    inputInput = InputData.parameterInputFactory('Input',contentType=InputTypes.StringType) #TODO list
     inputSpecification.addSub(inputInput)
 
-    outputInput = InputData.parameterInputFactory('Output', contentType=InputData.StringType) #TODO list
+    outputInput = InputData.parameterInputFactory('Output', contentType=InputTypes.StringType) #TODO list
     inputSpecification.addSub(outputInput)
 
     # TODO this should be specific to ND set
-    indexInput = InputData.parameterInputFactory('Index',contentType=InputData.StringType) #TODO list
-    indexInput.addParam('var',InputData.StringType,True)
+    indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
+    indexInput.addParam('var',InputTypes.StringType,True)
     inputSpecification.addSub(indexInput)
 
     optionsInput = InputData.parameterInputFactory("options")
     for option in ['operator','pivotParameter']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.StringType)
       optionsInput.addSub(optionSubInput)
     for option in ['inputRow','outputRow']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.IntegerType)
       optionsInput.addSub(optionSubInput)
     for option in ['outputPivotValue','inputPivotValue']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.FloatType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.FloatType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
-    #inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
-    #inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputData.StringType))
-    #inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputData.StringType))
-    #inputSpecification.addSub(InputData.parameterInputFactory('options',contentType=InputData.StringType))
+    #inputSpecification.addParam('type', param_type = InputTypes.StringType, required = False)
+    #inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputTypes.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputTypes.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('options',contentType=InputTypes.StringType))
     return inputSpecification
 
   def __init__(self):
@@ -103,7 +82,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.name             = 'DataObject'
     self.printTag         = self.name
     self._sampleTag       = 'RAVEN_sample_ID' # column name to track samples
@@ -211,19 +190,14 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._inputs.remove(index)
       except ValueError:
         pass #not requested as input anyway
+    # check inputs and outputs, if there were duplicates, error out
+    dups = set(self._inputs).intersection(self._outputs)
+    if dups:
+      self.raiseAnError(IOError, 'Variables: "', ','.join(dups), '" are specified in both "Input" and "Output" Node of DataObject "', self.name,'"')
     self._orderedVars = self._inputs + self._outputs
     # check if protected vars have been violated
-    if set(self.protectedTags).issubset(set(self._orderedVars)):
+    if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-
-    # create dict var to index
-    # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
-    if self.indexes:
-      for ind in self.indexes:
-        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
-
-    if self.messageHandler is None:
-      self.messageHandler = MessageHandler()
 
   def _setDefaultPivotParams(self):
     """
@@ -410,14 +384,18 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   @abc.abstractmethod
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, options = None):
     """
       Method to obtain a realization from the data, either by index or matching value.
-      Either "index" or "matchDict" must be supplied.
+      Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
+      @ In, asDataSet, bool, optional, return realization from the data as a DataSet
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
+      @ In, options, dict, optional, options to be applied to the search
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -472,5 +450,3 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     pass
-
-

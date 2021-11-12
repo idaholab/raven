@@ -103,10 +103,6 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x,y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <PointSet name="coarse">
       <Input>x,y</Input>
       <Output>a</Output>

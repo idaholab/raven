@@ -20,7 +20,12 @@
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="wangc" date="2020-07-16">
+          Disable multipleFeatures option for input output sensitivity calcuation, since the condition number
+          is ver big for this case which will cause unstable test results in Windows system.
       </revision>
     </revisions>
     <requirements>R-RA-5</requirements>
@@ -136,6 +141,7 @@
         <targets>x0,x01,y0,y02</targets>
         <features>x0,x01,y0,y02</features>
       </VarianceDependentSensitivity>
+      <multipleFeatures>False</multipleFeatures>
     </PostProcessor>
     <PostProcessor name="checkIfMatrixCanBeComputed" subType="BasicStatistics" verbosity="debug">
       <skewness prefix="skew">x</skewness>
@@ -185,12 +191,6 @@
     </PostProcessor>
   </Models>
 
-  <Functions>
-    <External file="basicStatisticsGeneral/testFunctionComputeProbability" name="testFunctionComputeProbability">
-      <variable>x01</variable>
-    </External>
-  </Functions>
-
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -233,7 +233,6 @@
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
-      <Function class="Functions" type="External">testFunctionComputeProbability</Function>
       <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
       <Output class="DataObjects" type="PointSet">autoCorrelationTest_basicStatPP</Output>
       <Output class="OutStreams" type="Print">autoCorrelationTest_basicStatPP_dump</Output>

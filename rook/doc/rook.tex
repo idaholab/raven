@@ -1,0 +1,133 @@
+\documentclass{article}
+
+\title{Rook Test Description}
+
+\begin{document}
+\maketitle
+
+\section{Format}
+Test files use the \texttt{GetPot} or \texttt{hit} format, such as the following:
+\begin{verbatim}
+[Tests]
+  [./test_name_1]
+    type = <Tester>
+    # other Tester options
+    [./check_1]
+      type = <Differ>
+      output = 'path/to/file1 path/to/file2'
+      # other Differ options
+    [../]
+  [../]
+[]
+\end{verbatim}
+where \texttt{<Tester>} is replaced by one of the Testers described below, and \texttt{<Differ>}
+is replace by one of the Differs described below. Options for the Tester are included under
+\texttt{other Tester options}, while Differ options are included under \texttt{other Differ options}.
+
+\section{Testers}
+
+The testers are used to run a test.  The tester can fail the test, or
+it can be failed by one of the differs that are attached as subnodes
+in the test input.
+
+\subsection{Common Features}
+
+These are the features that are common to all testers. These may be included as Tester options in the
+example above.
+
+\begin{description}
+  \item[type] The type of this test. Example: 'GenericExecutable'
+  \item[skip] If true skip test
+  \item[prereq] list of tests to run before running this one
+  \item[max\_time] Maximum time that test is allowed to run in seconds
+  \item[os\_max\_time] Maximum time by os. Example: 'Linux 20 Windows 300 OpenVMS 1000'
+  \item[heavy] If true, run only with heavy tests
+  \item[output] Output of the test
+  \item[expected\_fail] if true, then the test should fails, and if it passes, it fails
+  \item[run\_types] The run types of this test, separated by spaces. Example: 'heavy qsub' The default is 'normal'
+  \item[output\_wait\_time] Number of seconds to wait for output
+\end{description}
+
+\subsection{GenericExecutable}
+
+This tester runs an executable, and the test passes if the executable
+returns a 0 as the return code.  This test can also use the differs to
+check for output.
+
+\begin{description}
+  \item[executable] The executable to use
+  \item[parameters] arguments to the executable
+\end{description}
+
+\section{Differs}
+
+\subsection{Common Features}
+
+\begin{description}
+  \item[type] The type of this differ
+  \item[output] Output files to check. These by default compare the same path in the working directory
+      and under the \texttt{gold} directory. For example, \texttt{output = 'path/to/file1'} would compare
+      the file \texttt{path/to/file1} to the file \texttt{gold/path/to/file1}.
+  \item[gold\_files] Gold filenames, if different from the default. These are 1 to 1 mappings with the
+      \texttt{output} files listed above, and use the same relative pathing. Using the example under
+      \textbf{output} above, including \texttt{gold\_files = 'gold/path/to/file2'} would compare the file
+      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}. \nb Unlike the default,
+      \texttt{gold} is not automatically added to the \textttt{gold\_files} path.
+\end{description}
+
+\subsection{Exists}
+
+This checks that a file exists, and if it does, it passes.  There are
+no specific tags for the Exists differ.
+
+\subsection{XML}
+
+This can compare two XML files to see if they are the same.
+
+\begin{description}
+  \item[unordered] if true allow the tags in any order
+  \item[zero\_threshold] it represents the value below which a float is considered zero
+  \item[remove\_whitespace] Removes whitespace before comparing xml node text if True
+  \item[remove\_unicode\_identifier] if true, then remove u infront of a single quote
+  \item[xmlopts] Options for xml checking. Deprecated, the options should be used directly instead of using this (as in use the unordered tag instead of putting it in xmlopts)
+  \item[rel\_err] Relative Error for floating point numbers
+\end{description}
+
+\subsection{OrderedCSV}
+
+This can compare two CSV files to see if they are the same.
+
+\begin{description}
+  \item[rel\_err] Relative Error for csv files
+  \item[zero\_threshold] it represents the value below which a float is considered zero
+  \item[ignore\_sign] if true, then only compare the absolute values
+  \item[check\_absolute\_value] if true the values are compared to the tolerance directectly, instead of relatively.
+\end{description}
+
+\section{Configuration File}
+
+The {\tt main.py} command takes an argument {\tt --config-file} which can be used to set several parameters.  The parameters also can be set on the command line.  Here are the parameters:
+
+\begin{description}
+\item[test\_dir] directory where the tests are located.  Equivalent to {\tt --test-dir}
+\item[testers\_dir] directory where the testers are located. Equivalent to {\tt --testers-dir}
+\item[add\_run\_types] add run types to the ones to be run. Equivalent to {\tt --run-types}
+\item[only\_run\_types] only run the listed types. Equivalent to {\tt --only-run-types}
+\item[add\_non\_default\_run\_types] add a run type that is not run by default. Equivalent to {\tt --add-non-default-run-types}
+\item[add\_path] comma separated list of additional paths that need be added in PYTHON PATH (sys.path).  Equivalent to {\tt --add-path}
+\item[update\_or\_add\_env\_variables] comma separated list of environment variables to update or add.
+The syntax is at follows: $NAME=NEW\_VALUE$ (if a new env variable needs to be created or updated),
+$NAME>NEW\_VALUE$ (if an env variable needs to be updated appending NEW\_VALUE to it).  Equivalent to {\tt --update-or-add-env-variables}
+\item[test\_dir] directory where the tests are located.  Equivalent to {\tt --test-dir}
+\item[command\_prefix] prefix for the test commands.  Equivalent to {\tt --command-prefix}
+\item[python\_command] command to run python. Equivalent to {\tt --python-command}
+\end{description}
+
+For example to add a new type of run time that only runs when the command line has {\tt --only-run-types="slow" } or {\tt --run-types="slow" } the following config file could be created:
+
+\begin{verbatim}
+[rook]
+add_non_default_run_types = slow
+\end{verbatim}
+
+\end{document}

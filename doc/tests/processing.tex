@@ -1,0 +1,9 @@
+\section{Processor Load}
+Associated external model: \texttt{stress.py}
+
+The entire purpose of this model is to keep a processor at 100 percent utilization for a specified interval.
+It can be coupled with other models via an ensemble model to assure a calculation takes at least a certain
+period of time.
+
+The input to this model is \texttt{interval}, which determines the number of seconds at which the model should
+run. The output is \texttt{done}, which always evaluates to 1.0.

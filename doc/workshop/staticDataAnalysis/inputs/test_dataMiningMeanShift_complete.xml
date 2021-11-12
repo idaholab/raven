@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
     <description>Workshop test: DataMining with MeanShift method</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -21,9 +27,9 @@
   <Models>
     <PostProcessor name="MeanShift" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn">
-        <Features>x1,x2</Features>
-        <SKLtype>cluster|MeanShift</SKLtype>
-        <bin_seeding>True</bin_seeding>
+        <Features>x1,x2,y1</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
       </KDD>
     </PostProcessor>
   </Models>
@@ -50,7 +56,7 @@
     </PointSet>
     <PointSet name="DataSetsCL">
       <Input>x1,x2,y1,y2</Input>
-      <Output>z1,z2,Output</Output>
+      <Output>z1,z2,Output,MeanShiftLabels</Output>
     </PointSet>
   </DataObjects>
 
@@ -65,12 +71,14 @@
           <type>scatter</type>
           <x>DataSets|Input|x1</x>
           <y>DataSets|Input|x2</y>
+          <z>DataSets|Input|y1</z>
         </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
+        <zlabel>y1</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>screen,png</how>
       </actions>
     </Plot>
     <Plot name="PlotClustered" verbosity="debug">
@@ -79,13 +87,15 @@
           <type>scatter</type>
           <x>DataSetsCL|Input|x1</x>
           <y>DataSetsCL|Input|x2</y>
+          <z>DataSetsCL|Input|y1</z>
           <colorMap>DataSetsCL|Output|MeanShiftLabels</colorMap>
         </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
+        <zlabel>y1</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>screen,png</how>
       </actions>
     </Plot>
   </OutStreams>

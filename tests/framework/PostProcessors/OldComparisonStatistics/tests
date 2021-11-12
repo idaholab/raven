@@ -1,0 +1,10 @@
+[Tests]
+ [./test_comparison_statistics]
+   type = 'RavenFramework'
+   input = 'test_cc_stats.xml'
+   output = 'test_cc_stats/output.csv'
+   csv = 'test_cc_stats/output_fullprint_Pointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_1.csv'
+ [../]
+[]
+
+

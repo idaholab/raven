@@ -16,15 +16,19 @@ Created on July 5th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from GenericParser import GenericParser
+import DecayParser
+import FissionYieldParser
+import QValuesParser
+import MaterialParser
+import PathParser
+import XSCreator
+import MassParser  # for MRTAU standalone
 import phisicsdata
 import xml.etree.ElementTree as ET
-import fileinput
-import sys
 
 
 class Phisics(CodeInterfaceBase):
@@ -101,15 +105,12 @@ class Phisics(CodeInterfaceBase):
       @ Out, None
     """
     if depletionTree.find('.//input_files') is None:
-      for line in fileinput.FileInput(depletionFile, inplace=1):
-        if '<DEPLETION_INPUT>' in line:
-          line = line.replace('<DEPLETION_INPUT>',
-                              '<DEPLETION_INPUT>' + '\n\t' + '<input_files>' +
-                              libPathFile + '</input_files>')
-        sys.stdout.write(line)
+      inputFilesNode = ET.Element("input_files")
+      inputFilesNode.text = libPathFile
+      depletionTree.getroot().insert(0,inputFilesNode)
     else:
       depletionTree.find('.//input_files').text = libPathFile
-      depletionTree.write(depletionFile)
+    depletionTree.write(depletionFile)
 
   def getTitle(self, depletionRoot):
     """
@@ -120,31 +121,11 @@ class Phisics(CodeInterfaceBase):
     """
     self.jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
-      self.jobTitle = child.text
+      self.jobTitle = child.text.strip()
+      if " " in self.jobTitle:
+        raise IOError("Job title can not have spaces in the title but must be a single string. E.g. from "+self.jobTitle+ " to "+ self.jobTitle.replace(" ",""))
       break
     return
-
-  def verifyMrtauFlagsAgree(self, depletionRoot):
-    """
-      Verifies that the node "standalone"'s text is in the xml depletion file. if the standalone flag
-      in the xml depletion file disagrees with the MRTAU standalone flag in the raven input, the codes errors out.
-      @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
-      @ Out, None
-    """
-    for child in depletionRoot.findall(".//standalone"):
-      isMrtauStandAlone = child.text.lower()
-      tag = child.tag
-      break
-    valueErrorMessage = "\n Error. \n \
-      The flags controlling the Mrtau standalone mode are incorrect. \n \
-      The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n \
-      the matching solutions are: \n \
-      <mrtauStandAlone>True</mrtauStandAlone> and <" + tag + ">yes<" + tag + ">\n \
-      <mrtauStandAlone>False</mrtauStandAlone> and <" + tag + ">no<" + tag + ">"
-    if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
-      raise ValueError(valueErrorMessage)
-    if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
-      raise ValueError(valueErrorMessage)
 
   def timeUnit(self, depletionRoot):
     """
@@ -168,7 +149,6 @@ class Phisics(CodeInterfaceBase):
     """
     depletionTree = ET.parse(depletionFile)
     depletionRoot = depletionTree.getroot()
-    self.verifyMrtauFlagsAgree(depletionRoot)
     self.findDecayHeatFlag(depletionRoot)
     self.timeUnit(depletionRoot)
     self.getTitle(depletionRoot)
@@ -186,16 +166,18 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.keys(
-    ):  # teach what are the type of perturbation (decay FY etc...)
-      splittedKeywords = i.split('|')
-      pertType.append(splittedKeywords[0])
-    for i in range(
-        0, len(pertType)
-    ):  # declare all the dictionaries according the different type of pert
+    for i in perturbedVars.keys():
+      # teach what are the type of perturbation (decay FY etc...)
+      if "|" in i:
+        pertType.append(i.split('|')[0])
+      else:
+        pertType.append("generic")
+    for i in range(0, len(pertType)):
+      # declare all the dictionaries according the different type of pert
       distributedPerturbedVars[pertType[i]] = {}
-    for key, value in perturbedVars.items():  # populate the dictionaries
-      splittedKeywords = key.split('|')
+    for key, value in perturbedVars.items():
+      # populate the dictionaries
+      splittedKeywords = key.split('|') if '|' in key else ["generic"]
       for j in range(0, len(pertType)):
         if splittedKeywords[0] == pertType[j]:
           distributedPerturbedVars[pertType[j]][key] = value
@@ -279,11 +261,11 @@ class Phisics(CodeInterfaceBase):
       commandToRun = executable
       outputfile = 'out~'
     else:
-      commandToRun = executable + ' ' + inputFiles[mapDict['inp'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Xs-library'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Material'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Depletion_input'.lower(
-      )]].getFilename() + ' ' + self.instantOutput
+      commandToRun = executable + ' -i ' + inputFiles[mapDict['inp'.lower(
+      )]].getFilename() + ' -xs ' + inputFiles[mapDict['Xs-library'.lower(
+      )]].getFilename() + ' -mat ' + inputFiles[mapDict['Material'.lower(
+      )]].getFilename() + ' -dep ' + inputFiles[mapDict['Depletion_input'.lower(
+      )]].getFilename() + ' -o ' + self.instantOutput
       commandToRun = commandToRun.replace("\n", " ")
       commandToRun = re.sub("\s\s+", " ", commandToRun)
       outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
@@ -300,7 +282,7 @@ class Phisics(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ In, phiRel, dictionary, contains a key 'phiRel', value is True if PHISICS/RELAP is in coupled mode, empty otherwise
                                      and a key 'relapOut', value is the RELAP main output name
-      @ Out, finalizeCodeOutput, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, the dictionary containing the output data
     """
     phisicsDataDict = {}
     if "phiRel" not in phiRel:
@@ -322,11 +304,10 @@ class Phisics(CodeInterfaceBase):
     phisicsDataDict['printSpatialRR'] = self.printSpatialRR
     phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
     phisicsDataDict['pertVariablesDict'] = self.distributedPerturbedVars
-    phisicsdata.phisicsdata(phisicsDataDict)
-    if not self.mrtauStandAlone:
-      return self.jobTitle
-    else:
-      return 'mrtau'
+    # read outputs
+    outputParser = phisicsdata.phisicsdata(phisicsDataDict)
+    response = outputParser.returnData()
+    return response
 
   def checkForOutputFailure(self, output, workingDir):
     """
@@ -456,13 +437,7 @@ class Phisics(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, currentInputFiles, list, list of current input files (input files from last this method call) (perturbed)
     """
-    import DecayParser
-    import FissionYieldParser
-    import QValuesParser
-    import MaterialParser
-    import PathParser
-    import XSCreator
-    import MassParser  # for MRTAU standalone
+
     self.typeDict = {}
     self.typeDict = self.mapInputFileType(currentInputFiles)
     self.checkInput()
@@ -475,7 +450,7 @@ class Phisics(CodeInterfaceBase):
         currentInputFiles[self.typeDict['path']].getAbsFile(),
         currentInputFiles, self.typeDict)
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
-    self.instantOutput = self.jobTitle + '.o'
+    self.instantOutput = self.jobTitle.replace(" ", "") + '.o'
     self.depInp = currentInputFiles[self.typeDict[
         'depletion_input']].getAbsFile()  # for PHISICS/RELAP interface
     if not self.mrtauStandAlone:
@@ -548,4 +523,25 @@ class Phisics(CodeInterfaceBase):
             currentInputFiles[self.typeDict['mass']].getAbsFile(),
             currentInputFiles[self.typeDict['mass']].getPath(),
             **self.distributedPerturbedVars[perturbedParam])
+      if perturbedParam == 'generic':
+        # check and modify modelpar.inp file
+        modelParParser = GenericParser(currentInputFiles)
+        modelParParser.modifyInternalDictionary(**Kwargs)
+        modelParParser.writeNewInput(currentInputFiles,oriInputFiles)
+
+
+      # add CSV output from depletion
+      tree = ET.parse(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
+      depletionRoot = tree.getroot()
+      outc = depletionRoot.find(".//output_control")
+      plotType = outc.find(".//plot_type")
+      if plotType is None or plotType.text.strip() != '3':
+        plotType = ET.Element("plot_type") if plotType is None else plotType
+      plotType.text = '3'
+      try:
+        outc.remove(plotType)
+      except ValueError:
+        print('Phisics INTERFACE: added plot_type node and set to 3!')
+      outc.append(plotType)
+      tree.write(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
     return currentInputFiles

@@ -1,11 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>sklMetrics</WorkingDir>
-    <Sequence>mcRun, PP1</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
-
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_metric_skl</name>
     <author>wangc</author>
@@ -15,14 +9,17 @@
       This test checks metrics from ScikitLearn library
     </description>
     <revisions>
+      <revision author="talbpaul" date="2019-01-09">no printing directly from postprocessor to file</revision>
       <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
       <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
     </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="output_metric" type="">output_metric.xml</Input>
-  </Files>
+  <RunInfo>
+    <WorkingDir>sklMetrics</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
@@ -31,30 +28,30 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="SKL">explained_variance_score</Metric>
-      <Metric class="Metrics" type="SKL">mean_absolute_error</Metric>
-      <Metric class="Metrics" type="SKL">mean_squared_error</Metric>
-      <Metric class="Metrics" type="SKL">r2_score</Metric>
+      <Metric class="Metrics" type="Metric">explained_variance_score</Metric>
+      <Metric class="Metrics" type="Metric">mean_absolute_error</Metric>
+      <Metric class="Metrics" type="Metric">mean_squared_error</Metric>
+      <Metric class="Metrics" type="Metric">r2_score</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <SKL name="explained_variance_score">
-        <metricType>regression|explained_variance_score</metricType>
-        <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
-    </SKL>
-    <SKL name="mean_absolute_error">
-        <metricType>regression|mean_absolute_error</metricType>
-        <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
-    </SKL>
-    <SKL name="r2_score">
-        <metricType>regression|r2_score</metricType>
-        <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
-    </SKL>
-    <SKL name="mean_squared_error">
-        <metricType>regression|mean_squared_error</metricType>
-        <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
-    </SKL>
+    <Metric name="explained_variance_score" subType="SKL">
+      <metricType>regression|explained_variance_score</metricType>
+      <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
+    </Metric>
+    <Metric name="mean_absolute_error" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+      <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
+    </Metric>
+    <Metric name="r2_score" subType="SKL">
+      <metricType>regression|r2_score</metricType>
+      <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
+    </Metric>
+    <Metric name="mean_squared_error" subType="SKL">
+      <metricType>regression|mean_squared_error</metricType>
+      <sample_weight>0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1</sample_weight>
+    </Metric>
   </Metrics>
 
   <Distributions>
@@ -94,7 +91,6 @@
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="DataObjects" type="PointSet">pp1_metric</Output>
       <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
-      <Output class="Files"      type="">output_metric</Output>
     </PostProcess>
   </Steps>
 

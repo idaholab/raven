@@ -1,43 +1,64 @@
-<data name="par_dump" type="Pointset"><input>x2,x3,x1,x4</input><output>ans2,ans</output><inputFilename>par_dump.csv</inputFilename><metadata><SamplerType>array([u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol',
-       u'Adaptive Sparse Grids for Sobol'], 
-      dtype='&lt;U31')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x4': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 0.5, u'x3': 0.78867513459481298, u'x1': 0.5, u'x4': 0.5},
-       {u'x2': 0.21132486540518702, u'x3': 0.5, u'x1': 0.5, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.5, u'x4': 0.78867513459481298},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.5, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.21132486540518702, u'x1': 0.5, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.5, u'x4': 0.21132486540518702},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.78867513459481298, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.21132486540518702, u'x4': 0.5},
-       {u'x2': 0.78867513459481298, u'x3': 0.5, u'x1': 0.5, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.88729833462074148, u'x4': 0.5},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.11270166537925852, u'x4': 0.5}], dtype=object)</SampledVars><ProbabilityWeight-x2>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x2><ProbabilityWeight-x3>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x3><prefix>array(['2', '9', '4', '1', '3', '5', '6', '7', '8', '1', '1'], 
-      dtype='|S1')</prefix><ProbabilityWeight-x1>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x1><ProbabilityWeight-x4>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x4><SampledVarsPb>array([{u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0, u'x4': 1.0}], dtype=object)</SampledVarsPb><PointProbability>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</PointProbability></metadata></data>
+<DataObjectMetadata name="solns">
+  <rom type="Static">
+    <ROM>
+      <type>HDMR_ROM(ans-ans2)</type>
+    </ROM>
+    <ans>
+      <mean>5.0625</mean>
+      <expectedValue>5.0625</expectedValue>
+      <variance>3.796875</variance>
+      <samples>11</samples>
+      <partialVariance>
+        <x1>0.94921875</x1>
+        <x4>0.94921875</x4>
+        <x2>0.94921875</x2>
+        <x3>0.94921875</x3>
+      </partialVariance>
+      <sobolIndices>
+        <x1>0.25</x1>
+        <x4>0.25</x4>
+        <x2>0.25</x2>
+        <x3>0.25</x3>
+      </sobolIndices>
+      <sobolTotalIndices>
+        <x1>0.25</x1>
+        <x4>0.25</x4>
+        <x2>0.25</x2>
+        <x3>0.25</x3>
+      </sobolTotalIndices>
+    </ans>
+    <ans2>
+      <mean>0.61285033268</mean>
+      <expectedValue>0.61285033268</expectedValue>
+      <variance>0.00768013893552</variance>
+      <samples>11</samples>
+      <partialVariance>
+        <x1>0.001922036366</x1>
+        <x2>0.00191936752317</x2>
+        <x4>0.00191936752317</x4>
+        <x3>0.00191936752317</x3>
+      </partialVariance>
+      <sobolIndices>
+        <x1>0.250260624467</x1>
+        <x2>0.249913125178</x2>
+        <x4>0.249913125178</x4>
+        <x3>0.249913125178</x3>
+      </sobolIndices>
+      <sobolTotalIndices>
+        <x1>0.250260624467</x1>
+        <x2>0.249913125178</x2>
+        <x4>0.249913125178</x4>
+        <x3>0.249913125178</x3>
+      </sobolTotalIndices>
+    </ans2>
+  </rom>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2,x3,x4</inputs>
+      <outputs>ans,ans2</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

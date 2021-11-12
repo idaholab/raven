@@ -3,16 +3,16 @@
   type = 'RavenFramework'
   input = 'test_adaptive_sgc_pca_analytic.xml'
   UnorderedCsv = 'Adaptive/data.csv'
-  xml = 'Adaptive/dump.xml'
+  UnorderedXml = 'Adaptive/dump.xml'
  [../]
- 
+
  [./test_adaptive_sgc_attenuation]
   type = 'RavenFramework'
   input = 'test_adaptive_sgc_attenuation.xml'
   UnorderedCsv = 'attenuation/csv_database.csv'
-  xml = 'attenuation/stats_td1.xml'                  #analytic, "Attenuation with Multivariate Normal Distribution"
+  UnorderedXml = 'attenuation/stats_td1.xml'                  #analytic, "Attenuation with Multivariate Normal Distribution"
  [../]
- 
+
  [./test_adaptive_sgc_attenu_correlation]
   type = 'RavenFramework'
   input = 'test_adaptive_sgc_attenu_correlation.xml'
@@ -25,6 +25,7 @@
   input = 'test_adaptive_sgc_poly_correlation.xml'
   UnorderedCsv = 'polyCorrelation/csv_database.csv'
   UnorderedXml = 'polyCorrelation/stats_td1.xml'
+  max_time = 500 # windows test box is slow, so very slow
  [../]
 
  [./test_adaptive_sgc_poly_pca_analytic]

@@ -1,0 +1,48 @@
+<Simulation verbosity="debug" color="true">
+  <TestInfo>
+    <name>framework/Samplers/NoVars.MC</name>
+    <author>talbpaul</author>
+    <created>2019-11-05</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      Tests using no variables as inputs to the MonteCarlo sampler.
+      While not precisely analytic, the samples pointset should contain
+      two realizations, each with values 1, 2, 3 for x1, x2, and x3.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MC</WorkingDir>
+    <Sequence>sample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="Dummy">model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <ExternalXML node='IOStep' xmlToLoad='common/iostep.xml'/>
+  </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name='x3'>
+        <function>depends</function>
+      </variable>
+      <constant name='x1'>1.0</constant>
+      <constant name='x2'>2.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <ExternalXML node='Functions' xmlToLoad='common/functions.xml'/>
+  <ExternalXML node='Models' xmlToLoad='common/models.xml'/>
+  <ExternalXML node='DataObjects' xmlToLoad='common/dataobjects.xml'/>
+  <ExternalXML node='OutStreams' xmlToLoad='common/outstreams.xml'/>
+
+</Simulation>
