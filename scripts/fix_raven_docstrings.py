@@ -18,12 +18,6 @@
   This a utility tool to fix the docstrings in RAVEN
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3
-
 #External Modules--------------------
 import sys
 import os
@@ -31,8 +25,8 @@ import os
 
 def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
   """
-    This method is aimed to trim to the quote docstrings to the
-    be limited in the maxColumns number
+    This method is aimed to trim a docstring containing quotes (") symbols
+    into multiple lines to respect the maximum number of columns maxColumns
     @ In, docstring, str, the docstring that need to be modified
     @ In, quoteIndent, int, the indentation number of columns of the docstring
     @ In, maxColumns, int, optional, the maximum number of columns allowed (default 120)
@@ -52,7 +46,9 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
   for cnt, line in enumerate(lines):
     indentedLine = " "*(quoteIndent+2) + line.lstrip()
     if cnt in inIndex+outIndex:
-      indentedLine = indentedLine.replace("@Out","@ Out").replace("@In","@ In")
+      indentedLine = indentedLine.replace("@O","@ O").replace("@I","@ I").replace("@o","@ O").replace("@i","@ I")
+      # the following is scannint the string to find the indeces of the
+      # commas (in the RAVEN standard)
       breakIndex = [i for i, ltr in enumerate(indentedLine) if ltr == ',']
       breakIndex = quoteIndent+8
     else:
@@ -81,10 +77,10 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
 
 def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
   """
-    This method is aimed to trim to the pound (#) docstrings to the
-    be limited in the maxColumns number
+    This method is aimed to trim a docstring containing pound (#) symbols
+    into multiple lines to respect the maximum number of columns maxColumns
     @ In, docstring, str, the docstring that need to be modified
-    @ In, quoteIndent, int, the indentation number of columns of the docstring
+    @ In, quoteIndent, int, the indentation size of the docstring
     @ In, maxColumns, int, optional, the maximum number of columns allowed (default 120)
     @ Out, outputLines, list, the list of new lines that need to be inserted
   """
