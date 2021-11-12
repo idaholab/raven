@@ -71,7 +71,7 @@
   input = 'line_plot.xml'
   image  = 'linePlot/test_filename.png'
   rel_err = 0.0001
-  required_libraries = 'PIL'
+  required_libraries = 'imageio'
  [../]
 
  [./MultipleScatteredData]
@@ -79,7 +79,7 @@
   input = 'plot/multipleScatter.xml'
   image  = 'plot/1-plot_both_scatter-scatter.png'
   rel_err = 0.0001
-  required_libraries = 'PIL'
+  required_libraries = 'imageio'
  [../]
 
   [./SamplePlot]
