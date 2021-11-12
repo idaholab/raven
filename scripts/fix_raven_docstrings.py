@@ -45,7 +45,7 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
   outIndex = []
   for cnt, line in enumerate(lines):
     if line.strip().startswith("@"):
-      if "@ in" in line.lower() or '@in' in line.lower():
+      if line.lower().strip().startswith(('@ in', '@in'))
         inIndex.append(cnt)
       elif "@ out" in line.lower() or '@out' in line.lower():
         outIndex.append(cnt)
