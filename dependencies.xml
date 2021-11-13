@@ -62,6 +62,7 @@ Note all install methods after "main" take
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
     <xmlschema source="pip"/>
+    <prophet/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
