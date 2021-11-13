@@ -238,15 +238,15 @@ class PostProcessor(Model):
     self._pp.collectOutput(finishedJob, output)
 
   def provideExpectedMetaKeys(self):
-     """
-       Overrides the base class method to assure child postprocessor is also polled for its keys.
-       @ In, None
-       @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
-     """
-     # get keys as per base class
-     metaKeys,metaParams = super().provideExpectedMetaKeys()
-     # add postprocessor keys
-     keys, params = self._pp.provideExpectedMetaKeys()
-     metaKeys = metaKeys.union(keys)
-     metaParams.update(params)
-     return metaKeys, metaParams
+    """
+      Overrides the base class method to assure child postprocessor is also polled for its keys.
+      @ In, None
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
+    """
+    # get keys as per base class
+    metaKeys,metaParams = super().provideExpectedMetaKeys()
+    # add postprocessor keys
+    keys, params = self._pp.provideExpectedMetaKeys()
+    metaKeys = metaKeys.union(keys)
+    metaParams.update(params)
+    return metaKeys, metaParams
