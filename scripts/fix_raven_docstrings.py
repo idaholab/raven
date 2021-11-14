@@ -47,9 +47,6 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
     indentedLine = " "*(quoteIndent+2) + line.lstrip()
     if cnt in inIndex+outIndex:
       indentedLine = indentedLine.replace("@O","@ O").replace("@I","@ I").replace("@o","@ O").replace("@i","@ I")
-      # the following is scannint the string to find the indeces of the
-      # commas (in the RAVEN standard)
-      breakIndex = [i for i, ltr in enumerate(indentedLine) if ltr == ',']
       breakIndex = quoteIndent+8
     else:
       breakIndex = quoteIndent+1
@@ -70,7 +67,7 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
           newLines.append(lineToAdd+"\n")
       outputLines+=newLines
     else:
-      outputLines.append(line)
+      outputLines.append(indentedLine)
   outputLines.append(" "*quoteIndent+'"""'+"\n")
   # Return a single string:
   return outputLines
