@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMN</WorkingDir>
     <Sequence>FirstMNRun</Sequence>
     <batchSize>3</batchSize>
     <clusterParameters>-W block=true</clusterParameters>
