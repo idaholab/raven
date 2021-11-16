@@ -139,8 +139,6 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
         out = self.estimator.evaluate(featIn, targIn)
         dynamicOutput.append(out)
     elif self.estimator.isInstanceString(['DSS']):
-      out = self.estimator.evaluate(feat, targ)
-      dynamicOutput.append(out)
       featVals = np.asarray(feat)
       targVals = np.asarray(targ)
       assert(featVals.shape[0] == targVals.shape[0])

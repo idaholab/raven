@@ -16,8 +16,6 @@ Created on January XX, 2021
 
 @author: yoshrk
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 from scipy.interpolate import interp1d
@@ -36,10 +34,6 @@ from utils import xmlUtils
 import Files
 import DataObjects
 from ..ValidationBase import ValidationBase
-#import Distributions
-#import MetricDistributor
-#from .ValidationBase import ValidationBase
-#from Models.PostProcessors import PostProcessor
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PPDSS(ValidationBase):
@@ -56,34 +50,22 @@ class PPDSS(ValidationBase):
         specifying input of cls.
     """
     inputSpecification = super(PPDSS, cls).getInputSpecification()
-    #featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
-    #featuresInput.addParam("type", InputTypes.StringType)
-    #inputSpecification.addSub(featuresInput)
-    #targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
-    #targetsInput.addParam("type", InputTypes.StringType)
-    #inputSpecification.addSub(targetsInput)
-    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputTypes.StringType)
-    inputSpecification.addSub(multiOutputInput)
-    multiOutput = InputTypes.makeEnumType('MultiOutput', 'MultiOutputType', 'raw_values')
-    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
-    inputSpecification.addSub(multiOutputInput)
-    #pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
-    #inputSpecification.addSub(pivotParameterInput)
-    #
     # Have added the new pivotParameters for feature and target. The original has been commented out.
-    pivotParameterFeatureInput = InputData.parameterInputFactory("pivotParameterFeature", contentType=InputTypes.StringType)
+    pivotParameterFeatureInput = InputData.parameterInputFactory("pivotParameterFeature", contentType=InputTypes.StringType,
+                                                                descr="""Pivot parameter for feature inputs""")
     inputSpecification.addSub(pivotParameterFeatureInput)
-    pivotParameterTargetInput = InputData.parameterInputFactory("pivotParameterTarget", contentType=InputTypes.StringType)
+    pivotParameterTargetInput = InputData.parameterInputFactory("pivotParameterTarget", contentType=InputTypes.StringType,
+                                                                descr="""Pivot parameter for target inputs""")
     inputSpecification.addSub(pivotParameterTargetInput)
-    #metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
-    #metricInput.addParam("class", InputTypes.StringType, True)
-    #metricInput.addParam("type", InputTypes.StringType, True)
-    #inputSpecification.addSub(metricInput)
-    scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.StringType)
+    scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.StringType,
+                                                      descr="""Scaling type for the time transformation. Available types are DataSynthesis,
+                                                      2_2_affine, dilation, beta_strain, omega_strain, and identity""")
     inputSpecification.addSub(scaleTypeInput)
-    scaleRatioBetaInput = InputData.parameterInputFactory("scaleBeta", contentType=InputTypes.FloatListType)
+    scaleRatioBetaInput = InputData.parameterInputFactory("scaleBeta", contentType=InputTypes.FloatListType,
+                                                          descr="""Scaling ratio for the parameter of interest""")
     inputSpecification.addSub(scaleRatioBetaInput)
-    scaleRatioOmegaInput = InputData.parameterInputFactory("scaleOmega", contentType=InputTypes.FloatListType)
+    scaleRatioOmegaInput = InputData.parameterInputFactory("scaleOmega", contentType=InputTypes.FloatListType,
+                                                            descr="""Scaling ratio for the agents of change""")
     inputSpecification.addSub(scaleRatioOmegaInput)
     return inputSpecification
 
@@ -100,22 +82,16 @@ class PPDSS(ValidationBase):
     self.dynamicType = ['dynamic']
     self.features              = None  # list of feature variables
     self.targets               = None  # list of target variables
-    #self.metricsDict           = {}    # dictionary of metrics that are going to be assembled
     self.multiOutput           = 'raw_values' # defines aggregating of multiple outputs for HistorySet
                                 # currently allow raw_values
-    #self.pivotParameter        = None  # list of pivot parameters
-    #self.pivotValues           = []
     self.pivotParameterFeature = None
     self.pivotValuesFeature    = []
     self.pivotParameterTarget  = None
     self.pivotValuesTarget     = []
     self.scaleType             = None
-    #self.processTimeRecord     = []
-    #self.scaleType             = ['DataSynthesis','2_2_Affine','Dilation','beta_strain','omega_strain','identity']
     # assembler objects to be requested
     self.scaleRatioBeta        = []
     self.scaleRatioOmega       = []
-    #self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
 
   def _handleInput(self, paramInput):
     """
@@ -130,10 +106,8 @@ class PPDSS(ValidationBase):
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
       elif child.getName() == 'Features':
         self.features = child.value
-        #self.featuresType = child.parameterValues['type']
       elif child.getName() == 'Targets':
         self.targets = child.value
-        #self.TargetsType = child.parameterValues['type']
       elif child.getName() == 'multiOutput':
         self.multiOutput = child.value
       elif child.getName() == 'pivotParameterFeature':
@@ -148,10 +122,6 @@ class PPDSS(ValidationBase):
         self.scaleRatioOmega = child.value
       else:
         self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
-    #if not self.features:
-    #  self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    #elif len(self.features) != len(self.targets):
-    #  self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def run(self, inputIn):
     """
@@ -164,23 +134,17 @@ class PPDSS(ValidationBase):
     assert(isinstance(inputIn["Data"], list))
     assert(isinstance(inputIn["Data"][0][-1], xr.Dataset) and isinstance(inputIn["Data"][1][-1], xr.Dataset))
     # the input can be either be a list of dataobjects or a list of datasets (xarray)
-    #datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
     datasets = [data for _, _, data in inputIn['Data']]
-    #print("datasets:",datasets)
     names = []
     pivotParameterTarget = self.pivotParameterTarget
     pivotParameterFeature = self.pivotParameterFeature
     names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
-    #print("names:",names)
-    #print("inputIn:",inputIn)
-    #print("inputIn['Data'][0][2].indexes:",inputIn['Data'][0][2].indexes)
-    #print("inputIn['Data'][0][-1].indexes:",inputIn['Data'][0][-1].indexes)
     if len(inputIn['Data'][0][-1].indexes) and (self.pivotParameterTarget is None or self.pivotParameterFeature is None):
       if 'dynamic' not in self.dynamicType: #self.model.dataType:
         self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
       else:
-          pivotParameterTarget = inputIn['Data'][1][2]
-          pivotParameterFeature = inputIn['Data'][0][2]
+        pivotParameterTarget = inputIn['Data'][1][2]
+        pivotParameterFeature = inputIn['Data'][0][2]
     #  check if pivotParameter
     evaluation = self._evaluate(datasets)
     if not isinstance(evaluation, list):
@@ -203,9 +167,8 @@ class PPDSS(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    #print("datasets:",datasets)
     realizations = []
-    realization_array = []
+    realizationArray = []
     for feat, targ, scaleRatioBeta, scaleRatioOmega in zip(self.features, self.targets, self.scaleRatioBeta, self.scaleRatioOmega):
       nameFeat = feat.split("|")
       nameTarg = targ.split("|")
@@ -252,19 +215,19 @@ class PPDSS(ValidationBase):
         pivotSize = pivotFeatureSize
 
       if pivotFeatureSize == pivotSize:
-        y_count = featData.shape[0]
-        z_count = featData.shape[1]
+        yCount = featData.shape[0]
+        zCount = featData.shape[1]
       else:
-        y_count = targData.shape[0]
-        z_count = targData.shape[1]
-      featureD = np.zeros((y_count,z_count))
-      featureProcessTimeNorm = np.zeros((y_count,z_count))
-      featureOmegaNorm = np.zeros((y_count,z_count))
-      featureBeta = np.zeros((y_count,z_count))
-      NaN_count = np.zeros((y_count,z_count))
+        yCount = targData.shape[0]
+        zCount = targData.shape[1]
+      featureD = np.zeros((yCount,zCount))
+      featureProcessTimeNorm = np.zeros((yCount,zCount))
+      featureOmegaNorm = np.zeros((yCount,zCount))
+      featureBeta = np.zeros((yCount,zCount))
+      naNCount = np.zeros((yCount,zCount))
       #
       feature = nameFeat[1]
-      for cnt2 in range(y_count):
+      for cnt2 in range(yCount):
         if pivotFeatureSize == pivotSize:
           featureBeta[cnt2] = featData[cnt2]
           interpGrid = pivotFeature
@@ -273,46 +236,43 @@ class PPDSS(ValidationBase):
           interpGrid = timeScalingRatio*pivotTarget
           featureBeta[cnt2] = interpFunction(interpGrid)
         featureOmega = np.gradient(featureBeta[cnt2],interpGrid)
-        #print("featureOmega:",featureOmega)
         featureProcessTime = featureBeta[cnt2]/featureOmega
         featureDiffOmega = np.gradient(featureOmega,interpGrid)
         featureD[cnt2] = -featureBeta[cnt2]/featureOmega**2*featureDiffOmega
-        for cnt3 in range(z_count):
+        for cnt3 in range(zCount):
           if np.isnan(featureD[cnt2][cnt3]) == True:
-            NaN_count[cnt2][cnt3] = 1
+            naNCount[cnt2][cnt3] = 1
           elif np.isinf(featureD[cnt2][cnt3]) == True:
-            NaN_count[cnt2][cnt3] = 1
+            naNCount[cnt2][cnt3] = 1
         featureInt = featureD[cnt2]+1
-        # Excluding NaN type data and exclude corresponding time in grid ina
+        # Excluding NaN type data and exclude corresponding time in grid in
         # preperation for numpy simpson integration
         count=0
         for i in range(len(featureD[cnt2])):
           if np.isnan(featureD[cnt2][i])==False and np.isinf(featureD[cnt2][i])==False:
             count += 1
         if count > 0:
-          featureInt_new = np.zeros(count)
-          interpGrid_new = np.zeros(count)
-          track_count = 0
+          featureIntNew = np.zeros(count)
+          interpGridNew = np.zeros(count)
+          trackCount = 0
           for i in range(len(featureD[cnt2])):
             if np.isnan(featureD[cnt2][i])==False and np.isinf(featureD[cnt2][i])==False:
-              interpGrid_new[track_count] = interpGrid[i]
-              featureInt_new[track_count] = featureInt[i]
-              track_count += 1
+              interpGridNew[trackCount] = interpGrid[i]
+              featureIntNew[trackCount] = featureInt[i]
+              trackCount += 1
             else:
               featureD[cnt2][i] = 0
         #
-        #print("featureInt_new:",featureInt_new)
-        featureProcessAction = simps(featureInt_new, interpGrid_new)
-        #print("featureProcessAction:",featureProcessAction)
+        featureProcessAction = simps(featureIntNew, interpGridNew)
         featureProcessTimeNorm[cnt2] = featureProcessTime/featureProcessAction
         featureOmegaNorm[cnt2] = featureProcessAction*featureOmega
       #
-      targetD = np.zeros((y_count,z_count))
-      targetProcessTimeNorm = np.zeros((y_count,z_count))
-      targetOmegaNorm = np.zeros((y_count,z_count))
-      targetBeta = np.zeros((y_count,z_count))
+      targetD = np.zeros((yCount,zCount))
+      targetProcessTimeNorm = np.zeros((yCount,zCount))
+      targetOmegaNorm = np.zeros((yCount,zCount))
+      targetBeta = np.zeros((yCount,zCount))
       target = nameTarg[1]
-      for cnt2 in range(y_count):
+      for cnt2 in range(yCount):
         if pivotTargetSize == pivotSize:
           targetBeta[cnt2] = targData[cnt2]
           interpGrid = pivotTarget
@@ -325,11 +285,11 @@ class PPDSS(ValidationBase):
         targetProcessTime = targetBeta[cnt2]/targetOmega
         targetDiffOmega = np.gradient(targetOmega,interpGrid)
         targetD[cnt2] = -targetBeta[cnt2]/targetOmega**2*targetDiffOmega
-        for cnt3 in range(z_count):
+        for cnt3 in range(zCount):
           if np.isnan(targetD[cnt2][cnt3]) == True:
-            NaN_count[cnt2][cnt3] = 1
+            naNCount[cnt2][cnt3] = 1
           elif np.isinf(targetD[cnt2][cnt3]) == True:
-            NaN_count[cnt2][cnt3] = 1
+            naNCount[cnt2][cnt3] = 1
         targetInt = targetD[cnt2]+1
         # Excluding NaN type data and exclude corresponding time in grid in
         # preperation for numpy simpson integration
@@ -338,26 +298,24 @@ class PPDSS(ValidationBase):
           if np.isnan(targetD[cnt2][i])==False and np.isinf(targetD[cnt2][i])==False:
             count += 1
         if count > 0:
-          targetInt_new = np.zeros(count)
-          interpGrid_new = np.zeros(count)
-          track_count = 0
+          targetIntNew = np.zeros(count)
+          interpGridNew = np.zeros(count)
+          trackCount = 0
           for i in range(len(targetD[cnt2])):
             if np.isnan(targetD[cnt2][i])==False and np.isinf(targetD[cnt2][i])==False:
-              interpGrid_new[track_count] = interpGrid[i]
-              targetInt_new[track_count] = targetInt[i]
-              track_count += 1
+              interpGridNew[trackCount] = interpGrid[i]
+              targetIntNew[trackCount] = targetInt[i]
+              trackCount += 1
             else:
               targetD[cnt2][i] = 0
         #
-        #print("targetInt_new:",targetInt_new)
-        targetProcessAction = simps(targetInt_new, interpGrid_new)
-        #print("targetProcessAction:",targetProcessAction)
+        targetProcessAction = simps(targetIntNew, interpGridNew)
         targetProcessTimeNorm[cnt2] = targetProcessTime/targetProcessAction
         targetOmegaNorm[cnt2] = targetProcessAction*targetOmega
       #
-      featureProcessTimeNormScaled = np.zeros((y_count,z_count))
-      featureOmegaNormScaled = np.zeros((y_count,z_count))
-      for cnt3 in range(y_count):
+      featureProcessTimeNormScaled = np.zeros((yCount,zCount))
+      featureOmegaNormScaled = np.zeros((yCount,zCount))
+      for cnt3 in range(yCount):
         featureProcessTimeNormScaled[cnt3] = featureProcessTimeNorm[cnt3]/timeScalingRatio
         featureOmegaNormScaled[cnt3] = featureOmegaNorm[cnt3]/scaleRatioBeta
       newfeatureData = np.asarray([featureOmegaNormScaled,featureProcessTimeNormScaled,featureBeta])
@@ -368,22 +326,22 @@ class PPDSS(ValidationBase):
       else:
         timeParameter = pivotFeature
       outputDict = {}
-      distanceTotal = np.zeros((y_count,z_count))
-      sigma = np.zeros((y_count,z_count))
+      distanceTotal = np.zeros((yCount,zCount))
+      sigma = np.zeros((yCount,zCount))
       for metric in self.metrics:
         name = "{}_{}_{}".format(metric.estimator.name, targ.split("|")[-1], feat.split("|")[-1])
       output = metric.evaluate((newfeatureData,newtargetData), multiOutput='raw_values')
       #print(output)
-      for cnt2 in range(y_count):
-          distanceSum = abs(np.sum(output[cnt2]))
-          sigmaSum = 0
-          for cnt3 in range(z_count):
-            distanceTotal[cnt2][cnt3] = distanceSum
-            sigmaSum += output[cnt2][cnt3]**2
-          for cnt3 in range(z_count):
-            sigma[cnt2][cnt3] = (1/(z_count-np.sum(NaN_count[cnt2]))*sigmaSum)**0.5
+      for cnt2 in range(yCount):
+        distanceSum = abs(np.sum(output[cnt2]))
+        sigmaSum = 0
+        for cnt3 in range(zCount):
+          distanceTotal[cnt2][cnt3] = distanceSum
+          sigmaSum += output[cnt2][cnt3]**2
+        for cnt3 in range(zCount):
+          sigma[cnt2][cnt3] = (1/(zCount-np.sum(naNCount[cnt2]))*sigmaSum)**0.5
       rlz = []
-      for cnt in range(y_count):
+      for cnt in range(yCount):
         outputDict = {}
         outputDict[name] = abs(np.atleast_1d(output[cnt]))
         outputDict['pivot_parameter'] = timeParameter
@@ -398,12 +356,12 @@ class PPDSS(ValidationBase):
         outputDict['standard_deviation_'+nameTarg[1]+'_'+nameFeat[1]] = sigma[cnt]
         #print(newfeatureData[1][cnt])
         rlz.append(outputDict)
-      realization_array.append(rlz)
+      realizationArray.append(rlz)
     #---------------
-    for cnt in range(len(realization_array[0])):
+    for cnt in range(len(realizationArray[0])):
       out = {}
-      for cnt2 in range(len(realization_array)):
-        for key, val in realization_array[cnt2][cnt].items():
+      for cnt2 in range(len(realizationArray)):
+        for key, val in realizationArray[cnt2][cnt].items():
           out[key] = val
       realizations.append(out)
     return realizations

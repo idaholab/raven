@@ -17,20 +17,32 @@
 import numpy as np
 
 def initialize(self,runInfoDict,inputFiles):
+  """
+    Constructor
+    @ In, runInfoDict, dict, dictionary of input file names, file location, and other parameters
+          RAVEN run.
+    @ In, inputFiles, list, data objects required for external model initialization.
+    @ Out, None
+  """
   self.sigma = 10.0
   self.rho   = 28.0
   self.beta  = 8.0/3.0
   return
 
 def run(self,Input):
-  max_time = 0.7
-  t_step = 0.005
+  """
+    Constructor
+    @ In, Input, dict, dictionary of input values for each feature.
+    @ Out, None
+  """
+  maxTime = 0.7
+  tStep = 0.005
   disc = 1.0
   self.sigma = 10.0
   self.rho   = -28.0
   self.beta  = 8.0/3.0
 
-  numberTimeSteps = int(max_time/t_step)
+  numberTimeSteps = int(maxTime/tStep)
 
   self.x2    = np.zeros(numberTimeSteps)
   self.y2    = np.zeros(numberTimeSteps)
@@ -47,7 +59,7 @@ def run(self,Input):
   self.time2[0]= 0.0
 
   for t in range (numberTimeSteps-1):
-    self.time2[t+1] = self.time2[t] + t_step
-    self.x2[t+1]    = self.x2[t] + disc*self.sigma*(self.y2[t]-self.x2[t]) * t_step
-    self.y2[t+1]    = self.y2[t] + disc*(self.x2[t]*(self.rho-self.z2[t])-self.y2[t]) * t_step
-    self.z2[t+1]    = self.z2[t] + disc*(self.x2[t]*self.y2[t]-self.beta*self.z2[t]) * t_step
+    self.time2[t+1] = self.time2[t] + tStep
+    self.x2[t+1]    = self.x2[t] + disc*self.sigma*(self.y2[t]-self.x2[t]) * tStep
+    self.y2[t+1]    = self.y2[t] + disc*(self.x2[t]*(self.rho-self.z2[t])-self.y2[t]) * tStep
+    self.z2[t+1]    = self.z2[t] + disc*(self.x2[t]*self.y2[t]-self.beta*self.z2[t]) * tStep

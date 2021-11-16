@@ -32,7 +32,6 @@
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>
-      <multiOutput>raw_values</multiOutput>
       <scale>DataSynthesis</scale>
       <scaleBeta>1,1</scaleBeta>
       <scaleOmega>1,1</scaleOmega>
@@ -41,7 +40,6 @@
 
   <Metrics>
     <Metric name="dss" subType="DSS">
-      <actionType>DataSynthesis</actionType>
     </Metric>
   </Metrics>
 

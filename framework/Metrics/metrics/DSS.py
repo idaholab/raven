@@ -16,14 +16,9 @@ Created on December 20 2020
 
 @author: yoshrk
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-#import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -42,7 +37,7 @@ class DSS(MetricInterface):
     used as well.
     @ For engineering scaling, although the phenomena are equivalent, the reference time and initial/boundary conditions
     are different. Both sets are tied by process time only.
-    @ In either case, if the to be compared data sets are are of little relevance, it is most likely DSS will fail to
+    @ In either case, if the to be compared data sets are of little relevance, it is most likely DSS will fail to
     measure the metric distance accurately.
   """
 
@@ -56,10 +51,6 @@ class DSS(MetricInterface):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    #inputSpecification = super(DSS, cls).getInputSpecification()
-    actionTypeInput = InputData.parameterInputFactory("actionType", contentType=InputTypes.StringType)
-    inputSpecification.addSub(actionTypeInput)
-
     return inputSpecification
 
   def __init__(self):
@@ -69,35 +60,20 @@ class DSS(MetricInterface):
       @ Out, None
     """
     super().__init__()
-    # The type of given analysis
-    self.actionType                      = None
     # True indicates the metric needs to be able to handle dynamic data
     self._dynamicHandling = True
     # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = False
 
-  def _localReadMoreXML(self, paramInput):
-    """
-      Method that reads the portion of the xml input that belongs to this specialized class
-      and initialize internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in paramInput.subparts:
-      if child.getName() == "actionType":
-        self.actionType = int(child.value)
-      #else:
-        #self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
-
   def run(self, x, y, weights=None, axis=0, **kwargs):
     """
       This method computes DSS distance between two inputs x and y based on given metric
-      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
-        the array will be reshaped via x.reshape(-1,1), shape (n_samples, ), if 2D
-        array is provided, shape (n_samples, n_time_steps)
-      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
-        the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
-        array is provided, shape (n_samples, n_time_steps)
+      @ In, x, numpy.ndarray, array containing data of x, 3D array provided.
+        Includes [scaled feature omega normalized,scaled normalized feature process time,feature beta] for
+        all samples and time-steps.
+      @ In, y, numpy.ndarray, array containing data of y, 3D array provided.
+        Includes [target omega normalized,target temporal displacement rate,target beta] for
+        all samples and time-steps.
       @ In, weights, array_like (numpy.array or list), optional, weights associated
         with input, shape (n_samples) if axis = 0, otherwise shape (n_time_steps)
       @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
@@ -124,17 +100,13 @@ class DSS(MetricInterface):
       distanceSquaredSum = 0
       for cnt2 in range(len(pTime[cnt])):
         if D[cnt][cnt2] == 0 or omegaNormTarget[cnt][cnt2] == 0 or omegaNormScaledFeature[cnt][cnt2] == 0:
-            distance[cnt][cnt2] = 0
+          distance[cnt][cnt2] = 0
         else:
-            distance[cnt][cnt2] = betaTarget[cnt][cnt2]*abs(D[cnt][cnt2])**0.5*(1/omegaNormTarget[cnt][cnt2]-1/omegaNormScaledFeature[cnt][cnt2])
-            if np.isnan(distance[cnt][cnt2]) == True:
-              distance[cnt][cnt2] = 0
+          distance[cnt][cnt2] = betaTarget[cnt][cnt2]*abs(D[cnt][cnt2])**0.5*(1/omegaNormTarget[cnt][cnt2]-1/omegaNormScaledFeature[cnt][cnt2])
+          if np.isnan(distance[cnt][cnt2]) == True:
+            distance[cnt][cnt2] = 0
         distanceSum[cnt] += abs(distance[cnt][cnt2])
         distanceSquaredSum += distance[cnt][cnt2]**2
       sigma[cnt] = (1/len(sigma)*distanceSquaredSum)**0.5
-    #value = distance
-    #value = min(distanceSum)
-    #print("Minimum Metric at Sample",np.argmin(np.asarray(distanceSum)))
-    #value = [pTime,betaTarget,omegaNormScaledFeature,omegaNormTarget,D,distance,distanceSum,sigma]
     value = distance
     return value
