@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.VotingRegressor</name>
+    <author>wangc</author>
+    <created>2021-11-16</created>
+    <classesTested>SupervisedLearning.SciKitLearn.VotingRegressor</classesTested>
+    <description>
+       An example exercising voting regressor methods.
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2021-11-15">Set up test for Voting Regressor</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="VotingRegressor">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <estimator class="Models" type="ROM">lr</estimator>
+      <estimator class="Models" type="ROM">svr</estimator>
+      <estimator class="Models" type="ROM">ridgeCV</estimator>
+    </ROM>
+    <ROM name="lr" subType="LinearRegression">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <ROM name="svr" subType="SVR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <C>1.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
+    <ROM name="ridgeCV" subType="RidgeCV">
+      <!-- Using all of the defaults -->
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <alphas>0.1,1.0,10.0</alphas>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+      <store_cv_values>False</store_cv_values>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outVotingRegressor</filename>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+</Simulation>
