@@ -578,7 +578,7 @@ if __name__ == '__main__':
       # which part of the install are we doing?
       if args.subset == 'core':
         # from defaults
-        src = '-c defaults'
+        src = '-c conda-forge'
         addOptional = args.addOptional
         limit = ['conda']
       elif args.subset == 'forge':
@@ -586,6 +586,7 @@ if __name__ == '__main__':
         src = '-c conda-forge '
         addOptional = args.addOptional
         limit = ['forge']
+        sys.stderr.write("WARNING: conda-forge is used by default, do not need to request\n")
       elif args.subset == 'pip':
         src = ''
         installer = 'pip'

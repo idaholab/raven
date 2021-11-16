@@ -129,6 +129,11 @@ data objects, depending on the type of statistics the user wants to compute:
     might be incorrect and a Warning is spooned by the code)
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
+    \item \textbf{spearman}: matrix of spearman ranking coefficients. This matrix is computed in its
+    weighted form (see RAVEN theory manual at \cite{RAVENtheoryManual}):
+    \begin{equation}
+\boldsymbol{\mathrm{P}}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})}{\sigma_{R(x)} \sigma_{R(y)}}
+\end{equation}
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
     coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables

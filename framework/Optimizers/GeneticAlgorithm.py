@@ -144,9 +144,9 @@ class GeneticAlgorithm(RavenSampled):
                   b. \textbf{\textit{tournamentSelection}},
                   c. \textbf{\textit{rankSelection}}
                   for all methods nParents is computed such that the population size is kept constant.
-                  \[ nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize \]
+                  $nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize$
                   solving for nParents we get:
-                  \[nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})\]
+                  $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
                   This will result in a popSize a little lareger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
     GAparams.addSub(parentSelection)
 
@@ -214,13 +214,9 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \\times obj - b \\times \\Sum_{j=1}^{nConstraint} max(0,-penalty_j)$.
-                                 b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
-                                 c.    feasibleFirst: $fitness = \[ \\begin{cases}
-                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
-                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
-                                                                    \\end{cases}
-                                                                \]$""")
+                  This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+                                 b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
@@ -456,8 +452,6 @@ class GeneticAlgorithm(RavenSampled):
                                              penalty = None,
                                              constraintFunction=g,
                                              type=self._minMax)
-
-    acceptable = 'first' if self.counter==1 else 'accepted'
 
     self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
