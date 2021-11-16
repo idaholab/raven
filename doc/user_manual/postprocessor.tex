@@ -1349,7 +1349,7 @@ In addition to this XML node, several others are available:
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling. \textbf{Note that}, if shuffle is False and random\_state is present, sklearn will error out.
 \end{itemize}
 
 \paragraph{Stratified k-fold}
@@ -1367,6 +1367,7 @@ In addition to this XML node, several others are available:
     batches.
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
     pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+    \textbf{Note that}, if shuffle is False and random\_state is present, sklearn will error out.
 \end{itemize}
 
 \paragraph{Label k-fold}
