@@ -50,6 +50,7 @@ class VotingRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.ensemble
     self.model = sklearn.ensemble.VotingRegressor
+    self.settings = None #
 
   @classmethod
   def getInputSpecification(cls):
@@ -64,6 +65,10 @@ class VotingRegressor(ScikitLearnBase):
     specs.description = r"""The \xmlNode{VotingRegressor}
                          \zNormalizationPerformed{VotingRegressor}
                          """
+    estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
+                                                 descr=r"""name of a ROM that can be used as an estimator""", default='no-default')
+    #TODO: Add more inputspecs for estimator
+    specs.addSub(estimatorInput)
     specs.addSub(InputData.parameterInputFactory("weights", contentType=InputTypes.FloatListType,
                                                  descr=r"""Sequence of weights (float or int) to weight the occurrences of predicted
                                                  values before averaging. Uses uniform weights if None.""", default=None))
@@ -80,7 +85,16 @@ class VotingRegressor(ScikitLearnBase):
     settings, notFound = paramInput.findNodesAndExtractValues(['weights'])
     # notFound must be empty
     assert(not notFound)
-    self.initializeModel(settings)
+    self.settings = settings
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    params = self.settings
+    return params
 
   def setEstimator(self, estimatorList):
     """
@@ -90,11 +104,13 @@ class VotingRegressor(ScikitLearnBase):
     """
     estimators = []
     for estimator in estimatorList:
-      if not isinstance(estimator, ScikitLearnBase):
+      interfaceRom = estimator._interfaceROM
+      if not isinstance(interfaceRom, ScikitLearnBase):
         self.raiseAnError(IOError, 'ROM', estimator.name, 'can not be used as estimator for ROM', self.name)
-      if not callable(getattr(estimator, "fit", None)):
+      if not callable(getattr(interfaceRom.model, "fit", None)):
         self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
       else:
         self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
-      estimators.append((estimator.name, estimator._interfaceROM.model))
+      estimators.append((estimator.name, interfaceRom.model))
     self.model = self.model(estimators)
+    self.initializeModel(self.settings)

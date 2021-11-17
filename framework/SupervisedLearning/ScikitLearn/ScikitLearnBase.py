@@ -36,7 +36,7 @@ class ScikitLearnBase(SupervisedLearning):
   """
     Base Class for Scikitlearn-based surrogate models (classifiers and regressors)
   """
-  info = {'datatype':None, 'normalize':None}
+  info = {'problemtype':None, 'normalize':None}
 
   def __init__(self):
     """
@@ -78,10 +78,10 @@ class ScikitLearnBase(SupervisedLearning):
     self.settings = settings
     self.model.set_params(**settings)
 
-  def setEstimator(self, estimator):
+  def setEstimator(self, estimatorList):
     """
       Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
     pass

@@ -98,12 +98,16 @@ class OutputCodeClassifier(ScikitLearnBase):
     assert(not notFound)
     self.initializeModel(settings)
 
-  def setEstimator(self, estimator):
+  def setEstimator(self, estimatorList):
     """
       Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
+    if len(estimatorList) != 1:
+      self.raiseAWarning('ROM', self.name, 'can only accept one estimator, but multiple estimators are provided!',
+                          'Only the first one will be used, i.e.,', estimator.name)
+    estimator = estimatorList[0]
     if estimator._interfaceROM.multioutputWrapper:
       sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
     else:
