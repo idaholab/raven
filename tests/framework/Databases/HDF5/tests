@@ -29,8 +29,6 @@
    type = 'RavenFramework'
    input = 'test_load_and_push_reusing_same_hdf5.xml'
    output = 'GridTestSameHDF5/GridRestarted/1/out~massflowrate_fake GridTestSameHDF5/outGrid_dump.csv GridTestSameHDF5/outGridMax_dump.csv GridTestSameHDF5/outGridMin_dump.csv GridTestSameHDF5/outGridAverage_dump.csv'
-   prereq = testGrid
-   method = 'devel opt'
  [../]
 
  [./newerDatabaseWithFilename]
