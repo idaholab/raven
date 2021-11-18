@@ -43,10 +43,7 @@ class OneVsRestClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.multiclass
-    import sklearn.multioutput
-    from sklearn.svm import SVC
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OneVsRestClassifier(SVC()))
+    self.model = sklearn.multiclass.OneVsRestClassifier
 
   @classmethod
   def getInputSpecification(cls):

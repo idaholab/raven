@@ -43,10 +43,7 @@ class OutputCodeClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.multiclass
-    import sklearn.multioutput
-    from sklearn.svm import SVC
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.multiclass.OutputCodeClassifier(SVC()))
+    self.model = sklearn.multiclass.OutputCodeClassifier
 
   @classmethod
   def getInputSpecification(cls):
@@ -119,6 +116,7 @@ class OutputCodeClassifier(ScikitLearnBase):
     #   self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
     else:
       self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
+
     if self.multioutputWrapper:
       settings = {'estimator__estimator':sklEstimator}
     else:

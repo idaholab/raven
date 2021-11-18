@@ -44,9 +44,7 @@ class BayesianRidge(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.BayesianRidge())
+    self.model = sklearn.linear_model.BayesianRidge
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,17 +82,15 @@ class BayesianRidge(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("lambda_2", contentType=InputTypes.FloatType,
                                                  descr=r"""Hyper-parameter : inverse scale parameter (rate parameter) for
                                                  the Gamma distribution prior over the lambda parameter.""", default=1e-6))
-    specs.addSub(InputData.parameterInputFactory("alpha_init", contentType=InputTypes.FloatType,
-                                                 descr=r"""Initial value for alpha (precision of the noise).
-                                                  If not set, alpha_init is $1/Var(y)$.""", default=None))
-    specs.addSub(InputData.parameterInputFactory("lambda_init", contentType=InputTypes.FloatType,
-                                                 descr=r"""Initial value for lambda (precision of the weights).""", default='1.'))
+    # new in sklearn version 0.22
+    # specs.addSub(InputData.parameterInputFactory("alpha_init", contentType=InputTypes.FloatType,
+    #                                              descr=r"""Initial value for alpha (precision of the noise).
+    #                                               If not set, alpha_init is $1/Var(y)$.""", default=None))
+    # specs.addSub(InputData.parameterInputFactory("lambda_init", contentType=InputTypes.FloatType,
+    #                                              descr=r"""Initial value for lambda (precision of the weights).""", default='1.'))
     specs.addSub(InputData.parameterInputFactory("compute_score", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, compute the objective function at each step of the
                                                  model.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("threshold_lambda", contentType=InputTypes.FloatType,
-                                                 descr=r"""threshold for removing (pruning) weights with
-                                                 shigh precision from the computation..""", default=10000))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or intercept)
                                                   should be added to the decision function.""", default=True))
@@ -114,8 +110,8 @@ class BayesianRidge(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha_1','alpha_2','lambda_1','lambda_2',
-                                                               'compute_score', 'threshold_lambda', 'fit_intercept',
-                                                               'n_iter', 'normalize','alpha_init','lambda_init', 'verbose'])
+                                                               'compute_score', 'fit_intercept',
+                                                               'n_iter', 'normalize', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
