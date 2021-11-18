@@ -35,7 +35,7 @@
       <Target>Z</Target>
       <estimator class="Models" type="ROM">lr</estimator>
       <estimator class="Models" type="ROM">svr</estimator>
-      <!-- <estimator class="Models" type="ROM">ridgeCV</estimator> -->
+      <estimator class="Models" type="ROM">ridgeCV</estimator>
     </ROM>
     <ROM name="lr" subType="LinearRegression">
       <Features>X,Y</Features>
