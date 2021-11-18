@@ -445,7 +445,7 @@ class ARMA(SupervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = SupervisedLearning.__getstate__(self)
+    d = super().__getstate__()
     eng=d.pop("randomEng")
     randCounts = eng.get_rng_state()
     d['crow_rng_counts'] = randCounts
@@ -458,7 +458,7 @@ class ARMA(SupervisedLearning):
       @ Out, None
     """
     rngCounts = d.pop('crow_rng_counts')
-    self.__dict__.update(d)
+    super().__setstate__(d)
     self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)

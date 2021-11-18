@@ -353,8 +353,68 @@ Example to export the coefficients of trained DMD ROM:
     </Print>
     <Print name = 'dumpSomeCoefficients'>
       <type>xml</type>
-      <source>PolyExp</source>
+      <source>DMD</source>
       <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+dmdc = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+   ...
+   <Models>
+     ...
+    <ROM name="DMDc" subType="DMDC">
+       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
+       <Target>Time,x1,x2,x3,y1,y2</Target>
+       <!-- Features include all the u(t), x(t), p(s) -->
+       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+       <!-- Actuator variables u(t) are listed below -->
+       <actuators>u1</actuators>
+       <!-- StateVariables x(t) are listed below -->
+       <stateVariables>x1, x2, x3</stateVariables>
+       <!-- Initialization Variables-->
+       <initStateVariables>x1_init, x2_init, x3_init</initStateVariables>
+       <!-- Pivot variable (e.g. Time) -->
+       <pivotParameter>Time</pivotParameter>
+       <!-- rankSVD -->
+       <rankSVD>-1</rankSVD>
+       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+       <subtractNormUXY>True</subtractNormUXY>
+     </ROM>
+     ...
+   </Models>
+   ...
+ </Simulation>
+
+\end{lstlisting}
+
+Example to export the coefficients of trained DMDC ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMDc</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMDc</source>
+      <what>rankSVD,UNorm,XNorm,XLast,Atilde,Btilde</what>
     </Print>
     ...
   </OutStreams>
@@ -576,6 +636,7 @@ exampleFactory = {
                   'ARMA': armaExp,
                   'PolyExponential': poly,
                   'DMD': dmd,
+                  'DMDC': dmdc,
                   'KerasMLPClassifier': kmlpc,
                   'KerasConvNetClassifier': kconv,
                   'KerasLSTMClassifier': klstmc,
@@ -699,7 +760,8 @@ validInternalRom = ['NDspline',
             'SyntheticHistory',
             'ARMA',
             'PolyExponential',
-            'DMD']
+            'DMD',
+            'DMDC']
 validRom = list(SupervisedLearning.factory.knownTypes())
 orderedValidRom = []
 for rom in validInternalRom + validRom:

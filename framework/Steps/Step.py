@@ -22,6 +22,7 @@
 
 #External Modules------------------------------------------------------------------------------------
 import abc
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -164,7 +165,10 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
           self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
-    self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
+    if os.environ['RAVENinterfaceCheck'] == 'True':
+      self._clearRunDir = False
+    else:
+      self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
     for child in paramInput.subparts:
       classType = child.parameterValues['class']
       classSubType = child.parameterValues['type']

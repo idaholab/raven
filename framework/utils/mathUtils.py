@@ -33,6 +33,9 @@ from .graphStructure import graphObject
 import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
 
+# dict of builtin types, filled by getBuiltinTypes
+_bTypes = None
+
 def normal(x,mu=0.0,sigma=1.0):
   """
     Computation of normal pdf
@@ -571,7 +574,7 @@ def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   dY = Y.dot(VV)
   return dX, dY
 
-def computeTruncatedSingularValueDecomposition(X, truncationRank):
+def computeTruncatedSingularValueDecomposition(X, truncationRank, full = False, conj = True):
   """
     Compute Singular Value Decomposition and truncate it till a rank = truncationRank
     @ In, X, numpy.ndarray, the 2D matrix on which the SVD needs to be performed
@@ -579,12 +582,13 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
                                                   * -1 = no truncation
                                                   *  0 = optimal rank is computed
                                                   *  >1  user-defined truncation rank
-                                                  *  >0. and < 1. computed rank is the number of the biggest sv needed to reach
-                                                                  the energy identified by truncationRank
+                                                  *  >0. and < 1. computed rank is the number of the biggest sv needed to reach the energy identified by truncationRank
+    @ In, full, bool, optional, compute svd returning full matrices
+    @ In, conj, bool, optional, compute conjugate of right-singular vectors matrix)
     @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
   """
-  U, s, V = np.linalg.svd(X, full_matrices=False)
-  V = V.conj().T
+  U, s, V = np.linalg.svd(X, full_matrices=full)
+  V = V.conj().T if conj else V.T
 
   if truncationRank is 0:
     omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
@@ -594,10 +598,10 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
   elif truncationRank >= 1 and isinstance(truncationRank, int):
     rank = min(truncationRank, U.shape[1])
   else:
-    rank = X.shape[1]
+    rank = U.shape[1]
   U = U[:, :rank]
   V = V[:, :rank]
-  s = s[:rank]
+  s = np.diag(s)[:rank, :rank] if full else s[:rank]
   return U, s, V
 
 def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
@@ -1183,3 +1187,44 @@ def computeCrowdingDistance(trainSet):
 
   crowdingDist = np.sum(distMat,axis=1)
   return crowdingDist
+
+def rankData(x, w=None):
+  """
+    Method to rank the data (weighted and unweighted)
+    @ In, x, numpy.array (or array-like), array containing values to rank
+    @ In, w, numpy.array (or array-like), optional, array containing weights (if None, equally-weighted)
+    @ Out, rank, numpy.array, the ranked features
+  """
+  weights = w if w is not None else np.ones(len(x))
+  _, inverseArray, num = np.unique(stats.rankdata(x), return_counts = True, return_inverse = True )
+  A = np.bincount(inverseArray, weights)
+  rank = (np.cumsum(A) - A)[inverseArray]+((num + 1)/2 * (A/num))[inverseArray]
+  return rank
+
+def getBuiltinTypes(typ):
+  """
+    Method to get a dictionary of builtin types
+    @ In, typ, str, the type to get
+    @ Out, getBuiltinTypes, list, the list of type instances
+  """
+  import builtins as b
+  global _bTypes
+  if _bTypes is None:
+    _bTypes = {k:[t] for k, t in b.__dict__.items() if isinstance(t, type)}
+  return _bTypes.get(typ,[])
+
+def getNumpyTypes(typ):
+  """
+    Method to get a dictionary of numpy types
+    @ In, typ, str, the type to get
+    @ Out, nTypes, list, the list of type instances
+  """
+  nTypes = []
+  if typ in np.sctypes:
+    nTypes = np.sctypes[typ]
+  else:
+    for t in np.sctypes['others']:
+      if typ in t.__name__:
+        nTypes.append(t)
+  return nTypes
+
