@@ -31,11 +31,13 @@ from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DMD
+from .DynamicModeDecompositionControl import DMDC
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated
 
 ## Tensorflow-Keras Neural Network Models
 from .KerasMLPClassifier import KerasMLPClassifier
+from .KerasMLPRegression import KerasMLPRegression
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
 from .KerasLSTMRegression import KerasLSTMRegression

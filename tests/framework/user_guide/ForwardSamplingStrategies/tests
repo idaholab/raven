@@ -4,7 +4,7 @@
     input = 'forwardSamplingMontecarlo.xml'
     csv = 'RunDir/MonteCarlo/histories_0.csv'
     image = 'RunDir/MonteCarlo/1-historyPlot_scatter-scatter.png RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter.png'
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     python3_only = true
     rel_err = 0.01
   [../]
@@ -14,7 +14,7 @@
     input = 'forwardSamplingGrid.xml'
     UnorderedCsv = 'RunDir/Grid/histories_0.csv'
     image = 'RunDir/Grid/1-historyPlot_scatter-scatter.png RunDir/Grid/1-samplesPlot3D_scatter-scatter.png'
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     python3_only = true
     rel_err = 0.01
   [../]
@@ -24,7 +24,7 @@
     input = 'forwardSamplingStratified.xml'
     csv = 'RunDir/Stratified/histories_0.csv'
     image = 'RunDir/Stratified/1-historyPlot_scatter-scatter.png RunDir/Stratified/1-samplesPlot3D_scatter-scatter.png'
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     python3_only = true
     rel_err = 0.01
   [../]
@@ -34,7 +34,7 @@
     input = 'forwardSamplingSparseGrid.xml'
     UnorderedXml = 'RunDir/SparseGrid/rom_output.xml'
     rel_err = 0.01
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     zero_threshold = 1e-8
     max_time = 500
   [./image_diff]
