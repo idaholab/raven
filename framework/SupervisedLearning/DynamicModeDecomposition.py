@@ -155,6 +155,8 @@ class DMD(SupervisedLearning):
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) < 2:
+      self.raiseAnError(IOError,"At least one Target in addition to the pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
 
   def __setstate__(self,state):
     """
@@ -176,14 +178,14 @@ class DMD(SupervisedLearning):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   #######
-  def __getTimeScale(self,dmd=True):
+  def _getTimeScale(self,dmd=True):
     """
       Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
       @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
     timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
+    timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['intervals']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
   def __getTimeEvolution(self, target):
@@ -193,7 +195,7 @@ class DMD(SupervisedLearning):
       @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
     """
     omega = np.log(self._eigs[target]) / self.timeScales['training']['dt']
-    van = np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
+    van = np.exp(np.multiply(*np.meshgrid(omega, self._getTimeScale())))
     timeEvol = (van * self._amplitudes[target]).T
     return timeEvol
 
@@ -334,7 +336,7 @@ class DMD(SupervisedLearning):
     if "timeScale" in what:
       writeTo.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
     if "dmdTimeScale" in what:
-      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
+      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self._getTimeScale()]))
     if "eigs" in what:
       eigsReal = " ".join(['%.6e' % self._eigs[target][indx].real for indx in
                        range(len(self._eigs[target]))])

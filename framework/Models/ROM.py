@@ -310,7 +310,7 @@ class ROM(Dummy):
     if type(trainingSet).__name__ == 'ROM':
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.supervisedContainer         = copy.deepcopy(trainingSet.supervisedContainer)
+      self.supervisedContainer      = copy.deepcopy(trainingSet.supervisedContainer)
       self.seed = trainingSet.seed
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
