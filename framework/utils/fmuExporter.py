@@ -179,8 +179,8 @@ class {classname}(Fmi2Slave):
 
     self._options["dest"] = os.path.dirname(dest)
     self._options["file_name"] = os.path.basename(dest)
-    #XXX need generic way to figure out needed files (hardcoded to ExternalModel)
-    self._options["project_files"] = {self.serializedModel, self.model.sim.__file__}
+    #Get files needed for running model
+    self._options["project_files"] = {self.serializedModel}.union(self.model.getSerializationFiles())
 
     scriptFile = Path(self._temp) / (self.model.name + "_RAVENfmu.py")
     with open(scriptFile, "+w") as f:
