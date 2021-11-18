@@ -59,7 +59,7 @@
    max_time = 3600
  [../]
  [./test_mpi_fake]
-   input=test_mpi.xmll
+   input=test_mpi.xml
    skip = 'cluster only test'
    type = RavenFramework
  [../]
