@@ -32,7 +32,7 @@ class OneVsOneClassifier(ScikitLearnBase):
   """
     One-vs-one multiclass strategy classifer
   """
-  info = {'problemtype':'classifer', 'normalize':False}
+  info = {'problemtype':'classification', 'normalize':False}
 
   def __init__(self):
     """
@@ -81,7 +81,7 @@ class OneVsOneClassifier(ScikitLearnBase):
     settings, notFound = paramInput.findNodesAndExtractValues(['n_jobs'])
     # notFound must be empty
     assert(not notFound)
-    self.initializeModel(settings)
+    self.settings = settings
 
   def setEstimator(self, estimatorList):
     """
@@ -104,8 +104,6 @@ class OneVsOneClassifier(ScikitLearnBase):
     #   self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
     else:
       self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
-    if self.multioutputWrapper:
-      settings = {'estimator__estimator':sklEstimator}
-    else:
-      settings = {'estimator':sklEstimator}
-    self.model.set_params(**settings)
+    settings = {'estimator':sklEstimator}
+    self.settings.update(settings)
+    self.initializeModel(settings)

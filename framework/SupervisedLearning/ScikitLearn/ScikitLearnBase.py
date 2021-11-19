@@ -75,7 +75,8 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
       @ Out, None
     """
-    self.settings = settings
+    if self.settings is None:
+      self.settings = settings
     self.model = self.model(**settings)
     if self.multioutputWrapper:
       self.multioutput(self.info['problemtype'])
