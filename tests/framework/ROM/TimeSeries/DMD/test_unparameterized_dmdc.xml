@@ -20,7 +20,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>DMDC/UnparametrizedDMDC</WorkingDir>
+    <WorkingDir>DMDC/UnparameterizedDMDC</WorkingDir>
     <Sequence>
              readTrainData,
              DMDCTrain,

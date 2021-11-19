@@ -32,11 +32,11 @@
     rel_err = 0.001
    [../]
 
-  [./UnparametrizedDMDC]
+  [./UnparameterizedDMDC]
     type = 'RavenFramework'
     input = 'test_unparameterized_dmdc.xml'
-    output = 'DMDC/UnparametrizedDMDC/DMDcCxCoeff.xml'
-    csv = 'DMDC/UnparametrizedDMDC/outputData_0.csv'
+    output = 'DMDC/UnparameterizedDMDC/DMDcCxCoeff.xml'
+    csv = 'DMDC/UnparameterizedDMDC/outputData_0.csv'
     rel_err = 0.001
    [../]
 
