@@ -1660,10 +1660,10 @@ Example to export the coefficients of trained PolyExponential ROM:
   XML file         via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following
   variable/parameters can be exported (i.e. \xmlNode{what} node         in \xmlNode{OutStream} of
   type \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
-  specifications above           \item \xmlNode{energyRankSVD}, see XML input specifications above
-  \item \xmlNode{rankTLSQ}, see XML input specifications above           \item \xmlNode{exactModes},
-  see XML input specifications above           \item \xmlNode{optimized}, see XML input
-  specifications above           \item \xmlNode{features}, see XML input specifications above
+  specifications below           \item \xmlNode{energyRankSVD}, see XML input specifications below
+  \item \xmlNode{rankTLSQ}, see XML input specifications below           \item \xmlNode{exactModes},
+  see XML input specifications below           \item \xmlNode{optimized}, see XML input
+  specifications below           \item \xmlNode{features}, see XML input specifications below
   \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
   \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be
   used as mapping           between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
@@ -1823,26 +1823,29 @@ Example to export the coefficients of trained DMD ROM:
   via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be
   exported (i.e.         \xmlNode{what} node         in \xmlNode{OutStream} of type
   \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
-  specifications above           \item \xmlNode{actuators}, see XML input specifications above
-  \item \xmlNode{states}, XML node containing the list of system state variables (x)           \item
-  \xmlNode{initStates}, XML node containing the list of system state variables
-  (x\_init) that are used for initializing the model in ``evaluation'' mode           \item
-  \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial
-  values in the                 training data           \item \xmlNode{XNorm}, XML node containing
-  the norminal values of state variables,                 which are the initial values in the
-  training data           \item \xmlNode{XLast}, XML node containing the last value of state
-  variables,                 which are the final values in the training data           \item
-  \xmlNode{outputs}, XML node containing the list of system output variables (y)           \item
+  specifications below           \item \xmlNode{actuators}, XML node containing the list of actuator
+  variables (u),                  see XML input specifications below           \item
+  \xmlNode{stateVariables}, XML node containing the list of system state variables (x),
+  see XML input specifications below           \item \xmlNode{initStateVariables}, XML node
+  containing the list of system state variables                 (x\_init) that are used for
+  initializing the model in ``evaluation'' mode,                  see XML input specifications below
+  \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
+  \item \xmlNode{dmdTimeScale}, XML node containing the the array of time scale in the DMD space,
+  which is time axis in traning data (Time)           \item \xmlNode{UNorm}, XML node containing the
+  norminal values of actuators,                  which are the initial actuator values in the
+  training data           \item \xmlNode{XNorm}, XML node containing the norminal values of state
+  variables,                 which are the initial state values in the training data           \item
+  \xmlNode{XLast}, XML node containing the last value of state variables,                 which are
+  the final state values in the training data (before nominal value subtraction)           \item
   \xmlNode{YNorm}, XML node containing the norminal values of output variables,
-  which are the initial values in the training data           \item \xmlNode{dmdTimeScale}, XML node
-  containing the array of time scale in the DMD space           \item \xmlNode{Atilde},  XML node
-  containing the A matrix in discrete time domain                 (real and imaginary and part,
-  matrix shape, and format note)           \item \xmlNode{Btilde}, XML node containing the B matrix
-  in discrete time domain                 (real and imaginary and part, matrix shape, and format
-  note)           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
-  (real and imaginary and part, matrix shape, and format note)         \end{itemize}
+  which are the initial output values in the training data           \item \xmlNode{Atilde},  XML
+  node containing the A matrix in discrete time domain                 (imaginary part, matrix
+  shape, and real part)           \item \xmlNode{Btilde}, XML node containing the B matrix in
+  discrete time domain                 (imaginary part, matrix shape, and real part)           \item
+  \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
+  (imaginary part, matrix shape, and real part)         \end{itemize}
 
-  The \xmlNode{ROM} DMDC node recognizes the following parameters:
+  The \xmlNode{DMDC} node recognizes the following parameters:
     \begin{itemize}
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
@@ -1852,7 +1855,7 @@ Example to export the coefficients of trained DMD ROM:
         specify the type of ROM that will be used
   \end{itemize}
 
-  The \xmlNode{ROM} DMDC node recognizes the following subnodes:
+  The \xmlNode{DMDC} node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
       specifies the names of the features of this ROM.         \nb These parameters are going to be
@@ -1868,16 +1871,16 @@ Example to export the coefficients of trained DMD ROM:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
-    %\item \xmlNode{CV}: \xmlDesc{string},
-    %  The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-    %  \xmlAttr{subType}         ``CrossValidation``.
-    %  The \xmlNode{CV} node recognizes the following parameters:
-    %    \begin{itemize}
-    %      \item \xmlAttr{class}: \xmlDesc{string, optional},
-    %        should be set to \xmlString{Model}
-    %      \item \xmlAttr{type}: \xmlDesc{string, optional},
-    %        should be set to \xmlString{PostProcessor}
-    %  \end{itemize}
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
@@ -1923,11 +1926,6 @@ Example to export the coefficients of trained DMD ROM:
       between the modes and all the time-steps or False, if only the 1st timestep only needs to be
       considered
 
-    \item \xmlNode{dmdType}: \xmlDesc{[dmd]}, 
-      the type of Dynamic Mode Decomposition to apply.Available are:
-      \begin{itemize}                                                     \item \textit{dmd}, for
-      classical DMD                                                   \end{itemize}
-
     \item \xmlNode{actuators}: \xmlDesc{comma-separated strings}, 
       defines the actuators (i.e. system input parameters)
       of this model. Each actuator variable (u1, u2, etc.) needs to
@@ -1936,7 +1934,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{stateVariables}: \xmlDesc{comma-separated strings}, 
       defines the state variables (i.e. system variable vectors)
       of this model. Each state variable (x1, x2, etc.) needs to be listed
-      here. The variables indicated in \xmlNode{StateVariables} must be
+      here. The variables indicated in \xmlNode{stateVariables} must be
       listed in the \xmlNode{Target} node too.
 
     \item \xmlNode{initStateVariables}: \xmlDesc{comma-separated strings}, 
@@ -1956,31 +1954,33 @@ Example to export the coefficients of trained DMD ROM:
   \end{itemize}
 
 \hspace{24pt}
-Example:
-\textbf{Example:}
+Example of DMDc ROM definition, with 1 actuator variable (u1), 3 state variables (x1, x2, x3), 2 output variables (y1, y2), and 2 scheduling parameters (mod, flow):
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
    ...
    <Models>
      ...
-    <ROM name="DMDc" subType="DMDC">
-       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
-       <Target>Time,x1,x2,x3,y1,y2</Target>
-       <!-- Features include all the u(t), x(t), p(s) -->
-       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
-       <!-- Actuator variables u(t) are listed below -->
-       <actuators>u1</actuators>
-       <!-- StateVariables x(t) are listed below -->
-       <stateVariables>x1, x2, x3</stateVariables>
-       <!-- Initialization Variables-->
-       <initStateVariables>x1_init, x2_init, x3_init</initStateVariables>
-       <!-- Pivot variable (e.g. Time) -->
-       <pivotParameter>Time</pivotParameter>
-       <!-- rankSVD -->
-       <rankSVD>-1</rankSVD>
-       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
-       <subtractNormUXY>True</subtractNormUXY>
-     </ROM>
+    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
+      <Target>Time,x1,x2,x3,y1,y2</Target>
+      <!-- Actuator Variable Names (u) -->
+      <actuators>u1</actuators>
+      <!-- StateVariables Names (x) -->
+      <stateVariables>x1,x2,x3</stateVariables>
+      <!-- Pivot variable (e.g. Time) -->
+      <pivotParameter>Time</pivotParameter>
+      <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+      <rankSVD>1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+      <subtractNormUXY>True</subtractNormUXY>
+	    
+      <!-- Features are the variable names for predictions: Actuator "u", scheduling parameters, and initial states -->
+      <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+      <!-- Initialization Variables-->
+      <initStateVariables>
+        x1_init,x2_init,x3_init
+      </initStateVariables>
+    </ROM>
      ...
    </Models>
    ...
@@ -2012,3 +2012,2202 @@ Example to export the coefficients of trained DMDC ROM:
   ...
 </Simulation>
 \end{lstlisting}
+
+
+\subsubsection{KerasMLPRegression}
+  Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
+  ANN, can be viewed as a logistic regression where input is first transformed         using a non-
+  linear transformation. This transformation probjects the input data into a         space where it
+  becomes linearly separable. This intermediate layer is referred to as a         \textbf{hidden
+  layer}. An MLP consists of at least three layers of nodes. Except for the         input nodes,
+  each node is a neuron that uses a nonlinear \textbf{activation function}. MLP         utilizes a
+  suppervised learning technique called \textbf{Backpropagation} for training.         Generally, a
+  single hidden layer is sufficient to make MLPs a universal approximator.         However, many
+  hidden layers, i.e. deep learning, can be used to model more complex nonlinear
+  relationships. The extra layers enable composition of features from lower layers, potentially
+  modeling complex data with fewer units than a similarly performing shallow network.         \\
+  \zNormalizationPerformed{KerasMLPRegression}         \\         In order to use this ROM, the
+  \xmlNode{ROM} attribute \xmlAttr{subType} needs to         be \xmlString{KerasMLPRegression}
+
+  The \xmlNode{KerasMLPRegression} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{KerasMLPRegression} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{metrics}: \xmlDesc{comma-separated strings}, 
+      list of metrics to be evaluated by         the model during training and testing. available
+      metrics include         \textit{binary\_accuracy}, \textit{categorical\_accuracy},
+      \textit{sparse\_categorical\_accuracy},         \textit{top\_k\_categorical\_accuracy},
+      \textit{sparse\_top\_k\_categorical\_accuracy}.
+
+    \item \xmlNode{batch\_size}: \xmlDesc{integer}, 
+      number of samples per gradient update.
+
+    \item \xmlNode{epochs}: \xmlDesc{integer}, 
+      number of epochs to train the model. An epoch         is an iteration over the entire training
+      data.
+
+    \item \xmlNode{random\_seed}: \xmlDesc{integer}, 
+      a integer to use as random seed.
+
+    \item \xmlNode{plot\_model}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      if true the DNN model constructed by RAVEN will be         plotted and stored in the working
+      directory. The file name will be \textit{"ROM name" + "\_" + "model.png"}.         \nb This
+      capability requires the following libraries, i.e. pydot-ng and graphviz to be installed.
+
+    \item \xmlNode{num\_classes}: \xmlDesc{integer}, 
+      dimensionality of the output space of given classifier.
+
+    \item \xmlNode{validation\_split}: \xmlDesc{float}, 
+      float between 0 and 1, the fraction of the training data to         be used as validation
+      data.
+
+    \item \xmlNode{output\_layer\_activation}: \xmlDesc{string}, 
+      activation function for output layer of deep neural network
+
+    \item \xmlNode{loss}: \xmlDesc{string}, 
+      if the model has multiple outputs, you can use a different         loss metric on each output
+      by passing a list of loss metrics. The value that will be minimized by the model will then
+      be the sum of all individual value from each loss metric. Available loss functions include
+      \textit{mean\_squared\_error},         \textit{mean\_absolute\_error},
+      \textit{mean\_absolute\_percentage\_error}, \textit{mean\_squared\_logarithmic\_error},
+      \textit{squared\_hinge}, \textit{hinge}, \textit{categorical\_hinge}, \textit{logcosh},
+      \textit{categorical\_crossentropy},         \textit{sparse\_categorical\_crossentropy},
+      \textit{binary\_crossentropy}, \textit{kullback\_leibler\_divergence},
+      \textit{poisson}, \textit{cosine\_proximity}.
+
+    \item \xmlNode{optimizerSetting}: \xmlDesc{string}, 
+      The settings for optimizer
+
+      The \xmlNode{optimizerSetting} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{beta\_1}: \xmlDesc{float}, 
+          $0 < beta < 1$. Generally close to 1.
+
+        \item \xmlNode{beta\_2}: \xmlDesc{float}, 
+          $0 < beta < 1$. Generally close to 1.
+
+        \item \xmlNode{decay}: \xmlDesc{float}, 
+          learning rate decay over each update.
+
+        \item \xmlNode{lr}: \xmlDesc{float}, 
+          learning rate.
+
+        \item \xmlNode{optimizer}: \xmlDesc{string}, 
+          name of optimizer.
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          fuzz factor.
+
+        \item \xmlNode{momentum}: \xmlDesc{float}, 
+          Parameter that accelerates SGD in         the relevant direction and dampens oscillations.
+
+        \item \xmlNode{nesterov}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether to apply Nesterov momentum
+
+        \item \xmlNode{rho}: \xmlDesc{float}, 
+          $> 0$
+      \end{itemize}
+
+    \item \xmlNode{Dense}: \xmlDesc{string}, 
+      regular densely-connected neural network layer.
+      The \xmlNode{Dense} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            name of this layer. The value will be         used in \xmlNode{layer\_layout} to
+            construct the fully connected neural network.
+      \end{itemize}
+
+      The \xmlNode{Dense} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          including {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid',
+          `hard\_sigmoid', `linear', `softmax'}.         (see~\ref{activationsDNN})
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights         matrix
+          (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector         (see ~\ref{constraintsDNN}).
+
+        \item \xmlNode{dim\_out}: \xmlDesc{string}, 
+          dimensionality of the output space of this layer, required except if this layer is used as
+          the last output layer
+      \end{itemize}
+
+    \item \xmlNode{Activation}: \xmlDesc{string}, 
+      activation layer
+      The \xmlNode{Activation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            name of the layer
+      \end{itemize}
+
+      The \xmlNode{Activation} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          including {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid',
+          `hard\_sigmoid', `linear', `softmax'}.         (see~\ref{activationsDNN}).
+      \end{itemize}
+
+    \item \xmlNode{Dropout}: \xmlDesc{string}, 
+      The Dropout layer randomly sets input units to 0 with a frequency of rate at each step during
+      training time, which helps prevent overfitting. Inputs not set to 0 are scaled up by $1/(1 -
+      rate)$         such that the sum over all inputs is unchanged.
+      The \xmlNode{Dropout} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Dropout} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{rate}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the input units to drop.
+
+        \item \xmlNode{noise\_shape}: \xmlDesc{comma-separated integers}, 
+          1D integer tensor representing the shape of the binary dropout mask that will be
+          multiplied with         the input. For instance, if your inputs have shape (batch\_size,
+          timesteps, features) and you want the         dropout mask to be the same for all
+          timesteps, you can use noise\_shape=(batch\_size, 1, features).
+
+        \item \xmlNode{seed}: \xmlDesc{integer}, 
+          A Python integer to use as random seed.
+      \end{itemize}
+
+    \item \xmlNode{Flatten}: \xmlDesc{string}, 
+      Flattens the input. Does not affect the batch size.
+      The \xmlNode{Flatten} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Flatten} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{string}, 
+          The ordering of the dimensions in the inputs. channels\_last corresponds to inputs with
+          shape         (batch, ..., channels) while channels\_first corresponds to inputs with shape
+          (batch, channels, ...).
+      \end{itemize}
+
+    \item \xmlNode{Input}: \xmlDesc{string}, 
+      is used to instantiate a Keras tensor.
+      The \xmlNode{Input} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+    \item \xmlNode{Reshape}: \xmlDesc{string}, 
+      Layer that reshapes inputs into the given shape.
+      The \xmlNode{Reshape} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Reshape} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{target\_shape}: \xmlDesc{comma-separated integers}, 
+          the target shape after reshapping
+      \end{itemize}
+
+    \item \xmlNode{Permute}: \xmlDesc{string}, 
+
+      The \xmlNode{Permute} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Permute} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{permute\_pattern}: \xmlDesc{comma-separated integers}, 
+          Permutes the dimensions of the input according to a given pattern.
+
+        \item \xmlNode{input\_shape}: \xmlDesc{comma-separated integers}, 
+          the input shape
+      \end{itemize}
+
+    \item \xmlNode{RepeatVector}: \xmlDesc{string}, 
+      Repeats the input n times.
+      The \xmlNode{RepeatVector} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{RepeatVector} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{repetition\_factor}: \xmlDesc{integer}, 
+          the number of times to repeat the input
+      \end{itemize}
+
+    \item \xmlNode{Lambda}: \xmlDesc{string}, 
+      Wraps arbitrary expressions as a Layer object.
+      The \xmlNode{Lambda} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Lambda} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{function}: \xmlDesc{string}, 
+          The function to be evaluated. Takes input tensor as first argument.
+      \end{itemize}
+
+    \item \xmlNode{ActivityRegularization}: \xmlDesc{string}, 
+      Layer that applies an update to the cost function based input activity.
+      The \xmlNode{ActivityRegularization} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ActivityRegularization} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{l1}: \xmlDesc{float}, 
+          L1 regularization factor (positive float).
+
+        \item \xmlNode{l2}: \xmlDesc{float}, 
+          L2 regularization factor (positive float).
+      \end{itemize}
+
+    \item \xmlNode{Masking}: \xmlDesc{string}, 
+      Masks a sequence by using a mask value to skip timesteps.
+      The \xmlNode{Masking} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Masking} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{mask\_value}: \xmlDesc{float}, 
+          For each timestep in the input tensor (dimension 1 in the tensor), if all values in the
+          input         tensor at that timestep are equal to mask\_value, then the timestep will be
+          masked (skipped) in all         downstream layers (as long as they support masking).
+      \end{itemize}
+
+    \item \xmlNode{SpatialDropout1D}: \xmlDesc{string}, 
+      Spatial 1D version of Dropout. This version performs the same function as Dropout, however,
+      it drops entire 1D feature maps instead of individual elements. If adjacent frames within
+      feature         maps are strongly correlated (as is normally the case in early convolution
+      layers) then regular         dropout will not regularize the activations and will otherwise
+      just result in an effective learning         rate decrease. In this case, SpatialDropout1D
+      will help promote independence between feature         maps and should be used instead.
+      The \xmlNode{SpatialDropout1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SpatialDropout1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{rate}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the input units to drop.
+      \end{itemize}
+
+    \item \xmlNode{SpatialDropout2D}: \xmlDesc{string}, 
+      Spatial 2D version of Dropout. This version performs the same function as Dropout, however,
+      it drops entire 2D feature maps instead of individual elements. If adjacent pixels within
+      feature maps         are strongly correlated (as is normally the case in early convolution
+      layers) then regular dropout will         not regularize the activations and will otherwise
+      just result in an effective learning rate decrease.         In this case, SpatialDropout2D
+      will help promote independence between feature maps and should         be used instead.
+      The \xmlNode{SpatialDropout2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SpatialDropout2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{rate}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the input units to drop.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          `channels\_first' or `channels\_last'. In `channels\_first' mode, the channels dimension
+          (the depth) is at index 1, in `channels\_last' mode is it at index 3.
+      \end{itemize}
+
+    \item \xmlNode{SpatialDropout3D}: \xmlDesc{string}, 
+      Spatial 3D version of Dropout. This version performs the same function as Dropout, however,
+      it drops entire 3D feature maps instead of individual elements. If adjacent voxels within
+      feature maps         are strongly correlated (as is normally the case in early convolution
+      layers) then regular dropout will         not regularize the activations and will otherwise
+      just result in an effective learning rate decrease.         In this case, SpatialDropout3D
+      will help promote independence between feature maps and should         be used instead.
+      The \xmlNode{SpatialDropout3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SpatialDropout3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{rate}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the input units to drop.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          `channels\_first' or `channels\_last'. In `channels\_first' mode, the channels dimension
+          (the depth)         is at index 1, in `channels\_last' mode is it at index 4.
+      \end{itemize}
+
+    \item \xmlNode{Conv1D}: \xmlDesc{string}, 
+      1D convolution layer (e.g. temporal convolution). This layer creates a convolution kernel that
+      is convolved with the layer input over a single spatial (or temporal) dimension to produce a
+      tensor of outputs.         If use\_bias is True, a bias vector is created and added to the
+      outputs. Finally, if activation is not None,         it is applied to the outputs as well.
+      The \xmlNode{Conv1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Conv1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the length of the 1D convolution
+          window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the stride length of the
+          convolution.         Specifying any stride value != 1 is incompatible with specifying any
+          dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          One of ``valid'', ``same'' or ``causal'' (case-insensitive). ``valid'' means no padding.
+          ``same'' results in padding with zeros evenly to the left/right or up/down of the input
+          such that         output has the same height/width dimension as the input. ``causal''
+          results in causal (dilated) convolutions,         e.g. output[t] does not depend on
+          input[t+1:]. Useful when modeling temporal data where the model should         not violate
+          the temporal order.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of a single integer, specifying the dilation rate to use for
+          dilated         convolution. Currently, specifying any dilation\_rate value != 1 is
+          incompatible with specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          egularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+      \end{itemize}
+
+    \item \xmlNode{Conv2D}: \xmlDesc{string}, 
+      2D convolution layer (e.g. spatial convolution over images). This layer creates a convolution
+      kernel         that is convolved with the layer input to produce a tensor of outputs. If
+      use\_bias is True, a bias vector         is created and added to the outputs. Finally, if
+      activation is not None, it is applied to the outputs         as well.
+      The \xmlNode{Conv2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Conv2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the height and width of the 2D
+          convolution window.         Can be a single integer to specify the same value for all
+          spatial dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the strides of the convolution along
+          the height         and width. Can be a single integer to specify the same value for all
+          spatial dimensions. Specifying any         stride value != 1 is incompatible with
+          specifying any dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 2 integers, specifying the dilation rate to use for dilated
+          convolution.         Can be a single integer to specify the same value for all spatial
+          dimensions. Currently, specifying any         dilation\_rate value != 1 is incompatible
+          with specifying any stride value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+      \end{itemize}
+
+    \item \xmlNode{Conv3D}: \xmlDesc{string}, 
+      3D convolution layer (e.g. spatial convolution over volumes). This layer creates a convolution
+      kernel that is convolved with the layer input to produce a tensor of outputs. If use\_bias is
+      True, a         bias vector is created and added to the outputs. Finally, if activation is not
+      None, it is applied to         the outputs as well.
+      The \xmlNode{Conv3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Conv3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 3 integers, specifying the height and width of the 2D
+          convolution window.         Can be a single integer to specify the same value for all
+          spatial dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 3 integers, specifying the strides of the convolution along
+          the height         and width. Can be a single integer to specify the same value for all
+          spatial dimensions. Specifying any         stride value != 1 is incompatible with
+          specifying any dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 2 integers, specifying the dilation rate to use for dilated
+          convolution.         Can be a single integer to specify the same value for all spatial
+          dimensions. Currently, specifying any         dilation\_rate value != 1 is incompatible
+          with specifying any stride value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+      \end{itemize}
+
+    \item \xmlNode{SeparableConv1D}: \xmlDesc{string}, 
+      Depthwise separable 1D convolution. This layer performs a depthwise convolution that
+      acts separately on channels, followed by a pointwise convolution that mixes channels. If
+      use\_bias         is True and a bias initializer is provided, it adds a bias vector to the
+      output. It then optionally         applies an activation function to produce the final output.
+      The \xmlNode{SeparableConv1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SeparableConv1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the length of the 1D convolution
+          window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the stride length of the
+          convolution.         Specifying any stride value != 1 is incompatible with specifying any
+          dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          One of ``valid'', ``same'' or ``causal'' (case-insensitive). ``valid'' means no padding.
+          ``same'' results in padding with zeros evenly to the left/right or up/down of the input
+          such that         output has the same height/width dimension as the input. ``causal''
+          results in causal (dilated) convolutions,         e.g. output[t] does not depend on
+          input[t+1:]. Useful when modeling temporal data where the model should         not violate
+          the temporal order.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of a single integer, specifying the dilation rate to use for
+          dilated         convolution. Currently, specifying any dilation\_rate value != 1 is
+          incompatible with specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+
+        \item \xmlNode{depth\_multiplier}: \xmlDesc{integer}, 
+          The number of depthwise convolution output channels for each input channel. The total
+          number of         depthwise convolution output channels will be equal to num\_filters\_in *
+          depth\_multiplier.
+
+        \item \xmlNode{depthwise\_initializer}: \xmlDesc{string}, 
+          An initializer for the depthwise convolution kernel
+
+        \item \xmlNode{pointwise\_initializer}: \xmlDesc{string}, 
+          An initializer for the pointwise convolution kernel.
+
+        \item \xmlNode{pointwise\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the pointwise convolution kernel
+
+        \item \xmlNode{depthwise\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the depthwise convolution kernel
+
+        \item \xmlNode{depthwise\_constraint}: \xmlDesc{string}, 
+          Optional projection function to be applied to the depthwise kernel after being updated by
+          an Optimizer         (e.g. used for norm constraints or value constraints for layer
+          weights). The function must take as input the         unprojected variable and must return
+          the projected variable (which must have the same shape).         Constraints are not safe
+          to use when doing asynchronous distributed training
+
+        \item \xmlNode{pointwise\_constraint}: \xmlDesc{string}, 
+          Optional projection function to be applied to the pointwise kernel after being updated by
+          an Optimizer
+      \end{itemize}
+
+    \item \xmlNode{SeparableConv2D}: \xmlDesc{string}, 
+      Depthwise separable 2D convolution. Separable convolutions consist of first performing a
+      depthwise         spatial convolution (which acts on each input channel separately) followed
+      by a pointwise convolution         which mixes the resulting output channels. The
+      depth\_multiplier argument controls how many output channels         are generated per input
+      channel in the depthwise step. Intuitively, separable convolutions can be understood
+      as a way to factorize a convolution kernel into two smaller kernels, or as an extreme version
+      of an         Inception block.
+      The \xmlNode{SeparableConv2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SeparableConv2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integer, specifying the length of the 1D convolution window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integer, specifying the stride length of the convolution.
+          Specifying any stride value != 1 is incompatible with specifying any dilation\_rate value
+          != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 2 integer, specifying the dilation rate to use for dilated
+          convolution. Currently, specifying any dilation\_rate value != 1 is incompatible with
+          specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+
+        \item \xmlNode{depth\_multiplier}: \xmlDesc{integer}, 
+          The number of depthwise convolution output channels for each input channel. The total
+          number of         depthwise convolution output channels will be equal to num\_filters\_in *
+          depth\_multiplier.
+
+        \item \xmlNode{depthwise\_initializer}: \xmlDesc{string}, 
+          An initializer for the depthwise convolution kernel
+
+        \item \xmlNode{pointwise\_initializer}: \xmlDesc{string}, 
+          An initializer for the pointwise convolution kernel.
+
+        \item \xmlNode{pointwise\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the pointwise convolution kernel
+
+        \item \xmlNode{depthwise\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the depthwise convolution kernel
+
+        \item \xmlNode{depthwise\_constraint}: \xmlDesc{string}, 
+          Optional projection function to be applied to the depthwise kernel after being updated by
+          an Optimizer         (e.g. used for norm constraints or value constraints for layer
+          weights). The function must take as input the         unprojected variable and must return
+          the projected variable (which must have the same shape).         Constraints are not safe
+          to use when doing asynchronous distributed training
+
+        \item \xmlNode{pointwise\_constraint}: \xmlDesc{string}, 
+          Optional projection function to be applied to the pointwise kernel after being updated by
+          an Optimizer
+      \end{itemize}
+
+    \item \xmlNode{DepthwiseConv2D}: \xmlDesc{string}, 
+      Depthwise 2D convolution. Depthwise convolution is a type of convolution in which a single
+      convolutional filter is apply to each input channel (i.e. in a depthwise way). You can
+      understand depthwise         convolution as being the first step in a depthwise separable
+      convolution.         It is implemented via the following steps:         \begin{itemize}
+      \item Split the input into individual channels.           \item Convolve each input with the
+      layer's kernel (called a depthwise kernel).           \item Stack the convolved outputs
+      together (along the channels axis).         \end{itemize}         Unlike a regular 2D
+      convolution, depthwise convolution does not mix information across different input channels.
+      The depth\_multiplier argument controls how many output channels are generated per input
+      channel in the         depthwise step.
+      The \xmlNode{DepthwiseConv2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{DepthwiseConv2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the height and width of the 2D
+          convolution window.         Can be a single integer to specify the same value for all
+          spatial dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the strides of the convolution along
+          the height         and width. Can be a single integer to specify the same value for all
+          spatial dimensions. Specifying any         stride value != 1 is incompatible with
+          specifying any dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 2 integer, specifying the dilation rate to use for dilated
+          convolution. Currently, specifying any dilation\_rate value != 1 is incompatible with
+          specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+
+        \item \xmlNode{depth\_multiplier}: \xmlDesc{integer}, 
+          The number of depthwise convolution output channels for each input channel. The total
+          number of         depthwise convolution output channels will be equal to num\_filters\_in *
+          depth\_multiplier.
+
+        \item \xmlNode{depthwise\_initializer}: \xmlDesc{string}, 
+          An initializer for the depthwise convolution kernel
+
+        \item \xmlNode{depthwise\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the depthwise convolution kernel
+
+        \item \xmlNode{depthwise\_constraint}: \xmlDesc{string}, 
+          Optional projection function to be applied to the depthwise kernel after being updated by
+          an Optimizer         (e.g. used for norm constraints or value constraints for layer
+          weights). The function must take as input the         unprojected variable and must return
+          the projected variable (which must have the same shape).         Constraints are not safe
+          to use when doing asynchronous distributed training
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the dilation rate to use for dilated
+          convolution.         Currently, specifying any dilation\_rate value != 1 is incompatible
+          with specifying any strides value != 1.
+      \end{itemize}
+
+    \item \xmlNode{Conv2DTranspose}: \xmlDesc{string}, 
+      Transposed convolution layer (sometimes called Deconvolution). The need for transposed
+      convolutions         generally arises from the desire to use a transformation going in the
+      opposite direction of a normal         convolution, i.e., from something that has the shape of
+      the output of some convolution to something that         has the shape of its input while
+      maintaining a connectivity pattern that is compatible with said convolution.
+      The \xmlNode{Conv2DTranspose} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Conv2DTranspose} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integer, specifying the length of the 1D convolution window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integer, specifying the stride length of the convolution.
+          Specifying any stride value != 1 is incompatible with specifying any dilation\_rate value
+          != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 2 integer, specifying the dilation rate to use for dilated
+          convolution. Currently, specifying any dilation\_rate value != 1 is incompatible with
+          specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+
+        \item \xmlNode{output\_padding}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the amount of padding along the height
+          and         width of the output tensor. Can be a single integer to specify the same value
+          for all spatial dimensions.         The amount of output padding along a given dimension
+          must be lower than the stride along that same dimension.
+      \end{itemize}
+
+    \item \xmlNode{Conv3DTranspose}: \xmlDesc{string}, 
+
+      The \xmlNode{Conv3DTranspose} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Conv3DTranspose} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          the dimensionality of the output space (i.e. the number of output filters in the
+          convolution).
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 3 integer, specifying the length of the 1D convolution window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 3 integer, specifying the stride length of the convolution.
+          Specifying any stride value != 1 is incompatible with specifying any dilation\_rate value
+          != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          an integer or tuple/list of 3 integer, specifying the dilation rate to use for dilated
+          convolution. Currently, specifying any dilation\_rate value != 1 is incompatible with
+          specifying any         strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the kernel matrix
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the bias vector
+
+        \item \xmlNode{output\_padding}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the amount of padding along the height
+          and         width of the output tensor. Can be a single integer to specify the same value
+          for all spatial dimensions.         The amount of output padding along a given dimension
+          must be lower than the stride along that same dimension.
+      \end{itemize}
+
+    \item \xmlNode{Cropping1D}: \xmlDesc{string}, 
+      Cropping layer for 1D input (e.g. temporal sequence).
+      The \xmlNode{Cropping1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Cropping1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{cropping}: \xmlDesc{comma-separated integers}, 
+          Int or tuple of int (length 2) How many units should be trimmed off at the beginning and
+          end of the         cropping dimension (axis 1). If a single int is provided, the same
+          value will be used for both.
+      \end{itemize}
+
+    \item \xmlNode{Cropping2D}: \xmlDesc{string}, 
+      Cropping layer for 2D input (e.g. picture).
+      The \xmlNode{Cropping2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Cropping2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{cropping}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of 2 ints, or tuple of 2 tuples of 2 ints.         \begin{itemize}
+          \item If int: the same symmetric cropping is applied to height and width.           \item
+          If tuple of 2 ints: interpreted as two different symmetric cropping values for height and
+          width:             (symmetric\_height\_crop, symmetric\_width\_crop).           \item If
+          tuple of 2 tuples of 2 ints: interpreted as ((top\_crop, bottom\_crop), (left\_crop,
+          right\_crop))         \end{itemize}
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{Cropping3D}: \xmlDesc{string}, 
+      Cropping layer for 3D data (e.g. spatial or spatio-temporal).
+      The \xmlNode{Cropping3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Cropping3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{cropping}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of 3 ints, or tuple of 3 tuples of 3 ints.         \begin{itemize}
+          \item If int: the same symmetric cropping is applied to height and width.           \item
+          If tuple of 3 ints: interpreted as two different symmetric cropping values for depth,
+          height and width:             (symmetric\_dim1\_crop, symmetric\_dim2\_crop,
+          symmetric\_dim3\_crop).           \item If tuple of 3 tuples of 2 ints: interpreted as
+          ((top\_crop, bottom\_crop), (left\_crop, right\_crop))         \end{itemize}
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{Upsampling1D}: \xmlDesc{string}, 
+      Upsampling layer for 1D inputs.
+      The \xmlNode{Upsampling1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Upsampling1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{size}: \xmlDesc{integer}, 
+          Upsampling factor.
+      \end{itemize}
+
+    \item \xmlNode{UpSampling2D}: \xmlDesc{string}, 
+      Upsampling layer for 2D inputs.
+      The \xmlNode{UpSampling2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{UpSampling2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{size}: \xmlDesc{comma-separated integers}, 
+          Upsampling factor.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+
+        \item \xmlNode{interpolation}: \xmlDesc{[nearest, bilinear]}, 
+          A string, one of nearest or bilinear.
+      \end{itemize}
+
+    \item \xmlNode{UpSampling3D}: \xmlDesc{string}, 
+      Upsampling layer for 3D inputs.
+      The \xmlNode{UpSampling3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{UpSampling3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{size}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of 3 integers. The upsampling factors for dim1, dim2 and dim3.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{ZeroPadding1D}: \xmlDesc{string}, 
+      Zero-padding layer for 1D input (e.g. temporal sequence).
+      The \xmlNode{ZeroPadding1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ZeroPadding1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{padding}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of int (length 2), or dictionary. - If int: How many zeros to add at the
+          beginning         and end of the padding dimension (axis 1). - If tuple of int (length 2):
+          How many zeros to add at the beginning         and the end of the padding dimension
+      \end{itemize}
+
+    \item \xmlNode{ZeroPadding2D}: \xmlDesc{string}, 
+      Zero-padding layer for 2D input (e.g. picture).
+      The \xmlNode{ZeroPadding2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ZeroPadding2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{padding}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of 2 ints, or tuple of 2 tuples of 2 ints.         \begin{itemize}
+          \item If int: the same symmetric padding is applied to height and width.           \item
+          If tuple of 2 ints: interpreted as two different symmetric padding values for height and
+          width:           (symmetric\_height\_pad, symmetric\_width\_pad).           \item If tuple
+          of 2 tuples of 2 ints: interpreted as ((top\_pad, bottom\_pad), (left\_pad, right\_pad))
+          \end{itemize}
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{ZeroPadding3D}: \xmlDesc{string}, 
+      Zero-padding layer for 3D data (spatial or spatio-temporal).
+      The \xmlNode{ZeroPadding3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ZeroPadding3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{padding}: \xmlDesc{comma-separated integers}, 
+          Int, or tuple of 3 ints, or tuple of 3 tuples of 2 ints.         \begin{itemize}
+          \item If int: the same symmetric padding is applied to height and width.           \item
+          If tuple of 3 ints: interpreted as two different symmetric padding values for height and
+          width:           (symmetric\_dim1\_pad, symmetric\_dim2\_pad, symmetric\_dim3\_pad).
+          \item If tuple of 3 tuples of 2 ints: interpreted as ((left\_dim1\_pad, right\_dim1\_pad),
+          (left\_dim2\_pad, right\_dim2\_pad), (left\_dim3\_pad, right\_dim3\_pad))
+          \end{itemize}
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{MaxPooling1D}: \xmlDesc{string}, 
+      Max pooling operation for 1D temporal data.
+      The \xmlNode{MaxPooling1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{MaxPooling1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{integer}, 
+          size of the max pooling window.
+
+        \item \xmlNode{strides}: \xmlDesc{integer}, 
+          Specifies how much the pooling window moves for each pooling step.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{MaxPooling2D}: \xmlDesc{string}, 
+      Max pooling operation for 2D spatial data.
+      The \xmlNode{MaxPooling2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{MaxPooling2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{comma-separated integers}, 
+          integer or tuple of 2 integers, window size over which to take the maximum. (2, 2) will
+          take the max         value over a 2x2 pooling window. If only one integer is specified,
+          the same window length will be used for         both dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          Integer, tuple of 2 integers, or None. Strides values. Specifies how far the pooling
+          window moves         for each pooling step. If None, it will default to pool\_size.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{MaxPooling3D}: \xmlDesc{string}, 
+      Max pooling operation for 3D data (spatial or spatio-temporal).
+      The \xmlNode{MaxPooling3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{MaxPooling3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{comma-separated integers}, 
+          Tuple of 3 integers, factors by which to downscale (dim1, dim2, dim3). (2, 2, 2) will
+          halve the         size of the 3D input in each dimension.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          tuple of 3 integers, or None. Strides values.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{AveragePooling1D}: \xmlDesc{string}, 
+      Average pooling for temporal data.
+      The \xmlNode{AveragePooling1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{AveragePooling1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{integer}, 
+          size of the average pooling windows.
+
+        \item \xmlNode{strides}: \xmlDesc{integer}, 
+          Factor by which to downscale.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{AveragePooling2D}: \xmlDesc{string}, 
+      Average pooling operation for spatial data.
+      The \xmlNode{AveragePooling2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{AveragePooling2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{comma-separated integers}, 
+          integer or tuple of 2 integers, factors by which to downscale (vertical, horizontal). (2,
+          2) will         halve the input in both spatial dimension. If only one integer is
+          specified, the same window length will         be used for both dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          Integer, tuple of 2 integers, or None. Strides values. If None, it will default to
+          pool\_size.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{AveragePooling3D}: \xmlDesc{string}, 
+      Average pooling operation for 3D data (spatial or spatio-temporal).
+      The \xmlNode{AveragePooling3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{AveragePooling3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{pool\_size}: \xmlDesc{comma-separated integers}, 
+          tuple of 3 integers, factors by which to downscale (dim1, dim2, dim3). (2, 2, 2) will
+          halve the size         of the 3D input in each dimension.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          tuple of 3 integers, or None. Strides values.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          one of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding         with zeros evenly to the left/right or up/down of the input
+          such that output has the same height/width         dimension as the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalMaxPooling1D}: \xmlDesc{string}, 
+      Global max pooling operation for 1D temporal data.
+      The \xmlNode{GlobalMaxPooling1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalMaxPooling1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalAveragePooling1D}: \xmlDesc{string}, 
+      Global average pooling operation for temporal data.
+      The \xmlNode{GlobalAveragePooling1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalAveragePooling1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalMaxPooling2D}: \xmlDesc{string}, 
+      Global max pooling operation for spatial data.
+      The \xmlNode{GlobalMaxPooling2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalMaxPooling2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalAveragePooling2D}: \xmlDesc{string}, 
+      Global average pooling operation for spatial data.
+      The \xmlNode{GlobalAveragePooling2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalAveragePooling2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalMaxPooling3D}: \xmlDesc{string}, 
+      Global Max pooling operation for 3D data.
+      The \xmlNode{GlobalMaxPooling3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalMaxPooling3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{GlobalAveragePooling3D}: \xmlDesc{string}, 
+      Global Average pooling operation for 3D data.
+      The \xmlNode{GlobalAveragePooling3D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GlobalAveragePooling3D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+      \end{itemize}
+
+    \item \xmlNode{LocallyConnected1D}: \xmlDesc{string}, 
+      Locally-connected layer for 1D inputs.
+      The \xmlNode{LocallyConnected1D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{LocallyConnected1D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the length of the 1D convolution
+          window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of a single integer, specifying the stride length of the
+          convolution.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          Currently only supports ``valid'' (case-insensitive). ``same'' may be supported in the
+          future.         ``valid'' means no padding.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+      \end{itemize}
+
+    \item \xmlNode{LocallyConnected2D}: \xmlDesc{string}, 
+      Locally-connected layer for 2D inputs.
+      The \xmlNode{LocallyConnected2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{LocallyConnected2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the width and height of the 2D
+          convolution window.         Can be a single integer to specify the same value for all
+          spatial dimensions.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of 2 integers, specifying the strides of the convolution along
+          the width and         height. Can be a single integer to specify the same value for all
+          spatial dimensions.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          Currently only support ``valid'' (case-insensitive).
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+      \end{itemize}
+
+    \item \xmlNode{RNN}: \xmlDesc{string}, 
+      Fully-connected RNN where the output is to be fed back to input.
+      The \xmlNode{RNN} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{RNN} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{return\_sequences}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last output in the output sequence, or the full sequence.
+
+        \item \xmlNode{return\_state}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last state in addition to the output.
+
+        \item \xmlNode{go\_backwards}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, process the input sequence backwards and return the reversed sequence.
+
+        \item \xmlNode{stateful}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the last state for each sample at index i in a batch will be used as initial
+          state for the         sample of index i in the following batch.
+
+        \item \xmlNode{unroll}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can
+          speed-up a         RNN, although it tends to be more memory-intensive. Unrolling is only
+          suitable for short sequences.
+      \end{itemize}
+
+    \item \xmlNode{SimpleRNN}: \xmlDesc{string}, 
+      Fully-connected RNN where the output is to be fed back to input.
+      The \xmlNode{SimpleRNN} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{SimpleRNN} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{recurrent\_initializer}: \xmlDesc{string}, 
+          Initializer for the recurrent\_kernel weights matrix, used for the linear transformation
+          of the         recurrent state (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{recurrent\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the recurrent\_kernel weights matrix(see
+          ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{recurrent\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the recurrent\_kernel weights
+          matrix(see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+
+        \item \xmlNode{dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          inputs.
+
+        \item \xmlNode{recurrent\_dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          recurrent state.
+
+        \item \xmlNode{return\_sequences}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last output in the output sequence, or the full sequence.
+
+        \item \xmlNode{return\_state}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last state in addition to the output.
+
+        \item \xmlNode{go\_backwards}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, process the input sequence backwards and return the reversed sequence.
+
+        \item \xmlNode{stateful}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the last state for each sample at index i in a batch will be used as initial
+          state for the         sample of index i in the following batch.
+
+        \item \xmlNode{unroll}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can
+          speed-up a         RNN, although it tends to be more memory-intensive. Unrolling is only
+          suitable for short sequences.
+      \end{itemize}
+
+    \item \xmlNode{GRU}: \xmlDesc{string}, 
+      Gated Recurrent Unit.
+      The \xmlNode{GRU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GRU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{recurrent\_activation}: \xmlDesc{string}, 
+          Activation function to use for the recurrent step.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{recurrent\_initializer}: \xmlDesc{string}, 
+          Initializer for the recurrent\_kernel weights matrix, used for the linear transformation
+          of the         recurrent state (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{recurrent\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the recurrent\_kernel weights matrix(see
+          ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{recurrent\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the recurrent\_kernel weights
+          matrix(see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+
+        \item \xmlNode{dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          inputs.
+
+        \item \xmlNode{recurrent\_dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          recurrent state.
+
+        \item \xmlNode{return\_sequences}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last output in the output sequence, or the full sequence.
+
+        \item \xmlNode{return\_state}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last state in addition to the output.
+
+        \item \xmlNode{go\_backwards}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, process the input sequence backwards and return the reversed sequence.
+
+        \item \xmlNode{stateful}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the last state for each sample at index i in a batch will be used as initial
+          state for the         sample of index i in the following batch.
+
+        \item \xmlNode{unroll}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can
+          speed-up a         RNN, although it tends to be more memory-intensive. Unrolling is only
+          suitable for short sequences.
+
+        \item \xmlNode{reset\_after}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GRU convention (whether to apply reset gate after or before matrix multiplication).
+          False = ``before'', True = ``after'' (default and CuDNN compatible).
+      \end{itemize}
+
+    \item \xmlNode{LSTM}: \xmlDesc{string}, 
+      Long Short-Term Memory layer
+      The \xmlNode{LSTM} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{LSTM} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{recurrent\_activation}: \xmlDesc{string}, 
+          Activation function to use for the recurrent step.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{recurrent\_initializer}: \xmlDesc{string}, 
+          Initializer for the recurrent\_kernel weights matrix, used for the linear transformation
+          of the         recurrent state (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{recurrent\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the recurrent\_kernel weights matrix(see
+          ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{recurrent\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the recurrent\_kernel weights
+          matrix(see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+
+        \item \xmlNode{dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          inputs.
+
+        \item \xmlNode{recurrent\_dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          recurrent state.
+
+        \item \xmlNode{return\_sequences}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last output in the output sequence, or the full sequence.
+
+        \item \xmlNode{return\_state}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last state in addition to the output.
+
+        \item \xmlNode{go\_backwards}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, process the input sequence backwards and return the reversed sequence.
+
+        \item \xmlNode{stateful}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the last state for each sample at index i in a batch will be used as initial
+          state for the         sample of index i in the following batch.
+
+        \item \xmlNode{unroll}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can
+          speed-up a         RNN, although it tends to be more memory-intensive. Unrolling is only
+          suitable for short sequences.
+
+        \item \xmlNode{unit\_forget\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, add 1 to the bias of the forget gate at initialization. Setting it to true will
+          also         force bias\_initializer=``zeros''.
+      \end{itemize}
+
+    \item \xmlNode{ConvLSTM2D}: \xmlDesc{string}, 
+      2D Convolutional LSTM. Similar to an LSTM layer, but the input transformations and recurrent
+      transformations are both convolutional.
+      The \xmlNode{ConvLSTM2D} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ConvLSTM2D} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{dim\_out}: \xmlDesc{integer}, 
+          dimensionality of the output space of this layer
+
+        \item \xmlNode{kernel\_size}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of n integers, specifying the dimensions of the convolution
+          window.
+
+        \item \xmlNode{strides}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of n integers, specifying the strides of the convolution.
+          Specifying any         stride value != 1 is incompatible with specifying any
+          dilation\_rate value != 1.
+
+        \item \xmlNode{padding}: \xmlDesc{[valid, same]}, 
+          One of ``valid'' or ``same'' (case-insensitive). ``valid'' means no padding. ``same''
+          results in padding        evenly to the left/right or up/down of the input such that
+          output has the same height/width dimension as        the input.
+
+        \item \xmlNode{data\_format}: \xmlDesc{[channels\_last, channels\_first]}, 
+          A string, one of channels\_last (default) or channels\_first.
+
+        \item \xmlNode{dilation\_rate}: \xmlDesc{comma-separated integers}, 
+          An integer or tuple/list of n integers, specifying the dilation rate to use for dilated
+          convolution.         Currently, specifying any dilation\_rate value != 1 is incompatible
+          with specifying any strides value != 1.
+
+        \item \xmlNode{activation}: \xmlDesc{string}, 
+          Activation function to use. If you don't specify anything, no activation is applied (ie.
+          ``linear''         activation: $a(x) = x)$.
+
+        \item \xmlNode{recurrent\_activation}: \xmlDesc{string}, 
+          Activation function to use for the recurrent step.
+
+        \item \xmlNode{use\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether the layer uses a bias vector.
+
+        \item \xmlNode{kernel\_initializer}: \xmlDesc{string}, 
+          initializer for the kernel weights matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{recurrent\_initializer}: \xmlDesc{string}, 
+          Initializer for the recurrent\_kernel weights matrix, used for the linear transformation
+          of the         recurrent state (see~\ref{initializersDNN}).
+
+        \item \xmlNode{bias\_initializer}: \xmlDesc{string}, 
+          initializer for the bias vector (see ~\ref{initializersDNN}).
+
+        \item \xmlNode{kernel\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the kernel weights matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{recurrent\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the recurrent\_kernel weights matrix(see
+          ~\ref{regularizersDNN}).
+
+        \item \xmlNode{bias\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the bias vector (see~\ref{regularizersDNN}).
+
+        \item \xmlNode{activity\_regularizer}: \xmlDesc{string}, 
+          regularizer function applied to the output         of the layer (its ``activation'').
+          (see~\ref{regularizersDNN})
+
+        \item \xmlNode{kernel\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the kernel weights matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{recurrent\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the recurrent\_kernel weights
+          matrix(see~\ref{constraintsDNN}).
+
+        \item \xmlNode{bias\_constraint}: \xmlDesc{string}, 
+          constraint function applied to the bias vector (see ~\ref{constraintsDNN})
+
+        \item \xmlNode{dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          inputs.
+
+        \item \xmlNode{recurrent\_dropout}: \xmlDesc{float}, 
+          Float between 0 and 1. Fraction of the units to drop for the linear transformation of the
+          recurrent state.
+
+        \item \xmlNode{return\_sequences}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last output in the output sequence, or the full sequence.
+
+        \item \xmlNode{return\_state}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          Whether to return the last state in addition to the output.
+
+        \item \xmlNode{go\_backwards}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, process the input sequence backwards and return the reversed sequence.
+
+        \item \xmlNode{stateful}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the last state for each sample at index i in a batch will be used as initial
+          state for the         sample of index i in the following batch.
+
+        \item \xmlNode{unroll}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, the network will be unrolled, else a symbolic loop will be used. Unrolling can
+          speed-up a         RNN, although it tends to be more memory-intensive. Unrolling is only
+          suitable for short sequences.
+
+        \item \xmlNode{unit\_forget\_bias}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, add 1 to the bias of the forget gate at initialization. Setting it to true will
+          also         force bias\_initializer=``zeros''.
+      \end{itemize}
+
+    \item \xmlNode{Embdedding}: \xmlDesc{string}, 
+      Turns positive integers (indexes) into dense vectors of fixed size.         e.g. [[4], [20]]
+      -> [[0.25, 0.1], [0.6, -0.2]]         This layer can only be used as the first layer in a
+      model.
+      The \xmlNode{Embdedding} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Embdedding} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{input\_dim}: \xmlDesc{integer}, 
+          Size of the vocabulary.
+
+        \item \xmlNode{output\_dim}: \xmlDesc{string}, 
+          Dimension of the dense embedding.
+
+        \item \xmlNode{embeddings\_initializer}: \xmlDesc{string}, 
+          Initializer for the embeddings matrix (see~\ref{initializersDNN}).
+
+        \item \xmlNode{embeddings\_regularizer}: \xmlDesc{string}, 
+          Regularizer function applied to the embeddings matrix (see ~\ref{regularizersDNN}).
+
+        \item \xmlNode{embdeddings\_constraint}: \xmlDesc{string}, 
+          Constraint function applied to the embeddings matrix (see~\ref{constraintsDNN}).
+
+        \item \xmlNode{mask\_zero}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          whether or not the input value 0 is a special ``padding'' value that should be masked out.
+          This is useful when using recurrent layers which may take variable length input. If this
+          is True, then         all subsequent layers in the model need to support masking or an
+          exception will be raised. If mask\_zero         is set to True, as a consequence, index 0
+          cannot be used in the vocabulary (input\_dim should equal size         of vocabulary + 1).
+
+        \item \xmlNode{input\_length}: \xmlDesc{integer}, 
+          Length of input sequences, when it is constant. This argument is required if you are going
+          to         connect Flatten then Dense layers upstream (without it, the shape of the dense
+          outputs cannot be computed).
+      \end{itemize}
+
+    \item \xmlNode{LeakyReLU}: \xmlDesc{string}, 
+      Leaky version of a Rectified Linear Unit.
+      The \xmlNode{LeakyReLU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{LeakyReLU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{alpha}: \xmlDesc{float}, 
+          Negative slope coefficient.
+      \end{itemize}
+
+    \item \xmlNode{PReLU}: \xmlDesc{string}, 
+      Parametric Rectified Linear Unit.
+      The \xmlNode{PReLU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{PReLU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{alpha\_initializer}: \xmlDesc{string}, 
+          Initializer function for the weights.
+
+        \item \xmlNode{alpha\_regularizer}: \xmlDesc{string}, 
+          Regularizer for the weights.
+
+        \item \xmlNode{alpha\_constraint}: \xmlDesc{string}, 
+          Constraint for the weights.
+
+        \item \xmlNode{shared\_axes}: \xmlDesc{comma-separated floats}, 
+          The axes along which to share learnable parameters for the activation function.
+      \end{itemize}
+
+    \item \xmlNode{ELU}: \xmlDesc{string}, 
+      Exponential Linear Unit.
+      The \xmlNode{ELU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ELU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{alpha}: \xmlDesc{float}, 
+          Scale for the negative factor.
+      \end{itemize}
+
+    \item \xmlNode{ThresholdedReLU}: \xmlDesc{string}, 
+      Thresholded Rectified Linear Unit.
+      The \xmlNode{ThresholdedReLU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ThresholdedReLU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{theta}: \xmlDesc{float}, 
+          Float >= 0. Threshold location of activation.
+      \end{itemize}
+
+    \item \xmlNode{Softmax}: \xmlDesc{string}, 
+      Softmax activation function.
+      The \xmlNode{Softmax} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{Softmax} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{axis}: \xmlDesc{comma-separated integers}, 
+          Integer, or list of Integers, axis along which the softmax normalization is applied.
+      \end{itemize}
+
+    \item \xmlNode{ReLU}: \xmlDesc{string}, 
+      Rectified Linear Unit activation function.
+      The \xmlNode{ReLU} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{ReLU} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{max\_value}: \xmlDesc{float}, 
+          Float >= 0. Maximum activation value. Default to None, which means unlimited.
+
+        \item \xmlNode{negative\_slope}: \xmlDesc{float}, 
+          Float >= 0. Negative slope coefficient.
+
+        \item \xmlNode{threshold}: \xmlDesc{float}, 
+          Float >= 0. Threshold value for thresholded activation.
+      \end{itemize}
+
+    \item \xmlNode{BatchNormalization}: \xmlDesc{string}, 
+      Layer that normalizes its inputs. Batch normalization applies a transformation that maintains
+      the mean output close to 0 and the output standard deviation close to 1.
+      The \xmlNode{BatchNormalization} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{BatchNormalization} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{axis}: \xmlDesc{integer}, 
+          the axis that should be normalized (typically the features axis).
+
+        \item \xmlNode{momentum}: \xmlDesc{float}, 
+          Momentum for the moving average.
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          Small float added to variance to avoid dividing by zero.
+
+        \item \xmlNode{center}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, add offset of beta to normalized tensor. If False, beta is ignored.
+
+        \item \xmlNode{scale}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          If True, multiply by gamma. If False, gamma is not used.
+
+        \item \xmlNode{beta\_initializer}: \xmlDesc{string}, 
+          Initializer for the beta weight.
+
+        \item \xmlNode{gamma\_initializer}: \xmlDesc{string}, 
+          Initializer for the gamma weight.
+
+        \item \xmlNode{moving\_mean\_initializer}: \xmlDesc{string}, 
+          Initializer for the moving mean.
+
+        \item \xmlNode{moving\_variance\_initializer}: \xmlDesc{string}, 
+          Initializer for the moving variance.
+
+        \item \xmlNode{beta\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the beta weight.
+
+        \item \xmlNode{gamma\_regularizer}: \xmlDesc{string}, 
+          Optional regularizer for the gamma weight.
+
+        \item \xmlNode{beta\_constraint}: \xmlDesc{string}, 
+          Optional constraint for the beta weight.
+
+        \item \xmlNode{gamma\_constraint}: \xmlDesc{string}, 
+          Optional constraint for the gamma weight.
+      \end{itemize}
+
+    \item \xmlNode{GaussianNoise}: \xmlDesc{string}, 
+      Apply additive zero-centered Gaussian noise. This is useful to mitigate overfitting (you could
+      see         it as a form of random data augmentation). Gaussian Noise (GS) is a natural choice
+      as corruption process         for real valued inputs. As it is a regularization layer, it is
+      only active at training time.
+      The \xmlNode{GaussianNoise} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GaussianNoise} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{stddev}: \xmlDesc{float}, 
+          standard deviation of the noise distribution.
+      \end{itemize}
+
+    \item \xmlNode{GaussianDropout}: \xmlDesc{string}, 
+      Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only
+      active         at training time.
+      The \xmlNode{GaussianDropout} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+            the name of the layer
+      \end{itemize}
+
+      The \xmlNode{GaussianDropout} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{rate}: \xmlDesc{float}, 
+          drop probability (as with Dropout). The multiplicative noise will have standard deviation
+          $sqrt(rate / (1 - rate))$.
+      \end{itemize}
+
+    \item \xmlNode{layer\_layout}: \xmlDesc{comma-separated strings}, 
+      The layout of the neural network layers, i.e., the list of names of neural network layers
+  \end{itemize}
