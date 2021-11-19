@@ -112,5 +112,5 @@ class VotingRegressor(ScikitLearnBase):
       else:
         self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
       estimators.append((estimator.name, interfaceRom.model))
-    self.model = self.model(estimators)
+    self.settings['estimators'] = estimators
     self.initializeModel(self.settings)
