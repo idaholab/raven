@@ -131,7 +131,7 @@ class LimitSurface(PostProcessorInterface):
       self.ROM.initializeModel(settings)
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
-    self.ROM.reset()
+    # self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if mathUtils.isAString(inp)  or isinstance(inp, bytes):

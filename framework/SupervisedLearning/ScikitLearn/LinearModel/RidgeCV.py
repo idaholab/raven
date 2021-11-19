@@ -117,13 +117,3 @@ class RidgeCV(ScikitLearnBase):
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-  def initializeModel(self, settings):
-    """
-      Method to initialize the surrogate model with a settings dictionary
-      @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
-      @ Out, None
-    """
-    settings = self.updateSettings(settings)
-    self.settings = settings
-    self.model = self.model(**settings)

@@ -117,6 +117,7 @@ class ScikitLearnBase(SupervisedLearning):
       self.uniqueVals = [np.unique(targetVals[:,index])[0] for index in range(targetVals.shape[1]) ]
     else:
       # the multi-target is handled by the internal wrapper
+      self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
 
   def __confidenceLocal__(self,featureVals):
