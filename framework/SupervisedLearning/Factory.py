@@ -109,7 +109,7 @@ from .ScikitLearn.Tree.DecisionTreeClassifier import DecisionTreeClassifier
 from .ScikitLearn.Tree.DecisionTreeRegressor import DecisionTreeRegressor
 from .ScikitLearn.Tree.ExtraTreeClassifier import ExtraTreeClassifier
 from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
-# Ensemble ROM 
+# Ensemble ROM
 from .ScikitLearn.Ensemble.VotingRegressor import VotingRegressor
 ################################################################################
 
