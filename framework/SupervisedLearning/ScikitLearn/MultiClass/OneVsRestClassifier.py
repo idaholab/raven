@@ -111,4 +111,4 @@ class OneVsRestClassifier(ScikitLearnBase):
       self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
     settings = {'estimator':sklEstimator}
     self.settings.update(settings)
-    self.initializeModel(settings)
+    self.initializeModel(self.settings)
