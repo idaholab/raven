@@ -124,6 +124,7 @@ class SupervisedLearning(BaseInterface):
     self.target = None             # "outputs" of this model
     self.amITrained = False        # "True" if the ROM is alread trained
     self._dynamicHandling = False  # time-like dependence in the model?
+    self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
@@ -175,6 +176,10 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     self.__dict__.update(d)
+    #FIXME: REMOVE THIS ONCE HERON GETS UPDATED WITH
+    #FIXME: NEW PICKLED ROMS
+    if 'dynamicFeatures' not in d:
+      self.dynamicFeatures = False
 
   def setEstimator(self, estimator):
     """
@@ -224,13 +229,8 @@ class SupervisedLearning(BaseInterface):
       else:
         self.raiseAnError(IOError,'The target '+target+' is not in the training set')
 
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      targetValues = np.stack(targetValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
-      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
-
+    # stack targets
+    targetValues = np.stack(targetValues, axis=-1)
     # construct the evaluation matrixes
     ## add the indices if they're not present
     needFeatures = copy.deepcopy(self.features)
@@ -240,8 +240,13 @@ class SupervisedLearning(BaseInterface):
         for index in indexMap.get(feat, []):
           if index not in needFeatures and index not in needTargets:
             needFeatures.append(feat)
-
-    featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
+    if self.dynamicFeatures:
+      featLen = 0
+      for cnt, feat in enumerate(self.features):
+        featLen = max(values[names.index(feat)][0].size, featLen)
+      featureValues = np.zeros(shape=(len(targetValues), featLen,len(self.features)))
+    else:
+      featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
@@ -251,13 +256,17 @@ class SupervisedLearning(BaseInterface):
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if len(valueToUse) != featureValues[:,0].size:
-          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
+        if len(valueToUse) != featureValues.shape[0]:
+          self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
           self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
-        featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        if self.dynamicFeatures:
+          featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        else:
+          featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -286,7 +295,11 @@ class SupervisedLearning(BaseInterface):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
-    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+
+    if self.dynamicFeatures:
+      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], len(self.features)))
+    else:
+      featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
@@ -320,12 +333,18 @@ class SupervisedLearning(BaseInterface):
     if type(edict) != dict:
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
+    stepInFeatures = 0
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+      if self.dynamicFeatures:
+        stepInFeatures = max(stepInFeatures,values[index].shape[-1])
     # construct the evaluation matrix
-    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    if self.dynamicFeatures:
+      featureValues = np.zeros(shape=(values[0].size, stepInFeatures, len(self.features)))
+    else:
+      featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
@@ -333,7 +352,10 @@ class SupervisedLearning(BaseInterface):
         resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+        if self.dynamicFeatures:
+          featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+        else:
+          featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):

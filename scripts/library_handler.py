@@ -441,7 +441,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   # check limited sources
   libSource = libNode.attrib.get('source', None)
   if libSource is None:
-    libSource = 'conda' # DEFAULT
+    libSource = 'forge' # DEFAULT
   if limitSources is not None and libSource not in limitSources:
     return # nothing to do
   # otherwise, we have a valid request to handle
@@ -576,17 +576,11 @@ if __name__ == '__main__':
       equals = '='
       actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
-      if args.subset == 'core':
+      if args.subset == 'core' or args.subset == 'forge':
         # from defaults
         src = '-c conda-forge'
         addOptional = args.addOptional
-        limit = ['conda']
-      elif args.subset == 'forge':
-        # take libs from conda-forge
-        src = '-c conda-forge '
-        addOptional = args.addOptional
         limit = ['forge']
-        sys.stderr.write("WARNING: conda-forge is used by default, do not need to request\n")
       elif args.subset == 'pip':
         src = ''
         installer = 'pip'
