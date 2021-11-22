@@ -384,7 +384,7 @@ Example of DMDc ROM definition, with 1 actuator variable (u1), 3 state variables
       <rankSVD>1</rankSVD>
       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
       <subtractNormUXY>True</subtractNormUXY>
-	    
+
       <!-- Features are the variable names for predictions: Actuator "u", scheduling parameters, and initial states -->
       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
       <!-- Initialization Variables-->

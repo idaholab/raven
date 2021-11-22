@@ -79,17 +79,17 @@ class DMDC(DMD):
         in \xmlNode{OutStream} of type \xmlAttr{Print}):
         \begin{itemize}
           \item \xmlNode{rankSVD}, see XML input specifications below
-          \item \xmlNode{actuators}, XML node containing the list of actuator variables (u), 
+          \item \xmlNode{actuators}, XML node containing the list of actuator variables (u),
                 see XML input specifications below
-          \item \xmlNode{stateVariables}, XML node containing the list of system state variables (x), 
+          \item \xmlNode{stateVariables}, XML node containing the list of system state variables (x),
                 see XML input specifications below
           \item \xmlNode{initStateVariables}, XML node containing the list of system state variables
-                (x\_init) that are used for initializing the model in ``evaluation'' mode, 
+                (x\_init) that are used for initializing the model in ``evaluation'' mode,
                 see XML input specifications below
           \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
           \item \xmlNode{dmdTimeScale}, XML node containing the the array of time scale in the DMD space,
                 which is time axis in traning data (Time)
-          \item \xmlNode{UNorm}, XML node containing the norminal values of actuators, 
+          \item \xmlNode{UNorm}, XML node containing the norminal values of actuators,
                 which are the initial actuator values in the training data
           \item \xmlNode{XNorm}, XML node containing the norminal values of state variables,
                 which are the initial state values in the training data
@@ -241,7 +241,7 @@ class DMDC(DMD):
     Uvector = np.asarray(Uvector) # the Uvector is not centralized yet
     # Get the time steps for evaluation
     tsEval = Uvector.shape[-1] # ts_Eval = 100
-    
+
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
@@ -250,7 +250,7 @@ class DMDC(DMD):
 
     for cnt, index in enumerate(indeces):
       # Centralize Uvector and initState when required.
-      if self.dmdParams['centerUXY']: 
+      if self.dmdParams['centerUXY']:
         Uvector = Uvector - self.actuatorVals[0, index, :]
         initStates = initStates - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates
@@ -261,7 +261,7 @@ class DMDC(DMD):
         evalX[cnt, i+1, :] = Xpred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
-      if self.dmdParams['centerUXY']: 
+      if self.dmdParams['centerUXY']:
         evalX = evalX + self.stateVals[0, index, :]
         evalY = evalY + self.outputVals[0, index, :]
     ### Store the results to the dictionary "returnEvaluation"
@@ -411,7 +411,7 @@ class DMDC(DMD):
         Ut = Utsvd
         Vt = Vtsvd
         St = np.diag(stsvd)
-    
+
     # QR decomp. St=Q*R, Q unitary, R upper triangular
     Q, R = np.linalg.qr(St)
     # if R is singular matrix, raise an error
