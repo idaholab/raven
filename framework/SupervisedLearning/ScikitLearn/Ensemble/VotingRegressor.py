@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Jan 21, 2020
+  Created on Nov. 16, 2021
 
-  @author: alfoa, wangc
-  ExtraTreeRegressor
-  An extremely randomized tree regressor.
+  @author: wangc
+  VotingRegressor
+  A voting regressor is an ensemble meta-estimator that fits several base regressors
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
