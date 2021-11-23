@@ -46,7 +46,7 @@ class VotingRegressor(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
-    self.multioutputWrapper = False
+    self.multioutputWrapper = True
     import sklearn
     import sklearn.ensemble
     self.model = sklearn.ensemble.VotingRegressor
@@ -106,32 +106,13 @@ class VotingRegressor(ScikitLearnBase):
         self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
       else:
         self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
-      estimators.append((estimator.name, interfaceRom.model))
+      # In sklearn, multioutput wrapper can not be used by outer and inner estimator at the same time
+      # If the outer estimator can handle multioutput, the multioutput wrapper of inner can be kept,
+      # otherwise, we need to remove the wrapper for inner estimator.
+      if interfaceRom.multioutputWrapper:
+        sklEstimator = interfaceRom.model.get_params()['estimator']
+      else:
+        sklEstimator = interfaceRom.model
+      estimators.append((estimator.name, sklEstimator))
     self.settings['estimators'] = estimators
     self.initializeModel(self.settings)
-
-  def __evaluateLocal__(self,featureVals):
-    """
-      Evaluates a point.
-      This method need to be re-implemented because:
-      1. Current implementation in SciKitLearn version 1.0, VotingRegressor predict method can not handle
-        "mutioutput" wrapper correctly
-      2. tranform method will return predictions for each estimator, which can be used to replace predict method.
-      3. Current fit function can only accept single target, we may need to extend the fit method in future.
-      @ In, featureVals, np.array, list of values at which to evaluate the ROM
-      @ Out, returnDict, dict, dict of all the target results
-    """
-    if self.uniqueVals is not None:
-      outcomes =  self.uniqueVals
-    else:
-      transformOuts = self.model.transform(featureVals)
-      if self.settings['weights'] is not None:
-        outcomes = np.average(transformOuts, axis=-1, weights=self.settings['weights'])
-      else:
-        outcomes = np.average(transformOuts, axis=-1)
-    outcomes = np.atleast_1d(outcomes)
-    if len(outcomes.shape) == 1:
-      returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
-    else:
-      returnDict = {key: outcomes[:, i] for i, key in enumerate(self.target)}
-    return returnDict
