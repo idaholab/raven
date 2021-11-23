@@ -315,6 +315,14 @@
     required_libraries = 'imageio'
     rel_err = 0.0001
   [../]
+  [./adaBoostRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'adaBoostRegressor_plotting.xml'
+    csv = 'data/outAdaBoostRegressor_plotting.csv'
+    image = 'data/AdaBoostRegressor_scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.0001
+  [../]
   ##############################################################################
   ## Inconsistent Results
   #[./DTR]

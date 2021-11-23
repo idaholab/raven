@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/ROM/SKLearn.BaggingRegressor</name>
+    <name>framework/ROM/SKLearn.AdaBoostRegressor</name>
     <author>wangc</author>
     <created>2021-11-23</created>
-    <classesTested>SupervisedLearning.SciKitLearn.BaggingRegressor</classesTested>
+    <classesTested>SupervisedLearning.SciKitLearn.AdaBoostRegressor</classesTested>
     <description>
-       An example exercising bagging regressor methods. Comparing Bagging Regressor with
-       SVR regressor.
+       An example exercising AdaBoost regressor methods. Comparing AdaBoost Regressor with
+       DecisionTreeRegressor regressor.
        A simple attenuate model is used for the comparison
     </description>
     <revisions>
-      <revision author="wangc" date="2021-11-23">Compare Bagging Regressor with individual SVR regressor</revision>
+      <revision author="wangc" date="2021-11-23">Compare AdaBoost Regressor with individual DecisionTreeRegressor regressor</revision>
     </revisions>
   </TestInfo>
 
@@ -19,11 +19,11 @@
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sample,
-      trainBagging,
-      trainSVR,
+      trainAdaBoost,
+      trainDecisionTree,
       resample,
-      resampleBagging,
-      resampleSVR,
+      resampleAdaBoost,
+      resampleDecisionTree,
       plot
     </Sequence>
   </RunInfo>
@@ -33,25 +33,22 @@
       <inputs>X, Y</inputs>
       <outputs>ans</outputs>
     </ExternalModel>
-    <ROM name="br" subType="BaggingRegressor">
+    <ROM name="abr" subType="AdaBoostRegressor">
       <Features>X,Y</Features>
       <Target>ans</Target>
-      <max_samples>0.8</max_samples>
-      <estimator class="Models" type="ROM">svr</estimator>
+      <n_estimators>50</n_estimators>
+      <learning_rate>1.0</learning_rate>
+      <loss>linear</loss>
+      <estimator class="Models" type="ROM">dtr</estimator>
     </ROM>
-    <ROM name="svr" subType="SVR">
+    <ROM name="dtr" subType="DecisionTreeRegressor">
       <Features>X,Y</Features>
       <Target>ans</Target>
-      <C>2.0</C>
-      <epsilon>0.02</epsilon>
-      <kernel>rbf</kernel>
-      <degree>3</degree>
-      <coef0>0.0</coef0>
-      <shrinking>True</shrinking>
-      <tol>1e-3</tol>
-      <cache_size>200</cache_size>
-      <verbose>False</verbose>
-      <max_iter>-1</max_iter>
+      <criterion>mse</criterion>
+      <splitter>best</splitter>
+      <min_samples_split>2</min_samples_split>
+      <min_samples_leaf>1</min_samples_leaf>
+      <random_state>1</random_state>
     </ROM>
   </Models>
 
@@ -68,39 +65,39 @@
       <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
       <Output class="DataObjects" type="PointSet">outData</Output>
     </MultiRun>
-    <MultiRun name="resampleBagging" sleepTime="1e-5">
+    <MultiRun name="resampleAdaBoost" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">br</Model>
+      <Model class="Models" type="ROM">abr</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outDataBagging</Output>
+      <Output class="DataObjects" type="PointSet">outDataAdaBoost</Output>
     </MultiRun>
-    <MultiRun name="resampleSVR" sleepTime="1e-5">
+    <MultiRun name="resampleDecisionTree" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">svr</Model>
+      <Model class="Models" type="ROM">dtr</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outDataSVR</Output>
+      <Output class="DataObjects" type="PointSet">outDataDTR</Output>
     </MultiRun>
-    <RomTrainer name="trainBagging">
+    <RomTrainer name="trainAdaBoost">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
-      <Output class="Models" type="ROM">br</Output>
+      <Output class="Models" type="ROM">abr</Output>
     </RomTrainer>
-    <RomTrainer name="trainSVR">
+    <RomTrainer name="trainDecisionTree">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
-      <Output class="Models" type="ROM">svr</Output>
+      <Output class="Models" type="ROM">dtr</Output>
     </RomTrainer>
     <IOStep name="plot">
       <Input   class="DataObjects"  type="PointSet">outData</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataBagging</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataSVR</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataAdaBoost</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataDTR</Input>
       <Output class="OutStreams" type="Print">outData</Output>
-      <Output  class="OutStreams"   type="Plot">BaggingRegressor</Output>
+      <Output  class="OutStreams"   type="Plot">AdaBoostRegressor</Output>
     </IOStep>
   </Steps>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>200</limit>
+        <limit>50</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="X">
@@ -140,9 +137,9 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
-      <filename>outBaggingRegressor_plotting</filename>
+      <filename>outAdaBoostRegressor_plotting</filename>
     </Print>
-    <Plot  name="BaggingRegressor">
+    <Plot  name="AdaBoostRegressor">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -156,22 +153,22 @@
         </plot>
         <plot>
           <type>scatter</type>
-          <x>outDataBagging|Input|prefix</x>
-          <y>outDataBagging|Output|ans</y>
+          <x>outDataAdaBoost|Input|prefix</x>
+          <y>outDataAdaBoost|Output|ans</y>
           <marker>d</marker>
           <c>b</c>
           <kwargs>
-            <label>BaggingRegressor</label>
+            <label>AdaBoostRegressor</label>
           </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
-          <x>outDataSVR|Input|prefix</x>
-          <y>outDataSVR|Output|ans</y>
+          <x>outDataDTR|Input|prefix</x>
+          <y>outDataDTR|Output|ans</y>
           <marker>^</marker>
           <c>g</c>
           <kwargs>
-            <label>SVR</label>
+            <label>DecisionTreeRegressor</label>
           </kwargs>
         </plot>
         <xlabel>Test Samples</xlabel>
@@ -183,7 +180,7 @@
       <actions>
         <how>png</how>
         <title>
-          <text>Bagging Regressor Prediction</text>
+          <text>AdaBoost Regressor Prediction</text>
         </title>
       </actions>
     </Plot>
@@ -204,11 +201,11 @@
       <Input>prefix, X,Y</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="outDataBagging">
+    <PointSet name="outDataAdaBoost">
       <Input>prefix, X,Y</Input>
       <Output>ans</Output>
     </PointSet>
-    <PointSet name="outDataSVR">
+    <PointSet name="outDataDTR">
       <Input>prefix, X,Y</Input>
       <Output>ans</Output>
     </PointSet>

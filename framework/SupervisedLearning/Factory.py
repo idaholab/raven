@@ -112,6 +112,7 @@ from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
 # Ensemble ROM for Regression
 from .ScikitLearn.Ensemble.VotingRegressor import VotingRegressor
 from .ScikitLearn.Ensemble.BaggingRegressor import BaggingRegressor
+from .ScikitLearn.Ensemble.AdaBoostRegressor import AdaBoostRegressor
 ################################################################################
 
 factory = EntityFactory('SupervisedLearning')
