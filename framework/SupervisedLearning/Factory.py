@@ -109,8 +109,9 @@ from .ScikitLearn.Tree.DecisionTreeClassifier import DecisionTreeClassifier
 from .ScikitLearn.Tree.DecisionTreeRegressor import DecisionTreeRegressor
 from .ScikitLearn.Tree.ExtraTreeClassifier import ExtraTreeClassifier
 from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
-# Ensemble ROM
+# Ensemble ROM for Regression
 from .ScikitLearn.Ensemble.VotingRegressor import VotingRegressor
+from .ScikitLearn.Ensemble.BaggingRegressor import BaggingRegressor
 ################################################################################
 
 factory = EntityFactory('SupervisedLearning')

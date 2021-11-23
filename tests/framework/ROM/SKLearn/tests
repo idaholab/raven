@@ -299,11 +299,19 @@
     output = 'data/outVotingRegressor.xml'
     rel_err = 1.0e-8
   [../]
-  [./outVotingRegressor_plotting]
+  [./votingRegressor_plotting]
     type = 'RavenFramework'
     input = 'votingRegressor_plotting.xml'
     csv = 'data/outVotingRegressor_plotting.csv'
     image = 'data/votingRegressor_scatter-scatter-scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.0001
+  [../]
+  [./baggingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'baggingRegressor_plotting.xml'
+    csv = 'data/outBaggingRegressor_plotting.csv'
+    image = 'data/BaggingRegressor_scatter-scatter-scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.0001
   [../]
