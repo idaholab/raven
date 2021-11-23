@@ -34,7 +34,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate.py" name="foo" subType="">
-      <variables>X,Y,ans</variables>
+      <inputs>X, Y</inputs>
+      <outputs>ans</outputs>
     </ExternalModel>
     <ROM name="vr" subType="VotingRegressor">
       <Features>X,Y</Features>

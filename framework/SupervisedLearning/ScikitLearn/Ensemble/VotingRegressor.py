@@ -17,7 +17,6 @@
   @author: wangc
   VotingRegressor
   A voting regressor is an ensemble meta-estimator that fits several base regressors
-
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -51,7 +50,6 @@ class VotingRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.ensemble
     self.model = sklearn.ensemble.VotingRegressor
-    self.settings = None #
 
   @classmethod
   def getInputSpecification(cls):
@@ -63,12 +61,12 @@ class VotingRegressor(ScikitLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{VotingRegressor}
-                         \zNormalizationPerformed{VotingRegressor}
+    specs.description = r"""The \xmlNode{VotingRegressor} is an ensemble meta-estimator that fits several base
+                            regressors, each on the whole dataset. Then it averages the individual predictions to form
+                            a final prediction.
                          """
     estimatorInput = InputData.assemblyInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""name of a ROM that can be used as an estimator""", default='no-default')
-    #TODO: Add more inputspecs for estimator
     specs.addSub(estimatorInput)
     specs.addSub(InputData.parameterInputFactory("weights", contentType=InputTypes.FloatListType,
                                                  descr=r"""Sequence of weights (float or int) to weight the occurrences of predicted
@@ -89,15 +87,6 @@ class VotingRegressor(ScikitLearnBase):
     # notFound must be empty
     assert(not notFound)
     self.settings = settings
-
-  def __returnInitialParametersLocal__(self):
-    """
-      Returns a dictionary with the parameters and their initial values
-      @ In, None
-      @ Out, params, dict,  dictionary of parameter names and initial values
-    """
-    params = self.settings
-    return params
 
   def setEstimator(self, estimatorList):
     """

@@ -28,7 +28,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
-      <variables>X,Y,Z</variables>
+      <inputs>X, Y</inputs>
+      <outputs>Z</outputs>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="VotingRegressor">
       <Features>X,Y</Features>
