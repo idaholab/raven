@@ -23,6 +23,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -119,3 +120,29 @@ class VotingRegressor(ScikitLearnBase):
       estimators.append((estimator.name, interfaceRom.model))
     self.settings['estimators'] = estimators
     self.initializeModel(self.settings)
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      Evaluates a point.
+      This method need to be re-implemented because:
+      1. Current implementation in SciKitLearn version 1.0, VotingRegressor predict method can not handle
+        "mutioutput" wrapper correctly
+      2. tranform method will return predictions for each estimator, which can be used to replace predict method.
+      3. Current fit function can only accept single target, we may need to extend the fit method in future.
+      @ In, featureVals, np.array, list of values at which to evaluate the ROM
+      @ Out, returnDict, dict, dict of all the target results
+    """
+    if self.uniqueVals is not None:
+      outcomes =  self.uniqueVals
+    else:
+      transformOuts = self.model.transform(featureVals)
+      if self.settings['weights'] is not None:
+        outcomes = np.average(transformOuts, axis=-1, weights=self.settings['weights'])
+      else:
+        outcomes = np.average(transformOuts, axis=-1)
+    outcomes = np.atleast_1d(outcomes)
+    if len(outcomes.shape) == 1:
+      returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
+    else:
+      returnDict = {key: outcomes[:, i] for i, key in enumerate(self.target)}
+    return returnDict
