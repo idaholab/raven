@@ -22,7 +22,6 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -80,9 +79,6 @@ class VotingRegressor(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    ## TODO extend to handle multi-output in train and evaluate methods
-    if len(self.target) != 1:
-      self.raiseAnError(IOError, self.name, 'can only handle single target variable, but found {}'.format(','.join(self.target)))
     settings, notFound = paramInput.findNodesAndExtractValues(['weights'])
     # notFound must be empty
     assert(not notFound)
@@ -94,18 +90,13 @@ class VotingRegressor(ScikitLearnBase):
       @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
+    super().setEstimator(estimatorList)
     estimators = []
     for estimator in estimatorList:
       interfaceRom = estimator._interfaceROM
       if interfaceRom.info['problemtype'] != 'regression':
         self.raiseAnError(IOError, 'estimator:', estimator.name, 'with problem type', interfaceRom.info['problemtype'],
-                          'can not be used for VotingRegressor')
-      if not isinstance(interfaceRom, ScikitLearnBase):
-        self.raiseAnError(IOError, 'ROM', estimator.name, 'can not be used as estimator for ROM', self.name)
-      if not callable(getattr(interfaceRom.model, "fit", None)):
-        self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
-      else:
-        self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
+                          'can not be used for', self.name)
       # In sklearn, multioutput wrapper can not be used by outer and inner estimator at the same time
       # If the outer estimator can handle multioutput, the multioutput wrapper of inner can be kept,
       # otherwise, we need to remove the wrapper for inner estimator.

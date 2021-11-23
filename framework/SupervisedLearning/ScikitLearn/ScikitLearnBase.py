@@ -102,7 +102,14 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
-    pass
+    for estimator in estimatorList:
+      interfaceRom = estimator._interfaceROM
+      if not isinstance(interfaceRom, ScikitLearnBase):
+        self.raiseAnError(IOError, 'ROM', estimator.name, 'can not be used as estimator for ROM', self.name)
+      if not callable(getattr(interfaceRom.model, "fit", None)):
+        self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
+      else:
+        self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
 
   def __trainLocal__(self,featureVals,targetVals):
     """

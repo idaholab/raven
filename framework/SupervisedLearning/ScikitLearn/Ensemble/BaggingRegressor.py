@@ -22,7 +22,6 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -107,9 +106,6 @@ class BaggingRegressor(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    ## TODO extend to handle multi-output in train and evaluate methods
-    if len(self.target) != 1:
-      self.raiseAnError(IOError, self.name, 'can only handle single target variable, but found {}'.format(','.join(self.target)))
     settings, notFound = paramInput.findNodesAndExtractValues(['n_estimators', 'max_samples', 'max_features', 'bootstrap', 'bootstrap_features',
                                     'oob_score', 'warm_start', 'random_state'])
     # notFound must be empty
@@ -122,18 +118,22 @@ class BaggingRegressor(ScikitLearnBase):
       @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
+    super().setEstimator(estimatorList)
     if len(estimatorList) != 1:
       self.raiseAWarning('ROM', self.name, 'can only accept one estimator, but multiple estimators are provided!',
                           'Only the first one will be used, i.e.,', estimator.name)
     estimator = estimatorList[0]
-    if estimator._interfaceROM.multioutputWrapper:
-      sklEstimator = estimator._interfaceROM.model.get_params()['estimator']
+    interfaceRom = estimator._interfaceROM
+    if interfaceRom.info['problemtype'] != 'regression':
+      self.raiseAnError(IOError, 'estimator:', estimator.name, 'with problem type', interfaceRom.info['problemtype'],
+                        'can not be used for', self.name)
+    # In sklearn, multioutput wrapper can not be used by outer and inner estimator at the same time
+    # If the outer estimator can handle multioutput, the multioutput wrapper of inner can be kept,
+    # otherwise, we need to remove the wrapper for inner estimator.
+    if interfaceRom.multioutputWrapper:
+      sklEstimator = interfaceRom.model.get_params()['estimator']
     else:
-      sklEstimator = estimator._interfaceROM.model
-    if not callable(getattr(sklEstimator, "fit", None)):
-      self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
-    else:
-      self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
+      sklEstimator = interfaceRom.model
     settings = {'base_estimator':sklEstimator}
     self.settings.update(settings)
     self.initializeModel(self.settings)
