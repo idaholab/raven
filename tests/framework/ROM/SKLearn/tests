@@ -299,6 +299,14 @@
     output = 'data/outVotingRegressor.xml'
     rel_err = 1.0e-8
   [../]
+  [./outVotingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'votingRegressor_plotting.xml'
+    csv = 'data/outVotingRegressor_plotting.csv'
+    image = 'data/votingRegressor_scatter-scatter-scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.0001
+  [../]
   ##############################################################################
   ## Inconsistent Results
   #[./DTR]

@@ -6,11 +6,9 @@
     <created>2021-11-22</created>
     <classesTested>SupervisedLearning.SciKitLearn.VotingRegressor</classesTested>
     <description>
-       An example exercising voting regressor methods.
-       Note, all of the tests in SKLearn operate on a 2D input domain with
-       the goal of fitting a paraboloid function. The input dimensions are
-       of largely different scales and one dimension is off-centered from
-       the origin to ensure that normalization is being handled correctly.
+       An example exercising voting regressor methods. Comparing Voting Regressor with
+       Linear Regressor, SVR and RidgeCV regressor.
+       A simple attenuate model is used for the comparison
     </description>
     <revisions>
       <revision author="wangc" date="2021-11-22">Compare Voting Regressor with individual regressors</revision>
@@ -183,7 +181,7 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
-      <filename>outVotingRegressor</filename>
+      <filename>outVotingRegressor_plotting</filename>
     </Print>
     <Plot  name="votingRegressor">
       <plotSettings>
@@ -191,50 +189,63 @@
           <type>scatter</type>
           <x>outData|Input|prefix</x>
           <y>outData|Output|ans</y>
-          <xlabel>prefix</xlabel>
-          <ylabel>ans</ylabel>
           <marker>*</marker>
           <c>r</c>
+          <kwargs>
+            <label>Model True Value</label>
+          </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>outDataVR|Input|prefix</x>
           <y>outDataVR|Output|ans</y>
-          <xlabel>prefix</xlabel>
-          <ylabel>ans</ylabel>
           <marker>d</marker>
           <c>b</c>
+          <kwargs>
+            <label>VotingRegressor</label>
+          </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>outDataLR|Input|prefix</x>
           <y>outDataLR|Output|ans</y>
-          <xlabel>prefix</xlabel>
-          <ylabel>ans</ylabel>
-          <marker>.</marker>
+          <marker>s</marker>
           <c>y</c>
+          <kwargs>
+            <label>LinearRegression</label>
+          </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>outDataSVR|Input|prefix</x>
           <y>outDataSVR|Output|ans</y>
-          <xlabel>prefix</xlabel>
-          <ylabel>ans</ylabel>
           <marker>^</marker>
           <c>g</c>
+          <kwargs>
+            <label>SVR</label>
+          </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>outDataRidgeCV|Input|prefix</x>
           <y>outDataRidgeCV|Output|ans</y>
-          <xlabel>prefix</xlabel>
-          <ylabel>ans</ylabel>
           <marker>o</marker>
           <c>m</c>
+          <kwargs>
+            <label>RidgeCV</label>
+          </kwargs>
         </plot>
+        <xlabel>Test Samples</xlabel>
+        <ylabel>Predicted</ylabel>
+        <legend>
+          <loc>best</loc>
+        </legend>
       </plotSettings>
       <actions>
         <how>png</how>
+        <title>
+          <text>Regressor Predictions and Their Average</text>
+        </title>
       </actions>
     </Plot>
   </OutStreams>
