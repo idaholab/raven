@@ -748,9 +748,12 @@ excludeObj = ['SupervisedLearning',
               'Clusters',
               'Interpolated']
 validDNNRom = ['KerasMLPClassifier',
+              'KerasMLPRegression',
               'KerasConvNetClassifier',
               'KerasLSTMClassifier',
-              'KerasLSTMRegression']
+              'KerasLSTMRegression',
+              'KerasLSTMRegression'
+              ]
 validInternalRom = ['NDspline',
             'pickledROM',
             'GaussPolynomialRom',
