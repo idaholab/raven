@@ -323,6 +323,15 @@
     required_libraries = 'imageio'
     rel_err = 0.0001
   [../]
+  [./stackingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'stackingRegressor_plotting.xml.xml'
+    csv = 'data/outStackingRegressor_plotting.csv'
+    image = 'data/stackingRegressor_scatter-scatter-scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    skip = "require sklearn version 0.24"
+    rel_err = 0.0001
+  [../]
   ##############################################################################
   ## Inconsistent Results
   #[./DTR]

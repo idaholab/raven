@@ -113,6 +113,8 @@ from .ScikitLearn.Tree.ExtraTreeRegressor import ExtraTreeRegressor
 from .ScikitLearn.Ensemble.VotingRegressor import VotingRegressor
 from .ScikitLearn.Ensemble.BaggingRegressor import BaggingRegressor
 from .ScikitLearn.Ensemble.AdaBoostRegressor import AdaBoostRegressor
+# require sklearn version 0.24 at least
+from .ScikitLearn.Ensemble.StackingRegressor import StackingRegressor
 ################################################################################
 
 factory = EntityFactory('SupervisedLearning')

@@ -1,0 +1,288 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.VotingRegressor</name>
+    <author>wangc</author>
+    <created>2021-11-22</created>
+    <classesTested>SupervisedLearning.SciKitLearn.VotingRegressor</classesTested>
+    <description>
+       An example exercising voting regressor methods. Comparing Voting Regressor with
+       Linear Regressor, SVR and RidgeCV regressor.
+       A simple attenuate model is used for the comparison
+    </description>
+    <revisions>
+      <revision author="wangc" date="2021-11-22">Compare Voting Regressor with individual regressors</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      trainSR,
+      trainLR,
+      trainSVR,
+      trainRidgeCV,
+      resample,
+      resampleSR,
+      resampleLR,
+      resampleSVR,
+      resampleRidgeCV,
+      plot
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate.py" name="foo" subType="">
+      <inputs>X, Y</inputs>
+      <outputs>ans</outputs>
+    </ExternalModel>
+    <ROM name="sr" subType="StackingRegressor">
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <estimator class="Models" type="ROM">lr</estimator>
+      <estimator class="Models" type="ROM">svr</estimator>
+      <estimator class="Models" type="ROM">ridgeCV</estimator>
+      <final_estimator>ridgeCV</final_estimator>
+    </ROM>
+    <ROM name="lr" subType="LinearRegression">
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <ROM name="svr" subType="SVR">
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <C>1.0</C>
+      <epsilon>0.02</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
+    <ROM name="ridgeCV" subType="RidgeCV">
+      <!-- Using all of the defaults -->
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <alphas>0.1,1.0,10.0</alphas>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+      <store_cv_values>False</store_cv_values>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outData</Output>
+    </MultiRun>
+    <MultiRun name="resampleSR" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">sr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataSR</Output>
+    </MultiRun>
+    <MultiRun name="resampleLR" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">lr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataLR</Output>
+    </MultiRun>
+    <MultiRun name="resampleSVR" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">svr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataSVR</Output>
+    </MultiRun>
+    <MultiRun name="resampleRidgeCV" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">ridgeCV</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataRidgeCV</Output>
+    </MultiRun>
+    <RomTrainer name="trainSR">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">sr</Output>
+    </RomTrainer>
+    <RomTrainer name="trainLR">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">lr</Output>
+    </RomTrainer>
+    <RomTrainer name="trainSVR">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">svr</Output>
+    </RomTrainer>
+    <RomTrainer name="trainRidgeCV">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">ridgeCV</Output>
+    </RomTrainer>
+    <IOStep name="plot">
+      <Input   class="DataObjects"  type="PointSet">outData</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataSR</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataSVR</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataLR</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataRidgeCV</Input>
+      <Output class="OutStreams" type="Print">outData</Output>
+      <Output  class="OutStreams"   type="Plot">stackingRegressor</Output>
+    </IOStep>
+  </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="mcReSampler">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>1301</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1</lowerBound>
+      <upperBound>6</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outStackingRegressor_plotting</filename>
+    </Print>
+    <Plot  name="stackingRegressor">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outData|Input|prefix</x>
+          <y>outData|Output|ans</y>
+          <marker>*</marker>
+          <c>r</c>
+          <kwargs>
+            <label>Model True Value</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataSR|Input|prefix</x>
+          <y>outDataSR|Output|ans</y>
+          <marker>d</marker>
+          <c>b</c>
+          <kwargs>
+            <label>StackingRegressor</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataLR|Input|prefix</x>
+          <y>outDataLR|Output|ans</y>
+          <marker>s</marker>
+          <c>y</c>
+          <kwargs>
+            <label>LinearRegression</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataSVR|Input|prefix</x>
+          <y>outDataSVR|Output|ans</y>
+          <marker>^</marker>
+          <c>g</c>
+          <kwargs>
+            <label>SVR</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataRidgeCV|Input|prefix</x>
+          <y>outDataRidgeCV|Output|ans</y>
+          <marker>o</marker>
+          <c>m</c>
+          <kwargs>
+            <label>RidgeCV</label>
+          </kwargs>
+        </plot>
+        <xlabel>Test Samples</xlabel>
+        <ylabel>Predicted</ylabel>
+        <legend>
+          <loc>best</loc>
+        </legend>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Regressor Predictions and Their Stacking</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="trainingData">
+      <Input>X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <!-- The output PointSet objects -->
+    <PointSet name="outData">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataSR">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataLR">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataSVR">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataRidgeCV">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
