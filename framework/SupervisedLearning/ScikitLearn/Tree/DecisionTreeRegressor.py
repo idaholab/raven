@@ -104,7 +104,7 @@ class DecisionTreeRegressor(ScikitLearnBase):
                                                  where $N$ is the total number of samples, $N\_t$ is the number of samples at the current node, $N\_t\_L$ is the number
                                                  of samples in the left child, and $N\_t\_R$ is the number of samples in the right child.
                                                  $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample_weight is passed.""", default=0.0))
-    # New in sklearn version 0.22                                             
+    # New in sklearn version 0.22
     # specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
     #                                              descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
     #                                              complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
