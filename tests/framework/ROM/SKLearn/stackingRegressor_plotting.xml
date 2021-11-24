@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/ROM/SKLearn.VotingRegressor</name>
+    <name>framework/ROM/SKLearn.StackingRegressor</name>
     <author>wangc</author>
-    <created>2021-11-22</created>
-    <classesTested>SupervisedLearning.SciKitLearn.VotingRegressor</classesTested>
+    <created>2021-11-24</created>
+    <classesTested>SupervisedLearning.SciKitLearn.StackingRegressor</classesTested>
     <description>
-       An example exercising voting regressor methods. Comparing Voting Regressor with
+       An example exercising stacking regressor methods. Comparing Stacking Regressor with
        Linear Regressor, SVR and RidgeCV regressor.
        A simple attenuate model is used for the comparison
     </description>
     <revisions>
-      <revision author="wangc" date="2021-11-22">Compare Voting Regressor with individual regressors</revision>
+      <revision author="wangc" date="2021-11-24">Compare Stacking Regressor with individual regressors</revision>
     </revisions>
   </TestInfo>
 
