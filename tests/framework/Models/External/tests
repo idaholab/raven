@@ -14,11 +14,6 @@
   input = 'serialize_pyomo.xml'
   output = 'SerializePyomo/rom_out.py'
  [../]
- [./pyomo_basic]
-  type = 'RavenFramework'
-  input = 'simple_pyomo.xml'
-  output = 'SerializePyomo/simple_out.py'
- [../]
 []
 
 
