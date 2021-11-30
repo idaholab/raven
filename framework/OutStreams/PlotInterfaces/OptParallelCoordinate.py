@@ -132,7 +132,7 @@ class OptParallelCoordinatePlot(PlotInterface):
 def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames):
   """
     Main run method.
-    @ In, zs, xarray.dataset, batch containing the set of points to be plotted
+    @ In, zs, pandas dataset, batch containing the set of points to be plotted
     @ In, batchID, string, ID of the batch 
     @ In, ymins, np.array, minimum value for each variable
     @ In, ymaxs, np.array, maximum value for each variable
@@ -160,7 +160,6 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames):
   plot_title = 'Generation ' + str(batchID)
   host.set_title(plot_title, fontsize=14)
 
-  colors = plt.cm.tab10.colors
   for j in range(N):
     verts = list(zip([x for x in np.linspace(0, len(zs) - 1, len(zs) * 3 - 2, endpoint=True)],
                      np.repeat(zs[j, :], 3)[1:-1]))
