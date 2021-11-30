@@ -45,6 +45,8 @@ class OptParallelCoordinatePlot(PlotInterface):
               This should be the SolutionExport for a MultiRun with an Optimizer."""))
     spec.addSub(InputData.parameterInputFactory('vars', contentType=InputTypes.StringListType,
         descr=r"""Names of the variables from the DataObject whose optimization paths should be plotted."""))
+    spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
+        descr=r"""Names of the variable that refers to the batch index"""))
     return spec
 
   def __init__(self):
@@ -58,6 +60,8 @@ class OptParallelCoordinatePlot(PlotInterface):
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
+    self.index = None       # index ID for each batch
+    
 
   def handleInput(self, spec):
     """
@@ -68,12 +72,15 @@ class OptParallelCoordinatePlot(PlotInterface):
     super().handleInput(spec)
     self.sourceName = spec.findFirst('source').value
     self.vars = spec.findFirst('vars').value
+    self.index = spec.findFirst('index').value
     # checker; this should be superceded by "required" in input params
     if self.sourceName is None:
       self.raiseAnError(IOError, "Missing <source> node!")
     if self.vars is None:
       self.raiseAnError(IOError, "Missing <vars> node!")
-
+    if self.index is None:
+      self.raiseAnError(IOError, "Missing <index> node!")
+      
   def initialize(self, stepEntities):
     """
       Function to initialize the OutStream. It basically looks for the "data"
@@ -159,7 +166,7 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames,fileID):
   host.tick_params(axis='x', which='major', pad=7)
   host.spines['right'].set_visible(False)
   host.xaxis.tick_top()
-  plot_title = 'Generation ' + str(batchID)
+  plot_title = 'Batch ' + str(batchID)
   host.set_title(plot_title, fontsize=14)
 
   for j in range(N):
