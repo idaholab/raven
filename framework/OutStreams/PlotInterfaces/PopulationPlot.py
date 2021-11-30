@@ -109,8 +109,7 @@ class PopulationPlot(PlotInterface):
     
     nFigures = len(self.vars)
     fig, axs = plt.subplots(nFigures,1)
-    fig.tight_layout()
-    fig.suptitle('GA Population Plot')
+    fig.suptitle('Population Plot')
 
     min_Gen = int(min(data['batchId']))
     max_Gen = int(max(data['batchId']))

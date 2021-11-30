@@ -119,17 +119,18 @@ class OptParallelCoordinatePlot(PlotInterface):
     for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
       population = data[data['batchId']==genID]
       ys = population[ynames].values
-      generateParallelPlot(ys,genID,yMin,yMax,ynames)
-      filesID.append('PCplotGen' + str(genID) + '.png')
+      fileID = f'{self.name}' + str(genID) + '.png'
+      generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
+      filesID.append(fileID)
     
     fig = plt.figure()
-    with imageio.get_writer('mygif.gif', mode='I') as writer:
+    with imageio.get_writer(f'{self.name}.gif', mode='I') as writer:
       for filename in filesID:
         image = imageio.imread(filename)
         writer.append_data(image)
 
 
-def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames):
+def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames,fileID):
   """
     Main run method.
     @ In, zs, pandas dataset, batch containing the set of points to be plotted
@@ -137,6 +138,7 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames):
     @ In, ymins, np.array, minimum value for each variable
     @ In, ymaxs, np.array, maximum value for each variable
     @ In, ynames, list, list of string containing the ID of each variable
+    @ In, fileID, string, name of the file containing the plot
     @ Out, None
   """
   N = zs.shape[0]
@@ -168,6 +170,5 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames):
     patch = patches.PathPatch(path, facecolor='none', lw=1)
     host.add_patch(patch)
   plt.tight_layout()
-  title = 'PCplotGen' + str(batchID)
-  plt.savefig(title)
+  plt.savefig(fileID)
     

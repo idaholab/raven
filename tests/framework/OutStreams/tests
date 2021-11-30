@@ -87,4 +87,16 @@
     input = 'sample_plot.xml'
     output = 'SamplePlot/plotter.png'
   [../]
+  
+  [./PopulationPlot]
+    type = 'RavenFramework'
+    input = 'ga_population_plot.xml'
+    output = 'GApopulation/plotter.png'
+  [../]
+
+  [./ParallelCoordinatePlot]
+    type = 'RavenFramework'
+    input = 'parallel_coordinate_plot.xml'
+    output = 'GApopulation/plotter1.png'
+  [../]
 []
