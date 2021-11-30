@@ -1,13 +1,12 @@
 <Simulation verbosity = 'debug'>
 
   <TestInfo>
-    <name>framework/OutStreams.SamplePlot</name>
-    <author>talbpaul</author>
-    <created>2021-04-01</created>
-    <classesTested>OutStreams.SamplePlot</classesTested>
+    <name>framework/OutStreams.PopulationPlot</name>
+    <author>mandd</author>
+    <created>2021-11-20</created>
+    <classesTested>OutStreams.PopulationPlot</classesTested>
     <description>
-      Tests use of the SamplePlot plotter.
-      Samples data, then plots the samples using the SamplePlot plotter.
+      Tests use of the PopulationPlot plotter.
     </description>
   </TestInfo>
 
@@ -39,7 +38,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Plot name="GAplotter" subType="PopulationPlot">
+    <Plot name="plotter" subType="PopulationPlot">
       <source>samples</source>
       <vars>a,b,c,d,ans</vars>
       <logVars>ans</logVars>
