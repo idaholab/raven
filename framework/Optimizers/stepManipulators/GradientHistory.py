@@ -79,7 +79,7 @@ class GradientHistory(StepManipulator):
         descr=r"""if including more than one gradient history terms when determining a new step direction,
               specifies the rate of decay for previous terms to influence the current direction. The
               decay factor has the form $e^(-\lambda t)$, where $t$ counts the gradient terms starting with
-              the most recent as 0 and moving towards the past, and $\lamda$ is this decay factor.
+              the most recent as 0 and moving towards the past, and $\lambda$ is this decay factor.
               This should generally be a small decimal number. \default{0.2}"""))
     return specs
 

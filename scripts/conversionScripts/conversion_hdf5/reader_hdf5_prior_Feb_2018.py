@@ -48,7 +48,7 @@ from utils import mathUtils
 #  *************************
 #
 
-class OldHDF5Database():
+class PriorFeb2018HDF5Database():
   """
     class to create a h5py (hdf5) database
   """

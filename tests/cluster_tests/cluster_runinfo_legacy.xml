@@ -1,6 +1,7 @@
 <Simulation>
   <RunInfo>
+    <NodeParameter>--hostfile</NodeParameter>
     <clusterParameters>-P moose</clusterParameters>
-    <RemoteRunCommand>raven_qsub_command_legacy.sh</RemoteRunCommand>
+    <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
   </RunInfo>
 </Simulation>
