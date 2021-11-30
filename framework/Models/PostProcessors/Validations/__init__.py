@@ -19,3 +19,4 @@
   @author: wangc
 """
 from .Probabilistic import Probabilistic
+from .Representativity import Representativity
