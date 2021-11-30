@@ -103,6 +103,17 @@
     [../]
   [../]
 
+  [./MaxwoReplacementTwoPointsCrossover]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRepTwoPointsCrossover.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoReplacementTwoCrossover/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./MaxwoReplacementDiffDist]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMaxwoRepDifferentDist.xml'
