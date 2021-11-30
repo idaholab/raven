@@ -3,7 +3,7 @@
     type = 'RavenFramework'
     input = 'statisticalAnalysis.xml'
     csv = 'StatisticalAnalysis/statisticalAnalysis_basicStatPP_dump.csv'
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     heavy = true
     rel_err = 1e-3
     zero_threshold = 1e-9

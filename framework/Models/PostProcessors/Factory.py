@@ -35,9 +35,9 @@ from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .EconomicRatio import EconomicRatio
-from .Validation import Validation
-from .validationAlgorithms.Probabilistic import Probabilistic
-from .validationAlgorithms.Representativity import Representativity
+from .ValidationBase import ValidationBase
+from .Validations import Probabilistic
+from .Validations import Representativity
 from .TSACharacterizer import TSACharacterizer
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)

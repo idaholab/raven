@@ -41,16 +41,16 @@ function display_usage()
 	echo '    start_remote_servers.sh'
 	echo ''
 	echo '  Description:'
-	echo '      This script is in charge for instanciating ray servers in remote nodes'
+	echo '      This script is in charge for instantiating ray servers in remote nodes'
 	echo '  ------------------------------------------'
 	echo ''
 	echo '  Options:'
 	echo '    --help'
 	echo '      Displays this text and exits'
-    echo ''
-    echo '    --remote-node-address'
-    echo '      Remote node address (ssh into)'
-    echo ''
+  echo ''
+  echo '    --remote-node-address'
+  echo '      Remote node address (ssh into)'
+  echo ''
 	echo '    --address'
 	echo '      Head node address'
 	echo ''
@@ -71,8 +71,10 @@ function display_usage()
 	echo ''
 	echo '     --working-dir'
 	echo '      The workind directory'
+        echo ''
+        echo '     --raven-framework-dir'
+        echo '       The RAVEN framework directory'
 	echo ''
- 
 }
 
 # main
@@ -82,6 +84,7 @@ HEAD_ADDRESS=""
 REDIS_PASS=""
 PYTHONPATH=""
 WORKINGDIR=""
+RAVEN_FRAMEWORK_DIR=""
 # set default
 NUM_CPUS=1
 NUM_GPUS=-1
@@ -123,9 +126,13 @@ do
       shift
       PYTHONPATH=$1
       ;;
-      --working-dir)
+    --working-dir)
       shift
       WORKINGDIR=$1
+      ;;
+    --raven-framework-dir)
+      shift
+      RAVEN_FRAMEWORK_DIR=$1
       ;;
   esac
   shift
@@ -162,7 +169,7 @@ then
   exit
 fi
 
-
+echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
 # start the script
 # ssh in the remote node and run the ray servers
 CWD=`pwd`
@@ -170,9 +177,7 @@ OUTPUT=$CWD/server_debug_$REMOTE_ADDRESS
 
 if [[ "$REMOTE_BASH" == "" ]];
 then
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS"
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $RAVEN_FRAMEWORK_DIR"
 else
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $REMOTE_BASH"
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $RAVEN_FRAMEWORK_DIR $REMOTE_BASH"
 fi
-
-

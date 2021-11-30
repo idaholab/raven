@@ -47,8 +47,17 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
     """
     specs = super(ARMA, cls).getInputSpecification()
     specs.name = 'arma' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
-    specs.description = r"""TimeSeriesAnalysis algorithm for determining the stochastic
-                        characteristics of signal with time-invariant variance"""
+    specs.description = r"""characterizes the signal using Auto-Regressive and Moving Average
+        coefficients to stochastically fit the training signal.
+        The ARMA representation has the following form:
+        \begin{equation*}
+          A_t = \sum_{i=1}^P \phi_i A_{t-i} + \epsilon_t + \sum_{j=1}^Q \theta_j \epsilon_{t-j},
+        \end{equation*}
+        where $t$ indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
+        coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
+        term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+        noise lag terms to consider. The ARMA algorithms are developed in RAVEN using the
+        \texttt{statsmodels} Python library."""
     specs.addParam('reduce_memory', param_type=InputTypes.BoolType, required=False,
                    descr=r"""activates a lower memory usage ARMA training. This does tend to result
                          in a slightly slower training time, at the benefit of lower memory usage. For
@@ -56,7 +65,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
                          MiB, but increased training time by 0.4 seconds. No change in results has been
                          observed switching between modes. Note that the ARMA must be
                          retrained to change this property; it cannot be applied to serialized ARMAs.
-                         \default{False}""")
+                         """, default=False)
     specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))

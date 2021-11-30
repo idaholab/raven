@@ -133,8 +133,8 @@ class LogicalModel(HybridModelBase):
         elif set(extModelVars) != set(vars):
           self.raiseAnError(IOError,'"Variables" provided to model "{}" are not the same as model "{}"!'.format(modelName, extModelName))
       elif modelInst.type == 'ROM':
-        inpVars = modelInst.initializationOptionDict['Features']
-        outVars = modelInst.initializationOptionDict['Target']
+        inpVars = modelInst._interfaceROM.features
+        outVars = modelInst._interfaceROM.target
         if not romInpVars:
           romInpVars = inpVars
           romOutVars = outVars

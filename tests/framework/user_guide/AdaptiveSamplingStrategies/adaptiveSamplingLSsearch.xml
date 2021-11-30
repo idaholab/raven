@@ -33,10 +33,9 @@
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
     </Code>
-    <ROM name="AccelerationROM" subType="SciKitLearn">
+    <ROM name="AccelerationROM" subType="KNeighborsClassifier">
       <Features>sigma-A,decay-A</Features>
       <Target>goalFunction</Target>
-      <SKLtype>neighbors|KNeighborsClassifier</SKLtype>
       <algorithm>brute</algorithm>
       <n_neighbors>1</n_neighbors>
     </ROM>

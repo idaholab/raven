@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstMQ1</WorkingDir>
     <Sequence>FirstMQ1ProcRun</Sequence>
     <batchSize>1</batchSize>
     <NumMPI>2</NumMPI>

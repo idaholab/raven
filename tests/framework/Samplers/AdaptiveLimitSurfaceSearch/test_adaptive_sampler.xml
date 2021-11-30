@@ -95,10 +95,9 @@
     <ExternalModel ModuleToLoad="adaptive_test_model" name="testFunction" subType="">
       <variables>x1,x2,x3,y1,y2</variables>
     </ExternalModel>
-    <ROM name="accelerated_ROM" subType="SciKitLearn">
+    <ROM name="accelerated_ROM" subType="SVC">
       <Features>x1,x2,x3</Features>
       <Target>decision</Target>
-      <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
       <tol>1e-5</tol>

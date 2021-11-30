@@ -79,7 +79,7 @@
       <P>2</P>
       <Q>1</Q>
       <outTruncation domain="positive">A,B,Time</outTruncation>
-      <Fourier>20.000000, 10.000000, 5.000000</Fourier>
+      <Fourier>20, 10, 5</Fourier>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">A,B</expectedValue>

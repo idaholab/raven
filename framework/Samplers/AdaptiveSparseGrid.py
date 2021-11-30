@@ -18,10 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import copy
@@ -455,7 +451,7 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
-    for SVL in rom.supervisedEngine.supervisedContainer:
+    for SVL in rom.supervisedContainer:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -514,7 +510,9 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
-    for svl in rom.supervisedEngine.supervisedContainer:
+    # reset supervisedContainer since some information is lost during deepcopy, such as 'features' and 'target'
+    rom.supervisedContainer = [rom._interfaceROM]
+    for svl in rom.supervisedContainer:
       svl.initialize({'SG'   :sg,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -616,7 +614,7 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     rom = self._makeARom(self.sparseGrid,self.indexSet)
     for poly in self.indexSet.points:
       for t in self.targets:
-        impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
+        impact = self._convergence(poly,rom.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
   # disabled until we determine a consistent way to do this without bypassing dataobjects

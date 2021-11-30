@@ -26,10 +26,9 @@
     <ExternalModel ModuleToLoad="calc" name="Calc" subType="">
       <variables>gauss,uniform,time,out1,out2</variables>
     </ExternalModel>
-    <ROM name="ROM1" subType="SciKitLearn">
+    <ROM name="ROM1" subType="SVR">
       <Features>gauss,uniform</Features>
       <Target>out1,out2</Target>
-      <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>

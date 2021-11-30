@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Databases/HDF5.hdf5_long_array_strings</name>
+    <author>alfonsi</author>
+    <created>2021-10-29</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to load data in HDF5 with large arrays of strings.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2021-10-29">Added test to testify the fix for issue #1700</revision>
+    </revisions>
+    <requirements>R-IS-3</requirements>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>./HDF5_with_strings</WorkingDir>
+    <Sequence>read_in,dump_in_hdf5,extract_from_hdf5,rewrite</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="histset">hs_with_strings.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="read_in">
+      <Input class="Files" type="">histset</Input>
+      <Output class="DataObjects" type="HistorySet">hs</Output>
+    </IOStep>
+    <IOStep name="dump_in_hdf5">
+      <Input class="DataObjects" type="HistorySet">hs</Input>
+      <Output class="Databases" type="HDF5">db</Output>
+    </IOStep>
+    <IOStep name="extract_from_hdf5">
+      <Input class="Databases" type="HDF5">db</Input>
+      <Output class="DataObjects" type="HistorySet">hs2</Output>
+    </IOStep>
+    <IOStep name="rewrite">
+      <Input class="DataObjects" type="HistorySet">hs2</Input>
+      <Output class="OutStreams" type="Print">reprint_hs</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="db" readMode="overwrite"/>
+  </Databases>
+  
+  <DataObjects>
+    <HistorySet name="hs">
+      <Input>ID</Input>
+      <Output>time,A,B,C,D,E,F,G,H,I,L,M,N</Output>
+    </HistorySet>
+    <HistorySet name="hs2">
+      <Input>ID</Input>
+      <Output>time,A,B,C,D,E,F,G,H,I,L,M,N</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="reprint_hs">
+      <type>csv</type>
+      <source>hs2</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
