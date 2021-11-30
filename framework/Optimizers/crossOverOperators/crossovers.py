@@ -24,7 +24,7 @@ import numpy as np
 import xarray as xr
 from utils import randomUtils
 from scipy.special import comb
-from itertools import combinations, permutations
+from itertools import combinations
 
 # @profile
 def onePointCrossover(parents,**kwargs):
@@ -116,7 +116,6 @@ def twoPointsCrossover(parents, **kwargs):
     children1 = A1 B2 C1
     children2 = A2 B1 C2
     @ In, parents, xr.DataArray, parents involved in the mating process
-    @ In, parentPairs, list, list containing pairs of parents
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -133,18 +132,24 @@ def twoPointsCrossover(parents, **kwargs):
   parentPairs = list(combinations(parents,2))
   for couples in parentPairs:
     locRangeList = list(range(0,nGenes))
-    index1 = randomUtils.randomIntegers(0, len(locRangeList)-1, caller=None, engine=None)
+    index1 = randomUtils.randomIntegers(1, len(locRangeList)-2, caller=None, engine=None)
     loc1 = locRangeList[index1]
     locRangeList.pop(loc1)
-    index2 = randomUtils.randomIntegers(0, len(locRangeList)-1, caller=None, engine=None)
+    index2 = randomUtils.randomIntegers(1, len(locRangeList)-2, caller=None, engine=None)
     loc2 = locRangeList[index2]
-    if loc1>loc2:
-      locL=loc2
-      locU=loc1
-    elif loc1<loc2:
+    if loc1 == loc2:
+      if loc1 == len(locRangeList)-2:
+        locU = loc1
+        locL = loc1 - 2
+      else:
+        locL = loc1
+        locU = loc1 + 2
+    elif loc1 > loc2:
+      locL = loc2
+      locU = loc1
+    else:
       locL=loc1
       locU=loc2
-
     parent1 = couples[0]
     parent2 = couples[1]
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
