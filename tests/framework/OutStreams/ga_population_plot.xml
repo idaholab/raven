@@ -1,0 +1,49 @@
+<Simulation verbosity = 'debug'>
+
+  <TestInfo>
+    <name>framework/OutStreams.SamplePlot</name>
+    <author>talbpaul</author>
+    <created>2021-04-01</created>
+    <classesTested>OutStreams.SamplePlot</classesTested>
+    <description>
+      Tests use of the SamplePlot plotter.
+      Samples data, then plots the samples using the SamplePlot plotter.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>GApopulation</WorkingDir>
+    <Sequence>importData,plot</Sequence>
+  </RunInfo>
+  
+  <Files>
+    <Input name="GApointset">opt_export.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="importData">
+      <Input  class="Files"       type=""         >GApointset</Input>
+      <Output class="DataObjects" type="PointSet" >samples</Output>
+    </IOStep>
+    <IOStep name="plot">
+      <Input  class="DataObjects" type="PointSet" >samples</Input>
+      <Output class="OutStreams"  type="Plot"     >plotter</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samples">
+      <Input>a,b,c,d</Input>
+      <Output>ans,age,batchId,fitness</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Plot name="plotter" subType="PopulationPlot">
+      <source>samples</source>
+      <vars>a,b,c,d,ans</vars>
+      <logVars>ans</logVars>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

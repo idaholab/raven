@@ -1,0 +1,10 @@
+<DataObjectMetadata name="PointSets">
+  <DataSet type="Static">
+    <general>
+      <datasetName>PointSets</datasetName>
+      <inputs>a,b,c,d</inputs>
+      <outputs>ans,age,batchId,fitness</outputs>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
