@@ -110,11 +110,8 @@ def tournamentSelection(population,**kwargs):
     matrixOperation = np.zeros((popSize,2))
 
   indexes = list(np.arange(popSize))
-  indexesShuffled = randomUtils.randomChoice(indexes, size=popSize, replace=False, engine=None)
-  
-  if popSize<2*nParents:
-    raise ValueError('In tournamentSelection the number of parents cannot be larger than half of the population size.')
-    
+  indexesShuffled = randomUtils.randomChoice(indexes, size = popSize, replace = False, engine = None)
+
   for idx, val in enumerate(indexesShuffled):
     matrixOperation[idx,:] = matrixOperationRaw[val,:]
 
