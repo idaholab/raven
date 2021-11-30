@@ -607,12 +607,6 @@ between two time-dependent data sets.
 
 The specifications of a DSS metric is defined within the \xmlNode{Metric} XML block. The XML node \xmlAttr{subType} must be \textbf{PPDSS} (see \ref{subsubsec:Validation}) in the \xmlNode{PostProcessor} for the outputs of the post-processor to be in the right format for DSS metric inputs.
 
-This XML node needs to contain the attributes:
-
-\begin{itemize}
-  \item \xmlNode{actionType}, \xmlDesc{string, required field}, the type time scaling selected for post-processor PPDSS (see \ref{subsubsec:Validation}). The options are: `DataSynthesis', `2\_2\_affine', `dilation', `beta\_strain', `omega\_strain', and `identity'.
-\end{itemize}
-
 An example of DSS  defined in RAVEN is provided below:
 \begin{lstlisting}[style=XML]
 <Simulation>
@@ -620,7 +614,6 @@ An example of DSS  defined in RAVEN is provided below:
   <Metrics>
     ...
     <Metric name="example" subType="DSS">
-      <actionType>DataSynthetic</actionType>
     </Metric>
     ...
   </Metrics>

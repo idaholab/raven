@@ -57,7 +57,7 @@ class PPDSS(ValidationBase):
     pivotParameterTargetInput = InputData.parameterInputFactory("pivotParameterTarget", contentType=InputTypes.StringType,
                                                                 descr="""Pivot parameter for target inputs""")
     inputSpecification.addSub(pivotParameterTargetInput)
-    scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.StringType,
+    scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.makeEnumType("scale","scaleType",['DataSynthesis','2_2_affine','dilation','beta_strain','omega_strain','identity']),
                                                       descr="""Scaling type for the time transformation. Available types are DataSynthesis,
                                                       2_2_affine, dilation, beta_strain, omega_strain, and identity""")
     inputSpecification.addSub(scaleTypeInput)
@@ -76,22 +76,22 @@ class PPDSS(ValidationBase):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'POSTPROCESSOR DSS Scaling and Metrics'
-    self.name = 'PPDSS'
-    self.dynamic               = True  # is it time-dependent?
-    self.dynamicType = ['dynamic']
+    self.printTag = 'POSTPROCESSOR DSS Scaling and Metrics' # Naming
+    self.name = 'PPDSS' # Postprocessor name
+    self.dynamic               = True  # Must be time-dependent?
+    self.dynamicType = ['dynamic'] # Specification of dynamic type
     self.features              = None  # list of feature variables
     self.targets               = None  # list of target variables
     self.multiOutput           = 'raw_values' # defines aggregating of multiple outputs for HistorySet
                                 # currently allow raw_values
-    self.pivotParameterFeature = None
-    self.pivotValuesFeature    = []
-    self.pivotParameterTarget  = None
-    self.pivotValuesTarget     = []
-    self.scaleType             = None
+    self.pivotParameterFeature = None # Feature pivot parameter variable
+    self.pivotValuesFeature    = [] # Feature pivot parameter values
+    self.pivotParameterTarget  = None # Target pivot parameter variable
+    self.pivotValuesTarget     = [] # Target pivot parameter values
+    self.scaleType             = None # Scaling type
     # assembler objects to be requested
-    self.scaleRatioBeta        = []
-    self.scaleRatioOmega       = []
+    self.scaleRatioBeta        = [] # Scaling ratio for the parameter of interest
+    self.scaleRatioOmega       = [] # Scaling ratio for the agents of change
 
   def _handleInput(self, paramInput):
     """
@@ -331,7 +331,6 @@ class PPDSS(ValidationBase):
       for metric in self.metrics:
         name = "{}_{}_{}".format(metric.estimator.name, targ.split("|")[-1], feat.split("|")[-1])
       output = metric.evaluate((newfeatureData,newtargetData), multiOutput='raw_values')
-      #print(output)
       for cnt2 in range(yCount):
         distanceSum = abs(np.sum(output[cnt2]))
         sigmaSum = 0
@@ -354,7 +353,6 @@ class PPDSS(ValidationBase):
         outputDict['target_D_'+nameTarg[1]+'_'+nameFeat[1]] = targetD[cnt]
         outputDict['process_time_'+nameTarg[1]+'_'+nameFeat[1]] = newfeatureData[1][cnt]
         outputDict['standard_deviation_'+nameTarg[1]+'_'+nameFeat[1]] = sigma[cnt]
-        #print(newfeatureData[1][cnt])
         rlz.append(outputDict)
       realizationArray.append(rlz)
     #---------------
