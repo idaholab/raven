@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Created on Jul 18 2016
+#***************************************
+#* Simple analytic test ExternalModule *
+#***************************************
+#
+#  This is a simple polynomial evaluation of all single-order combination polynomials
+#    For instance, xyz + xy + xz + yz + x + y + z + 1
+#
+import numpy as np
 
-@author: mandd
-"""
-from EntityFactoryBase import EntityFactory
+def evaluate(inp):
+  return np.prod(list(1.+n for n in inp))
 
-from .MetricInterface import MetricInterface
-from .DTW import DTW
-from .SklMetric import SKL
-from .PairwiseMetric import PairwiseMetric
-from .CDFAreaDifference import CDFAreaDifference
-from .PDFCommonArea import PDFCommonArea
-from .STDReduction import STDReduction
-from .ScipyMetric import ScipyMetric
+def run(self,Input):
+  self.ans2  = evaluate(Input.values())
 
-factory = EntityFactory('Metrics')
-factory.registerAllSubtypes(MetricInterface)
+#
+#  This model has analytic mean and variance and is documented in raven/docs/tests
+#
