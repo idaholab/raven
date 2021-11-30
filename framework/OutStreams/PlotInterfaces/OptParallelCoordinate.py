@@ -56,12 +56,12 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'OptPath Plot'
+    self.printTag = 'OptParallelCoordinate Plot'
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
     self.index = None       # index ID for each batch
-    
+
 
   def handleInput(self, spec):
     """
@@ -70,17 +70,16 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ Out, None
     """
     super().handleInput(spec)
-    self.sourceName = spec.findFirst('source').value
-    self.vars = spec.findFirst('vars').value
-    self.index = spec.findFirst('index').value
-    # checker; this should be superceded by "required" in input params
-    if self.sourceName is None:
-      self.raiseAnError(IOError, "Missing <source> node!")
-    if self.vars is None:
-      self.raiseAnError(IOError, "Missing <vars> node!")
-    if self.index is None:
-      self.raiseAnError(IOError, "Missing <index> node!")
-      
+    params, notFound = spec.findNodesAndExtractValues(['source','vars','index'])
+
+    for node in notFound:
+      self.raiseAnError(IOError, "Missing " +str(node) +" node in the OptParallelCoordinatePlot " + str(self.name))
+    else:
+      self.sourceName = params['source']
+      self.vars       = params['vars']
+      self.index      = params['index']
+
+
   def initialize(self, stepEntities):
     """
       Function to initialize the OutStream. It basically looks for the "data"
@@ -109,27 +108,27 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ Out, None
     """
     data = self.source.asDataset().to_dataframe()
-    ynames  = self.source._inputs
+    ynames  = self.source.getVars(subset='input')
 
-    min_Gen = int(min(data['batchId']))
-    max_Gen = int(max(data['batchId']))
-    
+    minGen = int(min(data['batchId']))
+    maxGen = int(max(data['batchId']))
+
     yMin = np.zeros(4)
     yMax = np.zeros(4)
-    
+
     for idx,inp in enumerate(ynames):
       yMin[idx] = min(data[inp])
       yMax[idx] = max(data[inp])
-    
+
     filesID = []
-    
-    for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
+
+    for idx,genID in enumerate(range(minGen,maxGen+1,1)):
       population = data[data['batchId']==genID]
       ys = population[ynames].values
       fileID = f'{self.name}' + str(genID) + '.png'
       generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
       filesID.append(fileID)
-    
+
     fig = plt.figure()
     with imageio.get_writer(f'{self.name}.gif', mode='I') as writer:
       for filename in filesID:
@@ -141,7 +140,7 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames,fileID):
   """
     Main run method.
     @ In, zs, pandas dataset, batch containing the set of points to be plotted
-    @ In, batchID, string, ID of the batch 
+    @ In, batchID, string, ID of the batch
     @ In, ymins, np.array, minimum value for each variable
     @ In, ymaxs, np.array, maximum value for each variable
     @ In, ynames, list, list of string containing the ID of each variable
@@ -178,4 +177,4 @@ def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames,fileID):
     host.add_patch(patch)
   plt.tight_layout()
   plt.savefig(fileID)
-    
+

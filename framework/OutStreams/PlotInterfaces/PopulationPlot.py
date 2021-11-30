@@ -37,7 +37,7 @@ class PopulationPlot(PlotInterface):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = super().getInputSpecification()
-    spec.setStrictMode(False) 
+    spec.setStrictMode(False)
     spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
         descr=r"""The name of the RAVEN DataObject from which the data should be taken for this plotter.
               This should be the SolutionExport for a MultiRun with an Optimizer."""))
@@ -67,14 +67,20 @@ class PopulationPlot(PlotInterface):
       @ Out, None
     """
     super().handleInput(spec)
-    self.sourceName = spec.findFirst('source').value
-    self.vars       = spec.findFirst('vars').value
-    self.logVars    = spec.findFirst('logVars').value 
-    # checker; this should be superceded by "required" in input params
-    if self.sourceName is None:
-      self.raiseAnError(IOError, "Missing <source> node!")
-    if self.vars is None:
-      self.raiseAnError(IOError, "Missing <vars> node!")
+    params, notFound = spec.findNodesAndExtractValues(['source','vars'])
+
+    for node in notFound:
+      self.raiseAnError(IOError, "Missing " +str(node) +" node in the PopulationPlot " + str(self.name))
+    else:
+      self.sourceName = params['source']
+      self.vars       = params['vars']
+
+    params, notFound = spec.findNodesAndExtractValues(['logVars'])
+    if notFound:
+      self.logVars = None
+    else:
+      self.logVars = params['logVars']
+
 
   def initialize(self, stepEntities):
     """
@@ -102,29 +108,29 @@ class PopulationPlot(PlotInterface):
       Main run method.
       @ In, None
       @ Out, None
-    """   
+    """
     data = self.source.asDataset().to_dataframe()
     inVars  = self.source._inputs
-    outVars = self.source._outputs   
-    
+    outVars = self.source._outputs
+
     nFigures = len(self.vars)
     fig, axs = plt.subplots(nFigures,1)
     fig.suptitle('Population Plot')
 
     min_Gen = int(min(data['batchId']))
     max_Gen = int(max(data['batchId']))
-    
+
     for indexVar,var in enumerate(self.vars):
         min_fit = np.zeros(max_Gen-min_Gen+1)
         max_fit = np.zeros(max_Gen-min_Gen+1)
         avg_fit = np.zeros(max_Gen-min_Gen+1)
-    
+
         for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
             population = data[data['batchId']==genID]
             min_fit[idx] = min(population[var])
             max_fit[idx] = max(population[var])
             avg_fit[idx] = population[var].mean()
-        
+
         if var in inVars:
           if var in self.logVars:
             errorfill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
@@ -138,7 +144,7 @@ class PopulationPlot(PlotInterface):
         axs[indexVar].set_ylabel(var)
         if var == self.vars[-1]:
           axs[indexVar].set_xlabel('Generation #')
-          
+
     plt.savefig(f'{self.name}.png')
 
 def errorfill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
