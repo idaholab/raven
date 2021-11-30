@@ -1,0 +1,113 @@
+\section{Dynamical System Scaling}
+\label{sec:dssdoc}
+
+The DSS approach to system scaling is based on transforming the typical view of processes to a special coordinate system in terms of the parameter of interest and its agents of change \cite{DSS2015}.
+By parameterizing using a time term that will be introduced later in this section, data reproduced can be converted to the special three coordinate system (also called the phase space)
+and form a geometry with curves along the surface containing invariant and intrinsic properties. The remainder of this section is a review of DSS theory introduced in publications
+by Reyes \cite{DSS2015,Reyes2015,Martin2019} and is used in this analysis for FR scaling. The parameter of interest is defined to be a conserved quantity within a control volume:
+\begin{equation}
+  \label{eq_1}
+  \beta(t)=\frac{1}{\Psi_{0}}\iiint_{V}{\psi\left(\vec{x},t\right)}dV
+\end{equation}
+$\beta$ is defined as the volume integral of the time and space dependent conserved quantity $\psi$ normalized by a time-independent value, $\Psi_{o}$, that characterizes the process. The agents of change are defined as the first derivative of the normalized parameter of interest:
+\begin{equation}
+  \label{eq_2}
+  \omega=\frac{1}{\Psi_{0}}\frac{d}{dt}\iiint_{V}{\psi\left(\vec{x},t\right)}dV=\iiint_{V}{\left(\phi_{v}+\phi_{f}\right)}dV+\iint_{A}{\left(\vec{j}\cdot\vec{n}\right)}dA-\iint_{A}{\psi\left(\vec{v}-\vec{v}_{s}\cdot\vec{n}dA\right)}dA
+\end{equation}
+The change is categorized into three components; volumetric, surface, and quantity transport. The agents of change is also the sum of the individual agent of change:
+\begin{equation}
+  \omega=\frac{1}{\Psi_{0}}\frac{d}{dt}\iiint_{V}{\psi\left(\vec{x},t\right)}dV=\sum^{n}_{i=1}{\omega_{i}}
+\end{equation}
+The relation of $\omega$ and $\beta$ is the following:
+\begin{equation}
+  \label{eq_3}
+  \omega(t)=\left.\frac{d\beta}{dt}\right|_{t}=\sum^{n}_{i=1}{\omega_{i}}
+\end{equation}
+Where $\omega$ is the first derivative of reference time. As defined in Einstein and Infeld, time is a value stepping in constant increments \cite{Einstein1966}. The process dependent term in DSS is called process time:
+\begin{equation}
+  \label{eq_4}
+  \tau(t)=\frac{\beta(t)}{\omega(t)}
+\end{equation}
+To measure the progression difference between reference time and process time in respect to reference time, the idea of temporal displacement rate (D) is adopted:
+\begin{equation}
+  \label{eq_5}
+  D=\frac{d\tau-dt}{dt}=-\frac{\beta}{\omega^{2}}\frac{d\omega}{dt}
+\end{equation}
+The interval of process time is:
+\begin{equation}
+  \label{eq_8}
+  d\tau=\tau_{s}=\left(1+D\right)dt
+\end{equation}
+Applying the process action to normalize the phase space coordinates gives the following normalized terms:
+\begin{equation}
+  \label{eq_10}
+  \tilde{\Omega}=\omega\tau_{s},\qquad \tilde{\beta}=\beta,\qquad \tilde{t}=\frac{t}{\tau_{s}},\qquad \tilde{\tau}=\frac{\tau}{\tau_{s}},\qquad
+  \tilde{D}=D
+\end{equation}
+The scaling relation between the prototype and model can be defined both for $\beta$ and $\omega$ and represents the scaling of the parameter of interest and the corresponding agents of change (or frequency given from the units of per time):
+\begin{equation}
+  \label{eq_11}
+  \lambda_{A}=\frac{\beta_{M}}{\beta_{P}},\qquad \lambda_{B}=\frac{\omega_{M}}{\omega_{P}}
+\end{equation}
+The subscripts $M$ and $P$ stand for the model and prototype. Applying these scaling ratios to equations (\ref{eq_4}), (\ref{eq_5}), and (\ref{eq_10}) provides the scaling ratios for other parameters as well:
+\begin{equation}
+  \label{eq_12}
+  \frac{t_{M}}{t_{P}}=\frac{\lambda_{A}}{\lambda_{B}},\qquad \frac{\tau_{M}}{\tau_{P}}=\frac{\lambda_{A}}{\lambda_{B}},\qquad \frac{\tilde{\beta}_{M}}{\tilde{\beta}_{P}}=\lambda_{A},\qquad \frac{\tilde{\Omega}_{M}}{\tilde{\Omega}_{P}}=\lambda_{A},\qquad \frac{\tilde{\tau}_{M}}{\tilde{\tau}_{P}}=1,\qquad \frac{D_{M}}{D_{P}}=1
+\end{equation}
+Normalized agents of change is the sum in the same respect:
+\begin{equation}
+  \label{eq_18}
+  \Omega=\sum^{k}_{i=1}{\Omega_{i}}
+\end{equation}
+The ratio of $\Omega$ is expressed in the following alternate form:
+\begin{equation}
+  \label{eq_19}
+  \Omega_{R}=\frac{\Omega_{M}}{\Omega_{P}}=\frac{\sum^{k}_{i=1}{\Omega_{M,i}}}{\sum^{k}_{i=1}{\Omega_{P,i}}}=\frac{\Omega_{M,1}+\Omega_{M,2}+...+\Omega_{M,k}}{\Omega_{P,1}+\Omega_{P,2}+...+\Omega_{P,k}}
+\end{equation}
+By the law of scaling ratios, The following must be true:
+\begin{equation}
+  \label{eq_13}
+  \lambda_{A}=\frac{\Omega_{M,1}}{\Omega_{P,1}},\lambda_{A}=\frac{\Omega_{M,2}}{\Omega_{P,2}},...,\lambda_{A}=\frac{\Omega_{M,k}}{\Omega_{P,k}}
+\end{equation}
+Depending on the scaling ratio values, From Reyes, the scaling methods and similarity criteria is subdivided into five categories; 2-2 affine, dilation, $\beta$-strain, $\omega$-strain, and identity \cite{DSS2015}.
+Table \ref{DSS:table_1} summarizes the similarity criteria. Despite the five categories, in essence, all are 2-2 affine with exceptions of partial scaling ratios values being 1.
+\begin{table}[H]
+\centering
+\begin{tabular}{c|c|c|c|c}
+\hline
+%\rowcolor{lightgray}
+\multicolumn{5}{c}{Basis for Process Space-time Coordinate Scaling}\\
+\hline
+Metric & \multirow{2}{*}{$d\tilde{\tau}_{P}=d\tilde{\tau}_{P}$} & \multirow{2}{*}{And} & Covariance & \multirow{2}{*}{$\frac{1}{\omega_{P}}\frac{d\beta_{P}}{dt_{P}}=\frac{1}{\omega_{M}}\frac{d\beta_{M}}{dt_{M}}$} \\
+Invariance   & & & Principle & \\
+\hline
+\multicolumn{5}{c}{$\beta-\omega$ Coordinate Transformations}\\
+\hline
+2-2 Affine  & Dilation  & $\beta$-Strain & $\omega$-Strain & Identity \\
+$\beta_{R}=\lambda_{A}$ & $\beta_{R}=\lambda$ & $\beta_{R}=\lambda_{A}$ & $\beta_{R}=1=\lambda_{B}$ & $\beta_{R}=1$ \\
+$\omega_{R}=\lambda_{B}$ & $\omega_{R}=\lambda$ & $\omega_{R}=1$ & $\omega_{R}=\lambda_{B}$ & $\omega_{R}=1$ \\
+\hline
+\multicolumn{5}{c}{Similarity Criteria}\\
+\hline
+$\tilde{\Omega}_{R}=\lambda_{A}$ & $\tilde{\Omega}_{R}=\lambda$ & $\tilde{\Omega}_{R}=\lambda_{A}$ & $\tilde{\Omega}_{R}=1$ & $\tilde{\Omega}_{R}=1$ \\
+$\tau_{R}=t_{R}=\frac{\lambda_{A}}{\lambda_{B}}$ & $\tau_{R}=t_{R}=1$ & $\tau_{R}=t_{R}=\lambda_{A}$ & $\tau_{R}=t_{R}=\frac{1}{\lambda_{B}}$ & $\tau_{R}=t_{R}=1$ \\
+\hline
+\end{tabular}
+\caption{Scaling Methods and Similarity Criteria Resulting from Two-Parameter Transformations \cite{DSS2015}}\label{DSS:table_1}
+\end{table}
+The separation between both process curves along the constant normalized process time is the local distortion \cite{Martin2019}:
+\begin{equation}
+  \label{eq_15}
+  \tilde{\eta}_{k}=\beta_{P_{k}}\sqrt{\varepsilon D_{P_{k}}}\left[\frac{1}{\Omega_{P_{k}}}-\frac{\lambda_{A}}{\Omega_{M_{k}}}\right]
+\end{equation}
+Where $\epsilon$ is a sign adjuster ensuring positive values within the square root. The total distortion is:
+\begin{equation}
+  \label{eq_16}
+  \tilde{\eta}_{T}=\sum^{N}_{k=1}{\left|\tilde{\eta}_{k}\right|}
+\end{equation}
+And, the equivalent standard deviation is:
+\begin{equation}
+  \label{eq_17}
+  \sigma_{est}=\sqrt{\frac{1}{N}\sum^{N}_{k=1}{\tilde{\eta}^{2}_{k}}}
+\end{equation}
+
