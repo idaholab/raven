@@ -44,7 +44,7 @@
       <vars>a,b,c,d,ans</vars>
       <logVars>ans</logVars>
       <index>batchId</index>
-      <how>jpeg</how>
+      <how>png</how>
     </Plot>
   </OutStreams>
 

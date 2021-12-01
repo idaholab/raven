@@ -18,7 +18,7 @@
   </RunInfo>
   
   <Files>
-    <Input name="GApointset">opt_export.csv</Input>
+    <Input name="GApointset">opt_export_red.csv</Input>
   </Files>
 
   <Steps>
