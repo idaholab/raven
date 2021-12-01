@@ -92,7 +92,6 @@ class OptParallelCoordinatePlot(PlotInterface):
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
     self.source = src
-    # sanity check
     dataVars = self.source.getVars()
     missing = [var for var in (self.vars) if var not in dataVars]
     if missing:
@@ -110,8 +109,8 @@ class OptParallelCoordinatePlot(PlotInterface):
     data = self.source.asDataset().to_dataframe()
     ynames  = self.source.getVars(subset='input')
 
-    minGen = int(min(data['batchId']))
-    maxGen = int(max(data['batchId']))
+    minGen = int(min(data[self.index]))
+    maxGen = int(max(data[self.index]))
 
     yMin = np.zeros(4)
     yMax = np.zeros(4)
@@ -123,7 +122,7 @@ class OptParallelCoordinatePlot(PlotInterface):
     filesID = []
 
     for idx,genID in enumerate(range(minGen,maxGen+1,1)):
-      population = data[data['batchId']==genID]
+      population = data[data[self.index]==genID]
       ys = population[ynames].values
       fileID = f'{self.name}' + str(genID) + '.png'
       generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
@@ -136,7 +135,7 @@ class OptParallelCoordinatePlot(PlotInterface):
         writer.append_data(image)
 
 
-def generateParallelPlot(zs,batchID,ymins,ymaxs,ynames,fileID):
+def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   """
     Main run method.
     @ In, zs, pandas dataset, batch containing the set of points to be plotted

@@ -45,6 +45,10 @@ class PopulationPlot(PlotInterface):
         descr=r"""Names of the variables from the DataObject whose optimization paths should be plotted."""))
     spec.addSub(InputData.parameterInputFactory('logVars', contentType=InputTypes.StringListType,
         descr=r"""Names of the variables from the DataObject to be plotted on a log scale."""))
+    spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
+        descr=r"""Names of the variable that refers to the batch index"""))
+    spec.addSub(InputData.parameterInputFactory('how', contentType=InputTypes.StringType,
+        descr=r"""Digital format of the generated picture"""))
     return spec
 
   def __init__(self):
@@ -59,6 +63,8 @@ class PopulationPlot(PlotInterface):
     self.sourceName = None      # name of DataObject source
     self.vars       = None      # variables to plot
     self.logVars    = None      # variables to plot in log scale
+    self.index      = None      # index ID for each batch
+    self.how        = None      # format of the generated picture
 
   def handleInput(self, spec):
     """
@@ -67,13 +73,15 @@ class PopulationPlot(PlotInterface):
       @ Out, None
     """
     super().handleInput(spec)
-    params, notFound = spec.findNodesAndExtractValues(['source','vars'])
+    params, notFound = spec.findNodesAndExtractValues(['source','vars','index','how'])
 
     for node in notFound:
       self.raiseAnError(IOError, "Missing " +str(node) +" node in the PopulationPlot " + str(self.name))
     else:
       self.sourceName = params['source']
       self.vars       = params['vars']
+      self.index      = params['index']
+      self.how        = params['how']
 
     params, notFound = spec.findNodesAndExtractValues(['logVars'])
     if notFound:
@@ -94,7 +102,7 @@ class PopulationPlot(PlotInterface):
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
     self.source = src
-    # sanity check
+
     dataVars = self.source.getVars()
     missing = [var for var in (self.vars) if var not in dataVars]
     if missing:
@@ -117,45 +125,54 @@ class PopulationPlot(PlotInterface):
     fig, axs = plt.subplots(nFigures,1)
     fig.suptitle('Population Plot')
 
-    min_Gen = int(min(data['batchId']))
-    max_Gen = int(max(data['batchId']))
+    min_Gen = int(min(data[self.index]))
+    max_Gen = int(max(data[self.index]))
 
     for indexVar,var in enumerate(self.vars):
-        min_fit = np.zeros(max_Gen-min_Gen+1)
-        max_fit = np.zeros(max_Gen-min_Gen+1)
-        avg_fit = np.zeros(max_Gen-min_Gen+1)
+      min_fit = np.zeros(max_Gen-min_Gen+1)
+      max_fit = np.zeros(max_Gen-min_Gen+1)
+      avg_fit = np.zeros(max_Gen-min_Gen+1)
 
-        for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
-            population = data[data['batchId']==genID]
-            min_fit[idx] = min(population[var])
-            max_fit[idx] = max(population[var])
-            avg_fit[idx] = population[var].mean()
+      for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
+        population = data[data[self.index]==genID]
+        min_fit[idx] = min(population[var])
+        max_fit[idx] = max(population[var])
+        avg_fit[idx] = population[var].mean()
 
-        if var in inVars:
-          if var in self.logVars:
-            errorfill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
-          else:
-            errorfill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar])
+      if var in inVars:
+        if var in self.logVars:
+          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
         else:
-          if var in self.logVars:
-            errorfill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar],logscale=True)
-          else:
-            errorfill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar])
-        axs[indexVar].set_ylabel(var)
-        if var == self.vars[-1]:
-          axs[indexVar].set_xlabel('Generation #')
+          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar])
+      else:
+        if var in self.logVars:
+          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar],logscale=True)
+        else:
+          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar])
+      axs[indexVar].set_ylabel(var)
+      if var == self.vars[-1]:
+        axs[indexVar].set_xlabel('Batch #')
+        
+    if self.how in ['png','pdf','svg','jpeg']:
+      fileName = self.name +'.%s'  % self.how
+      plt.savefig(fileName, format=self.how)
+    else:
+      self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')
 
-    plt.savefig(f'{self.name}.png')
-
-def errorfill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
-    ax = ax if ax is not None else plt.gca()
-    if np.isscalar(yerr) or len(yerr) == len(y):
-        ymin = y - yerr
-        ymax = y + yerr
-    elif len(yerr) == 2:
-        ymin, ymax = yerr
-    ax.plot(x, y, color=color)
-    ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
-    if logscale:
-        ax.set_yscale('symlog')
+def errorFill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
+  """
+    Method designed to draw a line x vs y including a shade between the min and max of y
+    @ In, None
+    @ Out, None
+  """
+  ax = ax if ax is not None else plt.gca()
+  if np.isscalar(yerr) or len(yerr) == len(y):
+    ymin = y - yerr
+    ymax = y + yerr
+  elif len(yerr) == 2:
+    ymin, ymax = yerr
+  ax.plot(x, y, color=color)
+  ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
+  if logscale:
+    ax.set_yscale('symlog')
 

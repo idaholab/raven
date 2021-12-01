@@ -43,6 +43,8 @@
       <source>samples</source>
       <vars>a,b,c,d,ans</vars>
       <logVars>ans</logVars>
+      <index>batchId</index>
+      <how>jpeg</how>
     </Plot>
   </OutStreams>
 
