@@ -152,7 +152,7 @@ class PopulationPlot(PlotInterface):
       axs[indexVar].set_ylabel(var)
       if var == self.vars[-1]:
         axs[indexVar].set_xlabel('Batch #')
-        
+
     if self.how in ['png','pdf','svg','jpeg']:
       fileName = self.name +'.%s'  % self.how
       plt.savefig(fileName, format=self.how)
