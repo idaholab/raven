@@ -137,6 +137,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       msr_mean = 0.0
       msr_std = 0.01*np.std(yapp_std)
       msr_numSmpl = 1000
+      np.random.seed(0)
       ymsr = np.random.normal(msr_mean, msr_std, msr_numSmpl)
       binMsr = msr_numSmpl//20
       pdf_ymsr, bin_ymsr = np.histogram(ymsr, binMsr, range=(xmin, xmax), density=True)
