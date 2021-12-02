@@ -212,7 +212,7 @@ class Representativity(ValidationBase):
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
     # self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
-    self.stat.run(datasets)
+    self.stat.run({"Data":[[None, None, datasets]]})
     # for data in datasets:
     #   sen = self.stat.run(data)
     names = kwargs.get('dataobjectNames')
