@@ -150,18 +150,19 @@ class Representativity(ValidationBase):
 
     # return measureList
 
-  # def initialize(self, features, targets, **kwargs):
-  #   """
-  #     Set up this interface for a particular activity
-  #     @ In, features, list, list of features
-  #     @ In, targets, list, list of targets
-  #     @ In, kwargs, dict, keyword arguments
-  #   """
-  #   super().initialize(features, targets, **kwargs)
-  #   self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.targets), 'prefix':'nsen'}]}
-  #   # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
-  #   fakeRunInfo = {'workingDir':'','stepName':''}
-  #   self.stat.initialize(fakeRunInfo, self.Parameters, features, **kwargs)
+  def initialize(self, runInfo, inputs, initDict):
+    """
+      Method to initialize the DataMining pp.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.targets), 'prefix':'nsen'}]}
+    # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
+    # fakeRunInfo = {'workingDir':'','stepName':''}
+    self.stat.initialize(runInfo, inputs, initDict)#self.featureParameters, self.featureParameters, **kwargs
 
   def _handleInput(self, paramInput):
     """
@@ -172,7 +173,7 @@ class Representativity(ValidationBase):
     super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'featureParameters':
-        self.Parameters = child.value
+        self.featureParameters = child.value
       elif child.getName() == 'targetParameters':
         self.targetParameters = child.value
       elif child.getName() == 'targetPivotParameter':
