@@ -102,8 +102,8 @@ for i in range(np.shape(offSprings)[0]):
     val = offSprings[i][j]
     d[var] = {'dims':() ,'data': val}
   rlz.append(xr.Dataset.from_dict(d))
-rlz = xr.concat(rlz)
-newPop2,newFit2,newAge2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitness, offSpringsFitness=offSpringsFitness)
+rlz = xr.concat(rlz,dim='data')
+newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitness, offSpringsFitness=offSpringsFitness, popObjectiveVal=popFitness)
 print('Fitness Based Selection')
 print('*'*19)
 print('new population: {}, \n new Fitness {}, \n new age'.format(newPop2,newFit2,newAge2))

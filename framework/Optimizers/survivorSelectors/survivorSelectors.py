@@ -122,7 +122,8 @@ def fitnessBased(newRlz,**kwargs):
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-
+  
+  #return newPopulationArray,newFitness,newAge
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
 
 __survivorSelectors = {}
