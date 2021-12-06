@@ -62,7 +62,7 @@ class GradientDescent(RavenSampled):
      - Implement summary of step iteration to SolutionExport
   """
   # convergence option names and their user manual descriptions
-  convergenceOptions = {'gradient': r"""provides the desired value for the local estimated of the gradient
+  convergenceOptions = {'gradient': r"""provides the desired value for the local estimation of the gradient
                                     for convergence. \default{1e-6, if no criteria specified}""",
                         # TODO change in input space?
                         'objective': r"""provides the maximum relative change in the objective function for convergence.""",

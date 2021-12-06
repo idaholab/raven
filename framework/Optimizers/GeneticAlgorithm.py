@@ -288,8 +288,9 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
-    self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
+    self._nParents = np.floor(np.sqrt(self._populationSize))#int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
+    self._nParents = self._populationSize - self._nChildren
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -482,7 +483,7 @@ class GeneticAlgorithm(RavenSampled):
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      childrenXover = self._crossoverInstance(parents = parents,
+      childrenXover = self._crossoverInstance(parents = parents[:int(np.floor(np.sqrt(self._populationSize)))],
                                               variables = list(self.toBeSampled),
                                               crossoverProb = self._crossoverProb,
                                               points = self._crossoverPoints)
@@ -530,16 +531,17 @@ class GeneticAlgorithm(RavenSampled):
         else:
           flag = False
       # keeping the population size constant by ignoring the excessive children
-      children = children[:self._populationSize,:]
+      # children = children[:self._populationSize,:]
 
-      daChildren = xr.DataArray(children,
+      daChildren = xr.concat([children,parents],dim="chromosome")
+      daChildren = xr.DataArray(daChildren,
                               dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(np.shape(children)[0]),
+                              coords={'chromosome': np.arange(np.shape(daChildren)[0]),
                                       'Gene':list(self.toBeSampled)})
 
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(self.batch):
+      for i in range(len(daChildren.coords['chromosome'])):#self.batch
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
