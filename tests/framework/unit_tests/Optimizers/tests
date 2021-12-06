@@ -19,4 +19,8 @@
     type = 'RavenPython'
     input = 'testTournamentSelection.py'
   [../]
+  [./testFitnessBased]
+    type = 'RavenPython'
+    input = 'testFitnessBased.py'
+  [../]
 []
