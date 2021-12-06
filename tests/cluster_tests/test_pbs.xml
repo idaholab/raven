@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>FirstP</WorkingDir>
     <Sequence>FirstPRun</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>

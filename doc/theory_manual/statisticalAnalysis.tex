@@ -220,6 +220,52 @@ The correlation matrix (Pearson product-moment correlation coefficient matrix) c
 As it can be seen, The correlation between $X$ and $Y$ is the
 covariance of the corresponding standard scores.
 
+\subsection{Spearman's Rank Correlation Coefficient Matrix}
+Spearman's rank correlation coefficient or Spearman's $\rho$ is a nonparametric measure of rank correlation
+ (statistical dependence between the rankings of two variables). 
+ It assesses how well the relationship between two variables can be described using a monotonic function.
+
+The Spearman correlation coefficient between two variables is equal to the Pearson correlation coefficient 
+between the rank values of those two variables; Spearman's 
+correlation assesses monotonic relationships (whether linear or not). If there are no repeated data values, 
+a perfect Spearman correlation of $+1$ or $-1$ occurs when each of the variables is a perfect monotone
+function of the other.
+
+The Spearman correlation between two variables will be large when observations have a similar 
+(or identical for a correlation of $1$) rank between the two variables, and low when observations
+ have a dissimilar (or fully opposed for a correlation of $-1$) rank between the two variables.
+
+The Spearman correlation  matrix  can be obtained as the Pearson correlation coefficient matrix of the ranked variables, as follows:
+\begin{equation}
+\boldsymbol{\Gamma}(\boldsymbol{R(X)},\boldsymbol{R(Y)}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})}{\sigma_{R(x)} \sigma_{R(y)}}
+\end{equation}
+
+In RAVEN, the Spearman correlation  matrix  is computed in its weighted form \cite{Bailey2018}. 
+Firstly, each element of the vector of realizations (each variable) is  ranked using the following weighted formulation:
+\begin{equation}
+    R(X)_j = \sum_{i=1}^n (w_i *\Theta(z_i, z_j)) + \frac{1+\sum_{i=1}^{n}  \Gamma(w_i, w_j)} {2} * \frac{\sum_{i=1}^{n} w_i*\Gamma(w_i, w_j)}{\sum_{i=1}^{n} \Gamma(w_i, w_j)}
+\end{equation}
+where: 
+\begin{equation}
+\Theta (z_i, z_j)=\left\{\begin{matrix}
+1 & if \; w_i = w_j  \\
+ 0 & if \; w_i \neq w_j \\
+\end{matrix}\right.
+\end{equation}
+and
+\begin{equation}
+     \Gamma (w_i, w_j) =\begin{cases}1 \rightarrow if \;  w_i = w_j \\ 0  \rightarrow if \; w_i \neq  w_j\end{cases}
+\end{equation}
+
+Once all the variables are ranked, the vector of the ranked variables are used for computing the weighted Covariance matrix:
+\begin{equation}
+ \boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})  = \mathbb{E} \left [ \left ( \boldsymbol{R(X)}- \mathbb{E}\left [ \boldsymbol{R(X)} \right ] \right ) \left ( \boldsymbol{R(Y)}- \mathbb{E}\left [ \boldsymbol{R(Y)} \right ] \right )^{T}\right ]
+\end{equation}
+Finally, the Spearman correlation  matrix  is then computed from the weighted Covariance matrix (see Pearson correlation matrix above) of the ranked variables:
+ \begin{equation}
+\boldsymbol{\mathrm{P}}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})}{\sigma_{R(x)} \sigma_{R(y)}}
+\end{equation}
+
 \subsection{Variance-Dependent Sensitivity Matrix}
 The variance dependent sensitivity matrix is the matrix of the sensitivity
 coefficients that show the relationship of the individual uncertainty
