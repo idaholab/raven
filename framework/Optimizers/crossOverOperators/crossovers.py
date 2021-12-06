@@ -193,8 +193,8 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
     @ Out, children1: first generated array
     @ Out, children2: second generated array
   """
-  children1 = parent1
-  children2 = parent2
+  children1 = parent1.copy(deep=True)
+  children2 = parent2.copy(deep=True)
 
   seqB1 = parent1.values[locL:locU+1]
   seqB2 = parent2.values[locL:locU+1]

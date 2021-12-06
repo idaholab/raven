@@ -124,9 +124,9 @@ def tournamentSelection(population,**kwargs):
   if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
     for i in range(nParents):
       if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-        index = int(matrixOperation[i,0])
+        index = int(matrixOperation[2*i,0])
       else:
-        index = int(matrixOperation[i+1,0])
+        index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
   else: # multi-objective implementation of tournamentSelection
     for i in range(nParents-1):
