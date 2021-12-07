@@ -27,4 +27,12 @@
     type = 'RavenPython'
     input = 'testFitnessBased.py'
   [../]
+  [./testAgeBased]
+    type = 'RavenPython'
+    input = 'testAgeBased.py'
+  [../]
+  [./testRankSelection]
+    type = 'RavenPython'
+    input = 'testRankSelection.py'
+  [../]
 []

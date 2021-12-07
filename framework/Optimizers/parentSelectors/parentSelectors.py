@@ -147,8 +147,8 @@ def tournamentSelection(population,**kwargs):
 def rankSelection(population,**kwargs):
   """
     Rank Selection mechanism for parent selection
-
-    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
+    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, 
+                                    i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           nParents, int, number of required parents.
@@ -165,8 +165,12 @@ def rankSelection(population,**kwargs):
   dataOrderedByDecreasingFitness[0,:] = rank
   dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
   orderedRank = dataOrderedByIncreasingPos[0,:]
-
-  selectedParent = rouletteWheel(population, fitness=orderedRank , nParents=kwargs['nParents'],variables=kwargs['variables'])
+  
+  rank = xr.DataArray(orderedRank,
+                      dims=['chromosome'],
+                      coords={'chromosome': np.arange(np.shape(orderedRank)[0])})
+  
+  selectedParent = rouletteWheel(population, fitness=rank , nParents=kwargs['nParents'],variables=kwargs['variables'])
 
   return selectedParent
 
