@@ -40,9 +40,9 @@ def onePointCrossover(parents,**kwargs):
   nParents,nGenes = np.shape(parents)
   # Number of children = 2* (nParents choose 2)
   children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),nGenes)),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(int(2*comb(nParents,2))),
-                                      'Gene':kwargs['variables']})
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                  'Gene':kwargs['variables']})
 
 
   # defaults
@@ -133,7 +133,7 @@ def twoPointsCrossover(parents, **kwargs):
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
-    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)   
+    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
     if loc1 > loc2:
       locL = loc2
       locU = loc1
@@ -143,7 +143,7 @@ def twoPointsCrossover(parents, **kwargs):
     parent1 = couples[0]
     parent2 = couples[1]
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
-    
+
     children[index]   = children1
     children[index+1] = children2
     index = index + 2
