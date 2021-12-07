@@ -35,4 +35,9 @@
     type = 'RavenPython'
     input = 'testRankSelection.py'
   [../]
+  
+  [./test1pointCrossover]
+    type = 'RavenPython'
+    input = 'test1pointCrossover.py'
+  [../]
 []
