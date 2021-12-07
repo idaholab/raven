@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/GA.MaxwoReplacement</name>
+    <name>framework/Optimizers/GA.MaxwoReplacemenTwoPointsCrossovert</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -28,7 +28,6 @@
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
@@ -109,7 +108,7 @@
 
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -142,7 +141,8 @@
 
     <Models>
       <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
-        <variables>x1,x2,x3,x4,x5,x6,ans</variables>
+        <inputs>x1,x2,x3,x4,x5,x6,ans</inputs>
+        <outputs>x1,x2,x3,x4,x5,x6,ans</outputs>
       </ExternalModel>
     </Models>
 

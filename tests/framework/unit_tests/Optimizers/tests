@@ -15,6 +15,10 @@
     type = 'RavenPython'
     input = 'test2pointsCrossover.py'
   [../]
+  [./test2pointsCrossoverSmallArray]
+    type = 'RavenPython'
+    input = 'test2pointsCrossoverSmallArray.py'
+  [../]
   [./testTournamentSelection]
     type = 'RavenPython'
     input = 'testTournamentSelection.py'

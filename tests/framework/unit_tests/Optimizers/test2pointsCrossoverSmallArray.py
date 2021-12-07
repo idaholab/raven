@@ -55,11 +55,10 @@ results = {'pass': 0, 'fail': 0}
 #
 # initialization
 #
-optVars = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8']
-population = [[11,12,13,14,15,16,17,18],
-              [21,22,23,24,25,26,27,28],
-              [31,32,33,34,35,36,37,38],
-              [41,42,43,44,45,46,47,48]]
+optVars = ['x1', 'x2', 'x3']
+population = [[11,12,13],
+              [21,22,23],
+              [31,32,33]]
 population = xr.DataArray(population,
                           dims   = ['chromosome','Gene'],
                           coords = {'chromosome': np.arange(np.shape(population)[0]),
@@ -70,20 +69,14 @@ children = twoPointsCrossover(population)
 print('twoPointsCrossover')
 print('*'*19)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 11.,  22.,  23.,  24.,  25.,  26.,  17.,  18.],
-                                 [ 21.,  12.,  13.,  14.,  15.,  16.,  27.,  28.],
-                                 [ 11.,  12.,  13.,  14.,  15.,  16.,  37.,  18.],
-                                 [ 31.,  32.,  33.,  34.,  35.,  36.,  17.,  38.],
-                                 [ 11.,  42.,  43.,  44.,  45.,  46.,  47.,  18.],
-                                 [ 41.,  12.,  13.,  14.,  15.,  16.,  17.,  48.],
-                                 [ 21.,  22.,  33.,  34.,  35.,  36.,  37.,  28.],
-                                 [ 31.,  32.,  23.,  24.,  25.,  26.,  27.,  38.],
-                                 [ 21.,  22.,  43.,  44.,  45.,  26.,  27.,  28.],
-                                 [ 41.,  42.,  23.,  24.,  25.,  46.,  47.,  48.],
-                                 [ 31.,  42.,  43.,  44.,  45.,  36.,  37.,  38.],
-                                 [ 41.,  32.,  33.,  34.,  35.,  46.,  47.,  48.]],
+expectedChildren = xr.DataArray([[ 11.,  22.,  13.],
+                                 [ 21.,  12.,  23.],
+                                 [ 11.,  32.,  13.],
+                                 [ 31.,  12.,  33.],
+                                 [ 21.,  32.,  23.],
+                                 [ 31.,  22.,  33.]],
                                  dims   = ['chromosome','Gene'],
-                                 coords = {'chromosome': np.arange(12),
+                                 coords = {'chromosome': np.arange(6),
                                            'Gene'      : optVars})
 
 ## TESTING

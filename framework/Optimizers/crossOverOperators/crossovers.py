@@ -128,23 +128,13 @@ def twoPointsCrossover(parents, **kwargs):
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
-  index = 0
   parentPairs = list(combinations(parents,2))
+  index = 0
+  if nGenes<=2:
+    ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
-    locRangeList = list(range(0,nGenes))
-    index1 = randomUtils.randomIntegers(1, len(locRangeList)-2, caller=None, engine=None)
-    loc1 = locRangeList[index1]
-    locRangeList.pop(loc1)
-    index2 = randomUtils.randomIntegers(1, len(locRangeList)-2, caller=None, engine=None)
-    loc2 = locRangeList[index2]
-    if loc1 == loc2:
-      if loc1 == len(locRangeList)-2:
-        locU = loc1
-        locL = loc1 - 2
-      else:
-        locL = loc1
-        locU = loc1 + 2
-    elif loc1 > loc2:
+    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)   
+    if loc1 > loc2:
       locL = loc2
       locU = loc1
     else:
@@ -153,7 +143,7 @@ def twoPointsCrossover(parents, **kwargs):
     parent1 = couples[0]
     parent2 = couples[1]
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
-
+    
     children[index]   = children1
     children[index+1] = children2
     index = index + 2
@@ -196,11 +186,11 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   children1 = parent1.copy(deep=True)
   children2 = parent2.copy(deep=True)
 
-  seqB1 = parent1.values[locL:locU+1]
-  seqB2 = parent2.values[locL:locU+1]
+  seqB1 = parent1.values[locL:locU]
+  seqB2 = parent2.values[locL:locU]
 
-  children1[locL:locU+1] = seqB2
-  children2[locL:locU+1] = seqB1
+  children1[locL:locU] = seqB2
+  children2[locL:locU] = seqB1
   return children1,children2
 
 def uniformCrossoverMethod(parent1,parent2,crossoverProb):
