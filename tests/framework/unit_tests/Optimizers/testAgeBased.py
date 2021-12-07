@@ -114,13 +114,13 @@ for i in range(np.shape(offSprings)[0]):
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
 
-newPop2,newFit2,newAge2,popObjVal2 = ageBased(rlz, 
-                                              age=popAge, 
-                                              popSize=np.shape(population)[0], 
-                                              variables=optVars, 
-                                              population=population, 
-                                              fitness=popFitness, 
-                                              offSpringsFitness=offSpringsFitness, 
+newPop2,newFit2,newAge2,popObjVal2 = ageBased(rlz,
+                                              age=popAge,
+                                              popSize=np.shape(population)[0],
+                                              variables=optVars,
+                                              population=population,
+                                              fitness=popFitness,
+                                              offSpringsFitness=offSpringsFitness,
                                               popObjectiveVal=popFitness)
 
 print('Age Based Selection')
