@@ -40,9 +40,9 @@ def onePointCrossover(parents,**kwargs):
   nParents,nGenes = np.shape(parents)
   # Number of children = 2* (nParents choose 2)
   children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),nGenes)),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(int(2*comb(nParents,2))),
-                                      'Gene':kwargs['variables']})
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                  'Gene':kwargs['variables']})
 
 
   # defaults
@@ -106,7 +106,7 @@ def uniformCrossover(parents,**kwargs):
   return children
 
 
-def twoPointsCrossover(parents, parentIndexes,**kwargs):
+def twoPointsCrossover(parents, **kwargs):
   """
     Method designed to perform a two point crossover on 2 parents:
     Partition each parents in three sequences (A,B,C):
@@ -116,7 +116,6 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
     children1 = A1 B2 C1
     children2 = A2 B1 C2
     @ In, parents, xr.DataArray, parents involved in the mating process
-    @ In, parentIndexes, list, list containing pairs of parents
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -129,23 +128,20 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
+  parentPairs = list(combinations(parents,2))
   index = 0
-  for couples in parentIndexes:
-    locRangeList = list(range(0,nGenes))
-    index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-    loc1 = locRangeList[index1]
-    locRangeList.pop(loc1)
-    index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-    loc2 = locRangeList[index2]
-    if loc1>loc2:
-      locL=loc2
-      locU=loc1
-    elif loc1<loc2:
+  if nGenes<=2:
+    ValueError('In Two point Crossover the number of genes should be >=3!')
+  for couples in parentPairs:
+    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
+    if loc1 > loc2:
+      locL = loc2
+      locU = loc1
+    else:
       locL=loc1
       locU=loc2
-
-    parent1 = parents[couples[0]].values
-    parent2 = parents[couples[1]].values
+    parent1 = couples[0]
+    parent2 = couples[1]
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
 
     children[index]   = children1
@@ -187,14 +183,14 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
     @ Out, children1: first generated array
     @ Out, children2: second generated array
   """
-  children1 = parent1
-  children2 = parent2
+  children1 = parent1.copy(deep=True)
+  children2 = parent2.copy(deep=True)
 
-  seqB1 = parent1.values[locL:locU+1]
-  seqB2 = parent2.values[locL:locU+1]
+  seqB1 = parent1.values[locL:locU]
+  seqB2 = parent2.values[locL:locU]
 
-  children1[locL:locU+1] = seqB2
-  children2[locL:locU+1] = seqB1
+  children1[locL:locU] = seqB2
+  children2[locL:locU] = seqB1
   return children1,children2
 
 def uniformCrossoverMethod(parent1,parent2,crossoverProb):
