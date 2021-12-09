@@ -159,7 +159,7 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().initialize(runInfo, inputs, initDict)
-    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.targets), 'prefix':'nsen'}]}
+    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.features), 'features':set(self.featureParameters),'prefix':'nsen'}]}
     # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
     # fakeRunInfo = {'workingDir':'','stepName':''}
     self.stat.initialize(runInfo, inputs, initDict)#self.featureParameters, self.featureParameters, **kwargs
