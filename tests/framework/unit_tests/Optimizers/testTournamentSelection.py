@@ -85,23 +85,24 @@ def formatSample(vars):
 optVars = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6']
 population =[[1,2,3,4,5,6],[2,1,3,4,6,5],[6,5,4,3,2,1],[3,5,6,2,1,4]]
 population = xr.DataArray(population,
-                                dims=['chromosome','Gene'],
-                                coords={'chromosome': np.arange(np.shape(population)[0]),
-                                        'Gene':optVars})
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(np.shape(population)[0]),
+                                  'Gene':optVars})
+
 popFitness = [7.2,1.3,9.5,2.0]
 popFitness = xr.DataArray(popFitness,
-             dims=['chromosome'],
-             coords={'chromosome': np.arange(np.shape(popFitness)[0])})
+                          dims=['chromosome'],
+                          coords={'chromosome': np.arange(np.shape(popFitness)[0])})
 nParents = 2
 parents = tournamentSelection(population, variables=optVars, fitness=popFitness, nParents=nParents)
 print('Roulette Wheel Parent Selection')
 print('*'*19)
 print('selected parents are: {}'.format(parents))
-expectedParents = xr.DataArray([[6,5,4,3,2,1],
-                               [3,5,6,2,1,4]],
-                           dims=['chromosome','Gene'],
-                           coords={'chromosome':np.arange(nParents),
-                                   'Gene': optVars})
+expectedParents = xr.DataArray([[1,2,3,4,5,6],
+                                [6,5,4,3,2,1]],
+                                dims=['chromosome','Gene'],
+                                coords={'chromosome':np.arange(nParents),
+                                        'Gene': optVars})
 
 ## TESTING
 # Test survivor population
