@@ -55,9 +55,6 @@ Note all install methods after "main" take
     <numexpr os='linux'/>
     <cmake skip_check='True'/>	    
     <ray os="mac,linux" source="pip">1.3</ray>
-    <!-- ray is not compatible with aioredis 2.0
-      https://github.com/ray-project/ray/issues/17475 -->
-    <aioredis os="mac,linux" source="pip">1.3</aioredis>
     <imageio optional='True'/>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
