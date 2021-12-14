@@ -381,11 +381,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
-      @ In, None
     """
     pass
 
-  def serialize(self,fileo,**kwargs):
+  def serialize(self,fileObjIn,**kwargs):
     """
       This method is the base class method that is aimed to serialize the model (and derived) instances.
       @ In, fileo, str or File object, the filename of the output serialized binary file or the RAVEN File instance
@@ -393,14 +392,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ Out, None
     """
     import cloudpickle
-    if isinstance(fileo,str):
-      fileobj = open(filename, mode='wb+')
+    if isinstance(fileObjIn,str):
+      fileObj = open(filename, mode='wb+')
     else:
-      fileobj = fileo
-      fileobj.open(mode='wb+')
-    cloudpickle.dump(self,fileobj, protocol=pickle.HIGHEST_PROTOCOL)
-    fileobj.flush()
-    fileobj.close()
+      fileObj = fileObjIn
+      fileObj.open(mode='wb+')
+    cloudpickle.dump(self,fileObj, protocol=pickle.HIGHEST_PROTOCOL)
+    fileObj.flush()
+    fileObj.close()
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):

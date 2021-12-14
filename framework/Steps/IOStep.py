@@ -123,7 +123,8 @@ class IOStep(Step):
         if isinstance(outputs[i],Files.File):
           #XXX switching on the file extension is not very
           # extendable.  Possibly should have a type or something
-          if 'py' == outputs[i].getExt().lower():
+          #Past condition: if 'py' == outputs[i].getExt().lower():
+          if 'Pyomo' == outputs[i].getModelType():
             self.actionType.append('MODEL-PYOMO')
           else:
             self.actionType.append('MODEL-FILES')
