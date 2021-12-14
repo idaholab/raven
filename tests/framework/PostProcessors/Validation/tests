@@ -20,4 +20,11 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_dss]
+    type = 'RavenFramework'
+    input = 'test_validation_dss.xml'
+    csv = 'DSS/pp2_print_0.csv DSS/pp2_print_1.csv DSS/pp2_print_2.csv DSS/pp2_print_3.csv'  
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
 []

@@ -38,6 +38,7 @@ from .EconomicRatio import EconomicRatio
 from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
 from .Validations import PhysicsGuidedCoverageMapping
+from .Validations import PPDSS
 from .TSACharacterizer import TSACharacterizer
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
