@@ -26,6 +26,7 @@ from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
 from .STDReduction import STDReduction
 from .ScipyMetric import ScipyMetric
+from .DSS import DSS
 
 factory = EntityFactory('Metrics')
 factory.registerAllSubtypes(MetricInterface)
