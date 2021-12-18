@@ -1,6 +1,6 @@
 SRCFILE = raven_theory_manual
 LATEX_FLAGS=-shell-escape
-GUIDE_FILES = raven_theory_manual.tex statisticalAnalysis.tex forwardSampling.tex adaptiveSampling.tex dataMining.tex reducedOrderModeling.tex ravenStructure.tex introduction.tex ../version.tex
+GUIDE_FILES = raven_theory_manual.tex statisticalAnalysis.tex forwardSampling.tex adaptiveSampling.tex dataMining.tex reducedOrderModeling.tex ravenStructure.tex introduction.tex dssPostProcessor.tex ../version.tex
 MAKE_DIR = $(shell pwd)
 
 #all: raven_theory_manual.pdf

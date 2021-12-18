@@ -40,6 +40,12 @@
    csv = 'csv/output.csv'
  [../]
 
+ [./LoadXlsCsv]
+   type = 'RavenFramework'
+   input = 'load_xls_csv.xml'
+   csv = 'LoadXlsCsv/reprint.csv'
+ [../]
+
  [./load_csv_history]
    type = 'RavenFramework'
    input = 'test_load_csv_history.xml'
@@ -82,6 +88,12 @@
    csv = 'originalModelCSV/dump_evolution_heavy_0.csv'
    heavy = true
    max_time = 400
+ [../]
+
+ [./StringIO]
+   type = 'RavenFramework'
+   input = 'string_io.xml'
+   csv = 'StringIO/points.csv StringIO/histories_0.csv StringIO/histories_1.csv StringIO/data.csv'
  [../]
 []
 

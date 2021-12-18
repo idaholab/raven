@@ -1,0 +1,2014 @@
+
+
+\subsubsection{NDspline}
+  \xmlNode{NDspline} is a ROM based on an $N$-dimensional                             spline
+  interpolation/extrapolation scheme.                             In spline interpolation, the
+  regressor is a special type of piece-wise                             polynomial called tensor
+  spline.                             The interpolation error can be made small even when using low
+  degree polynomials                             for the spline.                             Spline
+  interpolation avoids the problem of Runge's phenomenon, in which
+  oscillation can occur between points when interpolating using higher degree
+  polynomials.                             In order to use this ROM, the \xmlNode{ROM} attribute
+  \xmlAttr{subType} needs to                             be \xmlString{NDspline}
+  No further XML sub-nodes are required.                             \nb This ROM type must be
+  trained from a regular Cartesian grid.                             Thus, it can only be trained
+  from the outcomes of a grid sampling strategy.
+  \zNormalizationPerformed{NDspline}
+
+  The \xmlNode{NDspline} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{NDspline} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='NDspline'>
+       <Features>var1,var2,var3</Features>
+       <Target>result1,result2</Target>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{pickledROM}
+  It is not uncommon for a reduced-order model (ROM) to be created and trained in one RAVEN run,
+  then     serialized to file (\emph{pickled}), then loaded into another RAVEN run to be used as a
+  model.  When this is     the case, a \xmlNode{ROM} with subtype \xmlString{pickledROM} is used to
+  hold the place of the ROM that will     be loaded from file.  The notation for this ROM is much
+  less than a typical ROM; it usually only requires a name and     its subtype.     \\     Note that
+  when loading ROMs from file, RAVEN will not perform any checks on the expected inputs or outputs
+  of     a ROM; it is expected that a user know at least the I/O of a ROM before trying to use it as
+  a model.     However, RAVEN does require that pickled ROMs be trained before pickling in the first
+  place.     \\     Initially, a pickledROM is not usable.  It cannot be trained or sampled;
+  attempting to do so will raise an     error.  An \xmlNode{IOStep} is used to load the ROM from
+  file, at which point the ROM will have all the same     characteristics as when it was pickled in
+  a previous RAVEN run.
+
+  The \xmlNode{pickledROM} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{pickledROM} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{seed}: \xmlDesc{integer}, 
+      provides seed for VARMA and ARMA sampling.
+      Must be provided before training. If no seed is assigned,
+      then a random number will be used.
+
+    \item \xmlNode{Multicycle}: \xmlDesc{string}, 
+      indicates that each sample of the ARMA should yield
+      multiple sequential samples. For example, if an ARMA model is trained to produce a year's
+      worth of data,                                                    enabling
+      \xmlNode{Multicycle} causes it to produce several successive years of data. Multicycle
+      sampling                                                    is independent of ROM training,
+      and only changes how samples of the ARMA are created.
+      \nb The output of a multicycle ARMA must be stored in a \xmlNode{DataSet}, as the targets will
+      depend                                                    on both the \xmlNode{pivotParameter}
+      as well as the cycle, \xmlString{Cycle}. The cycle is a second
+      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
+
+      The \xmlNode{Multicycle} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{cycles}: \xmlDesc{integer}, 
+          the number of cycles the ARMA should produce
+          each time it yields a sample.
+
+        \item \xmlNode{growth}: \xmlDesc{float}, 
+          if provided then the histories produced by
+          the ARMA will be increased by the growth factor for successive cycles. This node can be
+          added                                                    multiple times with different
+          settings for different targets.                                                    The
+          text of this node is the growth factor in percentage. Some examples are in
+          Table~\ref{tab:arma multicycle growth}, where \emph{Growth factor} is the value used in
+          the RAVEN                                                    input and \emph{Scaling
+          factor} is the value by which the history will be multiplied.
+          \begin{table}[h!]                                                      \centering
+          \begin{tabular}{r c l}                                                        Growth
+          factor & Scaling factor & Description \\ \hline
+          50 & 1.5 & growing by 50\% each cycle \\
+          -50 & 0.5 & shrinking by 50\% each cycle \\
+          150 & 2.5 & growing by 150\% each cycle \\
+          \end{tabular}                                                      \caption{ARMA Growth
+          Factor Examples}                                                      \label{tab:arma
+          multicycle growth}                                                    \end{table}
+          The \xmlNode{growth} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{targets}: \xmlDesc{comma-separated strings, required}, 
+                lists the targets                     in this ARMA that this growth factor should
+                apply to.
+              \item \xmlAttr{start\_index}: \xmlDesc{integer, optional}, 
+                -- no description yet --
+              \item \xmlAttr{end\_index}: \xmlDesc{integer, optional}, 
+                -- no description yet --
+              \item \xmlAttr{mode}: \xmlDesc{[exponential, linear], required}, 
+                either \xmlString{linear} or                     \xmlString{exponential}, determines
+                the manner in which the growth factor is applied.                     If
+                \xmlString{linear}, then the scaling factor is $(1+y\cdot g/100)$;
+                if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
+                where $y$ is the cycle after the first and $g$ is the provided scaling factor.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{clusterEvalMode}: \xmlDesc{[clustered, truncated, full]}, 
+      changes the structure of the samples for Clustered
+      Segmented ROMs. These are identical to the options for \xmlNode{evalMode}
+      node under \xmlNode{Segmented}
+
+    \item \xmlNode{maxCycles}: \xmlDesc{integer}, 
+      maximum number of cycles to run (default no limit)
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+For this example the ROM has already been created and trained in another RAVEN run, then pickled to a file
+called \texttt{rom\_pickle.pk}.  In the example, the file is identified in \xmlNode{Files}, the model is
+defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Files>
+    <Input name="rompk" type="">rom_pickle.pk</Input>
+  </Files>
+  ...
+  <Models>
+    ...
+    <ROM name="myRom" subType="pickledROM"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadROM">
+      <Input class="Files" type="">rompk</Input>
+      <Output class="Models" type="ROM">myRom</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{GaussPolynomialRom}
+  The \xmlString{GaussPolynomialRom} is based on a                         characteristic Gaussian
+  polynomial fitting scheme: generalized polynomial chaos                         expansion (gPC).
+  \\                         In gPC, sets of polynomials orthogonal with respect to the distribution
+  of uncertainty                         are used to represent the original model.  The method
+  converges moments of the original                         model faster than Monte Carlo for small-
+  dimension uncertainty spaces ($N<15$).                         In order to use this ROM, the
+  \xmlNode{ROM} attribute \xmlAttr{subType} needs to                         be
+  \xmlString{GaussPolynomialRom}.                         \\                         The
+  GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+  SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a
+  MultiRun step.                         \begin{table}[htb]                           \centering
+  \begin{tabular}{c | c c}                             Unc. Distribution & Default Quadrature &
+  Default Polynomials \\ \hline                             Uniform & Legendre & Legendre \\
+  Normal & Hermite & Hermite \\ \hline                             Gamma & Laguerre & Laguerre \\
+  Beta & Jacobi & Jacobi \\ \hline                             Other & Legendre* & Legendre*
+  \end{tabular}                           \caption{GaussPolynomialRom defaults}
+  \label{tab:gpcCompatible}                         \end{table}                         \nb This ROM
+  type must be trained from a collocation quadrature set.                         Thus, it can only
+  be trained from the outcomes of a SparseGridCollocation sampler.                         Also,
+  this ROM must be referenced in the SparseGridCollocation sampler in order to
+  accurately produce the necessary sparse grid points to train this ROM.
+  \zNormalizationNotPerformed{GaussPolynomialRom}                         \\
+  When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the available metrics are:
+  \begin{itemize}                           \item \xmlString{mean}, the mean value of the ROM output
+  within the input space it was trained,                           \item \xmlString{variance}, the
+  variance of the ROM output within the input space it was trained,                           \item
+  \xmlString{samples}, the number of distinct model runs required to construct the ROM,
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and
+  partial variances,                           \item \xmlString{polyCoeffs}, the polynomial
+  expansion coefficients (PCE moments) of the ROM.  These are                             listed by
+  each polynomial combination, with the polynomial order tags listed in the order of the variables
+  shown in the XML print.                         \end{itemize}
+
+  The \xmlNode{GaussPolynomialRom} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{GaussPolynomialRom} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{IndexSet}: \xmlDesc{[TensorProduct, TotalDegree, HyperbolicCross, Custom]}, 
+      specifies the rules by which to construct multidimensional polynomials.  The options are
+      \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+      \xmlString{HyperbolicCross}, and \xmlString{Custom}.
+      Total degree is efficient for                                                  uncertain
+      inputs with a large degree of regularity, while hyperbolic cross is more efficient
+      for low-regularity input spaces.                                                  If
+      \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required.
+
+    \item \xmlNode{PolynomialOrder}: \xmlDesc{integer}, 
+      indicates the maximum polynomial order in any one dimension to use in the
+      polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
+      \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
+      importance might exceed this value; however, this value is still used to limit the
+      relative overall order.
+
+    \item \xmlNode{SparseGrid}: \xmlDesc{[smolyak, tensor]}, 
+      allows specification of the multidimensional
+      quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.
+
+    \item \xmlNode{IndexPoints}: \xmlDesc{comma-separated list of comma separated integer tuples}, 
+      used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
+      entered as comma-separated values between parenthesis, with each tuple separated by a comma.
+      Any amount of whitespace is acceptable.  For example,
+      \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
+      \nb{Using custom index sets                                                  does not
+      guarantee accurate convergence.}
+
+    \item \xmlNode{Interpolation}: \xmlDesc{string}, 
+      offers the option to specify quadrature, polynomials, and importance weights for the given
+      variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
+      dimensionality of the input space.
+      The \xmlNode{Interpolation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{quad}: \xmlDesc{string, optional}, 
+            specifies the quadrature type to use for collocation in this dimension.  The default
+            options                   depend on the uncertainty distribution of the input dimension,
+            as shown in Table                   \ref{tab:gpcCompatible}. Additionally, Clenshaw
+            Curtis quadrature can be used for any                   distribution that doesn't
+            include an infinite bound.                   \default{see Table
+            \ref{tab:gpcCompatible}.}                   \nb For an uncertain distribution aside from
+            the four listed on Table                   \ref{tab:gpcCompatible}, this ROM
+            makes use of the uniform-like range of the distribution's CDF to apply quadrature that
+            is                   suited uniform uncertainty (Legendre).  It converges more slowly
+            than the four listed, but are                   viable choices.  Choosing polynomial
+            type Legendre for any non-uniform distribution will                   enable this
+            formulation automatically.
+          \item \xmlAttr{poly}: \xmlDesc{string, optional}, 
+            specifies the interpolating polynomial family to use for the polynomial expansion in
+            this                   dimension.  The default options depend on the quadrature type
+            chosen, as shown in Table                   \ref{tab:gpcCompatible}.  Currently, no
+            polynomials are available outside the                   default. \default{see Table
+            \ref{tab:gpcCompatible}.}
+          \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
+            delineates the importance weighting of this dimension.  A larger importance weight will
+            result in increased resolution for this dimension at the cost of resolution in lower-
+            weighted                   dimensions.  The algorithm normalizes weights at run-
+            time.\default{1}.
+      \end{itemize}
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Samplers>
+    ...
+    <SparseGridCollocation name="mySG" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+    </SparseGridCollocation>
+    ...
+  </Samplers>
+  ...
+  <Models>
+    ...
+    <ROM name='myRom' subType='GaussPolynomialRom'>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{HDMRRom}
+  The \xmlString{HDMRRom} is based on a Sobol decomposition scheme.                         In Sobol
+  decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
+  a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level
+  (order 1), it treats the function as a sum of the reference case plus a functional of each input
+  dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension
+  with each other dimension.  The benefit to this approach is considering several functions of small
+  input cardinality instead of a single function with large input cardinality.  This allows reduced
+  order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to
+  approximate the functionals accurately with few computations runs.                         In
+  order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+  be \xmlString{HDMRRom}.                         \\                         The HDMRRom is
+  dependent on specific sampling; thus, this ROM cannot be trained unless a
+  Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+  \\                         \nb This ROM type must be trained from a Sobol decomposition training
+  set.                         Thus, it can only be trained from the outcomes of a Sobol sampler.
+  Also, this ROM must be referenced in the Sobol sampler in order to
+  accurately produce the necessary sparse grid points to train this ROM.
+  Experience has shown order 2 Sobol decompositions to include the great majority of
+  uncertainty in most models.                         \zNormalizationNotPerformed{HDMRRom}
+  \\                         When Printing this ROM via an OutStream (see \ref{sec:printing}), the
+  available metrics are:                         \begin{itemize}                           \item
+  \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+  \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space
+  it                             was trained.                           \item \xmlString{samples},
+  the number of distinct model runs required to construct the ROM,                           \item
+  \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial
+  variances.                         \end{itemize}
+
+  The \xmlNode{HDMRRom} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{HDMRRom} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{IndexSet}: \xmlDesc{[TensorProduct, TotalDegree, HyperbolicCross, Custom]}, 
+      specifies the rules by which to construct multidimensional polynomials.  The options are
+      \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+      \xmlString{HyperbolicCross}, and \xmlString{Custom}.
+      Total degree is efficient for                                                  uncertain
+      inputs with a large degree of regularity, while hyperbolic cross is more efficient
+      for low-regularity input spaces.                                                  If
+      \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required.
+
+    \item \xmlNode{PolynomialOrder}: \xmlDesc{integer}, 
+      indicates the maximum polynomial order in any one dimension to use in the
+      polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
+      \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
+      importance might exceed this value; however, this value is still used to limit the
+      relative overall order.
+
+    \item \xmlNode{SparseGrid}: \xmlDesc{[smolyak, tensor]}, 
+      allows specification of the multidimensional
+      quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.
+
+    \item \xmlNode{IndexPoints}: \xmlDesc{comma-separated list of comma separated integer tuples}, 
+      used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
+      entered as comma-separated values between parenthesis, with each tuple separated by a comma.
+      Any amount of whitespace is acceptable.  For example,
+      \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
+      \nb{Using custom index sets                                                  does not
+      guarantee accurate convergence.}
+
+    \item \xmlNode{Interpolation}: \xmlDesc{string}, 
+      offers the option to specify quadrature, polynomials, and importance weights for the given
+      variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
+      dimensionality of the input space.
+      The \xmlNode{Interpolation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{quad}: \xmlDesc{string, optional}, 
+            specifies the quadrature type to use for collocation in this dimension.  The default
+            options                   depend on the uncertainty distribution of the input dimension,
+            as shown in Table                   \ref{tab:gpcCompatible}. Additionally, Clenshaw
+            Curtis quadrature can be used for any                   distribution that doesn't
+            include an infinite bound.                   \default{see Table
+            \ref{tab:gpcCompatible}.}                   \nb For an uncertain distribution aside from
+            the four listed on Table                   \ref{tab:gpcCompatible}, this ROM
+            makes use of the uniform-like range of the distribution's CDF to apply quadrature that
+            is                   suited uniform uncertainty (Legendre).  It converges more slowly
+            than the four listed, but are                   viable choices.  Choosing polynomial
+            type Legendre for any non-uniform distribution will                   enable this
+            formulation automatically.
+          \item \xmlAttr{poly}: \xmlDesc{string, optional}, 
+            specifies the interpolating polynomial family to use for the polynomial expansion in
+            this                   dimension.  The default options depend on the quadrature type
+            chosen, as shown in Table                   \ref{tab:gpcCompatible}.  Currently, no
+            polynomials are available outside the                   default. \default{see Table
+            \ref{tab:gpcCompatible}.}
+          \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
+            delineates the importance weighting of this dimension.  A larger importance weight will
+            result in increased resolution for this dimension at the cost of resolution in lower-
+            weighted                   dimensions.  The algorithm normalizes weights at run-
+            time.\default{1}.
+      \end{itemize}
+
+    \item \xmlNode{SobolOrder}: \xmlDesc{integer}, 
+      indicates the maximum cardinality of the input space used in the subset functionals.  For
+      example, order 1                                                  includes only functionals of
+      each independent dimension separately, while order 2 considers pair-wise interactions.
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Samplers>
+    ...
+    <Sobol name="mySobol" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+    </Sobol>
+    ...
+  </Samplers>
+  ...
+  <Models>
+    ...
+    <ROM name='myHDMR' subType='HDMRRom'>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <SobolOrder>2</SobolOrder>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+    </ROM>
+    ...
+  </Models>
+\end{lstlisting}
+
+
+\subsubsection{MSR}
+  The \xmlNode{MSR} contains a class of ROMs that perform a topological
+  decomposition of the data into approximately monotonic regions and fits weighted
+  linear patches to the identified monotonic regions of the input space. Query
+  points have estimated probabilities that they belong to each cluster. These
+  probabilities can eitehr be used to give a smooth, weighted prediction based on
+  the associated linear models, or a hard categorization  to a particular local
+  linear model which is then used for prediction. Currently, the probability
+  prediction can be done using kernel density estimation (KDE) or through a
+  one-versus-one support vector machine (SVM).                             \\
+  \zNormalizationNotPerformed{MSR}                             \\                             In
+  order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+  be \xmlString{MSR}
+
+  The \xmlNode{MSR} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{MSR} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{persistence}: \xmlDesc{string}, 
+      specifies how                                                  to define the hierarchical
+      simplification by assigning a value to each local
+      minimum and maximum according to the one of the strategy options below:
+      \begin{itemize}                                                    \item \texttt{difference} -
+      The function value difference between the
+      extremum and its closest-valued neighboring saddle.
+      \item \texttt{probability} - The probability integral computed as the
+      sum of the probability of each point in a cluster divided by the count of
+      the cluster.                                                    \item \texttt{count} - The
+      count of points that flow to or from the
+      extremum.                                                  \end{itemize}
+
+    \item \xmlNode{gradient}: \xmlDesc{string}, 
+      specifies the                                                  method used for estimating the
+      gradient, available options are:
+      \begin{itemize}                                                    \item \texttt{steepest}
+      \end{itemize}
+
+    \item \xmlNode{simplification}: \xmlDesc{float}, 
+      specifies the                                                  amount of noise reduction to
+      apply before returning labels.
+
+    \item \xmlNode{graph}: \xmlDesc{string}, 
+      specifies the type                                                  of neighborhood graph used
+      in the algorithm, available options are:
+      \begin{itemize}                                                    \item \texttt{beta
+      skeleton}                                                    \item \texttt{relaxed beta
+      skeleton}                                                    \item \texttt{approximate knn}
+      \end{itemize}
+
+    \item \xmlNode{beta}: \xmlDesc{float}, 
+      in range: $(0, 2])$. It is                                                  only used when the
+      \xmlNode{graph} is set to \texttt{beta skeleton} or
+      \texttt{relaxed beta skeleton}.
+
+    \item \xmlNode{knn}: \xmlDesc{integer}, 
+      is the number of                                                  neighbors when using the
+      \texttt{approximate knn} for the \xmlNode{graph}
+      sub-node and used to speed up the computation of other graphs by using the
+      approximate knn graph as a starting point for pruning. -1 means use a fully
+      connected graph.
+
+    \item \xmlNode{weighted}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      a flag that specifies                                                  whether the regression
+      models should be probability weighted.
+
+    \item \xmlNode{partitionPredictor}: \xmlDesc{string}, 
+      a flag that                                                  specifies how the predictions for
+      query point categorization  should be
+      performed. Available options are:
+      \begin{itemize}                                                    \item \texttt{kde}
+      \item \texttt{svm}                                                  \end{itemize}
+
+    \item \xmlNode{smooth}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      if this node is present, the ROM will blend the
+      estimates of all of the local linear models weighted by the probability the
+      query point is categorized as belonging to that partition of the input space.
+
+    \item \xmlNode{kernel}: \xmlDesc{string}, 
+      this option is only                                                  used when the
+      \xmlNode{partitionPredictor} is set to \texttt{kde} and
+      specifies the type of kernel to use in the kernel density estimation.
+      Available options are:                                                  \begin{itemize}
+      \item \texttt{uniform}                                                    \item
+      \texttt{triangular}                                                    \item \texttt{gaussian}
+      \item \texttt{epanechnikov}                                                    \item
+      \texttt{biweight} or \texttt{quartic}                                                    \item
+      \texttt{triweight}                                                    \item \texttt{tricube}
+      \item \texttt{cosine}                                                    \item
+      \texttt{logistic}                                                    \item \texttt{silverman}
+      \item \texttt{exponential}                                                  \end{itemize}
+
+    \item \xmlNode{bandwidth}: \xmlDesc{float or string}, 
+      this                                                  option is only used when the
+      \xmlNode{partitionPredictor} is set to
+      \texttt{kde} and specifies the scale of the fall-off. A higher bandwidth
+      implies a smooother blending. If set to \texttt{variable}, then the bandwidth
+      will be set to the distance of the $k$-nearest neighbor of the query point
+      where $k$ is set by the \xmlNode{knn} parameter.
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    </ROM>
+    <ROM name='aUserDefinedName' subType='MSR'>
+       <Features>var1,var2,var3</Features>
+       <Target>result1,result2</Target>
+       <!-- <weighted>true</weighted> -->
+       <simplification>0.0</simplification>
+       <persistence>difference</persistence>
+       <gradient>steepest</gradient>
+       <graph>beta skeleton</graph>
+       <beta>1</beta>
+       <knn>8</knn>
+       <partitionPredictor>kde</partitionPredictor>
+       <kernel>gaussian</kernel>
+       <smooth/>
+       <bandwidth>0.2</bandwidth>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{NDinvDistWeight}
+  The \xmlNode{NDinvDistWeight} is based on an                             $N$-dimensional inverse
+  distance weighting formulation.                             Inverse distance weighting (IDW) is a
+  type of deterministic method for                             multivariate interpolation with a
+  known scattered set of points.                             The assigned values to unknown points
+  are calculated via a weighted average of                             the values available at the
+  known points.                             \\
+  \zNormalizationPerformed{NDinvDistWeight}                             \\
+  In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+  \xmlAttr{subType} needs to be \xmlString{NDinvDistWeight}.
+
+  The \xmlNode{NDinvDistWeight} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{NDinvDistWeight} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{p}: \xmlDesc{integer}, 
+      must be greater than zero and represents the ``power parameter''.
+      For the choice of value for \xmlNode{p},it is necessary to consider the degree
+      of smoothing desired in the interpolation/extrapolation, the density and
+      distribution of samples being interpolated, and the maximum distance over
+      which an individual sample is allowed to influence the surrounding ones (lower
+      $p$ means greater importance for points far away).
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='NDinvDistWeight'>
+      <Features>var1,var2,var3</Features>
+      <Target>result1,result2</Target>
+      <p>3</p>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{SyntheticHistory}
+  A ROM for characterizing and generating synthetic histories. This ROM makes use of         a
+  variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new         signals
+  based on training signal sets. It is a more general implementation of the ARMA ROM. The available
+  algorithms are discussed in more detail below. The SyntheticHistory ROM uses the TSA algorithms to
+  characterize then reproduce time series in sequence; for example, if using Fourier then ARMA, the
+  SyntheticHistory ROM will characterize the Fourier properties using the Fourier TSA algorithm on a
+  training signal, then send the residual to the ARMA TSA algorithm for characterization. Generating
+  new signals works in reverse, first generating a signal using the ARMA TSA algorithm then
+  superimposing the Fourier TSA algorithm.         //         In order to use this Reduced Order
+  Model, the \xmlNode{ROM} attribute         \xmlAttr{subType} needs to be
+  \xmlString{SyntheticHistory}.
+
+  The \xmlNode{SyntheticHistory} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{SyntheticHistory} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{TimeSeriesGenerator}:
+      Base class for time series analysis algorithms used in RAVEN.
+      The \xmlNode{TimeSeriesGenerator} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+    \item \xmlNode{TimeSeriesCharacterizer}:
+      Base class for time series analysis algorithms used in RAVEN.
+      The \xmlNode{TimeSeriesCharacterizer} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+    \item \xmlNode{fourier}:
+      TimeSeriesAnalysis algorithm for determining the strength and phase of
+      specified Fourier periods within training signals. The Fourier signals take
+      the form $C\sin(\frac{2\pi}{k}+\phi)$, where $C$ is the calculated strength
+      or amplitude, $k$ is the user-specified period(s) to search for, and $\phi$
+      is the calculated phase shift. The resulting characterization and synthetic
+      history generation is deterministic given a single training signal.
+      The \xmlNode{fourier} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{fourier} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{periods}: \xmlDesc{comma-separated floats}, 
+          Specifies the periods (inverse of frequencies) that should be searched
+          for within the training signal.
+      \end{itemize}
+
+    \item \xmlNode{arma}:
+      characterizes the signal using Auto-Regressive and Moving Average         coefficients to
+      stochastically fit the training signal.         The ARMA representation has the following
+      form:         \begin{equation*}           A\_t = \sum\_{i=1}^P \phi\_i A\_{t-i} + \epsilon\_t +
+      \sum\_{j=1}^Q \theta\_j \epsilon\_{t-j},         \end{equation*}         where $t$ indicates a
+      discrete time step, $\phi$ are the signal lag (or auto-regressive)         coefficients, $P$
+      is the number of signal lag terms to consider, $\epsilon$ is a random noise         term,
+      $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+      noise lag terms to consider. The ARMA algorithms are developed in RAVEN using the
+      \texttt{statsmodels} Python library.
+      The \xmlNode{arma} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{reduce\_memory}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            activates a lower memory usage ARMA training. This does tend to result
+            in a slightly slower training time, at the benefit of lower memory usage. For
+            example, in one 1000-length history test, low memory reduced memory usage by 2.3
+            MiB, but increased training time by 0.4 seconds. No change in results has been
+            observed switching between modes. Note that the ARMA must be
+            retrained to change this property; it cannot be applied to serialized ARMAs. \default{False}
+      \end{itemize}
+
+      The \xmlNode{arma} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{SignalLag}: \xmlDesc{integer}, 
+          the number of terms in the AutoRegressive term to retain in the
+          regression; typically represented as $P$ in literature.
+
+        \item \xmlNode{NoiseLag}: \xmlDesc{integer}, 
+          the number of terms in the Moving Average term to retain in the
+          regression; typically represented as $Q$ in literature.
+      \end{itemize}
+
+    \item \xmlNode{wavelet}:
+      Discrete Wavelet TimeSeriesAnalysis algorithm. Performs a discrete wavelet transform
+      on time-dependent data. Note: This TSA module requires pywavelets to be installed within your
+      python environment.
+      The \xmlNode{wavelet} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{wavelet} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{family}: \xmlDesc{string}, 
+          The type of wavelet to use for the transformation.     There are several possible families
+          to choose from, and most families contain     more than one variation. For more
+          information regarding the wavelet families,     refer to the Pywavelets documentation
+          located at:     https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html (wavelet-
+          families)     \\     Possible values are:     \begin{itemize}       \item \textbf{haar
+          family}: haar       \item \textbf{db family}: db1, db2, db3, db4, db5, db6, db7, db8, db9,
+          db10, db11,         db12, db13, db14, db15, db16, db17, db18, db19, db20, db21, db22,
+          db23,         db24, db25, db26, db27, db28, db29, db30, db31, db32, db33, db34, db35,
+          db36, db37, db38       \item \textbf{sym family}: sym2, sym3, sym4, sym5, sym6, sym7,
+          sym8, sym9, sym10,         sym11, sym12, sym13, sym14, sym15, sym16, sym17, sym18, sym19,
+          sym20       \item \textbf{coif family}: coif1, coif2, coif3, coif4, coif5, coif6, coif7,
+          coif8,         coif9, coif10, coif11, coif12, coif13, coif14, coif15, coif16, coif17
+          \item \textbf{bior family}: bior1.1, bior1.3, bior1.5, bior2.2, bior2.4, bior2.6,
+          bior2.8, bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4, bior5.5,         bior6.8
+          \item \textbf{rbio family}: rbio1.1, rbio1.3, rbio1.5, rbio2.2, rbio2.4, rbio2.6,
+          rbio2.8, rbio3.1, rbio3.3, rbio3.5, rbio3.7, rbio3.9, rbio4.4, rbio5.5,         rbio6.8
+          \item \textbf{dmey family}: dmey       \item \textbf{gaus family}: gaus1, gaus2, gaus3,
+          gaus4, gaus5, gaus6, gaus7, gaus8       \item \textbf{mexh family}: mexh       \item
+          \textbf{morl family}: morl       \item \textbf{cgau family}: cgau1, cgau2, cgau3, cgau4,
+          cgau5, cgau6, cgau7, cgau8       \item \textbf{shan family}: shan       \item \textbf{fbsp
+          family}: fbsp       \item \textbf{cmor family}: cmor     \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{PolynomialRegression}:
+      fits time-series data using a polynomial function of degree one or greater.
+      The \xmlNode{PolynomialRegression} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{PolynomialRegression} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          Specifies the degree polynomial to fit the data with.
+      \end{itemize}
+
+    \item \xmlNode{rwd}:
+      TimeSeriesAnalysis algorithm for sliding window snapshots to generate features
+      The \xmlNode{rwd} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{rwd} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{signatureWindowLength}: \xmlDesc{integer}, 
+          the size of signature window, which represents as a snapshot for a certain time step;
+          typically represented as $w$ in literature, or $w\_sig$ in the code.
+
+        \item \xmlNode{featureIndex}: \xmlDesc{integer}, 
+          Index used for feature selection, which requires pre-analysis for now, will be addresses
+          via other non human work required method
+
+        \item \xmlNode{sampleType}: \xmlDesc{integer}, 
+          Indicating the type of sampling.
+
+        \item \xmlNode{seed}: \xmlDesc{integer}, 
+          Indicating random seed.
+      \end{itemize}
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, hour</Target>
+      <Features>scaling</Features>
+      <pivotParameter>hour</pivotParameter>
+      <fourier target="signal1, signal2">
+        <periods>12, 24</periods>
+      </fourier>
+      <arma target="signal1, signal2" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{ARMA}
+  The \xmlString{ARMA} ROM is based on an autoregressive moving average time series model with
+  Fourier signal processing, sometimes referred to as a FARMA.                         ARMA is a
+  type of time dependent model that characterizes the autocorrelation between time series data. The
+  mathematic description of ARMA is given as                         \begin{equation*}
+  x\_t = \sum\_{i=1}^p\phi\_ix\_{t-i}+\alpha\_t+\sum\_{j=1}^q\theta\_j\alpha\_{t-j},
+  \end{equation*}                         where $x$ is a vector of dimension $n$, and $\phi\_i$ and
+  $\theta\_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
+  autoregressive (AR); when $p=0$, the above is moving average (MA).                         When
+  training an ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use
+  PostProcessor methods to                         synchronize the data before training an ARMA.
+  The ARMA model implemented allows an option to use Fourier series to detrend the time series
+  before fitting to ARMA model to                         train. The Fourier trend will be stored in
+  the trained ARMA model for data generation. The following equation
+  describes the detrending                         process.
+  \begin{equation*}                         \begin{aligned}                         x\_t &= y\_t -
+  \sum\_m\left\{a\_m\sin(2\pi f\_mt)+b\_m\cos(2\pi f\_mt)\right\}  \\                         &=y\_t -
+  \sum\_m\ c\_m\sin(2\pi f\_mt+\phi\_m)                         \end{aligned}
+  \end{equation*}                         where $1/f\_m$ is defined by the user parameter
+  \xmlNode{Fourier}. \nb $a\_m$ and $b\_m$ will be calculated then transformed to
+  $c\_m$ and $\phi$. The $c\_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as
+  \xmlString{phase}.                         By default, each target in the training will be
+  considered independent and have an unique ARMA for each                         target.
+  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
+  the correlated targets will be trained together using a vector ARMA (or VARMA). Due to limitations
+  in                         the VARMA, in order to seed samples the VARMA must be trained with the
+  node \xmlNode{seed}, which acts                         independently from the global random seed
+  used by other RAVEN entities.                         Both the ARMA and VARMA make use of the
+  \texttt{statsmodels} python package.                         In order to use this Reduced Order
+  Model, the \xmlNode{ROM} attribute                         \xmlAttr{subType} needs to be
+  \xmlString{ARMA}.
+
+  The \xmlNode{ARMA} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{ARMA} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      defines the pivot variable (e.g., time) that is non-decreasing in
+      the input HistorySet.
+
+    \item \xmlNode{correlate}: \xmlDesc{comma-separated strings}, 
+      indicates the listed variables                                                    should be
+      considered as influencing each other, and trained together instead of independently.  This
+      node                                                    can only be listed once, so all
+      variables that are desired for correlation should be included.  \nb The
+      correlated VARMA takes notably longer to train than the independent ARMAs for the same number
+      of targets.
+
+    \item \xmlNode{seed}: \xmlDesc{integer}, 
+      provides seed for VARMA and ARMA sampling.
+      Must be provided before training. If no seed is assigned,
+      then a random number will be used.
+
+    \item \xmlNode{reseedCopies}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      if \xmlString{True} then whenever the ARMA is loaded from file, a
+      random reseeding will be performed to ensure different histories. \nb If
+      reproducible histories are desired for an ARMA loaded from file,
+      \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the
+      \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1
+      and \xmlNode{internalParallel} should be
+      \xmlString{False} for RAVEN runs sampling the trained ARMA model.
+      If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has
+      \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history
+      will always be provided regardless of how many samples are taken.
+      If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize}
+      is more than 1, it is not possible to guarantee the order of RNG usage by
+      the separate processes, so it is not possible to guarantee reproducible
+      histories are generated.
+
+    \item \xmlNode{P}: \xmlDesc{integer}, 
+      defines the value of $p$.
+
+    \item \xmlNode{Q}: \xmlDesc{integer}, 
+      defines the value of $q$.
+
+    \item \xmlNode{Fourier}: \xmlDesc{comma-separated integers}, 
+      must be positive integers. This defines the
+      based period that will be used for Fourier detrending, i.e., this
+      field defines $1/f\_m$ in the above equation.
+      When this filed is not specified, the ARMA considers no Fourier detrend.
+
+    \item \xmlNode{Peaks}: \xmlDesc{string}, 
+      designed to estimate the peaks in signals that repeat with some frequency,
+      often in periodic data.
+      The \xmlNode{Peaks} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{string, required}, 
+            defines the name of one target (besides the                         pivot parameter)
+            expected to have periodic peaks.
+          \item \xmlAttr{threshold}: \xmlDesc{float, required}, 
+            user-defined minimum required                         height of peaks (absolute value).
+          \item \xmlAttr{period}: \xmlDesc{float, required}, 
+            user-defined expected period for target variable.
+      \end{itemize}
+
+      The \xmlNode{Peaks} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{nbin}: \xmlDesc{integer}, 
+          -- no description yet --
+
+        \item \xmlNode{window}: \xmlDesc{comma-separated floats}, 
+          lists the window of time within each period in which a peak should be discovered.
+          The text of this node is the upper and lower boundary of this
+          window \emph{relative to} the start of the period, separated by a comma.
+          User can define the lower bound to be a negative
+          number if the window passes through one side of one period. For example, if the period is
+          24                                                  hours, the window can be -2,2 which is
+          equivalent to 22, 2.
+          The \xmlNode{window} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{width}: \xmlDesc{float, required}, 
+                The user defined  width of peaks in that window. The width is in the unit of the
+                signal as well.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{preserveInputCDF}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      enables a final transform on sampled                                                    data
+      coercing it to have the same distribution as the original data. If \xmlString{True}, then
+      every                                                    sample generated by this ARMA after
+      training will have a distribution of values that conforms within
+      numerical accuracy to the original data. This is especially useful when variance is desired
+      not to stretch                                                    the most extreme events
+      (high or low signal values), but instead the sequence of events throughout this
+      history. For example, this transform can preserve the load duration curve for a load signal.
+
+    \item \xmlNode{SpecificFourier}: \xmlDesc{string}, 
+      provides a means to specify different Fourier
+      decomposition for different target variables.  Values given in the subnodes of this node will
+      supercede                                                    the defaults set by the
+      \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.
+      The \xmlNode{SpecificFourier} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variables}: \xmlDesc{comma-separated strings, required}, 
+            lists the variables to whom                     the \xmlNode{SpecificFourier} parameters
+            will apply.
+      \end{itemize}
+
+      The \xmlNode{SpecificFourier} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{periods}: \xmlDesc{comma-separated integers}, 
+          lists the (fundamental)                                                    periodic
+          wavelength of the Fourier decomposition for these variables,
+          as in the \xmlNode{Fourier} general node.
+      \end{itemize}
+
+    \item \xmlNode{Multicycle}: \xmlDesc{string}, 
+      indicates that each sample of the ARMA should yield
+      multiple sequential samples. For example, if an ARMA model is trained to produce a year's
+      worth of data,                                                    enabling
+      \xmlNode{Multicycle} causes it to produce several successive years of data. Multicycle
+      sampling                                                    is independent of ROM training,
+      and only changes how samples of the ARMA are created.
+      \nb The output of a multicycle ARMA must be stored in a \xmlNode{DataSet}, as the targets will
+      depend                                                    on both the \xmlNode{pivotParameter}
+      as well as the cycle, \xmlString{Cycle}. The cycle is a second
+      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
+
+      The \xmlNode{Multicycle} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{cycles}: \xmlDesc{integer}, 
+          the number of cycles the ARMA should produce
+          each time it yields a sample.
+
+        \item \xmlNode{growth}: \xmlDesc{float}, 
+          if provided then the histories produced by
+          the ARMA will be increased by the growth factor for successive cycles. This node can be
+          added                                                    multiple times with different
+          settings for different targets.                                                    The
+          text of this node is the growth factor in percentage. Some examples are in
+          Table~\ref{tab:arma multicycle growth}, where \emph{Growth factor} is the value used in
+          the RAVEN                                                    input and \emph{Scaling
+          factor} is the value by which the history will be multiplied.
+          \begin{table}[h!]                                                      \centering
+          \begin{tabular}{r c l}                                                        Growth
+          factor & Scaling factor & Description \\ \hline
+          50 & 1.5 & growing by 50\% each cycle \\
+          -50 & 0.5 & shrinking by 50\% each cycle \\
+          150 & 2.5 & growing by 150\% each cycle \\
+          \end{tabular}                                                      \caption{ARMA Growth
+          Factor Examples}                                                      \label{tab:arma
+          multicycle growth}                                                    \end{table}
+          The \xmlNode{growth} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{targets}: \xmlDesc{comma-separated strings, required}, 
+                lists the targets                     in this ARMA that this growth factor should
+                apply to.
+              \item \xmlAttr{start\_index}: \xmlDesc{integer, optional}, 
+                -- no description yet --
+              \item \xmlAttr{end\_index}: \xmlDesc{integer, optional}, 
+                -- no description yet --
+              \item \xmlAttr{mode}: \xmlDesc{[exponential, linear], required}, 
+                either \xmlString{linear} or                     \xmlString{exponential}, determines
+                the manner in which the growth factor is applied.                     If
+                \xmlString{linear}, then the scaling factor is $(1+y\cdot g/100)$;
+                if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
+                where $y$ is the cycle after the first and $g$ is the provided scaling factor.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{nyquistScalar}: \xmlDesc{integer}, 
+      -- no description yet --
+
+    \item \xmlNode{ZeroFilter}: \xmlDesc{string}, 
+      turns on \emph{zero filtering}                                                  for the listed
+      targets. Zero filtering is a very specific algorithm, and should not be used without
+      understanding its application.  When zero filtering is enabled, the ARMA will remove all the
+      values from                                                  the training data equal to zero
+      for the target, then train on the remaining data (including Fourier detrending
+      if applicable). If the target is set as correlated to another target, the second target will
+      be treated as                                                  two distinct series: one
+      containing times in which the original target is zero, and one in the remaining
+      times. The results from separated ARMAs are recombined after sampling. This can be a
+      methodology for                                                  treating histories with long
+      zero-value segments punctuated periodically by peaks.
+      The \xmlNode{ZeroFilter} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{tol}: \xmlDesc{float, optional}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{outTruncation}: \xmlDesc{comma-separated strings}, 
+      defines whether and how output                                                    time series
+      are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
+      \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of
+      targets to whom                                                    this domain limitation
+      should be applied. In the event a negative value is discovered in a target whose
+      domain is strictly positive, the absolute value of the original negative value will be used
+      instead, and                                                    similarly for the negative
+      domain.
+      The \xmlNode{outTruncation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{domain}: \xmlDesc{[positive, negative], required}, 
+            -- no description yet --
+      \end{itemize}
+  \end{itemize}
+
+In addition, \xmlNode{Segment} can be used to divided the ROM. In order to enable the segmentation, the
+user need to specify following information for \xmlNode{Segment}:
+\begin{itemize}
+  \item \xmlNode{Segment}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs.
+
+    To futher enable clustering of the segments, the \xmlNode{Segment} has the following attributes:
+    \begin{itemize}
+      \item \xmlAttr{grouping}, \xmlDesc{string, optional field} enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node, as described below.
+        \default{segment}
+    \end{itemize}
+
+    This node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM. This node also requires an attribute
+        to determine how the subspace is divided, as well as other attributes, described below:
+        \begin{itemize}
+          \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+          \item \xmlAttr{divisions}, \xmlDesc{integer, optional field}, as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.
+            Either this option or \xmlAttr{pivotLength} must be provided.
+          \item \xmlAttr{shift}, \xmlDesc{string, optional field}, governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.
+        \end{itemize}
+      \item \xmlNode{Classifier}, \xmlDesc{string, optional field} associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.
+      \item \xmlNode{clusterFeatures}, \xmlDesc{string, optional field}, if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options.
+      \item \xmlNode{evalMode}, \xmlDesc{string, optional field}, one of \xmlString{truncated},
+        \xmlString{full}, or \xmlString{clustered}, determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}
+     \item \xmlNode{evaluationClusterChoice}, \xmlDesc{string, optional field}, one of \xmlString{first} or
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
+        first ROM (representative segmented ROM),in each cluster, is considered to
+         be representative of the full space in the cluster (i.e. the evaluation is always performed
+         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
+         is choosen when an evaluation is requested.
+   \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+   ``random''.
+         %If ``centroid'', a ROM ``trained" on the centroids
+         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
+         %available yet).
+         \default{first}
+    \end{itemize}
+\end{itemize}
+
+\hspace{24pt}
+General ARMA Example:
+\begin{lstlisting}[style=XML, morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='ARMA'>
+      <pivotParameter>Time</pivotParameter>
+      <Features>scaling</Features>
+      <Target>Speed1,Speed2</Target>
+      <P>5</P>
+      <Q>4</Q>
+      <Segment>
+        <subspace pivotLength="1296000" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Fourier>604800,86400</Fourier>
+      <FourierOrder>2, 4</FourierOrder>
+      <Peaks target='Speed1' threshold='0.1' period='86400'>
+        <window width='14400' >-7200,10800</window>
+        <window width='18000' >64800,75600</window>
+      </Peaks>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{PolyExponential}
+  The \xmlNode{PolyExponential} contains a single ROM type, aimed to construct a     time-dependent
+  (or any other monotonic variable) surrogate model based on polynomial sum of exponential term.
+  This surrogate have the form:     \begin{equation}       SM(X,z) = \sum\_{i=1}^{N} P\_{i}(X) \times
+  \exp ( - Q\_{i}(X) \times z )     \end{equation}     where:     \begin{itemize}       \item
+  $\mathbf{z}$ is the independent  monotonic variable (e.g. time)       \item $\mathbf{X}$  is the
+  vector of the other independent (parametric) variables  (Features)       \item $\mathbf{P\_{i}}(X)$
+  is a polynomial of rank M function of the parametric space X       \item  $\mathbf{Q\_{i}}(X)$ is a
+  polynomial of rank M function of the parametric space X       \item  $\mathbf{N}$ is the number of
+  requested exponential terms.     \end{itemize}     It is crucial to notice that this model is
+  quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.     In
+  addition, it is important to notice that the exponential terms' coefficients are computed running
+  a genetic-algorithm optimization     problem, which is quite slow in case of increasing number of
+  ``numberExpTerms''.     In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+  \xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential}.     \\     Once the ROM is
+  trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients can be exported into an XML file
+  via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be
+  exported (i.e. \xmlNode{what} node     in \xmlNode{OutStream} of type \xmlAttr{Print}):
+  \begin{itemize}       \item \xmlNode{expTerms}, see XML input specifications above, inquired pre-
+  pending the keyword ``output|'' (e.g. output| expTerms)       \item \xmlNode{coeffRegressor}, see
+  XML input specifications above       \item \xmlNode{polyOrder}, see XML input specifications above
+  \item \xmlNode{features}, see XML input specifications above       \item \xmlNode{timeScale}, XML
+  node containing the array of the training time steps values       \item \xmlNode{coefficients},
+  XML node containing the exponential terms' coefficients for each realization     \end{itemize}
+
+  The \xmlNode{PolyExponential} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{PolyExponential} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      defines the pivot variable (e.g., time) that represents the
+      independent monotonic variable
+
+    \item \xmlNode{numberExpTerms}: \xmlDesc{integer}, 
+      the number of exponential terms to be used ($N$ above)
+
+    \item \xmlNode{coeffRegressor}: \xmlDesc{[poly, spline, nearest]}, 
+      defines which regressor to use for interpolating the
+      exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.
+
+    \item \xmlNode{polyOrder}: \xmlDesc{integer}, 
+      the polynomial order to be used for interpolating the exponential
+      coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''.
+
+    \item \xmlNode{tol}: \xmlDesc{float}, 
+      relative tolerance of the optimization problem (differential evolution optimizer)
+
+    \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
+      maximum number of iterations (generations) for the
+      optimization problem  (differential evolution optimizer)
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='PolyExp' subType='PolyExponential'>
+     <Target>time,decay_heat, xe135_dens</Target>
+     <Features>enrichment,bu</Features>
+     <pivotParameter>time</pivotParameter>
+     <numberExpTerms>5</numberExpTerms>
+     <max_iter>1000000</max_iter>
+     <tol>0.000001</tol>
+  </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained PolyExponential ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <what>coefficients,timeScale</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{DMD}
+  The \xmlString{DMD} ROM aimed to construct a time-dependent (or any other monotonic
+  variable) surrogate model based on Dynamic Mode Decomposition         This surrogate is aimed to
+  perform a ``dimensionality reduction regression'', where, given time         series (or any
+  monotonic-dependent variable) of data, a set of modes each of which is associated         with a
+  fixed oscillation frequency and decay/growth rate is computed         in order to represent the
+  data-set.         In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+  \xmlAttr{subType} needs to be set equal to \xmlString{DMD}.         \\         Once the ROM  is
+  trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an
+  XML file         via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following
+  variable/parameters can be exported (i.e. \xmlNode{what} node         in \xmlNode{OutStream} of
+  type \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
+  specifications above           \item \xmlNode{energyRankSVD}, see XML input specifications above
+  \item \xmlNode{rankTLSQ}, see XML input specifications above           \item \xmlNode{exactModes},
+  see XML input specifications above           \item \xmlNode{optimized}, see XML input
+  specifications above           \item \xmlNode{features}, see XML input specifications above
+  \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
+  \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be
+  used as mapping           between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
+  \item \xmlNode{eigs}, XML node containing the eigenvalues (imaginary and real part)
+  \item \xmlNode{amplitudes}, XML node containing the amplitudes (imaginary and real part)
+  \item \xmlNode{modes}, XML node containing the dynamic modes (imaginary and real part)
+  \end{itemize}
+
+  The \xmlNode{DMD} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{DMD} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{dmdType}: \xmlDesc{[dmd, hodmd]}, 
+      the type of Dynamic Mode Decomposition to apply.Available are:
+      \begin{itemize}                                                     \item \textit{dmd}, for
+      classical DMD                                                     \item \textit{hodmd}, for
+      high order DMD.                                                   \end{itemize}
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      defines the pivot variable (e.g., time) that represents the
+      independent monotonic variable
+
+    \item \xmlNode{rankSVD}: \xmlDesc{integer}, 
+      defines the truncation rank to be used for the SVD.
+      Available options are:                                                  \begin{itemize}
+      \item \textit{-1}, no truncation is performed
+      \item \textit{0}, optimal rank is internally computed
+      \item \textit{>1}, this rank is going to be used for the truncation
+      \end{itemize}
+
+    \item \xmlNode{energyRankSVD}: \xmlDesc{float}, 
+      energy level ($0.0 < float < 1.0$) used to compute the rank such
+      as computed rank is the number of the biggest singular values needed to reach the energy
+      identified by                                                    \xmlNode{energyRankSVD}. This
+      node has always priority over  \xmlNode{rankSVD}
+
+    \item \xmlNode{rankTLSQ}: \xmlDesc{integer}, 
+      $int > 0$ that defines the truncation rank to be used for the total
+      least square problem. If not inputted, no truncation is applied
+
+    \item \xmlNode{exactModes}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      True if the exact modes need to be computed (eigenvalues and
+      eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+
+    \item \xmlNode{optimized}: \xmlDesc{float}, 
+      True if the amplitudes need to be computed minimizing the error
+      between the modes and all the time-steps or False, if only the 1st timestep only needs to be
+      considered
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='DMD' subType='DMD'>
+      <Target>time,totals_watts, xe135_dens</Target>
+      <Features>enrichment,bu</Features>
+      <dmdType>dmd</dmdType>
+      <pivotParameter>time</pivotParameter>
+      <rankSVD>0</rankSVD>
+      <rankTLSQ>5</rankTLSQ>
+      <exactModes>False</exactModes>
+      <optimized>True</optimized>
+    </ROM
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+\subsubsection{DMDC}
+  The \xmlString{DMDC} contains a single ROM type similar to DMD, aimed to         construct a time-
+  dependent surrogate model based on Dynamic         Mode Decomposition with Control (ref.
+  \cite{proctor2016dynamic}).         In addition to perform a ``dimensionality reduction
+  regression'' like DMD, this surrogate will         calculate the state-space representation
+  matrices A, B and  C in a discrete time domain:         \begin{itemize}           \item
+  $x[k+1]=A*x[k]+B*u[k]$           \item $y[k+1]=C*x[k+1]$         \end{itemize}          In order
+  to use this Reduced Order Model, the \xmlNode{ROM} attribute         \xmlAttr{subType} needs to be
+  set equal to \xmlString{DMDC}.         \\         Once the ROM  is trained (\textbf{Step}
+  \xmlNode{RomTrainer}), its         parameters/coefficients can be exported into an XML file
+  via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be
+  exported (i.e.         \xmlNode{what} node         in \xmlNode{OutStream} of type
+  \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
+  specifications above           \item \xmlNode{actuators}, see XML input specifications above
+  \item \xmlNode{states}, XML node containing the list of system state variables (x)           \item
+  \xmlNode{initStates}, XML node containing the list of system state variables
+  (x\_init) that are used for initializing the model in ``evaluation'' mode           \item
+  \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial
+  values in the                 training data           \item \xmlNode{XNorm}, XML node containing
+  the norminal values of state variables,                 which are the initial values in the
+  training data           \item \xmlNode{XLast}, XML node containing the last value of state
+  variables,                 which are the final values in the training data           \item
+  \xmlNode{outputs}, XML node containing the list of system output variables (y)           \item
+  \xmlNode{YNorm}, XML node containing the norminal values of output variables,
+  which are the initial values in the training data           \item \xmlNode{dmdTimeScale}, XML node
+  containing the array of time scale in the DMD space           \item \xmlNode{Atilde},  XML node
+  containing the A matrix in discrete time domain                 (real and imaginary and part,
+  matrix shape, and format note)           \item \xmlNode{Btilde}, XML node containing the B matrix
+  in discrete time domain                 (real and imaginary and part, matrix shape, and format
+  note)           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
+  (real and imaginary and part, matrix shape, and format note)         \end{itemize}
+
+  The \xmlNode{ROM} DMDC node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{ROM} DMDC node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    %\item \xmlNode{CV}: \xmlDesc{string},
+    %  The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+    %  \xmlAttr{subType}         ``CrossValidation``.
+    %  The \xmlNode{CV} node recognizes the following parameters:
+    %    \begin{itemize}
+    %      \item \xmlAttr{class}: \xmlDesc{string, optional},
+    %        should be set to \xmlString{Model}
+    %      \item \xmlAttr{type}: \xmlDesc{string, optional},
+    %        should be set to \xmlString{PostProcessor}
+    %  \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      defines the pivot variable (e.g., time) that represents the
+      independent monotonic variable
+
+    \item \xmlNode{rankSVD}: \xmlDesc{integer}, 
+      defines the truncation rank to be used for the SVD.
+      Available options are:                                                  \begin{itemize}
+      \item \textit{-1}, no truncation is performed
+      \item \textit{0}, optimal rank is internally computed
+      \item \textit{>1}, this rank is going to be used for the truncation
+      \end{itemize}
+
+    \item \xmlNode{energyRankSVD}: \xmlDesc{float}, 
+      energy level ($0.0 < float < 1.0$) used to compute the rank such
+      as computed rank is the number of the biggest singular values needed to reach the energy
+      identified by                                                    \xmlNode{energyRankSVD}. This
+      node has always priority over  \xmlNode{rankSVD}
+
+    \item \xmlNode{rankTLSQ}: \xmlDesc{integer}, 
+      $int > 0$ that defines the truncation rank to be used for the total
+      least square problem. If not inputted, no truncation is applied
+
+    \item \xmlNode{exactModes}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      True if the exact modes need to be computed (eigenvalues and
+      eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+
+    \item \xmlNode{optimized}: \xmlDesc{float}, 
+      True if the amplitudes need to be computed minimizing the error
+      between the modes and all the time-steps or False, if only the 1st timestep only needs to be
+      considered
+
+    \item \xmlNode{dmdType}: \xmlDesc{[dmd]}, 
+      the type of Dynamic Mode Decomposition to apply.Available are:
+      \begin{itemize}                                                     \item \textit{dmd}, for
+      classical DMD                                                   \end{itemize}
+
+    \item \xmlNode{actuators}: \xmlDesc{comma-separated strings}, 
+      defines the actuators (i.e. system input parameters)
+      of this model. Each actuator variable (u1, u2, etc.) needs to
+      be listed here.
+
+    \item \xmlNode{stateVariables}: \xmlDesc{comma-separated strings}, 
+      defines the state variables (i.e. system variable vectors)
+      of this model. Each state variable (x1, x2, etc.) needs to be listed
+      here. The variables indicated in \xmlNode{StateVariables} must be
+      listed in the \xmlNode{Target} node too.
+
+    \item \xmlNode{initStateVariables}: \xmlDesc{comma-separated strings}, 
+      defines the state variables' ids  that should be used as
+      initialization variable                                                   in the evaluation
+      stage (for the evaluation of the model).
+      These variables are used for the first time step to initiate
+      the rolling time-step prediction of the state variables, ``exited''
+      by the \xmlNode{actuators} signal. The variables listed in
+      \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
+      node too.
+
+    \item \xmlNode{subtractNormUXY}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      True if the initial values need to be subtracted from the
+      actuators (u), state (x) and outputs (y) if any. False if the subtraction
+      is not needed.
+  \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+   ...
+   <Models>
+     ...
+    <ROM name="DMDc" subType="DMDC">
+       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
+       <Target>Time,x1,x2,x3,y1,y2</Target>
+       <!-- Features include all the u(t), x(t), p(s) -->
+       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+       <!-- Actuator variables u(t) are listed below -->
+       <actuators>u1</actuators>
+       <!-- StateVariables x(t) are listed below -->
+       <stateVariables>x1, x2, x3</stateVariables>
+       <!-- Initialization Variables-->
+       <initStateVariables>x1_init, x2_init, x3_init</initStateVariables>
+       <!-- Pivot variable (e.g. Time) -->
+       <pivotParameter>Time</pivotParameter>
+       <!-- rankSVD -->
+       <rankSVD>-1</rankSVD>
+       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+       <subtractNormUXY>True</subtractNormUXY>
+     </ROM>
+     ...
+   </Models>
+   ...
+ </Simulation>
+
+\end{lstlisting}
+
+Example to export the coefficients of trained DMDC ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMDc</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMDc</source>
+      <what>rankSVD,UNorm,XNorm,XLast,Atilde,Btilde</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}

@@ -65,14 +65,32 @@
     rel_err = 0.00001
     zero_threshold = 1e-14
   [../]
+
+  [./medianAndPercentile]
+    type = 'RavenFramework'
+    input = 'test_median_and_percentile.xml'
+    csv = 'median/median.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-14
+  [../]
+
   [./printXml]
     type = 'RavenFramework'
     input = 'print_xml.xml'
-    UnorderedXml = 'basicStatisticsXml/InputOutput_basicStatPP_dump.xml'
-    UnorderedCsv = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
-    rel_err = 1e-6
-    zero_threshold = 1e-14
+    [./CSV]
+      type = OrderedCSV
+      output = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
+      rel_err = 5e-1
+      zero_threshold = 1e-14
+    [../]
+    [./XML]
+      type = XML
+      output = 'basicStatisticsXml/InputOutput_basicStatPP_dump.xml'
+      rel_err = 5e-1
+      zero_threshold = 1e-14
+    [../]
   [../]
+
   [./sensitivity]
     type = 'RavenFramework'
     input = 'sensitivity.xml'
@@ -107,8 +125,8 @@
   [./variationCoefficient]
     type = 'RavenFramework'
     input = 'variationCoefficient.xml'
-    output = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.xml'
-    UnorderedCsv = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.csv'
+    output = 'basicStatisticsVariationCoefficient/variationCoefficient_basicStatPP_dump.xml'
+    UnorderedCsv = 'basicStatisticsVariationCoefficient/variationCoefficient_basicStatPP_dump.csv'
     max_time = 500
     rel_err = 0.00001
   [../]
@@ -165,4 +183,10 @@
     UnorderedXml = 'timeDepMeta/Back_to_MASTER.xml'
     output = 'timeDepMeta/Back_to_MASTER.csv timeDepMeta/Back_to_MASTER_0.csv'
   [../]
+  [./spearman]
+    type = 'RavenFramework'
+    input = 'spearman.xml'
+    UnorderedCsv = 'basicStatsSpearman/InputOutput_basicStatPP_dump.csv'
+  [../]
+
 []

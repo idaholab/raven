@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.uniformDiscreteWithoutReplacement</name>
+    <author>mandd</author>
+    <created>2020-06-05</created>
+    <classesTested>Distributions.UniformDiscrete</classesTested>
+    <description>
+       This test checks the capability of RAVEN to use UniformDiscrete distribution (strategy=withoutReplacement)..
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_uniformDiscrete/</WorkingDir>
+    <Sequence>MCrun,OutStreams</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <IOStep name="OutStreams" pauseAtEnd="false">
+      <Input   class="DataObjects" type="PointSet"      >PointSet_MC</Input>
+      <Output  class="OutStreams"  type="Print"         >MC_dumpWOreplec</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="localSum" name="PythonModule" subType="">
+      <variables>x3,x4,x5,x6,x7,x8,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <UniformDiscrete name="x_dist">
+      <lowerBound>3</lowerBound>
+      <upperBound>8</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x3">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x7">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x8">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dumpWOreplec">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x3,x4,x5,x6,x7,x8</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x3,x4,x5,x6,x7,x8</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

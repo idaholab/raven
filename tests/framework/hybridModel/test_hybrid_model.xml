@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="quiet">
   <TestInfo>
     <name>framework/hybridModel.hybridModel</name>
     <author>wangc</author>
@@ -10,7 +10,7 @@
        This test is intended to check the functionality of Hybrid Model.
     </description>
     <revisions>
-      <revision author="wangc" date="2019-07-09">Move cross validation asssemble from HybridModel to ROM</revision>
+      <revision author="wangc" date="2019-07-09">Move cross validation assemble from HybridModel to ROM</revision>
     </revisions>
   </TestInfo>
 
@@ -33,17 +33,16 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="knr" subType="KNeighborsRegressor">
       <Features>leftTemperature, rightTemperature</Features>
       <Target>k</Target>
       <n_neighbors>5</n_neighbors>
@@ -60,7 +59,7 @@
         <n_splits>10</n_splits>
         <shuffle>False</shuffle>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>

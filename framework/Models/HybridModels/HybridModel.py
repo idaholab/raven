@@ -28,7 +28,7 @@ import time
 #Internal Modules------------------------------------------------------------------------------------
 from .HybridModelBase import HybridModelBase
 import Files
-from utils import InputData, InputTypes
+from utils import InputData, InputTypes, mathUtils
 from utils import utils
 from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
@@ -82,13 +82,13 @@ class HybridModel(HybridModelBase):
     """
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    HybridModelBase.__init__(self,runInfoDict)
+    super().__init__()
     self.modelInstance         = None                # instance of given model
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
@@ -109,8 +109,8 @@ class HybridModel(HybridModelBase):
     self.crowdingDistance      = None
     self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
-    self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -395,7 +395,7 @@ class HybridModel(HybridModelBase):
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
       currentInput = self._extractInputs(varDict, paramsList)
       if self.crowdingDistance is None:
-        self.crowdingDistance = self.computeCrowdingDistance(trainInput)
+        self.crowdingDistance = mathUtils.computeCrowdingDistance(trainInput)
       sizeCD = len(self.crowdingDistance)
       if sizeCD != trainInput.shape[1]:
         self.crowdingDistance = self.updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.crowdingDistance)
@@ -416,21 +416,6 @@ class HybridModel(HybridModelBase):
         allValid = False
     return allValid
 
-  def computeCrowdingDistance(self, trainSet):
-    """
-      This function will compute the Crowding distance coefficients among the input parameters
-      @ In, trainSet, numpy.array, array contains values of input parameters
-      @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
-    """
-    dim = trainSet.shape[1]
-    distMat = np.zeros((dim, dim))
-    for i in range(dim):
-      for j in range(i):
-        distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
-        distMat[j,i] = distMat[i,j]
-    crowdingDist = np.sum(distMat,axis=1)
-    return crowdingDist
-
   def updateCrowdingDistance(self, oldSet, newSet, crowdingDistance):
     """
       This function will compute the Crowding distance coefficients among the input parameters
@@ -449,7 +434,7 @@ class HybridModel(HybridModelBase):
     for i in range(oldSize):
       for j in range(newSize):
         distMatAppend[i,j] = linalg.norm(oldSet[:,i] - newSet[:,j])
-    distMatNew = self.computeCrowdingDistance(newSet)
+    distMatNew = mathUtils.computeCrowdingDistance(newSet)
     for i in range(oldSize):
       newCrowdingDistance[i] = crowdingDistance[i] + np.sum(distMatAppend[i,:])
     for i in range(newSize):
@@ -502,21 +487,13 @@ class HybridModel(HybridModelBase):
       self.modelIndicator[prefix] = 1
     else:
       self.modelIndicator[prefix] = 0
-    ## Ensemble models need access to the job handler, so let's stuff it in our
-    ## catch all kwargs where evaluateSample can pick it up, not great, but
-    ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler
-    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
     kwargs['useROM'] = self.romValid
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
+    HybridModelBase.submit(self,myInput,samplerType,jobHandler,**kwargs)
 
   def _externalRun(self,inRun, jobHandler):
     """
-      Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
+      Method that performs the actual run of the hybrid model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
         inRun[2] dictionary that contains information coming from sampler)
       @ In, jobHandler, instance, instance of jobHandler

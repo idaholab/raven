@@ -14,9 +14,9 @@
 """
   Utility module containing methods commonly used throughout the Python framework.
 """
-
+# NOTE we still import these from __future__ here because many machines still running
+# python 2.X need to use this file (for example the plugin installer)
 from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *
@@ -24,11 +24,13 @@ from __future__ import division, print_function, absolute_import
 # are used by --library-report, this can cause diagnostic messages to fail. *
 # ***************************************************************************
 import bisect
-import sys, os, errno
+import sys
+import os
+import errno
+import shutil
 import inspect
 import subprocess
 import platform
-import copy
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -172,6 +174,29 @@ def removeFile(pathAndFileName):
   """
   if os.path.isfile(pathAndFileName):
     os.remove(pathAndFileName)
+
+def removeDir(strPath):
+  """
+    Method to remove a directory.
+    @ In, strPath, string, path to directory to remove
+    @ Out, None
+  """
+  path = os.path.abspath(os.path.expanduser(strPath))
+  shutil.rmtree(path, onerror=_removeDirErrorHandler)
+
+def _removeDirErrorHandler(func, path, excinfo):
+  """
+    Handles errors arising from using shutil.rmtree
+    Argument descriptions from shutil documentation
+    @ In, func, is the function which raised the exception; it depends on the platform and
+                implementation
+    @ In, path, will be the path name passed to function
+    @ In, excinfo, will be the exception information returned by sys.exc_info()
+    @ Out, None
+  """
+  print('utils.removeDir WARNING: unable to remove {path} using {func}, ' +
+        'raising the following exception: {excinfo}. Continuing ...'
+        .format(path=path, func=func, excinfo=excinfo))
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
@@ -503,6 +528,10 @@ def importFromPath(filename, printImporting = True):
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
+    pythonPath = os.environ.get("PYTHONPATH","")
+    absPath = os.path.abspath(path)
+    if absPath not in pythonPath:
+      os.environ['PYTHONPATH'] = pythonPath+ os.pathsep + absPath
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
@@ -629,6 +658,8 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
+        # we add it in pythonpath too
+        os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
@@ -644,6 +675,11 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+  # we add it in pythonpath too
+  newPath = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
+    print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
+  os.environ['PYTHONPATH'] = newPath
 
 def add_path_recursively(absoluteInitialPath):
   """
@@ -667,7 +703,7 @@ def findCrowModule(name):
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
     module = import_module("crow_modules.{}{}".format(name,ext))
-  except ImportError as ie:
+  except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
       raise ie
     module = import_module("{}{}".format(name,ext))
@@ -696,7 +732,6 @@ def getPythonCommand():
   #  pythonCommand = "python"
   #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
   return pythonCommand
-
 
 def printCsv(csv,*args):
   """
@@ -1010,21 +1045,3 @@ def which(cmd):
           return name
   return None
 
-def orderClusterLabels(originalLables):
-  """
-    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
-    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
-    @ In, originalLabels, list, the original labeling system
-    @ Out, labels, np.array(int), ordinal labels
-  """
-  labels = np.zeros(len(originalLabels), dtype=int)
-  oldToNew = {}
-  nextUsableLabel = 0
-  for l, old in enumerate(originalLabels):
-    new = oldToNew.get(old, None)
-    if new is None:
-      oldToNew[old] = nextUsableLabel
-      new = nextUsableLabel
-      nextUsableLabel += 1
-    labels[l] = new
-  return labels

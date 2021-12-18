@@ -191,7 +191,7 @@ class testDescription(object):
     # Test description
     latexString += '   \\item Test Description:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +description.strip().replace("_", "\_").replace("#","\#")+'\n'
+    latexString += '     \\item ' +description.strip().replace("_", "\\_").replace("\\\\_", "\\_").replace("#","\#")+'\n'
     latexString += '   \\end{itemize} \n'
     # is analytical?
     if analyticNode is not None:

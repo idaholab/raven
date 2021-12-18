@@ -14,15 +14,13 @@
 """
 This tests images against a expected image.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 import sys
 
 try:
-  from scipy.misc import imread
+  from imageio import imread
   correctImport = True
 except ImportError:
-  import scipy
   correctImport = False
 
 from Tester import Differ
@@ -73,9 +71,8 @@ class ImageDiff:
       #read in files
       if filesRead:
         if not correctImport:
-          self.__message += 'ImageDiff cannot run with scipy version less '+\
-            'than 0.15.0, and requires the PIL installed; scipy version is '+\
-            str(scipy.__version__)
+          self.__message += 'ImageDiff cannot run without imageio'+\
+            ' that is an optional RAVEN library. Pleaase install it.'
           self.__same = False
           return(self.__same, self.__message)
         try:
@@ -84,7 +81,7 @@ class ImageDiff:
           # ...didn't work on Windows Python because it couldn't sense the file type
           testImage = imread(testFilename)
         except IOError:
-          self.__message += 'Unrecognized file type for test image in scipy.imread: '+testFilename
+          self.__message += 'Unrecognized file type for test image in imageio.imread: '+testFilename
           filesRead = False
           return (False, self.__message)
         try:
@@ -94,7 +91,7 @@ class ImageDiff:
           goldImage = imread(goldFilename)
         except IOError:
           filesRead = False
-          self.__message += 'Unrecognized file type for test image in scipy.imread: '+goldFilename
+          self.__message += 'Unrecognized file type for test image in imageio.imread: '+goldFilename
           return (False, self.__message)
         #first check dimensionality
         if goldImage.shape != testImage.shape:

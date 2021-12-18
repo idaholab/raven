@@ -1,7 +1,7 @@
 <DataObjectMetadata name="rom_stats">
   <GROM type="Static">
     <ROM>
-      <type>GAUSSgpcROM(ans-ans2)</type>
+      <type>GAUSSgpcROM</type>
     </ROM>
     <ans>
       <mean>4.7</mean>
@@ -9,7 +9,6 @@
       <variance>3.565</variance>
       <samples>9</samples>
       <polyCoeffs>
-        <inputVariables>x1,x2</inputVariables>
         <_0_0_>4.7</_0_0_>
         <_0_1_>-1.76776695297</_0_1_>
         <_0_2_>2.35794922682e-15</_0_2_>
@@ -19,21 +18,22 @@
         <_2_0_>2.41409087508e-15</_2_0_>
         <_2_1_>-7.37861662814e-16</_2_1_>
         <_2_2_>6.4161883723e-17</_2_2_>
+        <inputVariables>x1,x2</inputVariables>
       </polyCoeffs>
       <partialVariance>
-        <x2>3.125</x2>
         <x1>0.44</x1>
         <x1.x2>6.77204934613e-31</x1.x2>
+        <x2>3.125</x2>
       </partialVariance>
       <sobolIndices>
-        <x2>0.876577840112</x2>
         <x1>0.123422159888</x1>
         <x1.x2>1.89959308447e-31</x1.x2>
+        <x2>0.876577840112</x2>
       </sobolIndices>
       <sobolTotalIndices>
-        <x2>0.876577840112</x2>
         <x1>0.123422159888</x1>
         <x1.x2>1.89959308447e-31</x1.x2>
+        <x2>0.876577840112</x2>
       </sobolTotalIndices>
     </ans>
     <ans2>
@@ -42,7 +42,6 @@
       <variance>215.638125</variance>
       <samples>9</samples>
       <polyCoeffs>
-        <inputVariables>x1,x2</inputVariables>
         <_0_0_>14.655</_0_0_>
         <_0_1_>-13.2582521472</_0_1_>
         <_0_2_>5.41265877365</_0_2_>
@@ -52,21 +51,22 @@
         <_2_0_>0.649923072371</_2_0_>
         <_2_1_>-5.90289330251e-15</_2_1_>
         <_2_2_>1.79653274424e-15</_2_2_>
+        <inputVariables>x1,x2</inputVariables>
       </polyCoeffs>
       <partialVariance>
-        <x2>205.078125</x2>
         <x1>10.56</x1>
         <x1.x2>4.14968130146e-29</x1.x2>
+        <x2>205.078125</x2>
       </partialVariance>
       <sobolIndices>
-        <x2>0.951029067796</x2>
         <x1>0.0489709322041</x1>
         <x1.x2>1.92437274321e-31</x1.x2>
+        <x2>0.951029067796</x2>
       </sobolIndices>
       <sobolTotalIndices>
-        <x2>0.951029067796</x2>
         <x1>0.0489709322041</x1>
         <x1.x2>1.92437274321e-31</x1.x2>
+        <x2>0.951029067796</x2>
       </sobolTotalIndices>
     </ans2>
   </GROM>

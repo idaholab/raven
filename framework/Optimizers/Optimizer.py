@@ -109,14 +109,36 @@ class Optimizer(AdaptiveSampler):
     init.addSub(minMax)
     specs.addSub(init)
 
-    # assembled objects
-    specs.addSub(InputData.assemblyInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True,
+    ConstraintInput = InputData.parameterInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True,
         printPriority=150,
         descr=r"""name of \xmlNode{Function} which contains explicit constraints for the sampling of
               the input space of the Model. From a practical point of view, this XML node must contain
               the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
-              This external function must contain a method called ``constrain'', which returns 1 for
-              inputs satisfying the constraints and 0 otherwise."""))
+              This external function must contain a method called ``constrain'', which returns True for
+              inputs satisfying the explicit constraints and False otherwise. \nb Currently this accepts any number of constraints from the user.""")
+    ConstraintInput.addParam("class", InputTypes.StringType, True,
+        descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
+    ConstraintInput.addParam("type", InputTypes.StringType, True,
+        descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
+
+
+    ImplicitConstraintInput =  InputData.parameterInputFactory('ImplicitConstraint', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=150,
+        descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+              point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
+              block (see Section~\ref{sec:functions}). This external function must contain a method called
+              ``implicitConstrain'', which returns True for outputs satisfying the implicit constraints and False otherwise.""")
+    ImplicitConstraintInput.addParam("class", InputTypes.StringType, True,
+        descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
+    ImplicitConstraintInput.addParam("type", InputTypes.StringType, True,
+        descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
+
+    specs.addSub(ConstraintInput)
+    specs.addSub(ImplicitConstraintInput)
+
+
+    # assembled objects
+
     specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True,
         printPriority=175,
         descr=r"""name of a Sampler that can be used to initialize the starting points for the trajectories
@@ -149,11 +171,13 @@ class Optimizer(AdaptiveSampler):
     self._trajCounter = 0       # tracks numbers to assign to trajectories
     self._initSampler = None    # sampler to use for picking initial seeds
     self._constraintFunctions = [] # list of constraint functions
-
+    self._impConstraintFunctions = [] # list of implicit constraint functions
+    self._requireSolnExport = True # optimizers only produce result in solution export
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
+    self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -258,10 +282,16 @@ class Optimizer(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    if solutionExport is None:
+      self.raiseAnError(IOError, 'Optimizers require a SolutionExport DataObject. Please add a <SolutionExport> node in the Step!')
+
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # functional constraints
     for entry in self.assemblerDict.get('Constraint', []):
       self._constraintFunctions.append(entry[3])
+
+    for entry in self.assemblerDict.get('ImplicitConstraint', []):
+      self._impConstraintFunctions.append(entry[3])
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed
@@ -310,12 +340,13 @@ class Optimizer(AdaptiveSampler):
     """
 
   @abc.abstractmethod
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _updateSolutionExport(self, traj, rlz, acceptable, rejectReason):
     """
       Stores information to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
 
@@ -373,7 +404,7 @@ class Optimizer(AdaptiveSampler):
                                    .format(v=sampled, i=self._initSampler.name, s=self.name))
     self._initSampler.initialize(externalSeeding)
     # initialize points
-    numTraj = len(self._initialValues)
+    numTraj = len(self._initialValues) if self._initialValues else None
     ## if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
       if numTraj != self._initSampler.limit:
@@ -415,7 +446,8 @@ class Optimizer(AdaptiveSampler):
       @ In, value, float, opt value obtained
       @ Out, None
     """
-    self._activeTraj.remove(traj)
+    if traj in self._activeTraj:
+      self._activeTraj.remove(traj)
     info = {'reason': reason, 'value': value}
     assert action in ['converge', 'cancel']
     if action == 'converge':

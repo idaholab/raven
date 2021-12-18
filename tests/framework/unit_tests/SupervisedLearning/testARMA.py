@@ -15,18 +15,11 @@
   This Module performs Unit Tests for the ARMA class.
   It can not be considered part of the active code but of the regression test system
 """
-
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import xml.etree.ElementTree as ET
 import sys, os
 from scipy import stats
 import pickle as pk
 import numpy as np
-import copy
 import pandas as pd
 
 # find location of crow, message handler
@@ -48,7 +41,6 @@ mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 from Models import ROM
 
 # find location of ARMA
-#sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
 from SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
@@ -276,11 +268,10 @@ def createARMAXml(targets, pivot, p, q, fourier=None):
   return xml
 
 def createFromXML(xml):
-  inputSpec = ROM.getInputSpecification()
-  rom = ROM({})
-  rom.messageHandler = mh
+  inputSpec = ROM.getInputSpecification(xml)
+  rom = ROM()
   rom._readMoreXML(xml)
-  arma = rom.supervisedEngine.supervisedContainer[0]
+  arma = rom.supervisedContainer[0]
   return rom, arma
 
 def createARMA(targets, pivot, p, q, fourier=None):

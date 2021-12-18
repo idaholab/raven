@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- TestInfo -->
+  <TestInfo>
+    <name>framework/Databases/HDF5.large_HDF5</name>
+    <author>@alfoa</author>
+    <created>2019-03-01</created>
+    <revisions>
+        <revision author="alfoa" date="2019-03-01">Added test for testing new way to handle group names</revision>
+    </revisions>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+        This  test is aimed to test the capability of the RAVEN database strucuture to handle large databases (#926)
+        in terms of group names.
+    </description>
+  </TestInfo>
+
+  <!-- RunInfo. 2 Steps are performed in this case -->
+  <RunInfo>
+    <WorkingDir>large_database</WorkingDir>
+    <Sequence>largeDataset,push,dump</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <!-- Models. One single external model -->
+  <Models>
+    <ExternalModel ModuleToLoad="../test_2steps/two_steps" name="TwoStep" subType="">
+      <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
+    </ExternalModel>
+  </Models>
+
+  <!-- Distributions. 4 Distributions -->
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="auxBackupTimeDist">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Triangular name="CladFailureDist">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+    </Triangular>
+  </Distributions>
+
+  <!-- Samplers. 2 different samplers since we want to test the possibility to add different data in the same HDF5 -->
+  <Samplers>
+    <MonteCarlo name="RAVEN7500">
+      <samplerInit>
+        <limit>7500</limit>
+      </samplerInit>
+      <variable name="Gauss1">
+        <distribution>Gauss1</distribution>
+      </variable>
+      <variable name="auxBackupTimeDist">
+        <distribution>auxBackupTimeDist</distribution>
+      </variable>
+      <variable name="Gauss2">
+        <distribution>Gauss2</distribution>
+      </variable>
+      <variable name="CladFailureDist">
+        <distribution>CladFailureDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <!-- Steps. 2 steps that dump the results in the same HDF5 -->
+  <Steps>
+    <MultiRun name="largeDataset" re-seeding="200286" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">TwoStep</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVEN7500</Sampler>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+      <!-- <Output class="Databases" type="HDF5">testLargeDatabase</Output> -->
+    </MultiRun>
+    <IOStep name="push" >
+        <Input class="DataObjects" type="PointSet">ps</Input>
+        <Output class="Databases" type="HDF5">testLargeDatabase</Output>
+    </IOStep>
+    <IOStep name="dump" >
+        <Input class="Databases" type="HDF5">testLargeDatabase</Input>
+        <Output class="DataObjects" type="PointSet">ps2</Output>
+        <Output class="OutStreams" type="Print">ps2_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <!-- Databases. 1 database used as dumper -->
+  <Databases>
+    <HDF5 name="testLargeDatabase" readMode="overwrite"/>
+  </Databases>
+
+  <!-- DataObjects. 1 input data object and 1 output dataobject -->
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="ps">
+      <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+      <Output>out1,out2</Output>
+    </PointSet>
+    <PointSet name="ps2">
+        <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+        <Output>out1,out2</Output>
+    </PointSet>
+
+  </DataObjects>
+
+  <!-- OutStreams. Print object (dataobject dumping) -->
+  <OutStreams>
+    <Print name="ps2_dump">
+      <type>csv</type>
+      <source>ps2</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

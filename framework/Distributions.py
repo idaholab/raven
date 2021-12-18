@@ -13,34 +13,25 @@
 # limitations under the License.
 """
 Created on Mar 7, 2013
-
 @author: crisr
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#from __builtin__ import None
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import sys
 import numpy as np
 import scipy
 from math import gamma
 import os
 import operator
-from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
 from numpy import linalg as LA
 import copy
 import math as math
 
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from EntityFactoryBase import EntityFactory
+from BaseClasses import BaseEntity, InputDataUser
 from utils import utils
 from utils.randomUtils import random
+from utils import randomUtils
 distribution1D = utils.findCrowModule('distribution1D')
 from utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
@@ -78,6 +69,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
                               'LogUniform' : 'LogUniformDistribution',
+                              'UniformDiscrete' : 'UniformDiscreteDistribution'
 }
 
 class DistributionsCollection(InputData.ParameterInput):
@@ -88,7 +80,7 @@ class DistributionsCollection(InputData.ParameterInput):
 DistributionsCollection.createClass("Distributions")
 
 
-class Distribution(BaseType):
+class Distribution(BaseEntity, InputDataUser):
   """
     A general class containing the distributions
   """
@@ -102,10 +94,9 @@ class Distribution(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Distribution, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType))
-
     return inputSpecification
 
   def __init__(self):
@@ -114,22 +105,23 @@ class Distribution(BaseType):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.upperBoundUsed       = False  # True if the distribution is right truncated
     self.lowerBoundUsed       = False  # True if the distribution is left truncated
     self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
-    self.upperBound           = None  # Right bound
-    self.lowerBound           = None  # Left bound
+    self.upperBound           = None   # Right bound
+    self.lowerBound           = None   # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
-    self.disttype             = None # distribution type (continuous or discrete)
+    self.dimensionality       = None   # Dimensionality of the distribution (1D or ND)
+    self.distType             = None   # Distribution type (continuous or discrete)
+    self.memory               = False  # This variable flags if the distribution has history dependence in the sampling process (True) or not (False)
     self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.compatibleQuadrature = [] #list of compatible quadratures
     self.convertToDistrDict   = {} #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
     self.convertToQuadDict    = {} #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
-    self.measureNormDict     = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
+    self.measureNormDict      = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
     self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
     self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
     self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
@@ -162,7 +154,6 @@ class Distribution(BaseType):
     self.__adjustmentType = pdict.pop('adjustmentType'  )
     self.dimensionality   = pdict.pop('dimensionality'  )
     self.type             = pdict.pop('type'            )
-    self.messageHandler   = pdict.pop('messageHandler'  )
     self._localSetState(pdict)
     self.initializeDistribution()
 
@@ -226,7 +217,6 @@ class Distribution(BaseType):
     paramDict['lowerBound'      ] = self.lowerBound
     paramDict['adjustmentType'  ] = self.__adjustmentType
     paramDict['dimensionality'  ] = self.dimensionality
-    paramDict['messageHandler'  ] = self.messageHandler
     return paramDict
 
   def rvsWithinCDFbounds(self,lowerBound,upperBound):
@@ -354,13 +344,37 @@ class Distribution(BaseType):
     """
     return self.dimensionality
 
-  def getDisttype(self):
+  def getDistType(self):
     """
       Function return distribution type
       @ In, None
-      @ Out, disttype, string,  ('Continuous' or 'Discrete')
+      @ Out, distType, string,  ('Continuous' or 'Discrete')
     """
-    return self.disttype
+    return self.distType
+
+  def getMemory(self):
+    """
+      Function return the value of the memory variable
+      @ In, None
+      @ Out, memory, boolean, value which indicates if distribution has memory
+    """
+    return self.memory
+
+  def reset(self):
+    """
+      Function that reset the distribution
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def initializeFromDict(self, inputDict):
+    """
+      Function which initializes the distribution given a the information contained in inputDict
+      @ In, inputDict, dict, dictionary containing the values required to initialize the distribution
+      @ Out, None
+    """
+    pass
 
 class BoostDistribution(Distribution):
   """
@@ -373,9 +387,9 @@ class BoostDistribution(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dimensionality  = 1
-    self.disttype        = 'Continuous'
+    self.distType        = 'Continuous'
 
   def cdf(self,x):
     """
@@ -410,6 +424,15 @@ class BoostDistribution(Distribution):
     """
     returnPdf = self._distribution.pdf(x)
     return returnPdf
+
+  def logPdf(self,x):
+    """
+      Function to get the log pdf at a provided coordinate
+      @ In, x, float, value to get the pdf at
+      @ Out, logPdf, float, requested log pdf
+    """
+    logPdf = np.log(self.pdf(x))
+    return logPdf
 
   def untruncatedCdfComplement(self, x):
     """
@@ -474,21 +497,33 @@ class BoostDistribution(Distribution):
       rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
+  def selectedRvs(self, discardedElems):
+    """
+      Function to get random numbers for discrete distribution which exclude discardedElems
+      @ In, discardedElems, list, list of values to be discarded
+      @ Out, rvsValue, float, requested random number
+    """
+    if not self.memory:
+      self.raiseAnError(IOError,' The distribution '+ str(self.name) + ' does not support the method selectedRVS.')
+    else:
+      rvsValue = self.selectedPpf(random(),discardedElems)
+    return rvsValue
+
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
   """
 
-  def __init__(self, lowerBound = None, upperBound = None):
+  def __init__(self, lowerBound=None, upperBound=None):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.range = 0.0
     self.type = 'Uniform'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('Legendre')
     self.compatibleQuadrature.append('ClenshawCurtis')
     self.compatibleQuadrature.append('CDF')
@@ -497,14 +532,11 @@ class Uniform(BoostDistribution):
     if upperBound is not None:
       self.upperBound = upperBound
       self.upperBoundUsed = True
-      print("upperBound", self.upperBound)
     if lowerBound is not None:
       self.lowerBound = lowerBound
       self.lowerBoundUsed = True
-      print("lowerBound", self.lowerBound)
     if self.lowerBoundUsed and self.upperBoundUsed:
       self.range = self.upperBound - self.lowerBound
-
 
   def _localSetState(self,pdict):
     """
@@ -615,12 +647,12 @@ class Normal(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mean  = mean
     self.sigma = sigma
     self.hasInfiniteBound = True
     self.type = 'Normal'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
     #THESE get set in initializeDistribution, since it depends on truncation
@@ -763,18 +795,20 @@ class Gamma(BoostDistribution):
 
     return inputSpecification
 
-  def __init__(self):
+  def __init__(self, low=0.0, alpha=0.0, beta=1.0):
     """
       Constructor
-      @ In, None
+      @ In, low, float, lower domain boundary
+      @ In, alpha, float, shape parameter
+      @ In, beta, float, 1/scale or the inverse scale parameter
       @ Out, None
     """
-    BoostDistribution.__init__(self)
-    self.low = 0.0
-    self.alpha = 0.0
-    self.beta = 1.0
+    super().__init__()
+    self.low = low
+    self.alpha = alpha
+    self.beta = beta
     self.type = 'Gamma'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -925,13 +959,13 @@ class Beta(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.low = 0.0
     self.high = 1.0
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -1100,12 +1134,12 @@ class Triangular(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.apex = 0.0   # peak location
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
     self.type = 'Triangular'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1216,11 +1250,11 @@ class Poisson(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1311,12 +1345,12 @@ class Binomial(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.n       = 0.0
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1412,10 +1446,10 @@ class Bernoulli(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1505,10 +1539,10 @@ class Geometric(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.p        = 0.0
     self.type     = 'Geometric'
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1573,15 +1607,14 @@ DistributionsCollection.addSub(Geometric.getInputSpecification())
 
 class Categorical(Distribution):
   """
-    Class for the categorical distribution also called " generalized Bernoulli distribution"
+    Class for the categorical distribution also called "generalized Bernoulli distribution"
     Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
+      Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
@@ -1604,12 +1637,12 @@ class Categorical(Distribution):
       @ In, None
       @ Out, none
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.mapping        = {}
     self.values         = set()
     self.type           = 'Categorical'
     self.dimensionality = 1
-    self.disttype       = 'Discrete'
+    self.distType       = 'Discrete'
 
   def _handleInput(self, paramInput):
     """
@@ -1643,22 +1676,50 @@ class Categorical(Distribution):
     paramDict['values'] = self.values
     return paramDict
 
+  def initializeFromDict(self, inputDict):
+    """
+      Function that initializes the distribution provided a dictionary
+      @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
+      @ Out, None
+    """
+    for idx, val in enumerate(inputDict['outcome']):
+      self.mapping[val] = inputDict['state'][idx]
+      self.values.add(val)
+
+    self.checkDistParams()
+
   def initializeDistribution(self):
     """
-      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      Function that initializes the distribution
       @ In, None
       @ Out, None
     """
-    totPsum = 0.0
-    for element in self.mapping:
-      if self.mapping[element] < 0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      totPsum += self.mapping[element]
-    if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(totPsum), ', not 1.0!', 'Please renomlize it to 1!')
+    self.checkDistParams()
+
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
+
+  def checkDistParams(self):
+    """
+      Function that checks that the sum of all state probabilities is equal to 1 and perform pdf value normalization
+      @ In, None
+      @ Out, None
+    """
+    # check all probability values are between 0.0 and 1.0
+    for element in self.mapping:
+      if self.mapping[element] < 0.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
+      if self.mapping[element] > 1.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
+
+    localSum = sum(self.mapping.values())
+    if not mathUtils.compareFloats(localSum,1.0):
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+
+    # Probability values normalization
+    for key in self.mapping.keys():
+      self.mapping[key] = self.mapping[key]/localSum
 
   def pdf(self,x):
     """
@@ -1667,7 +1728,7 @@ class Categorical(Distribution):
       @ Out, pdfValue, float, requested pdf
     """
     if x in self.values:
-      pdfValue =  self.mapping[x]
+      pdfValue = self.mapping[x]
     else:
       self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
@@ -1679,6 +1740,8 @@ class Categorical(Distribution):
       @ Out, cumulative, float, requested cdf
     """
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    if x == sortedMapping[-1][0]:
+      return 1.0
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1694,23 +1757,233 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
+    if x > 1.0 or x < 0:
+      self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    cumulative=0.0
-    for element in sortedMapping:
-      cumulative += element[1]
-      if cumulative >= x:
-        return float(element[0])
+    if x == 1.0:
+      return float(sortedMapping[-1][0])
+    else:
+      cumulative=0.0
+      for element in sortedMapping:
+        cumulative += element[1]
+        if cumulative >= x:
+          return float(element[0])
 
   def rvs(self):
     """
       Return a random state of the categorical distribution
       @ In, None
-      @ Out, rvsValue, float/string, the random state
+      @ Out, rvsValue, float, the random state
     """
     rvsValue = self.ppf(random())
     return rvsValue
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
+
+class UniformDiscrete(Distribution):
+  """
+    Class for the uniform discrete distribution
+  """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    BaseInputType = InputTypes.makeEnumType("base", "baseType", ["withReplacement","withoutReplacement"])
+
+    specs = super(UniformDiscrete, cls).getInputSpecification()
+    specs.description = r"""The UniformDiscrete distribution is a discrete distribution which describes a random variable
+                            that can have $N$ values having equal probability value. This distribution allows the user to
+                            choose two kinds of sampling strategies: with or without replacement.
+                            In case the ``without replacement'' strategy is used, the distribution samples from the set of
+                            specified $N$ values reduced by the previously sampled values. After, the sampler has generated
+                            values for all variables, the distribution is resetted (i.e., the set of values that can be sampled
+                            is returned to $N$). In case the ``with replacement'' strategy is used, the distribution samples
+                            always from the complete set of specified $N$ values.
+                            """
+    lb = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, printPriority=109,
+    descr=r""" Lower bound of the set of allowed sample values. """)
+    specs.addSub(lb)
+
+    ub = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, printPriority=109,
+    descr=r""" Upper bound of the set of allowed sample values. """)
+    specs.addSub(ub)
+
+    np = InputData.parameterInputFactory('nPoints', contentType=InputTypes.IntegerType, printPriority=109,
+    descr=r""" Number of points between lower and upper bound. """)
+    specs.addSub(np)
+
+    strategy = InputData.parameterInputFactory('strategy', BaseInputType, printPriority=109,
+    descr=r""" Type of sampling strategy. """)
+    specs.addSub(strategy)
+
+    return specs
+
+  def __init__(self):
+    """
+      Function that initializes the Uniform Discrete distribution
+      @ In, None
+      @ Out, none
+    """
+    super().__init__()
+    self.type           = 'UniformDiscrete'
+    self.dimensionality = 1
+    self.distType       = 'Discrete'
+    self.memory         = True
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    Distribution._handleInput(self, paramInput)
+    if self.lowerBound is None:
+      self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
+
+    if self.upperBound is None:
+      self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
+
+    strategy = paramInput.findFirst('strategy')
+    if strategy != None:
+      self.strategy = strategy.value
+    else:
+      self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
+
+    nPoints = paramInput.findFirst('nPoints')
+    if nPoints != None:
+      self.nPoints = nPoints.value
+    else:
+      self.nPoints = None
+
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Distribution.getInitParams(self)
+    paramDict['strategy'] = self.strategy
+    paramDict['nPoints'] = self.nPoints
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Function that initializes the distribution
+      @ In, None
+      @ Out, None
+    """
+    if self.nPoints is None:
+      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+    else:
+      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+
+    # Here the actual calculation of discrete distribution parameters is performed
+    self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
+    paramsDict={}
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
+
+    self.categoricalDist = Categorical()
+    self.categoricalDist.initializeFromDict(paramsDict)
+    initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
+    self.pot = np.asarray(initialPerm)
+
+  def initializeFromDict(self, inputDict):
+    """
+      Function that initializes the distribution provided a dictionary
+      @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
+      @ Out, None
+    """
+    self.strategy = inputDict['strategy']
+    self.categoricalDist = Categorical()
+    self.categoricalDist.initializeFromDict(inputDict)
+    initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
+    self.pot = np.asarray(initialPerm)
+
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, float/string, value to get the pdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    return self.categoricalDist.pdf(x)
+
+  def cdf(self,x):
+    """
+      Function to get the cdf value of x
+      @ In, x, float/string, value to get the cdf at
+      @ Out, cumulative, float, requested cdf
+    """
+    return self.categoricalDist.cdf(x)
+
+  def ppf(self,x):
+    """
+      Function that calculates the inverse of the cdf given 0 =< x =< 1
+      @ In, x, float, value to get the ppf at
+      @ Out, element[0], float/string, requested inverse cdf
+    """
+    return self.categoricalDist.ppf(x)
+
+  def rvs(self):
+    """
+      Return a random state of the distribution
+      @ In, None
+      @ Out, rvsValue, float, the random state
+    """
+    if self.strategy == 'withReplacement':
+      return self.categoricalDist.rvs()
+    else:
+      if self.pot.size == 0:
+        # re-initialize the distribution
+        self.reset()
+        self.raiseAWarning("The Uniform Discrete distribution " + str(self.name) + " has been internally reset outside the sampler.")
+      rvsValue = self.pot[-1]
+      self.pot = np.resize(self.pot, self.pot.size - 1)
+    return rvsValue
+
+  def selectedRvs(self,discardedElems):
+    """
+      Return a random state of the distribution without discardedElems
+      @ In, discardedElems, np array, list of discarded elements
+      @ Out, rvsValue, float, the random state
+    """
+    if self.nPoints is None:
+      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+    else:
+      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+
+    self.xArray = np.setdiff1d(self.xArray,discardedElems)
+
+    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    paramsDict={}
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
+    paramsDict['strategy'] = self.strategy
+
+    self.tempUniformDiscrete = UniformDiscrete()
+    self.tempUniformDiscrete.initializeFromDict(paramsDict)
+
+    rvsValue = self.tempUniformDiscrete.rvs()
+    return rvsValue
+
+  def reset(self):
+    """
+      Reset the distribution
+      @ In, None
+      @ Out, None
+    """
+    newPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
+    self.pot = np.asarray(newPerm)
+
+DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
 
 class MarkovCategorical(Categorical):
   """
@@ -1748,9 +2021,9 @@ class MarkovCategorical(Categorical):
       @ In, None
       @ Out, none
     """
-    Categorical.__init__(self)
+    super().__init__()
     self.dimensionality = 1
-    self.disttype       = 'Discrete'
+    self.distType       = 'Discrete'
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
     self.transition     = None # transition matrix of a continuous time Markov Model
@@ -1865,11 +2138,11 @@ class Logistic(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -1975,11 +2248,11 @@ class Laplace(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2078,11 +2351,11 @@ class Exponential(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2217,12 +2490,12 @@ class LogNormal(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mean = 1.0
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2334,11 +2607,11 @@ class Weibull(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -2453,14 +2726,14 @@ class Custom1D(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dataFilename    = None
     self.functionType    = None
     self.type            = 'Custom1D'
     self.functionID      = None
     self.variableID      = None
     self.dimensionality  = 1
-    self.disttype        = 'Continuous'
+    self.distType        = 'Continuous'
     # Scipy.interpolate.UnivariateSpline is used
     self.k               = 4 # Degree of the smoothing spline, Must be <=5
     self.s               = 0 # Positive smoothing factor used to choose the number of knots
@@ -2604,8 +2877,8 @@ class LogUniform(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
-    self.base       = None
+    super().__init__()
+    self.base = None
 
   def initializeDistribution(self):
     """
@@ -2647,7 +2920,6 @@ class LogUniform(Distribution):
       pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x
     else:
       pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x * 1./math.log(10.)
-      print(x,pdfValue)
     return pdfValue
 
   def cdf(self,x):
@@ -2710,7 +2982,7 @@ class NDimensionalDistributions(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dataFilename = None
     self.functionType = None
     self.type = 'NDimensionalDistributions'
@@ -2828,8 +3100,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
-    self.p  = None
+    super().__init__()
+    self.p = None
     self.type = 'NDInverseWeight'
 
   def _handleInput(self, paramInput):
@@ -3027,7 +3299,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
+    super().__init__()
     self.type = 'NDCartesianSpline'
 
   def _handleInput(self, paramInput):
@@ -3229,8 +3501,9 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
+    super().__init__()
     self.type = 'MultivariateNormal'
+    self.distType = 'Continuous'
     self.mu  = None
     self.covariance = None
     self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix
@@ -3484,6 +3757,15 @@ class MultivariateNormal(NDimensionalDistributions):
       pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
+  def logPdf(self,x):
+    """
+      Function to get the log pdf at a provided coordinate
+      @ In, x, np.array, the x coordinates
+      @ Out, logPdf, np.array, requested log pdf
+    """
+    logPdf = np.log(self.pdf(x))
+    return logPdf
+
   def pdfInTransformedSpace(self,x):
     """
       Return the pdf of given coordinate in the transformed space
@@ -3617,51 +3899,9 @@ class MultivariateNormal(NDimensionalDistributions):
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 
-__base                                = 'Distribution'
-__interFaceDict                       = {}
-__interFaceDict['Uniform'           ] = Uniform
-__interFaceDict['Normal'            ] = Normal
-__interFaceDict['Gamma'             ] = Gamma
-__interFaceDict['Beta'              ] = Beta
-__interFaceDict['Triangular'        ] = Triangular
-__interFaceDict['Poisson'           ] = Poisson
-__interFaceDict['Binomial'          ] = Binomial
-__interFaceDict['Bernoulli'         ] = Bernoulli
-__interFaceDict['Categorical'       ] = Categorical
-__interFaceDict['MarkovCategorical' ] = MarkovCategorical
-__interFaceDict['Logistic'          ] = Logistic
-__interFaceDict['Exponential'       ] = Exponential
-__interFaceDict['LogNormal'         ] = LogNormal
-__interFaceDict['Weibull'           ] = Weibull
-__interFaceDict['Custom1D'          ] = Custom1D
-__interFaceDict['NDInverseWeight'   ] = NDInverseWeight
-__interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
-__interFaceDict['MultivariateNormal'] = MultivariateNormal
-__interFaceDict['Laplace'           ] = Laplace
-__interFaceDict['Geometric'         ] = Geometric
-__interFaceDict['LogUniform'        ] = LogUniform
-__knownTypes                          = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, __knownTypes, list, the known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Function interface for creating an instance to a database specialized class (for example, HDF5)
-    @ In, Type, string, class type
-    @ In, caller, instance, the caller instance
-    @ Out, returnInstance, instance, instance of the class
-    Note: Interface function
-  """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('Distribution', returnInputParameter=True)
+factory.registerAllSubtypes(Distribution)
+factory.unregisterSubtype('BoostDistribution')
 
 def returnInputParameter():
   """

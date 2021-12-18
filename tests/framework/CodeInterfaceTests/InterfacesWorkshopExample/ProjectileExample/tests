@@ -1,0 +1,15 @@
+[Tests]
+
+ [./projWithoutCSV]
+   type = 'RavenFramework'
+   input = example_using_interface_without_CSV.xml
+   output = 'exampleTestInterfaceWithoutCSV/to_file.csv'
+ [../]
+
+ [./projWithCSV]
+   type = 'RavenFramework'
+   input = example_using_interface_with_CSV_creation.xml
+   output = 'exampleTestInterfaceWithCSV/to_file.csv'
+ [../]
+ 
+[]

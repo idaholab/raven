@@ -57,12 +57,10 @@ behavior depends on the \textbf{Step} is using it.
 %\item \textbf{Function.} The Function role is extremely important, for example, when performing Adaptive Sampling to represent the metric of the transition regions. This role is the role used, for example, to collapse information coming from a Model.
 \item \textbf{ROM} defines an acceleration Reduced Order Model to use for a
 \textbf{Step}.
-\item \textbf{SolutionExport} represents the container of the eventual output
-of a step. For the moment, there are two uses: 1) A \textbf{Step} is employing the
-search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}); in this case, it
-contains the coordinates of the LS in the input space; and 2) Some of the post-processors
-employ clustering algorithms and the cluster centers will be stored in this file
-with the input being the cluster labels.
+\item \textbf{SolutionExport} the DataObject to store solutions from Optimizer or Sampler execution
+in a Step. For example, a LimitSurfaceSearch Sampler outputs the coordinates of the limit surface; 
+similarly, an Optimizer outputs the convergence history and optimal points. 
+See specific Samplers and Optimizers for details.
 \end{itemize}
 Depending on the \textbf{Step} type, different combinations of these roles can
 be used.
@@ -99,21 +97,26 @@ This XML node has the following definable attributes:
 \begin{itemize}
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
-this \textbf{Step}. \nb This name is used to reference this specific entity
-in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
-of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
-going to be performed.
+  this \textbf{Step}. \nb This name is used to reference this specific entity
+  in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
+  of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
+  going to be performed.
 \item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional
-attribute could be used to set a certain number of repetitions that need to be performed
-when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
+  attribute could be used to set a certain number of repetitions that need to be performed
+  when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
-(True values = True, yes, y, t), the code will pause at the end of
-the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreams}.
-For example, it can be used when an \textbf{OutStreams} of type
-\textbf{Plot} is output to the screen. Thus, allowing the user to interact with
-the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
-\default{False}.
+  (True values = True, yes, y, t), the code will pause at the end of
+  the step, waiting for a user signal to continue. This is used in case one or
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
+  \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
+  the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
+  \default{False}.
+\item \xmlAttr{clearRunDir}, \xmlDesc{optional boolean attribute}, indicates whether the run
+  directory should be cleared (removed) before beginning
+  the Step calculation. The run directory has the same \xmlAttr{name} as the \xmlNode{Step} and is
+  located within the \xmlNode{WorkingDir}. Note this directory is only used for a \xmlNode{Step}
+  with certain \xmlNode{Model} types, such as \xmlNode{Code}.
 \end{itemize}
 
 In the \xmlNode{SingleRun} input block, the user needs to specify the objects
@@ -319,9 +322,10 @@ This XML node recognizes the following attributes:
     supported.
 \end{itemize}
 \nb For Multi-Run, either one \xmlNode{Sampler} or one \xmlNode{Optimizer} is required.
-\item \xmlNode{SolutionExport}, \xmlDesc{string, optional parameter} identifies
+\item \xmlNode{SolutionExport}, \xmlDesc{string, optional (Sampler) or required (Optimizer) parameter} identifies
 an entity to be used for exporting key information coming from the
-\textbf{Sampler} or \textbf{Optimizer} object during the simulation.
+\textbf{Sampler} or \textbf{Optimizer} object during the simulation. This node is \textbf{Required}
+when an  \textbf{Optimizer} is used.
 This XML node accepts the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
@@ -337,7 +341,7 @@ This XML node accepts the following attributes:
     \xmlString{HistorySet}, etc. \\
     \nb Whether or not it is possible to export the \textbf{Sampler} solution
     depends on the \xmlAttr{type}.
-    Currently, only the Samplers in the \xmlString{Adaptive} category and all Optimizers can
+    Currently, only the Samplers in the \xmlString{Adaptive} category and all Optimizers will
     export their solution into a \xmlNode{SolutionExport} entity. For Samplers, the \xmlNode{Outputs} node
     in the \texttt{DataObjects} needs to contain the goal \xmlNode{Function} name.
     For example, if  \xmlNode{Sampler} is of type \xmlString{Adaptive}, the
@@ -410,13 +414,13 @@ This step type is used to:
    \textit{CSV} files contained in a directory;
  \item stream the content of a \textit{Database} or a \textit{DataObjects} out through
    an \textbf{OutStream} object (see section \ref{sec:outstream});
-\item store/retrieve a \textit{ROM} to/from an external \textit{File} using Pickle module
- of Python.
-\end{itemize}
-This last function can be used to create and store mathematical model of fast solution
- trained to predict a response of interest of a physical system. This model can be
+ \item store/retrieve a \textit{ROM} or  \textit{ExternalModel} to/from an external \textit{File} using Pickle module
+ of Python. This function can be used to create and store ExternalModel or mathematical model (ROM) of fast solution
+ trained to predict a response of interest of a physical system. These models can be
 recovered in other simulations or used to evaluate the response of a physical system
  in a Python program by the implementing of the Pickle module.
+\end{itemize}
+
 %
 The specifications of this type of step must be defined within an
 \xmlNode{IOStep} XML block.
@@ -464,7 +468,7 @@ This step accepts the following roles:
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{PointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
-    \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
+    \xmlAttr{type} attribute must be \xmlString{ROM} or \xmlString{ExternalModel} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
     \xmlAttr{type} attribute must be \xmlString{ }
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity to
@@ -520,7 +524,7 @@ below) in the \xmlNode{Input} nodes.
   <IOStep name='PushDataObjectsIntoDatabase'>
     <Input  class='DataObjects'     type='HistorySet'>aHistorySet</Input>
     <Input  class='DataObjects'     type='PointSet'>aTPS</Input>
-    <Output class='Databases' type='HDF5'>aDatabase</Output>
+    <Output class='Databases' type='NetCDF'>aDatabase</Output>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
   ...
@@ -533,29 +537,31 @@ A summary of the objects that can go from/to other objects is shown in Table \re
   \centering
   \begin{tabular}{l|l|l}
     \xmlNode{Input} & \xmlNode{Output} & Resulting behavior  \\ \hline
-    DataObject & HDF5       & Store to On-Disk Database      \\
+    DataObject & Database   & Store to On-Disk Database      \\
                & OutStream  & Print or Plot Data             \\ \hline
-    HDF5       & DataObject & Load from On-Disk Database     \\ \hline
+    Database   & DataObject & Load from On-Disk Database     \\ \hline
     File       & DataObject & Load from On-Disk CSV          \\
+                & ExternalModel        & Load On-Disk Serialized ExternalModel    \\
                & ROM        & Load On-Disk Serialized ROM    \\ \hline
     ROM        & DataObject & Print ROM Metadata to CSV, XML \\
-               & File       & Serialize ROM to Disk
+               & File       & Serialize ROM to Disk   \\ \hline
+    ExternalModel     & File       & Serialize ExternalModel to Disk \\
   \end{tabular}
   \caption{Object options for \xmlNode{IOStep} operations}
   \label{tab:IOSTEP}
 \end{table}
 
-As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM
-in a binary file. To use the exported ROM in an external Python (or
+As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM or ExternalModel
+in a binary file. To use the exported ROM or ExternalModel in an external Python (or
 Python-compatible) code, the RAVEN framework must be present in end-user machine.
 The main reason for this is that the \textit{Pickle} module uses the class definitions to template
 the reconstruction of the serialized object in memory.
-\\ In order to faciliate the usage of the serialized ROM in an external Python code, the RAVEN
+\\ In order to faciliate the usage of the serialized ROM or ExternalModel in an external Python code, the RAVEN
 team provided a utility class contained in :
 \begin{lstlisting}[language=bash]
  ./raven/scripts/externalROMloader.py
 \end{lstlisting}
-An example of how to use this utility class to load and use a serialized ROM (already trained) is reported below:
+An example of how to use this utility class to load and use a serialized ROM (already trained) or ExternalModel is reported below:
 %
 Example Python Function:
 \begin{lstlisting}[language=python]
@@ -568,7 +574,7 @@ eval  = rom.evaluate(request)
 print str(eval)
 \end{lstlisting}
 
-The module above can also be used to evaluate a ROM from input file:
+The module above can also be used to evaluate a ROM or ExternalModel from input file:
 \begin{lstlisting}[language=bash]
   python ./raven/scripts/externalROMloader.py input_file.xml
 \end{lstlisting}
@@ -616,6 +622,10 @@ The output of the above command would look like as follows:
   </evaluations>
 </UROM>
 \end{lstlisting}
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%   ROM    %%%%%

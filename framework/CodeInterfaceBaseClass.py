@@ -24,6 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+import CsvLoader
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
@@ -44,6 +45,9 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self.inputExtensions = []    # list of input extensions
     self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
     self._ravenWorkingDir = None # location of RAVEN's main working directory
+    self._csvLoadUtil = 'pandas' # utility to use to load CSVs
+    self.printFailedRuns = True  # whether to print failed runs to the screen
+    self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
 
   def setRunOnShell(self, shell=True):
     """
@@ -60,6 +64,36 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     return self._runOnShell
+
+  def getIfWriteCsv(self):
+    """
+      Returns self._writeCSV. True if a CSV is requested by the user even if
+      the code interface returns the data to RAVEN directly
+      @ In, None
+      @ Out, getIfWriteCsv, bool, should we write the csv?
+    """
+    return self._writeCSV
+
+  def getCsvLoadUtil(self):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, None
+      @ Out, getCsvLoadUtil, str, name of utility to use
+    """
+    # default to pandas, overwrite to 'numpy' if all of the following:
+    # - all entries are guaranteed to be floats
+    # - results CSV have a large number of headers (>1000)
+    return self._csvLoadUtil
+
+  def setCsvLoadUtil(self, util):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, getCsvLoadUtil, str, name of utility to use
+    """
+    ok = CsvLoader.CsvLoader.acceptableUtils
+    if util not in ok:
+      raise TypeError(f'Unrecognized CSV loading utility: "{util}"! Expected one of: {ok}')
+    self._csvLoadUtil = util
 
   def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
     """
@@ -91,6 +125,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self._ravenWorkingDir = ravenWorkingDir
     self._readMoreXML(xmlNode)
+    # read global options
+    # should we print CSV even if the data can be directly returned to RAVEN?
+    csvLog = xmlNode.find("csv")
+    self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
 
   def _readMoreXML(self, xmlNode):
     """
@@ -184,7 +222,11 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, output, string or dict, optional, if present and string:
+                                                 in case the root of the output file gets changed in this method (and a CSV is produced);
+                                               if present and dict:
+                                                 in case the output of the code is directly stored in a dictionary and can be directly used
+                                                 without the need that RAVEN reads an additional CSV
     """
     return output
 

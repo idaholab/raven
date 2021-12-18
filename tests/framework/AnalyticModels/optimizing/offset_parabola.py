@@ -21,6 +21,8 @@ def run(raven, inputs):
     @ In, inputs, dict, key-value pairs
     @ Out, None
   """
+  if not constrain(raven):
+    raise RuntimeError(f'Out of bounds: ({raven.x}, {raven.y})!')
   raven.ans = main(raven.x, raven.y)
 
 def main(x, y):
@@ -37,7 +39,7 @@ def constrain(raven):
   """
     Constrain.
     @ In, raven, object, raven self
-    @ Out, constrain, point ok or not?
+    @ Out, explicitConstrain, point ok or not?
   """
   x = raven.x
   y = raven.y
@@ -49,3 +51,16 @@ def constrain(raven):
   if 0.25 < x < 0.75 and 0 < y < 1:
     return False
   return True
+
+def implicitConstraint(raven):
+  """
+    Implicit constrain.
+    @ In, raven, object, raven self
+    @ Out, implicitConstraint, point ok or not?
+  """
+  x = raven.x
+  ans = raven.ans
+  if x+ans <= -0.2:
+    return False
+  else:
+    return True
