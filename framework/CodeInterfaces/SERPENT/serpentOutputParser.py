@@ -69,7 +69,6 @@ def bumatRead(bumatFile, percentCutoff):
                                 value=atomic density
   """
   compLines = open(bumatFile,"r").readlines()[5:]
-
   compDict = {}
   header = compLines.pop(0)
   for line in compLines:
@@ -79,7 +78,6 @@ def bumatRead(bumatFile, percentCutoff):
 
   compDict = filterTrace(compDict, percentCutoff)
   return compDict
-
 
 def searchKeff(resFile):
   """

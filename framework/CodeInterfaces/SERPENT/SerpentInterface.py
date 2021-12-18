@@ -65,8 +65,6 @@ class SERPENT(GenericCode):
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
       read specific flags.
-      In this case, this is used for locating an external python module where the variables can be modified and the "vector" variables
-      can be splitted in multiple single variables
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
