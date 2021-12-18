@@ -13,6 +13,10 @@
 # limitations under the License.
 """
   Demonstrate running RAVEN in Python workflows.
+
+  Created on Nov 3, 2021
+
+  @author: aalfonsi
 """
 
 import os
@@ -24,17 +28,15 @@ import matplotlib.pyplot as plt
 # is installed on specific machines; it can be simplified greatly for specific applications
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*3+['framework'])))
 sys.path.append(frameworkDir)
+thisDir = os.path.abspath(os.path.dirname(__file__))
 
-print(frameworkDir)
 frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, '../tests', 'framework'))
 targetWorkflow = os.path.join(frameworkTestDir, 'test_rom_trainer.xml')
 
 # import Driver for now
 import Driver
 # import simulation
-#from framework import Simulation
 from Simulation import Simulation as sim
-# import TreeStructure
 import utils.TreeStructure as TS
 # instantiate a RAVEN simulation instance
 # we simply instanciate a Simulation instance
@@ -60,7 +62,6 @@ for name in allSteps:
   inputs, step = ravenSim.initiateStep(name)
   #running a step
   ravenSim.executeStep(inputs, step)
-  print("aaaaa "+name)
   if name == 'test_extract_for_rom_trainer':
     print()
     # acquire and plot data from a data object while we are running the step
@@ -68,9 +69,9 @@ for name in allSteps:
     data = ps.asDataset()# see xarray docs
     data.plot.scatter(x="DeltaTimeScramToAux", y="DG1recoveryTime", hue="CladTempThreshold")
     # these will be saved in the working directory set by RAVEN (e.g. ./tests/framework/test_rom_trainer/)
-    plt.savefig("firstplot.png")
+    plt.savefig(os.path.join(thisDir,"firstplot.png"))
     data.plot.scatter(x="DeltaTimeScramToAux", y="CladTempThreshold", hue="DG1recoveryTime")
-    plt.savefig("secondplot.png")
+    plt.savefig(os.path.join(thisDir,"secondplot.png"))
     # modify the data before going in the rom trainer
     data['DeltaTimeScramToAux']*=1.01
 # finalize the simulation
