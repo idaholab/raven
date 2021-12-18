@@ -63,7 +63,6 @@ for name in allSteps:
   #running a step
   ravenSim.executeStep(inputs, step)
   if name == 'test_extract_for_rom_trainer':
-    print()
     # acquire and plot data from a data object while we are running the step
     ps = ravenSim.getEntity('DataObjects', 'Pointset_from_database_for_rom_trainer')
     data = ps.asDataset()# see xarray docs
