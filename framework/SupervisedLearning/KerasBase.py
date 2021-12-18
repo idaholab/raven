@@ -1893,7 +1893,7 @@ class KerasBase(SupervisedLearning):
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
-    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasMLPRegression', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
 
     if len(self.availOptimizer) == 0:
       # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum

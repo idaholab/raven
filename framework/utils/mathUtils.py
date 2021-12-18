@@ -33,6 +33,9 @@ from .graphStructure import graphObject
 import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
 
+# dict of builtin types, filled by getBuiltinTypes
+_bTypes = None
+
 def normal(x,mu=0.0,sigma=1.0):
   """
     Computation of normal pdf
@@ -1110,3 +1113,44 @@ def computeCrowdingDistance(trainSet):
 
   crowdingDist = np.sum(distMat,axis=1)
   return crowdingDist
+
+def rankData(x, w=None):
+  """
+    Method to rank the data (weighted and unweighted)
+    @ In, x, numpy.array (or array-like), array containing values to rank
+    @ In, w, numpy.array (or array-like), optional, array containing weights (if None, equally-weighted)
+    @ Out, rank, numpy.array, the ranked features
+  """
+  weights = w if w is not None else np.ones(len(x))
+  _, inverseArray, num = np.unique(stats.rankdata(x), return_counts = True, return_inverse = True )
+  A = np.bincount(inverseArray, weights)
+  rank = (np.cumsum(A) - A)[inverseArray]+((num + 1)/2 * (A/num))[inverseArray]
+  return rank
+
+def getBuiltinTypes(typ):
+  """
+    Method to get a dictionary of builtin types
+    @ In, typ, str, the type to get
+    @ Out, getBuiltinTypes, list, the list of type instances
+  """
+  import builtins as b
+  global _bTypes
+  if _bTypes is None:
+    _bTypes = {k:[t] for k, t in b.__dict__.items() if isinstance(t, type)}
+  return _bTypes.get(typ,[])
+
+def getNumpyTypes(typ):
+  """
+    Method to get a dictionary of numpy types
+    @ In, typ, str, the type to get
+    @ Out, nTypes, list, the list of type instances
+  """
+  nTypes = []
+  if typ in np.sctypes:
+    nTypes = np.sctypes[typ]
+  else:
+    for t in np.sctypes['others']:
+      if typ in t.__name__:
+        nTypes.append(t)
+  return nTypes
+
