@@ -57,7 +57,7 @@ ravenSim.initialize()
 # simply : ravenSim.run()
 # get all steps
 allSteps = ravenSim.stepSequence()
- 
+
 for name in allSteps:
   inputs, step = ravenSim.initiateStep(name)
   #running a step
@@ -76,4 +76,4 @@ for name in allSteps:
     data['DeltaTimeScramToAux']*=1.01
 # finalize the simulation
 ravenSim.finalizeSimulation()
- 
+
