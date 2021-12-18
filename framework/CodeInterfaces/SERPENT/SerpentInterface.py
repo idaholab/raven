@@ -52,11 +52,12 @@ class SERPENT(GenericCode):
       @ In, inputFiles, list, the input files of the step
       @ Out, inputFile, string, the input file
     """
-    index = -1
+    found = False
     for index, inputFile in enumerate(inputFiles):
       if inputFile.getType().strip().lower() == "serpent":
+        found = True
         break
-    if index == -1:
+    if not found:
       raise IOError(self.printTag+' ERROR: input type "serpent" not found in the Step!')
     return inputFile
 
