@@ -15,7 +15,7 @@
 """
 Created on Feb 20, 2013
 
-@authors: crisr, aalfonsi, mandd, wangc, talbpaul
+@authors: crisr, aalfonsi, mandd, wangc, cogljj, talbpaul
 
 This is the Driver of RAVEN
 """
