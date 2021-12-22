@@ -656,7 +656,9 @@ def find_crow(framework_dir):
       crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
     for crowDir in crowDirs:
       pmoduleDir = os.path.join(crowDir,"install")
+      print("trying crowDir", pmoduleDir)
       if os.path.exists(pmoduleDir):
+        print("exists", pmoduleDir)
         sys.path.append(pmoduleDir)
         # we add it in pythonpath too
         os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
