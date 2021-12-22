@@ -59,6 +59,7 @@ Note all install methods after "main" take
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
     <xmlschema source="pip"/>
+    <setuptools>59</setuptools>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
