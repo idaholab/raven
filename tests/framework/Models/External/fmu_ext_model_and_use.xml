@@ -16,7 +16,7 @@
     <Sequence>extFMUexport</Sequence>
   </RunInfo>
   <Files>
-    <Input name="attenuate_pk2.fmu" type="">attenuate_pk2.fmu</Input>
+    <Input name="attenuate_pk2.fmu" type="FMU">attenuate_pk2.fmu</Input>
   </Files>
   <Steps>
     <IOStep name="extFMUexport">
