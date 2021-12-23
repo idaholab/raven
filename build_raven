@@ -104,9 +104,10 @@ if test `uname` = Darwin; then
     export MACOSX_DEPLOYMENT_TARGET;
 fi
 
-(cd $CROW_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./install)
+PIP_COMMAND=pip3
+(cd $CROW_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
 
-(cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
+(cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./framework/contrib/AMSC)
 
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu)
 
