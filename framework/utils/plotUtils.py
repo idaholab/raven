@@ -40,8 +40,8 @@ def errorFill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
   ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
   if logscale:
     ax.set_yscale('symlog')
-    
-    
+
+
 def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   """
     Main run method to generate parallel coordinate plot
