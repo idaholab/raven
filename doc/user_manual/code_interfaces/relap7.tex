@@ -1,0 +1,104 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RELAP7 INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RELAP7 Interface}
+This section covers the input specifications for running RELAP7 through RAVEN.
+It is important to notice that this short explanation assumes that the reader already knows
+how to use the control logic system in RELAP7.
+Since the presence of the control logic system in RELAP7, this code interface is different with respect to the others
+and uses some special keyword available in RAVEN (see the following).
+
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of RELAP7, the files typically needed are the following:
+\begin{itemize}
+  \item RELAP7 Input file
+  \item Control Logic file
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='nat_circ.i' type=''>nat_circ.i</Input>
+  <Input name='control_logic.py' type=''>control_logic.py</Input>
+</Files>
+\end{lstlisting}
+The RAVEN/RELAP7 interface recognizes as RELAP7 inputs the files with the extensions  ``*.i'', ``*.inp'' and ``*.in''.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the \xmlNode{Models} block RELAP7 uses the RAVEN executable, since through this executable the stochastic
+environment gets activated (possibility to sample parameters directly in the control logic system)
+%
+Here is a standard example of what can be used to use RELAP7 as the model:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'>
+      <executable>~path/to/RAVEN-opt</executable>
+    </Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+As for all the other codes interfaces  the \xmlNode{Distributions} block needs to be specified in order to employ
+as sampling strategy (e.g. MonteCarlo, Stratified, etc.). In this block, the user specifies the distributions that need to be used.
+Once the user defines the distributions in this block, RAVEN activates the Distribution environment in the RAVEN/RELAP7 control logic
+system. The sampling of the parameters is then performed directly in the control logic input file.
+
+%
+For example, let's consider the sampling of a normal distribution for the primary pressure in
+RELAP7:
+%
+\begin{lstlisting}[style=XML]
+<Distributions>
+ <Normal name="Prim_Pres">
+ <mean>1000000</mean>
+ <sigma>100<sigma/>
+ </Normal>
+</Distributions>
+\end{lstlisting}
+In order to change a parameter (independently on the sampling strategy), the control logic input file should be modified as follows:
+%\lstset{margin=1.5cm}
+\begin{lstlisting}[language=Python]
+def initial_function(monitored, controlled, auxiliary)
+    print("monitored",monitored,"controlled",
+    controlled,"auxiliary",auxiliary)
+
+    controlled.pressureInPressurizer =
+     distributions.Prim_Pres.getDistributionRandom()
+    return
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block, all the variables that needs to be sampled must be specified.
+In case some of these variables are directly sampled in the Control Logic system, the
+\xmlNode{variable} needs to be replaced with \xmlNode{Distribution}. In this way, RAVEN is able
+to understand which variables needs to be directly modified through input file (i.e. modifying the original
+input file *.i)  and which variables are going to be ``sampled'' through the control logic system.
+%
+For the example, we are performing Grid Sampling.
+%
+The global initial pressure wasn't specified in the control logic so it is going to be specified
+using the node \xmlNode{variable}. The ``pressureInPressurizer'' variable is instead sampled in the
+control logic system; for this reason, it is going to be specified using the node  \xmlNode{Distribution}.
+%
+For example,
+%
+\begin{lstlisting}[style=XML]
+<Samplers>
+ <Grid name="MC_samp">
+   <samplerInit> <limit>500</limit> </samplerInit>
+   <variable name="GlobalParams|global_init_P">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </variable>
+   <Distribution name="pressureInPressurizer">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </Distribution>
+ </Grid>
+</Samplers>
+\end{lstlisting}
+
