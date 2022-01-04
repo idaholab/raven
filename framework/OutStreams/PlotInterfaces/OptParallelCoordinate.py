@@ -16,17 +16,20 @@ Created on November 20th, 2021
 
 @author: mandd
 """
-from collections import defaultdict
 
+# External Imports
+from collections import defaultdict
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import numpy as np
 import pandas as pd
 import imageio
-
 from .PlotInterface import PlotInterface
 from utils import InputData, InputTypes
+
+# Internal Imports
+from utils import plotUtils
 
 class OptParallelCoordinatePlot(PlotInterface):
   """
@@ -125,7 +128,7 @@ class OptParallelCoordinatePlot(PlotInterface):
       population = data[data[self.index]==genID]
       ys = population[ynames].values
       fileID = f'{self.name}' + str(genID) + '.png'
-      generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
+      plotUtils.generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
       filesID.append(fileID)
 
     fig = plt.figure()
@@ -135,45 +138,5 @@ class OptParallelCoordinatePlot(PlotInterface):
         writer.append_data(image)
 
 
-def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
-  """
-    Main run method.
-    @ In, zs, pandas dataset, batch containing the set of points to be plotted
-    @ In, batchID, string, ID of the batch
-    @ In, ymins, np.array, minimum value for each variable
-    @ In, ymaxs, np.array, maximum value for each variable
-    @ In, ynames, list, list of string containing the ID of each variable
-    @ In, fileID, string, name of the file containing the plot
-    @ Out, None
-  """
-  N = zs.shape[0]
 
-  fig, host = plt.subplots()
-
-  axes = [host] + [host.twinx() for i in range(zs.shape[1] - 1)]
-  for i, ax in enumerate(axes):
-    ax.set_ylim(ymins[i], ymaxs[i])
-    ax.spines['top'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    if ax != host:
-      ax.spines["right"].set_position(("axes", i / (zs.shape[1] - 1)))
-
-  host.set_xlim(0, zs.shape[1] - 1)
-  host.set_xticks(range(zs.shape[1]))
-  host.set_xticklabels(ynames, fontsize=14)
-  host.tick_params(axis='x', which='major', pad=7)
-  host.spines['right'].set_visible(False)
-  host.xaxis.tick_top()
-  plot_title = 'Batch ' + str(batchID)
-  host.set_title(plot_title, fontsize=14)
-
-  for j in range(N):
-    verts = list(zip([x for x in np.linspace(0, len(zs) - 1, len(zs) * 3 - 2, endpoint=True)],
-                     np.repeat(zs[j, :], 3)[1:-1]))
-    codes = [Path.MOVETO] + [Path.CURVE4 for _ in range(len(verts) - 1)]
-    path = Path(verts, codes)
-    patch = patches.PathPatch(path, facecolor='none', lw=1)
-    host.add_patch(patch)
-  plt.tight_layout()
-  plt.savefig(fileID)
 

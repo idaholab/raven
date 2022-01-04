@@ -16,14 +16,17 @@ Created on November 20th, 2021
 
 @author: mandd
 """
-from collections import defaultdict
 
+# External Imports
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-
 from .PlotInterface import PlotInterface
 from utils import InputData, InputTypes
+
+# Internal Imports
+from utils import plotUtils
 
 class PopulationPlot(PlotInterface):
   """
@@ -141,14 +144,14 @@ class PopulationPlot(PlotInterface):
 
       if var in inVars:
         if var in self.logVars:
-          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
+          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
         else:
-          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar])
+          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar])
       else:
         if var in self.logVars:
-          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar],logscale=True)
+          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar],logscale=True)
         else:
-          errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar])
+          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar])
       axs[indexVar].set_ylabel(var)
       if var == self.vars[-1]:
         axs[indexVar].set_xlabel('Batch #')
@@ -159,20 +162,5 @@ class PopulationPlot(PlotInterface):
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')
 
-def errorFill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
-  """
-    Method designed to draw a line x vs y including a shade between the min and max of y
-    @ In, None
-    @ Out, None
-  """
-  ax = ax if ax is not None else plt.gca()
-  if np.isscalar(yerr) or len(yerr) == len(y):
-    ymin = y - yerr
-    ymax = y + yerr
-  elif len(yerr) == 2:
-    ymin, ymax = yerr
-  ax.plot(x, y, color=color)
-  ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
-  if logscale:
-    ax.set_yscale('symlog')
+
 
