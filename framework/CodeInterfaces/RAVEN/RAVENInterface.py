@@ -281,7 +281,6 @@ class RAVEN(CodeInterfaceBase):
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
-
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
