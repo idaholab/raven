@@ -750,6 +750,7 @@ excludeObj = ['SupervisedLearning',
               'Clusters',
               'Interpolated']
 validDNNRom = ['KerasMLPClassifier',
+              'KerasMLPRegression'
               'KerasConvNetClassifier',
               'KerasLSTMClassifier',
               'KerasLSTMRegression']
