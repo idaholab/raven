@@ -687,7 +687,7 @@
 
     \item \xmlNode{jitter}: \xmlDesc{float}, 
       Upper bound on a uniform noise parameter to be added to the
-      y values, to satisfy the model's assumption of one-at-a-time computations.
+      y values, to satisfy the model’s assumption of one-at-a-time computations.
       Might help with stability.
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
@@ -1090,7 +1090,7 @@
 
     \item \xmlNode{jitter}: \xmlDesc{float}, 
       Upper bound on a uniform noise parameter to be added to the y values,
-      to satisfy the model�s assumption of one-at-a-time computations. Might help
+      to satisfy the model’s assumption of one-at-a-time computations. Might help
       with stability.
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
@@ -1290,7 +1290,7 @@
 \subsubsection{LinearRegression}
   The \xmlNode{LinearRegression}                         is an Ordinary least squares Linear
   Regression.                         LinearRegression fits a linear model with coefficients $w =
-  (w1, �, wp)$ to                         minimize the residual sum of squares between the observed
+  (w1, …, wp)$ to                         minimize the residual sum of squares between the observed
   targets in the                         dataset, and the targets predicted by the linear
   approximation.                         \zNormalizationNotPerformed{LinearRegression}
 
@@ -1445,7 +1445,7 @@
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
-      i.e. a �synthetic� feature with constant value equals to intercept\_scaling is appended
+      i.e. a “synthetic” feature with constant value equals to intercept\_scaling is appended
       to the instance vector. The intercept becomes $intercept\_scaling * synthetic\_feature\_weight$
       \nb the synthetic feature weight is subject to $l1/l2$ regularization as all other features.
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
@@ -1484,11 +1484,11 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
-      Used when solver == �sag�, �saga� or �liblinear� to shuffle the data.
+      Used when solver == ‘sag’, ‘saga’ or ‘liblinear’ to shuffle the data.
   \end{itemize}
 
 
@@ -2357,7 +2357,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
@@ -2462,7 +2462,7 @@
       standard scipy.linalg.solve function to obtain a closed-form solution.
       \item sparse\_cg, uses the conjugate gradient solver as found in scipy.sparse.linalg.cg. As an
       iterative algorithm,                                                               this solver
-      is more appropriate than �cholesky� for large-scale data (possibility to set tol and
+      is more appropriate than ‘cholesky’ for large-scale data (possibility to set tol and
       max\_iter).                                                    \item lsqr, uses the dedicated
       regularized least-squares routine scipy.sparse.linalg.lsqr. It is the fastest and uses
       an iterative procedure.                                                    \item sag, uses a
@@ -2668,7 +2668,7 @@
       standard scipy.linalg.solve function to obtain a closed-form solution.
       \item sparse\_cg, uses the conjugate gradient solver as found in scipy.sparse.linalg.cg. As an
       iterative algorithm,                                                               this solver
-      is more appropriate than �cholesky� for large-scale data (possibility to set tol and
+      is more appropriate than ‘cholesky’ for large-scale data (possibility to set tol and
       max\_iter).                                                    \item lsqr, uses the dedicated
       regularized least-squares routine scipy.sparse.linalg.lsqr. It is the fastest and uses
       an iterative procedure.                                                    \item sag, uses a
@@ -2682,7 +2682,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
@@ -2775,7 +2775,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{store\_cv\_values}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
@@ -2941,7 +2941,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
@@ -3785,7 +3785,7 @@
   \end{itemize}                          The disadvantages of Gaussian Processes for Machine
   Learning include:                          \begin{itemize}                            \item It is
   not sparse.                            It uses the whole samples/features information to perform
-  the prediction.                            \item It loses efficiency in high dimensional spaces �
+  the prediction.                            \item It loses efficiency in high dimensional spaces –
   namely when the                            number of features exceeds a few dozens.
   It might indeed give poor performance and it loses computational efficiency.
   \item Classification is only a post-processing, meaning that one first needs
@@ -3865,7 +3865,7 @@
       Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls
       the smoothness of the resulting function. The smaller $\nu$,
       the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes
-      equivalent to the RBF kernel. When $\nu = 1/2$, the Mat�rn kernel becomes
+      equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
       identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$
       (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
       The kernel is given by $k(x\_i, x\_j) =  \frac{1}{\Gamma(\nu)2^{\nu-1}}\Bigg(
@@ -3930,7 +3930,7 @@
       0, all bounds must be finite.
 
     \item \xmlNode{max\_iter\_predict}: \xmlDesc{integer}, 
-      The maximum number of iterations in Newton�s method for approximating the posterior during
+      The maximum number of iterations in Newton’s method for approximating the posterior during
       predict. Smaller values will reduce computation time at
       the cost of worse results.
 
@@ -3949,7 +3949,7 @@
 
     \item \xmlNode{optimizer}: \xmlDesc{[fmin\_l\_bfgs\_b]}, 
       Per default, the 'L-BGFS-B' algorithm from
-      scipy.optimize.minimize is used. If None is passed, the kernel�s
+      scipy.optimize.minimize is used. If None is passed, the kernel’s
       parameters are kept fixed.
   \end{itemize}
 
@@ -3970,7 +3970,7 @@
   \end{itemize}                          The disadvantages of Gaussian Processes for Machine
   Learning include:                          \begin{itemize}                            \item It is
   not sparse.                            It uses the whole samples/features information to perform
-  the prediction.                            \item It loses efficiency in high dimensional spaces �
+  the prediction.                            \item It loses efficiency in high dimensional spaces –
   namely when the                            number of features exceeds a few dozens.
   It might indeed give poor performance and it loses computational efficiency.
   \item Classification is only a post-processing, meaning that one first needs
@@ -4050,7 +4050,7 @@
       Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls
       the smoothness of the resulting function. The smaller $\nu$,
       the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes
-      equivalent to the RBF kernel. When $\nu = 1/2$, the Mat�rn kernel becomes
+      equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
       identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$
       (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
       The kernel is given by $k(x\_i, x\_j) =  \frac{1}{\Gamma(\nu)2^{\nu-1}}\Bigg(
@@ -4130,7 +4130,7 @@
 
     \item \xmlNode{optimizer}: \xmlDesc{[fmin\_l\_bfgs\_b]}, 
       Per default, the 'L-BGFS-B' algorithm from
-      scipy.optimize.minimize is used. If None is passed, the kernel�s
+      scipy.optimize.minimize is used. If None is passed, the kernel’s
       parameters are kept fixed.
   \end{itemize}
 
@@ -4847,7 +4847,7 @@
 
 \subsubsection{LinearSVC}
   The \xmlNode{LinearSVC} \textit{Linear Support Vector Classification} is
-  similar to SVC with parameter kernel=�linear�, but implemented in terms of liblinear rather than
+  similar to SVC with parameter kernel=’linear’, but implemented in terms of liblinear rather than
   libsvm,                             so it has more flexibility in the choice of penalties and loss
   functions and should scale better to large numbers of samples.                             This
   class supports both dense and sparse input and the multiclass support is handled according to a
@@ -4939,7 +4939,7 @@
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
-      i.e. a �synthetic� feature with constant value equals to intercept\_scaling is appended
+      i.e. a “synthetic” feature with constant value equals to intercept\_scaling is appended
       to the instance vector. The intercept becomes $intercept\_scaling * synthetic feature weight$
       \nb the synthetic feature weight is subject to $l1/l2$ regularization as all other features.
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
@@ -4963,14 +4963,14 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
   \end{itemize}
 
 
 \subsubsection{LinearSVR}
   The \xmlNode{LinearSVR} \textit{Linear Support Vector Regressor} is
-  similar to SVR with parameter kernel=�linear�, but implemented in terms of liblinear rather than
+  similar to SVR with parameter kernel=’linear’, but implemented in terms of liblinear rather than
   libsvm,                             so it has more flexibility in the choice of penalties and loss
   functions and should scale better to large numbers of samples.                             This
   class supports both dense and sparse input.
@@ -5030,7 +5030,7 @@
       Epsilon parameter in the epsilon-insensitive loss function. The value of
       this parameter depends on the scale of the target variable y. If unsure, set $epsilon=0.$
 
-    \item \xmlNode{loss}: \xmlDesc{[epsilon\_insensitive�, squared\_epsilon\_insensitive]}, 
+    \item \xmlNode{loss}: \xmlDesc{[epsilon\_insensitive’, squared\_epsilon\_insensitive]}, 
       Specifies the loss function. The epsilon-insensitive loss (standard SVR)
       is the L1 loss, while the squared epsilon-insensitive loss (``squared\_epsilon\_insensitive'')
       is the L2 loss.
@@ -5044,7 +5044,7 @@
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
-      i.e. a �synthetic� feature with constant value equals to intercept\_scaling is appended
+      i.e. a “synthetic” feature with constant value equals to intercept\_scaling is appended
       to the instance vector. The intercept becomes $intercept\_scaling * synthetic feature weight$
       \nb the synthetic feature weight is subject to $l1/l2$ regularization as all other features.
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
@@ -5178,7 +5178,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
@@ -5402,7 +5402,7 @@
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
-      The �balanced� mode uses the values of y to automatically adjust weights
+      The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
