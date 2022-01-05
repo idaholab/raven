@@ -233,14 +233,14 @@ class DMDC(DMD):
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
-    Uvector = []
+    uVector = []
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
-      Uvector.append(featureVals[:, :, varIndex]) # Uvector is a list now
+      uVector.append(featureVals[:, :, varIndex]) # uVector is a list now
       returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
-    Uvector = np.asarray(Uvector) # the Uvector is not centralized yet
+    uVector = np.asarray(uVector) # the uVector is not centralized yet
     # Get the time steps for evaluation
-    tsEval = Uvector.shape[-1] # ts_Eval = 100
+    tsEval = uVector.shape[-1] # ts_Eval = 100
 
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
@@ -249,16 +249,16 @@ class DMDC(DMD):
     evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
 
     for cnt, index in enumerate(indeces):
-      # Centralize Uvector and initState when required.
+      # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        Uvector = Uvector - self.actuatorVals[0, index, :]
+        uVector = uVector - self.actuatorVals[0, index, :]
         initStates = initStates - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        Xpred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(Uvector[cnt,:,i]),(-1,1)).T
-        evalX[cnt, i+1, :] = Xpred
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[cnt,:,i]),(-1,1)).T
+        evalX[cnt, i+1, :] = xPred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
       if self.dmdParams['centerUXY']:
@@ -400,26 +400,26 @@ class DMDC(DMD):
     # Omega Matrix, stack X1 and U
     omega = np.concatenate((X1, U), axis=0)
     # SVD
-    Utsvd, stsvd, Vtsvd = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
+    uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
-    rank_s = sum(map(lambda x : x>=1e-6, stsvd.tolist()))
-    if rank_s < Utsvd.shape[1]:
-        Ut = Utsvd[:, :rank_s]
-        Vt = Vtsvd[:, :rank_s]
-        St = np.diag(stsvd)[:rank_s, :rank_s]
+    rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
+    if rankTruc < uTrucSVD.shape[1]:
+        uTruc = uTrucSVD[:, :rankTruc]
+        vTruc = vTrucSVD[:, :rankTruc]
+        sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
     else:
-        Ut = Utsvd
-        Vt = Vtsvd
-        St = np.diag(stsvd)
+        uTruc = uTrucSVD
+        vTruc = vTrucSVD
+        sTruc = np.diag(sTrucSVD)
 
-    # QR decomp. St=Q*R, Q unitary, R upper triangular
-    Q, R = np.linalg.qr(St)
-    # if R is singular matrix, raise an error
-    if np.linalg.det(R) == 0:
+    # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
+    qsTruc, rsTruc = np.linalg.qr(sTruc)
+    # if rsTruc is singular matrix, raise an error
+    if np.linalg.det(rsTruc) == 0:
       self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
-    beta = X2.dot(Vt).dot(np.linalg.inv(R)).dot(Q.T)
-    A = beta.dot(Ut[0:n, :].T)
-    B = beta.dot(Ut[n:, :].T)
+    beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
+    A = beta.dot(uTruc[0:n, :].T)
+    B = beta.dot(uTruc[n:, :].T)
     C = Y1.dot(scipy.linalg.pinv2(X1))
 
     return A, B, C
