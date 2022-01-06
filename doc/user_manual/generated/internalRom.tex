@@ -1660,10 +1660,10 @@ Example to export the coefficients of trained PolyExponential ROM:
   XML file         via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following
   variable/parameters can be exported (i.e. \xmlNode{what} node         in \xmlNode{OutStream} of
   type \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
-  specifications above           \item \xmlNode{energyRankSVD}, see XML input specifications above
-  \item \xmlNode{rankTLSQ}, see XML input specifications above           \item \xmlNode{exactModes},
-  see XML input specifications above           \item \xmlNode{optimized}, see XML input
-  specifications above           \item \xmlNode{features}, see XML input specifications above
+  specifications below           \item \xmlNode{energyRankSVD}, see XML input specifications below
+  \item \xmlNode{rankTLSQ}, see XML input specifications below           \item \xmlNode{exactModes},
+  see XML input specifications below           \item \xmlNode{optimized}, see XML input
+  specifications below           \item \xmlNode{features}, see XML input specifications below
   \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
   \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be
   used as mapping           between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
@@ -1823,26 +1823,29 @@ Example to export the coefficients of trained DMD ROM:
   via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be
   exported (i.e.         \xmlNode{what} node         in \xmlNode{OutStream} of type
   \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
-  specifications above           \item \xmlNode{actuators}, see XML input specifications above
-  \item \xmlNode{states}, XML node containing the list of system state variables (x)           \item
-  \xmlNode{initStates}, XML node containing the list of system state variables
-  (x\_init) that are used for initializing the model in ``evaluation'' mode           \item
-  \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial
-  values in the                 training data           \item \xmlNode{XNorm}, XML node containing
-  the norminal values of state variables,                 which are the initial values in the
-  training data           \item \xmlNode{XLast}, XML node containing the last value of state
-  variables,                 which are the final values in the training data           \item
-  \xmlNode{outputs}, XML node containing the list of system output variables (y)           \item
+  specifications below           \item \xmlNode{actuators}, XML node containing the list of actuator
+  variables (u),                 see XML input specifications below           \item
+  \xmlNode{stateVariables}, XML node containing the list of system state variables (x),
+  see XML input specifications below           \item \xmlNode{initStateVariables}, XML node
+  containing the list of system state variables                 (x\_init) that are used for
+  initializing the model in ``evaluation'' mode,                 see XML input specifications below
+  \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
+  \item \xmlNode{dmdTimeScale}, XML node containing the the array of time scale in the DMD space,
+  which is time axis in traning data (Time)           \item \xmlNode{UNorm}, XML node containing the
+  norminal values of actuators,                 which are the initial actuator values in the
+  training data           \item \xmlNode{XNorm}, XML node containing the norminal values of state
+  variables,                 which are the initial state values in the training data           \item
+  \xmlNode{XLast}, XML node containing the last value of state variables,                 which are
+  the final state values in the training data (before nominal value subtraction)           \item
   \xmlNode{YNorm}, XML node containing the norminal values of output variables,
-  which are the initial values in the training data           \item \xmlNode{dmdTimeScale}, XML node
-  containing the array of time scale in the DMD space           \item \xmlNode{Atilde},  XML node
-  containing the A matrix in discrete time domain                 (real and imaginary and part,
-  matrix shape, and format note)           \item \xmlNode{Btilde}, XML node containing the B matrix
-  in discrete time domain                 (real and imaginary and part, matrix shape, and format
-  note)           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
-  (real and imaginary and part, matrix shape, and format note)         \end{itemize}
+  which are the initial output values in the training data           \item \xmlNode{Atilde},  XML
+  node containing the A matrix in discrete time domain                 (imaginary part, matrix
+  shape, and real part)           \item \xmlNode{Btilde}, XML node containing the B matrix in
+  discrete time domain                 (imaginary part, matrix shape, and real part)           \item
+  \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
+  (imaginary part, matrix shape, and real part)         \end{itemize}
 
-  The \xmlNode{ROM} DMDC node recognizes the following parameters:
+  The \xmlNode{DMDC} node recognizes the following parameters:
     \begin{itemize}
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
@@ -1852,7 +1855,7 @@ Example to export the coefficients of trained DMD ROM:
         specify the type of ROM that will be used
   \end{itemize}
 
-  The \xmlNode{ROM} DMDC node recognizes the following subnodes:
+  The \xmlNode{DMDC} node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
       specifies the names of the features of this ROM.         \nb These parameters are going to be
@@ -1868,16 +1871,16 @@ Example to export the coefficients of trained DMD ROM:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
-    %\item \xmlNode{CV}: \xmlDesc{string},
-    %  The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-    %  \xmlAttr{subType}         ``CrossValidation``.
-    %  The \xmlNode{CV} node recognizes the following parameters:
-    %    \begin{itemize}
-    %      \item \xmlAttr{class}: \xmlDesc{string, optional},
-    %        should be set to \xmlString{Model}
-    %      \item \xmlAttr{type}: \xmlDesc{string, optional},
-    %        should be set to \xmlString{PostProcessor}
-    %  \end{itemize}
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
@@ -1923,11 +1926,6 @@ Example to export the coefficients of trained DMD ROM:
       between the modes and all the time-steps or False, if only the 1st timestep only needs to be
       considered
 
-    \item \xmlNode{dmdType}: \xmlDesc{[dmd]}, 
-      the type of Dynamic Mode Decomposition to apply.Available are:
-      \begin{itemize}                                                     \item \textit{dmd}, for
-      classical DMD                                                   \end{itemize}
-
     \item \xmlNode{actuators}: \xmlDesc{comma-separated strings}, 
       defines the actuators (i.e. system input parameters)
       of this model. Each actuator variable (u1, u2, etc.) needs to
@@ -1936,7 +1934,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{stateVariables}: \xmlDesc{comma-separated strings}, 
       defines the state variables (i.e. system variable vectors)
       of this model. Each state variable (x1, x2, etc.) needs to be listed
-      here. The variables indicated in \xmlNode{StateVariables} must be
+      here. The variables indicated in \xmlNode{stateVariables} must be
       listed in the \xmlNode{Target} node too.
 
     \item \xmlNode{initStateVariables}: \xmlDesc{comma-separated strings}, 
@@ -1956,31 +1954,33 @@ Example to export the coefficients of trained DMD ROM:
   \end{itemize}
 
 \hspace{24pt}
-Example:
-\textbf{Example:}
+Example of DMDc ROM definition, with 1 actuator variable (u1), 3 state variables (x1, x2, x3), 2 output variables (y1, y2), and 2 scheduling parameters (mod, flow):
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
    ...
    <Models>
      ...
-    <ROM name="DMDc" subType="DMDC">
-       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
-       <Target>Time,x1,x2,x3,y1,y2</Target>
-       <!-- Features include all the u(t), x(t), p(s) -->
-       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
-       <!-- Actuator variables u(t) are listed below -->
-       <actuators>u1</actuators>
-       <!-- StateVariables x(t) are listed below -->
-       <stateVariables>x1, x2, x3</stateVariables>
-       <!-- Initialization Variables-->
-       <initStateVariables>x1_init, x2_init, x3_init</initStateVariables>
-       <!-- Pivot variable (e.g. Time) -->
-       <pivotParameter>Time</pivotParameter>
-       <!-- rankSVD -->
-       <rankSVD>-1</rankSVD>
-       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
-       <subtractNormUXY>True</subtractNormUXY>
-     </ROM>
+    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
+      <Target>Time,x1,x2,x3,y1,y2</Target>
+      <!-- Actuator Variable Names (u) -->
+      <actuators>u1</actuators>
+      <!-- StateVariables Names (x) -->
+      <stateVariables>x1,x2,x3</stateVariables>
+      <!-- Pivot variable (e.g. Time) -->
+      <pivotParameter>Time</pivotParameter>
+      <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+      <rankSVD>1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+      <subtractNormUXY>True</subtractNormUXY>
+
+      <!-- Features are the variable names for predictions: Actuator "u", scheduling parameters, and initial states -->
+      <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+      <!-- Initialization Variables-->
+      <initStateVariables>
+        x1_init,x2_init,x3_init
+      </initStateVariables>
+    </ROM>
      ...
    </Models>
    ...
