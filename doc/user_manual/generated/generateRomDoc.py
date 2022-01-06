@@ -365,31 +365,33 @@ Example to export the coefficients of trained DMD ROM:
 
 dmdc = r"""
 \hspace{24pt}
-Example:
-\textbf{Example:}
+Example of DMDc ROM definition, with 1 actuator variable (u1), 3 state variables (x1, x2, x3), 2 output variables (y1, y2), and 2 scheduling parameters (mod, flow):
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
    ...
    <Models>
      ...
-    <ROM name="DMDc" subType="DMDC">
-       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
-       <Target>Time,x1,x2,x3,y1,y2</Target>
-       <!-- Features include all the u(t), x(t), p(s) -->
-       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
-       <!-- Actuator variables u(t) are listed below -->
-       <actuators>u1</actuators>
-       <!-- StateVariables x(t) are listed below -->
-       <stateVariables>x1, x2, x3</stateVariables>
-       <!-- Initialization Variables-->
-       <initStateVariables>x1_init, x2_init, x3_init</initStateVariables>
-       <!-- Pivot variable (e.g. Time) -->
-       <pivotParameter>Time</pivotParameter>
-       <!-- rankSVD -->
-       <rankSVD>-1</rankSVD>
-       <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
-       <subtractNormUXY>True</subtractNormUXY>
-     </ROM>
+    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
+      <Target>Time,x1,x2,x3,y1,y2</Target>
+      <!-- Actuator Variable Names (u) -->
+      <actuators>u1</actuators>
+      <!-- StateVariables Names (x) -->
+      <stateVariables>x1,x2,x3</stateVariables>
+      <!-- Pivot variable (e.g. Time) -->
+      <pivotParameter>Time</pivotParameter>
+      <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+      <rankSVD>1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+      <subtractNormUXY>True</subtractNormUXY>
+
+      <!-- Features are the variable names for predictions: Actuator "u", scheduling parameters, and initial states -->
+      <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+      <!-- Initialization Variables-->
+      <initStateVariables>
+        x1_init,x2_init,x3_init
+      </initStateVariables>
+    </ROM>
      ...
    </Models>
    ...
@@ -748,6 +750,7 @@ excludeObj = ['SupervisedLearning',
               'Clusters',
               'Interpolated']
 validDNNRom = ['KerasMLPClassifier',
+              'KerasMLPRegression',
               'KerasConvNetClassifier',
               'KerasLSTMClassifier',
               'KerasLSTMRegression']
