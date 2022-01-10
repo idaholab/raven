@@ -2300,12 +2300,6 @@ class ARMA(SupervisedLearning):
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
       if slicer is not None:
         # truncated evaluation
-        # newMask = []
-        # for sl in slicer:
-        #   m = mask[sl.start:sl.stop].tolist()
-        #   newMask.extend(m)
-        # newMask = np.asarray(newMask)
-        # clustered evaluation
         newMask = []
         for sl in slicer:
           m = mask[sl.start:sl.stop].tolist()
