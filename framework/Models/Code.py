@@ -748,9 +748,10 @@ class Code(Model):
     for key, value in sampledVars.items():
       if key in outputEval.keys():
         if not utils.compare(value,np.atleast_1d(outputEval[key])[-1],relTolerance = 1e-8):
-          self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
+          self.raiseAWarning('The model '+self.type+' reported a different value ({}) for {} '.format(outputEval[key][0], key) +
+                             'than raven\'s suggested sample ({}). Using the value reported '.format(value) +
+                             'by the raven ({}).'.format(value))
       outputEval[key] = np.atleast_1d(value)
-
     self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
 
     return outputEval
