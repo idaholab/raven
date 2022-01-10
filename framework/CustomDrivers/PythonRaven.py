@@ -66,6 +66,7 @@ class Raven:
       @ In, None
       @ Out, returnCode, int, value/error returned from RAVEN run
     """
+    # FIXME reset the steps if necessary!
     returnCode = self._simulation.run()
     return returnCode
 

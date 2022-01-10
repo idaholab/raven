@@ -734,19 +734,20 @@ class Simulation(MessageUser):
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
-      stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
-      self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
-      stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
-      stepInputDict['Input' ]          = []                         #set the Input to an empty list
-      stepInputDict['Output']          = []                         #set the Output to an empty list
-      #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
-      for [key,b,c,d] in stepInstance.parList:
+      stepInstance = self.stepsDict[stepName]   #retrieve the instance of the step
+      self.raiseAMessage(f'-- Beginning {stepInstance.type} step "{stepName}" ... --')
+      self.runInfoDict['stepName'] = stepName   #provide the name of the step to runInfoDict
+      stepInputDict = {}                        #initialize the input dictionary for a step. Never use an old one!!!!!
+      stepInputDict['Input'] = []               #set the Input to an empty list
+      stepInputDict['Output'] = []              #set the Output to an empty list
+      #fill the take a a step input dictionary just to recall
+      # key= role played in the step b= Class, c= Type, d= user given name
+      for role, entity, _, name in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
-        if key == 'Input' or key == 'Output':
-          stepInputDict[key].append(self.entities[b][d])
+        if role == 'Input' or role == 'Output':
+          stepInputDict[role].append(self.entities[entity][name])
         else:
-          stepInputDict[key] = self.entities[b][d]
+          stepInputDict[role] = self.entities[entity][name]
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #generate the needed assembler to send to the step
@@ -768,7 +769,7 @@ class Simulation(MessageUser):
           self.raiseAMessage('This is for the filter, it needs to go when the filtering strategy is done')
         if "finalize" in dir(output):
           output.finalize()
-      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+      self.raiseAMessage(f'-- Finished {stepInstance.type} step "{stepName}" --\n')
     self.jobHandler.shutdown()
     self.messageHandler.printWarnings()
     # implicitly, the job finished successfully if we got here.

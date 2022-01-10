@@ -95,6 +95,7 @@ class DataSet(DataObject):
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
+    new = set(keys) - set(self._metavars)
     # if no new meta, move along
     if len(keys) == 0:
       return keys
