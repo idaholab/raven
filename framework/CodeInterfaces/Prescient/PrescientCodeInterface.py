@@ -145,15 +145,15 @@ class Prescient(CodeInterfaceBase):
         line = line.strip()
         if first:
           first = False
-          if not line.startswith("Date,Hour,Bus,"): # != "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA":
+          if not line.startswith("Date,Hour,Minute,Bus,"): # != "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA":
             assert False, "Unexpected first line of bus detail:" + line
             a = 1/0 #because debug might be disabled
           dataList = [s.replace(" ","_") for s in line.split(",")[3:]]
           continue
         splited = line.split(",")
-        date, hour, bus = splited[:3]
-        rest = splited[3:]
-        key = (date,hour)
+        date, hour, minute, bus = splited[:4]
+        rest = splited[4:]
+        key = (date,hour,minute)
         busSet.add(bus)
         timeDict = retDict.get(key,{})
         timeDict[bus] = rest
@@ -214,7 +214,7 @@ class Prescient(CodeInterfaceBase):
           netDemand = outDict["Demand"][-1]  - outDict["RenewablesUsed"][-1]
           outDict["NetDemand"].append(netDemand)
         for bus in busList:
-          for dataName, data in zip(busDataList,busData[(date,hour)][bus]):
+          for dataName, data in zip(busDataList,busData[(date,hour,'0')][bus]):
             outDict[bus+"_"+dataName].append(float(data) if len(data) > 0 else float("NaN"))
     return outDict
 
