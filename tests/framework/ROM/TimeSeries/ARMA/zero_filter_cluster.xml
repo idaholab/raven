@@ -103,7 +103,7 @@
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>TOTALLOAD</Features>
         <SKLtype>cluster|KMeans</SKLtype>
-        <n_clusters>8</n_clusters>
+        <n_clusters>3</n_clusters>
         <tol>1E-12</tol>
         <init>k-means++</init>
         <random_state>3</random_state>

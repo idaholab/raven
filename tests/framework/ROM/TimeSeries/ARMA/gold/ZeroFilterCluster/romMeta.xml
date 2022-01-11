@@ -13,91 +13,91 @@
       <GlobalROM segment="all" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.700165750e+01</SignalIntercept>
+            <SignalIntercept>3.924588573e+02</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.643472037e+00</amplitude>
-              <phase>8.223460826e-01</phase>
+              <amplitude>2.690015996e+02</amplitude>
+              <phase>-1.433965549e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>2.856729589e+00</amplitude>
-              <phase>2.500584771e-01</phase>
+              <amplitude>6.366971696e+01</amplitude>
+              <phase>-1.700318006e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>6.636531644e-01</amplitude>
-              <phase>-7.445618794e-01</phase>
+              <amplitude>2.726435442e+01</amplitude>
+              <phase>-1.765338646e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>8.410285485e-01</amplitude>
-              <phase>-1.422908199e+00</phase>
+              <amplitude>1.491871050e+01</amplitude>
+              <phase>-1.830451684e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>3.258953877e-01</amplitude>
-              <phase>-1.588932308e+00</phase>
+              <amplitude>5.581767441e+00</amplitude>
+              <phase>-2.879855374e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.521714539e+00</amplitude>
-              <phase>1.914985051e+00</phase>
+              <amplitude>1.481955721e+00</amplitude>
+              <phase>1.766463105e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>7.887341622e-01</amplitude>
-              <phase>2.047204516e+00</phase>
+              <amplitude>1.075360475e+00</amplitude>
+              <phase>4.209044018e-01</phase>
             </period>
           </Fourier>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>4.894731607e-01</SignalIntercept>
+            <SignalIntercept>3.133297725e+00</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.362488376e-01</amplitude>
-              <phase>9.761993615e-01</phase>
+              <amplitude>1.985373761e+00</amplitude>
+              <phase>-2.164936833e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>3.698890541e-02</amplitude>
-              <phase>-2.583823056e+00</phase>
+              <amplitude>3.926683648e-01</amplitude>
+              <phase>-1.700766210e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>4.470430151e-02</amplitude>
-              <phase>9.475930011e-02</phase>
+              <amplitude>1.678578560e-01</amplitude>
+              <phase>-1.766503951e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>5.230439643e-02</amplitude>
-              <phase>8.739197143e-01</phase>
+              <amplitude>9.162143695e-02</amplitude>
+              <phase>-1.832693389e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>2.080917687e-02</amplitude>
-              <phase>1.617559581e+00</phase>
+              <amplitude>3.209474453e-02</amplitude>
+              <phase>-2.951116596e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.678710536e-02</amplitude>
-              <phase>3.069257149e+00</phase>
+              <amplitude>1.564288033e-02</amplitude>
+              <phase>-1.582577244e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>3.176778154e-02</amplitude>
-              <phase>5.898203033e-01</phase>
+              <amplitude>6.012304051e-02</amplitude>
+              <phase>9.133157869e-01</phase>
             </period>
           </Fourier>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>1.715795660e-01</SignalIntercept>
+            <SignalIntercept>5.594971181e-02</SignalIntercept>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>2.644292817e-01</amplitude>
-              <phase>-2.990796234e+00</phase>
+              <amplitude>9.667660968e-02</amplitude>
+              <phase>-2.942602868e+00</phase>
             </period>
           </Fourier>
         </SOLAR>
@@ -105,597 +105,282 @@
       <ClusterROM cluster="0" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.665300920e+00</SignalIntercept>
+            <SignalIntercept>-3.120004889e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.501958063e+00</amplitude>
-              <phase>5.740903290e-01</phase>
+              <amplitude>1.232474878e+00</amplitude>
+              <phase>6.407581208e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>3.299424377e-01</amplitude>
-              <phase>9.262553080e-01</phase>
+              <amplitude>2.021053161e-01</amplitude>
+              <phase>1.209258760e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>8.905267738e-02</amplitude>
-              <phase>2.594817012e-01</phase>
+              <amplitude>6.711806200e-02</amplitude>
+              <phase>-8.593632719e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.30225021278</std>
+            <std>2.35989998927</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.894418645e-01</SignalIntercept>
+            <SignalIntercept>2.471487205e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>3.126647158e-02</amplitude>
-              <phase>-2.038618508e+00</phase>
+              <amplitude>3.327210327e-02</amplitude>
+              <phase>-2.097499006e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.277385209e-02</amplitude>
-              <phase>-2.313341885e+00</phase>
+              <amplitude>2.415511161e-02</amplitude>
+              <phase>-2.329752340e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.439513929e-03</amplitude>
-              <phase>-2.166045696e+00</phase>
+              <amplitude>1.026553224e-02</amplitude>
+              <phase>-2.159610184e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.22607510386</std>
+            <std>2.23563396256</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-1.518296608e-01</SignalIntercept>
+            <SignalIntercept>7.645230756e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.500604803e-01</amplitude>
-              <phase>-4.675249446e-01</phase>
+              <amplitude>2.077962078e-01</amplitude>
+              <phase>-5.628541189e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.73359944466</std>
+            <std>3.75877183952</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>0, 1, 8, 10, 14, 15, 19, 21, 22, 27, 30, 33, 34, 36, 40, 41, 46, 47, 50, 54, 55, 56, 57, 69, 91, 283, 299, 306, 317, 318, 320, 328, 330, 332, 336, 337, 339, 340, 341, 342, 343, 348</segments_represented>
+        <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
       <ClusterROM cluster="1" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>3.375826278e-01</SignalIntercept>
+            <SignalIntercept>8.988847570e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.819703922e+00</amplitude>
-              <phase>5.888002461e-01</phase>
+              <amplitude>7.883678965e-01</amplitude>
+              <phase>8.179822776e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>4.120233801e-01</amplitude>
-              <phase>3.632810798e-02</phase>
+              <amplitude>1.439673826e-01</amplitude>
+              <phase>1.733072891e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>3.001810991e-01</amplitude>
-              <phase>3.342682172e-01</phase>
+              <amplitude>1.207121615e-01</amplitude>
+              <phase>-1.539550092e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31814466023</std>
+            <std>2.29452618465</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>-4.799825218e-02</SignalIntercept>
+            <SignalIntercept>6.179966915e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.430306664e-02</amplitude>
-              <phase>-2.528380102e+00</phase>
+              <amplitude>1.821669882e-03</amplitude>
+              <phase>-2.089327942e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.547053931e-02</amplitude>
-              <phase>-3.899764067e-01</phase>
+              <amplitude>8.110513819e-04</amplitude>
+              <phase>-1.646206201e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.844597726e-03</amplitude>
-              <phase>2.898168757e+00</phase>
+              <amplitude>2.996608098e-04</amplitude>
+              <phase>-3.861059278e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19960843553</std>
+            <std>2.2489292529</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-2.788906026e-01</SignalIntercept>
+            <SignalIntercept>4.500789583e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>2.733431584e-02</amplitude>
-              <phase>2.738724735e-01</phase>
+              <amplitude>1.423857186e-01</amplitude>
+              <phase>-6.866050654e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.82701205151</std>
+            <std>2.83836077841</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>2, 5, 7, 9, 13, 16, 20, 23, 28, 31, 37, 38, 44, 48, 51, 59, 62, 296, 303, 310, 324, 327, 331, 338, 345, 352, 356, 358, 362, 363</segments_represented>
+        <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
       <ClusterROM cluster="2" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>-2.689074667e+00</SignalIntercept>
+            <SignalIntercept>8.648252190e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.242673181e+00</amplitude>
-              <phase>4.769184582e-01</phase>
+              <amplitude>1.719242113e+00</amplitude>
+              <phase>6.029757506e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.794821573e-01</amplitude>
-              <phase>7.642423424e-01</phase>
+              <amplitude>3.669582786e-01</amplitude>
+              <phase>-3.709058858e-02</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.285760817e-02</amplitude>
-              <phase>6.183335655e-01</phase>
+              <amplitude>2.779460300e-01</amplitude>
+              <phase>2.606578776e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31532269365</std>
+            <std>2.3517685861</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.902671620e-01</SignalIntercept>
+            <SignalIntercept>-1.821772683e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>8.054166676e-03</amplitude>
-              <phase>-2.985844809e+00</phase>
+              <amplitude>1.755175252e-02</amplitude>
+              <phase>-2.604005329e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>5.401871239e-03</amplitude>
-              <phase>3.088662504e+00</phase>
+              <amplitude>2.438892944e-02</amplitude>
+              <phase>-4.472987982e-01</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.862346583e-03</amplitude>
-              <phase>-3.108125259e+00</phase>
+              <amplitude>2.356103007e-03</amplitude>
+              <phase>-2.950324027e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.33428436874</std>
+            <std>2.19822519358</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-3.153953122e-01</SignalIntercept>
+            <SignalIntercept>-5.060863417e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>5.153297288e-02</amplitude>
-              <phase>2.572212330e+00</phase>
+              <amplitude>7.696332436e-02</amplitude>
+              <phase>-4.846724356e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.81487081138</std>
+            <std>3.83502353694</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>3, 6, 11, 17, 25, 26, 29, 42, 61, 65, 68, 72, 254, 281, 285, 292, 294, 297, 300, 304, 308, 309, 313, 314, 315, 321, 322, 325, 329, 334, 335, 344, 346, 347, 350, 354, 355, 357, 359, 360, 364</segments_represented>
+        <segments_represented>2, 3, 5</segments_represented>
         <indices>48, 71</indices>
-      </ClusterROM>
-      <ClusterROM cluster="3" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>2.861625207e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.846039833e-01</amplitude>
-              <phase>-2.960382000e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.774322932e-01</amplitude>
-              <phase>2.352664178e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.451285094e-01</amplitude>
-              <phase>-2.335641498e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.29084358805</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>1.890137481e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.888989637e-03</amplitude>
-              <phase>3.087985162e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>6.026908476e-03</amplitude>
-              <phase>1.527444520e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.315119852e-03</amplitude>
-              <phase>-1.517570126e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.35858826501</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.165141119e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.425637500e-02</amplitude>
-              <phase>-9.464644041e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.75713305742</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>4, 12, 18, 24, 32, 35, 39, 43, 45, 49, 53, 63, 263, 301, 323, 326, 351, 361</segments_represented>
-        <indices>72, 95</indices>
-      </ClusterROM>
-      <ClusterROM cluster="4" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-4.179543695e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.169371947e+00</amplitude>
-              <phase>5.975016079e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.203701926e-01</amplitude>
-              <phase>1.002695907e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>4.042411909e-02</amplitude>
-              <phase>3.275065886e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.33090120869</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-1.756204180e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.391794992e-02</amplitude>
-              <phase>-2.595669795e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.264892404e-02</amplitude>
-              <phase>2.280533569e-01</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.084099400e-02</amplitude>
-              <phase>1.026371737e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.38835426838</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.968511034e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.313245062e-01</amplitude>
-              <phase>-8.618273864e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.42719304939</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>52, 58, 64, 67, 70, 71, 74, 77, 81, 82, 85, 87, 89, 94, 100, 101, 103, 108, 114, 115, 117, 118, 121, 124, 125, 132, 133, 136, 140, 142, 151, 155, 157, 163, 167, 172, 174, 182, 188, 221, 252, 269, 278, 282, 287, 291, 293, 298, 302, 305, 307, 311, 319, 333, 349, 353</segments_represented>
-        <indices>96, 119</indices>
-      </ClusterROM>
-      <ClusterROM cluster="5" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-1.475228602e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>3.733297085e-01</amplitude>
-              <phase>4.943102145e-02</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>4.425292775e-01</amplitude>
-              <phase>1.500230828e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.715542872e-01</amplitude>
-              <phase>-2.595115742e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.370697409</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>7.608710785e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.408599878e-01</amplitude>
-              <phase>-2.742166253e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.146129817e-02</amplitude>
-              <phase>-2.915859265e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.892156237e-02</amplitude>
-              <phase>-2.047343012e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2611782921</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-3.707151533e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.812279728e-01</amplitude>
-              <phase>-7.315715010e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.43288905109</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>60, 66, 78, 80, 83, 88, 90, 92, 95, 102, 104, 105, 107, 109, 112, 113, 116, 119, 120, 122, 123, 127, 129, 130, 137, 139, 141, 143, 144, 147, 149, 158, 161, 162, 165, 166, 168, 169, 179, 183, 186, 190, 193, 196, 200, 207, 214, 228, 235, 242, 249, 256, 262, 266, 270, 276, 277, 279, 280, 284, 286, 288, 295, 312, 316</segments_represented>
-        <indices>120, 143</indices>
-      </ClusterROM>
-      <ClusterROM cluster="6" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-2.842873817e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>8.078098164e-01</amplitude>
-              <phase>1.213275838e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>2.545552806e-01</amplitude>
-              <phase>2.369777355e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>2.563031922e-02</amplitude>
-              <phase>3.095595347e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.32537507677</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>2.324594870e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>5.623452182e-02</amplitude>
-              <phase>-3.057234957e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.950859909e-02</amplitude>
-              <phase>1.405325077e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.127091993e-03</amplitude>
-              <phase>-1.614191608e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.30760609318</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-7.582696694e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.495874076e-02</amplitude>
-              <phase>-4.721485863e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.18326364011</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>73, 75, 76, 79, 84, 86, 93, 96, 97, 98, 99, 106, 110, 111, 128, 131, 134, 135, 138, 146, 150, 152, 153, 154, 156, 159, 170, 171, 173, 177, 178, 181, 184, 187, 194, 198, 201, 202, 206, 210, 212, 215, 218, 219, 222, 233, 246, 255, 264, 267, 268, 271, 272, 273, 274, 275, 289, 290</segments_represented>
-        <indices>144, 167</indices>
-      </ClusterROM>
-      <ClusterROM cluster="7" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>3.581154830e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.862608648e-01</amplitude>
-              <phase>-3.914500698e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>1.862340379e-01</amplitude>
-              <phase>-1.735946343e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.988331773e-02</amplitude>
-              <phase>1.122756137e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.31322467661</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-5.109783105e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.909578494e-02</amplitude>
-              <phase>1.796133941e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>9.330043409e-03</amplitude>
-              <phase>1.069041356e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>6.815858480e-04</amplitude>
-              <phase>1.585781230e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2914240446</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>1.953603999e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.966343779e-01</amplitude>
-              <phase>-7.386025144e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.84702546673</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>126, 145, 148, 160, 164, 175, 176, 180, 185, 189, 191, 192, 195, 197, 199, 203, 204, 205, 208, 209, 211, 213, 216, 217, 220, 223, 224, 225, 226, 227, 229, 230, 231, 232, 234, 236, 237, 238, 239, 240, 241, 243, 244, 245, 247, 248, 250, 251, 253, 257, 258, 259, 260, 261, 265</segments_represented>
-        <indices>168, 191</indices>
       </ClusterROM>
     </MacroStepROM>
     <MacroStepROM YEAR="2022" type="Static">
       <GlobalROM segment="all" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.700165750e+01</SignalIntercept>
+            <SignalIntercept>3.924588573e+02</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.643472037e+00</amplitude>
-              <phase>8.223460826e-01</phase>
+              <amplitude>2.690015996e+02</amplitude>
+              <phase>-1.433965549e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>2.856729589e+00</amplitude>
-              <phase>2.500584771e-01</phase>
+              <amplitude>6.366971696e+01</amplitude>
+              <phase>-1.700318006e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>6.636531644e-01</amplitude>
-              <phase>-7.445618794e-01</phase>
+              <amplitude>2.726435442e+01</amplitude>
+              <phase>-1.765338646e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>8.410285485e-01</amplitude>
-              <phase>-1.422908199e+00</phase>
+              <amplitude>1.491871050e+01</amplitude>
+              <phase>-1.830451684e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>3.258953877e-01</amplitude>
-              <phase>-1.588932308e+00</phase>
+              <amplitude>5.581767441e+00</amplitude>
+              <phase>-2.879855374e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.521714539e+00</amplitude>
-              <phase>1.914985051e+00</phase>
+              <amplitude>1.481955721e+00</amplitude>
+              <phase>1.766463105e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>7.887341622e-01</amplitude>
-              <phase>2.047204516e+00</phase>
+              <amplitude>1.075360475e+00</amplitude>
+              <phase>4.209044018e-01</phase>
             </period>
           </Fourier>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>4.894731607e-01</SignalIntercept>
+            <SignalIntercept>3.133297725e+00</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.362488376e-01</amplitude>
-              <phase>9.761993615e-01</phase>
+              <amplitude>1.985373761e+00</amplitude>
+              <phase>-2.164936833e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>3.698890541e-02</amplitude>
-              <phase>-2.583823056e+00</phase>
+              <amplitude>3.926683648e-01</amplitude>
+              <phase>-1.700766210e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>4.470430151e-02</amplitude>
-              <phase>9.475930011e-02</phase>
+              <amplitude>1.678578560e-01</amplitude>
+              <phase>-1.766503951e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>5.230439643e-02</amplitude>
-              <phase>8.739197143e-01</phase>
+              <amplitude>9.162143695e-02</amplitude>
+              <phase>-1.832693389e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>2.080917687e-02</amplitude>
-              <phase>1.617559581e+00</phase>
+              <amplitude>3.209474453e-02</amplitude>
+              <phase>-2.951116596e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.678710536e-02</amplitude>
-              <phase>3.069257149e+00</phase>
+              <amplitude>1.564288033e-02</amplitude>
+              <phase>-1.582577244e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>3.176778154e-02</amplitude>
-              <phase>5.898203033e-01</phase>
+              <amplitude>6.012304051e-02</amplitude>
+              <phase>9.133157869e-01</phase>
             </period>
           </Fourier>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>1.715795660e-01</SignalIntercept>
+            <SignalIntercept>5.594971181e-02</SignalIntercept>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>2.644292817e-01</amplitude>
-              <phase>-2.990796234e+00</phase>
+              <amplitude>9.667660968e-02</amplitude>
+              <phase>-2.942602868e+00</phase>
             </period>
           </Fourier>
         </SOLAR>
@@ -703,597 +388,282 @@
       <ClusterROM cluster="0" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.665300920e+00</SignalIntercept>
+            <SignalIntercept>-3.120004889e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.501958063e+00</amplitude>
-              <phase>5.740903290e-01</phase>
+              <amplitude>1.232474878e+00</amplitude>
+              <phase>6.407581208e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>3.299424377e-01</amplitude>
-              <phase>9.262553080e-01</phase>
+              <amplitude>2.021053161e-01</amplitude>
+              <phase>1.209258760e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>8.905267738e-02</amplitude>
-              <phase>2.594817012e-01</phase>
+              <amplitude>6.711806200e-02</amplitude>
+              <phase>-8.593632719e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.30225021278</std>
+            <std>2.35989998927</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.894418645e-01</SignalIntercept>
+            <SignalIntercept>2.471487205e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>3.126647158e-02</amplitude>
-              <phase>-2.038618508e+00</phase>
+              <amplitude>3.327210327e-02</amplitude>
+              <phase>-2.097499006e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.277385209e-02</amplitude>
-              <phase>-2.313341885e+00</phase>
+              <amplitude>2.415511161e-02</amplitude>
+              <phase>-2.329752340e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.439513929e-03</amplitude>
-              <phase>-2.166045696e+00</phase>
+              <amplitude>1.026553224e-02</amplitude>
+              <phase>-2.159610184e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.22607510386</std>
+            <std>2.23563396256</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-1.518296608e-01</SignalIntercept>
+            <SignalIntercept>7.645230756e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.500604803e-01</amplitude>
-              <phase>-4.675249446e-01</phase>
+              <amplitude>2.077962078e-01</amplitude>
+              <phase>-5.628541189e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.73359944466</std>
+            <std>3.75877183952</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>0, 1, 8, 10, 14, 15, 19, 21, 22, 27, 30, 33, 34, 36, 40, 41, 46, 47, 50, 54, 55, 56, 57, 69, 91, 283, 299, 306, 317, 318, 320, 328, 330, 332, 336, 337, 339, 340, 341, 342, 343, 348</segments_represented>
+        <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
       <ClusterROM cluster="1" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>3.375826278e-01</SignalIntercept>
+            <SignalIntercept>8.988847570e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.819703922e+00</amplitude>
-              <phase>5.888002461e-01</phase>
+              <amplitude>7.883678965e-01</amplitude>
+              <phase>8.179822776e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>4.120233801e-01</amplitude>
-              <phase>3.632810798e-02</phase>
+              <amplitude>1.439673826e-01</amplitude>
+              <phase>1.733072891e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>3.001810991e-01</amplitude>
-              <phase>3.342682172e-01</phase>
+              <amplitude>1.207121615e-01</amplitude>
+              <phase>-1.539550092e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31814466023</std>
+            <std>2.29452618465</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>-4.799825218e-02</SignalIntercept>
+            <SignalIntercept>6.179966915e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.430306664e-02</amplitude>
-              <phase>-2.528380102e+00</phase>
+              <amplitude>1.821669882e-03</amplitude>
+              <phase>-2.089327942e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.547053931e-02</amplitude>
-              <phase>-3.899764067e-01</phase>
+              <amplitude>8.110513819e-04</amplitude>
+              <phase>-1.646206201e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.844597726e-03</amplitude>
-              <phase>2.898168757e+00</phase>
+              <amplitude>2.996608098e-04</amplitude>
+              <phase>-3.861059278e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19960843553</std>
+            <std>2.2489292529</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-2.788906026e-01</SignalIntercept>
+            <SignalIntercept>4.500789583e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>2.733431584e-02</amplitude>
-              <phase>2.738724735e-01</phase>
+              <amplitude>1.423857186e-01</amplitude>
+              <phase>-6.866050654e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.82701205151</std>
+            <std>2.83836077841</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>2, 5, 7, 9, 13, 16, 20, 23, 28, 31, 37, 38, 44, 48, 51, 59, 62, 296, 303, 310, 324, 327, 331, 338, 345, 352, 356, 358, 362, 363</segments_represented>
+        <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
       <ClusterROM cluster="2" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>-2.689074667e+00</SignalIntercept>
+            <SignalIntercept>8.648252190e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.242673181e+00</amplitude>
-              <phase>4.769184582e-01</phase>
+              <amplitude>1.719242113e+00</amplitude>
+              <phase>6.029757506e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.794821573e-01</amplitude>
-              <phase>7.642423424e-01</phase>
+              <amplitude>3.669582786e-01</amplitude>
+              <phase>-3.709058858e-02</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.285760817e-02</amplitude>
-              <phase>6.183335655e-01</phase>
+              <amplitude>2.779460300e-01</amplitude>
+              <phase>2.606578776e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31532269365</std>
+            <std>2.3517685861</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.902671620e-01</SignalIntercept>
+            <SignalIntercept>-1.821772683e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>8.054166676e-03</amplitude>
-              <phase>-2.985844809e+00</phase>
+              <amplitude>1.755175252e-02</amplitude>
+              <phase>-2.604005329e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>5.401871239e-03</amplitude>
-              <phase>3.088662504e+00</phase>
+              <amplitude>2.438892944e-02</amplitude>
+              <phase>-4.472987982e-01</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.862346583e-03</amplitude>
-              <phase>-3.108125259e+00</phase>
+              <amplitude>2.356103007e-03</amplitude>
+              <phase>-2.950324027e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.33428436874</std>
+            <std>2.19822519358</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-3.153953122e-01</SignalIntercept>
+            <SignalIntercept>-5.060863417e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>5.153297288e-02</amplitude>
-              <phase>2.572212330e+00</phase>
+              <amplitude>7.696332436e-02</amplitude>
+              <phase>-4.846724356e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.81487081138</std>
+            <std>3.83502353694</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>3, 6, 11, 17, 25, 26, 29, 42, 61, 65, 68, 72, 254, 281, 285, 292, 294, 297, 300, 304, 308, 309, 313, 314, 315, 321, 322, 325, 329, 334, 335, 344, 346, 347, 350, 354, 355, 357, 359, 360, 364</segments_represented>
+        <segments_represented>2, 3, 5</segments_represented>
         <indices>48, 71</indices>
-      </ClusterROM>
-      <ClusterROM cluster="3" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>2.861625207e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.846039833e-01</amplitude>
-              <phase>-2.960382000e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.774322932e-01</amplitude>
-              <phase>2.352664178e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.451285094e-01</amplitude>
-              <phase>-2.335641498e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.29084358805</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>1.890137481e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.888989637e-03</amplitude>
-              <phase>3.087985162e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>6.026908476e-03</amplitude>
-              <phase>1.527444520e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.315119852e-03</amplitude>
-              <phase>-1.517570126e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.35858826501</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.165141119e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.425637500e-02</amplitude>
-              <phase>-9.464644041e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.75713305742</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>4, 12, 18, 24, 32, 35, 39, 43, 45, 49, 53, 63, 263, 301, 323, 326, 351, 361</segments_represented>
-        <indices>72, 95</indices>
-      </ClusterROM>
-      <ClusterROM cluster="4" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-4.179543695e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.169371947e+00</amplitude>
-              <phase>5.975016079e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.203701926e-01</amplitude>
-              <phase>1.002695907e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>4.042411909e-02</amplitude>
-              <phase>3.275065886e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.33090120869</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-1.756204180e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.391794992e-02</amplitude>
-              <phase>-2.595669795e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.264892404e-02</amplitude>
-              <phase>2.280533569e-01</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.084099400e-02</amplitude>
-              <phase>1.026371737e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.38835426838</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.968511034e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.313245062e-01</amplitude>
-              <phase>-8.618273864e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.42719304939</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>52, 58, 64, 67, 70, 71, 74, 77, 81, 82, 85, 87, 89, 94, 100, 101, 103, 108, 114, 115, 117, 118, 121, 124, 125, 132, 133, 136, 140, 142, 151, 155, 157, 163, 167, 172, 174, 182, 188, 221, 252, 269, 278, 282, 287, 291, 293, 298, 302, 305, 307, 311, 319, 333, 349, 353</segments_represented>
-        <indices>96, 119</indices>
-      </ClusterROM>
-      <ClusterROM cluster="5" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-1.475228602e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>3.733297085e-01</amplitude>
-              <phase>4.943102145e-02</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>4.425292775e-01</amplitude>
-              <phase>1.500230828e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.715542872e-01</amplitude>
-              <phase>-2.595115742e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.370697409</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>7.608710785e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.408599878e-01</amplitude>
-              <phase>-2.742166253e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.146129817e-02</amplitude>
-              <phase>-2.915859265e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.892156237e-02</amplitude>
-              <phase>-2.047343012e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2611782921</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-3.707151533e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.812279728e-01</amplitude>
-              <phase>-7.315715010e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.43288905109</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>60, 66, 78, 80, 83, 88, 90, 92, 95, 102, 104, 105, 107, 109, 112, 113, 116, 119, 120, 122, 123, 127, 129, 130, 137, 139, 141, 143, 144, 147, 149, 158, 161, 162, 165, 166, 168, 169, 179, 183, 186, 190, 193, 196, 200, 207, 214, 228, 235, 242, 249, 256, 262, 266, 270, 276, 277, 279, 280, 284, 286, 288, 295, 312, 316</segments_represented>
-        <indices>120, 143</indices>
-      </ClusterROM>
-      <ClusterROM cluster="6" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-2.842873817e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>8.078098164e-01</amplitude>
-              <phase>1.213275838e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>2.545552806e-01</amplitude>
-              <phase>2.369777355e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>2.563031922e-02</amplitude>
-              <phase>3.095595347e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.32537507677</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>2.324594870e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>5.623452182e-02</amplitude>
-              <phase>-3.057234957e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.950859909e-02</amplitude>
-              <phase>1.405325077e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.127091993e-03</amplitude>
-              <phase>-1.614191608e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.30760609318</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-7.582696694e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.495874076e-02</amplitude>
-              <phase>-4.721485863e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.18326364011</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>73, 75, 76, 79, 84, 86, 93, 96, 97, 98, 99, 106, 110, 111, 128, 131, 134, 135, 138, 146, 150, 152, 153, 154, 156, 159, 170, 171, 173, 177, 178, 181, 184, 187, 194, 198, 201, 202, 206, 210, 212, 215, 218, 219, 222, 233, 246, 255, 264, 267, 268, 271, 272, 273, 274, 275, 289, 290</segments_represented>
-        <indices>144, 167</indices>
-      </ClusterROM>
-      <ClusterROM cluster="7" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>3.581154830e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.862608648e-01</amplitude>
-              <phase>-3.914500698e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>1.862340379e-01</amplitude>
-              <phase>-1.735946343e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.988331773e-02</amplitude>
-              <phase>1.122756137e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.31322467661</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-5.109783105e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.909578494e-02</amplitude>
-              <phase>1.796133941e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>9.330043409e-03</amplitude>
-              <phase>1.069041356e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>6.815858480e-04</amplitude>
-              <phase>1.585781230e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2914240446</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>1.953603999e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.966343779e-01</amplitude>
-              <phase>-7.386025144e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.84702546673</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>126, 145, 148, 160, 164, 175, 176, 180, 185, 189, 191, 192, 195, 197, 199, 203, 204, 205, 208, 209, 211, 213, 216, 217, 220, 223, 224, 225, 226, 227, 229, 230, 231, 232, 234, 236, 237, 238, 239, 240, 241, 243, 244, 245, 247, 248, 250, 251, 253, 257, 258, 259, 260, 261, 265</segments_represented>
-        <indices>168, 191</indices>
       </ClusterROM>
     </MacroStepROM>
     <MacroStepROM YEAR="2021" type="Static">
       <GlobalROM segment="all" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.700165750e+01</SignalIntercept>
+            <SignalIntercept>3.924588573e+02</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.643472037e+00</amplitude>
-              <phase>8.223460826e-01</phase>
+              <amplitude>2.690015996e+02</amplitude>
+              <phase>-1.433965549e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>2.856729589e+00</amplitude>
-              <phase>2.500584771e-01</phase>
+              <amplitude>6.366971696e+01</amplitude>
+              <phase>-1.700318006e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>6.636531644e-01</amplitude>
-              <phase>-7.445618794e-01</phase>
+              <amplitude>2.726435442e+01</amplitude>
+              <phase>-1.765338646e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>8.410285485e-01</amplitude>
-              <phase>-1.422908199e+00</phase>
+              <amplitude>1.491871050e+01</amplitude>
+              <phase>-1.830451684e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>3.258953877e-01</amplitude>
-              <phase>-1.588932308e+00</phase>
+              <amplitude>5.581767441e+00</amplitude>
+              <phase>-2.879855374e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.521714539e+00</amplitude>
-              <phase>1.914985051e+00</phase>
+              <amplitude>1.481955721e+00</amplitude>
+              <phase>1.766463105e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>7.887341622e-01</amplitude>
-              <phase>2.047204516e+00</phase>
+              <amplitude>1.075360475e+00</amplitude>
+              <phase>4.209044018e-01</phase>
             </period>
           </Fourier>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>4.894731607e-01</SignalIntercept>
+            <SignalIntercept>3.133297725e+00</SignalIntercept>
             <period>8.760000000e+03
               <frequency>1.141552511e-04</frequency>
-              <amplitude>1.362488376e-01</amplitude>
-              <phase>9.761993615e-01</phase>
+              <amplitude>1.985373761e+00</amplitude>
+              <phase>-2.164936833e+00</phase>
             </period>
             <period>4.380000000e+03
               <frequency>2.283105023e-04</frequency>
-              <amplitude>3.698890541e-02</amplitude>
-              <phase>-2.583823056e+00</phase>
+              <amplitude>3.926683648e-01</amplitude>
+              <phase>-1.700766210e+00</phase>
             </period>
             <period>2.920000000e+03
               <frequency>3.424657534e-04</frequency>
-              <amplitude>4.470430151e-02</amplitude>
-              <phase>9.475930011e-02</phase>
+              <amplitude>1.678578560e-01</amplitude>
+              <phase>-1.766503951e+00</phase>
             </period>
             <period>2.190000000e+03
               <frequency>4.566210046e-04</frequency>
-              <amplitude>5.230439643e-02</amplitude>
-              <phase>8.739197143e-01</phase>
+              <amplitude>9.162143695e-02</amplitude>
+              <phase>-1.832693389e+00</phase>
             </period>
             <period>4.380000000e+02
               <frequency>2.283105023e-03</frequency>
-              <amplitude>2.080917687e-02</amplitude>
-              <phase>1.617559581e+00</phase>
+              <amplitude>3.209474453e-02</amplitude>
+              <phase>-2.951116596e+00</phase>
             </period>
             <period>1.680000000e+02
               <frequency>5.952380952e-03</frequency>
-              <amplitude>1.678710536e-02</amplitude>
-              <phase>3.069257149e+00</phase>
+              <amplitude>1.564288033e-02</amplitude>
+              <phase>-1.582577244e+00</phase>
             </period>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>3.176778154e-02</amplitude>
-              <phase>5.898203033e-01</phase>
+              <amplitude>6.012304051e-02</amplitude>
+              <phase>9.133157869e-01</phase>
             </period>
           </Fourier>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>1.715795660e-01</SignalIntercept>
+            <SignalIntercept>5.594971181e-02</SignalIntercept>
             <period>2.400000000e+01
               <frequency>4.166666667e-02</frequency>
-              <amplitude>2.644292817e-01</amplitude>
-              <phase>-2.990796234e+00</phase>
+              <amplitude>9.667660968e-02</amplitude>
+              <phase>-2.942602868e+00</phase>
             </period>
           </Fourier>
         </SOLAR>
@@ -1301,506 +671,191 @@
       <ClusterROM cluster="0" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>1.665300920e+00</SignalIntercept>
+            <SignalIntercept>-3.120004889e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.501958063e+00</amplitude>
-              <phase>5.740903290e-01</phase>
+              <amplitude>1.232474878e+00</amplitude>
+              <phase>6.407581208e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>3.299424377e-01</amplitude>
-              <phase>9.262553080e-01</phase>
+              <amplitude>2.021053161e-01</amplitude>
+              <phase>1.209258760e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>8.905267738e-02</amplitude>
-              <phase>2.594817012e-01</phase>
+              <amplitude>6.711806200e-02</amplitude>
+              <phase>-8.593632719e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.30225021278</std>
+            <std>2.35989998927</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.894418645e-01</SignalIntercept>
+            <SignalIntercept>2.471487205e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>3.126647158e-02</amplitude>
-              <phase>-2.038618508e+00</phase>
+              <amplitude>3.327210327e-02</amplitude>
+              <phase>-2.097499006e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.277385209e-02</amplitude>
-              <phase>-2.313341885e+00</phase>
+              <amplitude>2.415511161e-02</amplitude>
+              <phase>-2.329752340e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.439513929e-03</amplitude>
-              <phase>-2.166045696e+00</phase>
+              <amplitude>1.026553224e-02</amplitude>
+              <phase>-2.159610184e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.22607510386</std>
+            <std>2.23563396256</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-1.518296608e-01</SignalIntercept>
+            <SignalIntercept>7.645230756e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.500604803e-01</amplitude>
-              <phase>-4.675249446e-01</phase>
+              <amplitude>2.077962078e-01</amplitude>
+              <phase>-5.628541189e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.73359944466</std>
+            <std>3.75877183952</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>0, 1, 8, 10, 14, 15, 19, 21, 22, 27, 30, 33, 34, 36, 40, 41, 46, 47, 50, 54, 55, 56, 57, 69, 91, 283, 299, 306, 317, 318, 320, 328, 330, 332, 336, 337, 339, 340, 341, 342, 343, 348</segments_represented>
+        <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
       <ClusterROM cluster="1" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>3.375826278e-01</SignalIntercept>
+            <SignalIntercept>8.988847570e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.819703922e+00</amplitude>
-              <phase>5.888002461e-01</phase>
+              <amplitude>7.883678965e-01</amplitude>
+              <phase>8.179822776e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>4.120233801e-01</amplitude>
-              <phase>3.632810798e-02</phase>
+              <amplitude>1.439673826e-01</amplitude>
+              <phase>1.733072891e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>3.001810991e-01</amplitude>
-              <phase>3.342682172e-01</phase>
+              <amplitude>1.207121615e-01</amplitude>
+              <phase>-1.539550092e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31814466023</std>
+            <std>2.29452618465</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>-4.799825218e-02</SignalIntercept>
+            <SignalIntercept>6.179966915e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.430306664e-02</amplitude>
-              <phase>-2.528380102e+00</phase>
+              <amplitude>1.821669882e-03</amplitude>
+              <phase>-2.089327942e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.547053931e-02</amplitude>
-              <phase>-3.899764067e-01</phase>
+              <amplitude>8.110513819e-04</amplitude>
+              <phase>-1.646206201e+00</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.844597726e-03</amplitude>
-              <phase>2.898168757e+00</phase>
+              <amplitude>2.996608098e-04</amplitude>
+              <phase>-3.861059278e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19960843553</std>
+            <std>2.2489292529</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-2.788906026e-01</SignalIntercept>
+            <SignalIntercept>4.500789583e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>2.733431584e-02</amplitude>
-              <phase>2.738724735e-01</phase>
+              <amplitude>1.423857186e-01</amplitude>
+              <phase>-6.866050654e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.82701205151</std>
+            <std>2.83836077841</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>2, 5, 7, 9, 13, 16, 20, 23, 28, 31, 37, 38, 44, 48, 51, 59, 62, 296, 303, 310, 324, 327, 331, 338, 345, 352, 356, 358, 362, 363</segments_represented>
+        <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
       <ClusterROM cluster="2" type="Static">
         <TOTALLOAD>
           <Fourier>
-            <SignalIntercept>-2.689074667e+00</SignalIntercept>
+            <SignalIntercept>8.648252190e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>1.242673181e+00</amplitude>
-              <phase>4.769184582e-01</phase>
+              <amplitude>1.719242113e+00</amplitude>
+              <phase>6.029757506e-01</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>2.794821573e-01</amplitude>
-              <phase>7.642423424e-01</phase>
+              <amplitude>3.669582786e-01</amplitude>
+              <phase>-3.709058858e-02</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>9.285760817e-02</amplitude>
-              <phase>6.183335655e-01</phase>
+              <amplitude>2.779460300e-01</amplitude>
+              <phase>2.606578776e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.31532269365</std>
+            <std>2.3517685861</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
           <Fourier>
-            <SignalIntercept>1.902671620e-01</SignalIntercept>
+            <SignalIntercept>-1.821772683e-01</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>8.054166676e-03</amplitude>
-              <phase>-2.985844809e+00</phase>
+              <amplitude>1.755175252e-02</amplitude>
+              <phase>-2.604005329e+00</phase>
             </period>
             <period>6.000000000e+00
               <frequency>1.666666667e-01</frequency>
-              <amplitude>5.401871239e-03</amplitude>
-              <phase>3.088662504e+00</phase>
+              <amplitude>2.438892944e-02</amplitude>
+              <phase>-4.472987982e-01</phase>
             </period>
             <period>3.000000000e+00
               <frequency>3.333333333e-01</frequency>
-              <amplitude>1.862346583e-03</amplitude>
-              <phase>-3.108125259e+00</phase>
+              <amplitude>2.356103007e-03</amplitude>
+              <phase>-2.950324027e+00</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.33428436874</std>
+            <std>2.19822519358</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
           <Fourier>
-            <SignalIntercept>-3.153953122e-01</SignalIntercept>
+            <SignalIntercept>-5.060863417e-02</SignalIntercept>
             <period>1.200000000e+01
               <frequency>8.333333333e-02</frequency>
-              <amplitude>5.153297288e-02</amplitude>
-              <phase>2.572212330e+00</phase>
+              <amplitude>7.696332436e-02</amplitude>
+              <phase>-4.846724356e-01</phase>
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.81487081138</std>
+            <std>3.83502353694</std>
           </ARMA_params>
         </SOLAR>
-        <segments_represented>3, 6, 11, 17, 25, 26, 29, 42, 61, 65, 68, 72, 254, 281, 285, 292, 294, 297, 300, 304, 308, 309, 313, 314, 315, 321, 322, 325, 329, 334, 335, 344, 346, 347, 350, 354, 355, 357, 359, 360, 364</segments_represented>
+        <segments_represented>2, 3, 5</segments_represented>
         <indices>48, 71</indices>
-      </ClusterROM>
-      <ClusterROM cluster="3" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>2.861625207e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.846039833e-01</amplitude>
-              <phase>-2.960382000e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.774322932e-01</amplitude>
-              <phase>2.352664178e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.451285094e-01</amplitude>
-              <phase>-2.335641498e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.29084358805</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>1.890137481e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.888989637e-03</amplitude>
-              <phase>3.087985162e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>6.026908476e-03</amplitude>
-              <phase>1.527444520e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.315119852e-03</amplitude>
-              <phase>-1.517570126e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.35858826501</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.165141119e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.425637500e-02</amplitude>
-              <phase>-9.464644041e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.75713305742</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>4, 12, 18, 24, 32, 35, 39, 43, 45, 49, 53, 63, 263, 301, 323, 326, 351, 361</segments_represented>
-        <indices>72, 95</indices>
-      </ClusterROM>
-      <ClusterROM cluster="4" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-4.179543695e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.169371947e+00</amplitude>
-              <phase>5.975016079e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.203701926e-01</amplitude>
-              <phase>1.002695907e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>4.042411909e-02</amplitude>
-              <phase>3.275065886e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.33090120869</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-1.756204180e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.391794992e-02</amplitude>
-              <phase>-2.595669795e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.264892404e-02</amplitude>
-              <phase>2.280533569e-01</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.084099400e-02</amplitude>
-              <phase>1.026371737e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.38835426838</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-2.968511034e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>2.313245062e-01</amplitude>
-              <phase>-8.618273864e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.42719304939</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>52, 58, 64, 67, 70, 71, 74, 77, 81, 82, 85, 87, 89, 94, 100, 101, 103, 108, 114, 115, 117, 118, 121, 124, 125, 132, 133, 136, 140, 142, 151, 155, 157, 163, 167, 172, 174, 182, 188, 221, 252, 269, 278, 282, 287, 291, 293, 298, 302, 305, 307, 311, 319, 333, 349, 353</segments_represented>
-        <indices>96, 119</indices>
-      </ClusterROM>
-      <ClusterROM cluster="5" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-1.475228602e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>3.733297085e-01</amplitude>
-              <phase>4.943102145e-02</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>4.425292775e-01</amplitude>
-              <phase>1.500230828e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.715542872e-01</amplitude>
-              <phase>-2.595115742e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.370697409</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>7.608710785e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.408599878e-01</amplitude>
-              <phase>-2.742166253e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>5.146129817e-02</amplitude>
-              <phase>-2.915859265e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>3.892156237e-02</amplitude>
-              <phase>-2.047343012e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2611782921</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-3.707151533e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.812279728e-01</amplitude>
-              <phase>-7.315715010e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.43288905109</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>60, 66, 78, 80, 83, 88, 90, 92, 95, 102, 104, 105, 107, 109, 112, 113, 116, 119, 120, 122, 123, 127, 129, 130, 137, 139, 141, 143, 144, 147, 149, 158, 161, 162, 165, 166, 168, 169, 179, 183, 186, 190, 193, 196, 200, 207, 214, 228, 235, 242, 249, 256, 262, 266, 270, 276, 277, 279, 280, 284, 286, 288, 295, 312, 316</segments_represented>
-        <indices>120, 143</indices>
-      </ClusterROM>
-      <ClusterROM cluster="6" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>-2.842873817e+00</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>8.078098164e-01</amplitude>
-              <phase>1.213275838e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>2.545552806e-01</amplitude>
-              <phase>2.369777355e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>2.563031922e-02</amplitude>
-              <phase>3.095595347e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.32537507677</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>2.324594870e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>5.623452182e-02</amplitude>
-              <phase>-3.057234957e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>3.950859909e-02</amplitude>
-              <phase>1.405325077e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>5.127091993e-03</amplitude>
-              <phase>-1.614191608e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.30760609318</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>-7.582696694e-02</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>4.495874076e-02</amplitude>
-              <phase>-4.721485863e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>3.18326364011</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>73, 75, 76, 79, 84, 86, 93, 96, 97, 98, 99, 106, 110, 111, 128, 131, 134, 135, 138, 146, 150, 152, 153, 154, 156, 159, 170, 171, 173, 177, 178, 181, 184, 187, 194, 198, 201, 202, 206, 210, 212, 215, 218, 219, 222, 233, 246, 255, 264, 267, 268, 271, 272, 273, 274, 275, 289, 290</segments_represented>
-        <indices>144, 167</indices>
-      </ClusterROM>
-      <ClusterROM cluster="7" type="Static">
-        <TOTALLOAD>
-          <Fourier>
-            <SignalIntercept>3.581154830e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>6.862608648e-01</amplitude>
-              <phase>-3.914500698e-01</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>1.862340379e-01</amplitude>
-              <phase>-1.735946343e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>1.988331773e-02</amplitude>
-              <phase>1.122756137e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.31322467661</std>
-          </ARMA_params>
-        </TOTALLOAD>
-        <WIND>
-          <Fourier>
-            <SignalIntercept>-5.109783105e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.909578494e-02</amplitude>
-              <phase>1.796133941e+00</phase>
-            </period>
-            <period>6.000000000e+00
-              <frequency>1.666666667e-01</frequency>
-              <amplitude>9.330043409e-03</amplitude>
-              <phase>1.069041356e+00</phase>
-            </period>
-            <period>3.000000000e+00
-              <frequency>3.333333333e-01</frequency>
-              <amplitude>6.815858480e-04</amplitude>
-              <phase>1.585781230e+00</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.2914240446</std>
-          </ARMA_params>
-        </WIND>
-        <SOLAR>
-          <Fourier>
-            <SignalIntercept>1.953603999e-01</SignalIntercept>
-            <period>1.200000000e+01
-              <frequency>8.333333333e-02</frequency>
-              <amplitude>1.966343779e-01</amplitude>
-              <phase>-7.386025144e-01</phase>
-            </period>
-          </Fourier>
-          <ARMA_params>
-            <std>2.84702546673</std>
-          </ARMA_params>
-        </SOLAR>
-        <segments_represented>126, 145, 148, 160, 164, 175, 176, 180, 185, 189, 191, 192, 195, 197, 199, 203, 204, 205, 208, 209, 211, 213, 216, 217, 220, 223, 224, 225, 226, 227, 229, 230, 231, 232, 234, 236, 237, 238, 239, 240, 241, 243, 244, 245, 247, 248, 250, 251, 253, 257, 258, 259, 260, 261, 265</segments_represented>
-        <indices>168, 191</indices>
       </ClusterROM>
     </MacroStepROM>
   </arma>
