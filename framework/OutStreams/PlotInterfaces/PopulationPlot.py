@@ -22,11 +22,11 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
 
 # Internal Imports
 from utils import plotUtils
+from .PlotInterface import PlotInterface
+from utils import InputData, InputTypes
 
 class PopulationPlot(PlotInterface):
   """
@@ -121,37 +121,36 @@ class PopulationPlot(PlotInterface):
       @ Out, None
     """
     data = self.source.asDataset().to_dataframe()
-    inVars  = self.source._inputs
-    outVars = self.source._outputs
+    inVars = self.source.getVars(subset='input')
 
     nFigures = len(self.vars)
     fig, axs = plt.subplots(nFigures,1)
     fig.suptitle('Population Plot')
 
-    min_Gen = int(min(data[self.index]))
-    max_Gen = int(max(data[self.index]))
+    minGen = int(min(data[self.index]))
+    maxGen = int(max(data[self.index]))
 
     for indexVar,var in enumerate(self.vars):
-      min_fit = np.zeros(max_Gen-min_Gen+1)
-      max_fit = np.zeros(max_Gen-min_Gen+1)
-      avg_fit = np.zeros(max_Gen-min_Gen+1)
+      minFit = np.zeros(maxGen-minGen+1)
+      maxFit = np.zeros(maxGen-minGen+1)
+      avgFit = np.zeros(maxGen-minGen+1)
 
-      for idx,genID in enumerate(range(min_Gen,max_Gen+1,1)):
+      for idx,genID in enumerate(range(minGen,maxGen+1,1)):
         population = data[data[self.index]==genID]
-        min_fit[idx] = min(population[var])
-        max_fit[idx] = max(population[var])
-        avg_fit[idx] = population[var].mean()
+        minFit[idx] = min(population[var])
+        maxFit[idx] = max(population[var])
+        avgFit[idx] = population[var].mean()
 
       if var in inVars:
         if var in self.logVars:
-          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar],logscale=True)
+          plotUtils.errorFill(range(minGen,maxGen+1,1), avgFit, [minFit,maxFit], color='g', ax=axs[indexVar],logScale=True)
         else:
-          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='g', ax=axs[indexVar])
+          plotUtils.errorFill(range(minGen,maxGen+1,1), avgFit, [minFit,maxFit], color='g', ax=axs[indexVar])
       else:
         if var in self.logVars:
-          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar],logscale=True)
+          plotUtils.errorFill(range(minGen,maxGen+1,1), avgFit, [minFit,maxFit], color='b', ax=axs[indexVar],logScale=True)
         else:
-          plotUtils.errorFill(range(min_Gen,max_Gen+1,1), avg_fit, [min_fit,max_fit], color='b', ax=axs[indexVar])
+          plotUtils.errorFill(range(minGen,maxGen+1,1), avgFit, [minFit,maxFit], color='b', ax=axs[indexVar])
       axs[indexVar].set_ylabel(var)
       if var == self.vars[-1]:
         axs[indexVar].set_xlabel('Batch #')

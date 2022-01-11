@@ -25,11 +25,11 @@ import matplotlib.patches as patches
 import numpy as np
 import pandas as pd
 import imageio
-from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
 
 # Internal Imports
 from utils import plotUtils
+from .PlotInterface import PlotInterface
+from utils import InputData, InputTypes
 
 class OptParallelCoordinatePlot(PlotInterface):
   """

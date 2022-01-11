@@ -24,7 +24,7 @@ import matplotlib.patches as patches
 import numpy as np
 
 
-def errorFill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
+def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
   """
     Method designed to draw a line x vs y including a shade between the min and max of y
     @ In, None
@@ -37,8 +37,8 @@ def errorFill(x, y, yerr, color=None, alpha_fill=0.3, ax=None, logscale=False):
   elif len(yerr) == 2:
     ymin, ymax = yerr
   ax.plot(x, y, color=color)
-  ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
-  if logscale:
+  ax.fill_between(x, ymax, ymin, color=color, alpha=alphaFill)
+  if logScale:
     ax.set_yscale('symlog')
 
 
