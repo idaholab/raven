@@ -23,12 +23,12 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class DataObjectVariablesSelector(PostProcessor):
+class DataObjectVariablesSelector(PostProcessorInterface):
   """
     Does the average of multiple realizations along the RAVEN_sampleID dimension
     ONLY, leaving the other dimensions as they are.
@@ -54,7 +54,7 @@ class DataObjectVariablesSelector(PostProcessor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    super().__init__(self, messageHandler)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.variableDataObject = None # string, variables to apply postprocessor to
     self.variablesToExtract = []

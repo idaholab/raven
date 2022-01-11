@@ -28,13 +28,13 @@ import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class FeatureSelection(PostProcessor):
+class FeatureSelection(PostProcessorInterface):
   """
     Feature Selection PostProcessor is aimed to select the most important features with different methods.
     The importance ranking is provided.
@@ -75,24 +75,13 @@ class FeatureSelection(PostProcessor):
       @ In, messageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    super().__init__(self, messageHandler)
     self.targets = [] # targets
     self.features = None
     self.what = None  # how to perform the selection (list is in InputData specification)
     self.settings = {}
     self.dynamic  = False # is it time-dependent?
     self.printTag = 'POSTPROCESSOR FEATURE SELECTION'
-
-  def _localReadMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
-      @ Out, None
-    """
-    paramInput = FeatureSelection.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -133,15 +122,6 @@ class FeatureSelection(PostProcessor):
       output.load(outputDict, style="dict")
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
-
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def inputToInternal(self, currentInp):
     """
