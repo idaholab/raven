@@ -1,0 +1,55 @@
+[Tests]
+  [./Write]
+    type = 'RavenFramework'
+    input = 'write.xml'
+    [./create]
+      type = Exists
+      output = 'Write/0d.xml Write/1d.xml Write/nd.xml'
+    [../]
+    [./database]
+      type = NetCDF
+      output = 'Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
+      gold_files = 'gold/Write/DatabaseStorage/0d.nc gold/Write/DatabaseStorage/1d.nc gold/Write/DatabaseStorage/nd.nc'
+    [../]
+    [./samples]
+      type = UnorderedCSV
+      output = 'Write/0d.csv Write/1d.csv Write/1d_0.csv Write/1d_1.csv Write/1d_2.csv Write/nd.csv'
+    [../]
+  [../]
+
+  [./Read]
+    type = 'RavenFramework'
+    input = 'read.xml'
+    prereq = Write
+    [./create]
+      type = Exists
+      output = 'Read/0d.xml Read/1d.xml Read/nd.xml'
+    [../]
+    [./samples]
+      type = UnorderedCSV
+      output = 'Read/0d.csv Read/1d.csv Read/1d_0.csv Read/1d_1.csv Read/1d_2.csv Read/nd.csv'
+      gold_files = 'Write/0d.csv Write/1d.csv Write/1d_0.csv Write/1d_1.csv Write/1d_2.csv Write/nd.csv'
+    [../]
+  [../]
+
+  [./Sample]
+    type = 'RavenFramework'
+    input = 'sample.xml'
+    [./database]
+      type = NetCDF
+      output = 'Sample/DatabaseStorage/all.nc Sample/DatabaseStorage/select.nc'
+    [../]
+  [../]
+
+  [./TwiceWrite]
+    type = 'RavenFramework'
+    input = 'twice_write.xml'
+    [./database]
+      type = NetCDF
+      output = 'TwiceWrite/io_io.nc TwiceWrite/io_sample.nc TwiceWrite/sample_io.nc TwiceWrite/sample_sample.nc'
+      gold_files = 'gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc'
+    [../]
+  [../]
+[]
+
+

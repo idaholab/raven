@@ -110,7 +110,7 @@ def getDistribution(xmlElement):
   """
     Parses the xmlElement and returns the distribution
   """
-  distributionInstance = Distributions.returnInstance(xmlElement.tag, mh)
+  distributionInstance = Distributions.factory.returnInstance(xmlElement.tag)
   distributionInstance.setMessageHandler(mh)
   paramInput = distributionInstance.getInputSpecification()()
   paramInput.parseNode(xmlElement)
@@ -119,10 +119,10 @@ def getDistribution(xmlElement):
   return distributionInstance
 
 #Test module methods
-print(Distributions.knownTypes())
+print(Distributions.factory.knownTypes())
 #Test error
 try:
-  Distributions.returnInstance("unknown",'dud')
+  Distributions.factory.returnInstance("unknown",'dud')
 except:
   print("error worked")
 
@@ -1084,9 +1084,11 @@ checkAnswer("Categorical  cdf(10)" , Categorical.cdf(10),0.1)
 checkAnswer("Categorical  cdf(30)" , Categorical.cdf(30),0.45)
 checkAnswer("Categorical  cdf(60)" , Categorical.cdf(60),1.0)
 
+checkAnswer("Categorical  ppf(0.0)" , Categorical.ppf(0.0),10)
 checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
 checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
 checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
+checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),60)
 
 # Test Custom1D
 Custom1DElement = ET.Element("Custom1D",{"name":"test"})
@@ -1133,6 +1135,29 @@ checkAnswer("UniformDiscrete rvs10",UniformDiscrete.selectedRvs(discardedElems),
 checkAnswer("UniformDiscrete rvs11",UniformDiscrete.selectedRvs(discardedElems),4)
 checkAnswer("UniformDiscrete rvs12",UniformDiscrete.selectedRvs(discardedElems),3)
 
+#Test UniformDiscrete not integer values
+# >>> np.linspace(0,1,9)
+#     array([ 0.   ,  0.125,  0.25 ,  0.375,  0.5  ,  0.625,  0.75 ,  0.875,  1.   ])
+
+UniformDiscreteElement2 = ET.Element("UniformDiscrete",{"name":"test"})
+UniformDiscreteElement2.append(createElement("lowerBound", text="0.0"))
+UniformDiscreteElement2.append(createElement("upperBound", text="1.0"))
+UniformDiscreteElement2.append(createElement("nPoints",    text="9"))
+UniformDiscreteElement2.append(createElement("strategy", text="withReplacement"))
+
+UniformDiscrete2 = getDistribution(UniformDiscreteElement2)
+
+checkAnswer("UniformDiscrete2 pdf(0.125)",UniformDiscrete2.pdf(0.125),0.11111111111111111111111)
+checkAnswer("UniformDiscrete2 rvs1",UniformDiscrete2.rvs(),0.125)
+checkAnswer("UniformDiscrete2 rvs2",UniformDiscrete2.rvs(),0.25)
+checkAnswer("UniformDiscrete2 rvs3",UniformDiscrete2.rvs(),0.25)
+checkAnswer("UniformDiscrete2 rvs4",UniformDiscrete2.rvs(),0.875)
+checkAnswer("UniformDiscrete2 rvs5",UniformDiscrete2.rvs(),0.875)
+checkAnswer("UniformDiscrete2 rvs6",UniformDiscrete2.rvs(),1.0)
+checkAnswer("UniformDiscrete2 rvs3",UniformDiscrete2.rvs(),0.25)
+checkAnswer("UniformDiscrete2 rvs4",UniformDiscrete2.rvs(),0.25)
+checkAnswer("UniformDiscrete2 rvs5",UniformDiscrete2.rvs(),0.875)
+checkAnswer("UniformDiscrete2 rvs6",UniformDiscrete2.rvs(),0.25)
 
 print(results)
 

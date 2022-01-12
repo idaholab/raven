@@ -16,19 +16,20 @@
   data available in RAVEN
 
   Created on April 5, 2016
-  @author: maljdp
+  @author: maljdp, talbpaul
   supercedes OutStreamManager.py from alfoa (11/14/2013)
 """
-
-from __future__ import absolute_import
 
 ## These lines ensure that we do not have to do something like:
 ## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
 ## of this submodule
-from .OutStreamBase import OutStreamBase
-from .FilePrint import FilePrint
-from .GeneralPlot import GeneralPlot as Plot
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+# Entities
+from .OutStreamEntity import OutStreamEntity
+from .OutStreamInterface import OutStreamInterface # must import before PlotEntity and PrintEntity
+
+from .PrintEntity import Print
+from .PlotEntity import Plot
+
+
+from .Factory import factory

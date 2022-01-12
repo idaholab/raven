@@ -14,41 +14,30 @@
 """
 Created on Feb 7, 2013
 @author: alfoa
-This python module performs the loading of
-data from csv files
+This python module performs the loading of data from csv files
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External
-#Modules------------------------------------------------------------------------------------
 import numpy as np
 import pandas as pd
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import MessageUser
 
-class CsvLoader(MessageHandler.MessageUser):
+class CsvLoader(MessageUser):
   """
     Class aimed to load the CSV files
   """
   acceptableUtils = ['pandas', 'numpy']
 
-  def __init__(self, messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, the message handler
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     self.type = 'CsvLoader'               # naming type for this class
     self.printTag = self.type             # message handling representation
     self.allOutParam = False              # all output parameters?
     self.allFieldNames = []               # "header" of the CSV file
-    self.messageHandler = messageHandler  # message handling utility
 
   def loadCsvFile(self, myFile, nullOK=None, utility='pandas'):
     """
@@ -87,7 +76,7 @@ class CsvLoader(MessageHandler.MessageUser):
       self.raiseADebug(f'Reading data from "{myFile}"')
     # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
     if (not nullOK) and (pd.isnull(df).values.sum() != 0):
-      bad = pd.isnull(df).any(1).nonzero()[0][0]
+      bad = pd.isnull(df).any(1).to_numpy().nonzero()[0][0]
       self.raiseAnError(IOError, f'Invalid data in input file: row "{bad+1}" in "{myFile}"')
     self.allFieldNames = list(df.columns)
     return df

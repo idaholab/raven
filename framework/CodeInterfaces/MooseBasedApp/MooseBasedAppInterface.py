@@ -16,7 +16,6 @@ Created on April 14, 2014
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -155,14 +154,21 @@ class MooseBasedApp(CodeInterfaceBase):
     requests = []
     for var in Kwargs['SampledVars']:
       modifDict = {}
-      # When are colons used? I don't see any in the user manual example.
-      request, = var.split(':')
+      # colon is used when we want to perturb element in the vector of given variable
+      elemLoc = None
+      if ":" in var:
+        request, elemLoc = (v.strip() for v in var.split(':'))
+      else:
+        request = var
       if '|' not in request:
         # what modifications don't have the path in them?
         continue
       pathedName = request.split('|')
       modifDict['name'] = pathedName
-      modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
+      if elemLoc is not None:
+        modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+      else:
+        modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
       requests.append(modifDict)
     return requests
 

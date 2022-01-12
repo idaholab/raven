@@ -16,20 +16,10 @@
   to measure distance among RAVEN dataobjects
 """
 
-from __future__ import absolute_import
-
 ## These lines ensure that we do not have to do something like:
 ## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
 ## of this submodule
-from .Metric import Metric
-from .DTW import DTW
-from .SklMetric import SKL
-from .PairwiseMetric import PairwiseMetric
-from .CDFAreaDifference import CDFAreaDifference
-from .PDFCommonArea import PDFCommonArea
-from .ScipyMetric import ScipyMetric
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .MetricEntity import MetricEntity as Metric
+from .metrics.MetricInterface import MetricInterface
 
-__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric']
+from .Factory import factory

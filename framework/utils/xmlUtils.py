@@ -97,8 +97,6 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
     prettifyNode(tree, tabs=startingTabs, ravenNewlines=addRavenNewlines)
     return toString(ET.tostring(tree))
 
-  return toWrite
-
 def newNode(tag, text='', attrib=None):
   """
     Creates a new node with the desired tag, text, and attributes more simply than can be done natively.
@@ -337,6 +335,24 @@ def readExternalXML(extFile, extNode, cwd):
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode, extFile))
   return root
 
+def replaceVariableGroups(node, variableGroups):
+  """
+    Replaces variables groups with variable entries in text of nodes
+    @ In, node, xml.etree.ElementTree.Element, the node to search for replacement
+    @ In, variableGroups, dict, variable group mapping
+    @ Out, None
+  """
+  if node.text is not None and node.text.strip() != '':
+    textEntries = list(t.strip() for t in node.text.split(','))
+    for t,text in enumerate(textEntries):
+      if text in variableGroups.keys():
+        textEntries[t] = variableGroups[text].getVarsString()
+        print('xmlUtils: Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+    #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
+    node.text = str(','.join(textEntries))
+  for child in node:
+    replaceVariableGroups(child, variableGroups)
+
 def findAllRecursive(node, element):
   """
     A function for recursively traversing a node in an elementTree to find
@@ -444,38 +460,46 @@ class StaticXmlElement(object):
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
     targ.append(newNode(name, text=value, attrib=attrs))
 
-  def addVector(self, target, name, valueDict, root=None, attrs=None, valueAttrsDict=None):
+  def addVector(self, target, name, valueCont, root=None, attrs=None, valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
         <target>
-          <name>
-            <with_respect_to_name1> value 1 </with_respect_to_name1>
-            <with_respect_to_name2> value 2 </with_respect_to_name2>
-            <with_respect_to_name3> value 3 </with_respect_to_name3>
-          </name>
+          if valueCont is a dict:
+             <name>
+               <with_respect_to_name1> value 1 </with_respect_to_name1>
+               <with_respect_to_name2> value 2 </with_respect_to_name2>
+               <with_respect_to_name3> value 3 </with_respect_to_name3>
+             </name>
+           else:
+             <name> value </name>
         </target>
       </root>
-      The valueDict should be as {with_respect_to_name1: value1, with_respect_to_name2: value2, etc}
+      The valueCont should be as {with_respect_to_name1: value1, with_respect_to_name2: value2, etc}
       For example, if the "name" is sensitivity_coefs, each entry would be the sensitivity of the "target"
         to "with_respect_to_name1" and etc.
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
-      @ In, valueDict, dict, name:value dictionary of metric values
+      @ In, valueCont, dict or str, if dict:
+                                        name:value dictionary of metric values
+                                     else:
+                                        value of node "name"
       @ In, root, xml.etree.ElementTree.Element, optional, node to append to
       @ In, attrs, dict, optional, dictionary of attributes to be stored in the node (name)
       @ In, valueAttrsDict, dict, optional, dictionary of attributes to be stored along the subnodes
-            identified by the valueDict dictionary
+            identified by the valueCont dictionary
       @ Out, None
     """
+    isStr = isinstance(valueCont, str)
     if root is None:
       root = self.getRoot()
     if valueAttrsDict is None:
       valueAttrsDict = {}
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
-    nameNode = newNode(name, attrib=attrs)
-    for key, value in sorted(list(valueDict.items())):
-      nameNode.append(newNode(key, text=value, attrib=valueAttrsDict.get(key, None)))
+    nameNode = newNode(name, attrib=attrs, text=valueCont if isStr else '')
+    if not isStr:
+      for key, value in sorted(list(valueCont.items())):
+        nameNode.append(newNode(key, text=value, attrib=valueAttrsDict.get(key, None)))
     targ.append(nameNode)
 
   def getRoot(self):
@@ -500,6 +524,17 @@ class StaticXmlElement(object):
       targ = newNode(target)
       root.append(targ)
     return targ
+
+def staticFromString(s):
+  """
+    Parse string as XML.
+    @ In, s, str, XML in string format
+    @ Out, new, StaticXmlElement, xml
+  """
+  new = StaticXmlElement('temp')
+  new._root = ET.fromstring(s)
+  new._tree = ET.ElementTree(element=new._root)
+  return new
 
 #
 # Dynamic version

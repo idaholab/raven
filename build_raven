@@ -87,7 +87,6 @@ else
   echo No Conda Python libraries ...
 fi
 
-
 echo Making ...
 # make
 
@@ -103,9 +102,21 @@ if test `uname` = Darwin; then
     export MACOSX_DEPLOYMENT_TARGET;
 fi
 
-(cd $CROW_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./install)
+PIP_COMMAND=pip3
+(cd $CROW_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
 
-(cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
+(cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./framework/contrib/AMSC)
 
+if [ ! -z "$RAVEN_SIGNATURE" ];
+then
+    #This is to allow the code to be signed on mac os computers.
+    # It requires a signature (possibly self signed) to be used.
+    # Creating a signature is discussed at:
+    # https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html
+    # RAVEN_SIGNATURE can be added to .ravenrc
+    echo "... Signing code with '$RAVEN_SIGNATURE' ..."
+    (cd $CROW_DIR/install/crow_modules && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
+    (cd $RAVEN_BUILD_DIR/framework/contrib/AMSC && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
+fi
 
 echo ... done!

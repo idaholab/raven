@@ -45,8 +45,7 @@ args = parser.parse_args()
 
 # -> manually add to install list for "all"
 # ExamplePlugin should always stay here.
-# PRAPlugin can be moved once it is in a separate repository.
-manualAddedPlugins = ['PRAplugin', 'ExamplePlugin']
+manualAddedPlugins = ['ExamplePlugin']
 # END TEMPORARY FIXME
 
 if __name__ == '__main__':
@@ -64,11 +63,11 @@ if __name__ == '__main__':
   owd = os.getcwd()
   cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
   os.chdir(cwd)
-  subsOut = os.popen('git config --file .gitmodules --name-only --get-regexp path').read()
+  subsOut = [x.split(' ')[0] for x in os.popen('git config --file .gitmodules --get-regexp path').read().split("\n")]
   ## subsInit are the initialized ones
   subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split("\n") if x.strip() != '']
   submods = []
-  for m, sub in enumerate(subsOut.split("\n")):
+  for m, sub in enumerate(subsOut):
     if sub.strip() != '':
       submods.append(os.path.basename(sub)[:-5]) #trim off path, ".path"
 

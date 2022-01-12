@@ -18,6 +18,8 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-10-01">This is a requirement test now. Req. R-SI-1</revision>
       <revision author="alfoa" date="2019-12-05">Modified to check we can handle multiple words in the same card.</revision>
+      <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
+      <revision author="alfoa" date="2021-10-21">Removed clearRunDir flag since in case of interfaceCheck this is set to False automatically (see issue #1688)</revision>
     </revisions>
     <requirements>R-SI-1</requirements>
   </TestInfo>
@@ -38,6 +40,8 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
+      <csv>True</csv>
     </Code>
   </Models>
 
@@ -112,7 +116,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
+    <MultiRun name="testDummyStep" re-seeding="1">
       <Input class="Files" type="">snc01.i</Input>
       <Input class="Files" type="">tpfh2o</Input>
       <Model class="Models" type="Code">MyRELAP</Model>

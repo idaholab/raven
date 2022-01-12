@@ -37,8 +37,8 @@ import platform
 #Internal Modules---------------------------------------------------------------
 from utils import utils
 from utils import mathUtils
-import MessageHandler
-import DataObjects
+from BaseClasses import MessageUser
+from EntityFactoryBase import EntityFactory
 #Internal Modules End-----------------------------------------------------------
 
 # FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
@@ -55,7 +55,7 @@ if utils.displayAvailable() and platform.system() != 'Windows':
   matplotlib.use('TkAgg')
 import matplotlib.pylab as plt
 
-class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
@@ -94,14 +94,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     return (True, '')
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for unSupervisedLearning class.
-      @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
+    super().__init__()
     self.printTag = 'unSupervised'
-    self.messageHandler = messageHandler
 
     ## booleanFlag that controls the normalization procedure. If true, the
     ## normalization is performed. Default = True
@@ -208,7 +207,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## End Error-handling
     ############################################################################
-
     if metric is None:
       self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
@@ -387,14 +385,13 @@ class SciKitLearn(unSupervisedLearning):
   modelType = 'SciKitLearn'
   availImpl = {}
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for SciKitLearn class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the SciKitLearn algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     if len(self.availImpl) == 0:
       import sklearn.cluster
       import sklearn.mixture
@@ -598,6 +595,7 @@ class SciKitLearn(unSupervisedLearning):
         else:
           numClusters = len(set(self.Method.labels_))
 
+
         centers = np.zeros([numClusters,len(self.features)])
         counter = np.zeros(numClusters)
         for val,index in enumerate(self.Method.labels_):
@@ -757,14 +755,13 @@ class temporalSciKitLearn(unSupervisedLearning):
     Data mining library to perform SciKitLearn algorithms along temporal data
   """
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for temporalSciKitLearn class.
-      @ In, messageHandler, Message handler object
       @ In, kwargs, arguments for the SciKitLearn algorithm
       @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'TEMPORALSCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -777,7 +774,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn', **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}
@@ -1296,14 +1293,13 @@ class Scipy(unSupervisedLearning):
   availImpl['cluster'] = {}
   availImpl['cluster']['Hierarchical'] = (hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for Scipy class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the Scipy algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SCIPY'
     if 'SCIPYtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
@@ -1403,35 +1399,7 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
-__interfaceDict = {}
-__interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
-__interfaceDict['Scipy'] = Scipy
-
-__base = 'unSuperVisedLearning'
-
-def returnInstance(modelClass, caller, **kwargs):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the instance to create
-    @ In, caller, object, object that will share its messageHandler instance
-    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-    @ Out, object, an instance of a Model
-  """
-  try:
-    return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError as ae:
-    # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
-
-def returnClass(modelClass, caller):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the class to retrieve
-    @ In, caller, object, object that will share its messageHandler instance
-    @ Out, the class definition of the Model
-  """
-  try:
-    return __interfaceDict[modelClass]
-  except KeyError:
-    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)
+factory = EntityFactory('unSuperVisedLearning')
+factory.registerType('SciKitLearn', SciKitLearn)
+factory.registerType('temporalSciKitLearn', temporalSciKitLearn)
+factory.registerType('Scipy', Scipy)

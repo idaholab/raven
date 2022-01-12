@@ -1,0 +1,175 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% PHISICS/RELAP5 INTERFACE %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PHISICS/RELAP5 Interface}
+\label{subsec:PhisicsRelap5Interface}
+%
+\subsubsection{General Information}
+%
+This section covers the input specification for running PHISICS/RELAP5 through RAVEN.
+This interface can be used to perturb the PHISICS and/or RELAP5 input files. This interface is strongly built around the PHISICS and RELAP5
+standalone interfaces, hence this sections covers the additional cautions to take care of to run the coupled PHISICS/RELAP5 code. The
+user will find additional information regarding PHISICS in section \ref{subsec:PhisicsInterface} or RELAP5 in section \ref{subsec:RELAP5Interface}.
+%
+\subsubsection{Files}
+\label{subsec:PhisicsRelap5Files}
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.
+It also includes two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
+
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node.
+Default: None (required entry).
+
+For the files parsed by the PHISICS interface or the PHISICS interface's parsers, some of the \xmlAttr{type} attributes are hardcoded.
+The accepted PHISICS \xmlAttr{type} attributes are given in Table \ref{TypeTable} and are not repeated here. Additional information can be found in section \ref{subsubsec:PhisicsInterfaceFiles}.
+All the necessary RELAP5 input files need to have a \xmlAttr{type} attribute starting with the string 'relap'.
+The necessary RELAP5 files for use in the coupled PHISICS/RELAP mode within RAVEN are given in Table~\ref{PhisicsRelap5TypeTable}. The files associated
+with a  \xmlAttr{type} that does not start with the string 'relap' will be treated by the PHISICS interface.
+The  \xmlAttr{type} attributes are case-incensitive.
+\begin{table}[]
+  \centering
+  \caption{Example of RELAP5 type attributes in coupled PHISICS/RELAP5 mode}\label{PhisicsRelap5TypeTable}
+    \begin{tabular}{l|l|l}
+\textit{Type Attribute} & \textit{Corresponding RELAP5 input} & \textit{Perturbable} \\
+\hline
+relapFluid              & fluid properties                  & No  \\
+relapInp                & Relap input File                  & yes \\
+relapLicense            & license for the RELAP5 executable & No  \\
+    \end{tabular}
+\end{table}
+
+Example of acceptable RELAP5 entries within PHISICS/RELAP5:
+\begin{lstlisting}[style=XML]
+<File>
+  <Input name="H2O"       type="relaph2o"     perturbable="False">tph2o</Input>
+  <Input name="H2"        type="relaph2"      perturbable="False">tph2</Input>
+  <Input name="inputDeck" type="relapInput"   perturbable="True" >inp.i</Input>
+  <Input name="lic"       type="relapLicence" perturbable="False">license.bin</Input>
+</File>
+\end{lstlisting}
+%
+\subsubsection{Models}
+The user has to provide the paths to executables for the sampled variables within the \xmlNode{Models} block.
+
+The \xmlNode{Code} block will contain attributes \xmlAttr{name} and \xmlAttr{subType}.
+The \xmlAttr{name} identifies the particular \xmlNode{Code} model within RAVEN, and \xmlAttr{subType}
+specifies which code interface the model will use. \xmlAttr{subType}=\xmlString{PhisicsRelap5} is the class name
+currently used for PHISICS/RELAP5 coupled calculations.
+
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS/RELAP5
+that RAVEN will use to run the code. The additional nodes in the \xmlNode{Models} applicable to PHISICS standalone and RELAP5 standalone
+are valid in coupled mode and can be consulted in section~\ref{subsubsection:PhisicsModel} and section~\ref{subsubsection:Relap5Models} respectively.
+Exception: the use of MrTau in standalone mode (i.e. \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled
+calculations.
+
+An example of the \xmlNode{Models} block is given below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
+       <executable>./path/to/instant/executable</executable>
+    </Code>
+  </Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}\label{SamplerPhisicsRelap5}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to the PHISICS library which the variable belongs to.
+Information relative to PHISICS distributions are in section~\ref{subsubsection:SamplersPhisics},
+as well as specifications on PHISICS variable names.
+An example of a \xmlNode{Samplers} block is given below:
+\begin{lstlisting}[style=XML]
+ <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="DENSITY|FUEL1|U238">
+        <distribution>DENSITY|FUEL1|U238_distrib</distribution>
+      </variable>
+      <variable name="20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+In this example, the variable \xmlString{DENSITY$\vert$FUEL1$\vert$U238} is relative to PHISICS and the variable \xmlString{20100154:2} is relative to RELAP5.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+The tasks performed by RAVEN need to be defined in the \xmlNode{Steps} block. Each task needs to be defined with a \xmlAttr{name}. This \xmlAttr{name} is later on used in the
+the \xmlNode{Sequence} block. In the example, the step is called \xmlString{testDummyStep}.
+%
+\begin{lstlisting}[style=XML]
+<Steps>
+  <MultiRun name='testDummyStep' verbosity='debug'>
+    <Input class='Files' type='decay'>decay.dat</Input>
+    <Input class='Files' type='inp'>inp.xml</Input>
+    <Input class='Files' type='XS'>xs.xml</Input>
+    <Input class="Files" type="relapFluid">tpfhe</Input>
+    <Input class="Files" type="relapExec">relap5Exec.x</Input>
+    <Model class="Models" type="Code">PHISICS_RELAP5</Model>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Additional Input}
+\label{subsubsection:PhisicsRelap5AdditionalInput}
+The PHISICS additional inputs are described in section~\ref{subsubsection:PhisicsAdditionalInput}. The RELAP5 additional inputs are described in
+section ~\ref{subsubsection:Relap5Models}.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Output Files Conversion}
+\label{subsubsection:PhisicsRelap5OutputFileConversion}
+
+The PHISICS output available for RAVEN post-processing are described in section~\ref{subsubsection:PhisicsOutFileConv}.
+The output printed from PHISICS and RELAP5 are synchronized in the RAVEN csv output. The synchronization scheme is explained in this section.
+
+At t = 0 seconds, the RELAP5 initialized output are printed in the csv output, while the output variables from PHISICS are taken equal to 0.
+Then, the RAVEN/PHISICS/RELAP5 post-processor finds the time step number at the end of each PHISICS
+burn step based on the \xmlNode{tab\_time\_step} values, and prints the RELAP minor edits according to the \xmlNode{TH\_between\_BURN} values.
+
+Let's consider the following example:
+\begin{enumerate}
+\item [$-$]\xmlNode{tab\_time\_step} \xmlString{5 3 2} \xmlNode{/tab\_time\_step} (in the PHISICS depletion file);
+\item [$-$]\xmlNode{TH\_between\_BURN} \xmlString{1.0 2.0} \xmlNode{TH\_between\_BURN}() in the PHISICS input file);
+\item [$-$]\xmlNode{tabulation\_boundaries} \xmlString{5.0 35.0 45.0}\xmlNode{tabulation\_boundaries} (upper burn step boundaries in the PHISICS depletion file).
+\item [$-$]in the RELAP5 input, a 3.0 seconds steady state is considered, with minor edits every 0.5 seconds.
+\end{enumerate}
+The first PHISICS/RELAP5 output line printed will be at t = 0 seconds. The PHISICS outputs are set to 0.0, the RELAP5 values are obtained at the end of the initialization.
+The second line printed will be at the PHISICS time step \xmlString{5} (end of the first burn step, corresponding to t = 5.0 seconds),
+and prints the RELAP5 minor edits as long as the time from the minor edits is lower than the first \xmlNode{TH\_between\_BURN} value \xmlString{1.0}.
+The RELAP5 minor edits are printed along with the PHISICS burn step \xmlString{5} as long as time in the minor edits is smaller or equal to \xmlString{1.0}.
+When the RELAP5 time in the minor edits time is greater than \xmlString{1.0}, the end of the second PHISICS burn step is targetted, from the
+\xmlNode{tab\_time\_step}: \xmlString{3}. This corresponds to a PHISICS time equal to 35.0 seconds. The RELAP5 minor edits are printed along with the PHISICS values at t = 35.0 s,
+as long as the minor data time is smaller than the \xmlNode{TH\_between\_BURN} equal to \xmlString{2.0}.
+Finally, the last PHISICS time step at 45.0 seconds is printed along with the RELAP5 minor edits.
+Overall, the output variables printed will be:
+
+mrtauTime, n2n$\vert$gr1$\vert$reg4, httemp\_3001010\_1, time
+
+0.000, 0.000, 1.526, 0.000
+
+5.000, 1.111, 1.859, 0.500
+
+5.000, 1.111, 2.369, 1.000
+
+35.00, 7.800, 3.666, 1.500
+
+35.00, 7.800, 4.789, 2.000
+
+45.00, 9.330, 4.225, 3.000

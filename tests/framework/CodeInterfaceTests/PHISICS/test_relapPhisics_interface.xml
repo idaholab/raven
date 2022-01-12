@@ -56,6 +56,7 @@
 
   <Models>
     <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
+        <csv>True</csv>
        <executable>xxx</executable>
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>F</printSpatialFlux>

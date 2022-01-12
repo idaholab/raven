@@ -30,7 +30,7 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_observed" name="likelihood" subType="">
       <variables>rho, pout</variables>
     </ExternalModel>
     <PostProcessor name="posteriorMode" subType="BasicStatistics">

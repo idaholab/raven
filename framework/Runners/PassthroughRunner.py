@@ -22,22 +22,15 @@ class PassthroughRunner(Runner):
   """
     A runner for when we already have the answer, but need to go through the mechanics.
   """
-  def __init__(self, messageHandler, data, metadata=None, uniqueHandler="any", profile=False):
+  def __init__(self, data, func, **kwargs):
     """
-      Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message
-        handler object
+      Construct
       @ In, data, dict, fully-evaluated realization
-      @ In, metadata, dict, optional, dictionary of metadata associated with
-        this run
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to
-        this runner. For example, if present, to retrieve this runner using the
-        method jobHandler.getFinished, the uniqueHandler needs to be provided.
-        If uniqueHandler == 'any', every "client" can get this runner
-      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ In, func, None, placeholder for consistency with other runners
+      @ In, kwargs, dict, additional arguments to pass to base
       @ Out, None
     """
-    super(PassthroughRunner, self).__init__(messageHandler, metadata=metadata, uniqueHandler=uniqueHandler, profile=profile)
+    super().__init__(**kwargs)
     self._data = data   # realization with completed data
     self.returnCode = 0 # passthrough was born successful
 

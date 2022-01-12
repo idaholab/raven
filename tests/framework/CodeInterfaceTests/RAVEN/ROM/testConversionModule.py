@@ -24,7 +24,7 @@ def manipulateScalarSampledVariables(sampledVars):
     @ Out, None, the new variables should be
            added in the "sampledVariables" dictionary
   """
-  sampledVars['Models|ROM@subType:SciKitLearn@name:ROM1|coef0']  = sampledVars['Models|ROM@subType:SciKitLearn@name:ROM1|C']/10.0
+  sampledVars['Models|ROM@subType:SVR@name:ROM1|coef0']  = sampledVars['Models|ROM@subType:SVR@name:ROM1|C']/10.0
 
 
 

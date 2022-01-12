@@ -12,6 +12,13 @@
     output = 'diabetes/romXML.xml'
     csv = 'diabetes/outMLPClassifier.csv'
   [../]
+  [./tf_mlpr]
+    type  = 'RavenFramework'
+    input = 'keras_mlp_regression.xml'
+    output = 'keras_mlp_regression/romXML.xml'
+    csv = 'keras_mlp_regression/outMLPClassifier.csv'
+    rel_err = 0.0005
+  [../]
   # Disable test for pickling, currently, we could not pickle the DNN ROMs
   #[./tf_cnn_dump]
   #  type  = 'RavenFramework'
@@ -22,5 +29,17 @@
     type  = 'RavenFramework'
     input = 'lstm.xml'
     csv = 'data/outLSTMClassifier.csv'
+  [../]
+  [./tf_lstm_regression]
+    type = 'RavenFramework'
+    input = 'keras_lstm_regression.xml'
+    csv = 'LSTMRegression/out_resampled_0.csv LSTMRegression/out_resampled_1.csv'
+    rel_err = 0.0005
+  [../]
+  [./LSTMFromFile]
+    type  = 'RavenFramework'
+    input = 'lstm_from_file.xml'
+    csv = 'data/rom_samples.csv'
+    output = 'data/rom_samples.xml'
   [../]
 []

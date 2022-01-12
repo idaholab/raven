@@ -47,6 +47,15 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class for Step Manipulation algorithms in the GradientDescent Optimizer.'
+    specs.addSub(InputData.parameterInputFactory('initialStepScale', contentType=InputTypes.FloatType,
+        descr=r"""specifies the scale of the initial step in the optimization, in percent of the
+              size of the problem. The size of the problem is defined as the hyperdiagonal of the
+              input space, composed of the input variables. A value of 1 indicates the first step
+              can reach from the lowest value of all inputs to the highest point of all inputs,
+              which is too large for all problems with more than one optimization variable. In general this
+              should be smaller as the number of optimization variables increases, but large enough
+              that the first step is meaningful for the problem. This scaling factor should always
+              be less than $1/\sqrt{N}$, where $N$ is the number of optimization variables. \default{0.05} """))
     return specs
 
   @classmethod
@@ -70,7 +79,8 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     self.type = self.__class__.__name__
     self.needsAccessToAcceptance = False # if True, then this stepManip may need to modify opt point acceptance criteria
     # _protected
-    self._optVars = None # optimization variable names (e.g. input space vars)
+    self._optVars = None                 # optimization variable names (e.g. input space vars)
+    self._initialStepScaling = 0.05      # scale the size of the initial step, in % (where 1 is the length of hyperdiagonal of hypercube)
     # __private
     # additional methods
 
@@ -80,7 +90,9 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    pass
+    initialScaling = specs.findFirst('initialStepScale')
+    if initialScaling is not None:
+      self._initialStepScaling = initialScaling.value
 
   def initialize(self, optVars, **kwargs):
     """

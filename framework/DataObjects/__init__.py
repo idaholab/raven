@@ -29,9 +29,4 @@ from .DataSet import DataSet
 from .PointSet import PointSet
 from .HistorySet import HistorySet
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
-
-# We should not really need this as we do not use wildcard imports
-__all__ = ['Data','DataSet','PointSet','HistorySet']
+from .Factory import factory

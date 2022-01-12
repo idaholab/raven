@@ -18,11 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 from collections import OrderedDict
 import copy
 import numpy as np
@@ -30,17 +25,12 @@ from operator import mul
 from functools import reduce
 from scipy import spatial
 from math import ceil
-import sys
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from PostProcessors import LimitSurface
-from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
+from .AdaptiveSampler import AdaptiveSampler
 
 
 class LimitSurfaceSearch(AdaptiveSampler):
@@ -363,8 +353,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
       @ Out, None
     """
-    self.converged        = False
-    self.limitSurfacePP   = LimitSurface(self.messageHandler)
+    self.converged = False
+    from Models.PostProcessors import factory as ppFactory
+    self.limitSurfacePP = ppFactory.returnInstance('LimitSurface')
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]
     # if 'TargetEvaluation' in self.assemblerDict.keys():

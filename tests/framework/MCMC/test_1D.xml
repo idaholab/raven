@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/MCMC.MetropolisOneDim</name>
+    <author>wangc</author>
+    <created>2020-12-20</created>
+    <classesTested>MCMC.Metropolis</classesTested>
+    <description>
+      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
+      Test to see if there is any degradation in Metropolis Sampling
+      A large number (80000) of samples is used to test the efficiency
+      of Metropolis Sampler. It takes about 550 second in Mac machine.
+      If the time to run this test exceed 700s, some investigation should
+      be conducted to resolve the issue.
+      Heavy test: ~550s on Mac, set MaxTime to 700s
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>OneDim</WorkingDir>
+    <Sequence>mh, print</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>-10</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+    <Normal name="normal">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_1D" name="likelihood" subType="">
+      <variables>xin, zout</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>80000</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>0</burnIn>
+      </samplerInit>
+      <likelihood log="True">zout</likelihood>
+      <variable name="xin">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+    </Metropolis>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Output class="OutStreams" type="Print">dumpExport</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpExport">
+      <type>csv</type>
+      <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>xin</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>xin</Input>
+      <Output>zout</Output>
+    </PointSet>
+
+    <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>xin, LogPosterior, AcceptRate, zout</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

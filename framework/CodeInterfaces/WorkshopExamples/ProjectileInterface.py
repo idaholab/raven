@@ -27,6 +27,7 @@ import csv
 import re
 import copy
 import numpy
+from collections import defaultdict
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -96,6 +97,24 @@ class Projectile(CodeInterfaceBase):
         src.writelines(var+ " = "+ str(value)+"\n")
     return currentInputFiles
 
+  def _readOutputData(self, outfileName):
+    """
+      Simple method to read the projectile output and return it ad a dictionary
+      @ In, outfileName, string, the Output file name
+      @ Out, headers, list, the list of variables' names
+      @ Out, data, list, the list (timesteps) of list of data [[],[],[],etc]
+    """
+    with open(outfileName, 'r') as src:
+      headers = [x.strip() for x in  src.readline().split() ]
+      data = []
+      line = ""
+      # starts reading
+      while not line.strip().startswith("--"):
+        line = src.readline()
+        if not line.strip().startswith("--"):
+          data.append(line.split())
+    return headers, data
+
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
@@ -108,19 +127,10 @@ class Projectile(CodeInterfaceBase):
     """
     # open output file
     outfileName = os.path.join(workingDir,output+".txt" )
-    print(outfileName)
-    with open(outfileName, 'r') as src:
-      headers = [x.strip() for x in  src.readline().split() ]
-      data = []
-      line = ""
-      # starts reading
-      while not line.strip().startswith("--"):
-        line = src.readline()
-        if not line.strip().startswith("--"):
-          data.append(",".join( line.split())+"\n")
-      # write the output file
-      with open(os.path.join(workingDir,output+".csv" ),"w") as outputFile:
-        outputFile.writelines(",".join( headers ) +"\n")
-        for i in range(len(data)):
-          outputFile.writelines(data[i])
+    headers, data = self._readOutputData(outfileName)
+    # write the output file
+    with open(os.path.join(workingDir,output+".csv" ),"w") as outputFile:
+      outputFile.writelines(",".join( headers ) +"\n")
+      for i in range(len(data)):
+        outputFile.writelines(",".join( data[i] )+"\n")
 

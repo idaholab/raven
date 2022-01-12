@@ -102,25 +102,20 @@
       <KDD lib="SciKitLearn">
         <SKLtype>cluster|MeanShift</SKLtype>
         <Features>output</Features>
-        <bandwidth>9</bandwidth>
+        <bandwidth>20</bandwidth>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
-      <method>HS2PS</method>
+    <PostProcessor name="dataPreProc" subType="HS2PS">
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter0" subType="dataObjectLabelFilter">
       <label>MeanShiftLabels</label>
       <clusterIDs>0</clusterIDs>
     </PostProcessor>
-    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter1" subType="dataObjectLabelFilter">
       <label>MeanShiftLabels</label>
       <clusterIDs>1</clusterIDs>
     </PostProcessor>

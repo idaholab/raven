@@ -1,0 +1,85 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.CloudPlot</name>
+    <author>talbpaul</author>
+    <created>2020-09-02</created>
+    <classesTested>OutStreams.SyntheticCloud</classesTested>
+    <description>
+      Tests the custom synthetic history cloud plot.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Interpolated</WorkingDir>
+    <Sequence>load_inp, load_pk, sample, plot</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load_inp">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <IOStep name="load_pk">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synthetic</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Input class="DataObjects" type="DataSet">synthetic</Input>
+      <Output class="OutStreams" type="Plot">cloud</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+    <Input name="pk">interpolated.pk</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="input">
+      <Input>scaling, Year</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="synthetic">
+      <Input>scaling</Input>
+      <Output>Signal</Output>
+      <Index var="Time">Signal</Index>
+      <Index var="Year">Signal</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="pickledROM">
+      <clusterEvalMode>full</clusterEvalMode>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Plot name="cloud" subType="SyntheticCloud">
+      <training>input</training>
+      <samples>synthetic</samples>
+      <macroParam>Year</macroParam>
+      <microParam>Time</microParam>
+      <variables>Signal</variables>
+    </Plot>
+  </OutStreams>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+</Simulation>

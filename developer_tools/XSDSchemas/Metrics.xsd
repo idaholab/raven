@@ -2,19 +2,29 @@
 <xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
 
     <xsd:complexType name="MetricsData">
+        <xsd:sequence>
+            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+    </xsd:complexType>
+    <!-- as of PR #1573, using subType to delineate the XML options means Metrics cannot be
+    checked using XSD 1.0 -->
+
+    <!-- <xsd:complexType name="MetricsData">
         <xsd:choice minOccurs="1"  maxOccurs="unbounded">
-            <xsd:element name="ScipyMetric"  type="ScipyMetrics"   minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="PairwiseMetric"  type="PairwiseMetrics"   minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="DTW"        type="DtwMetrics"         minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="SKL"        type="SKLMetrics"         minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="CDFAreaDifference" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="PDFCommonArea" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="ScipyMetrics"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="PairwiseMetrics" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="DtwMetrics"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="SKLMetrics"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metric" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:choice>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="EmptyMetricType">
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="subType" type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
@@ -24,9 +34,10 @@
             <xsd:element name="localDistance"    type="xsd:string"    minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="subType" type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="SKLMetrics">
         <xsd:all>
             <xsd:element name="metricType"        type="xsd:string"    minOccurs="1"/>
@@ -39,9 +50,10 @@
             <xsd:element name="sample_weight"     type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="subType" type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ScipyMetrics">
         <xsd:all>
             <xsd:element name="metricType"        type="xsd:string"    minOccurs="1"/>
@@ -49,8 +61,9 @@
             <xsd:element name="w"                 type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="subType" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PairwiseMetrics">
         <xsd:all>
             <xsd:element name="metricType"        type="xsd:string"    minOccurs="1"/>
@@ -61,5 +74,6 @@
             <xsd:element name="coef0"             type="xsd:integer"   minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
-    </xsd:complexType>
+        <xsd:attribute name="subType" type="xsd:string" use="required"/>
+    </xsd:complexType> -->
 </xsd:schema>

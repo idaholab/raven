@@ -1,0 +1,313 @@
+[Tests]
+  [./MinwReplacement]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwRep.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwRepConvAHDp.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwReplacementConvAHDpUsingCode]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwRepConvAHDpUsingCode.xml'
+    output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/optimize/b5_r6/out~input.csv'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwoReplacement]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwoRep.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwoReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwoReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMinwoRepConvAHDp.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwReplacement]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwRep.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+    [./plot]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement/opt_path.png'
+    [../]
+  [../]
+
+  [./MaxwReplacementDiffDist]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwRepDifferentDist.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwReplacementDiffDist/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwRepConvAHDp.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacement]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRep.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacementTwoPointsCrossover]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRepTwoPointsCrossover.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacementDiffDist]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRepDifferentDist.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRepConvAHDp.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./discreteIntWithReplacement]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_discreteIntWithReplacement.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv ./discrete/unconstrained/discreteIntWithReplacement/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GA_knapsackBase]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBase.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsack/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GA_knapsackBaseTournament]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBaseTournament.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_1.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GA_knapsackBaseUnifXover]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBaseUnifXover.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./MaxwReplacementSphereConstrained]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMaxwRepSphereConstrained.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MaxwReplacementSphereConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./MaxwReplacementSphereConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMaxwRepSphereConstrainedInvLin.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MaxwReplacementSphereConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./mishraBirdConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGAMishraBirdConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/mishraBirdConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./mishraBirdConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGAMishraBirdConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/mishraBirdConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./simionescuConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGASimionescuConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/simionescuConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./simionescuConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGASimionescuConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/simionescuConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./townsendConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGATownsendConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/townsendConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./townsendConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGATownsendConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/townsendConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+   [./knapsackMultipleDist]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBase_multipleDist.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/knapsackMultipleDist/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ppf_bound]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/test_ppf_bound.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/GA_PPF/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./failureOfRuns]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/failureOfRuns.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+[]
