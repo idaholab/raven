@@ -1,0 +1,9 @@
+[Tests]
+  [./executeRAVENWorkflowViaPython]
+    type = 'RavenPython'
+    input = 'executeRavenFromPython.py'
+    output = 'firstplot.png secondplot.png' 
+  [../]
+[]
+
+
