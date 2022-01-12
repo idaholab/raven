@@ -452,7 +452,7 @@ class BoostDistribution(Distribution):
 
   def untruncatedMean(self):
     """
-      Function to get the untruncated  Mean
+      Function to get the untruncated Mean
       @ In, None
       @ Out, float, requested Mean
     """
@@ -468,7 +468,7 @@ class BoostDistribution(Distribution):
 
   def untruncatedMedian(self):
     """
-      Function to get the untruncated  Median
+      Function to get the untruncated Median
       @ In, None
       @ Out, float, requested Median
     """
@@ -476,13 +476,12 @@ class BoostDistribution(Distribution):
 
   def untruncatedMode(self):
     """
-      Function to get the untruncated  Mode
+      Function to get the untruncated Mode
       @ In, None
       @ Out, untrMode, float, requested Mode
     """
     untrMode = self._distribution.untrMode()
     return untrMode
-
 
   def rvs(self, size=None):
     """
@@ -497,17 +496,6 @@ class BoostDistribution(Distribution):
       rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
-  def selectedRvs(self, discardedElems):
-    """
-      Function to get random numbers for discrete distribution which exclude discardedElems
-      @ In, discardedElems, list, list of values to be discarded
-      @ Out, rvsValue, float, requested random number
-    """
-    if not self.memory:
-      self.raiseAnError(IOError,' The distribution '+ str(self.name) + ' does not support the method selectedRVS.')
-    else:
-      rvsValue = self.selectedPpf(random(),discardedElems)
-    return rvsValue
 
 class Uniform(BoostDistribution):
   """
@@ -1899,7 +1887,10 @@ class UniformDiscrete(Distribution):
   def initializeFromDict(self, inputDict):
     """
       Function that initializes the distribution provided a dictionary
-      @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
+      @ In, inputDict, dict, dictionary containing the data required to initialize the distributions
+                             - outcome: array of possible values for the distribution
+                             - state: array containing probability value for each outcome
+                             - strategy: type of sampling strategy ('withReplacement' or 'withoutReplacement')
       @ Out, None
     """
     self.strategy = inputDict['strategy']
@@ -1956,22 +1947,22 @@ class UniformDiscrete(Distribution):
       @ Out, rvsValue, float, the random state
     """
     if self.nPoints is None:
-      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+      xArray = np.arange(self.lowerBound,self.upperBound+1)
     else:
-      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+      xArray = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
 
-    self.xArray = np.setdiff1d(self.xArray,discardedElems)
+    xArray = np.setdiff1d(xArray,discardedElems)
 
-    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
-    paramsDict={}
-    paramsDict['outcome'] = self.xArray
-    paramsDict['state'] = self.pdfArray
+    pdfArray = 1./xArray.size * np.ones(xArray.size)
+    paramsDict = {}
+    paramsDict['outcome']  = xArray
+    paramsDict['state']    = pdfArray
     paramsDict['strategy'] = self.strategy
 
-    self.tempUniformDiscrete = UniformDiscrete()
-    self.tempUniformDiscrete.initializeFromDict(paramsDict)
+    tempUniformDiscrete = UniformDiscrete()
+    tempUniformDiscrete.initializeFromDict(paramsDict)
 
-    rvsValue = self.tempUniformDiscrete.rvs()
+    rvsValue = tempUniformDiscrete.rvs()
     return rvsValue
 
   def reset(self):
