@@ -599,7 +599,6 @@ class ROM(Dummy):
   def writePyomoGreyModel(self):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself
-      @ In, what, string, optional, keyword requesting what should be printed
       @ Out, xml, xmlUtils.StaticXmlElement, written meta
     """
     template = r"""
