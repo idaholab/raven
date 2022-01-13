@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_C_COMPILER_NAMES gcc clang icc cc)
+set(CMAKE_CXX_COMPILER_NAMES g++ clang++ icpc c++ cxx)
+
 project(pythonfmu-export VERSION 0.2.0)
 
 # ==============================================================================
