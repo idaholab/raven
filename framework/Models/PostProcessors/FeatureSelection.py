@@ -24,6 +24,7 @@ import copy
 from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
 from sklearn.decomposition import KernelPCA,  PCA, FastICA
 from sklearn.linear_model import LinearRegression
+from sklearn.base import BaseEstimator
 import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ import pandas as pd
 from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import Files
+from SupervisedLearning import factory as romFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -67,20 +69,26 @@ class FeatureSelection(PostProcessorInterface):
     inputSpecification.addSub(aTarg)
     corrS = InputData.parameterInputFactory("correlationScreening", contentType=InputTypes.BoolType)
     inputSpecification.addSub(corrS)
+    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    ROMInput.addParam("class", InputTypes.StringType)
+    ROMInput.addParam("type", InputTypes.StringType)
+    inputSpecification.addSub(ROMInput)    
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    super().__init__(self, messageHandler)
+    super().__init__()
     self.targets = [] # targets
     self.features = None
     self.what = None  # how to perform the selection (list is in InputData specification)
     self.settings = {}
     self.dynamic  = False # is it time-dependent?
+    self.pivotParameter = 'Time'
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
     self.printTag = 'POSTPROCESSOR FEATURE SELECTION'
 
   def _handleInput(self, paramInput):
@@ -90,7 +98,9 @@ class FeatureSelection(PostProcessorInterface):
       @ Out, None
     """
     for child in paramInput.subparts:
-      if child.getName() == 'what':
+      if child.getName() == 'ROM':
+        continue
+      elif child.getName() == 'what':
         self.what = child.value.strip()
       elif child.getName() == 'targets':
         self.targets = list(inp.strip() for inp in child.value.strip().split(','))
@@ -104,8 +114,81 @@ class FeatureSelection(PostProcessorInterface):
         self.settings[child.getName()] = child.value
       elif child.getName() == 'correlationScreening':
         self.settings[child.getName()] = child.value
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
       else:
         self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
+
+  def initialize(self, runInfo, inputs, initDict):
+    """
+      Method to initialize the LS pp.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if 'ROM' not in self.assemblerDict.keys():
+      self.ROM = romFactory.returnInstance('LinearRegression')
+      paramDict = {'Features':list(self.parameters['targets']), 'Target':[self.externalFunction.name]}
+      self.ROM.initializeFromDict(paramDict)
+      settings = {"n_neighbors":1}
+      self.ROM.initializeModel(settings)
+    else:
+      self.ROM = self.assemblerDict['ROM'][0][3]
+    # now we create a wrapper here that can work with scikitlearn 
+    class scikitLearnWrapper(BaseEstimator):
+      def __init__(self, ROM):
+          self.ROM = ROM
+  
+      def fit(self, X):
+          self.n_samples_fit_ = X.shape[0]
+          self.annoy_ = annoy.AnnoyIndex(X.shape[1], metric=self.metric)
+          for i, x in enumerate(X):
+              self.annoy_.add_item(i, x.tolist())
+          self.annoy_.build(self.n_trees)
+          return self
+  
+      def transform(self, X):
+          return self._transform(X)
+  
+      def fit_transform(self, X, y=None):
+          return self.fit(X)._transform(X=None)
+  
+      def _transform(self, X):
+          """As `transform`, but handles X is None for faster `fit_transform`."""
+  
+          n_samples_transform = self.n_samples_fit_ if X is None else X.shape[0]
+  
+          # For compatibility reasons, as each sample is considered as its own
+          # neighbor, one extra neighbor will be computed.
+          n_neighbors = self.n_neighbors + 1
+  
+          indices = np.empty((n_samples_transform, n_neighbors), dtype=int)
+          distances = np.empty((n_samples_transform, n_neighbors))
+  
+          if X is None:
+              for i in range(self.annoy_.get_n_items()):
+                  ind, dist = self.annoy_.get_nns_by_item(
+                      i, n_neighbors, self.search_k, include_distances=True
+                  )
+  
+                  indices[i], distances[i] = ind, dist
+          else:
+              for i, x in enumerate(X):
+                  indices[i], distances[i] = self.annoy_.get_nns_by_vector(
+                      x.tolist(), n_neighbors, self.search_k, include_distances=True
+                  )
+  
+          indptr = np.arange(0, n_samples_transform * n_neighbors + 1, n_neighbors)
+          kneighbors_graph = csr_matrix(
+              (distances.ravel(), indices.ravel(), indptr),
+              shape=(n_samples_transform, self.n_samples_fit_),
+          )
+  
+          return kneighbors_graph
+      
+    
 
   def collectOutput(self,finishedJob, output):
     """
@@ -139,11 +222,17 @@ class FeatureSelection(PostProcessorInterface):
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts DataObject(s) only! Got ' + str(currentInput.type) + '!!!!')
     # get input from PointSet DataObject
-    if currentInput.type in ['PointSet']:
+    if currentInput.type in ['PointSet','HistorySet']:
       dataSet = currentInput.asDataset()
       inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       if self.features is None:
-        self.features = list(set(list(dataSet.keys())) - set(list(self.targets)))
+        self.features = list(set(list(dataSet.keys())) - set(list(self.targets)) - set(list(self.pivotParameter))) 
+      if currentInput.type in ['HistorySet']:
+        self.dynamic = True
+        if self.pivotParameter in dataSet.keys():
+          self.pivotValue = dataSet[self.pivotParameter].values  
+        else:
+          self.raiseAnError(IOError, self, 'Time-dependent FeatureSelection is requested (HistorySet) but no pivotParameter got inputted or not in dataset!')
       for feat in self.features:
         inputDict['features'][feat] = copy.copy(dataSet[feat].values)
       for targetP in self.targets:
@@ -154,7 +243,7 @@ class FeatureSelection(PostProcessorInterface):
       inputDict['metadata'] = currentInput.getMeta(pointwise=True)
       inputList = [inputDict]
     # get input from HistorySet DataObject
-    if currentInput.type in ['HistorySet']:
+    else:
       dataSet = currentInput.asDataset()
       if self.pivotParameter is None:
         self.raiseAnError(IOError, self, 'Time-dependent FeatureSelection is requested (HistorySet) but no pivotParameter got inputted!')
@@ -181,6 +270,9 @@ class FeatureSelection(PostProcessorInterface):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
+    dataSet = inputIn[0].asDataset()
+    #self.__runLocal(dataSet)
+    
     inputList = self.inputToInternal(inputIn)
     if not self.dynamic:
       outputDict = self.__runLocal(inputList[0])
@@ -272,7 +364,8 @@ class FeatureSelection(PostProcessorInterface):
     # transformer = FactorAnalysis(n_components=10, random_state=0)
     # tt = transformer.fit(np.atleast_2d(list(inputDict['features'].values())).T)
     if self.what == "RFE":
-      selectors = [RFE(LinearRegression(), n_features_to_select=nFeatures, step=step) for _ in range(len(self.targets))]
+      selectors = [RFE(self.ROM, n_features_to_select=nFeatures, step=step) for _ in range(len(self.targets))]
+      #selectors = [RFE(LinearRegression(), n_features_to_select=nFeatures, step=step) for _ in range(len(self.targets))]
       for i, targ in enumerate(self.targets):
         selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, newTarget if aggregateTargets else inputDict['targets'][targ])
         self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)

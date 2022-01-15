@@ -48,13 +48,13 @@ class DataObjectVariablesSelector(PostProcessorInterface):
     inSpec.addSub(InputData.parameterInputFactory('target', contentType=InputTypes.StringType))
     return inSpec
 
-  def __init__(self, messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    super().__init__(self, messageHandler)
+    super().__init__()
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.variableDataObject = None # string, variables to apply postprocessor to
     self.variablesToExtract = []
