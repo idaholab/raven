@@ -109,6 +109,15 @@ function install_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
+    if [[ ${COMMAND} == *"pyomo"* ]];
+    then
+      activate_env
+      #command -v pyomo
+      local PYNUMEROEXT=`echo pyomo download-extensions`
+      local PYNUMEROBLD=`echo pyomo build-extensions`
+      ${PYNUMEROEXT}
+      ${PYNUMEROBLD} || echo "Pyomo build failed"
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -139,6 +148,15 @@ function create_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
+    if [[ ${COMMAND} == *"pyomo"* ]];
+    then
+      activate_env
+      #command -v pyomo
+      local PYNUMEROEXT=`echo pyomo download-extensions`
+      local PYNUMEROBLD=`echo pyomo build-extensions`
+      ${PYNUMEROEXT}
+      ${PYNUMEROBLD} || echo "Pyomo build failed"
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
