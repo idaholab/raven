@@ -313,7 +313,7 @@
     csv = 'data/outBaggingRegressor_plotting.csv'
     image = 'data/BaggingRegressor_scatter-scatter-scatter.png'
     required_libraries = 'imageio'
-    rel_err = 0.0001
+    rel_err = 0.1
   [../]
   [./adaBoostRegressor_plotting]
     type = 'RavenFramework'
@@ -321,7 +321,7 @@
     csv = 'data/outAdaBoostRegressor_plotting.csv'
     image = 'data/AdaBoostRegressor_scatter-scatter-scatter.png'
     required_libraries = 'imageio'
-    rel_err = 0.0001
+    rel_err = 0.1
   [../]
   [./stackingRegressor_plotting]
     type = 'RavenFramework'

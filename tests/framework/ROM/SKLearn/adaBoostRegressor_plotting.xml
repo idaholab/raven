@@ -37,7 +37,7 @@
       <Features>X,Y</Features>
       <Target>ans</Target>
       <n_estimators>50</n_estimators>
-      <learning_rate>1.0</learning_rate>
+      <learning_rate>0.1</learning_rate>
       <loss>linear</loss>
       <estimator class="Models" type="ROM">dtr</estimator>
     </ROM>
