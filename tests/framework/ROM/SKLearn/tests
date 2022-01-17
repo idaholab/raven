@@ -305,7 +305,7 @@
     csv = 'data/outVotingRegressor_plotting.csv'
     image = 'data/votingRegressor_scatter-scatter-scatter-scatter-scatter.png'
     required_libraries = 'imageio'
-    rel_err = 0.0001
+    rel_err = 0.1
   [../]
   [./baggingRegressor_plotting]
     type = 'RavenFramework'
