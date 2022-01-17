@@ -120,7 +120,7 @@ def parseVersion(versionString):
     @ Out, version, list, list of components as integers and strings
   """
   version = []
-  for part in re.split('([0-9]+|[a-z]+|\.)',versionString):
+  for part in re.split(r'([0-9]+|[a-z]+|\.)',versionString):
     if len(part) == 0 or part == ".":
       continue
     try:
