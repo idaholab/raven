@@ -151,8 +151,7 @@ class Prescient(CodeInterfaceBase):
             #line sorta looks like: "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA"
             hasMinute = False
           else:
-            assert False, "Unexpected first line of bus detail:" + line
-            a = 1/0 #because debug might be disabled
+            raise IOError("Unexpected first line of bus detail in Prescient Code Interface:" + line)
           dataList = [s.replace(" ","_") for s in line.split(",")[3:]]
           continue
         splited = line.split(",")
