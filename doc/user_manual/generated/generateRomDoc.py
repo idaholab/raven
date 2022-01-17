@@ -751,7 +751,6 @@ validDNNRom = ['KerasMLPClassifier',
               'KerasMLPRegression',
               'KerasConvNetClassifier',
               'KerasLSTMClassifier',
-              'KerasLSTMRegression',
               'KerasLSTMRegression'
               ]
 validInternalRom = ['NDspline',
