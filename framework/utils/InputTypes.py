@@ -494,6 +494,39 @@ class IntegerTupleListType(InputType):
     return 'comma-separated list of comma separated integer tuples'
 
 IntegerTupleListType.createClass("integer_tuple_list", "xsd:string")
+
+#
+#
+#
+#
+class FloatTupleType(BaseListType):
+  """
+    A type for float tuple "1.1, 2.0, 3.4" -> (1.1, 2.0, 3.4)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    # prefer commas, but allow spaces, to divide
+    delim = ',' if ',' in value else None
+    return tuple(float(x.strip()) for x in value.split(delim) if x.strip())
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'tuple of comma-separated float'
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+FloatTupleType.createClass("float_tuple", "xsd:string")
+
 #
 #
 #

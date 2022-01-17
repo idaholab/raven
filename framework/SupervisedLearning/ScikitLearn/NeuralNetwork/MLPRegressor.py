@@ -42,9 +42,10 @@ class MLPRegressor(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    self.multioutputWrapper = False
     import sklearn
     import sklearn.neural_network
-    self.model = sklearn.neural_network.MLPRegressor()
+    self.model = sklearn.neural_network.MLPRegressor
 
   @classmethod
   def getInputSpecification(cls):
@@ -159,7 +160,7 @@ class MLPRegressor(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['hidden_layer_sizes','activation','solver','alpha','batch_size',
                                                                'learning_rate','learning_rate_init','power_t','max_iter', 'shuffle',
-                                                               'random_state','tol','verbose','warm_start','momentum','nesterovs_momentum'
+                                                               'random_state','tol','verbose','warm_start','momentum','nesterovs_momentum',
                                                                'early_stopping','validation_fraction','beta_1','beta_2','epsilon',
                                                                'n_iter_no_change'])
     # notFound must be empty
