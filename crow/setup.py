@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from distutils.core import setup, Extension
+from distutils.command.build import build
 import subprocess
 import sys
+
+
+# We need a custom build order in order to ensure that files
+# distribution1Dpy3.py interpolationNDpy3.py and randomENGpy3.py are available
+# before we try to copy it to the target location
+class CustomBuild(build):
+    sub_commands = [('build_ext', build.has_ext_modules),
+                    ('build_py', build.has_pure_modules),
+                    ('build_clib', build.has_c_libraries),
+                    ('build_scripts', build.has_scripts)]
+
 try:
   if sys.version_info.major > 2:
     eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"]).decode("ascii")
@@ -56,4 +68,5 @@ setup(name='crow',
         Extension('_randomENG'+ext,['crow_modules/randomENG'+ext+'.i','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
         Extension('_interpolationND'+ext,['crow_modules/interpolationND'+ext+'.i','src/utilities/ND_Interpolation_Functions.cxx','src/utilities/NDspline.cxx','src/utilities/microSphere.cxx','src/utilities/inverseDistanceWeigthing.cxx','src/utilities/MDreader.cxx','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
       py_modules=['crow_modules.distribution1D'+ext,'crow_modules.randomENG'+ext,'crow_modules.interpolationND'+ext],
+      cmdclass={'build': CustomBuild},
       )

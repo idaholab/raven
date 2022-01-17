@@ -494,7 +494,7 @@ class ParameterInput(object):
       if name in names:
         values[name] = sub.value
         found.append(name)
-    # check if defualt for the one not found
+    # check if default for the one not found
     for name in list(set(names) - set(found)):
       default = self.returnDefault(name)
       values[name] = default

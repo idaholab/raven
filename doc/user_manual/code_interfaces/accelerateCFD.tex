@@ -1,0 +1,178 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% AccelerateCFD Interface %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{AccelerateCFD Interface}
+\label{subsec:AccelerateCFDInterface}
+This section covers the input specification for running AccelerateCFD
+ (\url{https://github.com/IllinoisRocstar/AccelerateCFD_CE})
+ through RAVEN. It is important to notice
+that this explanation assumes that the user already knows how to use AccelerateCFD. The existing inteface can be used to perturb any parameter
+contained in the AccelerateCFD input file (i.e., podInputs.xml).
+
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all the files needed
+for the code to run should be specified. In the case of AccelerateCFD,
+the files needed are the following:
+\begin{itemize}
+  \item AccelerateCFD input file ``podInputs.xml''. This input file must be tagged with
+          the $type="input"$
+  \item Mesh file for x coordinates'. This input file must be tagged with
+          the $type="mesh-x"$
+  \item Mesh file for y coordinates'. This input file must be tagged with
+          the $type="mesh-y"$
+  \item Mesh file for z coordinates'. This input file must be tagged with
+          the $type="mesh-z"$
+\end{itemize}
+%
+Example:
+\begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="AcceleratedCFDinput" type="input">podInputs.xml</Input>
+    <Input name="Cx" type="mesh-x">Cx</Input>
+    <Input name="Cy" type="mesh-y">Cy</Input>
+    <Input name="Cz" type="mesh-z">Cz</Input>
+  </Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%X
+\subsubsection{Models}
+In the \xmlNode{Models} block, the AccelerateCFD executable needs to be specified.
+The  path to the AccelerateCFD executable must be included.
+Here is a standard example of what can be used:
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="myAccelerateCFD" subType="AccelerateCFD">
+      <executable>./romRun</executable>
+      <outputLocations>
+          <coordinates>
+           (0.0,0.0,0.0) (1.0,1.0,1.0) (min,min,min) (max,max,max) (middle,middle,middle)
+          </coordinates>
+      </outputLocations>
+    </Code>
+  </Models>
+\end{lstlisting}
+
+The \xmlNode{Code} XML node contains the information needed to execute the specific External Code. This
+XML node accepts the following attributes:
+\begin{itemize}
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined identifier of this model.
+    \nb As with other objects, this identifier can be used to reference this specific entity from other input
+    blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the code that needs to be
+    associated to this Model.
+\end{itemize}
+This model can be initialized with the following children:
+\begin{itemize}
+  \item \xmlNode{executable}, \xmlDesc{string, required field}, specifies the path of the executable to
+    be used; \nb Either an absolute or relative path can be used.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines the distributions that are going to be used for the sampling
+of the variables defined in the \xmlNode{Samplers} block. For all the possible distributions and all
+their possible inputs, please see the chapter about Distributions (see~\ref{sec:distributions}). Here is an example of a
+Uniform distribution:
+\begin{lstlisting}[style=XML]
+  <Distributions>
+    <UniformDiscrete name='uni'>
+      <lowerBound>10</lowerBound>
+      <upperBound>30</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled. After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to the AccelerateCFD parameter name (in the XML input file)
+An example of a \xmlNode{Samplers} block is given below:
+\begin{lstlisting}[style=XML]
+ <Samplers>
+    <MonteCarlo name="myMC">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name='velMods'>
+        <distribution>uni</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+In this section, the \xmlNode{MultiRun} will be used. As shown in the following, the AccelerateCFD
+input files are listed in \xmlNode{Files} and are linked here using \xmlNode{Input}, the \xmlNode{Model}
+and \xmlNode{Sampler} defined in previous sections will be used in this \xmlNode{MultiRun}. The
+outputs will be saved in the \textbf{DataObject} `resultPointSet'.
+
+\begin{lstlisting}[style=XML]
+  <Steps>
+    <MultiRun name="run">
+      <Input   class="Files"       type="input">podInputs.xml</Input>
+      <Input   class="Files"       type="mesh-x">Cx</Input>
+      <Input   class="Files"       type="mesh-y">Cy</Input>
+      <Input   class="Files"       type="mesh-x">Cz</Input>
+      <Model   class="Models"      type="Code">AcceleratedCFDCode</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>
+      <Output  class="Databases"   type="HDF5">DataAcceleratedCFD</Output>
+      <Output  class="DataObjects" type="HistorySet">AcceleratedCFDHistorySet</Output>
+      <Output  class="DataObjects" type="PointSet">AcceleratedCFDPointSet</Output>
+    </MultiRun>
+  </Steps>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Output File Conversion}
+The AccelerateCFD software produces CFD-grade results (velocity and scalar fields). The interface
+will extract the results and deploy them using the following format:
+\begin{itemize}
+  \item $variableName-coordinates-axis$. For example: $volVectorField-0\_0\_0\_0\_0\_0-x$ or $volVectorField-min_min_min-x$
+\end{itemize}
+For example, the following example $DataObject$:
+\begin{lstlisting}[style=XML]
+<DataObjects>
+  <PointSet name="AcceleratedCFDPointSet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </PointSet>
+  <HistorySet name="AcceleratedCFDHistorySet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </HistorySet>
+</DataObjects>
+\end{lstlisting}

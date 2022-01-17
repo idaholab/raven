@@ -41,6 +41,7 @@
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600
+   skip = 'randomly fails'
  [../]
  [./test_mpiqsub_nosplit]
    input='test_mpiqsub_nosplit.xml cluster_runinfo_legacy.xml'
@@ -59,7 +60,7 @@
    max_time = 3600
  [../]
  [./test_mpi_fake]
-   input=test_mpi.xmll
+   input=test_mpi.xml
    skip = 'cluster only test'
    type = RavenFramework
  [../]
