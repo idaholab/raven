@@ -44,9 +44,7 @@ class NuSVC(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.svm
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.svm.NuSVC())
+    self.model = sklearn.svm.NuSVC
 
   @classmethod
   def getInputSpecification(cls):
@@ -83,11 +81,6 @@ class NuSVC(ScikitLearnBase):
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-3))
     specs.addSub(InputData.parameterInputFactory("cache_size", contentType=InputTypes.FloatType,
                                                  descr=r"""Size of the kernel cache (in MB)""", default=200.))
-    specs.addSub(InputData.parameterInputFactory("epsilon", contentType=InputTypes.FloatType,
-                                                 descr=r"""Epsilon in the epsilon-SVR model. It specifies the epsilon-tube
-                                                           within which no penalty is associated in the training loss function
-                                                           with points predicted within a distance epsilon from the actual
-                                                           value.""", default=0.1))
     specs.addSub(InputData.parameterInputFactory("shrinking", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use the shrinking heuristic.""", default=True))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
@@ -97,11 +90,12 @@ class NuSVC(ScikitLearnBase):
                                                            all other classifiers, or the original one-vs-one (``ovo'') decision function of libsvm which has
                                                            shape $(n_samples, n_classes * (n_classes - 1) / 2)$. However, one-vs-one (``ovo'') is always used as
                                                            multi-class strategy. The parameter is ignored for binary classification.""", default='ovr'))
-    specs.addSub(InputData.parameterInputFactory("break_ties", contentType=InputTypes.BoolType,
-                                                 descr=r"""if true, decision_function_shape='ovr', and number of $classes > 2$, predict will
-                                                 break ties according to the confidence values of decision_function; otherwise the first class among
-                                                 the tied classes is returned. Please note that breaking ties comes at a relatively high computational
-                                                 cost compared to a simple predict.""", default=False))
+    # New in version sklearn 0.22
+    # specs.addSub(InputData.parameterInputFactory("break_ties", contentType=InputTypes.BoolType,
+    #                                              descr=r"""if true, decision_function_shape='ovr', and number of $classes > 2$, predict will
+    #                                              break ties according to the confidence values of decision_function; otherwise the first class among
+    #                                              the tied classes is returned. Please note that breaking ties comes at a relatively high computational
+    #                                              cost compared to a simple predict.""", default=False))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Enable verbose output. Note that this setting takes advantage
                                                  of a per-process runtime setting in libsvm that, if enabled, may not
@@ -127,8 +121,8 @@ class NuSVC(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['nu', 'kernel', 'degree', 'gamma', 'coef0',
-                                                             'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter',
-                                                             'decision_function_shape', 'break_ties', 'verbose',
+                                                             'tol', 'cache_size', 'shrinking', 'max_iter',
+                                                             'decision_function_shape', 'verbose',
                                                              'probability', 'class_weight', 'random_state'])
     # notFound must be empty
     assert(not notFound)
