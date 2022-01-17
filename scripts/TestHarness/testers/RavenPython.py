@@ -19,7 +19,6 @@ from __future__ import absolute_import
 import os
 import sys
 import subprocess
-import distutils.version
 from Tester import Tester
 
 scriptsDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -130,8 +129,8 @@ class RavenPython(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
         self.set_skip('skipped (Outdated library: "'+libraryName+'")')
         return False
       i += 2
