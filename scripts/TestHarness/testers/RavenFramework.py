@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import subprocess
 import sys
-import distutils.version
 import platform
 from Tester import Tester
 import OrderedCSVDiffer
@@ -209,8 +208,8 @@ class RavenFramework(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
         self.set_skip('skipped (Outdated library: "'+libraryName+'")')
         return False
       i += 2
