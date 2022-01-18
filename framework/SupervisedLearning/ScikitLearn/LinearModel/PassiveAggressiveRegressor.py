@@ -44,9 +44,7 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.PassiveAggressiveRegressor())
+    self.model = sklearn.linear_model.PassiveAggressiveRegressor
 
   @classmethod
   def getInputSpecification(cls):

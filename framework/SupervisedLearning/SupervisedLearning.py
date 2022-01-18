@@ -181,10 +181,10 @@ class SupervisedLearning(BaseInterface):
     if 'dynamicFeatures' not in d:
       self.dynamicFeatures = False
 
-  def setEstimator(self, estimator):
+  def setEstimator(self, estimatorList):
     """
       Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
     pass

@@ -185,7 +185,7 @@ class Template(object):
   # OTHER UTILITIES              #
   ################################
   def _getRavenLocation(self, which='framework'):
-    """
+    r"""
       Returns the (string) path to RAVEN
       NOTE this is problematic in mingw windows, since using abspath includes e.g. C:\msys64\home\etc.
       @ In, framework, bool, optional, if True then give location of "raven/framework" else "raven/"

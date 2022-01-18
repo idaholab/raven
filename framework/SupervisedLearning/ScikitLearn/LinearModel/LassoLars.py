@@ -45,9 +45,7 @@ class LassoLars(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LassoLars())
+    self.model = sklearn.linear_model.LassoLars
 
   @classmethod
   def getInputSpecification(cls):
@@ -91,10 +89,11 @@ class LassoLars(ScikitLearnBase):
                                                  control the tolerance of the optimization.""", default=finfo(float).eps))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
                                                  descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("jitter", contentType=InputTypes.FloatType,
-                                                 descr=r"""Upper bound on a uniform noise parameter to be added to the y values,
-                                                 to satisfy the model’s assumption of one-at-a-time computations. Might help
-                                                 with stability.""", default=None))
+    # New in sklearn version 0.23
+    # specs.addSub(InputData.parameterInputFactory("jitter", contentType=InputTypes.FloatType,
+    #                                              descr=r"""Upper bound on a uniform noise parameter to be added to the y values,
+    #                                              to satisfy the model’s assumption of one-at-a-time computations. Might help
+    #                                              with stability.""", default=None))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Amount of verbosity.""", default=False))
     return specs
@@ -107,7 +106,7 @@ class LassoLars(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','fit_intercept', 'normalize', 'precompute',
-                                                               'max_iter','eps','positive','jitter', 'verbose'])
+                                                               'max_iter','eps','positive', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

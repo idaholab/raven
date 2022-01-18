@@ -36,7 +36,7 @@ class ScikitLearnBase(SupervisedLearning):
   """
     Base Class for Scikitlearn-based surrogate models (classifiers and regressors)
   """
-  info = {'datatype':None, 'normalize':None}
+  info = {'problemtype':None, 'normalize':None}
 
   def __init__(self):
     """
@@ -45,10 +45,11 @@ class ScikitLearnBase(SupervisedLearning):
       @ Out, None
     """
     super().__init__()
-    self.uniqueVals = None
-    self.settings = None
-    self.model = None
-    self.multioutputWrapper = True
+    self.uniqueVals = None # flag to indicate targets only have a single unique value
+    self.settings = None # initial settings for the ROM
+    self.model = None # Scikitlearn estimator/model
+    self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
+                                   # the self.model can handle multioutput/multi-targets prediction
 
   def updateSettings(self, settings):
     """
@@ -74,17 +75,41 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
       @ Out, None
     """
-    settings = self.updateSettings(settings)
-    self.settings = settings
-    self.model.set_params(**settings)
+    if self.settings is None:
+      self.settings = settings
+    self.model = self.model(**settings)
+    if self.multioutputWrapper:
+      self.multioutput(self.info['problemtype'])
 
-  def setEstimator(self, estimator):
+  def multioutput(self, type='regression'):
     """
-      Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      Method to extend ScikitLearn ROM that do not natively support multi-target regression/classification
+      @ In, type, str, either regression or classification
       @ Out, None
     """
-    pass
+    import sklearn.multioutput
+    if type == 'regression':
+      self.model = sklearn.multioutput.MultiOutputRegressor(self.model)
+    elif type == 'classification':
+      self.model = sklearn.multioutput.MultiOutputClassifier(self.model)
+    else:
+      self.raiseAnError(IOError, 'The "type" param for function "multioutput" should be either "regression" or "classification"! but got',
+                        type)
+
+  def setEstimator(self, estimatorList):
+    """
+      Initialization method
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
+      @ Out, None
+    """
+    for estimator in estimatorList:
+      interfaceRom = estimator._interfaceROM
+      if not isinstance(interfaceRom, ScikitLearnBase):
+        self.raiseAnError(IOError, 'ROM', estimator.name, 'can not be used as estimator for ROM', self.name)
+      if not callable(getattr(interfaceRom.model, "fit", None)):
+        self.raiseAnError(IOError, 'estimator:', estimator.name, 'can not be used! Please change to a different estimator')
+      else:
+        self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -96,11 +121,11 @@ class ScikitLearnBase(SupervisedLearning):
         associated with the corresponding points in featureVals
     """
     # check if all targets only have a single unique value, just store that value, no need to fit/train
-    self.uniqueVals = None
     if all([len(np.unique(targetVals[:,index])) == 1 for index in range(targetVals.shape[1])]):
       self.uniqueVals = [np.unique(targetVals[:,index])[0] for index in range(targetVals.shape[1]) ]
     else:
       # the multi-target is handled by the internal wrapper
+      self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
 
   def __confidenceLocal__(self,featureVals):
@@ -140,7 +165,8 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, None
       @ Out, None
     """
-    self.model.set_params(**self.settings)
+    settings = self.updateSettings(self.settings)
+    self.model.set_params(**settings)
 
   def __returnInitialParametersLocal__(self):
     """
@@ -148,7 +174,7 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, None
       @ Out, params, dict,  dictionary of parameter names and initial values
     """
-    params = self.model.get_params()
+    params = self.settings
     return params
 
   def __returnCurrentSettingLocal__(self):
