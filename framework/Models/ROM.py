@@ -212,6 +212,9 @@ class ROM(Dummy):
       self.supervisedContainer = [self._segmentROM]
     else:
       self.supervisedContainer = [self._interfaceROM]
+    #the variable list is needed by things like FMU export
+    self._setVariableList("input", self.supervisedContainer[0].features)
+    self._setVariableList("output", self.supervisedContainer[0].target)
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.pickled = True
