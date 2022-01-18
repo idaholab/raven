@@ -626,7 +626,7 @@ class SimulatedAnnealing(RavenSampled):
       self.raiseAnError(NotImplementedError,'cooling schedule type not implemented.')
 
   def _nextNeighbour(self, rlz,fraction=1):
-    """
+    r"""
       Perturbs the state to find the next random neighbour based on the cooling schedule
       @ In, rlz, dict, current realization
       @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$

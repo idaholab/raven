@@ -725,7 +725,7 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GDp(a,b,p),self._GDp(b,a,p))
 
   def _GDp(self,a,b,p):
-    """
+    r"""
       Modified Generational Distance Indicator
       @ In, a, np.array, old population A
       @ In, b, np.array, new population B
@@ -739,7 +739,7 @@ class GeneticAlgorithm(RavenSampled):
     return (1/n * s)**(1/p)
 
   def _popDist(self,ai,b,q=2):
-    """
+    r"""
       Minimum Minkowski distance from a_i to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
       @ In, b, np.array, population B
@@ -761,7 +761,7 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GD(a,b),self._GD(b,a))
 
   def _GD(self,a,b):
-    """
+    r"""
       Generational Distance Indicator
       @ In, a, np.array, old population A
       @ In, b, np.array, new population B
