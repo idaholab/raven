@@ -62,7 +62,9 @@ Note all install methods after "main" take
     <xmlschema source="pip"/>
     <pyomo/>
     <cmake skip_check='True'/>
+    <glpk skip_check='True'/>
     <ipopt source="forge" skip_check='True'/>
+    <cyipopt skip_check='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
