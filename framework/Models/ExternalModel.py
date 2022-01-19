@@ -265,7 +265,7 @@ class ExternalModel(Dummy):
     # collect the user results
     for key in self.modelVariableType:
       # preferentially obtain values from the instantiated object
-      if key.isidentifier(): # checks valid python variable name
+      if key.isidentifier() and hasattr(externalSelf, key): # checks valid python variable name
         modelVariableValues[key] = copy.copy(getattr(externalSelf, key))
       # otherwise, try to get it from the dictionary. If not, save it as "None" so it reports back to the user.
       else:
@@ -274,10 +274,7 @@ class ExternalModel(Dummy):
         modelVariableValues[key] = copy.copy(InputDict.get(key, None))
     # in case initialization variables have been modified, update them.
     for key in self.initExtSelf.__dict__:
-      if key.isidentifier(): # checks valid python variable name
-        setattr(self.initExtSelf, key, copy.copy(getattr(externalSelf, key)))
-      else:
-        self.raiseAnError(RuntimeError, f'Variable "{key}" has an invalid Python variable name and cannot be set in ExternalModel!')
+      setattr(self.initExtSelf, key, copy.copy(getattr(externalSelf, key)))
     # check for missing/bad data
     if None in self.modelVariableType.values():
       errorFound = False
