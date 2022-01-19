@@ -1,4 +1,4 @@
-%module distribution1Dpy2
+%module distribution1D
 %{
 #include "distribution.h"
 #include "DistributionContainer.h"
