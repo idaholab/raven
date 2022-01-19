@@ -1,4 +1,4 @@
-%module interpolationNDpy2
+%module interpolationND
 %{
 #include "ND_Interpolation_Functions.h"
 #define SWIG_FILE_WITH_INIT
