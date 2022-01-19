@@ -54,8 +54,6 @@
       <alias variable="y0" type="input">@another|awful name</alias>
       <alias variable="x"  type="output">x@</alias>
       <alias variable="y"  type="output">y[1]</alias>
-      <!-- <alias variable="x"  type="output">firstOut</alias>
-      <alias variable="y"  type="output">secondOut</alias> -->
     </ExternalModel>
   </Models>
 
