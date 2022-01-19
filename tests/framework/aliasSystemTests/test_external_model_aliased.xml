@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2016-11-28">Added XSD schema and Closes #756</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="talbpaul" date="2018-04-04">added awful.variable+name for hard-testing input alias</revision>
+      <revision author="talbpaul" date="2022-01-18">added difficult output alias, index-ish alias</revision>
     </revisions>
   </TestInfo>
   <!-- RUNINFO -->
@@ -51,8 +52,10 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
       <alias variable="x0" type="input">awful.variable+name</alias>
       <alias variable="y0" type="input">@another|awful name</alias>
-      <alias variable="x"  type="output">firstOut</alias>
-      <alias variable="y"  type="output">secondOut</alias>
+      <alias variable="x"  type="output">x@</alias>
+      <alias variable="y"  type="output">y[1]</alias>
+      <!-- <alias variable="x"  type="output">firstOut</alias>
+      <alias variable="y"  type="output">secondOut</alias> -->
     </ExternalModel>
   </Models>
 

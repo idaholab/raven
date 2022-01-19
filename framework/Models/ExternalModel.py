@@ -148,7 +148,7 @@ class ExternalModel(Dummy):
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    if 'SampledVars' in kwargs.keys():
+    if 'SampledVars' in kwargs:
       modelVariableValues.update(kwargs['SampledVars'])
     return newInput, copy.copy(modelVariableValues)
 
@@ -223,13 +223,14 @@ class ExternalModel(Dummy):
     if self.pickled and not self.constructed:
       self.raiseAnError(IOError, 'The <pickledModel> "{}" has not been de-serialized (IOStep)!'.format(self.name))
 
-    externalSelf        = utils.Object()
+    externalSelf = utils.Object()
     # self.sim=__import__(self.ModuleToLoad)
     modelVariableValues = {}
     for key in self.modelVariableType.keys():
       modelVariableValues[key] = None
     for key, value in self.initExtSelf.__dict__.items():
-      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+      setattr(externalSelf, key, copy.copy(value))
+      #CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
       if key in modelVariableValues.keys():
@@ -247,29 +248,41 @@ class ExternalModel(Dummy):
         modelVariableValues[key] = copy.copy(Input[key])
     for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
-      try:
-        CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+      #try:
+      if key.isidentifier():
+        setattr(externalSelf, key, copy.copy(modelVariableValues[key]))
+        #CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
       # if variable name is too strange to be a member of "self", then skip it
-      except SyntaxError:
-        self.raiseAWarning('Variable "{}" could not be added to "self" due to complex name.  Find it in "Inputs" dictionary instead.'.format(key))
-    #else:
-    #  InputDict = Input
+      # Note SyntaxError is for bad characters ("v@riable") and AttributeError is for e.g. index-looking ("Var[1]")
+      #except (SyntaxError, AttributeError):
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be added to ExternalModel first argument due to complex name. ' +
+                            'Find it in the second argument instead.')
     # only pass the variables and their values according to the model itself.
-    for key in Input.keys():
-      if key in self.modelVariableType.keys() or key in additionalKeys:
+    for key in Input:
+      if key in self.modelVariableType or key in additionalKeys:
         InputDict[key] = Input[key]
 
     self.sim.run(externalSelf, InputDict)
 
     for key in self.modelVariableType:
-      try:
+      #try:
+      if key.isidentifier(): # checks valid python variable name
+        modelVariableValues[key] = copy.copy(getattr(externalSelf, key))
+        #CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')', self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
         # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')', self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
-      except (SyntaxError, AttributeError):
-        self.raiseAWarning('Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
-    for key in self.initExtSelf.__dict__.keys():
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be read from ExternalModel first argument due to complex name. ' +
+                            'Checking it in the second argument instead.')
+        #self.raiseAWarning(f'Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
+        modelVariableValues[key] = copy.copy(InputDict.get(key, None))
+    for key in self.initExtSelf.__dict__:
+      if key.isidentifier(): # checks valid python variable name
+        setattr(self.initExtSelf, key, copy.copy(getattr(externalSelf, key)))
+      else:
+        self.raiseAnError(RuntimeError, f'Variable "{key}" has an invalid Python variable name and cannot be set in ExternalModel!')
       # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-      CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')', self=self.initExtSelf, object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+      #CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')', self=self.initExtSelf, object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorFound = False
       for key in self.modelVariableType:
