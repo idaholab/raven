@@ -380,7 +380,7 @@ class EconomicRatio(BasicStatistics):
             VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
             VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          VaRList.append(abs(VaR))
+          VaRList.append(-VaR)
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
         else:
