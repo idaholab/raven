@@ -266,34 +266,6 @@ class EconomicRatio(BasicStatistics):
     pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
-    """
-      Method to compute the weighted percentile in a array of data
-      @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
-      @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
-      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
-      @ Out, result, float, the percentile
-    """
-
-    idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
-    # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
-    # a percentile that is < that the first pb weight is requested. Otherwise the median
-    # is returned.
-    sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
-    weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    # This step returns the index of the array which is < than the percentile, because
-    # the insertion create another entry, this index should shift to the bigger side
-    indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
-    # This step returns the indices (list of index) of the array which is > than the percentile
-    indexH = utils.first(np.asarray(weightsCDF > percent).nonzero())
-    try:
-      # if the indices exists that means the desired percentile lies between two data points
-      # with index as indexL and indexH[0]. Calculate the midpoint of these two points
-      result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
-    except IndexError:
-      result = sortedWeightsAndPoints[indexL,1]
-    return result
-
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
       Method to compute the sorted weights and points
