@@ -432,7 +432,7 @@ class EconomicRatio(BasicStatistics):
       zeroTarget = []
       daZero = xr.Dataset()
       medTarget = []
-      daMed = xr.Dataset
+      daMed = xr.Dataset()
       for entry in self.toDo[metric]:
         if entry['threshold'] == 'zero':
           zeroTarget = entry['targets']
