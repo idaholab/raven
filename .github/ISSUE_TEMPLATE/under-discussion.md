@@ -4,7 +4,7 @@ about: This issue template is aimed to propose an item of discussion for new fea
   or similar
 title: "[UNDER-DISCUSSION] New Topic"
 labels: under-discussion
-assignees: PaulTalbot-INL, joshua-cogliati-inl, wangcj05, mandd
+assignees:
 
 
 ---
