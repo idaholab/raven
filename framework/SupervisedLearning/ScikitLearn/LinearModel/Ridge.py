@@ -46,7 +46,7 @@ class Ridge(ScikitLearnBase):
     self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
-    self.model = sklearn.linear_model.Ridge()
+    self.model = sklearn.linear_model.Ridge
 
   @classmethod
   def getInputSpecification(cls):

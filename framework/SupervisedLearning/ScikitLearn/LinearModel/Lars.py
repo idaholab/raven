@@ -45,9 +45,7 @@ class Lars(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.Lars())
+    self.model = sklearn.linear_model.Lars
 
   @classmethod
   def getInputSpecification(cls):
@@ -83,10 +81,11 @@ class Lars(ScikitLearnBase):
                                                  dividing by the l2-norm.""", default=True))
     specs.addSub(InputData.parameterInputFactory("n_nonzero_coefs", contentType=InputTypes.IntegerType,
                                                  descr=r"""Target number of non-zero coefficients.""", default=500))
-    specs.addSub(InputData.parameterInputFactory("jitter", contentType=InputTypes.FloatType,
-                                                 descr=r"""Upper bound on a uniform noise parameter to be added to the
-                                                 y values, to satisfy the model’s assumption of one-at-a-time computations.
-                                                 Might help with stability.""", default=None))
+    # new in sklearn version 0.23
+    # specs.addSub(InputData.parameterInputFactory("jitter", contentType=InputTypes.FloatType,
+    #                                              descr=r"""Upper bound on a uniform noise parameter to be added to the
+    #                                              y values, to satisfy the model’s assumption of one-at-a-time computations.
+    #                                              Might help with stability.""", default=None))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Sets the verbosity amount.""", default=False))
     specs.addSub(InputData.parameterInputFactory("fit_path", contentType=InputTypes.BoolType,
@@ -104,7 +103,7 @@ class Lars(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['eps','precompute', 'fit_intercept',
-                                                               'normalize','n_nonzero_coefs','jitter', 'verbose',
+                                                               'normalize','n_nonzero_coefs', 'verbose',
                                                                'fit_path'])
     # notFound must be empty
     assert(not notFound)

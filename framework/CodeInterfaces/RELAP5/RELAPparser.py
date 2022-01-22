@@ -67,6 +67,8 @@ class RELAPparser():
     self.deckLines        = {}
     self.maxNumberOfDecks = 0
     self.presentStopTrip = {}
+    # stop trip nomenclature (either 600 or 0000600 => see below)
+    self.stopTripNomenclature = '600'
     prevDeckLineNum       = 0
     self.addMinorEdits    = addMinorEdits
     pStop = None
@@ -77,8 +79,9 @@ class RELAPparser():
         self.presentStopTrip[self.maxNumberOfDecks] = copy.deepcopy(pStop)
         pStop = None
         prevDeckLineNum = lineNum + 1
-      elif line.strip().startswith("600 "):
-        pStop = [el.strip() for el in line.strip()[3:].split()]
+      elif line.strip().startswith("600 ") or line.strip().startswith("0000600"):
+        pStop = [el.strip() for el in line.strip().split()[1:]]
+        self.stopTripNomenclature = '600' if line.strip().startswith("600 ") else '0000600'
         lines[lineNum] = "*"
 
     if self.maxNumberOfDecks < 1:
@@ -100,7 +103,7 @@ class RELAPparser():
     for deckNum in self.inputControlVars.keys():
       originalStopping = [] if self.presentStopTrip[deckNum] is None else self.presentStopTrip[deckNum]
       if len(originalStopping) > 1:
-        raise IOError("One slot for the stopping trip 600 must be left out for the DET! Number of trips specified for card 600 is: "+str(len(originalStopping)))
+        raise IOError("One slot for the stopping trip '{}' must be left out for the DET! Number of trips specified for card {} is: {}".format(self.stopTripNomenclature,self.stopTripNomenclature,str(len(originalStopping))))
       self.additionalControlVariables[deckNum] = {}
       (rangeLow, rangeUp, fill) = (1,999,3) if self.controlVarType[deckNum] == 1 else (1,9999,4)
       #if self.controlVarType[deckNum] == 1: rangeLow, rangeUp, fill = 1,999,3
@@ -126,13 +129,13 @@ class RELAPparser():
       else:
         self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
 
-      self.deckLines[deckNum].append("600 "+' '.join([stopTripNumber]+originalStopping)+" \n")
+      self.deckLines[deckNum].append(self.stopTripNomenclature+" "+' '.join([stopTripNumber]+originalStopping)+" \n")
       # convert trips in tripunit for control variables
       controlledControlVars = {}
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
         controlVar = availableControlVars.pop()
         controlledControlVars[trip] = controlVar
-        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip)+" tripunit 1.0 0.0 0 \n")
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip).lstrip("0")+" tripunit 1.0 0.0 0 \n")
         self.additionalControlVariables[deckNum][controlVar.strip()] = trip
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
@@ -364,7 +367,7 @@ class RELAPparser():
       for lineNum, line in enumerate(self.deckLines[deck]):
         if all(foundAllCards[deck].values()):
           break
-        if not re.match('^\s*\n',line):
+        if not re.match(r'^\s*\n',line):
           readCard = line.split()[0].strip()
           if readCard in deckCards[deck].keys():
             foundWord = False
@@ -485,12 +488,12 @@ class RELAPparser():
               self.addControlVariablesForStoppingCoditions(toAdd, modifyDict.get('excludeTrips'))
             else:
               if self.presentStopTrip[deckNum] is not None:
-                self.deckLines[deckNum].append("600 "+" ".join(self.presentStopTrip[deckNum]) + "\n")
+                self.deckLines[deckNum].append(self.stopTripNomenclature+" "+" ".join(self.presentStopTrip[deckNum]) + "\n")
           # add trips and control variables
           self.addTripsVarsInMinorEdits()
         else:
           if self.presentStopTrip[deckNum] is not None:
-            self.deckLines[deckNum].append("600 "+" ".join(self.presentStopTrip[deckNum]) + "\n")
+            self.deckLines[deckNum].append(self.stopTripNomenclature+" "+" ".join(self.presentStopTrip[deckNum]) + "\n")
       lines = lines + temp
     return lines
 

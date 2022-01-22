@@ -109,7 +109,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         self.romName = xmlFind('./rom/romName')
         self.romType = xmlFind('./rom/romType')
         # read data from FOM
-        datai = pd.read_csv(self.fomDataFolder,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
+        datai = pd.read_csv(self.fomDataFolder,skiprows=3,header=None,sep=r'\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
         datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
         dataList = [datai]
         self.dataFom = pd.concat(dataList,keys=['fom'])
@@ -322,7 +322,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       # process post-processing file for rom
       ppRomFile = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"postProcessing","probe","0","Urom")
       if os.path.exists(ppRomFile):
-        datai = pd.read_csv(ppRomFile,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
+        datai = pd.read_csv(ppRomFile,skiprows=3,header=None,sep=r'\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
         datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
         dataList = [datai]
         romData = pd.concat(dataList,keys=['rom'])

@@ -46,9 +46,7 @@ class CategoricalNB(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.naive_bayes
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.naive_bayes.CategoricalNB())
+    self.model = sklearn.naive_bayes.CategoricalNB
 
   @classmethod
   def getInputSpecification(cls):

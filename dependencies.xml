@@ -55,7 +55,7 @@ Note all install methods after "main" take
     <numexpr os='linux'/>
     <cmake skip_check='True'/>	    
     <ray os="mac,linux" source="pip">1.3</ray>
-    <imageio optional='True'/>
+    <imageio>2.9.0</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>

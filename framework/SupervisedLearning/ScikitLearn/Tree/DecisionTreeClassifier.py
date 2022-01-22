@@ -46,9 +46,7 @@ class DecisionTreeClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.tree
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.tree.DecisionTreeClassifier())
+    self.model = sklearn.tree.DecisionTreeClassifier
 
   @classmethod
   def getInputSpecification(cls):
@@ -102,9 +100,10 @@ class DecisionTreeClassifier(ScikitLearnBase):
                                                  where $N$ is the total number of samples, $N\_t$ is the number of samples at the current node, $N\_t\_L$ is the number
                                                  of samples in the left child, and $N\_t\_R$ is the number of samples in the right child.
                                                  $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample_weight is passed.""", default=0.0))
-    specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
-                                                 descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
-                                                 complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
+    # new in sklearn 0.22
+    # specs.addSub(InputData.parameterInputFactory("ccp_alpha", contentType=InputTypes.FloatType,
+    #                                              descr=r"""Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest cost
+    #                                              complexity that is smaller than ccp_alpha will be chosen. By default, no pruning is performed. """, default=0.0))
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                                  descr=r"""Controls the randomness of the estimator. The features are
                                                  always randomly permuted at each split, even if splitter is set to
@@ -127,7 +126,7 @@ class DecisionTreeClassifier(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['criterion', 'splitter', 'max_depth','min_samples_split',
                                                                'min_samples_leaf','min_weight_fraction_leaf','max_features',
-                                                               'max_leaf_nodes','min_impurity_decrease','ccp_alpha',
+                                                               'max_leaf_nodes','min_impurity_decrease',
                                                                'random_state'])
     # notFound must be empty
     assert(not notFound)

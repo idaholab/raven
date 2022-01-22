@@ -267,7 +267,7 @@ class Phisics(CodeInterfaceBase):
       )]].getFilename() + ' -dep ' + inputFiles[mapDict['Depletion_input'.lower(
       )]].getFilename() + ' -o ' + self.instantOutput
       commandToRun = commandToRun.replace("\n", " ")
-      commandToRun = re.sub("\s\s+", " ", commandToRun)
+      commandToRun = re.sub(r"\s\s+", " ", commandToRun)
       outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
     returnCommand = [('parallel', commandToRun)], outputfile
     return returnCommand
