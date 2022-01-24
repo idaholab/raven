@@ -371,6 +371,7 @@ class EconomicRatio(BasicStatistics):
       threshold = needed[metric]['threshold']
       VaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
+      targWarn = "" # targets that return negative VaR for warning
       for target in needed[metric]['targets']:
         targWeight = relWeight[target].values
         targDa = dataSet[target]
@@ -381,11 +382,16 @@ class EconomicRatio(BasicStatistics):
           else:
             VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
           VaRList.append(-VaR)
+        if any(np.array(VaRList) < 0):
+          targWarn += target + ", "
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
         else:
           da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
         VaRSet[target] = da
+      # write warning for negative VaR values
+      if len(targWarn) > 0:
+        self.raiseAWarning("At least one negative VaR value calculated for target(s) {}. Negative VaR implies high probability of profit.".format(targWarn[:-2]))
       calculations[metric] = VaRSet
     #
     # ExpectedShortfall
@@ -517,7 +523,7 @@ class EconomicRatio(BasicStatistics):
           incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
           medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
           if incapableMedTarget:
-            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(matric, incapableMedTarget))
+            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(metric, incapableMedTarget))
 
           daMed = higherMeanSet[medTarget]/lowerMeanSet[medTarget]
           daMed = daMed.assign_coords(threshold ='median')
