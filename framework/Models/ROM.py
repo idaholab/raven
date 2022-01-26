@@ -703,6 +703,15 @@ if __name__ == '__main__':
   solver.config.options['hessian_approximation'] = 'limited-memory'
   results = solver.solve(concreteModel)
   print(results)
+  count = 0
+  with open("GrayModelOutput.txt", "r") as f:
+    lines = f.readlines()
+  with open("GrayModelOutput.txt", "w") as f:
+    for line in lines:
+        if line == "Problem:":
+          count += 1
+        if count == 1:
+          f.write(line)
 """
 
     return template
