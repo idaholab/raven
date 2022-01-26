@@ -26,9 +26,9 @@
   </Files>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
@@ -39,8 +39,7 @@
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
     </Code>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="knr" subType="KNeighborsRegressor">
       <Features>x, y</Features>
       <Target>poly</Target>
       <n_neighbors>5</n_neighbors>
@@ -57,7 +56,7 @@
         <n_splits>10</n_splits>
         <shuffle>False</shuffle>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <Model class="Models" type="Code">poly</Model>

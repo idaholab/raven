@@ -15,7 +15,7 @@
 """
 Created on Feb 20, 2013
 
-@author: crisr
+@authors: crisr, aalfonsi, mandd, wangc, cogljj, talbpaul, maljdan
 
 This is the Driver of RAVEN
 """
@@ -36,6 +36,14 @@ import time
 import threading
 import traceback
 import xml.etree.ElementTree as ET
+
+
+import builtins
+try:
+  builtins.profile
+except (AttributeError,ImportError):
+  # profiler not preset, so pass through
+  builtins.profile = lambda f: f
 
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"

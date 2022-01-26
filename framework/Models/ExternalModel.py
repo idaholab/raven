@@ -48,8 +48,9 @@ class ExternalModel(Dummy):
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputTypes.StringType, False)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("inputs", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outputs", contentType=InputTypes.StringListType))
     return inputSpecification
 
   @classmethod
@@ -63,24 +64,45 @@ class ExternalModel(Dummy):
     #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.sim                      = None
-    self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
-    self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
-    self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
+    super().__init__()
+    self.sim = None
+    self.modelVariableValues = {}     # dictionary of variable values for the external module imported at runtime
+    self.modelVariableType = {}       # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars = []    # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = ['float','bool','int','ndarray',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
-    self.printTag                 = 'EXTERNAL MODEL'
-    self.initExtSelf              = utils.Object()
-    self.workingDir = runInfoDict['WorkingDir']
+    self.printTag = 'EXTERNAL MODEL'  # label
+    self.initExtSelf = utils.Object() # initial externalizable object
+    self.workingDir = None            # RAVEN working dir
+    self.pickled = False              # is this model pickled?
+    self.constructed = True           # is this model constructed?
+
+  def _copyModel(self, obj):
+    """
+      Set this instance to be a copy of the provided object.
+      This is used to replace placeholder models with serialized objects
+      during deserialization in IOStep.
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    super()._copyModel(obj)
+    self.constructed = True
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self.workingDir = runInfo['WorkingDir']
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -105,6 +127,7 @@ class ExternalModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
+
     modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
@@ -125,7 +148,7 @@ class ExternalModel(Dummy):
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    if 'SampledVars' in kwargs.keys():
+    if 'SampledVars' in kwargs:
       modelVariableValues.update(kwargs['SampledVars'])
     return newInput, copy.copy(modelVariableValues)
 
@@ -144,6 +167,9 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+    elif paramInput.parameterValues['subType'].strip() == 'pickledModel':
+      self.pickled = True
+      self.constructed = False
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
@@ -156,79 +182,100 @@ class ExternalModel(Dummy):
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
+    if not self.pickled:
+      # check if there are variables and, in case, load them
+      for child in paramInput.subparts:
+        if child.getName() == 'variables':
+          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been depreciated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
+          self.modelVariableType = dict.fromkeys(child.value)
+        elif child.getName() == 'inputs':
+          self._setVariableList('input', child.value)
+        elif child.getName() == 'outputs':
+          self._setVariableList('output', child.value)
 
-    # check if there are variables and, in case, load them
-    for child in paramInput.subparts:
-      if child.getName() =='variable':
-        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif child.getName() == 'variables':
-        if len(child.parameterValues) > 0:
-          self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
-        for var in child.value.split(','):
-          var = var.strip()
-          self.modelVariableType[var] = None
-    # adjust model-aware variables based on aliases
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
-    self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
-    # check if there are other information that the external module wants to load
-    #TODO this needs to be converted to work with paramInput
-    if '_readMoreXML' in dir(self.sim):
-      self.sim._readMoreXML(self.initExtSelf,xmlNode)
+      if not self.modelVariableType:
+        if not self._getVariableList('input') or not self._getVariableList('output'):
+          self.raiseAnError(IOError, "<inputs> and <outputs> nodes must be specified in the ExternalModel input specifications!")
+        self.modelVariableType = dict.fromkeys(self._getVariableList('input')+self._getVariableList('output'))
+      # adjust model-aware variables based on aliases
+      self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
+      self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
+      # check if there are other information that the external module wants to load
+      #TODO this needs to be converted to work with paramInput
+      if '_readMoreXML' in dir(self.sim):
+        self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
-  def _externalRun(self, Input, modelVariables):
+  def evaluate(self, request: dict):
+    """
+      When the ExternalModel is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+      @ In, request, dict, feature coordinates (request)
+      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
+    """
+    outputEvaluation, _ = self._externalRun(request)
+    return outputEvaluation
+
+  def _externalRun(self, Input):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
-      @ In, Input, list, list of the inputs needed for running the model
-      @ In, modelVariables, dict, the dictionary containing all the External Model variables
+      @ In, Input, dict, list of the inputs needed for running the model
       @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
-    externalSelf        = utils.Object()
-    #self.sim=__import__(self.ModuleToLoad)
+    if self.pickled and not self.constructed:
+      self.raiseAnError(IOError, 'The <pickledModel> "{}" has not been de-serialized (IOStep)!'.format(self.name))
+    # instantiate an object to pass to the user on which to store I/O variables
+    externalSelf = utils.Object()
+    # build dict of variables mapped to values
     modelVariableValues = {}
     for key in self.modelVariableType.keys():
       modelVariableValues[key] = None
     for key, value in self.initExtSelf.__dict__.items():
-      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+      setattr(externalSelf, key, copy.copy(value))
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
       if key in modelVariableValues.keys():
         modelVariableValues[key] = copy.copy(Input[key])
+    # collect updates from user's createNewInput if it's present
     if 'createNewInput' not in dir(self.sim):
       InputDict = {}
     else:
       InputDict = Input
-    #if 'createNewInput' not in dir(self.sim):
     additionalKeys = []
     if '_indexMap' in Input.keys():
       additionalKeys.append('_indexMap')
     for key in Input.keys():
-      if key in modelVariables.keys() or key in additionalKeys:
+      if key in additionalKeys:
         modelVariableValues[key] = copy.copy(Input[key])
+    # make sure the instance we pass to the user has the variables it needs
     for key in list(self.modelVariableType.keys()) + additionalKeys:
-      # add the variable as a member of "self"
-      try:
-        CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
-      # if variable name is too strange to be a member of "self", then skip it
-      except SyntaxError:
-        self.raiseAWarning('Variable "{}" could not be added to "self" due to complex name.  Find it in "Inputs" dictionary instead.'.format(key))
-    #else:
-    #  InputDict = Input
+      # preference is to make it a member of the insantiated object
+      if key.isidentifier():
+        setattr(externalSelf, key, copy.copy(modelVariableValues[key]))
+      # otherwise, just have it available in the dictionary instead. This feels redundant.
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be added to ExternalModel first argument due to complex name. ' +
+                            'Find it in the second (dictionary) argument instead.')
     # only pass the variables and their values according to the model itself.
-    for key in Input.keys():
-      if key in self.modelVariableType.keys() or key in additionalKeys:
+    for key in Input:
+      if key in self.modelVariableType or key in additionalKeys:
         InputDict[key] = Input[key]
 
+    # run the user's model
     self.sim.run(externalSelf, InputDict)
 
+    # collect the user results
     for key in self.modelVariableType:
-      try:
-        # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')', self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
-      except (SyntaxError, AttributeError):
-        self.raiseAWarning('Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
-    for key in self.initExtSelf.__dict__.keys():
-      # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-      CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')', self=self.initExtSelf, object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+      # preferentially obtain values from the instantiated object
+      if key.isidentifier() and hasattr(externalSelf, key): # checks valid python variable name
+        modelVariableValues[key] = copy.copy(getattr(externalSelf, key))
+      # otherwise, try to get it from the dictionary. If not, save it as "None" so it reports back to the user.
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be read from ExternalModel first argument due to complex name. ' +
+                            'Checking it in the second (dictionary) argument instead.')
+        modelVariableValues[key] = copy.copy(InputDict.get(key, None))
+    # in case initialization variables have been modified, update them.
+    for key in self.initExtSelf.__dict__:
+      setattr(self.initExtSelf, key, copy.copy(getattr(externalSelf, key)))
+    # check for missing/bad data
     if None in self.modelVariableType.values():
       errorFound = False
       for key in self.modelVariableType:
@@ -271,17 +318,20 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    result,instSelf = self._externalRun(inRun,)
+    evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
-    rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    rlz = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
     ## then result, which has the expected outputs and possibly changed inputs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
     ## then get the metadata from kwargs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items()))
+    if '_indexMap' in rlz:
+      rlz['_indexMap'][0].update(evalIndexMap)
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
@@ -305,6 +355,6 @@ class ExternalModel(Dummy):
         if outputSize == -1:
           outputSize = len(np.atleast_1d(evaluation[key]))
         if not mathUtils.sizeMatch(evaluation[key],outputSize):
-          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
+          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(outputSize))
 
     Dummy.collectOutput(self, finishedJob, output, options)

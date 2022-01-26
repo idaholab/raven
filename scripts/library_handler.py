@@ -17,6 +17,7 @@ Adopted from RavenUtils.py
 """
 import os
 import sys
+import re
 import platform
 import argparse
 import subprocess
@@ -104,13 +105,58 @@ def checkLibraries(buildReport=False):
     if not found:
       missing.append((lib, needVersion))
       continue
-    if needVersion is not None and foundVersion != needVersion:
+    if needVersion is not None and not checkSameVersion(needVersion, foundVersion):
       notQA.append((lib, needVersion, foundVersion))
     if buildReport:
       messages.append((lib, found, msg, foundVersion))
   if buildReport:
     return messages
   return missing, notQA
+
+def parseVersion(versionString):
+  """
+    Parses a version string into its components
+    @ In, versionStirng, str, the version string to parse
+    @ Out, version, list, list of components as integers and strings
+  """
+  version = []
+  for part in re.split(r'([0-9]+|[a-z]+|\.)',versionString):
+    if len(part) == 0 or part == ".":
+      continue
+    try:
+      version.append(int(part))
+    except ValueError:
+      version.append(part)
+  return version
+
+def checkSameVersion(expected, received):
+  """
+    Compares "expected" to "received" for a version match.
+    @ In, expected, str, expected library version
+    @ In, received, str, received library version
+    @ Out, checkSameVersion, bool, True if libraries are the same version
+  """
+  # if identical, they're the same
+  if expected == received:
+    return True
+  # A.B.C versioning -> 1.1.0 should match 1.1
+  expected = expected.replace("dev0", "0")
+  received = received.replace("dev0", "0")
+  expSplit = [int(x) for x in expected.split('.')]
+  #Only check as many digits as given in expSplit
+  rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
+  # drop trailing 0s on both
+  while expSplit[-1] == 0:
+    expSplit.pop()
+  while rcvSplit[-1] == 0:
+    rcvSplit.pop()
+  exp = '.'.join(str(x) for x in expSplit)
+  rcv = '.'.join(str(x) for x in rcvSplit)
+  if exp == rcv:
+    return True
+  return False
+
+
 
 def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
@@ -412,7 +458,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   # check limited sources
   libSource = libNode.attrib.get('source', None)
   if libSource is None:
-    libSource = 'conda' # DEFAULT
+    libSource = 'forge' # DEFAULT
   if limitSources is not None and libSource not in limitSources:
     return # nothing to do
   # otherwise, we have a valid request to handle
@@ -541,24 +587,22 @@ if __name__ == '__main__':
   else:
     # provide an installation command
     preamble = '{installer} {action} {args} '
+    equalsTail = '' #if something is needed after an equals
     if args.installer == 'conda':
       installer = 'conda'
       equals = '='
       actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
-      if args.subset == 'core':
+      if args.subset == 'core' or args.subset == 'forge':
         # from defaults
-        src = '-c defaults'
+        src = '-c conda-forge'
         addOptional = args.addOptional
-        limit = ['conda']
-      elif args.subset == 'forge':
-        # take libs from conda-forge
-        src = '-c conda-forge '
-        addOptional = False
         limit = ['forge']
       elif args.subset == 'pip':
         src = ''
         installer = 'pip'
+        equals = '=='
+        equalsTail = '.*'
         actionArgs = ''
         addOptional = False
         limit = ['pip']
@@ -579,6 +623,7 @@ if __name__ == '__main__':
     elif args.installer == 'pip':
       installer = 'pip3'
       equals = '=='
+      equalsTail = '.*'
       actionArgs = ''
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='pip',
@@ -594,7 +639,7 @@ if __name__ == '__main__':
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
     libTexts = ' '.join(['{lib}{ver}'
                          .format(lib=lib,
-                                 ver=('{e}{r}'.format(e=equals, r=request['version']) if request['version'] is not None else ''))
+                                 ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:
       print(preamble + libTexts)

@@ -101,8 +101,10 @@ import csv
 import re
 import copy
 import numpy
+import pandas as pd
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from utils import mathUtils
 
 class Dymola(CodeInterfaceBase):
   """
@@ -260,8 +262,8 @@ class Dymola(CodeInterfaceBase):
     patterns = [# Dymola 1- or 2-line parameter specification
                 (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)'
                  % (i, f, f, f, u, u, '%s')),
-                (r'(^\s*)' + i + '(\s*#\s*%s)'),
-                (r'(^\s*)' + f + '(\s*#\s*%s)'),
+                (r'(^\s*)' + i + r'(\s*#\s*%s)'),
+                (r'(^\s*)' + f + r'(\s*#\s*%s)'),
                 # From Dymola:
                 # column 1: Type of initial value
                 #           = -2: special case: for continuing simulation
@@ -321,6 +323,20 @@ class Dymola(CodeInterfaceBase):
       src.write(text)
 
     return currentInputFiles
+
+  def checkForOutputFailure(self, output, workingDir):
+    """
+      Sometimes (e.g. when the license file is missing) the command returns 0 despite failing.
+      Check for creation of the "success" file as a determination of success for Dymola runs.
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
+    """
+    try:
+      open(os.path.join(workingDir, 'success'), 'r')
+    except FileNotFoundError:
+      return True
+    return False
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -443,18 +459,26 @@ class Dymola(CodeInterfaceBase):
 
       # Create an array of trajectories, which are to be written to CSV file.
       varTrajectories = numpy.matrix.transpose(numpy.concatenate((timeStepsArray,Data1Array,timeSeriesData2), axis=0))
-
-      # Define the name of the CSV file.
-      sourceFileName = os.path.join(workingDir, output)         # The source file comes in without extension on it
-      print('sourcefilename:',sourceFileName)
-      destFileName = sourceFileName.replace('rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
-      destFileName += '.csv' # Add the file extension .csv
-
-      # Write the CSV file.
-      with open(destFileName,"w") as csvFile:
-        resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
-        resultsWriter.writerows(varNames)
-        resultsWriter.writerows(varTrajectories)
+      # create output response dictionary
+      t = pd.Series(varTrajectories[:,0])
+      m = t.duplicated()
+      if len(t[m]):
+        # duplicated values
+        tIndex = None
+        iIndex = 1
+        for i in range(len(t[m])):
+          index = t[m].index[i]
+          if tIndex is None:
+            tIndex = t[index]
+          else:
+            if mathUtils.compareFloats(tIndex, t[index], tol=1.0E-15):
+              iIndex += 1
+            else:
+              iIndex = 1
+              tIndex = t[index]
+          t[index] = t[index] + numpy.finfo(float).eps*t[index]*iIndex
+        varTrajectories[:,0] = t.to_numpy()
+      response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
     else:
       raise Exception('File structure not supported!')
     #release memory
@@ -468,4 +492,4 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-    return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
+    return response

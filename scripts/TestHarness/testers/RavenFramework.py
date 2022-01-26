@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import subprocess
 import sys
-import distutils.version
 import platform
 from Tester import Tester
 import OrderedCSVDiffer
@@ -168,7 +167,7 @@ class RavenFramework(Tester):
     ## required module is present, but too old
     if _notQAModules and _checkVersions:
       self.set_fail('skipped (Incorrectly versioned python modules: ' +
-                    " ".join(['{}-{}'.format(*m) for m in _notQAModules]) +
+                    " ".join(['required {}-{}, but found {}'.format(*m) for m in _notQAModules]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
@@ -209,8 +208,8 @@ class RavenFramework(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
         self.set_skip('skipped (Outdated library: "'+libraryName+'")')
         return False
       i += 2

@@ -1,5 +1,11 @@
 <DataObjectMetadata name="rommeta">
   <DataSet type="Static">
+    <dims>
+      <seg_Time_end>segment_number</seg_Time_end>
+      <seg_Time_start>segment_number</seg_Time_start>
+      <seg_index_end>segment_number</seg_index_end>
+      <seg_index_start>segment_number</seg_index_start>
+    </dims>
     <general>
       <pointwise_meta>seg_Time_end,seg_Time_start,seg_index_end,seg_index_start</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
@@ -13,41 +19,41 @@
     <GlobalROM segment="all" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.163033697e+04</SignalIntercept>
+          <SignalIntercept>1.163291847e+04</SignalIntercept>
           <period>3.155695200e+07
             <frequency>3.168873851e-08</frequency>
-            <amplitude>1.612674572e+03</amplitude>
-            <phase>-2.390475799e+00</phase>
+            <amplitude>1.609215940e+03</amplitude>
+            <phase>-2.392854662e+00</phase>
           </period>
           <period>1.577847600e+07
             <frequency>6.337747701e-08</frequency>
-            <amplitude>1.600812359e+03</amplitude>
-            <phase>6.228826189e-01</phase>
+            <amplitude>1.603694555e+03</amplitude>
+            <phase>6.255535594e-01</phase>
           </period>
           <period>1.051898400e+07
             <frequency>9.506621552e-08</frequency>
-            <amplitude>7.779569249e+02</amplitude>
-            <phase>1.077898854e+00</phase>
+            <amplitude>7.823821241e+02</amplitude>
+            <phase>1.081288282e+00</phase>
           </period>
           <period>7.889238000e+06
             <frequency>1.267549540e-07</frequency>
-            <amplitude>1.062507327e+02</amplitude>
-            <phase>-1.384026291e+00</phase>
+            <amplitude>1.011434763e+02</amplitude>
+            <phase>-1.377769970e+00</phase>
           </period>
           <period>2.592000000e+06
             <frequency>3.858024691e-07</frequency>
-            <amplitude>3.361575474e+02</amplitude>
-            <phase>-1.296256962e+00</phase>
+            <amplitude>3.348316661e+02</amplitude>
+            <phase>-1.283002487e+00</phase>
           </period>
           <period>1.296000000e+06
             <frequency>7.716049383e-07</frequency>
-            <amplitude>1.907946132e+02</amplitude>
-            <phase>1.459132840e+00</phase>
+            <amplitude>1.895171646e+02</amplitude>
+            <phase>1.434235016e+00</phase>
           </period>
           <period>6.048000000e+05
             <frequency>1.653439153e-06</frequency>
-            <amplitude>4.018451823e+02</amplitude>
-            <phase>-3.630300767e-01</phase>
+            <amplitude>4.021129105e+02</amplitude>
+            <phase>-3.505867371e-01</phase>
           </period>
         </Fourier>
       </Demand>
@@ -55,1855 +61,1820 @@
     <SegmentROM segment="0" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.226728177e+03</SignalIntercept>
+          <SignalIntercept>-1.256402840e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.572730370e+02</amplitude>
-            <phase>-1.162758031e+00</phase>
+            <amplitude>1.571355898e+02</amplitude>
+            <phase>-1.156697264e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>5.681057241e+02</amplitude>
-            <phase>-1.697745257e+00</phase>
+            <amplitude>5.680117419e+02</amplitude>
+            <phase>-1.697374729e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.025011300e+03</amplitude>
-            <phase>-2.547894234e+00</phase>
+            <amplitude>1.024900209e+03</amplitude>
+            <phase>-2.547866377e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.235673305e+02</amplitude>
-            <phase>-9.628791494e-01</phase>
+            <amplitude>1.235799247e+02</amplitude>
+            <phase>-9.622613017e-01</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.072937519e+02</amplitude>
-            <phase>6.065460162e-01</phase>
+            <amplitude>2.073528637e+02</amplitude>
+            <phase>6.065330106e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.3044183787</std>
+          <std>1.30388840096</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="1" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.169519068e+03</SignalIntercept>
+          <SignalIntercept>-1.188824327e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.503420280e+02</amplitude>
-            <phase>-2.811066279e+00</phase>
+            <amplitude>9.528373120e+02</amplitude>
+            <phase>-2.811609645e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>9.207393757e+02</amplitude>
-            <phase>-1.829360365e+00</phase>
+            <amplitude>9.210244303e+02</amplitude>
+            <phase>-1.830064654e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.106297108e+03</amplitude>
-            <phase>-2.511623059e+00</phase>
+            <amplitude>1.106631316e+03</amplitude>
+            <phase>-2.511735447e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>9.091376888e+01</amplitude>
-            <phase>-2.206487469e+00</phase>
+            <amplitude>9.112128782e+01</amplitude>
+            <phase>-2.207835741e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.030237975e+02</amplitude>
-            <phase>5.841256669e-01</phase>
+            <amplitude>2.028395790e+02</amplitude>
+            <phase>5.841756734e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29952082445</std>
+          <std>1.30176928254</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="2" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.558963636e+03</SignalIntercept>
+          <SignalIntercept>1.544556386e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.418530087e+02</amplitude>
-            <phase>-7.993442091e-01</phase>
+            <amplitude>9.418027073e+02</amplitude>
+            <phase>-7.991786910e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>8.272338812e+02</amplitude>
-            <phase>-1.813794298e+00</phase>
+            <amplitude>8.272215198e+02</amplitude>
+            <phase>-1.813791624e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.010796118e+03</amplitude>
-            <phase>-2.404950221e+00</phase>
+            <amplitude>1.010792440e+03</amplitude>
+            <phase>-2.404951285e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.592124052e+02</amplitude>
-            <phase>-5.268635914e-01</phase>
+            <amplitude>1.592125871e+02</amplitude>
+            <phase>-5.268501443e-01</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.269310300e+02</amplitude>
-            <phase>6.999138340e-01</phase>
+            <amplitude>2.269324896e+02</amplitude>
+            <phase>6.999155212e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.2979322879</std>
+          <std>1.29203508813</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="3" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>5.960982506e+01</SignalIntercept>
+          <SignalIntercept>5.239103487e+01</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.664426601e+02</amplitude>
-            <phase>1.536346285e+00</phase>
+            <amplitude>3.661123071e+02</amplitude>
+            <phase>1.540424417e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>6.724898800e+02</amplitude>
-            <phase>-9.687953704e-01</phase>
+            <amplitude>6.723173856e+02</amplitude>
+            <phase>-9.693571123e-01</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.362260837e+03</amplitude>
-            <phase>-2.457198746e+00</phase>
+            <amplitude>1.362452906e+03</amplitude>
+            <phase>-2.457258636e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>9.976264592e+01</amplitude>
-            <phase>-2.261864645e+00</phase>
+            <amplitude>9.988819156e+01</amplitude>
+            <phase>-2.262508579e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.836458486e+02</amplitude>
-            <phase>5.343683524e-01</phase>
+            <amplitude>2.835379217e+02</amplitude>
+            <phase>5.343687662e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.33192096302</std>
+          <std>1.32755167309</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="4" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.096358164e+03</SignalIntercept>
+          <SignalIntercept>1.086738759e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.883244189e+02</amplitude>
-            <phase>-6.240706293e-01</phase>
+            <amplitude>4.893280319e+02</amplitude>
+            <phase>-6.220337920e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>7.409224376e+02</amplitude>
-            <phase>-8.201940162e-01</phase>
+            <amplitude>7.411304898e+02</amplitude>
+            <phase>-8.197694553e-01</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.278745307e+03</amplitude>
-            <phase>-2.486260169e+00</phase>
+            <amplitude>1.278569209e+03</amplitude>
+            <phase>-2.486205797e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>7.178306296e+01</amplitude>
-            <phase>-1.572169676e+00</phase>
+            <amplitude>7.173269992e+01</amplitude>
+            <phase>-1.570530767e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.877932480e+02</amplitude>
-            <phase>5.496043807e-01</phase>
+            <amplitude>2.878911196e+02</amplitude>
+            <phase>5.495983101e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29998630948</std>
+          <std>1.3016525835</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="5" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-5.988745280e+02</SignalIntercept>
+          <SignalIntercept>-6.026019204e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.215474150e+02</amplitude>
-            <phase>2.599261341e-01</phase>
+            <amplitude>7.186094935e+02</amplitude>
+            <phase>2.609353973e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>9.427857887e+02</amplitude>
-            <phase>-1.628792440e+00</phase>
+            <amplitude>9.429393180e+02</amplitude>
+            <phase>-1.629668933e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.150682240e+03</amplitude>
-            <phase>-2.457174860e+00</phase>
+            <amplitude>1.151067606e+03</amplitude>
+            <phase>-2.457326535e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>7.085646961e+01</amplitude>
-            <phase>-2.177136297e+00</phase>
+            <amplitude>7.109688909e+01</amplitude>
+            <phase>-2.179319246e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.541228022e+02</amplitude>
-            <phase>4.863095305e-01</phase>
+            <amplitude>2.539040622e+02</amplitude>
+            <phase>4.862785039e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29807570108</std>
+          <std>1.29762861958</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="6" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.170656984e+03</SignalIntercept>
+          <SignalIntercept>1.176711424e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.555164927e+02</amplitude>
-            <phase>2.547957379e+00</phase>
+            <amplitude>3.551124963e+02</amplitude>
+            <phase>2.547699801e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>6.220713042e+02</amplitude>
-            <phase>-6.933608410e-01</phase>
+            <amplitude>6.221410107e+02</amplitude>
+            <phase>-6.932705689e-01</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.326902319e+03</amplitude>
-            <phase>-2.532092809e+00</phase>
+            <amplitude>1.326862032e+03</amplitude>
+            <phase>-2.532079222e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.468078837e+02</amplitude>
-            <phase>-2.081395370e+00</phase>
+            <amplitude>1.467854386e+02</amplitude>
+            <phase>-2.081262617e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.620681269e+02</amplitude>
-            <phase>4.872884326e-01</phase>
+            <amplitude>2.620908433e+02</amplitude>
+            <phase>4.872886272e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30217019189</std>
+          <std>1.30273390916</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="7" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.160913028e+03</SignalIntercept>
+          <SignalIntercept>-1.153840666e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.220639204e+02</amplitude>
-            <phase>1.235413677e+00</phase>
+            <amplitude>4.216697150e+02</amplitude>
+            <phase>1.237995430e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.123834694e+03</amplitude>
-            <phase>-1.938910294e+00</phase>
+            <amplitude>1.123982417e+03</amplitude>
+            <phase>-1.939154696e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>9.252895818e+02</amplitude>
-            <phase>-2.510427926e+00</phase>
+            <amplitude>9.254355198e+02</amplitude>
+            <phase>-2.510489478e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.125144708e+02</amplitude>
-            <phase>-2.745974971e+00</phase>
+            <amplitude>1.126203437e+02</amplitude>
+            <phase>-2.745979394e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.118497355e+02</amplitude>
-            <phase>2.163918503e-01</phase>
+            <amplitude>2.117724868e+02</amplitude>
+            <phase>2.162766379e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30321390443</std>
+          <std>1.30686361734</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="8" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-2.200128202e+02</SignalIntercept>
+          <SignalIntercept>-2.148875407e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.612948755e+02</amplitude>
-            <phase>-2.647993926e+00</phase>
+            <amplitude>1.593023859e+02</amplitude>
+            <phase>-2.640557636e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>9.064263320e+02</amplitude>
-            <phase>-1.779186949e+00</phase>
+            <amplitude>9.062267514e+02</amplitude>
+            <phase>-1.778515496e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.020269210e+03</amplitude>
-            <phase>-2.567011962e+00</phase>
+            <amplitude>1.019963739e+03</amplitude>
+            <phase>-2.566911514e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.893483556e+02</amplitude>
-            <phase>-2.723683212e+00</phase>
+            <amplitude>1.891306555e+02</amplitude>
+            <phase>-2.723646127e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.085234918e+02</amplitude>
-            <phase>1.858351221e-01</phase>
+            <amplitude>2.086810372e+02</amplitude>
+            <phase>1.860960193e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.32639728642</std>
+          <std>1.32295910452</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="9" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.693438107e+02</SignalIntercept>
+          <SignalIntercept>-1.716596702e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.143521756e+02</amplitude>
-            <phase>2.999407900e-01</phase>
+            <amplitude>4.132687807e+02</amplitude>
+            <phase>3.015901678e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.239325426e+03</amplitude>
-            <phase>-2.027235717e+00</phase>
+            <amplitude>1.239485627e+03</amplitude>
+            <phase>-2.027472688e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.973227024e+02</amplitude>
-            <phase>-2.383461833e+00</phase>
+            <amplitude>7.974665429e+02</amplitude>
+            <phase>-2.383569885e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.521316839e+02</amplitude>
-            <phase>-2.767119208e+00</phase>
+            <amplitude>1.522449478e+02</amplitude>
+            <phase>-2.767126548e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.224975901e+02</amplitude>
-            <phase>2.354089005e-01</phase>
+            <amplitude>2.224140278e+02</amplitude>
+            <phase>2.353057143e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.28987449985</std>
+          <std>1.28938249174</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="10" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-7.911055933e+02</SignalIntercept>
+          <SignalIntercept>-7.850590091e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.724017046e+02</amplitude>
-            <phase>2.717650928e-01</phase>
+            <amplitude>3.725403863e+02</amplitude>
+            <phase>2.706831190e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.391033084e+03</amplitude>
-            <phase>-2.000440198e+00</phase>
+            <amplitude>1.391026740e+03</amplitude>
+            <phase>-2.000395158e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.712944467e+02</amplitude>
-            <phase>-2.355862752e+00</phase>
+            <amplitude>6.712734982e+02</amplitude>
+            <phase>-2.355832848e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.293549799e+02</amplitude>
-            <phase>-2.031708354e+00</phase>
+            <amplitude>1.293426258e+02</amplitude>
+            <phase>-2.031594097e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.156280140e+02</amplitude>
-            <phase>3.609536753e-01</phase>
+            <amplitude>1.156426418e+02</amplitude>
+            <phase>3.609599164e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30023901335</std>
+          <std>1.29805971364</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="11" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>3.234646184e+02</SignalIntercept>
+          <SignalIntercept>3.244586728e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.438921669e+01</amplitude>
-            <phase>1.126233444e+00</phase>
+            <amplitude>3.458587583e+01</amplitude>
+            <phase>1.130978258e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.669137273e+03</amplitude>
-            <phase>-2.117036907e+00</phase>
+            <amplitude>1.669127774e+03</amplitude>
+            <phase>-2.117047986e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.436838088e+02</amplitude>
-            <phase>-2.334749360e+00</phase>
+            <amplitude>7.436848353e+02</amplitude>
+            <phase>-2.334757563e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.034978564e+02</amplitude>
-            <phase>-2.194381237e+00</phase>
+            <amplitude>2.034990776e+02</amplitude>
+            <phase>-2.194396790e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.025373327e+02</amplitude>
-            <phase>4.850891282e-01</phase>
+            <amplitude>1.025352284e+02</amplitude>
+            <phase>4.850993090e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30058009065</std>
+          <std>1.30318222284</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="12" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>5.278607464e+02</SignalIntercept>
+          <SignalIntercept>5.290301446e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.018479706e+02</amplitude>
-            <phase>8.164832808e-01</phase>
+            <amplitude>3.026334916e+02</amplitude>
+            <phase>8.122334731e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.670388451e+03</amplitude>
-            <phase>-2.067864541e+00</phase>
+            <amplitude>1.670169387e+03</amplitude>
+            <phase>-2.067655126e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.737188271e+02</amplitude>
-            <phase>-2.202643833e+00</phase>
+            <amplitude>6.735615331e+02</amplitude>
+            <phase>-2.202442815e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.530439545e+02</amplitude>
-            <phase>-2.229245647e+00</phase>
+            <amplitude>1.529237311e+02</amplitude>
+            <phase>-2.228772899e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.120331266e+02</amplitude>
-            <phase>6.810742057e-01</phase>
+            <amplitude>1.121388868e+02</amplitude>
+            <phase>6.809093678e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31840868073</std>
+          <std>1.32025399646</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="13" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>8.157782723e+02</SignalIntercept>
+          <SignalIntercept>8.051409671e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.713284367e+02</amplitude>
-            <phase>-1.535492103e+00</phase>
+            <amplitude>7.708171500e+02</amplitude>
+            <phase>-1.535097246e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.407921403e+03</amplitude>
-            <phase>-2.022557876e+00</phase>
+            <amplitude>1.407841144e+03</amplitude>
+            <phase>-2.022522870e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.815742352e+02</amplitude>
-            <phase>-2.287386156e+00</phase>
+            <amplitude>7.815330944e+02</amplitude>
+            <phase>-2.287365934e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.837063024e+02</amplitude>
-            <phase>-2.099915047e+00</phase>
+            <amplitude>1.836805585e+02</amplitude>
+            <phase>-2.099838187e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.062813033e+02</amplitude>
-            <phase>3.682400582e-01</phase>
+            <amplitude>1.063028956e+02</amplitude>
+            <phase>3.682944108e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.28886671684</std>
+          <std>1.28845930879</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="14" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-2.064752427e+02</SignalIntercept>
+          <SignalIntercept>-2.072781098e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>2.936302200e+02</amplitude>
-            <phase>8.226379855e-02</phase>
+            <amplitude>2.921101082e+02</amplitude>
+            <phase>8.134705575e-02</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.222124566e+03</amplitude>
-            <phase>-1.762424096e+00</phase>
+            <amplitude>1.222282665e+03</amplitude>
+            <phase>-1.762744251e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.718341927e+02</amplitude>
-            <phase>-2.177427051e+00</phase>
+            <amplitude>7.720002260e+02</amplitude>
+            <phase>-2.177598228e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.591037541e+02</amplitude>
-            <phase>-2.195061332e+00</phase>
+            <amplitude>1.592272079e+02</amplitude>
+            <phase>-2.195520118e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.349735142e+02</amplitude>
-            <phase>5.203032031e-01</phase>
+            <amplitude>1.348637726e+02</amplitude>
+            <phase>5.202891615e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29964550686</std>
+          <std>1.294180763</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="15" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-5.084633600e+02</SignalIntercept>
+          <SignalIntercept>-5.098726323e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>2.157291475e+02</amplitude>
-            <phase>-6.780589881e-02</phase>
+            <amplitude>2.160490059e+02</amplitude>
+            <phase>-6.657192363e-02</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.611861327e+03</amplitude>
-            <phase>-2.052432655e+00</phase>
+            <amplitude>1.611795876e+03</amplitude>
+            <phase>-2.052393851e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.113258449e+02</amplitude>
-            <phase>-2.220954979e+00</phase>
+            <amplitude>7.112880343e+02</amplitude>
+            <phase>-2.220921537e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.039025256e+02</amplitude>
-            <phase>-2.295171965e+00</phase>
+            <amplitude>2.038747042e+02</amplitude>
+            <phase>-2.295115770e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.305029035e+01</amplitude>
-            <phase>2.851509719e-01</phase>
+            <amplitude>7.307236664e+01</amplitude>
+            <phase>2.852390730e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31018792865</std>
+          <std>1.30939841438</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="16" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>5.611775460e+01</SignalIntercept>
+          <SignalIntercept>5.897498771e+01</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.018498481e+02</amplitude>
-            <phase>6.724520738e-03</phase>
+            <amplitude>3.014753564e+02</amplitude>
+            <phase>5.590473773e-03</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.008194664e+03</amplitude>
-            <phase>-2.172622195e+00</phase>
+            <amplitude>2.008279356e+03</amplitude>
+            <phase>-2.172649961e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.059037517e+02</amplitude>
-            <phase>-2.161019173e+00</phase>
+            <amplitude>6.059448716e+02</amplitude>
+            <phase>-2.161064645e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.559331235e+02</amplitude>
-            <phase>-2.319006026e+00</phase>
+            <amplitude>1.559644156e+02</amplitude>
+            <phase>-2.319078466e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.327440318e+01</amplitude>
-            <phase>-9.684957571e-02</phase>
+            <amplitude>7.325465484e+01</amplitude>
+            <phase>-9.706776165e-02</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31252064827</std>
+          <std>1.30326662325</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="17" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.966722443e+02</SignalIntercept>
+          <SignalIntercept>1.912675994e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>2.319021250e+02</amplitude>
-            <phase>1.145489733e-01</phase>
+            <amplitude>2.334454265e+02</amplitude>
+            <phase>1.154685758e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.245781034e+03</amplitude>
-            <phase>-2.182686565e+00</phase>
+            <amplitude>2.245480720e+03</amplitude>
+            <phase>-2.182558059e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>5.219551962e+02</amplitude>
-            <phase>-2.183667365e+00</phase>
+            <amplitude>5.217907246e+02</amplitude>
+            <phase>-2.183420009e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.762266612e+02</amplitude>
-            <phase>-2.623935909e+00</phase>
+            <amplitude>1.760861536e+02</amplitude>
+            <phase>-2.623851796e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>6.042968683e+01</amplitude>
-            <phase>-4.208594188e-01</phase>
+            <amplitude>6.049186112e+01</amplitude>
+            <phase>-4.193967246e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.32452072773</std>
+          <std>1.32327281201</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="18" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>4.239970558e+02</SignalIntercept>
+          <SignalIntercept>4.248261690e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>5.271610580e+02</amplitude>
-            <phase>-9.948185384e-02</phase>
+            <amplitude>5.246958476e+02</amplitude>
+            <phase>-1.003336257e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.009209301e+03</amplitude>
-            <phase>-2.206157382e+00</phase>
+            <amplitude>3.009695481e+03</amplitude>
+            <phase>-2.206321352e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.362206775e+02</amplitude>
-            <phase>-1.905195366e+00</phase>
+            <amplitude>3.364181537e+02</amplitude>
+            <phase>-1.906049364e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.504186832e+02</amplitude>
-            <phase>-2.490292417e+00</phase>
+            <amplitude>1.506467169e+02</amplitude>
+            <phase>-2.490686846e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>9.190011545e+01</amplitude>
-            <phase>-5.158420219e-01</phase>
+            <amplitude>9.180928907e+01</amplitude>
+            <phase>-5.175379317e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29422861354</std>
+          <std>1.29733951134</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="19" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-7.892092761e+02</SignalIntercept>
+          <SignalIntercept>-7.841374377e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.373712844e+02</amplitude>
-            <phase>-1.253988729e-01</phase>
+            <amplitude>9.382480657e+02</amplitude>
+            <phase>-1.252581755e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.737258225e+03</amplitude>
-            <phase>-2.234480564e+00</phase>
+            <amplitude>2.737092622e+03</amplitude>
+            <phase>-2.234420530e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.861950805e+02</amplitude>
-            <phase>-2.222954646e+00</phase>
+            <amplitude>3.861026224e+02</amplitude>
+            <phase>-2.222768982e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.915901857e+02</amplitude>
-            <phase>-2.572379431e+00</phase>
+            <amplitude>1.915123912e+02</amplitude>
+            <phase>-2.572306255e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>8.959115177e+01</amplitude>
-            <phase>-7.149109665e-01</phase>
+            <amplitude>8.961096874e+01</amplitude>
+            <phase>-7.142732586e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.3007010366</std>
+          <std>1.30298507791</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="20" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-6.771358153e+02</SignalIntercept>
+          <SignalIntercept>-6.713973671e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.474730025e+02</amplitude>
-            <phase>2.057258609e+00</phase>
+            <amplitude>1.477698367e+02</amplitude>
+            <phase>2.062976731e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.070229858e+03</amplitude>
-            <phase>-2.091862096e+00</phase>
+            <amplitude>2.070378080e+03</amplitude>
+            <phase>-2.091949395e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>4.379760453e+02</amplitude>
-            <phase>-2.602399392e+00</phase>
+            <amplitude>4.380892602e+02</amplitude>
+            <phase>-2.602468187e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.177128735e+02</amplitude>
-            <phase>-2.458254216e+00</phase>
+            <amplitude>2.177889497e+02</amplitude>
+            <phase>-2.458354468e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.170748868e+01</amplitude>
-            <phase>2.552136902e-02</phase>
+            <amplitude>7.165453283e+01</amplitude>
+            <phase>2.511172754e-02</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31962178206</std>
+          <std>1.31832038557</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="21" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-4.443989360e+02</SignalIntercept>
+          <SignalIntercept>-4.444410198e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.368559934e+02</amplitude>
-            <phase>4.799887829e-01</phase>
+            <amplitude>1.391662938e+02</amplitude>
+            <phase>4.720930241e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.765139173e+03</amplitude>
-            <phase>-2.330428310e+00</phase>
+            <amplitude>2.764590781e+03</amplitude>
+            <phase>-2.330267703e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.326778829e+02</amplitude>
-            <phase>-2.279030495e+00</phase>
+            <amplitude>3.323851087e+02</amplitude>
+            <phase>-2.278426592e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.723633483e+02</amplitude>
-            <phase>-2.699967177e+00</phase>
+            <amplitude>1.721236269e+02</amplitude>
+            <phase>-2.699898855e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.051658098e+02</amplitude>
-            <phase>-1.220084019e+00</phase>
+            <amplitude>1.051343814e+02</amplitude>
+            <phase>-1.218363059e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30335894131</std>
+          <std>1.29996010723</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="22" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.254571744e+03</SignalIntercept>
+          <SignalIntercept>1.250492616e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.611131100e+02</amplitude>
-            <phase>2.174492333e+00</phase>
+            <amplitude>3.623073374e+02</amplitude>
+            <phase>2.178409488e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.622210402e+03</amplitude>
-            <phase>-2.323279567e+00</phase>
+            <amplitude>3.622586701e+03</amplitude>
+            <phase>-2.323371690e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>2.350537867e+02</amplitude>
-            <phase>-2.323266845e+00</phase>
+            <amplitude>2.352658967e+02</amplitude>
+            <phase>-2.323851344e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.486496316e+02</amplitude>
-            <phase>-2.559047146e+00</phase>
+            <amplitude>1.488169940e+02</amplitude>
+            <phase>-2.559277424e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>9.032600541e+01</amplitude>
-            <phase>-1.473322504e+00</phase>
+            <amplitude>9.037907859e+01</amplitude>
+            <phase>-1.474644655e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30208229547</std>
+          <std>1.30823273728</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="23" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.933119693e+02</SignalIntercept>
+          <SignalIntercept>1.964891304e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>8.236519971e+02</amplitude>
-            <phase>4.372733964e-02</phase>
+            <amplitude>8.243180080e+02</amplitude>
+            <phase>4.339756029e-02</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.071144585e+03</amplitude>
-            <phase>-2.262686914e+00</phase>
+            <amplitude>3.071030512e+03</amplitude>
+            <phase>-2.262643188e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.185873361e+02</amplitude>
-            <phase>-2.438749492e+00</phase>
+            <amplitude>3.185102114e+02</amplitude>
+            <phase>-2.438617302e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>4.652199567e+01</amplitude>
-            <phase>-2.080198312e+00</phase>
+            <amplitude>4.647690786e+01</amplitude>
+            <phase>-2.079369768e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.301542756e+01</amplitude>
-            <phase>-1.301239746e+00</phase>
+            <amplitude>7.300524258e+01</amplitude>
+            <phase>-1.300634356e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.33275307896</std>
+          <std>1.33040592092</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="24" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>8.312041174e+02</SignalIntercept>
+          <SignalIntercept>8.309579214e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>5.990292367e+02</amplitude>
-            <phase>-1.000624751e+00</phase>
+            <amplitude>5.985627403e+02</amplitude>
+            <phase>-1.001368032e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.470626292e+03</amplitude>
-            <phase>-2.324904679e+00</phase>
+            <amplitude>3.470743875e+03</amplitude>
+            <phase>-2.324937353e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.695801194e+02</amplitude>
-            <phase>-2.130900421e+00</phase>
+            <amplitude>1.696376912e+02</amplitude>
+            <phase>-2.131242229e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.063166534e+02</amplitude>
-            <phase>-2.492919791e+00</phase>
+            <amplitude>2.063696488e+02</amplitude>
+            <phase>-2.492994179e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.028577037e+02</amplitude>
-            <phase>-1.543153365e+00</phase>
+            <amplitude>1.028770993e+02</amplitude>
+            <phase>-1.543517764e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.3045696533</std>
+          <std>1.30523290215</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="25" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-4.685600852e+02</SignalIntercept>
+          <SignalIntercept>-4.692389324e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>5.833770977e+02</amplitude>
-            <phase>2.609085331e-01</phase>
+            <amplitude>5.851435669e+02</amplitude>
+            <phase>2.597159831e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.755976359e+03</amplitude>
-            <phase>-2.093996951e+00</phase>
+            <amplitude>2.755676503e+03</amplitude>
+            <phase>-2.093841756e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.952323691e+02</amplitude>
-            <phase>2.807687081e+00</phase>
+            <amplitude>1.950119120e+02</amplitude>
+            <phase>2.806954589e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.025200863e+02</amplitude>
-            <phase>-2.482080055e+00</phase>
+            <amplitude>2.023494167e+02</amplitude>
+            <phase>-2.481837220e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.676432068e+01</amplitude>
-            <phase>-7.273392657e-01</phase>
+            <amplitude>7.680841150e+01</amplitude>
+            <phase>-7.256649836e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30061767457</std>
+          <std>1.29624602495</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="26" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-7.261263362e+02</SignalIntercept>
+          <SignalIntercept>-7.358897500e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>2.789930442e+02</amplitude>
-            <phase>-1.109565708e+00</phase>
+            <amplitude>2.782408851e+02</amplitude>
+            <phase>-1.111312986e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.996748439e+03</amplitude>
-            <phase>-2.270396206e+00</phase>
+            <amplitude>2.996875832e+03</amplitude>
+            <phase>-2.270452206e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.405613377e+02</amplitude>
-            <phase>3.127024984e+00</phase>
+            <amplitude>1.406641945e+02</amplitude>
+            <phase>3.127163024e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.501536475e+02</amplitude>
-            <phase>-2.479141462e+00</phase>
+            <amplitude>1.502204812e+02</amplitude>
+            <phase>-2.479292816e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.036614080e+02</amplitude>
-            <phase>-1.669519115e+00</phase>
+            <amplitude>1.036910240e+02</amplitude>
+            <phase>-1.669954377e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30809762449</std>
+          <std>1.31135751126</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="27" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.452742914e+02</SignalIntercept>
+          <SignalIntercept>1.470431221e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.870378216e+02</amplitude>
-            <phase>1.054340189e+00</phase>
+            <amplitude>7.862139052e+02</amplitude>
+            <phase>1.055120048e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.719912265e+03</amplitude>
-            <phase>-2.307607959e+00</phase>
+            <amplitude>3.720139362e+03</amplitude>
+            <phase>-2.307649391e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.380173544e+02</amplitude>
-            <phase>-1.375052616e+00</phase>
+            <amplitude>1.380337137e+02</amplitude>
+            <phase>-1.376043836e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.086509264e+02</amplitude>
-            <phase>-2.604715285e+00</phase>
+            <amplitude>1.087434736e+02</amplitude>
+            <phase>-2.604809492e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>8.651184403e+01</amplitude>
-            <phase>-1.419121206e+00</phase>
+            <amplitude>8.653936759e+01</amplitude>
+            <phase>-1.419880665e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.33250230286</std>
+          <std>1.3358488209</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="28" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.230618735e+02</SignalIntercept>
+          <SignalIntercept>-1.226440337e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.120930183e+02</amplitude>
-            <phase>5.216921682e-01</phase>
+            <amplitude>3.120897568e+02</amplitude>
+            <phase>5.226652704e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.909241221e+03</amplitude>
-            <phase>-2.277283789e+00</phase>
+            <amplitude>3.909259559e+03</amplitude>
+            <phase>-2.277295009e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.057720097e+02</amplitude>
-            <phase>-3.038289888e+00</phase>
+            <amplitude>1.057942575e+02</amplitude>
+            <phase>-3.038304236e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.420212110e+02</amplitude>
-            <phase>-2.119455836e+00</phase>
+            <amplitude>1.420318069e+02</amplitude>
+            <phase>-2.119529240e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>9.510690776e+01</amplitude>
-            <phase>-1.551285485e+00</phase>
+            <amplitude>9.511129157e+01</amplitude>
+            <phase>-1.551395203e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30272649847</std>
+          <std>1.30222644979</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="29" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-6.555455925e+02</SignalIntercept>
+          <SignalIntercept>-6.507696665e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.348916735e+02</amplitude>
-            <phase>-6.704716375e-01</phase>
+            <amplitude>1.353748889e+02</amplitude>
+            <phase>-6.711991625e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.693685371e+03</amplitude>
-            <phase>-2.245884172e+00</phase>
+            <amplitude>3.693641192e+03</amplitude>
+            <phase>-2.245861380e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.157036493e+01</amplitude>
-            <phase>1.993372703e+00</phase>
+            <amplitude>6.155573347e+01</amplitude>
+            <phase>1.992661243e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.833194810e+02</amplitude>
-            <phase>-2.330537630e+00</phase>
+            <amplitude>1.832926280e+02</amplitude>
+            <phase>-2.330453050e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>8.058501967e+01</amplitude>
-            <phase>-1.266253308e+00</phase>
+            <amplitude>8.058163868e+01</amplitude>
+            <phase>-1.265962565e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31969625602</std>
+          <std>1.31871771694</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="30" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-5.295484902e+01</SignalIntercept>
+          <SignalIntercept>-5.790108297e+01</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.404133082e+02</amplitude>
-            <phase>-6.213417862e-01</phase>
+            <amplitude>4.408622682e+02</amplitude>
+            <phase>-6.192891323e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.015978712e+03</amplitude>
-            <phase>-2.280526157e+00</phase>
+            <amplitude>4.015771011e+03</amplitude>
+            <phase>-2.280491367e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.038222241e+02</amplitude>
-            <phase>2.723396616e+00</phase>
+            <amplitude>1.037306881e+02</amplitude>
+            <phase>2.722577228e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.903676188e+02</amplitude>
-            <phase>-2.042192706e+00</phase>
+            <amplitude>1.903011333e+02</amplitude>
+            <phase>-2.041920097e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.078157442e+01</amplitude>
-            <phase>-1.390181042e+00</phase>
+            <amplitude>7.075799361e+01</amplitude>
+            <phase>-1.389332661e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29734955919</std>
+          <std>1.29709878342</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="31" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>8.193058556e+02</SignalIntercept>
+          <SignalIntercept>8.229365859e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.792407299e+02</amplitude>
-            <phase>1.785590962e-01</phase>
+            <amplitude>1.771807668e+02</amplitude>
+            <phase>1.787457573e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.649471343e+03</amplitude>
-            <phase>-2.344836418e+00</phase>
+            <amplitude>4.649929297e+03</amplitude>
+            <phase>-2.344908369e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>2.467817177e+01</amplitude>
-            <phase>-8.634864178e-01</phase>
+            <amplitude>2.456103544e+01</amplitude>
+            <phase>-8.740522478e-01</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.212519749e+02</amplitude>
-            <phase>-1.430426655e+00</phase>
+            <amplitude>1.213023304e+02</amplitude>
+            <phase>-1.431961668e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>7.825710621e+01</amplitude>
-            <phase>-1.398305431e+00</phase>
+            <amplitude>7.830908520e+01</amplitude>
+            <phase>-1.400069814e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29802990685</std>
+          <std>1.29999249833</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="32" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>4.182728446e+02</SignalIntercept>
+          <SignalIntercept>4.225438761e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.152783829e+02</amplitude>
-            <phase>3.724438007e-01</phase>
+            <amplitude>3.161924443e+02</amplitude>
+            <phase>3.718350293e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.255723655e+03</amplitude>
-            <phase>-2.317894758e+00</phase>
+            <amplitude>4.255527010e+03</amplitude>
+            <phase>-2.317859096e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>5.388931230e+01</amplitude>
-            <phase>2.075526239e+00</phase>
+            <amplitude>5.386157601e+01</amplitude>
+            <phase>2.073270281e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.029860253e+02</amplitude>
-            <phase>-1.865861090e+00</phase>
+            <amplitude>2.029318289e+02</amplitude>
+            <phase>-1.865543339e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>4.786711313e+01</amplitude>
-            <phase>-1.125663683e+00</phase>
+            <amplitude>4.786158425e+01</amplitude>
+            <phase>-1.124322053e+00</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29798407644</std>
+          <std>1.2984009388</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="33" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>8.856863096e+02</SignalIntercept>
+          <SignalIntercept>8.911011758e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>5.292681474e+02</amplitude>
-            <phase>7.266664912e-01</phase>
+            <amplitude>5.287645718e+02</amplitude>
+            <phase>7.268750603e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.251225558e+03</amplitude>
-            <phase>-2.315160329e+00</phase>
+            <amplitude>4.251324210e+03</amplitude>
+            <phase>-2.315174057e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.315928480e+01</amplitude>
-            <phase>-1.574967018e+00</phase>
+            <amplitude>6.317854237e+01</amplitude>
+            <phase>-1.575810589e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.710580768e+02</amplitude>
-            <phase>-1.918296470e+00</phase>
+            <amplitude>1.710852610e+02</amplitude>
+            <phase>-1.918453159e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>6.143296217e+01</amplitude>
-            <phase>-8.151477973e-01</phase>
+            <amplitude>6.142732588e+01</amplitude>
+            <phase>-8.156138795e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29557909724</std>
+          <std>1.29157289528</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="34" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.383609238e+02</SignalIntercept>
+          <SignalIntercept>-1.421520531e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.603074958e+02</amplitude>
-            <phase>-2.636091464e-01</phase>
+            <amplitude>9.626302971e+02</amplitude>
+            <phase>-2.626688375e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.153762433e+03</amplitude>
-            <phase>-2.231089748e+00</phase>
+            <amplitude>4.153264223e+03</amplitude>
+            <phase>-2.230975864e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>9.947625962e+01</amplitude>
-            <phase>-6.333669450e-02</phase>
+            <amplitude>9.980270102e+01</amplitude>
+            <phase>-6.219803616e-02</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.319532961e+02</amplitude>
-            <phase>-2.020160532e+00</phase>
+            <amplitude>2.317780618e+02</amplitude>
+            <phase>-2.019494136e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>5.522777581e+01</amplitude>
-            <phase>1.621012600e-01</phase>
+            <amplitude>5.539474660e+01</amplitude>
+            <phase>1.632566128e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.3171394419</std>
+          <std>1.31887312347</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="35" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-8.725522315e+02</SignalIntercept>
+          <SignalIntercept>-8.768442531e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>2.072721300e+02</amplitude>
-            <phase>-1.645586203e+00</phase>
+            <amplitude>2.074401599e+02</amplitude>
+            <phase>-1.655691316e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.289575630e+03</amplitude>
-            <phase>-2.233452153e+00</phase>
+            <amplitude>3.289981639e+03</amplitude>
+            <phase>-2.233576250e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.694231351e+02</amplitude>
-            <phase>-2.489736942e+00</phase>
+            <amplitude>1.696903518e+02</amplitude>
+            <phase>-2.490394229e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.287408696e+02</amplitude>
-            <phase>-1.841405288e+00</phase>
+            <amplitude>2.288608849e+02</amplitude>
+            <phase>-1.842080945e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>5.043977856e+01</amplitude>
-            <phase>3.826222991e-01</phase>
+            <amplitude>5.029145524e+01</amplitude>
+            <phase>3.822112817e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30158099068</std>
+          <std>1.29979734651</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="36" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.865306533e+03</SignalIntercept>
+          <SignalIntercept>-1.864713648e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>5.664397932e+02</amplitude>
-            <phase>1.054118267e+00</phase>
+            <amplitude>5.668488676e+02</amplitude>
+            <phase>1.052500561e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.261676105e+03</amplitude>
-            <phase>-2.287729230e+00</phase>
+            <amplitude>3.261484866e+03</amplitude>
+            <phase>-2.287673139e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.782354337e+02</amplitude>
-            <phase>-1.676321025e+00</phase>
+            <amplitude>3.781902518e+02</amplitude>
+            <phase>-1.675991022e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.114147566e+02</amplitude>
-            <phase>-2.590580774e+00</phase>
+            <amplitude>2.113263845e+02</amplitude>
+            <phase>-2.590508495e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>6.573700885e+01</amplitude>
-            <phase>-4.375105215e-03</phase>
+            <amplitude>6.579660612e+01</amplitude>
+            <phase>-3.858054116e-03</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.35218840901</std>
+          <std>1.3501903786</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="37" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>2.479623326e+02</SignalIntercept>
+          <SignalIntercept>2.469432812e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.003081784e+01</amplitude>
-            <phase>-3.853467265e-01</phase>
+            <amplitude>8.914670632e+01</amplitude>
+            <phase>-3.890591087e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.979986202e+03</amplitude>
-            <phase>-2.292482846e+00</phase>
+            <amplitude>3.980171660e+03</amplitude>
+            <phase>-2.292525059e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>2.905991511e+02</amplitude>
-            <phase>-1.226760858e+00</phase>
+            <amplitude>2.905877676e+02</amplitude>
+            <phase>-1.227191151e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.015712304e+02</amplitude>
-            <phase>-2.498998611e+00</phase>
+            <amplitude>2.016533138e+02</amplitude>
+            <phase>-2.499104963e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>3.902065851e+01</amplitude>
-            <phase>-2.555157397e-02</phase>
+            <amplitude>3.896516909e+01</amplitude>
+            <phase>-2.641530519e-02</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30309065624</std>
+          <std>1.30497667414</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="38" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>9.475140164e+02</SignalIntercept>
+          <SignalIntercept>9.444832371e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>3.936573382e+02</amplitude>
-            <phase>1.085294065e+00</phase>
+            <amplitude>3.945904195e+02</amplitude>
+            <phase>1.080432151e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.801050991e+03</amplitude>
-            <phase>-2.251556445e+00</phase>
+            <amplitude>3.800633701e+03</amplitude>
+            <phase>-2.251448029e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>2.297231332e+02</amplitude>
-            <phase>-1.415710397e+00</phase>
+            <amplitude>2.296947667e+02</amplitude>
+            <phase>-1.414432151e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.137270882e+02</amplitude>
-            <phase>-2.426273324e+00</phase>
+            <amplitude>2.135383744e+02</amplitude>
+            <phase>-2.425971655e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>4.248001744e+01</amplitude>
-            <phase>6.945000966e-01</phase>
+            <amplitude>4.263028342e+01</amplitude>
+            <phase>6.938753375e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30734181376</std>
+          <std>1.30020716784</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="39" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.557672132e+03</SignalIntercept>
+          <SignalIntercept>1.549462839e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.528102480e+02</amplitude>
-            <phase>5.883660514e-03</phase>
+            <amplitude>7.510615401e+02</amplitude>
+            <phase>6.339943395e-03</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.499441423e+03</amplitude>
-            <phase>-2.266591081e+00</phase>
+            <amplitude>3.499773550e+03</amplitude>
+            <phase>-2.266690532e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>2.776761507e+02</amplitude>
-            <phase>-1.509465892e+00</phase>
+            <amplitude>2.777168144e+02</amplitude>
+            <phase>-1.510323753e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.030036466e+02</amplitude>
-            <phase>-2.469027536e+00</phase>
+            <amplitude>2.031596654e+02</amplitude>
+            <phase>-2.469265474e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>8.880578006e+01</amplitude>
-            <phase>4.642138802e-01</phase>
+            <amplitude>8.868092853e+01</amplitude>
+            <phase>4.641510358e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30474433186</std>
+          <std>1.30669490784</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="40" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.258671793e+02</SignalIntercept>
+          <SignalIntercept>-1.218493250e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.878402244e+02</amplitude>
-            <phase>2.116818537e-01</phase>
+            <amplitude>7.873239131e+02</amplitude>
+            <phase>2.113421766e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.027309674e+03</amplitude>
-            <phase>-2.225815556e+00</phase>
+            <amplitude>3.027428797e+03</amplitude>
+            <phase>-2.225842085e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>3.002599876e+02</amplitude>
-            <phase>-1.510337163e+00</phase>
+            <amplitude>3.002808969e+02</amplitude>
+            <phase>-1.510565628e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.025725111e+02</amplitude>
-            <phase>-2.578930220e+00</phase>
+            <amplitude>2.026206367e+02</amplitude>
+            <phase>-2.578956182e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.174457160e+02</amplitude>
-            <phase>1.724097968e-01</phase>
+            <amplitude>1.174115401e+02</amplitude>
+            <phase>1.722884312e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.34417458313</std>
+          <std>1.34392973675</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="41" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-2.523544274e+02</SignalIntercept>
+          <SignalIntercept>-2.489833673e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>9.304313607e+02</amplitude>
-            <phase>2.515522557e+00</phase>
+            <amplitude>9.311611527e+02</amplitude>
+            <phase>2.515805566e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>2.322691148e+03</amplitude>
-            <phase>-2.202386283e+00</phase>
+            <amplitude>2.322818636e+03</amplitude>
+            <phase>-2.202455162e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>5.483685114e+02</amplitude>
-            <phase>-1.998114733e+00</phase>
+            <amplitude>5.484302154e+02</amplitude>
+            <phase>-1.998264247e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.150545861e+02</amplitude>
-            <phase>-2.628804802e+00</phase>
+            <amplitude>2.151231563e+02</amplitude>
+            <phase>-2.628852516e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.028586460e+02</amplitude>
-            <phase>3.456205730e-01</phase>
+            <amplitude>1.028062556e+02</amplitude>
+            <phase>3.455396231e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30068115189</std>
+          <std>1.30344039442</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="42" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-7.126006211e+02</SignalIntercept>
+          <SignalIntercept>-7.052819910e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.567067440e+02</amplitude>
-            <phase>2.541267331e-01</phase>
+            <amplitude>4.575698814e+02</amplitude>
+            <phase>2.528460509e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.075437059e+03</amplitude>
-            <phase>-1.705638404e+00</phase>
+            <amplitude>1.075394802e+03</amplitude>
+            <phase>-1.705387908e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>8.229727035e+02</amplitude>
-            <phase>-2.184732682e+00</phase>
+            <amplitude>8.228726283e+02</amplitude>
+            <phase>-2.184619562e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.632630893e+02</amplitude>
-            <phase>-2.424008344e+00</phase>
+            <amplitude>1.631766750e+02</amplitude>
+            <phase>-2.423809058e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.057710362e+02</amplitude>
-            <phase>8.942072836e-01</phase>
+            <amplitude>2.058362192e+02</amplitude>
+            <phase>8.940749873e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29906555185</std>
+          <std>1.29796729726</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="43" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-4.167018855e+02</SignalIntercept>
+          <SignalIntercept>-4.190928862e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.743017870e+02</amplitude>
-            <phase>8.967197499e-01</phase>
+            <amplitude>1.747616761e+02</amplitude>
+            <phase>8.978760242e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.539198687e+03</amplitude>
-            <phase>-2.044401755e+00</phase>
+            <amplitude>1.539145112e+03</amplitude>
+            <phase>-2.044394136e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.806023765e+02</amplitude>
-            <phase>-2.155714288e+00</phase>
+            <amplitude>6.805811531e+02</amplitude>
+            <phase>-2.155704845e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>2.022930469e+02</amplitude>
-            <phase>-2.608449197e+00</phase>
+            <amplitude>2.022789912e+02</amplitude>
+            <phase>-2.608459557e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.400247574e+02</amplitude>
-            <phase>8.263302196e-01</phase>
+            <amplitude>1.400353701e+02</amplitude>
+            <phase>8.263231531e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29855758525</std>
+          <std>1.29955799198</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="44" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-3.942705999e+02</SignalIntercept>
+          <SignalIntercept>-3.870957364e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.150211012e+02</amplitude>
-            <phase>1.158591074e-01</phase>
+            <amplitude>4.137381406e+02</amplitude>
+            <phase>1.152088956e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.651895472e+03</amplitude>
-            <phase>-2.273999040e+00</phase>
+            <amplitude>1.652173915e+03</amplitude>
+            <phase>-2.274128576e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.967020198e+02</amplitude>
-            <phase>-2.574529117e+00</phase>
+            <amplitude>6.968721781e+02</amplitude>
+            <phase>-2.574595454e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>7.606282836e+01</amplitude>
-            <phase>-2.525350336e+00</phase>
+            <amplitude>7.617966732e+01</amplitude>
+            <phase>-2.525657517e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.545431608e+02</amplitude>
-            <phase>4.709823148e-01</phase>
+            <amplitude>1.544522198e+02</amplitude>
+            <phase>4.709403357e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29790076838</std>
+          <std>1.29700067154</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="45" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-1.215284461e+02</SignalIntercept>
+          <SignalIntercept>-1.177894867e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.615557576e+02</amplitude>
-            <phase>-6.085480918e-04</phase>
+            <amplitude>4.625369790e+02</amplitude>
+            <phase>-8.892480258e-05</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.712855890e+03</amplitude>
-            <phase>-2.259193189e+00</phase>
+            <amplitude>1.712645985e+03</amplitude>
+            <phase>-2.259090859e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>6.894471089e+02</amplitude>
-            <phase>-2.619995547e+00</phase>
+            <amplitude>6.893133908e+02</amplitude>
+            <phase>-2.619949631e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.163622605e+02</amplitude>
-            <phase>-2.777819356e+00</phase>
+            <amplitude>1.162694867e+02</amplitude>
+            <phase>-2.777856591e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.497691307e+02</amplitude>
-            <phase>4.536250772e-01</phase>
+            <amplitude>1.498399550e+02</amplitude>
+            <phase>4.536642442e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30769217713</std>
+          <std>1.3061037579</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="46" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>8.694125968e+02</SignalIntercept>
+          <SignalIntercept>8.723674562e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>1.891187162e+02</amplitude>
-            <phase>-2.984637821e+00</phase>
+            <amplitude>1.886054987e+02</amplitude>
+            <phase>-2.982449406e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.480035559e+03</amplitude>
-            <phase>-2.325547898e+00</phase>
+            <amplitude>1.479919463e+03</amplitude>
+            <phase>-2.325460100e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>7.804774720e+02</amplitude>
-            <phase>-2.828520387e+00</phase>
+            <amplitude>7.803907529e+02</amplitude>
+            <phase>-2.828506080e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>6.809490007e+01</amplitude>
-            <phase>-1.405429185e+00</phase>
+            <amplitude>6.808448316e+01</amplitude>
+            <phase>-1.404575101e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.711042236e+01</amplitude>
-            <phase>6.029471401e-01</phase>
+            <amplitude>2.715532764e+01</amplitude>
+            <phase>6.027561743e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30403393911</std>
+          <std>1.30409142446</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="47" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.104859119e+02</SignalIntercept>
+          <SignalIntercept>9.871029197e+01</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.487181547e+02</amplitude>
-            <phase>5.528523687e-01</phase>
+            <amplitude>7.511516096e+02</amplitude>
+            <phase>5.515206803e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>7.994258057e+02</amplitude>
-            <phase>-1.925194414e+00</phase>
+            <amplitude>7.990642031e+02</amplitude>
+            <phase>-1.924404725e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>9.913522480e+02</amplitude>
-            <phase>-2.498599079e+00</phase>
+            <amplitude>9.910102094e+02</amplitude>
+            <phase>-2.498467654e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>5.714697681e+01</amplitude>
-            <phase>-2.718105865e+00</phase>
+            <amplitude>5.689958946e+01</amplitude>
+            <phase>-2.718020843e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.598993705e+02</amplitude>
-            <phase>6.268984075e-01</phase>
+            <amplitude>2.600878637e+02</amplitude>
+            <phase>6.268291754e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29876445843</std>
+          <std>1.29713705388</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="48" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-2.201619464e+02</SignalIntercept>
+          <SignalIntercept>-2.324910455e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>6.870116396e+02</amplitude>
-            <phase>7.112835484e-01</phase>
+            <amplitude>6.858122606e+02</amplitude>
+            <phase>7.125028310e-01</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>1.001813521e+03</amplitude>
-            <phase>-2.181110932e+00</phase>
+            <amplitude>1.002084826e+03</amplitude>
+            <phase>-2.181396093e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.133734324e+03</amplitude>
-            <phase>-2.533266818e+00</phase>
+            <amplitude>1.133921060e+03</amplitude>
+            <phase>-2.533324629e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.254162215e+02</amplitude>
-            <phase>-2.408163258e+00</phase>
+            <amplitude>1.255425458e+02</amplitude>
+            <phase>-2.408513484e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.219038041e+02</amplitude>
-            <phase>5.955395881e-01</phase>
+            <amplitude>2.218016980e+02</amplitude>
+            <phase>5.955708494e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.30524149835</std>
+          <std>1.30546374939</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="49" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>1.038297484e+03</SignalIntercept>
+          <SignalIntercept>1.024275171e+03</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>7.744289049e+02</amplitude>
-            <phase>2.373982548e+00</phase>
+            <amplitude>7.732552017e+02</amplitude>
+            <phase>2.372380062e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>8.506283823e+02</amplitude>
-            <phase>-2.136174670e+00</phase>
+            <amplitude>8.503276223e+02</amplitude>
+            <phase>-2.135752761e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.268327577e+03</amplitude>
-            <phase>-2.557650883e+00</phase>
+            <amplitude>1.268104180e+03</amplitude>
+            <phase>-2.557592227e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>8.135445759e+01</amplitude>
-            <phase>-1.707881221e+00</phase>
+            <amplitude>8.127407589e+01</amplitude>
+            <phase>-1.706191794e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.017927858e+02</amplitude>
-            <phase>7.443069710e-01</phase>
+            <amplitude>2.019116384e+02</amplitude>
+            <phase>7.441751141e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.29753051314</std>
+          <std>1.29843854758</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="50" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>6.845378207e+01</SignalIntercept>
+          <SignalIntercept>5.101824934e+01</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.604770123e+02</amplitude>
-            <phase>1.261367295e+00</phase>
+            <amplitude>4.602667891e+02</amplitude>
+            <phase>1.262188479e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>3.437258311e+02</amplitude>
-            <phase>-1.252417299e+00</phase>
+            <amplitude>3.437123882e+02</amplitude>
+            <phase>-1.252710010e+00</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.321356297e+03</amplitude>
-            <phase>-2.541745367e+00</phase>
+            <amplitude>1.321404346e+03</amplitude>
+            <phase>-2.541757052e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.006371627e+02</amplitude>
-            <phase>-2.937925627e+00</phase>
+            <amplitude>1.006704827e+02</amplitude>
+            <phase>-2.937856252e+00</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>2.575216075e+02</amplitude>
-            <phase>5.446041632e-01</phase>
+            <amplitude>2.574955764e+02</amplitude>
+            <phase>5.446050105e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.33087673464</std>
+          <std>1.33005727714</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>
     <SegmentROM segment="51" type="Static">
       <Demand>
         <Fourier>
-          <SignalIntercept>-3.635491126e+02</SignalIntercept>
+          <SignalIntercept>-3.883450662e+02</SignalIntercept>
           <period>3.024000000e+05
             <frequency>3.306878307e-06</frequency>
-            <amplitude>4.725287173e+02</amplitude>
-            <phase>1.202020886e+00</phase>
+            <amplitude>4.735850754e+02</amplitude>
+            <phase>1.197018733e+00</phase>
           </period>
           <period>8.640000000e+04
             <frequency>1.157407407e-05</frequency>
-            <amplitude>4.722282929e+02</amplitude>
-            <phase>-5.389676856e-01</phase>
+            <amplitude>4.727883465e+02</amplitude>
+            <phase>-5.380228583e-01</phase>
           </period>
           <period>4.320000000e+04
             <frequency>2.314814815e-05</frequency>
-            <amplitude>1.069862435e+03</amplitude>
-            <phase>-2.677112251e+00</phase>
+            <amplitude>1.069509322e+03</amplitude>
+            <phase>-2.677045013e+00</phase>
           </period>
           <period>2.880000000e+04
             <frequency>3.472222222e-05</frequency>
-            <amplitude>1.438289427e+02</amplitude>
-            <phase>-2.489430913e-01</phase>
+            <amplitude>1.440240151e+02</amplitude>
+            <phase>-2.479291359e-01</phase>
           </period>
           <period>2.160000000e+04
             <frequency>4.629629630e-05</frequency>
-            <amplitude>1.928847222e+02</amplitude>
-            <phase>6.784663941e-01</phase>
+            <amplitude>1.930689470e+02</amplitude>
+            <phase>6.783182388e-01</phase>
           </period>
         </Fourier>
         <ARMA_params>
-          <std>1.31034540909</std>
-        </ARMA_params>
-      </Demand>
-    </SegmentROM>
-    <SegmentROM segment="52" type="Static">
-      <Demand>
-        <Fourier>
-          <SignalIntercept>2.019559041e+03</SignalIntercept>
-          <period>3.024000000e+05
-            <frequency>3.306878307e-06</frequency>
-            <amplitude>3.561006382e+03</amplitude>
-            <phase>-2.223827290e+00</phase>
-          </period>
-          <period>8.640000000e+04
-            <frequency>1.157407407e-05</frequency>
-            <amplitude>9.448825342e+02</amplitude>
-            <phase>-8.842020916e-01</phase>
-          </period>
-          <period>4.320000000e+04
-            <frequency>2.314814815e-05</frequency>
-            <amplitude>9.361635964e+02</amplitude>
-            <phase>-2.492971064e+00</phase>
-          </period>
-          <period>2.880000000e+04
-            <frequency>3.472222222e-05</frequency>
-            <amplitude>2.154770855e+02</amplitude>
-            <phase>2.957548191e-02</phase>
-          </period>
-          <period>2.160000000e+04
-            <frequency>4.629629630e-05</frequency>
-            <amplitude>2.559419854e+02</amplitude>
-            <phase>8.687167381e-01</phase>
-          </period>
-        </Fourier>
-        <ARMA_params>
-          <std>2.47499700629</std>
+          <std>1.31436941109</std>
         </ARMA_params>
       </Demand>
     </SegmentROM>

@@ -5,6 +5,7 @@
     <WorkingDir>Inner</WorkingDir>
     <Sequence>sample, aggregate, print</Sequence>
     <batchSize>4</batchSize>
+    <NodeParameter>--hostfile</NodeParameter>
   </RunInfo>
 
   <Steps>

@@ -120,7 +120,7 @@ class relapdata:
         # Here I check that none of the keywords contained in errorKeywords are contained in tempData
         if self.checkLine(tempData) and (len(dataArray)==len(tempData)):
           for k in range(len(dataArray)):
-            dataArray[k].append(tempData[k])
+            dataArray[k].append(float(tempData[k]))
         i=i+1
         if (re.match('^\\s*1 time|^\\s*1\\s*R5|^\\s*\n|^1RELAP5',lines[i]) or
             re.match('^\\s*0Final time',lines[i]) or
@@ -166,26 +166,34 @@ class relapdata:
     count  = 0
     minorDict = None
     timeList = []
+    totTs = 0
     for i in range(len(lines)):
       if re.match('^1 time',lines[i]):
         count=count+1
-        tempdict=self.readMinorBlock(lines,i)
-        timeBlock = tempdict.pop('1 time_(sec)')
+        minorBlock=self.readMinorBlock(lines,i)
+        timeBlock = minorBlock.pop('1 time_(sec)')
         if (count==1):
-          minorDict=tempdict
+          minorDict=minorBlock
+          totTs = len(timeBlock)
           timeList.append(timeBlock)
         else:
           if set(timeBlock) != set(timeList[-1]):
             timeList.append(timeBlock)
-          for k in tempdict.keys():
+            totTs += len(timeBlock)
+          for k in minorBlock.keys():
             if k in minorDict.keys():
-              minorDict[k].extend(tempdict.get(k))
+              values = minorBlock.get(k)
+              totLen = len(minorDict[k]) + len(values)
+              if totLen == totTs:
+                minorDict[k].extend(minorBlock.get(k))
+              else:
+                print('RELAP5 Interface: WARNING: Redundant variable "{}". Keep it only one!'.format(k))
             else:
-              minorDict[k] =  tempdict[k]
+              minorDict[k] =  minorBlock[k]
     timeBlock = []
     for tBlock in timeList:
       timeBlock.extend(tBlock)
-    minorDict['1 time_(sec)'] = timeBlock
+    minorDict['time'] = timeBlock
     return minorDict
 
   def readRaven(self):
@@ -214,32 +222,20 @@ class relapdata:
               value     = splitted[splitted.index('value:')+1].strip()
               if deckNum is not None:
                 sampleVar = str(deckNum)+'|'+sampleVar
-              self.ravenData[sampleVar]=value
+              try:
+                self.ravenData[sampleVar]=float(value)
+              except ValueError:
+                self.ravenData[sampleVar]=value
           i=i+1
         deckCounter+=1
 
     return
 
-  def writeCSV(self,filen):
+  def returnData(self):
     """
-      Method that writes the csv file from minor edit data
-      @ In, filen, string, input file name
-      @ Out, None
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, data, dict, the dictionary containing the data {var1:array,var2:array,etc}
     """
-    #TODO this should be further reworked and optimized probably, but it is patched to work for now.
-    IOcsvfile=open(filen,'w')
-    if self.minordata != None:
-      IOcsvfile.write(','.join(s.strip().replace("1 time_(sec)","time").replace(' ', '_') for s in self.minordata.keys()))
-    if len(self.ravenData) > 0:
-      IOcsvfile.write(',')
-    for j in range(len(self.ravenData.keys())):
-      IOcsvfile.write('%s' %(list(self.ravenData.keys())[j]))
-      if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
-    IOcsvfile.write('\n')
-    for i in range(len(self.minordata.get(list(self.minordata.keys())[0]))):
-      IOcsvfile.write(','.join(self.minordata.get(list(self.minordata.keys())[j])[i] for j in range(len(self.minordata.keys()))))
-      if len(self.ravenData)>0:
-        IOcsvfile.write(',')
-      IOcsvfile.write(','.join(self.ravenData[list(self.ravenData.keys())[k]] for k in range(len(self.ravenData.keys()))))
-      IOcsvfile.write('\n')
-    IOcsvfile.close()
+    data = self.minordata
+    return data

@@ -10,7 +10,7 @@
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
  # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
- [./Basic]
+  [./Basic]
    type = 'RavenFramework'
    input = 'basic.xml'
    output = 'Basic/romMeta.csv'
@@ -77,7 +77,7 @@
     [../]
   [../]
 
- [./SingleFourier]
+  [./SingleFourier]
    type = 'RavenFramework'
    input = 'single_fourier.xml'
    csv = 'SingleFourier/synthetic_0.csv'
@@ -163,6 +163,16 @@
     [./rom_meta]
       type = XML
       output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./ZeroFilterCluster]
+    type = 'RavenFramework'
+    input = 'zero_filter_cluster.xml'
+    [./rom_meta]
+      type = XML
+      output = 'ZeroFilterCluster/romMeta.xml'
       rel_err = 1e-5
     [../]
   [../]
@@ -253,5 +263,39 @@
     output = 'Peaks/romMeta.csv'
     UnorderedXml = 'Peaks/romMeta.xml'
     rel_err = 1e-6
+  [../]
+
+  [./Interpolated]
+    type = 'RavenFramework'
+    input = 'interpolated.xml'
+    skip = 'inconsistent see 1351'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Interpolated/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./csv]
+      type = OrderedCSV
+      output = 'Interpolated/synthetic.csv Interpolated/resynthetic.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./InterpolatedMaxCycles]
+    type = 'RavenFramework'
+    input = 'interpolated_maxcycles.xml'
+    csv = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
+    skip = 'inconsistent see 1351'
+  [../]
+
+  [./CloudPlot]
+    type = 'RavenFramework'
+    input = 'cloud_plot.xml'
+    prereq = Interpolated
+    [./plots]
+      type = Exists
+      output = 'Interpolated/cloud_0.png Interpolated/cloud_1.png Interpolated/cloud_2.png Interpolated/cloud_3.png Interpolated/cloud_4.png Interpolated/cloud_5.png Interpolated/cloud_6.png Interpolated/cloud_7.png Interpolated/cloud_8.png Interpolated/cloud_9.png'
+    [../]
   [../]
 []

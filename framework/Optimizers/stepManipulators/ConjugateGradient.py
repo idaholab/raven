@@ -15,7 +15,7 @@
   Step size manipulations based on gradient history
 
   Created 2020-01
-  @author: zhoujia
+  @author: zhoujia, alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -78,6 +78,8 @@ class ConjugateGradient(StepManipulator):
     self._persistence = None     # consecutive line search converges until acceptance
     # __private
     # additional methods
+    self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
+    self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
 
   def handleInput(self, specs):
     """
@@ -85,7 +87,7 @@ class ConjugateGradient(StepManipulator):
       @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    #specs = specs
+    StepManipulator.handleInput(self, specs)
     growth = specs.findFirst('growthFactor')
     if growth is not None:
       self._growth = growth.value
@@ -108,13 +110,13 @@ class ConjugateGradient(StepManipulator):
   ###############
   # Run Methods #
   ###############
-  def initialStepSize(self, numOptVars=None, scaling=0.05, **kwargs):
+  def initialStepSize(self, numOptVars=None, scaling=1.0, **kwargs):
     """
       Provides an initial step size
       @ In, numOptVars, int, number of optimization variables
       @ In, scaling, float, optional, scaling factor
     """
-    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling)
+    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling) * self._initialStepScaling
 
   def step(self, prevOpt, gradientHist=None, prevStepSize=None, objVar=None, **kwargs):
     """
@@ -379,7 +381,7 @@ class ConjugateGradient(StepManipulator):
     # since we've accepted a pivot, we need to store the old pivot and set up the new one
     ## first grab the savable params
     pivot = lastStepInfo.pop('pivot', None)
-    if True: #pivot is None:
+    if pivot is None:
       # ONLY RUN ONCE per trajectory! First time ever initialization of line step search
       # use the current gradient to back-guess the would-be previous objective value
       prevObjVal = curObjVal + curGradMag / 2 # oldOldFVal
@@ -414,6 +416,7 @@ class ConjugateGradient(StepManipulator):
                          'task': b'START',
                          'persistence': 0,
                          })
+
     return lastStepInfo
 
   def _lineSearchStep(self, lastStepInfo, curObjVal):

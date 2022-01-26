@@ -57,6 +57,7 @@ from collections import deque, defaultdict
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
+from .stepManipulators import NoConstraintResolutionFound
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SimulatedAnnealing(RavenSampled):
@@ -374,7 +375,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ Out, converged, bool, convergence state
     """
-    if len(self._optPointHistory[traj]) < 2:
+    if len(self._optPointHistory[traj]) < 2 or (self._convergenceCriteria['objective'] < 0):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
@@ -625,7 +626,7 @@ class SimulatedAnnealing(RavenSampled):
       self.raiseAnError(NotImplementedError,'cooling schedule type not implemented.')
 
   def _nextNeighbour(self, rlz,fraction=1):
-    """
+    r"""
       Perturbs the state to find the next random neighbour based on the cooling schedule
       @ In, rlz, dict, current realization
       @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
@@ -678,7 +679,7 @@ class SimulatedAnnealing(RavenSampled):
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
+      delta =  randomUtils.randomNormal(size=D)*alpha*amp
     elif self._coolingMethod == 'veryfast':
       amp = randomUtils.random(dim=D, samples=1)
       delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)

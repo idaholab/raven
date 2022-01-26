@@ -14,11 +14,10 @@
 """
   Created on January 10, 2019
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Container to handle ROMs that are made of many sub-roms
 """
 # standard libraries
-from __future__ import division, print_function, absolute_import
 import copy
 import warnings
 from collections import defaultdict, OrderedDict
@@ -31,32 +30,62 @@ import pandas as pd
 from scipy.interpolate import interp1d
 # internal libraries
 from utils import utils, mathUtils, xmlUtils, randomUtils
-from .SupervisedLearning import supervisedLearning
+from utils import InputData, InputTypes
+from .SupervisedLearning import SupervisedLearning
 # import pickle as pk # TODO remove me!
 import os
-
-
 #
 #
 #
 #
-class Collection(supervisedLearning):
+class Collection(SupervisedLearning):
   """
     A container that handles collections of ROMs in a particular way.
   """
-  def __init__(self, messageHandler, **kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""To be added"""
+    return spec
+
+  def __init__(self):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
-      @ In, kwargs, dict, options and initialization settings (from XML)
+      @ In, None
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    super().__init__()
     self.printTag = 'ROM Collection'              # message printing appearance
-    self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
-    self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
+    self._romName = None # name of the requested ROM
+    self._templateROM = None   # example of a ROM that will be used in this grouping, set by setTemplateROM
     self._roms = []                               # ROMs that belong to this grouping.
     self._romInitAdditionalParams = {}            # used for deserialization, empty by default
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._templateROM = romInfo.get('modelInstance')
+    self._romName = romInfo.get('name', 'unnamed')
+    if self._templateROM is None:
+      self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
 
   def __getstate__(self):
     """
@@ -70,7 +99,7 @@ class Collection(supervisedLearning):
     ## nope = ['_divisionClassifier', '_assembledObjects']
     nope = ['_assembledObjects']
     # base class
-    d = supervisedLearning.__getstate__(self)
+    d = SupervisedLearning.__getstate__(self)
     # additional
     for n in nope:
       d.pop(n, None)
@@ -159,14 +188,70 @@ class Segments(Collection):
   ########################
   # CONSTRUCTION METHODS #
   ########################
-  def __init__(self, messageHandler, **kwargs):
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""\xmlNode{Segment} provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs."""
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True,
+                                              descr=r"""provides an alternative way to build the ROM. When
+                                                this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+                                                requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+                                                during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+                                                is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+                                                segments. By default, no segmentation occurs.""")
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
+    segment.addParam('grouping', segmentGroups, descr=r"""enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node.""", default='segment')
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType, descr=r"""designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM.""")
+    subspace.addParam('divisions', InputTypes.IntegerType, False, descr=r"""as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.""")
+    subspace.addParam('pivotLength', InputTypes.FloatType, False, descr=r"""provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+            Either this option or \xmlAttr{pivotLength} must be provided.""")
+    subspace.addParam('shift', InputTypes.StringType, False, descr=r"""governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.""")
+    segment.addSub(subspace)
+    spec.addSub(segment)
+
+    return spec
+
+  def __init__(self):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Collection.__init__(self, messageHandler, **kwargs)
+    super().__init__()
     self.printTag = 'Segmented ROM'
     self._divisionInstructions = {}    # which parameters are clustered, and how, and how much?
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
@@ -178,9 +263,16 @@ class Segments(Collection):
     ## see design note for Clusters
     self._romGlobalAdjustments = None  # global ROM settings, provided by the templateROM before clustering
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
     # set up segmentation
     # get input specifications from inputParams
-    inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    inputSpecs = paramInput.findFirst('Segment')
     # initialize settings
     divisionMode = {}
     for node in inputSpecs.subparts:
@@ -244,7 +336,19 @@ class Segments(Collection):
     if not skipAssembly:
       self.readAssembledObjects()
     # subdivide space
+    ## [0] is normal segments, [1] is potentially the odd-shaped last segment
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    if divisions[1]:
+      # we can't currently handle unequal segments during sampling, it creates nightmarish
+      # realization structures (i.e. ragged value and index arrays)
+      # for the DataObject to make sense of. For now, error out instead of being inscrutable.
+      indices = divisions[1][0]
+      pivot = self._templateROM.pivotParameterID
+      pivots = [tdict[pivot][0][i] for i in indices]
+      delta = pivots[1] - pivots[0]
+      self.raiseAnError(RuntimeError, 'Domain was not subdivided into equal segments! ' +
+          f'Last segment is from "{pivot}" = {pivots[0]} to {pivots[1]}, with pivotLength = {delta} ' +
+          f'and covering {indices[1]-indices[0]} entries!')
     self.divisions = divisions
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
@@ -441,15 +545,15 @@ class Segments(Collection):
         # TODO speedup; can we do this without looping?
         dt = pivot[1] - pivot[0]
         while floor < dataLen - 1:
-          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine percision error
+          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine precision error
           # if the next crossing point is past the end, put the remainder piece
           ## into the "unclustered" grouping, since it might be very oddly sized
           ## and throw off segmentation (specifically for clustering)
           if cross == len(pivot):
             remaining = pivot[-1] - pivot[floor-1]
             oneLess = pivot[-2] - pivot[floor-1]
-            test1 = abs(remaining-segmentValue)/segmentValue
-            test2 = abs(oneLess-segmentValue)/segmentValue
+            test1 = abs(remaining-segmentValue)/segmentValue < 1e-6
+            test2 = abs(oneLess-segmentValue)/segmentValue < 1e-6
             if not (test1 or test2):
               unclustered.append((floor, cross - 1))
               break
@@ -607,15 +711,92 @@ class Clusters(Segments):
     are managed by calling finalizeLocalRomSegmentEvaluation on each segment ROM, and
     finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""The cluster \xmlNode{Segment} provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs."""
+    segment = spec.popSub('Segment')
+    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum,
+        descr=r"""changes the structure of the samples for Clustered
+        Segmented ROMs. Determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}""", default='truncated'))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True,
+        contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid']),
+        descr=r"""one of \xmlString{first} or
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
+        first ROM (representative segmented ROM),in each cluster, is considered to
+        be representative of the full space in the cluster (i.e. the evaluation is always performed
+        interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
+        is choosen when an evaluation is requested.
+        \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+        ``random''.""", default='first'))
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType,
+        descr=r"""if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options."""))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType,
+                                                    descr=r"""maximum number of cycles to run (default no limit)""", default=None))
+    ## classifier
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.""")
+    clsfr.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Models}""")
+    clsfr.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{PostProcessor}""")
+    segment.addSub(clsfr)
+    ## metric
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""Metrics for clustering subdomain ROMs, the text of this node is the \xmlAttr{name}
+        of the requested Metric.""")
+    metric.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Metrics}""")
+    metric.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{Metric}""")
+    segment.addSub(metric)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType,
+        descr=r"""pivot parameter for macro steps (e.g. years)"""))
+    spec.addSub(segment)
+    return spec
+
   ## Constructors ##
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Segments.__init__(self, messageHandler, **kwargs)
+    super().__init__()
     self.printTag = 'Clustered ROM'
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
@@ -624,11 +805,26 @@ class Clusters(Segments):
     self._clusterFeatures = None         # dict of lists, features to cluster on
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterVariableID = '_ROM_Cluster' # name by which clustering dimension shall be known
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    super().setTemplateROM(romInfo)
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
 
-    segmentNode = kwargs['paramInput'].findFirst('Segment')
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    segmentNode = paramInput.findFirst('Segment')
     # evaluation mode
     evalModeNode = segmentNode.findFirst('evalMode')
     if evalModeNode is not None:
@@ -637,7 +833,8 @@ class Clusters(Segments):
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
-    # choice?
+
+    # how to choose representative cluster: static or random
     evalChoice = segmentNode.findFirst('evaluationClusterChoice')
     if evalChoice is not None:
       self._evaluationChoice = evalChoice.value
@@ -666,7 +863,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.interface.unSupervisedEngine
+      classifier = classifier._pp.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
@@ -679,9 +876,10 @@ class Clusters(Segments):
       @ In, params, dict, parameters to set, dependent on ROM
       @ Out, None
     """
-    evalMode = params.pop('clusterEvalMode', None)
-    if evalMode:
-      self._evaluationMode = evalMode
+    for sub in params['paramInput'].subparts:
+      if sub.name == 'clusterEvalMode':
+        self._evaluationMode = sub.value
+        break
     Segments.setAdditionalParams(self, params)
 
   def evaluate(self, edict):
@@ -704,10 +902,14 @@ class Clusters(Segments):
       else:
         result, weights = self._createNDEvaluation(edict)
       clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
+      globalLocalPicker = []
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
-        clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        if self._evaluationChoice == 'first':
+          clusterIndex = 0
+        else:
+          clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
         # find ROM in full history
         segmentIndex, _ = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
@@ -715,11 +917,12 @@ class Clusters(Segments):
         #where in the original signal does this cluster-representing segment come from
         globalPicker = slice(delim[0], delim[-1] + 1)
         segmentLen = globalPicker.stop - globalPicker.start
+        globalLocalPicker.append(globalPicker)
         # where in the truncated signal does this cluster sit?
         if self._evaluationMode == 'truncated':
           localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
         else:
-          localPicker = slice(None, None, None)
+          localPicker = r #slice(None, None, None)
         # make final local modifications to truncated evaluation
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, globalPicker, localPicker)
         # update the cluster start index
@@ -727,8 +930,11 @@ class Clusters(Segments):
       # make final modifications to full signal based on global settings
       ## for truncated mode, this is trivial.
       ## for clustered mode, this is complicated.
-      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
-    # TODO add clusterWeights to "result" as meta to the output? This would be handy!
+      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights, slicer=globalLocalPicker)
+    # TODO add cluster multiplicity to "result" as meta to the output
+    #if self._evaluationMode == 'clustered':
+    #  result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
+    #  result['_indexMap']['cluster_multiplicity'] = np.atleast_1d([self._clusterVariableID])
     return result
 
   def writePointwiseData(self, writeTo):
@@ -746,6 +952,7 @@ class Clusters(Segments):
     # add some cluster stuff
     # cluster features
     ## both scaled and unscaled
+    labels = self._clusterInfo['labels']
     featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
     for scaling in ['unscaled', 'scaled']:
       for name in featureNames:
@@ -754,7 +961,8 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(self._clusterInfo['labels'])
+    rlz[varName] = np.asarray(labels)
+
     writeTo.addRealization(rlz)
 
   def writeXML(self, writeTo, targets=None, skip=None):
@@ -837,20 +1045,17 @@ class Clusters(Segments):
     pivotLen = 0
     for cluster in clusters:
       # choose a ROM
-      # TODO user option? alternative is random, or ? centroids ?
-      chooseRomMode = 'first' if self._evaluationChoice is None else self._evaluationChoice
-      if chooseRomMode == 'first':
+      # TODO implement a distribution-based method for representative ROMs
+      if self._evaluationChoice == 'first':
         ## option 1: just take the first one
-        segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
-      elif chooseRomMode == 'random':
+        rom = self._roms[cluster]
+      elif self._evaluationChoice == 'random':
         ## option 2: choose randomly
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, chooseRandom=True)
-      # grab the Chosen ROM to represent this cluster
-      rom = self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
+        rom = self._clusterInfo['map'][cluster][clusterIndex]
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
-      # TODO FIXME should add "cluster" as an indexMap dimension!
-      ## INSTEAD, for now, just pile the realizations together, with no regard.
+      # collect results
       newLen = len(subResults[pivotID])
       pivotLen += newLen
       # if we're getting ND objects, identify indices and target-index dependence
@@ -861,6 +1066,8 @@ class Clusters(Segments):
       # populate results storage
       if result is None:
         result = dict((target, subResults[target] if target in allIndices else []) for target in subResults)
+        # FIXME the Indices might not be the same for all ROMs; for instance, if cluster by weeks
+        # for a year, there's one day left over for its own cluster!
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
@@ -928,6 +1135,11 @@ class Clusters(Segments):
       ## first dimention is the cluster ID, then others after.
       indexMap[target] = np.asarray([self._clusterVariableID] + list(indexMap.get(target, [pivotID])))
       # convert the list of arrays to a pure array
+      # FIXME -> except, you don't get a pure array if the length of each entry isn't the same
+      # For example:
+      # if you have 3 clusters with length (100, 100, 10), then you get an array of numpy arrays,
+      #    shape = (3,),
+      # if you have 3 clusters with length (70, 70, 70), then you get a single numpy array
       result[target] = np.asarray(values)
     # store the index map results
     result['_indexMap'] = indexMap
@@ -1081,9 +1293,16 @@ class Clusters(Segments):
     # make cluster information dict
     self._clusterInfo['labels'] = labels
     ## clustered
-    self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
-    # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
-    self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
+    if self._evaluationChoice == 'first':
+      # save memory!
+      romMapping = dict((label, roms[labels == label]) for label in uniqueLabels)
+      allIndices = np.arange(0, len(roms))
+      self._clusterInfo['map'] = dict((label, allIndices[labels == label]) for label in uniqueLabels)
+      self._roms = list(romMapping[label][0] for label in uniqueLabels)
+    elif self._evaluationChoice == 'random':
+      # save options!
+      self._clusterInfo['map'] = dict((label, roms[labels==label]) for label in uniqueLabels)
+      self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
     """
@@ -1160,27 +1379,156 @@ class Clusters(Segments):
 #
 #
 #
-class Interpolated(supervisedLearning):
+class Interpolated(SupervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
-  def __init__(self, messageHandler, **kwargs):
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.description = r"""Provides an alternative way to build the ROM. In addition to clusters for each history, interpolates between histories."""
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True,
+                                              descr=r"""provides an alternative way to build the ROM. When
+                                                this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+                                                requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+                                                during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+                                                is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+                                                segments. By default, no segmentation occurs.""")
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
+    segment.addParam('grouping', segmentGroups, descr=r"""enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node.""", default='segment')
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType, descr=r"""designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM.""")
+    subspace.addParam('divisions', InputTypes.IntegerType, False, descr=r"""as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.""")
+    subspace.addParam('pivotLength', InputTypes.FloatType, False, descr=r"""provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+            Either this option or \xmlAttr{pivotLength} must be provided.""")
+    subspace.addParam('shift', InputTypes.StringType, False, descr=r"""governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.""")
+    segment.addSub(subspace)
+    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum,
+        descr=r"""changes the structure of the samples for Clustered
+        Segmented ROMs. Determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}""", default='truncated'))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True,
+        contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid']),
+        descr=r"""one of \xmlString{first} or
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
+        first ROM (representative segmented ROM),in each cluster, is considered to
+        be representative of the full space in the cluster (i.e. the evaluation is always performed
+        interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
+        is choosen when an evaluation is requested.
+        \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+        ``random''.""", default='first'))
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType,
+        descr=r"""if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options."""))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType,
+                                                    descr=r"""maximum number of cycles to run (default no limit)""", default=None))
+    ## classifier
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.""")
+    clsfr.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Models}""")
+    clsfr.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{PostProcessor}""")
+    segment.addSub(clsfr)
+    ## metric
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType,
+        descr=r"""Metrics for clustering subdomain ROMs, the text of this node is the \xmlAttr{name}
+        of the requested Metric.""")
+    metric.addParam('class', InputTypes.StringType, True, descr=r"""\xmlAttr{class}=\xmlString{Metrics}""")
+    metric.addParam('type', InputTypes.StringType, True, descr=r"""\xmlAttr{type}=\xmlString{Metric}""")
+    segment.addSub(metric)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType,
+        descr=r"""pivot parameter for macro steps (e.g. years)"""))
+    spec.addSub(segment)
+    return spec
+
+  def __init__(self):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler instance, message handler
       @ In, kwargs, dict, initialization options
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    super().__init__()
     self.printTag = 'Interp. Cluster ROM'
+    self._maxCycles = None # maximum number of cycles to run (default no limit)
+    self._macroTemplate = Clusters()
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._macroTemplate.setTemplateROM(romInfo)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
-    inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    inputSpecs = paramInput.findFirst('Segment')
     try:
       self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
-    self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
+    maxCycles = inputSpecs.findFirst('maxCycles')
+    if maxCycles is not None:
+      self._maxCycles = maxCycles.value
+      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
+    self._macroTemplate._handleInput(paramInput)            # example "yearly" SVL engine collection
   # passthrough to template
   def setAdditionalParams(self, params):
     """
@@ -1188,11 +1536,16 @@ class Interpolated(supervisedLearning):
       @ In, params, dict, params to set
       @ Out, setAdditionalParams, dict, additional params set
     """
-    mh = params.get('messageHandler', None)
-    if mh:
-      for step, collection in self._macroSteps.items():
-        collection.messageHandler = mh
-      self._macroTemplate.messageHandler = mh
+    # max cycles
+    for sub in params['paramInput'].subparts:
+      if sub.name == 'maxCycles':
+        self._maxCycles = sub.value
+        self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
+        break
+    for step, collection in self._macroSteps.items():
+      # deepcopy is necessary because clusterEvalMode has to be popped out in collection
+      collection.setAdditionalParams(copy.deepcopy(params))
+    self._macroTemplate.setAdditionalParams(params)
     return super().setAdditionalParams(params)
 
   def setAssembledObjects(self, *args, **kwargs):
@@ -1451,14 +1804,17 @@ class Interpolated(supervisedLearning):
     self.raiseADebug('Evaluating interpolated ROM ...')
     results = None
     ## TODO set up right for ND??
-    numMacro = len(self._macroSteps)
+    forcedMax = self._maxCycles if self._maxCycles is not None else np.inf
+    numMacro = min(len(self._macroSteps), forcedMax)
     macroIndexValues = []
     for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      if m + 1 > numMacro:
+        break
       # m is an index of the macro step, in order of the macro values (e.g. in order of years)
       # macroStep is the actual macro step value (e.g. the year)
       # model is the ClusterROM instance for this macro step
       macroIndexValues.append(macroStep)
-      self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
+      self.raiseADebug(f' ... evaluating macro step "{macroStep}" ({m+1} / {numMacro})')
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
@@ -1478,11 +1834,14 @@ class Interpolated(supervisedLearning):
           if target in [pivotID, '_indexMap'] or target in indices:
             results[target] = values
           else:
-            results[target] = np.zeros([numMacro] + list(values.shape))
+            # TODO there's a strange behavior here where we have nested numpy arrays instead of
+            # proper matrices sometimes; maybe it has to be this way for unequal clusters
+            # As a result, we use the object dtype, onto which we can place a whole numpy array.
+            results[target] = np.zeros([numMacro] + list(values.shape), dtype=object)
       # END setting up results structure, if needed
       # FIXME reshape in case indexMap is not the same as finalIndexMap?
       for target, values in subResult.items():
-        if target in [pivotID, '_indexMap'] or target in indexMap:
+        if target in [pivotID, '_indexMap'] or target in indices:# indexMap:
           continue
         indexer = tuple([m] + [None]*len(values.shape))
         try:
@@ -1491,9 +1850,9 @@ class Interpolated(supervisedLearning):
           self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
     results['_indexMap'] = {} #finalIndexMap
     for target, vals in results.items():
-      if target not in indices and target not in ['_indexMap']:
+      if target not in indices and target not in ['_indexMap']: # TODO get a list of meta vars?
         default = [] if vals.size == 1 else [pivotID]
-        results['_indexMap'][target] = [self._macroParameter] + finalIndexMap.get(target, default)
+        results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
     return results
 

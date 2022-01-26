@@ -5,7 +5,7 @@
     csv = 'LSsearch/LSintegral.csv'
     image='LSsearch/1-historyPlot_line-line-line-line.png LSsearch/1-samplesPlot3D_scatter-scatter.png LSsearch/1-limitSurfacePlot_scatter.png'
     rel_err = 0.002
-    required_libraries = 'PIL'
+    required_libraries = 'imageio'
     heavy = true
     max_time = 6000
   [../]

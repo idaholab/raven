@@ -19,4 +19,82 @@
    rel_err = 0.001
   [../]
  [../]
+ [./MetropolisOneDim]
+  type = 'RavenFramework'
+  heavy = True
+  input = 'test_1D.xml'
+  max_time = 700
+  output = 'OneDim/dumpExport.csv OneDim/dumpOut.csv'
+ [../]
+ [./MetropolisOneDimTune]
+  type = 'RavenFramework'
+  input = 'test_1D_tune.xml'
+  max_time = 700
+  [./csv]
+   type = OrderedCSV
+   output = 'OneDimTune/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./MetropolisTenDim]
+  type = 'RavenFramework'
+  input = 'test_10D.xml'
+  max_time = 700
+  [./csv]
+   type = OrderedCSV
+   output = 'TenDim/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./MetropolisTenDimMVN]
+  type = 'RavenFramework'
+  input = 'test_10D_mvn.xml'
+  max_time = 700
+  [./csv]
+   type = OrderedCSV
+   output = 'TenDimMVN/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./MetropolisTenDimPropMVN]
+  type = 'RavenFramework'
+  input = 'test_10D_proposal_mvn.xml'
+  max_time = 700
+  skip_if_OS = windows # pca decomposition can have different sign
+  [./csv]
+   type = OrderedCSV
+   output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./AdaptiveMetropolis]
+  type = 'RavenFramework'
+  input = 'test_amh.xml'
+  max_time = 500
+  [./csv]
+   type = OrderedCSV
+   output = 'amh/dumpExport.csv amh/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./AdaptiveMetropolisMVN]
+  type = 'RavenFramework'
+  input = 'test_amh_mvn.xml'
+  max_time = 500
+  [./csv]
+   type = OrderedCSV
+   output = 'amh_mvn/dumpExport.csv amh_mvn/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./AdaptiveMetropolisPropMVN]
+  type = 'RavenFramework'
+  input = 'test_amh_prop_mvn.xml'
+  max_time = 200
+  [./csv]
+   type = OrderedCSV
+   output = 'amhPropMVN/dumpExport.csv amhPropMVN/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
 []

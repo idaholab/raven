@@ -14,14 +14,10 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for ARMA (Autoregressive Moving Average) ROM
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
@@ -33,19 +29,20 @@ from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
 from scipy.signal import find_peaks
 from scipy.stats import rv_histogram
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import randomUtils, xmlUtils, mathUtils, utils
+from utils import InputTypes, InputData
 import Distributions
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ARMA(supervisedLearning):
+class ARMA(SupervisedLearning):
   r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
-
     Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
@@ -59,16 +56,211 @@ class ARMA(supervisedLearning):
                           'peak': ['probability', 'mean', 'sigma', 'index'],
                           }
 
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlString{ARMA} ROM is based on an autoregressive moving average time series model with
+                        Fourier signal processing, sometimes referred to as a FARMA.
+                        ARMA is a type of time dependent model that characterizes the autocorrelation between time series data. The mathematic description of ARMA is given as
+                        \begin{equation*}
+                        x_t = \sum_{i=1}^p\phi_ix_{t-i}+\alpha_t+\sum_{j=1}^q\theta_j\alpha_{t-j},
+                        \end{equation*}
+                        where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
+                        autoregressive (AR); when $p=0$, the above is moving average (MA).
+                        When
+                        training an ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to
+                        synchronize the data before training an ARMA.
+                        The ARMA model implemented allows an option to use Fourier series to detrend the time series before fitting to ARMA model to
+                        train. The Fourier trend will be stored in the trained ARMA model for data generation. The following equation
+                        describes the detrending
+                        process.
+                        \begin{equation*}
+                        \begin{aligned}
+                        x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
+                        &=y_t - \sum_m\ c_m\sin(2\pi f_mt+\phi_m)
+                        \end{aligned}
+                        \end{equation*}
+                        where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to
+                        $c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
+                        By default, each target in the training will be considered independent and have an unique ARMA for each
+                        target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
+                        the correlated targets will be trained together using a vector ARMA (or VARMA). Due to limitations in
+                        the VARMA, in order to seed samples the VARMA must be trained with the node \xmlNode{seed}, which acts
+                        independently from the global random seed used by other RAVEN entities.
+                        Both the ARMA and VARMA make use of the \texttt{statsmodels} python package.
+                        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+                        \xmlAttr{subType} needs to be \xmlString{ARMA}.
+                        """
+    specs.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType,
+                                                 descr=r"""defines the pivot variable (e.g., time) that is non-decreasing in
+                                                 the input HistorySet.""", default='time'))
+    specs.addSub(InputData.parameterInputFactory("correlate", contentType=InputTypes.StringListType,
+                                                 descr=r"""indicates the listed variables
+                                                   should be considered as influencing each other, and trained together instead of independently.  This node
+                                                   can only be listed once, so all variables that are desired for correlation should be included.  \nb The
+                                                   correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.""",
+                                                   default=None))
+    specs.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
+                                                 descr=r"""provides seed for VARMA and ARMA sampling.
+                                                  Must be provided before training. If no seed is assigned,
+                                                  then a random number will be used.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputTypes.BoolType,
+                                                 descr=r"""if \xmlString{True} then whenever the ARMA is loaded from file, a
+                                                  random reseeding will be performed to ensure different histories. \nb If
+                                                  reproducible histories are desired for an ARMA loaded from file,
+                                                  \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the
+                                                  \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1
+                                                  and \xmlNode{internalParallel} should be
+                                                   \xmlString{False} for RAVEN runs sampling the trained ARMA model.
+                                                  If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has
+                                                  \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history
+                                                  will always be provided regardless of how many samples are taken.
+                                                  If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize}
+                                                  is more than 1, it is not possible to guarantee the order of RNG usage by
+                                                  the separate processes, so it is not possible to guarantee reproducible
+                                                  histories are generated.""", default=True))
+    specs.addSub(InputData.parameterInputFactory("P", contentType=InputTypes.IntegerType,
+                                                 descr=r"""defines the value of $p$.""", default=3))
+    specs.addSub(InputData.parameterInputFactory("Q", contentType=InputTypes.IntegerType,
+                                                 descr=r"""defines the value of $q$.""", default=3))
+    specs.addSub(InputData.parameterInputFactory("Fourier", contentType=InputTypes.IntegerListType,
+                                                 descr=r"""must be positive integers. This defines the
+                                                   based period that will be used for Fourier detrending, i.e., this
+                                                   field defines $1/f_m$ in the above equation.
+                                                   When this filed is not specified, the ARMA considers no Fourier detrend.""",
+                                                   default=None))
+
+    peaks = InputData.parameterInputFactory("Peaks", contentType=InputTypes.StringType,
+                                                 descr=r"""designed to estimate the peaks in signals that repeat with some frequency,
+                                                 often in periodic data.""", default=None)
+    peaks.addParam("target", InputTypes.StringType, required=True,
+                  descr=r"""defines the name of one target (besides the
+                        pivot parameter) expected to have periodic peaks.""")
+    peaks.addParam("threshold", InputTypes.FloatType, required=True,
+                  descr=r"""user-defined minimum required
+                        height of peaks (absolute value).""")
+    peaks.addParam("period", InputTypes.FloatType, required=True,
+                  descr=r"""user-defined expected period for target variable.""")
+    nbin= InputData.parameterInputFactory('nbin',contentType=InputTypes.IntegerType, default=5)
+    window = InputData.parameterInputFactory("window", contentType=InputTypes.FloatListType,
+                                                 descr=r"""lists the window of time within each period in which a peak should be discovered.
+                                                 The text of this node is the upper and lower boundary of this
+                                                 window \emph{relative to} the start of the period, separated by a comma.
+                                                 User can define the lower bound to be a negative
+                                                 number if the window passes through one side of one period. For example, if the period is 24
+                                                 hours, the window can be -2,2 which is equivalent to 22, 2.""")
+    window.addParam("width", InputTypes.FloatType, required=True,
+                  descr=r"""The user defined  width of peaks in that window. The width is in the unit of the signal as well.""")
+    peaks.addSub(nbin)
+    peaks.addSub(window)
+    specs.addSub(peaks)
+    specs.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputTypes.BoolType,
+                                                 descr=r"""enables a final transform on sampled
+                                                   data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
+                                                   sample generated by this ARMA after training will have a distribution of values that conforms within
+                                                   numerical accuracy to the original data. This is especially useful when variance is desired not to stretch
+                                                   the most extreme events (high or low signal values), but instead the sequence of events throughout this
+                                                   history. For example, this transform can preserve the load duration curve for a load signal.""", default=False))
+    specificFourier = InputData.parameterInputFactory("SpecificFourier", contentType=InputTypes.StringType,
+                                                 descr=r"""provides a means to specify different Fourier
+                                                   decomposition for different target variables.  Values given in the subnodes of this node will supercede
+                                                   the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.""", default=None)
+    specificFourier.addParam("variables", InputTypes.StringListType, required=True,
+                  descr=r"""lists the variables to whom
+                    the \xmlNode{SpecificFourier} parameters will apply.""")
+    specificFourier.addSub(InputData.parameterInputFactory("periods", contentType=InputTypes.IntegerListType,
+                                                 descr=r"""lists the (fundamental)
+                                                   periodic wavelength of the Fourier decomposition for these variables,
+                                                   as in the \xmlNode{Fourier} general node.""", default='no-default'))
+    specs.addSub(specificFourier)
+
+    multicycle = InputData.parameterInputFactory("Multicycle", contentType=InputTypes.StringType,
+                                                 descr=r"""indicates that each sample of the ARMA should yield
+                                                   multiple sequential samples. For example, if an ARMA model is trained to produce a year's worth of data,
+                                                   enabling \xmlNode{Multicycle} causes it to produce several successive years of data. Multicycle sampling
+                                                   is independent of ROM training, and only changes how samples of the ARMA are created.
+                                                   \nb The output of a multicycle ARMA must be stored in a \xmlNode{DataSet}, as the targets will depend
+                                                   on both the \xmlNode{pivotParameter} as well as the cycle, \xmlString{Cycle}. The cycle is a second
+                                                   \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.""", default=None)
+    multicycle.addSub(InputData.parameterInputFactory("cycles", contentType=InputTypes.IntegerType,
+                                                 descr=r"""the number of cycles the ARMA should produce
+                                                   each time it yields a sample.""", default='no-default'))
+    growth = InputData.parameterInputFactory("growth", contentType=InputTypes.FloatType,
+                                                 descr=r"""if provided then the histories produced by
+                                                   the ARMA will be increased by the growth factor for successive cycles. This node can be added
+                                                   multiple times with different settings for different targets.
+                                                   The text of this node is the growth factor in percentage. Some examples are in
+                                                   Table~\ref{tab:arma multicycle growth}, where \emph{Growth factor} is the value used in the RAVEN
+                                                   input and \emph{Scaling factor} is the value by which the history will be multiplied.
+                                                   \begin{table}[h!]
+                                                     \centering
+                                                     \begin{tabular}{r c l}
+                                                       Growth factor & Scaling factor & Description \\ \hline
+                                                       50 & 1.5 & growing by 50\% each cycle \\
+                                                       -50 & 0.5 & shrinking by 50\% each cycle \\
+                                                       150 & 2.5 & growing by 150\% each cycle \\
+                                                     \end{tabular}
+                                                     \caption{ARMA Growth Factor Examples}
+                                                     \label{tab:arma multicycle growth}
+                                                   \end{table}""", default=None)
+    growth.addParam("targets", InputTypes.StringListType, required=True,
+                  descr=r"""lists the targets
+                    in this ARMA that this growth factor should apply to.""")
+    growth.addParam('start_index', InputTypes.IntegerType)
+    growth.addParam('end_index', InputTypes.IntegerType)
+    growthEnumType = InputTypes.makeEnumType('growth', 'armaGrowthType', ['exponential', 'linear'])
+    growth.addParam("mode", growthEnumType, required=True,
+                  descr=r"""either \xmlString{linear} or
+                    \xmlString{exponential}, determines the manner in which the growth factor is applied.
+                    If \xmlString{linear}, then the scaling factor is $(1+y\cdot g/100)$;
+                    if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
+                    where $y$ is the cycle after the first and $g$ is the provided scaling factor.""")
+    multicycle.addSub(growth)
+    specs.addSub(multicycle)
+
+    specs.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType, default=1))
+    ### ARMA zero filter
+    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType,
+                                               descr=r"""turns on \emph{zero filtering}
+                                                 for the listed targets. Zero filtering is a very specific algorithm, and should not be used without
+                                                 understanding its application.  When zero filtering is enabled, the ARMA will remove all the values from
+                                                 the training data equal to zero for the target, then train on the remaining data (including Fourier detrending
+                                                 if applicable). If the target is set as correlated to another target, the second target will be treated as
+                                                 two distinct series: one containing times in which the original target is zero, and one in the remaining
+                                                 times. The results from separated ARMAs are recombined after sampling. This can be a methodology for
+                                                 treating histories with long zero-value segments punctuated periodically by peaks.""", default=None)
+    zeroFilt.addParam('tol', InputTypes.FloatType)
+    specs.addSub(zeroFilt)
+    ### ARMA out truncation
+    outTrunc = InputData.parameterInputFactory("outTruncation", contentType=InputTypes.StringListType,
+                                                 descr=r"""defines whether and how output
+                                                   time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
+                                                   \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom
+                                                   this domain limitation should be applied. In the event a negative value is discovered in a target whose
+                                                   domain is strictly positive, the absolute value of the original negative value will be used instead, and
+                                                   similarly for the negative domain.""", default=None)
+    domainEnumType = InputTypes.makeEnumType('domain', 'truncateDomainType', ['positive', 'negative'])
+    outTrunc.addParam('domain', domainEnumType, True)
+    specs.addSub(outTrunc)
+    return specs
+
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    super().__init__()
     self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -79,17 +271,9 @@ class ARMA(supervisedLearning):
     self.fourierResults    = {} # dictionary of Fourier results, by target
     # training parameters
     self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
-    self.P                 = kwargs.get('P', 3) # autoregressive lag
-    self.Q                 = kwargs.get('Q', 3) # moving average lag
-    self.segments          = kwargs.get('segments', 1)
-    # data manipulation
-    reseed = str(kwargs.get('reseedCopies', True)).lower()
-    self.reseedCopies      = not utils.stringIsFalse(reseed) # reseed unless explicitly asked not to
+
     self.outTruncation     = {'positive':set(), 'negative':set()} # store truncation requests
-    self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
-    self.seed              = kwargs.get('seed', None)
-    self.preserveInputCDF  = kwargs.get('preserveInputCDF', False) # if True, then CDF of the training data will be imposed on the final sampled signal
     self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
@@ -104,10 +288,25 @@ class ARMA(supervisedLearning):
     self.numCycles = None # if self.multicycle, this is the number of cycles per sample
     self.growthFactors = collections.defaultdict(list) # by target, this is how to scale the signal over successive cycles
 
-    multicycleNode = kwargs['paramInput'].findFirst('Multicycle')
-    if multicycleNode is not None:
-      self.setMulticycleParams(multicycleNode)
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['nyquistScalar', 'P', 'Q', 'reseedCopies', 'pivotParameter',
+                                                            'seed', 'preserveInputCDF', 'correlate'])
+    assert(not notFound)
+    self.nyquistScalar     = settings.get('nyquistScalar')
+    self.P                 = settings.get('P') # autoregressive lag
+    self.Q                 = settings.get('Q') # moving average lag
+    # data manipulation
+    self.reseedCopies      = settings.get('reseedCopies') # reseed unless explicitly asked not to
+    self.pivotParameterID  = settings.get('pivotParameter')
+    self.seed              = settings.get('seed')
+    self.preserveInputCDF  = settings.get('preserveInputCDF') # if True, then CDF of the training data will be imposed on the final sampled signal
     # get seed if provided
     ## FIXME only applies to VARMA sampling right now, since it has to be sampled through Numpy!
     ## see note under "check for correlation" below.
@@ -115,8 +314,7 @@ class ARMA(supervisedLearning):
       self.seed = randomUtils.randomIntegers(0,4294967295,self)
     else:
       self.seed = int(self.seed)
-
-    self.normEngine = Distributions.returnInstance('Normal',self)
+    self.normEngine = Distributions.factory.returnInstance('Normal')
     self.normEngine.mean = 0.0
     self.normEngine.sigma = 1.0
     self.normEngine.upperBoundUsed = False
@@ -131,14 +329,11 @@ class ARMA(supervisedLearning):
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
     self.raiseADebug('Setting ARMA seed to',self.seed)
     randomUtils.randomSeed(self.seed,engine=self.randomEng)
-
     # check for correlation
-    correlated = kwargs.get('correlate',None)
+    correlated = settings.get('correlate')
     if correlated is not None:
       np.random.seed(self.seed)
-      # store correlated targets
-      assert not mathUtils.isAString(correlated)
-      corVars = correlated #[x.strip() for x in correlated.split(',')]
+      corVars = correlated
       for var in corVars:
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
@@ -153,8 +348,9 @@ class ARMA(supervisedLearning):
     if len(self.features) != 1:
       self.raiseAnError(IOError,"The ARMA can only currently handle a single feature, which scales the outputs!")
 
-    # read off of paramInput for more detailed inputs # TODO someday everything should read off this!
-    paramInput = kwargs['paramInput']
+    multicycleNode = paramInput.findFirst('Multicycle')
+    if multicycleNode is not None:
+      self.setMulticycleParams(multicycleNode)
 
     for child in paramInput.subparts:
       # read truncation requests (really value limits, not truncation)
@@ -249,7 +445,7 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = supervisedLearning.__getstate__(self)
+    d = super().__getstate__()
     eng=d.pop("randomEng")
     randCounts = eng.get_rng_state()
     d['crow_rng_counts'] = randCounts
@@ -262,7 +458,7 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     rngCounts = d.pop('crow_rng_counts')
-    self.__dict__.update(d)
+    super().__setstate__(d)
     self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
@@ -331,7 +527,7 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     # reseeding is taken care of in the supervisedLearning base class of this method
-    supervisedLearning.setAdditionalParams(self, params)
+    SupervisedLearning.setAdditionalParams(self, params)
     paramInput = params['paramInput']
     # multicycle; note that myNode is "multicycleNode" not a node that I own
     myNode = paramInput.findFirst('Multicycle')
@@ -716,15 +912,15 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    import statsmodels.api
-    hist = statsmodels.api.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+    import statsmodels.tsa
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
                                                     ma = np.append(1., model.maparams),
                                                     nsample = numSamples,
                                                     distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
                                        # functool.partial provide the random number generator as a function
                                        # with normal distribution and take engine as the positional arguments keywords.
-                                                    sigma = np.sqrt(model.sigma2),
-                                                    burnin = 2*max(self.P,self.Q)) # @epinas, 2018
+                                                    scale = np.sqrt(model.sigma2),
+                                                    burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
   def _generateFourierSignal(self, pivots, periods):
@@ -895,7 +1091,7 @@ class ARMA(supervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results =  statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1057,7 +1253,6 @@ class ARMA(supervisedLearning):
     dist.rank = dim
     dist.mu = means
     dist.covariance = np.ravel(cov)
-    dist.messageHandler = self.messageHandler
     dist.initializeDistribution()
     return dist
 
@@ -1824,8 +2019,8 @@ class ARMA(supervisedLearning):
           # NOTE: assuming training on only one history!
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
-          full = periods[periods > delta]
-          segment[target] = periods[np.logical_not(periods > delta)]
+          full = periods[periods > (delta*self.nyquistScalar)]
+          segment[target] = periods[np.logical_not(periods > (delta*self.nyquistScalar))]
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
@@ -2039,10 +2234,12 @@ class ARMA(supervisedLearning):
           # TODO can we do this all at once with a vector operation? -> you betcha
           evaluation[target][:, localPicker] += mySig
         else:
+          # if last segment is shorter than other clusters, just keep the part of the evaluation
+          #     that makes sense? I guess? What about the "truncated" case above? - talbpaul 2020-10
           evaluation[target][localPicker] += sig
     return evaluation
 
-  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None, slicer=None):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
@@ -2054,7 +2251,7 @@ class ARMA(supervisedLearning):
     # backtransform signal to preserve CDF
     ## how nicely does this play with zerofiltering?
     evaluation = self._finalizeGlobalRSE_preserveCDF(settings, evaluation, weights)
-    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights)
+    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights, slicer=slicer)
     return evaluation
 
   def _finalizeGlobalRSE_preserveCDF(self, settings, evaluation, weights):
@@ -2090,7 +2287,7 @@ class ARMA(supervisedLearning):
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
-  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights):
+  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights, slicer):
     """
       Helper method for finalizeGlobalRomSegmentEvaluation,
       particularly for zerofiltering
@@ -2101,10 +2298,19 @@ class ARMA(supervisedLearning):
     """
     if self.zeroFilterTarget:
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
-      if self.multicycle:
-        evaluation[self.zeroFilterTarget][:, mask] = 0
+      if slicer is not None:
+        # truncated evaluation
+        newMask = []
+        for sl in slicer:
+          m = mask[sl.start:sl.stop].tolist()
+          newMask.append(np.asarray(m))
+        newMask = np.asarray(newMask)
       else:
-        evaluation[self.zeroFilterTarget][mask] = 0
+        newMask = mask
+      if self.multicycle:
+        evaluation[self.zeroFilterTarget][:, newMask] = 0
+      else:
+        evaluation[self.zeroFilterTarget][newMask] = 0
     return evaluation
 
 

@@ -1,0 +1,49 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.LoadXlsCsv</name>
+    <author>talbpaul</author>
+    <created>2021-05-20</created>
+    <classesTested>DataObjects.DataSet</classesTested>
+    <description>
+       Test to check a CSV from Excel can be loaded.
+       Note that the main problem is the first character in the file,
+       which depends on the encoding. The source file was made by loading
+       a CSV from text in Excel and saving as CSV.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>LoadXlsCsv</WorkingDir>
+    <Sequence>load, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="PointSet">data</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Output class="OutStreams" type="Print">reprint</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="data">
+      <Input>T,T2</Input>
+      <Output>A,B,C,D,E</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Files>
+    <Input name="input">from_excel.csv</Input>
+  </Files>
+
+  <OutStreams>
+    <Print name="reprint">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

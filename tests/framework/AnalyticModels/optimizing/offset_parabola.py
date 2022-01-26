@@ -21,6 +21,8 @@ def run(raven, inputs):
     @ In, inputs, dict, key-value pairs
     @ Out, None
   """
+  if not constrain(raven):
+    raise RuntimeError(f'Out of bounds: ({raven.x}, {raven.y})!')
   raven.ans = main(raven.x, raven.y)
 
 def main(x, y):
@@ -50,11 +52,11 @@ def constrain(raven):
     return False
   return True
 
-def implicitConstrain(raven):
+def implicitConstraint(raven):
   """
     Implicit constrain.
     @ In, raven, object, raven self
-    @ Out, implicitConstrain, point ok or not?
+    @ Out, implicitConstraint, point ok or not?
   """
   x = raven.x
   ans = raven.ans

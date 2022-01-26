@@ -5,7 +5,7 @@
     <created>2016-12-15</created>
     <classesTested>Models.Code.MAMMOTH, Model.AliasSystem</classesTested>
     <description>
-       An example of using the MAMMOTH code interface (no executable). 
+       An example of using the MAMMOTH code interface (no executable).
        This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
        In addition, the alias system is used
     </description>
@@ -69,7 +69,7 @@
         <limit>3</limit>
       </samplerInit>
       <variable name="fuel_k_scale_fac">
-        <distribution>fuel_k_scale_fac_dist</distribution> 
+        <distribution>fuel_k_scale_fac_dist</distribution>
       </variable>
       <variable name="fuel_cp_scale_fac">
         <distribution>fuel_cp_scale_fac_dist</distribution>
@@ -90,7 +90,7 @@
       <Output class="DataObjects" type="PointSet">max_clad_results</Output>
       <Output class="DataObjects" type="HistorySet">max_clad_results_history</Output>
     </IOStep>
-    <MultiRun name="riaRun1">
+    <MultiRun name="riaRun1" clearRunDir="False">
       <Input class="Files" type="">mammothInput</Input>
       <Input class="Files" type="">relap7Input</Input>
       <Input class="Files" type="">relap7Control</Input>
@@ -102,7 +102,7 @@
       <Output class="OutStreams" type="Print">max_clad_temp_hist_out</Output>
       <Output class="Databases" type="HDF5">lssRIAResultsDB</Output>
     </MultiRun>
-    <MultiRun name="riaRun2">
+    <MultiRun name="riaRun2" clearRunDir="False">
         <Input class="Files" type="">mammothInput</Input>
         <Input class="Files" type="">relap7Input</Input>
         <Input class="Files" type="">relap7Control</Input>

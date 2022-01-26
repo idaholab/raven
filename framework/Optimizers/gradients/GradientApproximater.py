@@ -38,6 +38,11 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class for gradient approximation methods used in the GradientDescent Optimizer.'
+    specs.addSub(InputData.parameterInputFactory('gradDistanceScalar', contentType=InputTypes.FloatType,
+        descr=r"""a scalar for the distance away from an optimal point candidate in the optimization
+        search at which points should be evaluated to estimate the local gradient. This scalar is a
+        multiplier for the step size used to reach this optimal point candidate from the previous
+        optimal point, so this scalar should generally be a small percent. \default{0.01}"""))
     return specs
 
   @classmethod
@@ -59,7 +64,7 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     # public
     # _protected
     self._optVars = None   # list(str) of opt variables
-    self._proximity = None # float, scaling for perturbation distance
+    self._proximity = 0.01 # float, scaling for perturbation distance
     self.N = None          # int, dimensionality
     # __private
     # additional methods
@@ -70,9 +75,11 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    pass
+    proximity = specs.findFirst('gradDistanceScalar')
+    if proximity is not None:
+      self._proximity = proximity.value
 
-  def initialize(self, optVars, proximity):
+  def initialize(self, optVars):
     """
       After construction, finishes initialization of this approximator.
       @ In, optVars, list(str), list of optimization variable names
@@ -80,7 +87,6 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, None
     """
     self._optVars = optVars
-    self._proximity = proximity
     self.N = len(self._optVars)
 
   ###############

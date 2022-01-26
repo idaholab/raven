@@ -1,0 +1,55 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>innerRunDir</WorkingDir>
+    <Sequence>sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime='1e-6'>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">nd</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="Databases" type="NetCDF">inner_samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <NetCDF name="inner_samples" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="nd_data" name="nd" subType="">
+      <variables>a,b,c,d,e,f,x,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="a">
+        <distribution>dist</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>dist</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+</Simulation>

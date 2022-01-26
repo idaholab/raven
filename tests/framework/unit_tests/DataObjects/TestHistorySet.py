@@ -483,8 +483,10 @@ checkSame('Metadata HistorySet/dims/x value',x.text,'Timelike')
 checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
-checkSame('Metadata HistorySet/general entries',len(general),4)
-inputs,outputs,pointwise_meta,sampleTag = general[:]
+checkSame('Metadata HistorySet/general entries',len(general),5)
+dsName,inputs,outputs,pointwise_meta,sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'HistorySet')
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -522,7 +524,7 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 # to CSV
 ## test writing to file
 csvname = 'HistorySetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
            '  <DataSet type="Static">',
@@ -531,6 +533,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
            '      <y>Timelike</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>HistorySet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,y</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
@@ -733,7 +736,7 @@ formatRealization(rlz2)
 data.addRealization(rlz1)
 data.addRealization(rlz2)
 csvname = 'HSVectorMetaUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
            '  <DataSet type="Static">',
@@ -742,6 +745,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
            '      <y>Timelike</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>HistorySet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>y</outputs>',
            '      <pointwise_meta>prefix,vectorMeta</pointwise_meta>',
@@ -780,7 +784,7 @@ os.remove(csvname+'_0.csv')
 os.remove(csvname+'_1.csv')
 
 csvname = 'HSVectorMetaUnitTest'
-dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -803,7 +807,7 @@ os.remove(csvname+'.csv')
 os.remove(csvname+'_0.csv')
 os.remove(csvname+'_1.csv')
 csvname = 'HSVectorMetaUnitTest'
-dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings

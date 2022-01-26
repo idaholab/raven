@@ -18,7 +18,6 @@ Created on 2016-Jan-26
 
 This a library for defining the data used and for reading it in.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 from collections import OrderedDict
 from enum import Enum
@@ -126,6 +125,7 @@ class ParameterInput(object):
   contentType = None
   strictMode = True #If true, only allow parameters and subnodes that are listed
   description = '-- no description yet --'
+  default = 'no-default'
   printPriority = None
   _checkCanRead = None #If not none, call this function before trying to read
   # an xml file.  The function should return true or false depending on if
@@ -143,7 +143,7 @@ class ParameterInput(object):
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
-                  strictMode=True, descr=None, printPriority=None):
+                  strictMode=True, descr=None, printPriority=None, default='no-default'):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -152,6 +152,7 @@ class ParameterInput(object):
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
       @ In, strictNode, bool, optional, If True, then only allow paramters and subnodes that are specifically mentioned.
       @ In, printPriority, int, optional, sets the priority for printing this node e.g. in the user
+      @ In, default, object, optional, default value for this parameter
       manual. Lower is higher priority; priority 0 gets printed first. See generateLatex for details.
       @ Out, None
     """
@@ -164,6 +165,7 @@ class ParameterInput(object):
     cls.name = name
     cls.strictMode = strictMode
     cls.description = descr if descr is not None else cls.description
+    cls.default = default
     if printPriority is None:
       # TODO set printPriority based on required/not required, but we don't have this system yet.
       cls.printPriority = 200
@@ -220,16 +222,20 @@ class ParameterInput(object):
     return None
 
   @classmethod
-  def addParam(cls, name, param_type=InputTypes.StringType, required=False, descr=None):
+  def addParam(cls, name, param_type=InputTypes.StringType, required=False, default='no-default', descr=None):
     """
       Adds a direct parameter to this class.  In XML this is an attribute.
       @ In, name, string, the name of the parameter
       @ In, param_type, subclass of InputType, optional, that specifies the type of the attribute.
       @ In, required, bool, optional, if True, this parameter is required.
+      @ In, default, object, optional, if provided, this is the default for this parameter
       @ Out, None
     """
+    if default != 'no-default':
+      assert(not required)
     cls.parameters[name] = {"type":param_type, "required":required,
-                            'description':descr if descr is not None else '-- no description yet --'}
+                            'description':descr if descr is not None else '-- no description yet --',
+                            'default':default}
 
   @classmethod
   def removeParam(cls, name, param_type=InputTypes.StringType, required=False):
@@ -275,9 +281,10 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
-       (len(subsSet) > 0 and sub._checkCanRead is not None):
-       print("ERROR adding checked and unchecked to", sub.getName()," in ",
+    if __debug__:
+      if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+        (len(subsSet) > 0 and sub._checkCanRead is not None):
+        print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
                  cls.getName()+" len "+str(len(subsSet)))
     subsSet.add(sub)
     cls._subDict[sub.getName()] = subsSet
@@ -298,6 +305,20 @@ class ParameterInput(object):
     """
     cls.addSub(parameterInputFactory(name, contentType=contentType),
                quantity)
+
+  @classmethod
+  def mergeSub(cls, sub):
+    """
+      Adds all the subs and params of the indicated node to this node.
+      @ In, sub, subclass of ParameterInput, the subnode to merge in
+      @ Out, None
+    """
+    for name, param in sub.parameters.items():
+      # directly add param from dict rather than split dict into addParam args
+      # TODO warn of overwrite?
+      cls.parameters[name] = param
+    for subsub in sub.subs:
+      cls.addSub(subsub)
 
   @classmethod
   def removeSub(cls, sub):
@@ -353,19 +374,24 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node, errorList = None):
+  def parseNode(self, node, errorList=None, parentList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
       @ In, node, xml.etree.ElementTree.Element, The node to parse.
       @ In, errorList, list, if not None, put errors in errorList instead of throwing IOError.
+      @ In, parentList, list, list of names of nodes above this one in the heirarchy, allowing
+            better error printing.
       @ Out, None
     """
+    if parentList is None:
+      parentList = [self.name]
     def handleError(s):
       """
         Handles the error, either by throwing IOError or adding to the errorlist
         @ In, s, string, string describing error.
       """
+      s = f'{".".join(parentList)}: ' + s
       # TODO give the offending XML! Use has no idea where they went wrong.
       if errorList == None:
         raise IOError(s)
@@ -376,9 +402,9 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+      print(f'InputData: Using param spec "{self.name}" to read XML node "{node.tag}.')
     if self._checkCanRead is not None and not self.__class__._checkCanRead.check(node):
-      handleError("CheckCanRead failed for "+node.tag+"Reason: "+self.__class__._checkCanRead.failCheckReason(node))
+      handleError(f'CheckCanRead failed for "{node.tag}; Reason: {self.__class__._checkCanRead.failCheckReason(node)}')
 
     # check content type
     if self.contentType:
@@ -395,12 +421,12 @@ class ParameterInput(object):
         param_type = self.parameters[parameter]["type"]
         self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
-        handleError("Required parameter " + parameter + " not in " + node.tag)
+        handleError(f'Required attribute "{parameter}" not in "{node.tag}"')
     # if strict, force parameter checking
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
-          handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+          handleError(f'"{parameter}" not in node attributes and strict mode on in "{node.tag}"')
 
     # handle ordering of subnodes
     if self.subOrder is not None:
@@ -419,14 +445,14 @@ class ParameterInput(object):
           foundSubs += 1
         elif sub._checkCanRead.check(child):
           subInstance = sub()
-          foundSub += 1
+          foundSubs += 1
       if foundSubs > 0:
         subNames.add(childName)
-        subInstance.parseNode(child, errorList)
+        subInstance.parseNode(child, errorList, parentList + [childName])
         self.subparts.append(subInstance)
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
-        handleError('no class to handle '+childName+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
+        handleError(f'Unrecognized input node "{childName}"! Allowed: [{", ".join(allowed)}], tried [{", ".join(subsSet)}]')
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
@@ -450,6 +476,43 @@ class ParameterInput(object):
     for sub in self.subparts:
       if sub.getName() == name:
         return sub
+    return None
+
+  def findNodesAndExtractValues(self, names):
+    """
+      Finds the first subparts with names.  Once found, the values
+      are extracted and if not found, a default value is search for (None if not found)
+      @ In, names, string, the names of the nodes to search for
+      @ Out, values, dict, dictionary of the found nodes and values
+      @ Out, notFound, list, list of the names that have not been found
+    """
+    values = dict.fromkeys(names)
+    notFound = []
+    found = []
+    for sub in self.subparts:
+      name = sub.getName()
+      if name in names:
+        values[name] = sub.value
+        found.append(name)
+    # check if default for the one not found
+    for name in list(set(names) - set(found)):
+      default = self.returnDefault(name)
+      values[name] = default
+      if default == 'no-default':
+        notFound.append(name)
+    return values, notFound
+
+  def returnDefault(self, name):
+    """
+      Finds the default of the first subpart with name.
+      If found, the default is returned. None is returned
+      otherwise.
+      @ In, name, string, the name of the node to search for
+      @ Out, default, object, the default value if found
+    """
+    sub = self.getSub(name)
+    if sub is not None:
+      return sub.default
     return None
 
   def findAll(self, name):
@@ -530,10 +593,11 @@ class ParameterInput(object):
         attributeNode.set('use','required')
 
   @classmethod
-  def generateLatex(cls, recDepth=0):
+  def generateLatex(cls, recDepth=0, sectionLevel=1):
     """
       Generates the user manual entry for this input spec.
       @ In, recDepth, int, optional, recursion depth of printing
+      @ In, sectionLevel, int, optional, the level of the section, i.e., 0: 'section', 1: 'subsection', 2:'subsubsection'
       @ Out, msg, str, LaTeX string representation of user manual entry
     """
     name = cls.name
@@ -542,7 +606,12 @@ class ParameterInput(object):
     # if this is a main entity, use subsection instead of itemizing
     if recDepth == 0:
       # triple curly braces preserves one set of curls while replacing "n"
-      msg += '\n\n\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      if sectionLevel == 0:
+        msg += '\n\n\section{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      elif sectionLevel == 1:
+        msg += '\n\n\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      elif sectionLevel == 2:
+        msg += '\n\n\subsubsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
     else:
       # since this is a sub-entity, it's part of a list
       msg += '{i}\\item \\xmlNode{{{n}}}:'.format(i=doDent(recDepth), n=name)
@@ -591,12 +660,21 @@ class ParameterInput(object):
       name = re.sub(r'(?<!\\)_', r'\_', param)
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
+      default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
-      msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
-                                                                                   n=name,
-                                                                                   t=typ,
-                                                                                   r=req,
-                                                                                   d=desc)
+      if default:
+        msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d} {de}'.format(i=doDent(recDepth, 1),
+                                                                                     n=name,
+                                                                                     t=typ,
+                                                                                     r=req,
+                                                                                     d=desc,
+                                                                                     de=default)
+      else:
+        msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
+                                                                                     n=name,
+                                                                                     t=typ,
+                                                                                     r=req,
+                                                                                     d=desc)
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 
@@ -673,8 +751,9 @@ class RavenBase(ParameterInput):
     This can be used as a base class for things that inherit from BaseType
   """
 RavenBase.createClass("RavenBase", baseNode=None)
+RavenBase.addParam("name", param_type=InputTypes.StringType, required=True, descr='User-defined name to designate this entity in the RAVEN input file.')
 verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
-RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity') #XXX should be enumeration
+RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
 
 
 #

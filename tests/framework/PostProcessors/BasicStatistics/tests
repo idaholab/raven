@@ -66,6 +66,14 @@
     zero_threshold = 1e-14
   [../]
 
+  [./medianAndPercentile]
+    type = 'RavenFramework'
+    input = 'test_median_and_percentile.xml'
+    csv = 'median/median.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-14
+  [../]
+
   [./printXml]
     type = 'RavenFramework'
     input = 'print_xml.xml'
@@ -175,4 +183,10 @@
     UnorderedXml = 'timeDepMeta/Back_to_MASTER.xml'
     output = 'timeDepMeta/Back_to_MASTER.csv timeDepMeta/Back_to_MASTER_0.csv'
   [../]
+  [./spearman]
+    type = 'RavenFramework'
+    input = 'spearman.xml'
+    UnorderedCsv = 'basicStatsSpearman/InputOutput_basicStatPP_dump.csv'
+  [../]
+
 []

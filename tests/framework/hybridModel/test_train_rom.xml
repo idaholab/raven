@@ -32,17 +32,16 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|explained_variance_score</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
-    <ROM name="knr" subType="SciKitLearn">
-      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <ROM name="knr" subType="KNeighborsRegressor">
       <Features>leftTemperature, rightTemperature</Features>
       <Target>k</Target>
       <n_neighbors>5</n_neighbors>
@@ -60,7 +59,7 @@
         <shuffle>False</shuffle>
         <scores>average</scores>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>

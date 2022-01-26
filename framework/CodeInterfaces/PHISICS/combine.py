@@ -17,143 +17,87 @@ Created on March 8th 2018
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import os
-import re
-import csv
+import numpy as np
 
 class combine():
   """
-    Combines the PHISICS and RELAP csv output into one.
+    Combines the PHISICS and RELAP  output into one.
   """
-  def __init__(self,workingDir,relapCSV,phisicsCSV,depTimeDict,inpTimeDict,relapPhisicsCsv):
+  def __init__(self,workingDir,relapData, phisicsData,depTimeDict,inpTimeDict):
     """
       Constructor.
       @ In, workingDir, string, absolute path to working directory
-      @ In, relapCSV, string, csv file name generated after the execution of relapdata.py
-      @ In, phisicsCSV, string, csv file name generated after the execution of phisicsdata.py
+      @ In, relapData, dict, data from relap
+      @ In, phisicsData, string, data from phisics
       @ In, depTimeDict, dictionary, information from the xml depletion file
       @ In, inpTimeDict, dictionary, information from the xml input file
-      @ In, relapPhisicsCsv, string, filename of the combines PHISICS and RELAP5 files
       @ Out, None
     """
+    self.timeStepSelected = []
     paramDict = {}
-    paramDict['relapTimePosition'] = self.findTimePosition(relapCSV)
-    paramDict['timeList'] = self.selectPhisicsTime(depTimeDict,phisicsCSV)
-    paramDict['phiDict'] = phiDict = self.putCSVinDict(phisicsCSV,phisicsCSV)
-    paramDict['relDict'] = self.putCSVinDict(relapCSV,phisicsCSV)
-    paramDict['numOfRelapLines'] = len(paramDict['relDict'])
-    paramDict['numOfPhisicsLines'] = len(paramDict['phiDict'])
+    paramDict['phisicsData'] =  phisicsData
+    paramDict['relapData'] = relapData
     paramDict['depTimeDict'] = depTimeDict
     paramDict['inpTimeDict'] = inpTimeDict
-    paramDict['relapPhisicsCsv'] = relapPhisicsCsv
-    self.joinCSV(paramDict,workingDir)
+    selectedTs = 0
+    for i in paramDict['depTimeDict']['timeSteps'].split(' '):
+      selectedTs = selectedTs + int(i)
+      self.timeStepSelected.append(selectedTs)
+    self.response = self.joinData(paramDict)
 
-  def findTimePosition(self,relapCSV):
+  def joinData(self, paramDict):
     """
-      Finds the RELAP time position in the csv file.
-      @ In, relapCSV, string, csv file name generated after the execution of relapdata.py
-      @ Out, timePosition, integer
-    """
-    with open(relapCSV, 'r') as relfile:
-      for line in relfile:
-        try:
-          timePosition = next(i for i,x in enumerate(line.split(',')) if re.match(r'time',x.strip()))
-          return timePosition
-        except StopIteration:
-          raise ValueError("\n the keyword -time- is not listed in the RELAP csv output \n")
-
-  def selectPhisicsTime(self,depTimeDict,phisicsCSV):
-    """
-      Selects the time (<=> line) that will be printed in the final RAVEN output. Those times match with the RELAP one.
-      @ In, depTimeDict, dictionary, information from the xml depletion file, key: time parameter, value: xml node text
-      @ In, phisicsCSV, string, csv file name generated after the execution of phisicsdata.py
-      @ Out, timeList, list, list of parameter values at a given line number of the phisics csv file
-    """
-    timeList = []
-    self.timeStepSelected = []
-    lineSelected = 0
-    for i in depTimeDict['timeSteps'].split(' '):
-      lineSelected = lineSelected + int(i)
-      self.timeStepSelected.append(lineSelected)
-      with open(phisicsCSV, 'r') as phifile:
-        for lineNumber,line in enumerate(phifile,1):
-          if lineNumber == lineSelected:
-            timeList.append(line.split(',')[0])
-    return timeList
-
-  def putCSVinDict(self,csvFile,phisicsCSV):
-    """
-      Places each line of the csv into a dictionary. key: line number (integer), value: line (list).
-      @ In, csvFile, string, file name of the csv file parsed
-      @ In, phisicsCSV, string, csv file name generated after the execution of phisicsdata.py
-      @ Out, csvDict, dictionary, key: line number (integer), value, line containing the parameter values (string)
-    """
-    csvDict = {}
-    with open(csvFile, 'r') as inFile:
-      countLine = 0
-      for line in inFile:
-        if countLine == 0 and csvFile == phisicsCSV:
-          self.numOfParameters = len(line.split(','))
-        if re.match(r'^\s*$', line):
-          pass
-        else:
-          csvDict[countLine] = line
-          countLine += 1
-    return csvDict
-
-  def joinLine(self,phisicsList,relapList):
-    """
-      Joins the PHISICS and RELAP line into one list.
-      @ In, phisicsList, string, contians a csv PHISICS line
-      @ In, relapList, string, contains a csv RELAP line
-      @ Out, joinedList, list, joined list of parameters
-    """
-    return (phisicsList.rstrip(),relapList.rstrip())
-
-  def joinCSV(self,paramDict,workingDir):
-    """
-      Joins the RELAP csv and PHISICS csv based on the time lines selected from PHISICS.
+      Joins the RELAP and PHISICS data based on the time lines selected from PHISICS.
       @ In, paramDict, dictionary, dictionary of parameters
-      @ In, workingDir, string, absolute path to working directory
-      @ Out, None
+      @ Out, response, dict, the output to be returned
     """
-    cleanUpFiles = ['dummy.csv','relapPhisics.csv']
-    for cleanUpFile in cleanUpFiles:
-      if os.path.exists(cleanUpFile):
-        os.remove(cleanUpFiles) # remove the file if was already existing
-    thBurnStep = paramDict['inpTimeDict']['TH_between_BURN'].split(' ')
-    with open(os.path.join(workingDir,'dummy.csv'), 'w') as f:
-      instantWriter = csv.writer(f, delimiter=str(','),quotechar=str(' '),
-                                 quoting=csv.QUOTE_MINIMAL)
-      instantWriter.writerow(self.joinLine(paramDict['phiDict'][0],paramDict['relDict'][0]))
-      instantWriter.writerow([0.0] * self.numOfParameters + [paramDict['relDict'][1]])
-      lineNumber = 1
-      THbetweenBurn = 0
-      mrTau = 0
-      while THbetweenBurn < len(thBurnStep):
-        lineNumber = lineNumber + 1
-        # if the time on a relap line is <= than the TH_between_burn selected
-        if float(paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']]) <= float(thBurnStep[THbetweenBurn]):
-          # print the relap line with the phisics line corresponding to last time step of a burnstep
-          instantWriter.writerow(self.joinLine(paramDict['phiDict'][self.timeStepSelected[mrTau]],paramDict['relDict'][lineNumber]))
-        # if the relap time on a line is larger the TH_between_burn selected
-        if paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']] > thBurnStep[THbetweenBurn]:
-          # change the TH_between_burn selected
-          THbetweenBurn = THbetweenBurn + 1
-          # change the burn step in phisics
-          mrTau = mrTau + 1
-          # if this is the last TH_between_burn
-          if THbetweenBurn == len(thBurnStep):
-            # print the last line of phisics and relap.
-            instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],
-                                                 paramDict['relDict'][paramDict['numOfRelapLines'] - 1]))
-    with open(os.path.join(workingDir,'dummy.csv'), 'r') as inFile:
-      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'w') as outFile:
-        for line in inFile:
-          cleanedLine = line.strip(' ')
-          if re.match(r'^\s*$', line):
-            pass
-          else:
-            outFile.write(cleanedLine)
-    if os.path.exists('dummy.csv'):
-      os.remove('dummy.csv')
+    phisicsVars = list(paramDict['phisicsData'].keys())
+    relapVars = list(paramDict['relapData'].keys())
+    headers =  phisicsVars + relapVars
+    data = []
+    data.append([0.0] * len(phisicsVars) + np.array(list(paramDict['relapData'].values())).T[0].tolist())
 
+    thBurnStep = [float(val) for val in paramDict['inpTimeDict']['TH_between_BURN'].split(' ')]
+    # check the thburn
+    maxTime = max(thBurnStep)
+    # check max Relap
+    maxRelap = max(paramDict['relapData']['time'])
+    if maxRelap < maxTime:
+      thBurnStep[-1] = maxRelap
+
+    lineNumber, THbetweenBurn, mrTau = 0, 0, 0
+
+    while THbetweenBurn < len(thBurnStep):
+      lineNumber = lineNumber + 1
+      addedNow = False
+      # if the time on a relap line is <= than the TH_between_burn selected
+      if paramDict['relapData']['time'][lineNumber] <= thBurnStep[THbetweenBurn]:
+        # print the relap line with the phisics line corresponding to last time step of a burnstep
+        valuesPhisics = np.array(list(paramDict['phisicsData'].values())).T[self.timeStepSelected[mrTau]-1].tolist()
+        valuesRelap = np.array(list(paramDict['relapData'].values())).T[lineNumber].tolist()
+        data.append(valuesPhisics+valuesRelap)
+        addedNow = True
+
+      # if the relap time on a line is larger the TH_between_burn selected
+      if paramDict['relapData']['time'][lineNumber] >= thBurnStep[THbetweenBurn]:
+        # change the TH_between_burn selected
+        THbetweenBurn = THbetweenBurn + 1
+        # change the burn step in phisics
+        mrTau = mrTau + 1
+        # if this is the last TH_between_burn
+        if THbetweenBurn == len(thBurnStep) and not addedNow:
+          # print the last line of phisics and relap.
+          valuesPhisics = np.array(list(paramDict['phisicsData'].values())).T[-1].tolist()
+          valuesRelap = np.array(list(paramDict['relapData'].values())).T[-1].tolist()
+          data.append(valuesPhisics+valuesRelap)
+    data = np.asarray(data)
+    response = {var: data[: , i] for i, var in enumerate(headers)}
+    return response
+
+  def returnData(self):
+    """
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, self.response, dict, the dictionary containing the data {var1:array,var2:array,etc}
+    """
+    return self.response
