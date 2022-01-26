@@ -574,21 +574,3 @@ class EconomicRatio(BasicStatistics):
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
     return outputSet
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    evaluation = finishedJob.getEvaluation()
-    outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
-    elif output.type in ['DataSet']:
-      self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization,style='dataset')
-    else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
