@@ -55,28 +55,24 @@ class EconomicRatio(BasicStatistics):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
+
+    # get input specification from BasicStatistics (scalarVals and vectorVals)
     inputSpecification = super(EconomicRatio, cls).getInputSpecification()
 
-    for scalar in cls.scalarVals:
-      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputTypes.StringListType)
-      scalarSpecification.addParam("prefix", InputTypes.StringType)
-      inputSpecification.addSub(scalarSpecification)
-
+    # add tealVals
     for teal in cls.tealVals:
-      tealSpecification = InputData.parameterInputFactory(teal, contentType=InputTypes.StringListType)
-      if teal in['sortinoRatio','gainLossRatio']:
+      tealSpecification = InputData.parameterInputFactory(teal,
+                                                          contentType=InputTypes.StringListType)
+      if teal in ["sortinoRatio", "gainLossRatio"]:
         tealSpecification.addParam("threshold", InputTypes.StringType)
-      elif teal in['expectedShortfall','valueAtRisk']:
+      elif teal in ["expectedShortfall", "valueAtRisk"]:
         tealSpecification.addParam("threshold", InputTypes.FloatType)
       tealSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(tealSpecification)
 
-    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType)
-    inputSpecification.addSub(pivotParameterInput)
-
-
     return inputSpecification
 
+  # TODO: update if necessary
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
@@ -131,6 +127,7 @@ class EconomicRatio(BasicStatistics):
       self.raiseAWarning('EconomicRatio postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
     return inputDataset, pbWeights
 
+  # TODO: update if necessary
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the EconomicRatio pp. In here the working dir is
@@ -160,6 +157,7 @@ class EconomicRatio(BasicStatistics):
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
 
+  # TODO: update if necessary
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -171,6 +169,7 @@ class EconomicRatio(BasicStatistics):
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
+  # TODO: update if necessary
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
@@ -253,6 +252,7 @@ class EconomicRatio(BasicStatistics):
 
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'EconomicRatio needs parameters to work on! Please check input for PP: ' + self.name)
 
+  # TODO: update if necessary
   def __computePower(self, p, dataset):
     """
       Compute the p-th power of weights
@@ -270,6 +270,7 @@ class EconomicRatio(BasicStatistics):
     pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
 
+  # TODO: update if necessary
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
       Method to compute the sorted weights and points
@@ -286,6 +287,7 @@ class EconomicRatio(BasicStatistics):
     indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
     return sortedWeightsAndPoints, indexL
 
+  # TODO: update if necessary
   def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -568,6 +570,7 @@ class EconomicRatio(BasicStatistics):
       outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
     return outputDict
 
+  # TODO: update if necessary
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
