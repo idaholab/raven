@@ -74,7 +74,7 @@ class Representativity(ValidationBase):
     self.printTag = 'POSTPROCESSOR Representativity'
     self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
-    self.name = 'Represntativity'
+    self.name = 'Representativity'
     self.stat = ppFactory.returnInstance('BasicStatistics')
     self.stat.what = ['NormalizedSensitivities'] # expected value calculation
 
@@ -159,7 +159,8 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().initialize(runInfo, inputs, initDict)
-    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.features), 'features':set(self.featureParameters),'prefix':'nsen'}]}
+    # self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.features), 'features':set(self.featureParameters),'prefix':'nsen'}]}
+    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[1] for x in self.features]), 'features':set([x.split("|")[1] for x in self.featureParameters]),'prefix':'nsen'}]}
     # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
     # fakeRunInfo = {'workingDir':'','stepName':''}
     self.stat.initialize(runInfo, inputs, initDict)#self.featureParameters, self.featureParameters, **kwargs
@@ -198,11 +199,12 @@ class Representativity(ValidationBase):
         else:
           pivotParameter = self.pivotParameter
     evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}#inputIn
-    if pivotParameter:
-      if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
-        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
-      if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = dataSets[0][pivotParameter]
+    # if pivotParameter:
+    #   # Uncomment this to cause crash: print(dataSets[0], pivotParameter)
+    #   if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+    #     self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
+    #   if pivotParameter not in evaluation:
+    #     evaluation[pivotParameter] = dataSets[0][pivotParameter]
     return evaluation
 
   def _evaluate(self, datasets, **kwargs):
@@ -213,19 +215,23 @@ class Representativity(ValidationBase):
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
     # self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
-    self.stat.run({"Data":[[None, None, datasets]]})
+    senMeasurables = self.stat.run({"Data":[[None, None, datasets[0]]]})
+    senFOMs = self.stat.run({"Data":[[None, None, datasets[1]]]})
+
+
     # for data in datasets:
     #   sen = self.stat.run(data)
     names = kwargs.get('dataobjectNames')
     outs = {}
-    for feat, targ, param, targParam in zip(self.features, self.targets, self.Parameters, self.targetParameters):
+    # for feat, targ, param, targParam in zip(self.features, self.targets, self.Parameters, self.targetParameters):
+    for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
       Parameters = self._getDataFromDatasets(datasets, param, names)
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
       # senFOMs = partialDerivative(featData.data,np.atleast_2d(Parameters.data)[0,:],'x1')
-      senFOMs = np.atleast_2d(Parameters[0])#.data
-      senMeasurables = np.atleast_2d(targetParameters[0])
+      # senFOMs = np.atleast_2d(Parameters[0])#.data
+      # senMeasurables = np.atleast_2d(targetParameters[0])
       covParameters = senFOMs @ senMeasurables.T
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
