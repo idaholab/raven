@@ -32,9 +32,13 @@ class EconomicRatio(BasicStatistics):
   """
     EconomicRatio filter class. It computes economic metrics
   """
+
+  # values from BasicStatistics
   scalarVals =   BasicStatistics.scalarVals
   vectorVals =   BasicStatistics.vectorVals
+  steVals    =   BasicStatistics.steVals
 
+  # economic/financial metrics
   tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
