@@ -73,61 +73,6 @@ class EconomicRatio(BasicStatistics):
     return inputSpecification
 
   # TODO: update if necessary
-  def inputToInternal(self, currentInp):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInp, object, an object that needs to be converted
-      @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
-    """
-    # The EconomicRatio postprocessor only accept DataObjects
-    currentInput = currentInp [-1] if type(currentInp) == list else currentInp
-    if len(currentInput) == 0:
-      self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-    pbWeights = None
-
-    if currentInput.type not in ['PointSet','HistorySet']:
-      self.raiseAnError(IOError, self, 'EconomicRatio postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
-    # extract all required data from input DataObjects, an input dataset is constructed
-    dataSet = currentInput.asDataset()
-    inputDataset = dataSet[self.parameters['targets']]
-    self.sampleTag = currentInput.sampleTag
-
-    if currentInput.type == 'HistorySet':
-      dims = inputDataset.sizes.keys()
-      if self.pivotParameter is None:
-        if len(dims) > 1:
-          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
-                got inputted!')
-      elif self.pivotParameter not in dims:
-        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
-                requested variables', ','.join(self.parameters['targets']))
-      else:
-        if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-          self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
-        self.pivotValue = inputDataset[self.pivotParameter].values
-        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
-          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
-          " PostProcessor to syncronize your data before running 'EconomicRatio' PostProcessor."
-          self.raiseAnError(IOError, msg)
-    # extract all required meta data
-    metaVars = currentInput.getVars('meta')
-    self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
-
-    if self.pbPresent:
-      pbWeights = xr.Dataset()
-      self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
-      for target in self.parameters['targets']:
-        pbName = 'ProbabilityWeight-' + target
-        if pbName in metaVars:
-          pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
-        elif self.pbPresent:
-          pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-    else:
-      self.raiseAWarning('EconomicRatio postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-    return inputDataset, pbWeights
-
-  # TODO: update if necessary
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the EconomicRatio pp. In here the working dir is
