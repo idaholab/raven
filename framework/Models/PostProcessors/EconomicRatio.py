@@ -72,7 +72,6 @@ class EconomicRatio(BasicStatistics):
 
     return inputSpecification
 
-  # TODO: update if necessary
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the EconomicRatio pp. In here the working dir is
@@ -82,25 +81,54 @@ class EconomicRatio(BasicStatistics):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    #construct a list of all the parameters that have requested values into self.allUsedParams
-    self.allUsedParams = set()
-    for metricName in self.scalarVals + self.tealVals:
+
+    # construct a list of all the parameters that have requested values from scalarVals
+    # and vectorVals into self.allUsedParams
+    super().initialize(runInfo, inputs, initDict)
+
+    # add a list of all the parameters that have requested values from tealVals into
+    # self.allUsedParams
+    for metricName in self.tealVals:
       if metricName in self.toDo.keys():
         for entry in self.toDo[metricName]:
-          self.allUsedParams.update(entry['targets'])
+          self.allUsedParams.update(entry["targets"])
+          try:
+            self.allUsedParams.update(entry["features"])
+          except KeyError:
+            pass
 
-    #for backward compatibility, compile the full list of parameters used in Economic Ratio calculations
-    self.parameters['targets'] = list(self.allUsedParams)
-    PostProcessorInterface.initialize(self, runInfo, inputs, initDict)
-    inputObj = inputs[-1] if type(inputs) == list else inputs
+    # for backward compatibility, compile the full list of parameters used in EconomicRatio calculations
+    self.parameters["targets"] = list(self.allUsedParams)
+    inputObj = inputs[-1]  if type(inputs) == list else inputs
+    if inputObj.type == "HistorySet":
+      self.dynamic = True
     inputMetaKeys = []
     outputMetaKeys = []
+    for metric, infos in self.toDo.items():
+      steMetric = metric + "_ste"
+      if steMetric in self.steVals:
+        for info in infos:
+          prefix = info["prefix"]
+          for target in info["targets"]:
+            metaVar = prefix + "_ste_" + target if not self.outputDataset else metric + "_ste"
+            metaDim = inputObj.getDimensions(target)
+            if len(metaDim[target]) == 0:
+              inputMetaKeys.append(metaVar)
+            else:
+              outputMetaKeys.append(metaVar)
     metaParams = {}
-    if len(outputMetaKeys) > 0:
-      metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
-
+    if not self.outputDataset:
+      if len(outputMetaKeys) > 0:
+        metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
+    else:
+      if len(outputMetaKeys) > 0:
+        params = {key:[self.pivotParameter, self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
+        metaParams.update(params)
+      elif len(inputMetaKeys) > 0:
+        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
-    self.addMetaKeys(metaKeys,metaParams)
+    self.addMetaKeys(metaKeys, metaParams)
 
   # TODO: update if necessary
   def _localReadMoreXML(self, xmlNode):
