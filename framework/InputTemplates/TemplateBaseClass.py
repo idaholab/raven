@@ -29,9 +29,10 @@ import copy
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(frameworkDir)
 from utils import xmlUtils
+from BaseClasses import MessageUser
 
 
-class Template(object):
+class Template(MessageUser):
   """
     Generic class for templating input files.
     Intended to be used to read a template, be given instructions on how to fill it,
@@ -61,12 +62,13 @@ class Template(object):
   ###############
   # API METHODS #
   ###############
-  def __init__(self):
+  def __init__(self, **kwargs):
     """
       Constructor.
       @ In, None
       @ Out, None
     """
+    super().__init__()
     self._template = None     # XML element with the root Simulation node of a RAVEN input
     # assure that the template path gives the location of the inheriting template, not the base class
     self._templatePath = os.path.dirname(os.path.normpath(sys.modules[self.__class__.__module__].__file__))
