@@ -290,10 +290,11 @@ class BasicStatistics(PostProcessorInterface):
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
 
-  def _handleInput(self, paramInput):
+  def _handleInput(self, paramInput, childVals=[]):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
+      @ In, childVals, list, quantities requested from child statistical object
       @ Out, None
     """
     self.toDo = {}
@@ -355,7 +356,8 @@ class BasicStatistics(PostProcessorInterface):
       elif tag == "multipleFeatures":
         self.multipleFeatures = child.value
       else:
-        self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
+        if tag not in childVals:
+          self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
 
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 

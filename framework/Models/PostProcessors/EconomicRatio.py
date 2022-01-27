@@ -130,7 +130,6 @@ class EconomicRatio(BasicStatistics):
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys, metaParams)
 
-  # TODO: update if necessary
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -142,88 +141,75 @@ class EconomicRatio(BasicStatistics):
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
-  # TODO: update if necessary
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.toDo = {}
+
+    # handle scalarVals and vectorVals from BasicStatistics
+    super()._handleInput(paramInput, childVals=self.tealVals)
+
+    # now handle tealVals
     for child in paramInput.subparts:
       tag = child.getName()
-      if tag in self.scalarVals + self.tealVals:
-        if 'prefix' not in child.parameterValues:
-          self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
-        #get the prefix
-        prefix = child.parameterValues['prefix']
-
       if tag in self.tealVals:
-        if tag in ['sortinoRatio', 'gainLossRatio']:
-          #get targets
+        if "prefix" not in child.parameterValues:
+          self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
+        # get the prefix
+        prefix = child.parameterValues["prefix"]
+        if tag in ["sortinoRatio", "gainLossRatio"]:
+          # get targets
+          targets = set(child.value)
+          # if targets are not specified by user
+          if len(targets) < 1:
+            self.raiseAWarning("No targets were specified in text of <"+tag+">!  Skipping metric...")
+            continue
+          if tag not in self.toDo.keys():
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
+          if "threshold" not in child.parameterValues:
+            threshold = "zero"
+          else:
+            threshold = child.parameterValues["threshold"].lower()
+            if threshold not in ["zero", "median"]:
+              self.raiseAWarning("Unrecognized threshold in {}, prefix '{}' use zero instead!".format(tag, prefix))
+              threshold = "zero"
+
+          if "expectedValue" not in self.toDo.keys():
+            self.toDo["expectedValue"] = []
+          if "median" not in self.toDo.keys():
+            self.toDo["median"] = []
+          self.toDo["expectedValue"].append({"targets": set(child.value), "prefix": "BSMean"})
+          self.toDo["median"].append({"targets": set(child.value), "prefix": "BSMED"})
+          self.toDo[tag].append({"targets": set(targets), "prefix": prefix, "threshold": threshold})
+        elif tag in ["expectedShortfall", "valueAtRisk"]:
+          # get targets
           targets = set(child.value)
           if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-          if 'threshold' not in child.parameterValues:
-            threshold = 'zero'
-          else:
-            threshold = child.parameterValues['threshold'].lower()
-            if threshold not in ['zero','median']:
-              self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
-              threshold = 'zero'
-
-          if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = []
-          if 'median' not in self.toDo.keys():
-            self.toDo['median'] = []
-          self.toDo['expectedValue'].append({'targets':set(child.value),
-                            'prefix':'BSMean'})
-          self.toDo['median'].append({'targets':set(child.value),
-                            'prefix':'BSMED'})
-          self.toDo[tag].append({'targets':set(targets),
-                                'prefix':prefix,
-                                'threshold':threshold})
-
-        elif tag in ['expectedShortfall', 'valueAtRisk']:
-          #get targets
-          targets = set(child.value)
-          if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-          if 'threshold' not in child.parameterValues:
-            threshold = 0.05
-          else:
-            threshold = child.parameterValues['threshold']
-            if threshold >1 or threshold <0:
-              self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
-
-          self.toDo[tag].append({'targets':set(targets),
-                                'prefix':prefix,
-                                'threshold':threshold})
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
+            if "threshold" not in child.parameterValues:
+              threshold = 0.05
+            else:
+              threshold = child.parameterValues["threshold"]
+              if threshold > 1 or threshold < 0:
+                self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
+            self.toDo[tag].append({"targets": set(targets), "prefix": prefix, "threshold": threshold})
         else:
           if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
-          if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = []
-          if 'sigma' not in self.toDo.keys():
-            self.toDo['sigma'] = []
-          self.toDo['expectedValue'].append({'targets':set(child.value),
-                               'prefix':'BSMean'})
-          self.toDo['sigma'].append({'targets':set(child.value),
-                               'prefix':'BSSigma'})
-          self.toDo[tag].append({'targets':set(child.value),
-                               'prefix':prefix})
-      elif tag in self.scalarVals:
-        if tag not in self.toDo.keys():
-          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
-        self.toDo[tag].append({'targets':set(child.value),
-                               'prefix':prefix})
-      elif tag == "pivotParameter":
-        self.pivotParameter = child.value
-
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
+          if "expectedValue" not in self.toDo.keys():
+            self.toDo["expectedValue"] = []
+          if "sigma" not in self.toDo.keys():
+            self.toDo["sigma"] = []
+          self.toDo["expectedValue"].append({"targets": set(child.value), "prefix": "BSMean"})
+          self.toDo["sigma"].append({"targets": set(child.value), "prefix": "BSSigma"})
+          self.todo[tag].append({"targets": set(child.value), "prefix": prefix})
       else:
-        self.raiseAWarning('Unrecognized node in EconomicRatio "',tag,'" has been ignored!')
+        if tag not in self.scalarVals + self.vectorVals:
+          self.raiseAWarning("Unrecognized node in EconomicRatio '" + tag + "' has been ignored!")
 
-    assert (len(self.toDo)>0), self.raiseAnError(IOError, 'EconomicRatio needs parameters to work on! Please check input for PP: ' + self.name)
+    assert(len(self.toDo) > 0), self.raiseAnError(IOError, "EconomicRatio needs parameters to work on! please check input for PP: " + self.name)
 
   # TODO: update if necessary
   def __computePower(self, p, dataset):
