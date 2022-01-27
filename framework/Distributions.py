@@ -1804,13 +1804,6 @@ class UniformDiscrete(Distribution):
                             is returned to $N$). In case the ``with replacement'' strategy is used, the distribution samples
                             always from the complete set of specified $N$ values.
                             """
-    lb = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, printPriority=109,
-    descr=r""" Lower bound of the set of allowed sample values. """)
-    specs.addSub(lb)
-
-    ub = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, printPriority=109,
-    descr=r""" Upper bound of the set of allowed sample values. """)
-    specs.addSub(ub)
 
     np = InputData.parameterInputFactory('nPoints', contentType=InputTypes.IntegerType, printPriority=109,
     descr=r""" Number of points between lower and upper bound. """)
@@ -2864,9 +2857,6 @@ class LogUniform(Distribution):
     inputSpecification = super(LogUniform, cls).getInputSpecification()
 
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["natural","decimal"])
-
-    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
 
     return inputSpecification
