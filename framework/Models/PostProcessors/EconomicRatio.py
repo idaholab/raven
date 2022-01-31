@@ -72,6 +72,10 @@ class EconomicRatio(BasicStatistics):
 
     return inputSpecification
 
+  def __init__(self):
+    super().__init__()
+    self.printTag = "PostProcessor ECONOMIC RATIO"
+
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the EconomicRatio pp. In here the working dir is
@@ -180,8 +184,14 @@ class EconomicRatio(BasicStatistics):
             self.toDo["expectedValue"] = []
           if "median" not in self.toDo.keys():
             self.toDo["median"] = []
-          self.toDo["expectedValue"].append({"targets": set(child.value), "prefix": "BSMean"})
-          self.toDo["median"].append({"targets": set(child.value), "prefix": "BSMED"})
+          # add any expectedValue targets that are missing
+          expectedValueToAdd = self._additionalTargetsToAdd("expectedValue", child.value)
+          if len(expectedValueToAdd) > 0:
+            self.toDo["expectedValue"].append({"targets": expectedValueToAdd, "prefix": "BSMean"})
+          # add any median targets that are missing
+          medianValueToAdd = self._additionalTargetsToAdd("median", child.value)
+          if len(medianValueToAdd) > 0:
+            self.toDo["median"].append({"targets": medianValueToAdd, "prefix": "BSMED"})
           self.toDo[tag].append({"targets": set(targets), "prefix": prefix, "threshold": threshold})
         elif tag in ["expectedShortfall", "valueAtRisk"]:
           # get targets
@@ -202,14 +212,45 @@ class EconomicRatio(BasicStatistics):
             self.toDo["expectedValue"] = []
           if "sigma" not in self.toDo.keys():
             self.toDo["sigma"] = []
-          self.toDo["expectedValue"].append({"targets": set(child.value), "prefix": "BSMean"})
-          self.toDo["sigma"].append({"targets": set(child.value), "prefix": "BSSigma"})
-          self.todo[tag].append({"targets": set(child.value), "prefix": prefix})
+          # add any expectedValue targets that are missing
+          expectedValueToAdd = self._additionalTargetsToAdd("expectedValue", child.value)
+          if len(expectedValueToAdd) > 0:
+            self.toDo["expectedValue"].append({"targets": expectedValueToAdd, "prefix": "BSMean"})
+          # add any sigma targets that are missing
+          sigmaToAdd = self._additionalTargetsToAdd("sigma", child.value)
+          if len(sigmaToAdd) > 0:
+            self.toDo["sigma"].append({"targets": sigmaToAdd, "prefix": "BSSigma"})
+          self.toDo[tag].append({"targets": set(child.value), "prefix": prefix})
       else:
         if tag not in self.scalarVals + self.vectorVals:
           self.raiseAWarning("Unrecognized node in EconomicRatio '" + tag + "' has been ignored!")
 
     assert(len(self.toDo) > 0), self.raiseAnError(IOError, "EconomicRatio needs parameters to work on! please check input for PP: " + self.name)
+
+  def _additionalTargetsToAdd(self, metric, childValue):
+    """
+      Some EconomicRatio metrics require additional metrics from BasicStatistics, find necessary additions
+      @ In, metric, str, name of metric
+      @ In, childValue, set, set of targets
+      @ Out, valsToAdd, set, set of targets to add to toDo
+    """
+
+    if len(self.toDo[metric]) > 0:
+      # check if metric should be added
+      vals = set() # currently collected
+      for tmp_dict in self.toDo[metric]:
+        if len(vals) == 0:
+          vals = set(tmp_dict["targets"])
+        else:
+          vals = vals.union(tmp_dict["targets"])
+      valsToAdd = set()
+      for val in childValue:
+        if val not in vals:
+          valsToAdd.add(val)
+    else:
+      valsToAdd = set(childValue)
+
+    return valsToAdd
 
   # TODO: update if necessary
   def __computePower(self, p, dataset):
@@ -505,11 +546,7 @@ class EconomicRatio(BasicStatistics):
       for targetDict in requestList:
         prefix = targetDict['prefix'].strip()
         for target in targetDict['targets']:
-          if metric in self.scalarVals:
-            varName = prefix + '_' + target
-            outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
-            steMetric = metric + '_ste'
-          elif metric in self.tealVals:
+          if metric in self.tealVals:
             varName = prefix + '_' + target
             if 'threshold' in targetDict.keys():
               try:
@@ -529,14 +566,25 @@ class EconomicRatio(BasicStatistics):
       outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
     return outputDict
 
-  # TODO: update if necessary
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
-    BasicStatistics.run(self,inputIn)
+    # get metrics from BasicStatistics
+    outputSetBasicStatistics = BasicStatistics.run(self, inputIn)
+
+    # get metrics from EconomicRatio
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
+
+    # combine results
+    if isinstance(outputSet, dict):
+      # returned dictionary
+      outputSet.update(outputSetBasicStatistics)
+    else:
+      # returned xarray.Dataset
+      outputSet = xr.merge([outputSet, outputSetBasicStatistics])
+
     return outputSet
