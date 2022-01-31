@@ -101,7 +101,7 @@ class SamplePlot(PlotInterface):
       self.plotScalar(ax, sampleIDs, values)
       ax.set_ylabel(var)
     axes[-1].set_xlabel('RAVEN Sample Number')
-    fig.align_ylabels(ax[:])
+    fig.align_ylabels(axes[:])
     plt.savefig(f'{self.name}.png')
 
   def plotScalar(self, ax, ids, vals):
