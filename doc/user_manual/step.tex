@@ -419,8 +419,8 @@ This step type is used to:
  trained to predict a response of interest of a physical system. These models can be
 recovered in other simulations or used to evaluate the response of a physical system
  in a Python program by the implementing of the Pickle module.
-  \item export a \textit{ROM} or  \textit{ExternalModel} to an external $FMI/FMU$  \textit{File} using the RAVEN native
-  $FMI/FMU$ exporting capability
+  \item export a \textit{ROM} or  \textit{ExternalModel} to an external \textit{FMI/FMU}  \textit{File} using the RAVEN native
+  \textit{FMI/FMU} exporting capability. Note that \textit{ExternalModels} must implement a \texttt{runStep} function for calculating the step when running as an \textit{FMU}.  This is choosen by \verb|type="FMU"| for the FMU file in the Files section of the input file.
 \end{itemize}
 
 %
@@ -548,7 +548,7 @@ A summary of the objects that can go from/to other objects is shown in Table \re
     ROM        & DataObject & Print ROM Metadata to CSV, XML \\
                & File       & Serialize ROM to Disk   \\ \hline
     ExternalModel     & File       & Serialize ExternalModel to Disk \\
-                                & File        & If $ext$ is $fmu$ ($myOut.fmu$) Serialize ExternalModel to FMU
+                                & File        & If \emph{type} is \texttt{fmu}, Serialize ExternalModel to FMU
   \end{tabular}
   \caption{Object options for \xmlNode{IOStep} operations}
   \label{tab:IOSTEP}
