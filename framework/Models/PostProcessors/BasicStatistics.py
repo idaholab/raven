@@ -361,7 +361,7 @@ class BasicStatistics(PostProcessorInterface):
 
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
-  def __computePower(self, p, dataset):
+  def _computePower(self, p, dataset):
     """
       Compute the p-th power of weights
       @ In, p, int, the power
@@ -385,7 +385,7 @@ class BasicStatistics(PostProcessorInterface):
       @ In, weights, xarray.Dataset, probability weights of all input variables
       @ Out, vp, xarray.Dataset, the sum of p-th power of weights
     """
-    vp = self.__computePower(p,weights)
+    vp = self._computePower(p,weights)
     vp = vp.sum()
     return vp
 
@@ -451,7 +451,7 @@ class BasicStatistics(PostProcessorInterface):
     """
     if dim is None:
       dim = self.sampleTag
-    vr = self.__computePower(2.0, variance)
+    vr = self._computePower(2.0, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
       vp = 1.0/self.__computeVp(1,pbWeight)
@@ -484,7 +484,7 @@ class BasicStatistics(PostProcessorInterface):
     """
     if dim is None:
       dim = self.sampleTag
-    vr = self.__computePower(1.5, variance)
+    vr = self._computePower(1.5, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
       vp = 1.0/self.__computeVp(1,pbWeight)
@@ -732,7 +732,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'sigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      sigmaDS = self._computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
       self.calculations[metric] = sigmaDS
       calculations[metric] = sigmaDS
     #
@@ -808,7 +808,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'lowerPartialSigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      lpsDS = self.__computePower(0.5,calculations['lowerPartialVariance'][list(needed[metric]['targets'])])
+      lpsDS = self._computePower(0.5,calculations['lowerPartialVariance'][list(needed[metric]['targets'])])
       calculations[metric] = lpsDS
     #
     # higherPartialVariance
@@ -828,7 +828,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'higherPartialSigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      hpsDS = self.__computePower(0.5,calculations['higherPartialVariance'][list(needed[metric]['targets'])])
+      hpsDS = self._computePower(0.5,calculations['higherPartialVariance'][list(needed[metric]['targets'])])
       calculations[metric] = hpsDS
 
     ############################################################
@@ -838,7 +838,7 @@ class BasicStatistics(PostProcessorInterface):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting calculate standard error on"'+metric+'"...')
       if self.pbPresent:
-        factor = self.__computePower(0.5,calculations['equivalentSamples'])
+        factor = self._computePower(0.5,calculations['equivalentSamples'])
       else:
         factor = np.sqrt(self.sampleSize)
       calculations[metric+'_ste'] = calculations['sigma'][list(needed[metric]['targets'])]/factor
@@ -850,7 +850,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 2.0 /(en - 1.0)
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
       else:
         factor = np.sqrt(2.0/(float(self.sampleSize) - 1.0))
       calculations[metric+'_ste'] = calculations['sigma'][varList]**2 * factor
@@ -862,7 +862,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 2.0 * (en - 1.0)
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
       else:
         factor = np.sqrt(2.0 * (float(self.sampleSize) - 1.0))
       calculations[metric+'_ste'] = calculations['sigma'][varList] / factor
@@ -880,7 +880,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.))
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
         calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:
         en = float(self.sampleSize)
@@ -893,8 +893,8 @@ class BasicStatistics(PostProcessorInterface):
       varList = list(needed[metric]['targets'])
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
-        factor1 = self.__computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
-        factor2 = self.__computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
+        factor1 = self._computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
+        factor2 = self._computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
         factor = 2.0 * factor1 * factor2
         calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:

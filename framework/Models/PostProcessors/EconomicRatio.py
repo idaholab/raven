@@ -252,25 +252,6 @@ class EconomicRatio(BasicStatistics):
 
     return valsToAdd
 
-  # TODO: update if necessary
-  def __computePower(self, p, dataset):
-    """
-      Compute the p-th power of weights
-      @ In, p, int, the power
-      @ In, dataset, xarray.Dataset, probability weights of all input variables
-      @ Out, pw, xarray.Dataset, the p-th power of weights
-    """
-    pw = {}
-    coords = dataset.coords
-    for target, targValue in dataset.variables.items():
-      ##remove index variable
-      if target in coords:
-        continue
-      pw[target] = np.power(targValue,p)
-    pw = xr.Dataset(data_vars=pw,coords=coords)
-    return pw
-
-  # TODO: update if necessary
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
       Method to compute the sorted weights and points
@@ -449,7 +430,7 @@ class EconomicRatio(BasicStatistics):
           zeroSet = orgZeroSet[list(zeroTarget)]
           dataSet = inputDataset[list(zeroTarget)]
           lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,zeroSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
           incapableZeroTarget = [x for x in zeroTarget if not lpsDS[x].values != 0]
           for target in incapableZeroTarget:
             needed[metric]['threshold'][target].remove('zero')
@@ -464,7 +445,7 @@ class EconomicRatio(BasicStatistics):
           medSet = orgMedSet[list(medTarget)]
           dataSet = inputDataset[list(medTarget)]
           lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
           incapableMedTarget = [x for x in medTarget if not lpsDS[x].values != 0]
           medTarget = [x for x in medTarget if not lpsDS[x].values == 0]
           if incapableMedTarget:
@@ -494,7 +475,6 @@ class EconomicRatio(BasicStatistics):
           zeroSet = orgZeroSet[list(zeroTarget)]
           dataSet = inputDataset[list(zeroTarget)]
 
-
           higherSet = (dataSet-zeroSet).clip(min=0)
           lowerSet = (zeroSet-dataSet).clip(min=0)
           relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
@@ -516,13 +496,11 @@ class EconomicRatio(BasicStatistics):
           medSet = orgMedSet[list(medTarget)]
           dataSet = inputDataset[list(medTarget)]
 
-
           higherSet = (dataSet-medSet).clip(min=0)
           lowerSet = (medSet-dataSet).clip(min=0)
           relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
           higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
           lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
-
 
           incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
           medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
@@ -533,7 +511,6 @@ class EconomicRatio(BasicStatistics):
           daMed = daMed.assign_coords(threshold ='median')
           daMed = daMed.expand_dims('threshold')
       calculations[metric] = xr.merge([daMed, daZero])
-
 
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.tealVals +['equivalentSamples'] and metric !='samples':
@@ -562,6 +539,7 @@ class EconomicRatio(BasicStatistics):
               continue
     if self.pivotParameter in outputSet.sizes.keys():
       outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+
     return outputDict
 
   def run(self, inputIn):
