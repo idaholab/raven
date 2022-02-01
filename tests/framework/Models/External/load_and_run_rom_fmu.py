@@ -15,10 +15,11 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
   # define the model name and simulation parameters
 
   start_time = 0.0
-  stop_time = 3.0
+  stop_time = 4.0
   step_size = 1.
   # set inputs
-  y1,y2 = [1,2,3], [1,2,3]
+  y1 = [0.0, 0.0, 1.0, 1.0]
+  y2 = [0.0, 1.0, 0.0, 1.0]
 
   # read the model description
   model_description = read_model_description(fmuFilename)

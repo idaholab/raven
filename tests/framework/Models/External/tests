@@ -25,6 +25,21 @@
   prereq = fmu_ext_model
   required_libraries = 'fmpy'
  [../]
+ [./fmu_rom]
+  type = 'RavenFramework'
+  input = 'fmu_rom_export.xml'
+  output = 'FMURom/rom_out.fmu'
+ [../]
+ [./loadFMU_ROM]
+  type = 'RavenPython'
+  input = 'load_and_run_rom_fmu.py'
+  [./output_check]
+    type = NumericText
+    output = 'OUT_ROM.out'
+  [../]
+  prereq = fmu_rom
+  required_libraries = 'fmpy'
+ [../]
 []
 
 
