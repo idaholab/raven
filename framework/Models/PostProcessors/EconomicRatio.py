@@ -287,7 +287,6 @@ class EconomicRatio(BasicStatistics):
     indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
     return sortedWeightsAndPoints, indexL
 
-  # TODO: update if necessary
   def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -303,6 +302,9 @@ class EconomicRatio(BasicStatistics):
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
     needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
+      if metric in self.vectorVals:
+        # vectorVals handled in BasicStatistics, not here
+        continue
       for entry in params:
         needed[metric]['targets'].update(entry['targets'])
         if 'threshold' in entry.keys() :
@@ -329,9 +331,6 @@ class EconomicRatio(BasicStatistics):
     # sortinoRatio needs           | expectedValue,median   |
     # gainLossRatio needs          | expectedValue,median   |
 
-
-
-
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
     needed['expectedValue']['targets'].update(needed['variance']['targets'])
@@ -343,7 +342,6 @@ class EconomicRatio(BasicStatistics):
     needed['variance']['targets'].update(needed['sigma']['targets'])
     needed['median']['targets'].update(needed['sortinoRatio']['targets'])
     needed['median']['targets'].update(needed['gainLossRatio']['targets'])
-
 
     for metric, params in needed.items():
       needed[metric]['targets'] = list(params['targets'])
