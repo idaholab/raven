@@ -121,7 +121,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
-          if 'FMU' in outputs[i].getType().upper():
+          if 'FMU' == outputs[i].getType().upper():
             self.actionType.append('MODEL-FMU')
           else:
             self.actionType.append('MODEL-FILES')
