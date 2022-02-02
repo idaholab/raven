@@ -213,7 +213,19 @@ class EconomicRatio(BasicStatistics):
               threshold = child.parameterValues["threshold"]
               if threshold > 1 or threshold < 0:
                 self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
-            self.toDo[tag].append({"targets": set(targets), "prefix": prefix, "threshold": threshold})
+            # cast threshold to set
+            try:
+              thresholdSet = set(threshold)
+            except TypeError:
+              # not iterable, must be float or int
+              thresholdSet = set([threshold])
+            strThreshold = set()
+            for val in thresholdSet:
+              strThreshold.add(str(val))
+            self.toDo[tag].append({"targets": set(targets),
+                                   "prefix": prefix,
+                                   "threshold": thresholdSet,
+                                   "strThreshold": strThreshold})
         else:
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
@@ -235,6 +247,7 @@ class EconomicRatio(BasicStatistics):
           self.raiseAWarning("Unrecognized node in EconomicRatio '" + tag + "' has been ignored!")
 
     assert(len(self.toDo) > 0), self.raiseAnError(IOError, "EconomicRatio needs parameters to work on! please check input for PP: " + self.name)
+    print("self.toDo: {}".format(self.toDo))
 
   def _additionalTargetsToAdd(self, metric, childValue):
     """
@@ -290,7 +303,7 @@ class EconomicRatio(BasicStatistics):
     #construct a dict of required computations
     needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.tealVals)
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
-    needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['valueAtRisk', 'expectedShortfall']))
+    needed.update(dict((metric,{'targets':set(),'threshold':set()}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
       if metric in self.vectorVals:
         # vectorVals handled in BasicStatistics, not here
@@ -309,8 +322,8 @@ class EconomicRatio(BasicStatistics):
           else:
             thd = entry['threshold']
             if thd not in needed[metric]['threshold']:
-              needed[metric]['threshold'].append(thd)
-          pass
+              needed[metric]['threshold'].update(thd)
+
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # median needs                 |                        | sortinoRatio, gainLossRatio
@@ -362,7 +375,7 @@ class EconomicRatio(BasicStatistics):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
-      threshold = needed[metric]['threshold']
+      threshold = list(needed[metric]['threshold'])
       VaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
       targWarn = "" # targets that return negative VaR for warning
@@ -394,7 +407,7 @@ class EconomicRatio(BasicStatistics):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
-      threshold = needed[metric]['threshold']
+      threshold = list(needed[metric]['threshold'])
       CVaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
       for target in needed[metric]['targets']:
@@ -531,13 +544,22 @@ class EconomicRatio(BasicStatistics):
         prefix = targetDict['prefix'].strip()
         for target in targetDict['targets']:
           if metric in self.tealVals:
-            varName = prefix + '_' + target
-            if 'threshold' in targetDict.keys():
-              try:
-                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
-              except KeyError:
-                outputDict[varName] = np.nan
+            if metric in ['sortinoRatio','gainLossRatio']:
+              varName = prefix + '_' + targetDict['threshold'] + '_' + target
+              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
+            elif metric in ['valueAtRisk','expectedShortfall']:
+              for thd in targetDict['strThreshold']:
+                varName = '_'.join([prefix,thd,target])
+                thdVal = float(thd)
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thdVal}))
+            # varName = prefix + '_' + target
+            # if 'threshold' in targetDict.keys():
+            #   try:
+            #     outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
+            #   except KeyError:
+            #     outputDict[varName] = np.nan
             else:
+              varName = prefix + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
             steMetric = metric + '_ste'
           else:
