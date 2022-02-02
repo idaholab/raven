@@ -114,12 +114,21 @@ class EconomicRatio(BasicStatistics):
         for info in infos:
           prefix = info["prefix"]
           for target in info["targets"]:
-            metaVar = prefix + "_ste_" + target if not self.outputDataset else metric + "_ste"
-            metaDim = inputObj.getDimensions(target)
-            if len(metaDim[target]) == 0:
-              inputMetaKeys.append(metaVar)
+            if metric == 'percentile':
+              for strPercent in info['strPercent']:
+                metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+                metaDim = inputObj.getDimensions(target)
+                if len(metaDim[target]) == 0:
+                  inputMetaKeys.append(metaVar)
+                else:
+                  outputMetaKeys.append(metaVar)
             else:
-              outputMetaKeys.append(metaVar)
+              metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+              metaDim = inputObj.getDimensions(target)
+              if len(metaDim[target]) == 0:
+                inputMetaKeys.append(metaVar)
+              else:
+                outputMetaKeys.append(metaVar)
     metaParams = {}
     if not self.outputDataset:
       if len(outputMetaKeys) > 0:

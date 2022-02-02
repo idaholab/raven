@@ -23,7 +23,7 @@ import copy
 from collections import OrderedDict, defaultdict
 import six
 import xarray as xr
-
+import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -67,7 +67,8 @@ class BasicStatistics(PostProcessorInterface):
                 'variance_ste',
                 'sigma_ste',
                 'skewness_ste',
-                'kurtosis_ste']
+                'kurtosis_ste',
+                'percentile_ste']
 
   @classmethod
   def getInputSpecification(cls):
@@ -270,12 +271,21 @@ class BasicStatistics(PostProcessorInterface):
         for info in infos:
           prefix = info['prefix']
           for target in info['targets']:
-            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-            metaDim = inputObj.getDimensions(target)
-            if len(metaDim[target]) == 0:
-              inputMetaKeys.append(metaVar)
+            if metric == 'percentile':
+              for strPercent in info['strPercent']:
+                metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+                metaDim = inputObj.getDimensions(target)
+                if len(metaDim[target]) == 0:
+                  inputMetaKeys.append(metaVar)
+                else:
+                  outputMetaKeys.append(metaVar)
             else:
-              outputMetaKeys.append(metaVar)
+              metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+              metaDim = inputObj.getDimensions(target)
+              if len(metaDim[target]) == 0:
+                inputMetaKeys.append(metaVar)
+              else:
+                outputMetaKeys.append(metaVar)
     metaParams = {}
     if not self.outputDataset:
       if len(outputMetaKeys) > 0:
@@ -591,7 +601,6 @@ class BasicStatistics(PostProcessorInterface):
     except IndexError:
       result = sortedWeightsAndPoints[indexL,1]
     return result
-
 
   def __runLocal(self, inputData):
     """
@@ -959,6 +968,40 @@ class BasicStatistics(PostProcessorInterface):
         percentileSet = percentileSet.rename({'quantile':'percent'})
       calculations[metric] = percentileSet
 
+      # because percentile is different, calculate standard error here
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      percentileSteSet = xr.Dataset()
+      calculatedPercentiles = calculations[metric]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        en = targWeight.sum()**2/np.sum(targWeight**2)
+        targDa = dataSet[target]
+        if self.pivotParameter in targDa.sizes.keys():
+          # get KDEs
+          kdes = []
+          for label, group in targDa.groupby(self.pivotParameter):
+            kdes.append(stats.gaussian_kde(group.values, weights=targWeight))
+          percentileSte = []
+          ind = 0
+          vals = calculatedPercentiles[target].values
+          for pct in percent:
+            factor = np.sqrt(pct*(1.0 - pct)/en)
+            for kde in kdes:
+              percentileSte.append(factor/kde(vals[ind]))
+              ind += 1
+          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter), coords={'percent': percent, self.pivotParameter: self.pivotValue})
+          percentileSteSet[target] = da
+        else:
+          # get KDE
+          kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+          factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
+          calcPercentiles = calculatedPercentiles[target]
+          percentileSte = list(factor/kde(calcPercentiles.values))
+          da = xr.DataArray(percentileSte, dims=('percent'), coords={'percent': percent})
+          percentileSteSet[target] = da
+      calculations[metric+'_ste'] = percentileSteSet
+
     def startVector(metric):
       """
         Common method among all metrics for establishing parameters
@@ -1200,6 +1243,10 @@ class BasicStatistics(PostProcessorInterface):
                 varName = '_'.join([prefix,percent,target])
                 percentVal = float(percent)/100.
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
+                steMetric = metric + '_ste'
+                if steMetric in self.steVals:
+                  metaVar = '_'.join([prefix,percent,'ste',target])
+                  outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'percent':percentVal}))
             else:
               #check if it was skipped for some reason
               skip = self.skipped.get(metric, None)
