@@ -92,7 +92,7 @@ class NDspline(NDinterpolatorRom):
     super().initializeFromDict(inputDict)
     self.setInterpolator()
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples. This is a specialization of the
       Spline Interpolator (since it will create a Cartesian Grid in case

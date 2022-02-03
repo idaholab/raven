@@ -163,7 +163,7 @@ class pickledROM(SupervisedLearning):
     """
     self.raiseAnError(RuntimeError, 'PickledROM has not been loaded from file yet!  An IO step is required to perform this action.')
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Trains ROM.
       @ In, featureVals, np.ndarray, feature values

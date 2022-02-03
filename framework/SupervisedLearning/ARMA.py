@@ -534,7 +534,7 @@ class ARMA(SupervisedLearning):
     if myNode:
       self.setMulticycleParams(myNode)
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
 

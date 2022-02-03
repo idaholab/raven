@@ -49,6 +49,19 @@ class ScikitLearnBase(SupervisedLearning):
     self.settings = None
     self.model = None
     self.multioutputWrapper = True
+  
+  @property
+  def feature_importances_(self):
+    coefs = None
+    if hasattr(self.model, 'estimator'):
+      model = self.model.estimator
+    else:
+      model = self.model
+    if hasattr(model, 'feature_importances_'):
+      coefs = model.feature_importances_
+    elif hasattr(model, 'coef_'):
+      coefs = model.coef_
+    return coefs
 
   def updateSettings(self, settings):
     """
@@ -86,7 +99,7 @@ class ScikitLearnBase(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.

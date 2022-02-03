@@ -172,7 +172,7 @@ class DMDC(DMD):
     # check if there are parameters
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
       @ In, featureVals, numpy.ndarray, shape=[n_samples,n_timeStep, n_dimensions], an array of input data # Not use for ARMA training

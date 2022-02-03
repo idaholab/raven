@@ -34,6 +34,7 @@ import numpy as np
 from utils import utils, mathUtils, xmlUtils
 from utils import InputTypes, InputData
 from BaseClasses import BaseInterface
+from .FeatureSelection import RFE
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):
@@ -69,6 +70,13 @@ class SupervisedLearning(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
         descr=r"""If a time-dependent ROM is requested, please specifies the pivot
         variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
+    #feature selection
+    featSelection = InputTypes.makeEnumType("featureSelectionAlgorithm","featureSelectionType",["RFE"])
+    spec.addSub(InputData.parameterInputFactory('featureSelectionAlgorithm',contentType=featSelection,
+        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=None))
+    spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
+        descr=r"""Use PCA dimensionality reduction for the feature space?""", default=False))
+        
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
         ``CrossValidation``.""")
@@ -125,6 +133,8 @@ class SupervisedLearning(BaseInterface):
     self.amITrained = False        # "True" if the ROM is alread trained
     self._dynamicHandling = False  # time-like dependence in the model?
     self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
+    self.featureSelectionAlgo = None
+    self.performPCA = False
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
@@ -140,11 +150,13 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','featureSelectionAlgorithm','performPCA'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
     self.pivotID = nodes['pivotParameter']
+    self.featureSelectionAlgo = nodes['featureSelectionAlgorithm']
+    self.performPCA = nodes['performPCA']
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
@@ -158,6 +170,8 @@ class SupervisedLearning(BaseInterface):
     """
     self.features = inputDict.get('Features', None)
     self.target = inputDict.get('Target', None)
+    self.featureSelectionAlgo = inputDict.get('featureSelectionAlgorithm', None)
+    self.performPCA = inputDict.get('performPCA', False)
     self.verbosity = inputDict.get('verbosity', None)
 
   def __getstate__(self):
@@ -176,10 +190,6 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     self.__dict__.update(d)
-    #FIXME: REMOVE THIS ONCE HERON GETS UPDATED WITH
-    #FIXME: NEW PICKLED ROMS
-    if 'dynamicFeatures' not in d:
-      self.dynamicFeatures = False
 
   def setEstimator(self, estimator):
     """
@@ -207,6 +217,10 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     pass
+
+  @property
+  def feature_importances_(self):
+    return np.ones(len(self.features))
 
   def train(self, tdict, indexMap=None):
     """
@@ -266,8 +280,11 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-
-    self.__trainLocal__(featureValues,targetValues)
+    if self.featureSelectionAlgo == 'RFE':
+      featureSelector = RFE.RFE(self)
+      featureSelector.train(featureValues,targetValues)
+      newFeatures = featureSelector.features
+    self._train(featureValues,targetValues)
     self.amITrained = True
 
   def _localNormalizeData(self,values,names,feat):
@@ -525,7 +542,7 @@ class SupervisedLearning(BaseInterface):
   ### END ROM Clustering ###
 
   @abc.abstractmethod
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
