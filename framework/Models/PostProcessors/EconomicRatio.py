@@ -74,6 +74,11 @@ class EconomicRatio(BasicStatistics):
     return inputSpecification
 
   def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
     super().__init__()
     self.printTag = "PostProcessor ECONOMIC RATIO"
 
