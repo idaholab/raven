@@ -53,7 +53,7 @@ class BasicStatistics(PostProcessorInterface):
                 'higherPartialVariance',   # Statistic metric not available yet
                 'higherPartialSigma',      # Statistic metric not available yet
                 'lowerPartialSigma',       # Statistic metric not available yet
-                'lowerPartialVariance'    # Statistic metric not available yet
+                'lowerPartialVariance'     # Statistic metric not available yet
                 ]
   vectorVals = ['sensitivity',
                 'covariance',
@@ -266,26 +266,27 @@ class BasicStatistics(PostProcessorInterface):
     inputMetaKeys = []
     outputMetaKeys = []
     for metric, infos in self.toDo.items():
-      steMetric = metric + '_ste'
-      if steMetric in self.steVals:
-        for info in infos:
-          prefix = info['prefix']
-          for target in info['targets']:
-            if metric == 'percentile':
-              for strPercent in info['strPercent']:
-                metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+      if metric in self.scalarVals + self.vectorVals:
+        steMetric = metric + '_ste'
+        if steMetric in self.steVals:
+          for info in infos:
+            prefix = info['prefix']
+            for target in info['targets']:
+              if metric == 'percentile':
+                for strPercent in info['strPercent']:
+                  metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+                  metaDim = inputObj.getDimensions(target)
+                  if len(metaDim[target]) == 0:
+                    inputMetaKeys.append(metaVar)
+                  else:
+                    outputMetaKeys.append(metaVar)
+              else:
+                metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
                 metaDim = inputObj.getDimensions(target)
                 if len(metaDim[target]) == 0:
                   inputMetaKeys.append(metaVar)
                 else:
                   outputMetaKeys.append(metaVar)
-            else:
-              metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-              metaDim = inputObj.getDimensions(target)
-              if len(metaDim[target]) == 0:
-                inputMetaKeys.append(metaVar)
-              else:
-                outputMetaKeys.append(metaVar)
     metaParams = {}
     if not self.outputDataset:
       if len(outputMetaKeys) > 0:
@@ -304,7 +305,7 @@ class BasicStatistics(PostProcessorInterface):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
-      @ In, childVals, list, quantities requested from child statistical object
+      @ In, childVals, list, optional, quantities requested from child statistical object
       @ Out, None
     """
     self.toDo = {}

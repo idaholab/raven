@@ -19,6 +19,7 @@ Created on Aug 4, 2020
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xarray as xr
+import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -36,7 +37,7 @@ class EconomicRatio(BasicStatistics):
   # values from BasicStatistics
   scalarVals =   BasicStatistics.scalarVals
   vectorVals =   BasicStatistics.vectorVals
-  steVals    =   BasicStatistics.steVals
+  steVals    =   BasicStatistics.steVals + ['valueAtRisk_ste']
 
   # economic/financial metrics
   tealVals   = ['sharpeRatio',             #financial metric
@@ -109,26 +110,27 @@ class EconomicRatio(BasicStatistics):
     inputMetaKeys = []
     outputMetaKeys = []
     for metric, infos in self.toDo.items():
-      steMetric = metric + "_ste"
-      if steMetric in self.steVals:
-        for info in infos:
-          prefix = info["prefix"]
-          for target in info["targets"]:
-            if metric == 'percentile':
-              for strPercent in info['strPercent']:
-                metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+      if metric in self.tealVals:
+        steMetric = metric + "_ste"
+        if steMetric in self.steVals:
+          for info in infos:
+            prefix = info["prefix"]
+            for target in info["targets"]:
+              if metric == 'valueAtRisk':
+                for strThreshold in info['strThreshold']:
+                  metaVar = prefix + '_' + strThreshold + '_ste_' + target if not self.outputDataset else metric + '_' + strThreshold + '_ste'
+                  metaDim = inputObj.getDimensions(target)
+                  if len(metaDim[target]) == 0:
+                    inputMetaKeys.append(metaVar)
+                  else:
+                    outputMetaKeys.append(metaVar)
+              else:
+                metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
                 metaDim = inputObj.getDimensions(target)
                 if len(metaDim[target]) == 0:
                   inputMetaKeys.append(metaVar)
                 else:
                   outputMetaKeys.append(metaVar)
-            else:
-              metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-              metaDim = inputObj.getDimensions(target)
-              if len(metaDim[target]) == 0:
-                inputMetaKeys.append(metaVar)
-              else:
-                outputMetaKeys.append(metaVar)
     metaParams = {}
     if not self.outputDataset:
       if len(outputMetaKeys) > 0:
@@ -247,7 +249,6 @@ class EconomicRatio(BasicStatistics):
           self.raiseAWarning("Unrecognized node in EconomicRatio '" + tag + "' has been ignored!")
 
     assert(len(self.toDo) > 0), self.raiseAnError(IOError, "EconomicRatio needs parameters to work on! please check input for PP: " + self.name)
-    print("self.toDo: {}".format(self.toDo))
 
   def _additionalTargetsToAdd(self, metric, childValue):
     """
@@ -400,6 +401,40 @@ class EconomicRatio(BasicStatistics):
       if len(targWarn) > 0:
         self.raiseAWarning("At least one negative VaR value calculated for target(s) {}. Negative VaR implies high probability of profit.".format(targWarn[:-2]))
       calculations[metric] = VaRSet
+
+      # calculate value at risk standard error here
+      self.raiseADebug('Starting "'+metric+'" standard error...')
+      VaRSteSet = xr.Dataset()
+      calculatedVaR = calculations[metric]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        en = targWeight.sum()**2/np.sum(targWeight**2)
+        targDa = dataSet[target]
+        if self.pivotParameter in targDa.sizes.keys():
+          # get KDEs
+          kdes = []
+          for _, group in targDa.groupby(self.pivotParameter):
+            kdes.append(stats.gaussian_kde(group.values, weights=targWeight))
+          VaRSte = []
+          ind = 0
+          vals = calculatedVaR[target].values
+          for thd in threshold:
+            factor = np.sqrt(thd*(1.0 - thd)/en)
+            for kde in kdes:
+              VaRSte.append(factor/kde(-vals[ind]))
+              ind += 1
+          da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter), coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
+          VaRSteSet[target] = da
+        else:
+          # get KDE
+          kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+          factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
+          calcVaR = calculatedVaR[target]
+          VaRSte = list(factor/kde(calcVaR.values))
+          da = xr.DataArray(VaRSte, dims=('threshold'), coords={'threshold': threshold})
+          VaRSteSet[target] = da
+      calculations[metric+'_ste'] = VaRSteSet
     #
     # ExpectedShortfall
     #
@@ -535,7 +570,7 @@ class EconomicRatio(BasicStatistics):
       calculations[metric] = xr.merge([daMed, daZero])
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.tealVals +['equivalentSamples'] and metric !='samples':
+      if metric in self.scalarVals + self.steVals + self.tealVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
     outputDict = {}
@@ -552,16 +587,13 @@ class EconomicRatio(BasicStatistics):
                 varName = '_'.join([prefix,thd,target])
                 thdVal = float(thd)
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thdVal}))
-            # varName = prefix + '_' + target
-            # if 'threshold' in targetDict.keys():
-            #   try:
-            #     outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
-            #   except KeyError:
-            #     outputDict[varName] = np.nan
+                steMetric = metric + '_ste'
+                if steMetric in self.steVals:
+                  metaVar = '_'.join([prefix,thd,'ste',target])
+                  outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'threshold':thdVal}))
             else:
               varName = prefix + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
-            steMetric = metric + '_ste'
           else:
             #check if it was skipped for some reason
             skip = self.skipped.get(metric, None)
