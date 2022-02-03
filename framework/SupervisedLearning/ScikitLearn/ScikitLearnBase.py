@@ -51,16 +51,30 @@ class ScikitLearnBase(SupervisedLearning):
     self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
                                    # the self.model can handle multioutput/multi-targets prediction
   @property
-  def feature_importances_(self):
+  def featureImportances_(self):
     coefs = None
-    if hasattr(self.model, 'estimator'):
-      model = self.model.estimator
+    if hasattr(self.model, 'estimators_'):
+      model = self.model.estimators_
     else:
       model = self.model
-    if hasattr(model, 'feature_importances_'):
-      coefs = model.feature_importances_
-    elif hasattr(model, 'coef_'):
-      coefs = model.coef_
+    if isinstance(model, list):
+      cc = None
+      for m in model:
+        if hasattr(m, 'feature_importances_'):
+          coefs = m.feature_importances_
+        elif hasattr(m, 'coef_'):
+          coefs = m.coef_    
+        if cc is None:
+          cc = np.zeros(coefs.shape)
+        cc[:]+=coefs[:]
+      cc/=float(len(model))
+      coefs = cc
+    else:
+      
+      if hasattr(model, 'feature_importances_'):
+        coefs = model.feature_importances_
+      elif hasattr(model, 'coef_'):
+        coefs = model.coef_
     return coefs
 
   def updateSettings(self, settings):

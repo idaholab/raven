@@ -404,13 +404,13 @@ class DMDC(DMD):
     # Find the truncation rank triggered by "s>=SminValue"
     rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
-        uTruc = uTrucSVD[:, :rankTruc]
-        vTruc = vTrucSVD[:, :rankTruc]
-        sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
+      uTruc = uTrucSVD[:, :rankTruc]
+      vTruc = vTrucSVD[:, :rankTruc]
+      sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
     else:
-        uTruc = uTrucSVD
-        vTruc = vTrucSVD
-        sTruc = np.diag(sTrucSVD)
+      uTruc = uTrucSVD
+      vTruc = vTrucSVD
+      sTruc = np.diag(sTrucSVD)
 
     # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
     qsTruc, rsTruc = np.linalg.qr(sTruc)

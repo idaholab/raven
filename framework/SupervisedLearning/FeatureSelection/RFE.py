@@ -175,13 +175,14 @@ class RFE(BaseType):
       print("Fitting estimator with %d features." % np.sum(support_))
 
       estimator._train(X[:, features], y)
-
+      coefs = None
       # Get coefs
-      if hasattr(estimator, 'feature_importances_'):
-        coefs = estimator.feature_importances_
-      else:
+      estimator.featureImportances_
+      if hasattr(estimator, 'featureImportances_'):
+        coefs = np.abs(estimator.featureImportances_)
+      if coefs is None:
         coefs = np.ones(nFeatures)
-
+      
       # Get ranks
       if coefs.ndim > 1:
         ranks = np.argsort(np.sqrt(coefs).sum(axis=0))
@@ -197,21 +198,21 @@ class RFE(BaseType):
       # Compute step score on the previous selection iteration
       # because 'estimator' must use features
       # that have not been eliminated yet
-      if step_score:
-        self.scores_.append(step_score(estimator, features))
+      #if step_score:
+      #  self.scores_.append(step_score(estimator, features))
       support_[features[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
 
     # Set final attributes
     features = np.arange(nFeatures)[support_]
     self.estimator_ = copy.deepcopy(self.estimator)
-    self.estimator_.fit(X[:, features], y)
+    self.estimator_._train(X[:, features], y)
 
     # Compute step score when only nFeaturesToSelect features left
-    if step_score:
-      self.scores_.append(step_score(self.estimator_, features))
+    #if step_score:
+    #  self.scores_.append(step_score(self.estimator_, features))
     self.nFeatures_ = support_.sum()
     self.support_ = support_
     self.ranking_ = ranking_
 
-    return self
+    return features, support_

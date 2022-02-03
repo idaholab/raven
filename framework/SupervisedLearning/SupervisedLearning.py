@@ -74,6 +74,11 @@ class SupervisedLearning(BaseInterface):
     featSelection = InputTypes.makeEnumType("featureSelectionAlgorithm","featureSelectionType",["RFE"])
     spec.addSub(InputData.parameterInputFactory('featureSelectionAlgorithm',contentType=featSelection,
         descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=None))
+    spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
+        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=None))
+    spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
+        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=1.0))
+
     spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
         descr=r"""Use PCA dimensionality reduction for the feature space?""", default=False))
         
@@ -150,13 +155,15 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','featureSelectionAlgorithm','performPCA'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','featureSelectionAlgorithm','performPCA','step','nFeaturesToSelect'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
     self.pivotID = nodes['pivotParameter']
     self.featureSelectionAlgo = nodes['featureSelectionAlgorithm']
     self.performPCA = nodes['performPCA']
+    self.step = nodes['step']
+    self.nFeaturesToSelect = nodes['nFeaturesToSelect']    
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
@@ -281,9 +288,12 @@ class SupervisedLearning(BaseInterface):
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     if self.featureSelectionAlgo == 'RFE':
-      featureSelector = RFE.RFE(self)
-      featureSelector.train(featureValues,targetValues)
-      newFeatures = featureSelector.features
+      featureSelector = RFE.RFE(self,self.nFeaturesToSelect, self.step)
+      newFeatures, support = featureSelector.train(featureValues,targetValues)
+      if self.dynamicFeatures:
+        featureValues = featureValues[:,:,support]
+      else:
+        featureValues = featureValues[:,support] 
     self._train(featureValues,targetValues)
     self.amITrained = True
 
