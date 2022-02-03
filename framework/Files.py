@@ -166,14 +166,6 @@ class File(BaseEntity):
     """
     return self.__linkedModel
 
-  def getModelType(self):
-    """
-      Retriever for model type.
-      @ In, None
-      @ Out, getLinkedCode, string, string path
-    """
-    return self.modelType
-
   # setting tools #
   def setPath(self,path):
     """
@@ -539,7 +531,6 @@ class UserGenerated(File):
     self.subDirectory  = node.attrib.get('subDirectory',"")
     self.setAbsFile(os.path.join(self.subDirectory,node.text.strip()))
     self.alias         = node.attrib.get('name'       ,self.getFilename())
-    self.modelType     = node.attrib.get('modelType'  ,"")
 
   def __getstate__(self):
     """
@@ -551,7 +542,6 @@ class UserGenerated(File):
     stateDict['perturbed'   ] = self.perturbed
     stateDict['subDirectory'] = self.subDirectory
     stateDict['alias'       ] = self.alias
-    stateDict['modelType'   ] = self.modelType
     return stateDict
 
   def __setstate__(self,stateDict):
@@ -564,7 +554,6 @@ class UserGenerated(File):
     self.perturbed     = stateDict['perturbed'   ]
     self.subDirectory  = stateDict['subDirectory']
     self.alias         = stateDict['alias'       ]
-    self.modelType     = stateDict['modelType'   ]
 
 
 #
