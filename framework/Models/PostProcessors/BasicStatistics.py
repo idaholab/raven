@@ -301,13 +301,15 @@ class BasicStatistics(PostProcessorInterface):
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
 
-  def _handleInput(self, paramInput, childVals=[]):
+  def _handleInput(self, paramInput, childVals=None):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
       @ In, childVals, list, optional, quantities requested from child statistical object
       @ Out, None
     """
+    if childVals is None:
+      childVals = []
     self.toDo = {}
     for child in paramInput.subparts:
       tag = child.getName()
