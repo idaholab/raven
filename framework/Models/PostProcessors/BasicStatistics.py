@@ -844,7 +844,12 @@ class BasicStatistics(PostProcessorInterface):
       calculations[metric] = hpsDS
 
     ############################################################
-    # compute standard error for expectedValue
+    # Begin Standard Error Calculations
+    #
+    # Reference for standard error calculations (including percentile):
+    # B. Harding, C. Tremblay and D. Cousineau, "Standard errors: A review and evaluation of
+    # standard error estimators using Monte Carlo simulations", The Quantitative Methods of
+    # Psychology, Vol. 10, No. 2 (2014)
     ############################################################
     metric = 'expectedValue'
     if len(needed[metric]['targets'])>0:

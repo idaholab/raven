@@ -403,6 +403,10 @@ class EconomicRatio(BasicStatistics):
       calculations[metric] = VaRSet
 
       # calculate value at risk standard error here
+      # Reference for percentile standard error calculation:
+      # B. Harding, C. Tremblay and D. Cousineau, "Standard errors: A review and evaluation of
+      # standard error estimators using Monte Carlo simulations", The Quantitative Methods of
+      # Psychology, Vol. 10, No. 2 (2014)
       self.raiseADebug('Starting "'+metric+'" standard error...')
       VaRSteSet = xr.Dataset()
       calculatedVaR = calculations[metric]
