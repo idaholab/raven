@@ -17,9 +17,9 @@
 301      cntrlvar           802
 414  time  0  ge  null  0  1.6000000e+01  l
 454  time  0  ge  null  0  1.3520000e+01  l
-* START -- CONTROL VARIABLES ADDED BY RAVEN *
+** START -- CONTROL VARIABLES ADDED BY RAVEN *
 599 cntrlvar 998 gt null 0 0.0 l
-600 599
+0000600 599 301
 20599700 r_414 tripunit 1.0 0.0 0
 20599701 414
 20599600 r_454 tripunit 1.0 0.0 0

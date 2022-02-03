@@ -1,0 +1,10 @@
+[Tests]
+ [./SerpentTestBasic]
+  type = 'RavenFramework'
+  input = 'test_serpent.xml'
+  text = 'SerpentTestBasic/sampleInput/1/testInput.serpent SerpentTestBasic/sampleInput/2/testInput.serpent'
+  output = 'SerpentTestBasic/sampleInput/1/testInput.serpent_res.csv SerpentTestBasic/sampleInput/2/testInput.serpent_res.csv'
+  csv = 'SerpentTestBasic/RAVENout.csv'
+  test_interface_only = True 
+ [../]
+[]

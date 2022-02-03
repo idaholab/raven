@@ -24,10 +24,14 @@ from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot
 from .OptPath import OptPath
+from .PopulationPlot import PopulationPlot
 from .SyntheticCloud import SyntheticCloud
+from. OptParallelCoordinate import OptParallelCoordinatePlot
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
 factory.registerType('SamplePlot', SamplePlot)
 factory.registerType('OptPath', OptPath)
 factory.registerType('SyntheticCloud', SyntheticCloud)
+factory.registerType('PopulationPlot', PopulationPlot)
+factory.registerType('OptParallelCoordinatePlot', OptParallelCoordinatePlot)

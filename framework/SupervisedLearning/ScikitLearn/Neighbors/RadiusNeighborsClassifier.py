@@ -46,9 +46,7 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.neighbors
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.RadiusNeighborsClassifier())
+    self.model = sklearn.neighbors.RadiusNeighborsClassifier
 
   @classmethod
   def getInputSpecification(cls):

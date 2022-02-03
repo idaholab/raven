@@ -44,9 +44,7 @@ class Perceptron(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.linear_model.Perceptron())
+    self.model = sklearn.linear_model.Perceptron
 
   @classmethod
   def getInputSpecification(cls):
@@ -72,9 +70,10 @@ class Perceptron(ScikitLearnBase):
                                                  descr=r"""The penalty (aka regularization term) to be used.""", default=None))
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Constant that multiplies the regularization term if regularization is used.""", default=0.0001))
-    specs.addSub(InputData.parameterInputFactory("l1_ratio", contentType=InputTypes.FloatType,
-                                                 descr=r"""The Elastic Net mixing parameter, with $0 <= l1_ratio <= 1.$ $l1_ratio=0$ corresponds to L2 penalty,
-                                                  $l1_ratio=1$ to L1. Only used if penalty='elasticnet'.""", default=0.15))
+    # new in sklearn version 0.24
+    # specs.addSub(InputData.parameterInputFactory("l1_ratio", contentType=InputTypes.FloatType,
+    #                                              descr=r"""The Elastic Net mixing parameter, with $0 <= l1_ratio <= 1.$ $l1_ratio=0$ corresponds to L2 penalty,
+    #                                               $l1_ratio=1$ to L1. Only used if penalty='elasticnet'.""", default=0.15))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
@@ -118,7 +117,7 @@ class Perceptron(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['penalty','alpha','l1_ratio','early_stopping',
+    settings, notFound = paramInput.findNodesAndExtractValues(['penalty','alpha', 'early_stopping',
                                                                'fit_intercept','max_iter','tol','validation_fraction',
                                                                'n_iter_no_change','shuffle','eta0', 'class_weight',
                                                                'random_state', 'verbose', 'warm_start'])

@@ -66,12 +66,12 @@ class DMD(SupervisedLearning):
         via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
         in \xmlNode{OutStream} of type \xmlAttr{Print}):
         \begin{itemize}
-          \item \xmlNode{rankSVD}, see XML input specifications above
-          \item \xmlNode{energyRankSVD}, see XML input specifications above
-          \item \xmlNode{rankTLSQ}, see XML input specifications above
-          \item \xmlNode{exactModes}, see XML input specifications above
-          \item \xmlNode{optimized}, see XML input specifications above
-          \item \xmlNode{features}, see XML input specifications above
+          \item \xmlNode{rankSVD}, see XML input specifications below
+          \item \xmlNode{energyRankSVD}, see XML input specifications below
+          \item \xmlNode{rankTLSQ}, see XML input specifications below
+          \item \xmlNode{exactModes}, see XML input specifications below
+          \item \xmlNode{optimized}, see XML input specifications below
+          \item \xmlNode{features}, see XML input specifications below
           \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
           \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
           between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})

@@ -16,6 +16,7 @@
  @author: alfoa
 """
 import builtins
+import warnings
 
 # line_profiler decorator, @Decorators.timingProfile
 ## if using kernprof, use "profile" builtin; otherwise, passthrough.
@@ -23,12 +24,12 @@ try:
   builtins.profile
   timingProfile = builtins.profile
 except (AttributeError, ImportError):
-  print('Unable to load "timingProfile" decorator; replacing with passthrough ...')
+  warnings.warn('Unable to load "timingProfile" decorator; replacing with passthrough ...', ImportWarning)
   timingProfile = lambda f: f
 
 # memory_profiler decorator, @Decorators.memoryProfile
 try:
   from memory_profiler import profile as memoryProfile
 except (AttributeError, ImportError):
-  print('Unable to load "memoryProfile" decorator; replacing with passthrough ...')
+  warnings.warn('Unable to load "memoryProfile" decorator; replacing with passthrough ...', ImportWarning)
   memoryProfile = lambda f: f

@@ -902,6 +902,7 @@ class Clusters(Segments):
       else:
         result, weights = self._createNDEvaluation(edict)
       clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
+      globalLocalPicker = []
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
@@ -916,6 +917,7 @@ class Clusters(Segments):
         #where in the original signal does this cluster-representing segment come from
         globalPicker = slice(delim[0], delim[-1] + 1)
         segmentLen = globalPicker.stop - globalPicker.start
+        globalLocalPicker.append(globalPicker)
         # where in the truncated signal does this cluster sit?
         if self._evaluationMode == 'truncated':
           localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
@@ -928,7 +930,7 @@ class Clusters(Segments):
       # make final modifications to full signal based on global settings
       ## for truncated mode, this is trivial.
       ## for clustered mode, this is complicated.
-      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
+      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights, slicer=globalLocalPicker)
     # TODO add cluster multiplicity to "result" as meta to the output
     #if self._evaluationMode == 'clustered':
     #  result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])

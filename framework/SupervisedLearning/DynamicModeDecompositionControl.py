@@ -42,7 +42,7 @@ class DMDC(DMD):
         "Dynamic mode decomposition with control."
         SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.
 
-    Updated on July 1st, 2020
+    Updated on November 19, 2021
 
     @author: Haoyu Wang, Argonne National Laboratory
              Andrea Alfonsi, Idaho National Laboratory
@@ -78,28 +78,33 @@ class DMDC(DMD):
         \xmlNode{what} node
         in \xmlNode{OutStream} of type \xmlAttr{Print}):
         \begin{itemize}
-          \item \xmlNode{rankSVD}, see XML input specifications above
-          \item \xmlNode{actuators}, see XML input specifications above
-          \item \xmlNode{states}, XML node containing the list of system state variables (x)
-          \item \xmlNode{initStates}, XML node containing the list of system state variables
-                (x\_init) that are used for initializing the model in ``evaluation'' mode
-          \item \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial values in the
-                training data
-          \item \xmlNode{XNorm}, XML node containing the norminal values of state variables,
-                which are the initial values in the training data
-          \item \xmlNode{XLast}, XML node containing the last value of state variables,
-                which are the final values in the training data
+          \item \xmlNode{rankSVD}, see XML input specifications below
+          \item \xmlNode{actuators}, XML node containing the list of actuator variables (u),
+                see XML input specifications below
+          \item \xmlNode{stateVariables}, XML node containing the list of system state variables (x),
+                see XML input specifications below
+          \item \xmlNode{initStateVariables}, XML node containing the list of system state variables
+                (x\_init) that are used for initializing the model in ``evaluation'' mode,
+                see XML input specifications below
           \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
+          \item \xmlNode{dmdTimeScale}, XML node containing the the array of time scale in the DMD space,
+                which is time axis in traning data (Time)
+          \item \xmlNode{UNorm}, XML node containing the norminal values of actuators,
+                which are the initial actuator values in the training data
+          \item \xmlNode{XNorm}, XML node containing the norminal values of state variables,
+                which are the initial state values in the training data
+          \item \xmlNode{XLast}, XML node containing the last value of state variables,
+                which are the final state values in the training data (before nominal value subtraction)
           \item \xmlNode{YNorm}, XML node containing the norminal values of output variables,
-                which are the initial values in the training data
-          \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space
+                which are the initial output values in the training data
           \item \xmlNode{Atilde},  XML node containing the A matrix in discrete time domain
-                (real and imaginary and part, matrix shape, and format note)
+                (imaginary part, matrix shape, and real part)
           \item \xmlNode{Btilde}, XML node containing the B matrix in discrete time domain
-                (real and imaginary and part, matrix shape, and format note)
+                (imaginary part, matrix shape, and real part)
           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
-                (real and imaginary and part, matrix shape, and format note)
+                (imaginary part, matrix shape, and real part)
         \end{itemize}"""
+    specs.popSub("dmdType")
     specs.addSub(InputData.parameterInputFactory("actuators", contentType=InputTypes.StringListType,
                                                  descr=r"""defines the actuators (i.e. system input parameters)
                                                   of this model. Each actuator variable (u1, u2, etc.) needs to
@@ -200,12 +205,12 @@ class DMDC(DMD):
     self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
     self.__Ctilde = np.zeros((featureVals.shape[0], len(self.outputID), len(self.stateID)))
     for smp in range(featureVals.shape[0]):
-      X1 = (self.stateVals[:-1,smp, :] - self.stateVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp, :].T
-      X2 = (self.stateVals[1:,smp, :] - self.stateVals[0,smp,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:,smp, :].T
-      U =  (self.actuatorVals[:-1,smp, :] - self.actuatorVals[0,smp, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp, :].T
-      Y1 = (self.outputVals[:-1,smp, :] - self.outputVals[0, smp, :]).T if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp, :].T
+      X1 = (self.stateVals[:-1,smp,:]    - self.stateVals[0,smp,:]).T    if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp,:].T
+      X2 = (self.stateVals[1:,smp,:]     - self.stateVals[0,smp,:]).T    if self.dmdParams['centerUXY'] else self.stateVals[1:,smp,:].T
+      U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
+      Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
       # compute A,B,C matrices
-      self.__Atilde[smp, :, :] , self.__Btilde[smp, :, :], self.__Ctilde[smp, :, :] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+      self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
@@ -220,34 +225,45 @@ class DMDC(DMD):
     """
     indeces = [0]
     if len(self.parametersIDs):
-      # shape(n_requests,n_parameters)
+      # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
+      # using nearest neighbour method to identify the index
       indeces = self.neigh.predict(feats).astype(int)
     nreqs = len(indeces)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
-    Uvector = []
+    uVector = []
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
-      Uvector.append(featureVals[:, :, varIndex])
+      uVector.append(featureVals[:, :, varIndex]) # uVector is a list now
       returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
-    Uvector = np.asarray(Uvector)
-    tsEval = Uvector.shape[-1] # ts_Eval = 100
+    uVector = np.asarray(uVector) # the uVector is not centralized yet
+    # Get the time steps for evaluation
+    tsEval = uVector.shape[-1] # ts_Eval = 100
 
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
+    # Initiate the evaluation array for evalX and evalY
     evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
     evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
 
     for cnt, index in enumerate(indeces):
+      # Centralize uVector and initState when required.
+      if self.dmdParams['centerUXY']:
+        uVector = uVector - self.actuatorVals[0, index, :]
+        initStates = initStates - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        Xpred = np.reshape(self.__Atilde[index, :, :].dot(evalX[cnt, i, :]) + self.__Btilde[index, :, :].dot(Uvector[cnt,:,i]),(-1,1)).T
-        evalX[cnt, i+1, :] = Xpred
-        evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, i+1, :])
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[cnt,:,i]),(-1,1)).T
+        evalX[cnt, i+1, :] = xPred
+        evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
+      # De-Centralize evalX and evalY when required.
+      if self.dmdParams['centerUXY']:
+        evalX = evalX + self.stateVals[0, index, :]
+        evalY = evalY + self.outputVals[0, index, :]
     ### Store the results to the dictionary "returnEvaluation"
     for varID in self.stateID:
       varIndex = self.stateID.index(varID)
@@ -290,7 +306,7 @@ class DMDC(DMD):
       skip = []
 
     what = ['dmdType','rankSVD','acturators',
-            'states','outputs','initStates',
+            'stateVariables','outputs','initStateVariables',
             'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm',
             'XLast','dmdTimeScale']
 
@@ -320,10 +336,10 @@ class DMDC(DMD):
     targNode = writeTo._findTarget(writeTo.getRoot(), target)
     if "acturators" in what:
       writeTo.addScalar(target, "acturators", ' '.join(self.actuatorsID))
-    if "states" in what:
-      writeTo.addScalar(target, "states", ' '.join(self.stateID))
-    if "initStates" in what:
-      writeTo.addScalar(target, "initStates", ' '.join(self.initStateID))
+    if "stateVariables" in what:
+      writeTo.addScalar(target, "stateVariables", ' '.join(self.stateID))
+    if "initStateVariables" in what:
+      writeTo.addScalar(target, "initStateVariables", ' '.join(self.initStateID))
     if "outputs" in what:
       writeTo.addScalar(target, "outputs", ' '.join(self.outputID))
     if "dmdTimeScale" in what:
@@ -384,15 +400,26 @@ class DMDC(DMD):
     # Omega Matrix, stack X1 and U
     omega = np.concatenate((X1, U), axis=0)
     # SVD
-    Ut, St, Vt = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, True, False)
-    # QR decomp. St=Q*R, Q unitary, R upper triangular
-    Q, R = np.linalg.qr(St)
-    # if R is singular matrix, raise an error
-    if np.linalg.det(R) == 0:
+    uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
+    # Find the truncation rank triggered by "s>=SminValue"
+    rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
+    if rankTruc < uTrucSVD.shape[1]:
+        uTruc = uTrucSVD[:, :rankTruc]
+        vTruc = vTrucSVD[:, :rankTruc]
+        sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
+    else:
+        uTruc = uTrucSVD
+        vTruc = vTrucSVD
+        sTruc = np.diag(sTrucSVD)
+
+    # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
+    qsTruc, rsTruc = np.linalg.qr(sTruc)
+    # if rsTruc is singular matrix, raise an error
+    if np.linalg.det(rsTruc) == 0:
       self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
-    beta = X2.dot(Vt).dot(np.linalg.inv(R)).dot(Q.T)
-    A = beta.dot(Ut[0:n, :].T)
-    B = beta.dot(Ut[n:, :].T)
+    beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
+    A = beta.dot(uTruc[0:n, :].T)
+    B = beta.dot(uTruc[n:, :].T)
     C = Y1.dot(scipy.linalg.pinv2(X1))
 
     return A, B, C

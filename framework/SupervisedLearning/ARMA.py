@@ -230,7 +230,7 @@ class ARMA(SupervisedLearning):
     specs.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType, default=1))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType,
-                                               descr="""turns on \emph{zero filtering}
+                                               descr=r"""turns on \emph{zero filtering}
                                                  for the listed targets. Zero filtering is a very specific algorithm, and should not be used without
                                                  understanding its application.  When zero filtering is enabled, the ARMA will remove all the values from
                                                  the training data equal to zero for the target, then train on the remaining data (including Fourier detrending
@@ -2239,7 +2239,7 @@ class ARMA(SupervisedLearning):
           evaluation[target][localPicker] += sig
     return evaluation
 
-  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None, slicer=None):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
@@ -2251,7 +2251,7 @@ class ARMA(SupervisedLearning):
     # backtransform signal to preserve CDF
     ## how nicely does this play with zerofiltering?
     evaluation = self._finalizeGlobalRSE_preserveCDF(settings, evaluation, weights)
-    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights)
+    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights, slicer=slicer)
     return evaluation
 
   def _finalizeGlobalRSE_preserveCDF(self, settings, evaluation, weights):
@@ -2287,7 +2287,7 @@ class ARMA(SupervisedLearning):
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
-  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights):
+  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights, slicer):
     """
       Helper method for finalizeGlobalRomSegmentEvaluation,
       particularly for zerofiltering
@@ -2298,10 +2298,19 @@ class ARMA(SupervisedLearning):
     """
     if self.zeroFilterTarget:
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
-      if self.multicycle:
-        evaluation[self.zeroFilterTarget][:, mask] = 0
+      if slicer is not None:
+        # truncated evaluation
+        newMask = []
+        for sl in slicer:
+          m = mask[sl.start:sl.stop].tolist()
+          newMask.append(np.asarray(m))
+        newMask = np.asarray(newMask)
       else:
-        evaluation[self.zeroFilterTarget][mask] = 0
+        newMask = mask
+      if self.multicycle:
+        evaluation[self.zeroFilterTarget][:, newMask] = 0
+      else:
+        evaluation[self.zeroFilterTarget][newMask] = 0
     return evaluation
 
 

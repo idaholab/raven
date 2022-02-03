@@ -45,7 +45,7 @@ class RidgeCV(ScikitLearnBase):
     self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
-    self.model = sklearn.linear_model.RidgeCV()
+    self.model = sklearn.linear_model.RidgeCV
 
   @classmethod
   def getInputSpecification(cls):
@@ -89,11 +89,11 @@ class RidgeCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
                                                  It specifies the number of folds..""", default=None))
-    specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatListType,
+    specs.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.FloatTupleType,
                                                  descr=r"""Array of alpha values to try. Regularization strength; must be a positive float. Regularization
                                                  improves the conditioning of the problem and reduces the variance of the estimates.
                                                  Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
-                                                 linear models such as LogisticRegression or LinearSVC.""", default=[0.1, 1.0, 10.0]))
+                                                 linear models such as LogisticRegression or LinearSVC.""", default=(0.1, 1.0, 10.0)))
     specs.addSub(InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType,
                                                  descr=r"""A string (see model evaluation documentation) or a scorer
                                                  callable object / function with signature.""", default=None))

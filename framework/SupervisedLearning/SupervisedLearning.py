@@ -191,10 +191,10 @@ class SupervisedLearning(BaseInterface):
     """
     self.__dict__.update(d)
 
-  def setEstimator(self, estimator):
+  def setEstimator(self, estimatorList):
     """
       Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
     pass

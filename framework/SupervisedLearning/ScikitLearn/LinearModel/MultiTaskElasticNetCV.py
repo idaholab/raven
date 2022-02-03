@@ -44,9 +44,7 @@ class MultiTaskElasticNetCV(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.MultiTaskElasticNetCV())
+    self.model = sklearn.linear_model.MultiTaskElasticNetCV
 
   @classmethod
   def getInputSpecification(cls):
