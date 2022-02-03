@@ -2,6 +2,7 @@
 \label{EconomicRatio}
 The \xmlNode{EconomicRatio} post-processor provides the economic metrics from the percent change
 period return of the asset or strategy that is given as an input. These metrics measure the risk-adjusted returns.
+\nb Any metric from \xmlNode{BasicStatistics} may be requested from \xmlNode{EconomicRatio}.
 %
 \ppType{EconomicRatio}{EconomicRatio}
 
@@ -44,7 +45,7 @@ period return of the asset or strategy that is given as an input. These metrics 
       For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
       For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
       variable ``sen\_y\_x'' will be defined by RAVEN.
-      \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+      \nb These variables will be used by RAVEN for the internal calculations. It is also accessible by the user through
       \textbf{DataObjects} and \textbf{OutStreams}.
   \end{itemize}
 
