@@ -40,7 +40,7 @@ class EconomicRatio(BasicStatistics):
   steVals    =   BasicStatistics.steVals + ['valueAtRisk_ste']
 
   # economic/financial metrics
-  tealVals   = ['sharpeRatio',             #financial metric
+  econVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
                 'valueAtRisk',             # Value at risk (alpha)
@@ -60,8 +60,8 @@ class EconomicRatio(BasicStatistics):
     # get input specification from BasicStatistics (scalarVals and vectorVals)
     inputSpecification = super(EconomicRatio, cls).getInputSpecification()
 
-    # add tealVals
-    for teal in cls.tealVals:
+    # add econVals
+    for teal in cls.econVals:
       tealSpecification = InputData.parameterInputFactory(teal,
                                                           contentType=InputTypes.StringListType)
       if teal in ["sortinoRatio", "gainLossRatio"]:
@@ -96,9 +96,9 @@ class EconomicRatio(BasicStatistics):
     # and vectorVals into self.allUsedParams
     super().initialize(runInfo, inputs, initDict)
 
-    # add a list of all the parameters that have requested values from tealVals into
+    # add a list of all the parameters that have requested values from econVals into
     # self.allUsedParams
-    for metricName in self.tealVals:
+    for metricName in self.econVals:
       if metricName in self.toDo.keys():
         for entry in self.toDo[metricName]:
           self.allUsedParams.update(entry["targets"])
@@ -115,7 +115,7 @@ class EconomicRatio(BasicStatistics):
     inputMetaKeys = []
     outputMetaKeys = []
     for metric, infos in self.toDo.items():
-      if metric in self.tealVals:
+      if metric in self.econVals:
         steMetric = metric + "_ste"
         if steMetric in self.steVals:
           for info in infos:
@@ -169,12 +169,12 @@ class EconomicRatio(BasicStatistics):
     """
 
     # handle scalarVals and vectorVals from BasicStatistics
-    super()._handleInput(paramInput, childVals=self.tealVals)
+    super()._handleInput(paramInput, childVals=self.econVals)
 
-    # now handle tealVals
+    # now handle econVals
     for child in paramInput.subparts:
       tag = child.getName()
-      if tag in self.tealVals:
+      if tag in self.econVals:
         if "prefix" not in child.parameterValues:
           self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
         # get the prefix
@@ -307,7 +307,7 @@ class EconomicRatio(BasicStatistics):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.tealVals)
+    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.econVals)
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
     needed.update(dict((metric,{'targets':set(),'threshold':set()}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
@@ -579,7 +579,7 @@ class EconomicRatio(BasicStatistics):
       calculations[metric] = xr.merge([daMed, daZero])
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.steVals + self.tealVals +['equivalentSamples'] and metric !='samples':
+      if metric in self.scalarVals + self.steVals + self.econVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
     outputDict = {}
@@ -587,7 +587,7 @@ class EconomicRatio(BasicStatistics):
       for targetDict in requestList:
         prefix = targetDict['prefix'].strip()
         for target in targetDict['targets']:
-          if metric in self.tealVals:
+          if metric in self.econVals:
             if metric in ['sortinoRatio','gainLossRatio']:
               varName = prefix + '_' + targetDict['threshold'] + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
