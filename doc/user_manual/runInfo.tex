@@ -45,14 +45,14 @@ the settings of the calculation flow that is being performed through RAVEN:
   execute a command.  The command is passed in as the environmental
   variable COMMAND.
 %
-  \default{raven\_qsub\_command.sh}
+  \default{raven\_ec\_qsub\_command.sh}
 
   %%%%%% NODE PARAMETER
 
 \item \xmlNode{NodeParameter}, \xmlDesc{string, optional field},
   specifies the flag used to specify a node file for the MPIExec command.  This will be followed by a file with the nodes that a single batch will run on.
   %
-  \default{-f}
+  \default{--hostfile}
 
   %%%%%% MPI EXEC
 \item \xmlNode{MPIExec}, \xmlDesc{string, optional field}, specifies the command used to run mpi.  This will be followed by the \xmlNode{NodeParameter} and then the node file and then the code command.
