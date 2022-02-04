@@ -436,11 +436,15 @@ class EconomicRatio(BasicStatistics):
           da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter), coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
           VaRSteSet[target] = da
         else:
-          # get KDE
-          kde = stats.gaussian_kde(targDa.values, weights=targWeight)
-          factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
           calcVaR = calculatedVaR[target]
-          VaRSte = list(factor/kde(calcVaR.values))
+          if targDa.values.min() == targDa.values.max():
+            # distribution is a delta function, so no KDE construction
+            VaRSte = list(np.zeros(calcVaR.shape))
+          else:
+            # get KDE
+            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+            factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
+            VaRSte = list(factor/kde(calcVaR.values))
           da = xr.DataArray(VaRSte, dims=('threshold'), coords={'threshold': threshold})
           VaRSteSet[target] = da
       calculations[metric+'_ste'] = VaRSteSet

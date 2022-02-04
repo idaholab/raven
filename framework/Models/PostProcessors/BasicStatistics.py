@@ -1001,11 +1001,15 @@ class BasicStatistics(PostProcessorInterface):
           da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter), coords={'percent': percent, self.pivotParameter: self.pivotValue})
           percentileSteSet[target] = da
         else:
-          # get KDE
-          kde = stats.gaussian_kde(targDa.values, weights=targWeight)
-          factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
           calcPercentiles = calculatedPercentiles[target]
-          percentileSte = list(factor/kde(calcPercentiles.values))
+          if targDa.values.min() == targDa.values.max():
+            # distribution is a delta function, so no KDE construction
+            percentileSte = list(np.zeros(calcPercentiles.shape))
+          else:
+            # get KDE
+            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+            factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
+            percentileSte = list(factor/kde(calcPercentiles.values))
           da = xr.DataArray(percentileSte, dims=('percent'), coords={'percent': percent})
           percentileSteSet[target] = da
       calculations[metric+'_ste'] = percentileSteSet
