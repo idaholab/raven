@@ -986,19 +986,26 @@ class BasicStatistics(PostProcessorInterface):
         en = targWeight.sum()**2/np.sum(targWeight**2)
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
-          # get KDEs
-          kdes = []
-          for label, group in targDa.groupby(self.pivotParameter):
-            kdes.append(stats.gaussian_kde(group.values, weights=targWeight))
-          percentileSte = []
-          ind = 0
-          vals = calculatedPercentiles[target].values
+          percentileSte = None
           for pct in percent:
             factor = np.sqrt(pct*(1.0 - pct)/en)
-            for kde in kdes:
-              percentileSte.append(factor/kde(vals[ind]))
-              ind += 1
-          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter), coords={'percent': percent, self.pivotParameter: self.pivotValue})
+            percentileRow = []
+            for label, group in targDa.groupby(self.pivotParameter):
+              if group.values.min() == group.values.max():
+                # all values are the same
+                percentileRow.append(0.0)
+              else:
+                # get KDE
+                kde = stats.gaussian_kde(group.values, weights=targWeight)
+                val = calculatedPercentiles[target].sel(**{'percent': pct,
+                                                           self.pivotParameter: label}).values
+                percentileRow.append(factor/kde(val)[0])
+            if percentileSte is None:
+              percentileSte = np.array(percentileRow)
+            else:
+              percentileSte = np.vstack((percentileSte, percentileRow))
+          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter),
+                            coords={'percent': percent, self.pivotParameter: self.pivotValue})
           percentileSteSet[target] = da
         else:
           calcPercentiles = calculatedPercentiles[target]

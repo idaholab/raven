@@ -421,19 +421,25 @@ class EconomicRatio(BasicStatistics):
         en = targWeight.sum()**2/np.sum(targWeight**2)
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
-          # get KDEs
-          kdes = []
-          for _, group in targDa.groupby(self.pivotParameter):
-            kdes.append(stats.gaussian_kde(group.values, weights=targWeight))
-          VaRSte = []
-          ind = 0
-          vals = calculatedVaR[target].values
+          VaRSte = None
           for thd in threshold:
             factor = np.sqrt(thd*(1.0 - thd)/en)
-            for kde in kdes:
-              VaRSte.append(factor/kde(-vals[ind]))
-              ind += 1
-          da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter), coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
+            VaRRow = []
+            for label, group in targDa.groupby(self.pivotParameter):
+              if group.values.min() == group.values.max():
+                # all values are the same
+                VaRRow.append(0.0)
+              else:
+                # get KDE
+                kde = stats.gaussian_kde(group.values, weights=targWeight)
+                val = calculatedVaR[target].sel(**{'threshold': thd, self.pivotParameter: label}).values
+                VaRRow.append(factor/kde(val)[0])
+            if VaRSte is None:
+              VaRSte = np.array(VaRRow)
+            else:
+              VaRSte = np.vstack((VaRSte, VaRRow))
+          da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter),
+                            coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
           VaRSteSet[target] = da
         else:
           calcVaR = calculatedVaR[target]
