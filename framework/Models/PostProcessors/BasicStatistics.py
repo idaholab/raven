@@ -274,7 +274,7 @@ class BasicStatistics(PostProcessorInterface):
             for target in info['targets']:
               if metric == 'percentile':
                 for strPercent in info['strPercent']:
-                  metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_' + strPercent + '_ste'
+                  metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_ste'
                   metaDim = inputObj.getDimensions(target)
                   if len(metaDim[target]) == 0:
                     inputMetaKeys.append(metaVar)
@@ -293,10 +293,22 @@ class BasicStatistics(PostProcessorInterface):
         metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
     else:
       if len(outputMetaKeys) > 0:
-        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
+        params = {}
+        for key in outputMetaKeys + inputMetaKeys:
+          # percentile standard error has additional index
+          if key == 'percentile_ste':
+            params[key] = [self.pivotParameter, self.steMetaIndex, 'percent']
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
         metaParams.update(params)
       elif len(inputMetaKeys) > 0:
-        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        params = {}
+        for key in inputMetaKeys:
+          # percentile standard error has additional index
+          if key == 'percentile_ste':
+            params[key] = [self.pivotParameter, self.steMetaIndex, 'percent']
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
@@ -986,26 +998,21 @@ class BasicStatistics(PostProcessorInterface):
         en = targWeight.sum()**2/np.sum(targWeight**2)
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
-          percentileSte = None
+          percentileSte = []
           for pct in percent:
+            subPercentileSte = []
             factor = np.sqrt(pct*(1.0 - pct)/en)
-            percentileRow = []
             for label, group in targDa.groupby(self.pivotParameter):
               if group.values.min() == group.values.max():
                 # all values are the same
-                percentileRow.append(0.0)
+                subPercentileSte.append(0.0)
               else:
                 # get KDE
                 kde = stats.gaussian_kde(group.values, weights=targWeight)
-                val = calculatedPercentiles[target].sel(**{'percent': pct,
-                                                           self.pivotParameter: label}).values
-                percentileRow.append(factor/kde(val)[0])
-            if percentileSte is None:
-              percentileSte = np.array(percentileRow)
-            else:
-              percentileSte = np.vstack((percentileSte, percentileRow))
-          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter),
-                            coords={'percent': percent, self.pivotParameter: self.pivotValue})
+                val = calculatedPercentiles[target].sel(**{'percent': pct, self.pivotParameter: label}).values
+                subPercentileSte.append(factor/kde(val)[0])
+            percentileSte.append(subPercentileSte)
+          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter), coords={'percent': percent, self.pivotParameter: self.pivotValue})
           percentileSteSet[target] = da
         else:
           calcPercentiles = calculatedPercentiles[target]
@@ -1239,6 +1246,31 @@ class BasicStatistics(PostProcessorInterface):
     outputSet = xr.Dataset(data_vars=calculations).fillna("nan")
 
     if self.outputDataset:
+      # # account for percentile changes
+      # if "percentile" in self.toDo:
+      #   print('percentile here')
+      #   print('outputSet.drop("percentile"): {}'.format(outputSet.drop('percentile')))
+      #   print('self.toDo["percentile"]: {}'.format(self.toDo['percentile']))
+      #   percentileSet = xr.Dataset()
+      #   for percentileDict in self.toDo['percentile']:
+      #     for percent in percentileDict['percent']:
+      #       fieldName = percentileDict['prefix'] + '_' + str(percent*100)
+      #       fieldNameSte = percentileDict['prefix'] + '_' + str(percent*100) + '_ste'
+      #       da = outputSet.sel(**{'percent': percent})['percentile']
+      #       daSte = outputSet.sel(**{'percent': percent})['percentile_ste']
+      #       print('{} da: {}'.format(fieldName,da))
+      #       percentileSet[fieldName] = da
+      #       percentileSet[fieldNameSte] = daSte
+      #   print('percentileSet: {}'.format(percentileSet))
+      #   print('outputSet: {}'.format(outputSet))
+      #   outputSet = outputSet.drop_dims('percent')
+      #   print('outputSet: {}'.format(outputSet))
+      #   outputSet.update(percentileSet)
+      #   print('outputSet: {}'.format(outputSet))
+            # print('da[percentile]: {}'.format(da['percentile']))
+            # print(outputSet.sel(**{'percent': percent}))
+        # for percent in self.toDo['percentile']['strPercent']:
+        #   print('percent: {}'.format(percent))
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
         outputSet = outputSet.expand_dims('RAVEN_sample_ID')
@@ -1278,7 +1310,9 @@ class BasicStatistics(PostProcessorInterface):
                   outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
-
+      # print('outputDict')
+      # for key in outputDict:
+      #   print('{} {}'.format(key, outputDict[key]))
       return outputDict
 
   def corrCoeff(self, covM):
