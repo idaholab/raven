@@ -61,15 +61,15 @@ class EconomicRatio(BasicStatistics):
     inputSpecification = super(EconomicRatio, cls).getInputSpecification()
 
     # add econVals
-    for teal in cls.econVals:
-      tealSpecification = InputData.parameterInputFactory(teal,
+    for econ in cls.econVals:
+      econSpecification = InputData.parameterInputFactory(econ,
                                                           contentType=InputTypes.StringListType)
-      if teal in ["sortinoRatio", "gainLossRatio"]:
-        tealSpecification.addParam("threshold", InputTypes.StringType)
-      elif teal in ["expectedShortfall", "valueAtRisk"]:
-        tealSpecification.addParam("threshold", InputTypes.FloatType)
-      tealSpecification.addParam("prefix", InputTypes.StringType)
-      inputSpecification.addSub(tealSpecification)
+      if econ in ["sortinoRatio", "gainLossRatio"]:
+        econSpecification.addParam("threshold", InputTypes.StringType)
+      elif econ in ["expectedShortfall", "valueAtRisk"]:
+        econSpecification.addParam("threshold", InputTypes.FloatType)
+      econSpecification.addParam("prefix", InputTypes.StringType)
+      inputSpecification.addSub(econSpecification)
 
     return inputSpecification
 
@@ -362,7 +362,7 @@ class EconomicRatio(BasicStatistics):
     calculations = self.calculations
 
     #################
-    # TEAL VALUES   #
+    # ECON VALUES   #
     #################
     #
     # SharpeRatio
