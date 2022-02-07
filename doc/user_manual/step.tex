@@ -546,9 +546,10 @@ A summary of the objects that can go from/to other objects is shown in Table \re
                 & ExternalModel        & Load On-Disk Serialized ExternalModel    \\
                & ROM        & Load On-Disk Serialized ROM    \\ \hline
     ROM        & DataObject & Print ROM Metadata to CSV, XML \\
-               & File       & Serialize ROM to Disk   \\ \hline
+               & File       & Serialize ROM to Disk \\
+               & File        & If \emph{type} is \texttt{fmu}, Serialize ROM to FMU\\ \hline
     ExternalModel     & File       & Serialize ExternalModel to Disk \\
-                                & File        & If \emph{type} is \texttt{fmu}, Serialize ExternalModel to FMU
+                      & File        & If \emph{type} is \texttt{fmu}, Serialize ExternalModel to FMU
   \end{tabular}
   \caption{Object options for \xmlNode{IOStep} operations}
   \label{tab:IOSTEP}

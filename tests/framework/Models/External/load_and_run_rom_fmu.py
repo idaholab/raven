@@ -54,7 +54,6 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
   fmu.exitInitializationMode()
   print("initialized")
 
-  #model_path = "C:\\Users\\ALFOA\\projects\\raven\\test_turbine_fmi\\ROMpk"
   fmu.setString( [vr_paths], [pathToRaven])
   #fmu.setString( [vr_models], [model_path])
 
