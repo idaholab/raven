@@ -14,7 +14,7 @@
 """
 Created on July 10, 2013
 
-@author: alfoa, wangc
+@author: alfoa, wangc, dgarrett622
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -1246,31 +1246,6 @@ class BasicStatistics(PostProcessorInterface):
     outputSet = xr.Dataset(data_vars=calculations).fillna("nan")
 
     if self.outputDataset:
-      # # account for percentile changes
-      # if "percentile" in self.toDo:
-      #   print('percentile here')
-      #   print('outputSet.drop("percentile"): {}'.format(outputSet.drop('percentile')))
-      #   print('self.toDo["percentile"]: {}'.format(self.toDo['percentile']))
-      #   percentileSet = xr.Dataset()
-      #   for percentileDict in self.toDo['percentile']:
-      #     for percent in percentileDict['percent']:
-      #       fieldName = percentileDict['prefix'] + '_' + str(percent*100)
-      #       fieldNameSte = percentileDict['prefix'] + '_' + str(percent*100) + '_ste'
-      #       da = outputSet.sel(**{'percent': percent})['percentile']
-      #       daSte = outputSet.sel(**{'percent': percent})['percentile_ste']
-      #       print('{} da: {}'.format(fieldName,da))
-      #       percentileSet[fieldName] = da
-      #       percentileSet[fieldNameSte] = daSte
-      #   print('percentileSet: {}'.format(percentileSet))
-      #   print('outputSet: {}'.format(outputSet))
-      #   outputSet = outputSet.drop_dims('percent')
-      #   print('outputSet: {}'.format(outputSet))
-      #   outputSet.update(percentileSet)
-      #   print('outputSet: {}'.format(outputSet))
-            # print('da[percentile]: {}'.format(da['percentile']))
-            # print(outputSet.sel(**{'percent': percent}))
-        # for percent in self.toDo['percentile']['strPercent']:
-        #   print('percent: {}'.format(percent))
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
         outputSet = outputSet.expand_dims('RAVEN_sample_ID')
@@ -1310,9 +1285,7 @@ class BasicStatistics(PostProcessorInterface):
                   outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
-      # print('outputDict')
-      # for key in outputDict:
-      #   print('{} {}'.format(key, outputDict[key]))
+
       return outputDict
 
   def corrCoeff(self, covM):

@@ -14,7 +14,7 @@
 """
 Created on Aug 4, 2020
 
-@author: ZHOUJ2
+@author: ZHOUJ2, dgarrett622
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -123,7 +123,7 @@ class EconomicRatio(BasicStatistics):
             for target in info["targets"]:
               if metric == 'valueAtRisk':
                 for strThreshold in info['strThreshold']:
-                  metaVar = prefix + '_' + strThreshold + '_ste_' + target if not self.outputDataset else metric + '_' + strThreshold + '_ste'
+                  metaVar = prefix + '_' + strThreshold + '_ste_' + target if not self.outputDataset else metric + '_ste'
                   metaDim = inputObj.getDimensions(target)
                   if len(metaDim[target]) == 0:
                     inputMetaKeys.append(metaVar)
@@ -142,10 +142,22 @@ class EconomicRatio(BasicStatistics):
         metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
     else:
       if len(outputMetaKeys) > 0:
-        params = {key:[self.pivotParameter, self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
+        params = {}
+        for key in outputMetaKeys + inputMetaKeys:
+          # valueAtRisk standard error has additional index
+          if key == "valueAtRisk_ste":
+            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
         metaParams.update(params)
       elif len(inputMetaKeys) > 0:
-        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        params = {}
+        for key in inputMetaKeys:
+          # valueAtRisk standard error has additional index
+          if key == "valueAtRisk_ste":
+            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys, metaParams)
@@ -421,23 +433,20 @@ class EconomicRatio(BasicStatistics):
         en = targWeight.sum()**2/np.sum(targWeight**2)
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
-          VaRSte = None
+          VaRSte = []
           for thd in threshold:
+            subVaRSte = []
             factor = np.sqrt(thd*(1.0 - thd)/en)
-            VaRRow = []
             for label, group in targDa.groupby(self.pivotParameter):
               if group.values.min() == group.values.max():
                 # all values are the same
-                VaRRow.append(0.0)
+                subVaRSte.append(0.0)
               else:
                 # get KDE
                 kde = stats.gaussian_kde(group.values, weights=targWeight)
                 val = calculatedVaR[target].sel(**{'threshold': thd, self.pivotParameter: label}).values
-                VaRRow.append(factor/kde(val)[0])
-            if VaRSte is None:
-              VaRSte = np.array(VaRRow)
-            else:
-              VaRSte = np.vstack((VaRSte, VaRRow))
+                subVaRSte.append(factor/kde(val)[0])
+            VaRSte.append(subVaRSte)
           da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter),
                             coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
           VaRSteSet[target] = da
@@ -639,10 +648,18 @@ class EconomicRatio(BasicStatistics):
 
     # combine results
     if isinstance(outputSet, dict):
-      # returned dictionary
-      outputSet.update(outputSetBasicStatistics)
+      if isinstance(outputSetBasicStatistics, dict):
+        # BasicStatistics and EconomicRatio returned dictionaries
+        outputSet.update(outputSetBasicStatistics)
+      else:
+        # BasicStatistics returned a xr.Dataset, EconomicRatio returned dict (empty)
+        outputSet = outputSetBasicStatistics
     else:
-      # returned xarray.Dataset
-      outputSet = xr.merge([outputSet, outputSetBasicStatistics])
+      if isinstance(outputSetBasicStatistics, dict):
+        # EconomicRatio returned xarray.Dataset, but BasicStatistics was dict (empty)
+        pass
+      else:
+        # Both BasicStatistics and EconomicRatio returned xarray.Datasets
+        outputSet = xr.merge([outputSet, outputSetBasicStatistics])
 
     return outputSet
