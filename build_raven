@@ -109,7 +109,7 @@ PIP_COMMAND=pip3
 
 (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./framework/contrib/AMSC)
 
-(cd $PYTHON_FMU_DIR && ./build_pythonfmu)
+(cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
 if [ ! -z "$RAVEN_SIGNATURE" ];
 then
