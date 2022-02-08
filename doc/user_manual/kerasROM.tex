@@ -240,7 +240,7 @@
     randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
     which helps prevent overfitting.
     \layerNameAttr
-    In addition, this node also accepts the following subnode
+    In addition, this node also accepts the following subnodes
     \begin{itemize}
         \rate
         \noiseShape
@@ -469,7 +469,7 @@ can be initialized with the following children:
           \default{0.002}
         \end{itemize}
   \end{itemize}
-  \item \xmlNode{layer\_layout}, \xmlDesc{comma seperated string, required}, the layout/order of layers in the
+  \item \xmlNode{layer\_layout}, \xmlDesc{comma separated string, required}, the layout/order of layers in the
     deep neural networks. The values in the subnode should be the name of layers defined in layer node, such as
     \xmlNode{Dense}, \xmlNode{Dropout}, and \xmlNode{Conv1D}.
 \end{itemize}

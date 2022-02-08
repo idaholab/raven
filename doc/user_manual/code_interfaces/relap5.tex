@@ -155,7 +155,7 @@ The \xmlNode{Distribution} block defines the distributions that are going
 to be used for the sampling of the variables defined in the \xmlNode{Samplers}
 block.
 %
-For all the possibile distributions and all their possible inputs please see the
+For all the possible distributions and all their possible inputs please see the
 chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we give a general example of three different distributions:
@@ -328,7 +328,7 @@ like the following:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-For a RELAP interface, the \xmlNode{MultiRun} step type will most likely be
+For a RELAP5 interface, the \xmlNode{MultiRun} step type will most likely be
 used.
 %
 First, the step needs to be named: this name will be one of the names used in
@@ -342,7 +342,7 @@ In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
 
 With this step, we need to import all the files needed for the simulation:
 \begin{itemize}
-  \item RELAP input file
+  \item RELAP5 input file
   \item element tables -- tpfh2o
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]

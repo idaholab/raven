@@ -148,7 +148,7 @@ file.
 As usual, a distribution and a sampling strategy should then correspond to each of these variables
 into the RAVEN xml input file.
 
-Only for the DET analysis, then, the occurence of a branch will be identified by a comment before. This comment is
+Only for the DET analysis, then, the occurrence of a branch will be identified by a comment before. This comment is
  ''C BRANCHING + name of the variable determining the branch'' and acts as a sort of branching marker.
 Looking for these markers, indeed, the interface (in case of DET sampler) verifies that at least
 one branching exists, and furthermore, that one branching is defined for each of the
@@ -157,7 +157,7 @@ variables contained into ''DET sampled variables''.
 Within the block, the occurrence of the branching leads the value of a variable (user-defined)
 called ''TIM+number of the corresponding timer set into
 the include file'' to switch to 1.0. The code, in fact, detects if a branch has occurred by monitoring
-the value of these kind of variables. SInce these variables are user-defined, they need to be
+the value of these kind of variables. Since these variables are user-defined, they need to be
 initialized to a value (different from 1.0), into the ''user-defined variables'' section of one of the include
 files.
 
@@ -176,7 +176,7 @@ It is worth noticing that no comments should be contained within the line of ass
 Finally, only in case of DET analysis, a stop simulation condition (provided by the comment
 ''C Stop Simulation condition'') needs to be put into the input.
 The original input should have all the timers (linked with the branching) separated by an OR
-condition, even including that one of the event that stops the simulation (e.g. IEVNT(691)),
+condition, even including that one of the event that stops the simulation (e.g., IEVNT(691)),
 if any.
 \begin{lstlisting}[style=XML]
 C Stop Simulation condition

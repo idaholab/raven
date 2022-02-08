@@ -181,7 +181,7 @@ XML node and the requirements for other attributes change:
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
   \ref{sec:functions}. This function must implement a method named ``evaluate''.
- \nb{Alternatively, this node must be ommitted
+ \nb{Alternatively, this node must be omitted
   if the \xmlNode{distribution} node is supplied.}
 }
 
@@ -201,7 +201,7 @@ XML node and the requirements for other attributes change:
       thresholds, and 2) \xmlString{value}, the grid will be provided
       using variable values.
     \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
-      the grid needs to be constructed, independent of its type (i.e.
+      the grid needs to be constructed, independent of its type (i.e.,
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescriptionOnlyCustom
@@ -363,7 +363,7 @@ XML node and the requirements for other attributes change:
         \item \xmlAttr{distribution}, \xmlDesc{required string attribute}, the name for the distribution defined in the XML node \xmlNode{Distributions}.
         This attribute indicates the values of \xmlNode{manifestVariables} are drawn from \xmlAttr{distribution}.
       \end{itemize}
-      In addition, this XML node also accepts three childen nodes:
+      In addition, this XML node also accepts three children nodes:
       \begin{itemize}
         \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
         are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
@@ -1009,7 +1009,7 @@ are used by the \xmlNode{Models}.
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
 The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
-interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimension separately.  At
 order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
@@ -1293,7 +1293,7 @@ this family of methods:
       are the medians of the values used in the factorial portion.
       This point is often replicated in order to improve the precision of the
       experiment;
-    \item A set of axial points, experimental runs identical to the centre
+    \item A set of axial points, experimental runs identical to the center
       points except for one factor, which will take on values both below and
       above the median of the two factorial levels, and typically both outside
       their range.
@@ -1631,9 +1631,9 @@ Example:
 \subsubsection{Ensemble Forward Sampling strategy}
 \label{subsubsubsec:EnsembleSampler}
 The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies
-into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a
+into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g., a
 stochastic event
-modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g. because part of a parametric space modeled with a Grid-based approach).
+modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g., because part of a parametric space modeled with a Grid-based approach).
 \specBlock{a}{EnsembleForward}
 %
 \attrsIntro
@@ -2157,8 +2157,8 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Adaptive Samplers}
 \label{subsec:AdaptSamplers}
-The Adaptive Samplers' family provides the possibility to perform smart sampling
-(also known as adaptive sampling) as an alternative to classical “Forward”
+The Adaptive Samplers family provides the possibility to perform smart sampling
+(also known as adaptive sampling) as an alternative to classical ``Forward''
 techniques.
 %
 The motivation is that system simulations are often computationally expensive,

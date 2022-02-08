@@ -383,7 +383,7 @@
   \verDescriptionA{False}
   %
   \nb This setting takes advantage of a per-process runtime setting in libsvm
-  that, if enabled, may not work properly in a multithreaded context.
+  that, if enabled, may not work properly in a multi-threaded context.
 }
 
 \newcommand{\randomStateSVMDescription}[1]
@@ -1358,7 +1358,7 @@ RAVEN will communicate, thorough a set of method attributes, all the information
 that are generally needed to perform a initialization:
 \begin{itemize}
   \item runInfo, a dictionary containing information regarding how the
-  calculation is set up (e.g. number of processors, etc.).
+  calculation is set up (e.g., number of processors, etc.).
   %
   It contains the following attributes:
   \begin{itemize}
@@ -1418,7 +1418,7 @@ In this function, the user can retrieve the information coming from the RAVEN
 framework, during the employment of a calculation flow, and use them to
 construct a new input that is going to be transferred to the ``run'' method.
 %
-The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
+The new input created needs to be returned to RAVEN (i.e., ``return NewInput'').
 \\This method expects that the new input is returned in a Python ``dictionary''.
 %
 RAVEN communicates, thorough a set of method attributes, all the information
@@ -1762,11 +1762,11 @@ It is important to notice that when the EnsembleModel detects a chain of models 
 \subsection{HybridModel}
 \label{subsec:models_HybridModel}
 The \textbf{HybridModel} is a new \textit{Model} entity. This new Model is able to combine reduced order model
-(ROMs) and any other high-fidelity Model (i.e. Code, ExternalModel). The ROMs will be trained based on the results
+(ROMs) and any other high-fidelity Model (i.e., Code, ExternalModel). The ROMs will be trained based on the results
 from the high-fidelity model. The accuracy of the ROMs will be evaluated based on the cross validation scores,
 and the validity of the ROMs will be determined via some local validation metrics (\nb currently only one metric
-is available, i.e. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
-the Model (i.e the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
+is available, i.e,. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
+the Model (i.e., the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
 
 Currently this model is only able to share information (i.e. data) using \textbf{PointSet}.
 
@@ -1847,20 +1847,20 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
   \end{itemize}
   \item \xmlNode{validationMethod}, \xmlDesc{XML node, optional parameter}.
   %
-  The validity methods that are used to determine which model to run (i.e. ROMs or high-fidelity Model).
+  The validity methods that are used to determine which model to run (i.e., ROMs or high-fidelity Model).
   This XML node needs to contain the attributes:
   %
   \begin{itemize}
     \itemsep0em
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this \xmlNode{validationMethod}.
-      \nb Currently, only one method is available, ie. ``CrowdingDistance``.
+      \nb Currently, only one method is available, i.e., ``CrowdingDistance``.
   \end{itemize}
   %
-  The body of this sub-node  contains the following XML sub-nodes:
+  The body of this sub-node contains the following XML sub-nodes:
   %
   \begin{itemize}
-     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance`` method.
+     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance'' method.
   \end{itemize}
 \end{itemize}
 

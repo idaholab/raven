@@ -374,7 +374,7 @@ To use this interface the [DomainIntegral] needs to be present in the MooseBased
 the below specified values:
 
 \begin{itemize}
-    \item \xmlAttr{type}, \xmlDesc{string, required field}, must be "MooseVPP"
+    \item \xmlAttr{type}, \xmlDesc{string, required field}, must be ``MooseVPP''
     \item \xmlAttr{arg}, \xmlDesc{string, required field}, the string value attached to the vector post processor action
          while creating the output files.
 \end{itemize}
@@ -500,7 +500,7 @@ of a typical \xmlNode{Files} block.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Models}
-A user provides paths to executables and aliases for sampled variables within the
+The user provides paths to executables and aliases for sampled variables within the
 \xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
 subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
 subType specifies which code interface the model will use. The \xmlNode{executable}
@@ -602,7 +602,7 @@ The quantity of these files can quickly become unwieldy if the working
 directory is not kept clean; thus these files are removed.  In addition, some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
-output quantities of interest will be collected by appropriate postprocessors
+output quantities of interest will be collected by appropriate PostProcessors
 and the OutStreams.  Exodus files are not automatically removed,
 but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension to save a fair amount of storage space
@@ -646,7 +646,7 @@ in another attribute of the \xmlNode{Input} node.  An example follows.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Models}
-A user provides paths to executables and aliases for sampled variables within the
+The user provides paths to executables and aliases for sampled variables within the
 \xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
 \xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
