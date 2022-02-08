@@ -33,7 +33,7 @@
   <Samplers>
     <MonteCarlo name="normalMC">
       <samplerInit>
-        <limit>100</limit>
+        <limit>1000</limit>
       </samplerInit>
       <variable name="NPV">
         <distribution>NPV_dist</distribution>
