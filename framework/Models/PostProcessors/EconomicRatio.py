@@ -266,34 +266,6 @@ class EconomicRatio(BasicStatistics):
     pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
-    """
-      Method to compute the weighted percentile in a array of data
-      @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
-      @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
-      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
-      @ Out, result, float, the percentile
-    """
-
-    idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
-    # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
-    # a percentile that is < that the first pb weight is requested. Otherwise the median
-    # is returned.
-    sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
-    weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    # This step returns the index of the array which is < than the percentile, because
-    # the insertion create another entry, this index should shift to the bigger side
-    indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
-    # This step returns the indices (list of index) of the array which is > than the percentile
-    indexH = utils.first(np.asarray(weightsCDF > percent).nonzero())
-    try:
-      # if the indices exists that means the desired percentile lies between two data points
-      # with index as indexL and indexH[0]. Calculate the midpoint of these two points
-      result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
-    except IndexError:
-      result = sortedWeightsAndPoints[indexL,1]
-    return result
-
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
       Method to compute the sorted weights and points
@@ -399,6 +371,7 @@ class EconomicRatio(BasicStatistics):
       threshold = needed[metric]['threshold']
       VaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
+      targWarn = "" # targets that return negative VaR for warning
       for target in needed[metric]['targets']:
         targWeight = relWeight[target].values
         targDa = dataSet[target]
@@ -408,12 +381,17 @@ class EconomicRatio(BasicStatistics):
             VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
             VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          VaRList.append(abs(VaR))
+          VaRList.append(-VaR)
+        if any(np.array(VaRList) < 0):
+          targWarn += target + ", "
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
         else:
           da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
         VaRSet[target] = da
+      # write warning for negative VaR values
+      if len(targWarn) > 0:
+        self.raiseAWarning("At least one negative VaR value calculated for target(s) {}. Negative VaR implies high probability of profit.".format(targWarn[:-2]))
       calculations[metric] = VaRSet
     #
     # ExpectedShortfall
@@ -460,7 +438,7 @@ class EconomicRatio(BasicStatistics):
       zeroTarget = []
       daZero = xr.Dataset()
       medTarget = []
-      daMed = xr.Dataset
+      daMed = xr.Dataset()
       for entry in self.toDo[metric]:
         if entry['threshold'] == 'zero':
           zeroTarget = entry['targets']
@@ -545,7 +523,7 @@ class EconomicRatio(BasicStatistics):
           incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
           medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
           if incapableMedTarget:
-            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(matric, incapableMedTarget))
+            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(metric, incapableMedTarget))
 
           daMed = higherMeanSet[medTarget]/lowerMeanSet[medTarget]
           daMed = daMed.assign_coords(threshold ='median')
