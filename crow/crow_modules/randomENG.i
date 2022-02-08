@@ -1,4 +1,4 @@
-%module randomENGpy2
+%module randomENG
 %{
 #include "randomClass.h"
 %}
