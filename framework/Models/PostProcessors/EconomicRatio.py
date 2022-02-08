@@ -403,11 +403,11 @@ class EconomicRatio(BasicStatistics):
         VaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            VaR = [-self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          VaRList.append(-VaR)
-        if any(np.array(VaRList) < 0):
+            VaR = -self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
+          VaRList.append(VaR)
+        if np.any(np.array(VaRList) < 0):
           targWarn += target + ", "
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
@@ -479,16 +479,22 @@ class EconomicRatio(BasicStatistics):
         CVaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight,thd) for label,group in targDa.groupby(self.pivotParameter)]
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            subCVaR = []
+            for label, group in targDa.groupby(self.pivotParameter):
+              sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(group.values, targWeight,thd)
+              quantile = self._computeWeightedPercentile(group.values, targWeight, percent=thd)
+              lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL, 0]*sortedWeightsAndPoints[:indexL,1])
+              lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
+              Es = lowerPartialE + quantile*(thd - lowerPartialP)
+              subCVaR.append(-Es/(thd))
+            CVaRList.append(subCVaR)
           else:
             sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight,thd)
-          quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
-          lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
-          Es = lowerPartialE + quantile*(thd -lowerPartialP)
-          CVaRList.append(-Es/(thd))
-
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
+            lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
+            lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
+            Es = lowerPartialE + quantile*(thd -lowerPartialP)
+            CVaRList.append(-Es/(thd))
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(CVaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
         else:
@@ -598,40 +604,48 @@ class EconomicRatio(BasicStatistics):
       calculations[metric] = xr.merge([daMed, daZero])
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.steVals + self.econVals +['equivalentSamples'] and metric !='samples':
+      if metric in self.scalarVals + self.steVals + self.econVals + ['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
-    outputDict = {}
-    for metric, requestList  in self.toDo.items():
-      for targetDict in requestList:
-        prefix = targetDict['prefix'].strip()
-        for target in targetDict['targets']:
-          if metric in self.econVals:
-            if metric in ['sortinoRatio','gainLossRatio']:
-              varName = prefix + '_' + targetDict['threshold'] + '_' + target
-              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
-            elif metric in ['valueAtRisk','expectedShortfall']:
-              for thd in targetDict['strThreshold']:
-                varName = '_'.join([prefix,thd,target])
-                thdVal = float(thd)
-                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thdVal}))
-                steMetric = metric + '_ste'
-                if steMetric in self.steVals:
-                  metaVar = '_'.join([prefix,thd,'ste',target])
-                  outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'threshold':thdVal}))
-            else:
-              varName = prefix + '_' + target
-              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
-          else:
-            #check if it was skipped for some reason
-            skip = self.skipped.get(metric, None)
-            if skip is not None:
-              self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
-              continue
-    if self.pivotParameter in outputSet.sizes.keys():
-      outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
-    return outputDict
+    if self.outputDataset:
+      # Add 'RAVEN_sample_ID' to output dataset for consistence
+      if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
+        outputSet = outputSet.expand_dims('RAVEN_sample_ID')
+        outputSet['RAVEN_sample_ID'] = [0]
+      return outputSet
+    else:
+      outputDict = {}
+      for metric, requestList  in self.toDo.items():
+        for targetDict in requestList:
+          prefix = targetDict['prefix'].strip()
+          for target in targetDict['targets']:
+            if metric in self.econVals:
+              if metric in ['sortinoRatio','gainLossRatio']:
+                varName = prefix + '_' + targetDict['threshold'] + '_' + target
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
+              elif metric in ['valueAtRisk','expectedShortfall']:
+                for thd in targetDict['strThreshold']:
+                  varName = '_'.join([prefix,thd,target])
+                  thdVal = float(thd)
+                  outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thdVal}))
+                  steMetric = metric + '_ste'
+                  if steMetric in self.steVals:
+                    metaVar = '_'.join([prefix,thd,'ste',target])
+                    outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'threshold':thdVal}))
+              else:
+                varName = prefix + '_' + target
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
+            else:
+              #check if it was skipped for some reason
+              skip = self.skipped.get(metric, None)
+              if skip is not None:
+                self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
+                continue
+      if self.pivotParameter in outputSet.sizes.keys():
+        outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+
+      return outputDict
 
   def run(self, inputIn):
     """
