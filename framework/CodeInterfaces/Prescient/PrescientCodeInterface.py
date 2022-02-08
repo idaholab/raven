@@ -20,12 +20,13 @@ This is a CodeInterface for the Presient code.
 
 import os
 import re
+import warnings
 try:
   import pkg_resources
   prescient = pkg_resources.get_distribution("prescient")
   prescientLocation = prescient.location
 except Exception as inst:
-  print("Finding Prescient failed with",inst)
+  warnings.warn(f"Finding Prescient failed with {inst}")
   prescientLocation = None
 
 from CodeInterfaceBaseClass import CodeInterfaceBase

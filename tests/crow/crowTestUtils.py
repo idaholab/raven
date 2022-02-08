@@ -23,9 +23,12 @@ import importlib
 
 ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 print("ravenDir",ravenDir)
-sys.path.append(os.path.join(ravenDir,"crow","install"))
-sys.path.append(os.path.join(ravenDir,"framework"))
+ravenFrameworkDir = os.path.join(ravenDir,"framework")
+sys.path.append(ravenFrameworkDir)
 from utils import utils
+#Get crow path loaded
+utils.find_crow(ravenFrameworkDir)
+
 findCrowModule = utils.findCrowModule
 
 def checkAnswer(comment,value,expected,results,tol=1e-10):
