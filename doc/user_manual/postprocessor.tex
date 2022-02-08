@@ -107,7 +107,7 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{minimum}: The minimum value of the samples.
     \item \textbf{maximum}: The maximum value of the samples.
-    \item \textbf{median}:  The weighted median of the samples ( $50\%$ weighted percentile). If probablitity weights are not assigned, uniform distribution will be assigned. The median $x_k$ satisfying:
+    \item \textbf{median}:  The weighted median of the samples ( $50\%$ weighted percentile). If probability weights are not assigned, uniform distribution will be assigned. The median $x_k$ satisfying:
     \begin{equation}
       \sum_{i = 1}^{k - 1} w_i \le 1/2  and \sum_{i = k + 1}^{n} w_i \le 1/2
     \end{equation}
@@ -214,7 +214,7 @@ data objects, depending on the type of statistics the user wants to compute:
     \textbf{Best Linear Predictor} method with single feature. This method can be useful when the input features
     depend on each other. The default value is \textbf{True}, which means the sensitivity calculations are performed
     using \textbf{Linear Regression} or \textbf{Best Linear Predictor} method with multiple features. If the input
-    features are not fully correlated, the default value for \xmlNode{multipleFeatures} is always recommanded.
+    features are not fully correlated, the default value for \xmlNode{multipleFeatures} is always recommended.
     \nb this node only affects the calculations of metrics such as \xmlNode{sensitivity},
     \xmlNode{VarianceDependentSensitivity} and \xmlNode{NormalizedSensitivity}.
   \default{True}
@@ -244,7 +244,7 @@ In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\
 will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
 
 \textbf{Example (Static, multiple matrix nodes):} This example shows how multiple nodes can specify
-particular metrics multiple times to include different target/feature combinations.  This postprocessor
+particular metrics multiple times to include different target/feature combinations.  This PostProcessor
 calculates the expected value of $A$, $B$, and $C$, as well as the sensitivity of both $A$ and $B$ to $X$ and
 $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]

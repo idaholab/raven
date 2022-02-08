@@ -7,7 +7,7 @@
 \label{fig:codeinterface}
 \end{figure}
 The procedure of coupling a new code/application with RAVEN is a straightforward process.
-For all the codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D,
+For all the codes currently supported by RAVEN (e.g. RELAP7, RELAP5-3D,
 BISON, MOOSE,etc.), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them into the
   input of the driven code.
 The coupling procedure does not require modifying RAVEN itself. Instead, the developer creates a new Python interface that is going to be embedded
@@ -18,7 +18,7 @@ The coupling procedure does not require modifying RAVEN itself. Instead, the dev
 \end{lstlisting}
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface
-needs to be used. For example, if the Interface module contains the class 	``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be 	``NewCode'':
+needs to be used. For example, if the Interface module contains the class ``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be ``NewCode'':
 \begin{lstlisting}[language=python]
   class NewCode(CodeInterfaceBase):
     ...
@@ -413,6 +413,26 @@ some specific use cases, the following argument may need to be setted by the cod
 \label{subsubsec:setCsvLoadUtil}
 \begin{lstlisting}[language=python]
 self.setCsvLoadUtil('pandas')
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/cobraTF.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/dymola.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/generic.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/maap5.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/mammoth.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/melcor.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/mooseApp.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/neutrino.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/openmodelica.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/phisics.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/phisicsRelap5.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/prescient.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/rattlesnake.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/ravenRunningRaven.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/relap5.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/relap7.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/saphire.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/scale.tex
+file:///Users/mandd/projects/raven/doc/user_manual/code_interfaces/serpent.tex
+
 \end{lstlisting}
 The default CSV loader in RAVEN is pandas, which allows arbitrary data types in the CSV, generally
 strings and floats. However, arbitrary data can be challenging to load if there are a large number

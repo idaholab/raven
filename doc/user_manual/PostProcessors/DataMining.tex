@@ -304,7 +304,7 @@ useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Th
 
 The MiniBatchKMeans is a variant of the KMeans algorithm which uses
 mini-batches to reduce the computation time, while still attempting
- to optimise the same objective function. Mini-batches are subsets of
+ to optimize the same objective function. Mini-batches are subsets of
  the input data, randomly sampled in each training iteration.
 
 MiniBatchKMeans converges faster than KMeans, but the quality of the
@@ -531,7 +531,7 @@ connectivity matrix of the points.
 If the \textit{pyamg} package is installed, it is used: this greatly speeds
 up computation.
 
-\subparagraph{ DBSCAN Clustering } \hfill
+\subparagraph{DBSCAN Clustering} \hfill
 \label{subparagraph:DBSCAN}
 
 The Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
@@ -863,14 +863,14 @@ Dimensionality reduction using truncated SVD (aka LSA).
 \begin{itemize}
 	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Desired dimensionality
 	of output data. Must be strictly less than the number of features. The default value is
-	useful for visualisation. For LSA, a value of 100 is recommended. \default{2}
+	useful for visualization. For LSA, a value of 100 is recommended. \default{2}
 	\item \xmlNode{algorithm}, \xmlDesc{string, optional field}, SVD solver to use:
 	\begin{itemize}
 		\item Randomized: randomized algorithm
 		\item Arpack: ARPACK wrapper in.
 	\end{itemize}
 	\default{Randomized}
-	\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations andomized
+	\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations randomized
 	SVD solver. Not used by ARPACK. \default{5}
 	\item \xmlNode{random\_state}, \xmlDesc{int or Random State, optional field}, Pseudo number
 	generator state used for random sampling. If not given, the numpy.random singleton is used.

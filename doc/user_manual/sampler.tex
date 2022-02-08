@@ -713,8 +713,8 @@ covariance matrix is provided and the input parameters is assumed to have the mu
 \textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of
 \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables
-specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
+\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to transform the variables
+specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by \xmlNode{manifestVariables}
 in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
 listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
 
@@ -803,8 +803,8 @@ covariance matrix is provided and the input parameters is assumed to have the mu
 the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
 provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{Grid} sampling. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
@@ -933,8 +933,8 @@ and the input parameters are assumed to have the multivariate normal distributio
 This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
 of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to transform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by
 \xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
 in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
@@ -1154,7 +1154,7 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach,
+For N-dimensional  (ND) distributions, there are two different approaches to perform the stratified sampling. In the first approach,
 the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed
 on a grid on a CDF, while the user is required to specify the same CDF grid for all the dimensions of the ND distribution.
 This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the
@@ -1187,8 +1187,8 @@ sample the input parameters in the transformed space (aka subspace, reduced spac
 the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
 provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{Stratified} sampler. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not used for approach.
 
@@ -1380,8 +1380,8 @@ Furthermore, if the covariance matrix is provided and the input parameters are a
 \textbf{ResponseSurfaceDesign} approach to sample the input parameters in the transformed space (aka subspace, reduced space).
 In this case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{ResponseSurfaceDesign} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{ResponseSurfaceDesign} sampling. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
@@ -2165,7 +2165,7 @@ The motivation is that system simulations are often computationally expensive,
 time-consuming, and high dimensional with respect to the number of input
 parameters.
 %
-Thus, exploring the space of all possible simulation outcomes is infeasible
+Thus, exploring the space of all possible simulation outcomes is unfeasible
 using finite computing resources.
 %
 During simulation-based probabilistic risk analysis, it is important to discover
@@ -2955,8 +2955,8 @@ and the input parameters are assumed to have the multivariate normal distributio
 This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
 of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to transform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by
 \xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
 in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
@@ -3247,7 +3247,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   This node accept one attribute:
   \begin{itemize}
     \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
-    provided or not. When True, the code expects to receive the log likehood value.
+    provided or not. When True, the code expects to receive the log likelihood value.
     \default{`False'}
   \end{itemize}
   \item \assemblerDescription{Metropolis}
@@ -3377,7 +3377,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   This node accept one attribute:
   \begin{itemize}
     \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
-    provided or not. When True, the code expects to receive the log likehood value.
+    provided or not. When True, the code expects to receive the log likelihood value.
     \default{`False'}
   \end{itemize}
   \item \assemblerDescription{Metropolis}

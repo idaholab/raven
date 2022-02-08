@@ -852,7 +852,7 @@
 }
 \newcommand{\betaBMLPDescription}[1]
 {
-  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponentail decay rate for estimates of second moment
+  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponential decay rate for estimates of second moment
   vector in adam. should be in [0, 1). only used when solver = `adam'
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
@@ -1019,6 +1019,8 @@ to couple a new code.
       the extension given by \xmlAttr{extension}.
       \nb This is currently only used to link the \xmlAttr{arg} and input file. i.e.
       the \xmlAttr{type} should be \xmlString{input} in order to use this feature.
+   \item \xmlAttr{csv} \xmlDesc{bool, optional field} specifies if a csv file needs to be 
+      printed for each code run (default False)
   \end{itemize}
   The execution command is combined in the order \xmlString{prepend}, \xmlNode{python}
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
@@ -1387,7 +1389,7 @@ that are generally needed to perform a initialization:
     \item \texttt{deleteOutExtension} -- if a simulation (code run) has not
     failed, delete the relative output files with the listed extension (comma
     separated list, for example: `e,r,txt')
-    \item \texttt{mode} -- running mode, curently the only mode supported is
+    \item \texttt{mode} -- running mode, currently the only mode supported is
       mpi (but custom modes can be created)
     \item \textit{expectedTime} -- how long the complete input is expected to
     run
