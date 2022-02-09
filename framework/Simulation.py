@@ -224,8 +224,8 @@ class Simulation(MessageUser):
     self.runInfoDict['SimulationFiles'   ] = []            #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir  # the directory where the framework is located
-    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
-    self.runInfoDict['NodeParameter'     ] = '-f'          # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_ec_qsub_command.sh')
+    self.runInfoDict['NodeParameter'     ] = '--hostfile'          # the parameter used to specify the files where the nodes are listed
     self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
     self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'# the command used to run multi-threading commands.
                                                                   # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
