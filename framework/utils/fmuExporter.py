@@ -90,22 +90,33 @@ class FMUexporter(MessageUser):
       @ In, None
       @ Out, createModelHandler, str, the module for the FMU creation
     """
-    classname = self.model.name.upper()
+    className = self.model.name.upper()
     filename = self.model.name + ".pk"
-    # inputVars = ['{}'.format(el) for el in self.inputVars]
-    # outVars = ['{}'.format(el) for el in self.outVars]
 
     return f"""
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys
 import pickle
 import os
 from pythonfmu.fmi2slave import Fmi2Type, Fmi2Slave, Fmi2Causality, Fmi2Variability, Integer, Real, Boolean, String
 
-class {classname}(Fmi2Slave):
+class {className}(Fmi2Slave):
   #
   #  RAVEN (raven.inl.gov) Model-based Python-driven simulator
   #
-  author = "Andrea Alfonsi"
+  author = "RAVEN Team"
   description = "RAVEN Model-based Python-driven simulator"
 
   def __init__(self, **kwargs):
@@ -138,7 +149,7 @@ class {classname}(Fmi2Slave):
       sys.path.append(self.raven_path)
       # find the RAVEN framework
       if os.path.dirname(self.raven_path).endswith("framework"):
-        # we import the Driver to load the RAVEN enviroment for the un-picklin
+        # we import the Driver to load the RAVEN enviroment for the un-pickling
         try:
           import Driver
         except RuntimeError as ae:

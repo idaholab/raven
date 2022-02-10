@@ -6,7 +6,7 @@
     <created>2021-05-10</created>
     <classesTested>Models.ExternalModel</classesTested>
     <description>
-      This test is used to exercise the ability or RAVEN to
+      This test is used to exercise the ability of RAVEN to
       export an FMU of the RAVEN external model class to be used in any FMI FMU compatible framework.
     </description>
   </TestInfo>
@@ -27,7 +27,6 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
-      <variables>y1,y2,ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</variables>
       <inputs>y1,y2</inputs>
       <outputs>ans</outputs>
       <moreXMLInfo>

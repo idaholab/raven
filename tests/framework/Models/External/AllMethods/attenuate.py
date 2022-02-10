@@ -61,6 +61,11 @@ def run(self,Input):
   self.ans  = evaluate([self.y1,self.y2])
 
 def runStep(self, Input):
+  """
+    runStep runs a single step
+    @ In, Input, dict, dictionary of the data
+    @ Out, None
+  """
   print("in runStep")
   self.y1 += 0.05
   self.ans = evaluate([self.y1, self.y2])

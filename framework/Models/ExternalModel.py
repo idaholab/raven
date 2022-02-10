@@ -366,6 +366,6 @@ class ExternalModel(Dummy):
     """
       Returns a list of any files that this needs if it is serialized
       @ In, None
-      @ Out, serializationFiles, set, set of filenames that are needed
+      @ Out, getSerializationFiles, set, set of filenames that are needed
     """
     return {self.sim.__file__}

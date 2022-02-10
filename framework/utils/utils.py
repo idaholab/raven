@@ -696,6 +696,7 @@ def findCrowModule(name):
     @ In, name, str, the name of the module
     @ Out, module, instance, the instance of module of "name"
   """
+  print(sys.path)
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
