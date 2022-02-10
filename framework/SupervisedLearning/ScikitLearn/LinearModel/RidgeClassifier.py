@@ -45,9 +45,7 @@ class RidgeClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.linear_model.RidgeClassifier())
+    self.model = sklearn.linear_model.RidgeClassifier
 
   @classmethod
   def getInputSpecification(cls):

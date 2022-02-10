@@ -25,7 +25,13 @@ def initialize(self,runInfoDict,inputFiles):
   self.beta  = 8.0/3.0
   return
 
-def run(self,Input):
+def run(self, Input):
+  """
+    Run
+    @ In, self, object, variable-storing object
+    @ In, Input, dict, additional variables
+    @ Out, None
+  """
   max_time = 0.03
   t_step = 0.01
 
@@ -50,3 +56,7 @@ def run(self,Input):
     self.firstOut[t+1]    = self.firstOut[t] + self.sigma*(self.secondOut[t]-self.firstOut[t]) * t_step
     self.secondOut[t+1]    = self.secondOut[t] + (self.firstOut[t]*(self.rho-self.z[t])-self.secondOut[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.firstOut[t]*self.secondOut[t]-self.beta*self.z[t]) * t_step
+
+  # aliased outputs
+  Input['x@'] = self.firstOut
+  Input['y[1]'] = self.secondOut

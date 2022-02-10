@@ -15,9 +15,9 @@
 """
 Created on Feb 20, 2013
 
-@author: crisr, maljdan, talbpw
+@authors: aalfonsi, cogljj, talbpaul, maljdan, crisr, senrs, wangc, kinora
 
-This is the Driver of RAVEN
+This is the command-line based driver of RAVEN
 """
 import os
 import sys
@@ -34,7 +34,7 @@ if __name__ == '__main__':
   from utils import utils
   frameworkDir = dutils.findFramework()
 
-  verbosity      = 'all'
+  verbosity = 'all'
   interfaceCheck = False
   interactive = Interaction.No
   workingDir = os.getcwd()
