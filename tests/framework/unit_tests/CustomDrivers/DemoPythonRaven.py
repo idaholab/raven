@@ -49,8 +49,8 @@ data.plot.scatter(x="v0", y="angle", hue="r")
 # uncomment for live plotting
 # plt.show()
 
-# run it again
-raven.runWorkflow()
+# run it again - this fails if not re-initialized!
+# raven.runWorkflow()
 
 """
   <TestInfo>
