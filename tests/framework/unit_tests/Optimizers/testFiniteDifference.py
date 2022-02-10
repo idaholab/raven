@@ -22,12 +22,8 @@ import numpy as np
 ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5, 'framework'))
 print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-import Driver
-#from utils.utils import find_crow
-#add_path(os.path.join(ravenPath, 'contrib'))
-#add_path(os.path.join(ravenPath, 'contrib', 'AMSC'))
-#add_path_recursively(os.path.join(ravenPath, 'contrib', 'pp3'))
-#find_crow(ravenPath)
+from CustomDrivers import DriverUtils
+DriverUtils.setupCpp()
 
 from Optimizers.gradients import factory # returnInstance
 
