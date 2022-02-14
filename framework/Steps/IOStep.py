@@ -121,7 +121,10 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
-          self.actionType.append('MODEL-FILES')
+          if 'FMU' == outputs[i].getType().upper():
+            self.actionType.append('MODEL-FMU')
+          else:
+            self.actionType.append('MODEL-FILES')
         # ... data object
         elif isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
@@ -219,6 +222,15 @@ class IOStep(Step):
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
+      elif self.actionType[i] == 'MODEL-FMU':
+        #check the ROM is trained first (if ExternalModel no check it is performed)
+        if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
+        self.raiseAMessage('Exporting Model "{}" as FMU named "{}"'.format(inDictionary['Input'][i].name, outputs[i].name))
+        from utils.fmuExporter import FMUexporter
+        fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
+        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
+        fmuexec.buildFMU(outputs[i].getAbsFile())
 
       elif self.actionType[i] == 'FILES-MODEL':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel

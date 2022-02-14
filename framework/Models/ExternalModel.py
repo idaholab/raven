@@ -260,7 +260,10 @@ class ExternalModel(Dummy):
         InputDict[key] = Input[key]
 
     # run the user's model
-    self.sim.run(externalSelf, InputDict)
+    if 'current_time' in Input:
+      self.sim.runStep(externalSelf, InputDict)
+    else:
+      self.sim.run(externalSelf, InputDict)
 
     # collect the user results
     for key in self.modelVariableType:
@@ -358,3 +361,11 @@ class ExternalModel(Dummy):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(outputSize))
 
     Dummy.collectOutput(self, finishedJob, output, options)
+
+  def getSerializationFiles(self):
+    """
+      Returns a list of any files that this needs if it is serialized
+      @ In, None
+      @ Out, getSerializationFiles, set, set of filenames that are needed
+    """
+    return {self.sim.__file__}
