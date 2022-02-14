@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on September 16, 2015
-@author: maljdp
+  Custom Driver utilities, classes and examples for running RAVEN differently than traditional
+  static workflows.
 """
 
-from .CustomDrivers.PythonRaven import Raven # allows from framework import Raven
-
-# This file is necessary so that the sub-modules understand the correct hierarchy
-# of things. Once everything is in sub-modules we can possibly do some things
-# with RAVEN in its entirety as a module, but for now this file can remain
-# empty.

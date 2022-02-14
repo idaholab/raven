@@ -27,7 +27,10 @@ results = {'pass':0, 'fail':0}
 # Test InputData creating LaTeX
 #
 # load libraries for all of RAVEN
-import Driver
+from CustomDrivers import DriverUtils
+DriverUtils.setupCpp()
+DriverUtils.setupBuiltins()
+
 # test MultiRun Step
 import Steps
 
