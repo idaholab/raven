@@ -40,7 +40,7 @@ def findFramework():
   """
     Provides path to framework dir
     @ In, None
-    @ Out, findFramework, framework dir
+    @ Out, findFramework, str, framework dir
   """
   return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
