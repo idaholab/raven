@@ -15,7 +15,7 @@
 """
 Created on Feb 20, 2013
 
-@authors: aalfonsi, cogljj, talbpaul, maljdan, crisr, senrs, wangc, kinora
+@authors: aalfonsi, cogljj, talbpaul, maljdan, crisr, senrs, wangc, kinora, mandd
 
 This is the command-line based driver of RAVEN
 """
