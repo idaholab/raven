@@ -207,7 +207,7 @@ class origenAndTritonData:
       if uom not in totals:
         totals[uom] = []
       indexConcTable+=4
-      timeUom = re.split('(\d+)', self.lines[indexConcTable].split()[0])[-1].strip()
+      timeUom = re.split(r'(\d+)', self.lines[indexConcTable].split()[0])[-1].strip()
       timeGrid = [float(elm.replace(timeUom.strip(),"")) for elm in  self.lines[indexConcTable].split()]
 
       if outputDict is None:

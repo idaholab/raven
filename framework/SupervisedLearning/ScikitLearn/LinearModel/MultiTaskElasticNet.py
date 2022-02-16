@@ -45,8 +45,7 @@ class MultiTaskElasticNet(ScikitLearnBase):
     self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    self.model = sklearn.linear_model.MultiTaskElasticNet()
+    self.model = sklearn.linear_model.MultiTaskElasticNet
 
   @classmethod
   def getInputSpecification(cls):

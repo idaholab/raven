@@ -42,11 +42,10 @@ class MLPClassifier(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    self.multioutputWrapper = False
     import sklearn
     import sklearn.neural_network
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neural_network.MLPClassifier())
+    self.model = sklearn.neural_network.MLPClassifier
 
   @classmethod
   def getInputSpecification(cls):
@@ -162,7 +161,7 @@ class MLPClassifier(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['hidden_layer_sizes','activation','solver','alpha','batch_size',
                                                                'learning_rate','learning_rate_init','power_t','max_iter', 'shuffle',
-                                                               'random_state','tol','verbose','warm_start','momentum','nesterovs_momentum'
+                                                               'random_state','tol','verbose','warm_start','momentum','nesterovs_momentum',
                                                                'early_stopping','validation_fraction','beta_1','beta_2','epsilon',
                                                                'n_iter_no_change'])
     # notFound must be empty

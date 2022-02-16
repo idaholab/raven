@@ -44,9 +44,7 @@ class RidgeClassifierCV(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.linear_model.RidgeClassifierCV())
+    self.model = sklearn.linear_model.RidgeClassifierCV
 
   @classmethod
   def getInputSpecification(cls):
@@ -101,7 +99,7 @@ class RidgeClassifierCV(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['normalize','fit_intercept','cv', 'alphas'
+    settings, notFound = paramInput.findNodesAndExtractValues(['normalize','fit_intercept','cv', 'alphas',
                                                                'scoring', 'class_weight', 'store_cv_values'])
     # notFound must be empty
     assert(not notFound)

@@ -148,7 +148,7 @@ class ExternalModel(Dummy):
       newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    if 'SampledVars' in kwargs.keys():
+    if 'SampledVars' in kwargs:
       modelVariableValues.update(kwargs['SampledVars'])
     return newInput, copy.copy(modelVariableValues)
 
@@ -222,54 +222,63 @@ class ExternalModel(Dummy):
     """
     if self.pickled and not self.constructed:
       self.raiseAnError(IOError, 'The <pickledModel> "{}" has not been de-serialized (IOStep)!'.format(self.name))
-
-    externalSelf        = utils.Object()
-    # self.sim=__import__(self.ModuleToLoad)
+    # instantiate an object to pass to the user on which to store I/O variables
+    externalSelf = utils.Object()
+    # build dict of variables mapped to values
     modelVariableValues = {}
     for key in self.modelVariableType.keys():
       modelVariableValues[key] = None
     for key, value in self.initExtSelf.__dict__.items():
-      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+      setattr(externalSelf, key, copy.copy(value))
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
       if key in modelVariableValues.keys():
         modelVariableValues[key] = copy.copy(Input[key])
+    # collect updates from user's createNewInput if it's present
     if 'createNewInput' not in dir(self.sim):
       InputDict = {}
     else:
       InputDict = Input
-    #if 'createNewInput' not in dir(self.sim):
     additionalKeys = []
     if '_indexMap' in Input.keys():
       additionalKeys.append('_indexMap')
     for key in Input.keys():
       if key in additionalKeys:
         modelVariableValues[key] = copy.copy(Input[key])
+    # make sure the instance we pass to the user has the variables it needs
     for key in list(self.modelVariableType.keys()) + additionalKeys:
-      # add the variable as a member of "self"
-      try:
-        CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
-      # if variable name is too strange to be a member of "self", then skip it
-      except SyntaxError:
-        self.raiseAWarning('Variable "{}" could not be added to "self" due to complex name.  Find it in "Inputs" dictionary instead.'.format(key))
-    #else:
-    #  InputDict = Input
+      # preference is to make it a member of the insantiated object
+      if key.isidentifier():
+        setattr(externalSelf, key, copy.copy(modelVariableValues[key]))
+      # otherwise, just have it available in the dictionary instead. This feels redundant.
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be added to ExternalModel first argument due to complex name. ' +
+                            'Find it in the second (dictionary) argument instead.')
     # only pass the variables and their values according to the model itself.
-    for key in Input.keys():
-      if key in self.modelVariableType.keys() or key in additionalKeys:
+    for key in Input:
+      if key in self.modelVariableType or key in additionalKeys:
         InputDict[key] = Input[key]
 
-    self.sim.run(externalSelf, InputDict)
+    # run the user's model
+    if 'current_time' in Input:
+      self.sim.runStep(externalSelf, InputDict)
+    else:
+      self.sim.run(externalSelf, InputDict)
 
+    # collect the user results
     for key in self.modelVariableType:
-      try:
-        # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')', self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
-      except (SyntaxError, AttributeError):
-        self.raiseAWarning('Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
-    for key in self.initExtSelf.__dict__.keys():
-      # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
-      CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')', self=self.initExtSelf, object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+      # preferentially obtain values from the instantiated object
+      if key.isidentifier() and hasattr(externalSelf, key): # checks valid python variable name
+        modelVariableValues[key] = copy.copy(getattr(externalSelf, key))
+      # otherwise, try to get it from the dictionary. If not, save it as "None" so it reports back to the user.
+      else:
+        self.raiseAWarning(f'Variable "{key}" could not be read from ExternalModel first argument due to complex name. ' +
+                            'Checking it in the second (dictionary) argument instead.')
+        modelVariableValues[key] = copy.copy(InputDict.get(key, None))
+    # in case initialization variables have been modified, update them.
+    for key in self.initExtSelf.__dict__:
+      setattr(self.initExtSelf, key, copy.copy(getattr(externalSelf, key)))
+    # check for missing/bad data
     if None in self.modelVariableType.values():
       errorFound = False
       for key in self.modelVariableType:
@@ -352,3 +361,11 @@ class ExternalModel(Dummy):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(outputSize))
 
     Dummy.collectOutput(self, finishedJob, output, options)
+
+  def getSerializationFiles(self):
+    """
+      Returns a list of any files that this needs if it is serialized
+      @ In, None
+      @ Out, getSerializationFiles, set, set of filenames that are needed
+    """
+    return {self.sim.__file__}

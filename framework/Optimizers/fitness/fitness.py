@@ -28,7 +28,7 @@ import xarray as xr
 
 # @profile
 def invLinear(rlz,**kwargs):
-  """
+  r"""
     Inverse linear fitness method requires that the fitness value is inversely proportional to the objective function
     This method is designed such that:
     For minimization Problems:
@@ -76,7 +76,7 @@ def invLinear(rlz,**kwargs):
   return fitness
 
 def feasibleFirst(rlz,**kwargs):
-  """
+  r"""
     Efficient Parameter-less Feasible First Penalty Fitness method
     This method is designed such that:
     For minimization Problems:

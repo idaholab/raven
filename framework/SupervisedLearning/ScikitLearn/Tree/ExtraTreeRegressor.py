@@ -46,9 +46,7 @@ class ExtraTreeRegressor(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.tree
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.tree.ExtraTreeRegressor())
+    self.model = sklearn.tree.ExtraTreeRegressor
 
   @classmethod
   def getInputSpecification(cls):

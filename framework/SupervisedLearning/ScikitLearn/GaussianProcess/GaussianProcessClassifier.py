@@ -46,9 +46,7 @@ class GaussianProcessClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.gaussian_process
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.gaussian_process.GaussianProcessClassifier())
+    self.model = sklearn.gaussian_process.GaussianProcessClassifier
 
   @classmethod
   def getInputSpecification(cls):

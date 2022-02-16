@@ -475,4 +475,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     """
     pass
 
+  def getSerializationFiles(self):
+    """
+      Returns a list of any files that this needs if it is serialized
+      @ In, None
+      @ Out, serializationFiles, set, set of filenames that are needed
+    """
+    serializationFiles = set()
+    return serializationFiles
 

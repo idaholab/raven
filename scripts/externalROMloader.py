@@ -85,7 +85,8 @@ class ravenROMexternal(object):
     if not os.path.dirname(frameworkDir).endswith("framework"):
       # we import the Driver to load the RAVEN enviroment for the un-pickling
       try:
-        import Driver
+        from CustomDrivers import DriverUtils
+        DriverUtils.doSetup()
       except ImportError:
         # we try to add the framework directory
         pass
