@@ -74,7 +74,7 @@ class EnsembleModel(Dummy):
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
-    self.activatePicard         = False                 # is non-linear system beeing identified?
+    self.activatePicard         = False                 # is non-linear system being identified?
     self.localTargetEvaluations = {}                    # temporary storage of target evaluation data objects
     self.maxIterations          = 30                    # max number of iterations (in case of non-linear system activated)
     self.convergenceTol         = 1.e-3                 # tolerance of the iteration scheme (if activated) => L2 norm
@@ -170,7 +170,7 @@ class EnsembleModel(Dummy):
     """
       Method to find the matching models with respect to some input/output. If not found, return None
       @ In, what, string, "Input" or "Output"
-      @ In, subWhat, string, a keyword that needs to be contained in "what" for the mathching model
+      @ In, subWhat, string, a keyword that needs to be contained in "what" for the matching model
       @ Out, models, list, list of model names that match the key subWhat
     """
     models = []
@@ -337,9 +337,9 @@ class EnsembleModel(Dummy):
     if self.activatePicard:
       self.raiseAMessage("EnsembleModel connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialStartModels) == 0:
-        self.raiseAnError(IOError, "The 'initialStartModels' xml node is missing, this is required siince the Picard's iteration is activated!")
+        self.raiseAnError(IOError, "The 'initialStartModels' xml node is missing, this is required since the Picard's iteration is activated!")
       if len(self.initialConditions.keys()) == 0:
-        self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
+        self.raiseAnError(IOError,"Picard's iterations mode activated but no initial conditions provided!")
     else:
       if len(self.initialStartModels) !=0:
         self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
@@ -562,11 +562,11 @@ class EnsembleModel(Dummy):
 
   def _externalRun(self,inRun, jobHandler = None):#, jobHandler):
     """
-      Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
+      Method that performs the actual run of the ensemble model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs, e.g. inRun[0]: actual dictionary of input, inRun[1]: string,
         the type of Sampler or Optimizer, inRun[2], dict, contains the information from the Sampler
       @ In, jobHandler, object, optional, instance of jobHandler (available if parallelStrategy==2)
-      @ Out, returnEvaluation, tuple, the results of the essembled model:
+      @ Out, returnEvaluation, tuple, the results of the assembled model:
                                - returnEvaluation[0] dict of results from each sub-model,
                                - returnEvaluation[1] the dataObjects where the projection of each model is stored
                                - returnEvaluation[2] dict used to store the optional outputs
@@ -697,7 +697,7 @@ class EnsembleModel(Dummy):
       This method is aimed to advance the execution of a sub-model and to collect the data using
       the realization
       @ In, identifier, str, current job identifier
-      @ In, modelToExecute, super(Model), Model instance than needs to be avanced
+      @ In, modelToExecute, super(Model), Model instance than needs to be advanced
       @ In, origInputList, list, list of model input
       @ In, inputKwargs, dict, dictionary of kwargs for this model
       @ In, inRunTargetEvaluations, DataObject, target evaluation for the model to advance
@@ -706,7 +706,7 @@ class EnsembleModel(Dummy):
       @ In, jobHandler, jobHandler instance, optional, jobHandler instance (available only if parallelStrategy == 2)
       @ Out, returnDict, dict, dictionary containing the data extracted from the target evaluation
       @ Out, gotOutputs, dict, dictionary containing all the data coming out the model
-      @ Out, evaluation, dict, the evaluation dictinary with the "unprojected" data
+      @ Out, evaluation, dict, the evaluation dictionary with the "unprojected" data
     """
     returnDict = {}
 

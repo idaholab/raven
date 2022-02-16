@@ -82,7 +82,7 @@ class SimulationMode(MessageUser):
       modifySimulation is called after the runInfoDict has been setup.
       This allows the mode to change any parameters that need changing.
       This typically modifies the precommand and the postcommand that
-      are put infront of the command and after the command.
+      are put in front of the command and after the command.
       @ In, runInfoDict, dict, the run info
       @ Out, dictionary to use for modifications.  If empty, no changes
     """
@@ -251,7 +251,7 @@ class Simulation(MessageUser):
     self.runInfoDict['postcommand'       ] = ''            # Added after the command that is run.
     self.runInfoDict['delSucLogFiles'    ] = False         # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []            # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''            # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
+    self.runInfoDict['mode'              ] = ''            # Running mode.  Currently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'             ] = []            # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'    # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes

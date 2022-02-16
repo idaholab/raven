@@ -528,7 +528,7 @@ class DataSet(DataObject):
                                      else        : dict, first matching realization as {var:value} OR None if not found
                                    else    :
                                      if asDataSet: xarray.Dataset, all matching realizations as xarray.Dataset OR None if not found
-                                     else        : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
+                                     else        : list, list of matching realizations as [{var:value1}, {var:value2}, ...]
     """
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find

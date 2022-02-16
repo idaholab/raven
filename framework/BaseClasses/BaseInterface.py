@@ -46,7 +46,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       @ Out, None
     """
     super().__init__()
-    self.name             = ''                                                          # name of this istance (alias)
+    self.name             = ''                                                          # name of this instance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
     self.verbosity        = None                                                        # verbosity level (see message handler)
     self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types

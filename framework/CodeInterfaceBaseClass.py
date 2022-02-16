@@ -51,7 +51,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
 
   def setRunOnShell(self, shell=True):
     """
-      Method used to set the the executation of code command through shell if shell=True
+      Method used to set the the execution of code command through shell if shell=True
       @ In, shell, Boolean, True if the users want to execute their code through shell
       @ Out, None
     """
