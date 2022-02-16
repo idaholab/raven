@@ -306,9 +306,9 @@ class BasicStatistics(PostProcessorInterface):
         for key in inputMetaKeys:
           # percentile standard error has additional index
           if key == 'percentile_ste':
-            params[key] = [self.pivotParameter, self.steMetaIndex, 'percent']
+            params[key] = [self.steMetaIndex, 'percent']
           else:
-            params[key] = [self.pivotParameter, self.steMetaIndex]
+            params[key] = [self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
