@@ -7,6 +7,8 @@ RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # source read ravenrc script
 RAVEN_RC_SCRIPT=$RAVEN_BUILD_DIR/scripts/read_ravenrc.sh
 RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+PYTHON_FMU_DIR="$RAVEN_BUILD_DIR/framework/contrib/PythonFMU"
+PYTHON_FMU_DIR="${PYTHON_FMU_DIR//\\//}"
 source $RAVEN_RC_SCRIPT
 
 echo Making RAVEN ...
@@ -19,8 +21,8 @@ LIBS_MODE=0 # 0 is "create", 1 is "load"
 ECE_ARGS=" "
 
 # check installation manager in ravenrc if present
-INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
-if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+export RAVEN_INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$RAVEN_INSTALLATION_MANAGER" == "PIP" ]];
   then
   LIBS_MODE=2
 else
@@ -106,6 +108,8 @@ PIP_COMMAND=pip3
 (cd $CROW_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
 
 (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./framework/contrib/AMSC)
+
+(cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
 if [ ! -z "$RAVEN_SIGNATURE" ];
 then

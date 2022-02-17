@@ -144,7 +144,10 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
       For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
       For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
-      ``mean\_x'' will be defined by RAVEN.
+      ``mean\_x'' will be defined by RAVEN. For \textbf{percentile}, RAVEN will define a variable with name defined as:
+      ``prefix'' + ``\_'' + ``percent'' + ``\_'' + ``parameter name''. For example, if we define ``perc'' as the prefix
+      for \textbf{percentile}, percent as ``10'', and parameter ``x'', then variable ``perc\_10\_x'' will
+      be defined by RAVEN.
       For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
       For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
       variable ``sen\_y\_x'' will be defined by RAVEN.
@@ -169,6 +172,7 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{sigma}
     \item \textbf{skewness}
     \item \textbf{kurtosis}
+    \item \textbf{percentile}
   \end{itemize}
   RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
   store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,

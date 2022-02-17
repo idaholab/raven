@@ -2,6 +2,7 @@
 \label{EconomicRatio}
 The \xmlNode{EconomicRatio} post-processor provides the economic metrics from the percent change
 period return of the asset or strategy that is given as an input. These metrics measure the risk-adjusted returns.
+\nb Any metric from \xmlNode{BasicStatistics} may be requested from \xmlNode{EconomicRatio}.
 %
 \ppType{EconomicRatio}{EconomicRatio}
 
@@ -34,12 +35,17 @@ period return of the asset or strategy that is given as an input. These metrics 
     \itemsep0em
     \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
       For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
-      For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
-      ``mean\_x'' will be defined by RAVEN.
+      For example, if we define ``sharpe'' as the prefix for \textbf{sharpeRatio}, and parameter ``x'', then variable
+      ``sharpe\_x'' will be defined by RAVEN. For \textbf{metrics} that include a ``threshold'' parameter,
+      RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``threshold'' + ``\_'' + ``parameter name''.
+      For example, if we define ``VaR'' as the prefix for \textbf{valueAtRisk}, threshold ``0.05'', and parameter name ``x'',
+      then variable ``VaR\_0.05\_x'' will be defined by RAVEN. If we define ``glr'' as the prefix for \textbf{gainLossRatio},
+      ``median'' as the threshold, and ``x'' as the parameter name, then the variable ``glr\_median\_x''
+      will be defined by RAVEN.
       For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
       For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
       variable ``sen\_y\_x'' will be defined by RAVEN.
-      \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+      \nb These variables will be used by RAVEN for the internal calculations. It is also accessible by the user through
       \textbf{DataObjects} and \textbf{OutStreams}.
   \end{itemize}
 

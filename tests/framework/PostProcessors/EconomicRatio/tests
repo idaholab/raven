@@ -1,0 +1,31 @@
+[Tests]
+  [./general]
+    #REQUIREMENT_TEST R-RA-5
+    type = 'RavenFramework'
+    input = 'test_economic_ratio.xml'
+    UnorderedCsv = 'economicRatioGeneral/EconVaRResult_dump.csv'
+    UnorderedXml = 'economicRatioGeneral/EconVaRResult_dump.xml'
+    max_time = 500
+    rel_err = 0.00001
+    zero_threshold = 1e-14
+  [../]
+
+  [./timeDependent]
+    type = 'RavenFramework'
+    input = 'time_dep.xml'
+    output = 'economicRatioTimeDependent/HistorySetPostProcTest_dump.csv'
+    UnorderedCsv = 'economicRatioTimeDependent/HistorySetPostProcTest_dump_0.csv'
+    UnorderedXml = 'economicRatioTimeDependent/HistorySetPostProcTest_dump.xml'
+    rel_err = 1e-5
+    zero_threshold = 1e-14
+  [../]
+
+  [./timeDepDataset]
+    type = 'RavenFramework'
+    input = 'time_dep_dataset.xml'
+    UnorderedCsv = 'economicRatioTimeDependent/datasetPrint.csv'
+    rel_err = 1e-5
+    zero_threshold = 1e-14
+  [../]
+
+[]

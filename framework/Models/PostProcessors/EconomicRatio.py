@@ -14,11 +14,12 @@
 """
 Created on Aug 4, 2020
 
-@author: ZHOUJ2
+@author: ZHOUJ2, dgarrett622
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xarray as xr
+import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -32,10 +33,14 @@ class EconomicRatio(BasicStatistics):
   """
     EconomicRatio filter class. It computes economic metrics
   """
+
+  # values from BasicStatistics
   scalarVals =   BasicStatistics.scalarVals
   vectorVals =   BasicStatistics.vectorVals
+  steVals    =   BasicStatistics.steVals + ['valueAtRisk_ste']
 
-  tealVals   = ['sharpeRatio',             #financial metric
+  # economic/financial metrics
+  econVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
                 'valueAtRisk',             # Value at risk (alpha)
@@ -51,81 +56,31 @@ class EconomicRatio(BasicStatistics):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
+
+    # get input specification from BasicStatistics (scalarVals and vectorVals)
     inputSpecification = super(EconomicRatio, cls).getInputSpecification()
 
-    for scalar in cls.scalarVals:
-      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputTypes.StringListType)
-      scalarSpecification.addParam("prefix", InputTypes.StringType)
-      inputSpecification.addSub(scalarSpecification)
-
-    for teal in cls.tealVals:
-      tealSpecification = InputData.parameterInputFactory(teal, contentType=InputTypes.StringListType)
-      if teal in['sortinoRatio','gainLossRatio']:
-        tealSpecification.addParam("threshold", InputTypes.StringType)
-      elif teal in['expectedShortfall','valueAtRisk']:
-        tealSpecification.addParam("threshold", InputTypes.FloatType)
-      tealSpecification.addParam("prefix", InputTypes.StringType)
-      inputSpecification.addSub(tealSpecification)
-
-    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType)
-    inputSpecification.addSub(pivotParameterInput)
-
+    # add econVals
+    for econ in cls.econVals:
+      econSpecification = InputData.parameterInputFactory(econ,
+                                                          contentType=InputTypes.StringListType)
+      if econ in ["sortinoRatio", "gainLossRatio"]:
+        econSpecification.addParam("threshold", InputTypes.StringType)
+      elif econ in ["expectedShortfall", "valueAtRisk"]:
+        econSpecification.addParam("threshold", InputTypes.FloatType)
+      econSpecification.addParam("prefix", InputTypes.StringType)
+      inputSpecification.addSub(econSpecification)
 
     return inputSpecification
 
-  def inputToInternal(self, currentInp):
+  def __init__(self):
     """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInp, object, an object that needs to be converted
-      @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
+      Constructor
+      @ In, None
+      @ Out, None
     """
-    # The EconomicRatio postprocessor only accept DataObjects
-    currentInput = currentInp [-1] if type(currentInp) == list else currentInp
-    if len(currentInput) == 0:
-      self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-    pbWeights = None
-
-    if currentInput.type not in ['PointSet','HistorySet']:
-      self.raiseAnError(IOError, self, 'EconomicRatio postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
-    # extract all required data from input DataObjects, an input dataset is constructed
-    dataSet = currentInput.asDataset()
-    inputDataset = dataSet[self.parameters['targets']]
-    self.sampleTag = currentInput.sampleTag
-
-    if currentInput.type == 'HistorySet':
-      dims = inputDataset.sizes.keys()
-      if self.pivotParameter is None:
-        if len(dims) > 1:
-          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
-                got inputted!')
-      elif self.pivotParameter not in dims:
-        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
-                requested variables', ','.join(self.parameters['targets']))
-      else:
-        if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-          self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
-        self.pivotValue = inputDataset[self.pivotParameter].values
-        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
-          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
-          " PostProcessor to syncronize your data before running 'EconomicRatio' PostProcessor."
-          self.raiseAnError(IOError, msg)
-    # extract all required meta data
-    metaVars = currentInput.getVars('meta')
-    self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
-
-    if self.pbPresent:
-      pbWeights = xr.Dataset()
-      self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
-      for target in self.parameters['targets']:
-        pbName = 'ProbabilityWeight-' + target
-        if pbName in metaVars:
-          pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
-        elif self.pbPresent:
-          pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-    else:
-      self.raiseAWarning('EconomicRatio postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-    return inputDataset, pbWeights
+    super().__init__()
+    self.printTag = "PostProcessor ECONOMIC RATIO"
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -136,25 +91,76 @@ class EconomicRatio(BasicStatistics):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    #construct a list of all the parameters that have requested values into self.allUsedParams
-    self.allUsedParams = set()
-    for metricName in self.scalarVals + self.tealVals:
+
+    # construct a list of all the parameters that have requested values from scalarVals
+    # and vectorVals into self.allUsedParams
+    super().initialize(runInfo, inputs, initDict)
+
+    # add a list of all the parameters that have requested values from econVals into
+    # self.allUsedParams
+    for metricName in self.econVals:
       if metricName in self.toDo.keys():
         for entry in self.toDo[metricName]:
-          self.allUsedParams.update(entry['targets'])
+          self.allUsedParams.update(entry["targets"])
+          try:
+            self.allUsedParams.update(entry["features"])
+          except KeyError:
+            pass
 
-    #for backward compatibility, compile the full list of parameters used in Economic Ratio calculations
-    self.parameters['targets'] = list(self.allUsedParams)
-    PostProcessorInterface.initialize(self, runInfo, inputs, initDict)
-    inputObj = inputs[-1] if type(inputs) == list else inputs
+    # for backward compatibility, compile the full list of parameters used in EconomicRatio calculations
+    self.parameters["targets"] = list(self.allUsedParams)
+    inputObj = inputs[-1]  if type(inputs) == list else inputs
+    if inputObj.type == "HistorySet":
+      self.dynamic = True
     inputMetaKeys = []
     outputMetaKeys = []
+    for metric, infos in self.toDo.items():
+      if metric in self.econVals:
+        steMetric = metric + "_ste"
+        if steMetric in self.steVals:
+          for info in infos:
+            prefix = info["prefix"]
+            for target in info["targets"]:
+              if metric == 'valueAtRisk':
+                for strThreshold in info['strThreshold']:
+                  metaVar = prefix + '_' + strThreshold + '_ste_' + target if not self.outputDataset else metric + '_ste'
+                  metaDim = inputObj.getDimensions(target)
+                  if len(metaDim[target]) == 0:
+                    inputMetaKeys.append(metaVar)
+                  else:
+                    outputMetaKeys.append(metaVar)
+              else:
+                metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+                metaDim = inputObj.getDimensions(target)
+                if len(metaDim[target]) == 0:
+                  inputMetaKeys.append(metaVar)
+                else:
+                  outputMetaKeys.append(metaVar)
     metaParams = {}
-    if len(outputMetaKeys) > 0:
-      metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
-
+    if not self.outputDataset:
+      if len(outputMetaKeys) > 0:
+        metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
+    else:
+      if len(outputMetaKeys) > 0:
+        params = {}
+        for key in outputMetaKeys + inputMetaKeys:
+          # valueAtRisk standard error has additional index
+          if key == "valueAtRisk_ste":
+            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
+        metaParams.update(params)
+      elif len(inputMetaKeys) > 0:
+        params = {}
+        for key in inputMetaKeys:
+          # valueAtRisk standard error has additional index
+          if key == "valueAtRisk_ste":
+            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
+        metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
-    self.addMetaKeys(metaKeys,metaParams)
+    self.addMetaKeys(metaKeys, metaParams)
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -173,98 +179,118 @@ class EconomicRatio(BasicStatistics):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.toDo = {}
+
+    # handle scalarVals and vectorVals from BasicStatistics
+    super()._handleInput(paramInput, childVals=self.econVals)
+
+    # now handle econVals
     for child in paramInput.subparts:
       tag = child.getName()
-      if tag in self.scalarVals + self.tealVals:
-        if 'prefix' not in child.parameterValues:
+      if tag in self.econVals:
+        if "prefix" not in child.parameterValues:
           self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
-        #get the prefix
-        prefix = child.parameterValues['prefix']
+        # get the prefix
+        prefix = child.parameterValues["prefix"]
+        if tag in ["sortinoRatio", "gainLossRatio"]:
+          # get targets
+          targets = set(child.value)
+          # if targets are not specified by user
+          if len(targets) < 1:
+            self.raiseAWarning("No targets were specified in text of <"+tag+">!  Skipping metric...")
+            continue
+          if tag not in self.toDo.keys():
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
+          if "threshold" not in child.parameterValues:
+            threshold = "zero"
+          else:
+            threshold = child.parameterValues["threshold"].lower()
+            if threshold not in ["zero", "median"]:
+              self.raiseAWarning("Unrecognized threshold in {}, prefix '{}' use zero instead!".format(tag, prefix))
+              threshold = "zero"
 
-      if tag in self.tealVals:
-        if tag in ['sortinoRatio', 'gainLossRatio']:
-          #get targets
+          if "expectedValue" not in self.toDo.keys():
+            self.toDo["expectedValue"] = []
+          if "median" not in self.toDo.keys():
+            self.toDo["median"] = []
+          # add any expectedValue targets that are missing
+          expectedValueToAdd = self._additionalTargetsToAdd("expectedValue", child.value)
+          if len(expectedValueToAdd) > 0:
+            self.toDo["expectedValue"].append({"targets": expectedValueToAdd, "prefix": "BSMean"})
+          # add any median targets that are missing
+          medianValueToAdd = self._additionalTargetsToAdd("median", child.value)
+          if len(medianValueToAdd) > 0:
+            self.toDo["median"].append({"targets": medianValueToAdd, "prefix": "BSMED"})
+          self.toDo[tag].append({"targets": set(targets), "prefix": prefix, "threshold": threshold})
+        elif tag in ["expectedShortfall", "valueAtRisk"]:
+          # get targets
           targets = set(child.value)
           if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-          if 'threshold' not in child.parameterValues:
-            threshold = 'zero'
-          else:
-            threshold = child.parameterValues['threshold'].lower()
-            if threshold not in ['zero','median']:
-              self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
-              threshold = 'zero'
-
-          if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = []
-          if 'median' not in self.toDo.keys():
-            self.toDo['median'] = []
-          self.toDo['expectedValue'].append({'targets':set(child.value),
-                            'prefix':'BSMean'})
-          self.toDo['median'].append({'targets':set(child.value),
-                            'prefix':'BSMED'})
-          self.toDo[tag].append({'targets':set(targets),
-                                'prefix':prefix,
-                                'threshold':threshold})
-
-        elif tag in ['expectedShortfall', 'valueAtRisk']:
-          #get targets
-          targets = set(child.value)
-          if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-          if 'threshold' not in child.parameterValues:
-            threshold = 0.05
-          else:
-            threshold = child.parameterValues['threshold']
-            if threshold >1 or threshold <0:
-              self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
-
-          self.toDo[tag].append({'targets':set(targets),
-                                'prefix':prefix,
-                                'threshold':threshold})
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
+            if "threshold" not in child.parameterValues:
+              threshold = 0.05
+            else:
+              threshold = child.parameterValues["threshold"]
+              if threshold > 1 or threshold < 0:
+                self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
+            # cast threshold to set
+            try:
+              thresholdSet = set(threshold)
+            except TypeError:
+              # not iterable, must be float or int
+              thresholdSet = set([threshold])
+            strThreshold = set()
+            for val in thresholdSet:
+              strThreshold.add(str(val))
+            self.toDo[tag].append({"targets": set(targets),
+                                   "prefix": prefix,
+                                   "threshold": thresholdSet,
+                                   "strThreshold": strThreshold})
         else:
           if tag not in self.toDo.keys():
-            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
-          if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = []
-          if 'sigma' not in self.toDo.keys():
-            self.toDo['sigma'] = []
-          self.toDo['expectedValue'].append({'targets':set(child.value),
-                               'prefix':'BSMean'})
-          self.toDo['sigma'].append({'targets':set(child.value),
-                               'prefix':'BSSigma'})
-          self.toDo[tag].append({'targets':set(child.value),
-                               'prefix':prefix})
-      elif tag in self.scalarVals:
-        if tag not in self.toDo.keys():
-          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
-        self.toDo[tag].append({'targets':set(child.value),
-                               'prefix':prefix})
-      elif tag == "pivotParameter":
-        self.pivotParameter = child.value
-
+            self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
+          if "expectedValue" not in self.toDo.keys():
+            self.toDo["expectedValue"] = []
+          if "sigma" not in self.toDo.keys():
+            self.toDo["sigma"] = []
+          # add any expectedValue targets that are missing
+          expectedValueToAdd = self._additionalTargetsToAdd("expectedValue", child.value)
+          if len(expectedValueToAdd) > 0:
+            self.toDo["expectedValue"].append({"targets": expectedValueToAdd, "prefix": "BSMean"})
+          # add any sigma targets that are missing
+          sigmaToAdd = self._additionalTargetsToAdd("sigma", child.value)
+          if len(sigmaToAdd) > 0:
+            self.toDo["sigma"].append({"targets": sigmaToAdd, "prefix": "BSSigma"})
+          self.toDo[tag].append({"targets": set(child.value), "prefix": prefix})
       else:
-        self.raiseAWarning('Unrecognized node in EconomicRatio "',tag,'" has been ignored!')
+        if tag not in self.scalarVals + self.vectorVals:
+          self.raiseAWarning("Unrecognized node in EconomicRatio '" + tag + "' has been ignored!")
 
-    assert (len(self.toDo)>0), self.raiseAnError(IOError, 'EconomicRatio needs parameters to work on! Please check input for PP: ' + self.name)
+    assert(len(self.toDo) > 0), self.raiseAnError(IOError, "EconomicRatio needs parameters to work on! please check input for PP: " + self.name)
 
-  def __computePower(self, p, dataset):
+  def _additionalTargetsToAdd(self, metric, childValue):
     """
-      Compute the p-th power of weights
-      @ In, p, int, the power
-      @ In, dataset, xarray.Dataset, probability weights of all input variables
-      @ Out, pw, xarray.Dataset, the p-th power of weights
+      Some EconomicRatio metrics require additional metrics from BasicStatistics, find necessary additions
+      @ In, metric, str, name of metric
+      @ In, childValue, set, set of targets
+      @ Out, valsToAdd, set, set of targets to add to toDo
     """
-    pw = {}
-    coords = dataset.coords
-    for target, targValue in dataset.variables.items():
-      ##remove index variable
-      if target in coords:
-        continue
-      pw[target] = np.power(targValue,p)
-    pw = xr.Dataset(data_vars=pw,coords=coords)
-    return pw
+
+    if len(self.toDo[metric]) > 0:
+      # check if metric should be added
+      vals = set() # currently collected
+      for tmp_dict in self.toDo[metric]:
+        if len(vals) == 0:
+          vals = set(tmp_dict["targets"])
+        else:
+          vals = vals.union(tmp_dict["targets"])
+      valsToAdd = set()
+      for val in childValue:
+        if val not in vals:
+          valsToAdd.add(val)
+    else:
+      valsToAdd = set(childValue)
+
+    return valsToAdd
 
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
@@ -293,10 +319,13 @@ class EconomicRatio(BasicStatistics):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.tealVals)
+    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.econVals)
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
-    needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['valueAtRisk', 'expectedShortfall']))
+    needed.update(dict((metric,{'targets':set(),'threshold':set()}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
+      if metric in self.vectorVals:
+        # vectorVals handled in BasicStatistics, not here
+        continue
       for entry in params:
         needed[metric]['targets'].update(entry['targets'])
         if 'threshold' in entry.keys() :
@@ -311,8 +340,8 @@ class EconomicRatio(BasicStatistics):
           else:
             thd = entry['threshold']
             if thd not in needed[metric]['threshold']:
-              needed[metric]['threshold'].append(thd)
-          pass
+              needed[metric]['threshold'].update(thd)
+
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # median needs                 |                        | sortinoRatio, gainLossRatio
@@ -322,9 +351,6 @@ class EconomicRatio(BasicStatistics):
     # sharpeRatio needs            | expectedValue,sigma    |
     # sortinoRatio needs           | expectedValue,median   |
     # gainLossRatio needs          | expectedValue,median   |
-
-
-
 
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
@@ -338,7 +364,6 @@ class EconomicRatio(BasicStatistics):
     needed['median']['targets'].update(needed['sortinoRatio']['targets'])
     needed['median']['targets'].update(needed['gainLossRatio']['targets'])
 
-
     for metric, params in needed.items():
       needed[metric]['targets'] = list(params['targets'])
 
@@ -349,7 +374,7 @@ class EconomicRatio(BasicStatistics):
     calculations = self.calculations
 
     #################
-    # TEAL VALUES   #
+    # ECON VALUES   #
     #################
     #
     # SharpeRatio
@@ -368,7 +393,7 @@ class EconomicRatio(BasicStatistics):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
-      threshold = needed[metric]['threshold']
+      threshold = list(needed[metric]['threshold'])
       VaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
       targWarn = "" # targets that return negative VaR for warning
@@ -378,11 +403,11 @@ class EconomicRatio(BasicStatistics):
         VaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            VaR = [-self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          VaRList.append(-VaR)
-        if any(np.array(VaRList) < 0):
+            VaR = -self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
+          VaRList.append(VaR)
+        if np.any(np.array(VaRList) < 0):
           targWarn += target + ", "
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
@@ -393,6 +418,51 @@ class EconomicRatio(BasicStatistics):
       if len(targWarn) > 0:
         self.raiseAWarning("At least one negative VaR value calculated for target(s) {}. Negative VaR implies high probability of profit.".format(targWarn[:-2]))
       calculations[metric] = VaRSet
+
+      # calculate value at risk standard error here
+      # Reference for percentile standard error calculation:
+      # B. Harding, C. Tremblay and D. Cousineau, "Standard errors: A review and evaluation of
+      # standard error estimators using Monte Carlo simulations", The Quantitative Methods of
+      # Psychology, Vol. 10, No. 2 (2014)
+      self.raiseADebug('Starting "'+metric+'" standard error...')
+      VaRSteSet = xr.Dataset()
+      calculatedVaR = calculations[metric]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        en = targWeight.sum()**2/np.sum(targWeight**2)
+        targDa = dataSet[target]
+        if self.pivotParameter in targDa.sizes.keys():
+          VaRSte = []
+          for thd in threshold:
+            subVaRSte = []
+            factor = np.sqrt(thd*(1.0 - thd)/en)
+            for label, group in targDa.groupby(self.pivotParameter):
+              if group.values.min() == group.values.max():
+                # all values are the same
+                subVaRSte.append(0.0)
+              else:
+                # get KDE
+                kde = stats.gaussian_kde(group.values, weights=targWeight)
+                val = calculatedVaR[target].sel(**{'threshold': thd, self.pivotParameter: label}).values
+                subVaRSte.append(factor/kde(val)[0])
+            VaRSte.append(subVaRSte)
+          da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter),
+                            coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
+          VaRSteSet[target] = da
+        else:
+          calcVaR = calculatedVaR[target]
+          if targDa.values.min() == targDa.values.max():
+            # distribution is a delta function, so no KDE construction
+            VaRSte = list(np.zeros(calcVaR.shape))
+          else:
+            # get KDE
+            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+            factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
+            VaRSte = list(factor/kde(calcVaR.values))
+          da = xr.DataArray(VaRSte, dims=('threshold'), coords={'threshold': threshold})
+          VaRSteSet[target] = da
+      calculations[metric+'_ste'] = VaRSteSet
     #
     # ExpectedShortfall
     #
@@ -400,7 +470,7 @@ class EconomicRatio(BasicStatistics):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
-      threshold = needed[metric]['threshold']
+      threshold = list(needed[metric]['threshold'])
       CVaRSet = xr.Dataset()
       relWeight = pbWeights[list(needed[metric]['targets'])]
       for target in needed[metric]['targets']:
@@ -409,16 +479,22 @@ class EconomicRatio(BasicStatistics):
         CVaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight,thd) for label,group in targDa.groupby(self.pivotParameter)]
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            subCVaR = []
+            for label, group in targDa.groupby(self.pivotParameter):
+              sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(group.values, targWeight,thd)
+              quantile = self._computeWeightedPercentile(group.values, targWeight, percent=thd)
+              lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL, 0]*sortedWeightsAndPoints[:indexL,1])
+              lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
+              Es = lowerPartialE + quantile*(thd - lowerPartialP)
+              subCVaR.append(-Es/(thd))
+            CVaRList.append(subCVaR)
           else:
             sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight,thd)
-          quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
-          lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
-          Es = lowerPartialE + quantile*(thd -lowerPartialP)
-          CVaRList.append(-Es/(thd))
-
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
+            lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
+            lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
+            Es = lowerPartialE + quantile*(thd -lowerPartialP)
+            CVaRList.append(-Es/(thd))
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(CVaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
         else:
@@ -445,7 +521,7 @@ class EconomicRatio(BasicStatistics):
           zeroSet = orgZeroSet[list(zeroTarget)]
           dataSet = inputDataset[list(zeroTarget)]
           lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,zeroSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
           incapableZeroTarget = [x for x in zeroTarget if not lpsDS[x].values != 0]
           for target in incapableZeroTarget:
             needed[metric]['threshold'][target].remove('zero')
@@ -460,7 +536,7 @@ class EconomicRatio(BasicStatistics):
           medSet = orgMedSet[list(medTarget)]
           dataSet = inputDataset[list(medTarget)]
           lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
           incapableMedTarget = [x for x in medTarget if not lpsDS[x].values != 0]
           medTarget = [x for x in medTarget if not lpsDS[x].values == 0]
           if incapableMedTarget:
@@ -490,7 +566,6 @@ class EconomicRatio(BasicStatistics):
           zeroSet = orgZeroSet[list(zeroTarget)]
           dataSet = inputDataset[list(zeroTarget)]
 
-
           higherSet = (dataSet-zeroSet).clip(min=0)
           lowerSet = (zeroSet-dataSet).clip(min=0)
           relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
@@ -512,13 +587,11 @@ class EconomicRatio(BasicStatistics):
           medSet = orgMedSet[list(medTarget)]
           dataSet = inputDataset[list(medTarget)]
 
-
           higherSet = (dataSet-medSet).clip(min=0)
           lowerSet = (medSet-dataSet).clip(min=0)
           relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
           higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
           lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
-
 
           incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
           medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
@@ -530,39 +603,49 @@ class EconomicRatio(BasicStatistics):
           daMed = daMed.expand_dims('threshold')
       calculations[metric] = xr.merge([daMed, daZero])
 
-
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.tealVals +['equivalentSamples'] and metric !='samples':
+      if metric in self.scalarVals + self.steVals + self.econVals + ['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
-    outputDict = {}
-    for metric, requestList  in self.toDo.items():
-      for targetDict in requestList:
-        prefix = targetDict['prefix'].strip()
-        for target in targetDict['targets']:
-          if metric in self.scalarVals:
-            varName = prefix + '_' + target
-            outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
-            steMetric = metric + '_ste'
-          elif metric in self.tealVals:
-            varName = prefix + '_' + target
-            if 'threshold' in targetDict.keys():
-              try:
+
+    if self.outputDataset:
+      # Add 'RAVEN_sample_ID' to output dataset for consistence
+      if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
+        outputSet = outputSet.expand_dims('RAVEN_sample_ID')
+        outputSet['RAVEN_sample_ID'] = [0]
+      return outputSet
+    else:
+      outputDict = {}
+      for metric, requestList  in self.toDo.items():
+        for targetDict in requestList:
+          prefix = targetDict['prefix'].strip()
+          for target in targetDict['targets']:
+            if metric in self.econVals:
+              if metric in ['sortinoRatio','gainLossRatio']:
+                varName = prefix + '_' + targetDict['threshold'] + '_' + target
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
-              except KeyError:
-                outputDict[varName] = np.nan
+              elif metric in ['valueAtRisk','expectedShortfall']:
+                for thd in targetDict['strThreshold']:
+                  varName = '_'.join([prefix,thd,target])
+                  thdVal = float(thd)
+                  outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thdVal}))
+                  steMetric = metric + '_ste'
+                  if steMetric in self.steVals:
+                    metaVar = '_'.join([prefix,thd,'ste',target])
+                    outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'threshold':thdVal}))
+              else:
+                varName = prefix + '_' + target
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
             else:
-              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
-            steMetric = metric + '_ste'
-          else:
-            #check if it was skipped for some reason
-            skip = self.skipped.get(metric, None)
-            if skip is not None:
-              self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
-              continue
-    if self.pivotParameter in outputSet.sizes.keys():
-      outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
-    return outputDict
+              #check if it was skipped for some reason
+              skip = self.skipped.get(metric, None)
+              if skip is not None:
+                self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
+                continue
+      if self.pivotParameter in outputSet.sizes.keys():
+        outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+
+      return outputDict
 
   def run(self, inputIn):
     """
@@ -570,25 +653,27 @@ class EconomicRatio(BasicStatistics):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
-    BasicStatistics.run(self,inputIn)
+    # get metrics from BasicStatistics
+    outputSetBasicStatistics = BasicStatistics.run(self, inputIn)
+
+    # get metrics from EconomicRatio
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
-    return outputSet
 
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    evaluation = finishedJob.getEvaluation()
-    outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
-    elif output.type in ['DataSet']:
-      self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization,style='dataset')
+    # combine results
+    if isinstance(outputSet, dict):
+      if isinstance(outputSetBasicStatistics, dict):
+        # BasicStatistics and EconomicRatio returned dictionaries
+        outputSet.update(outputSetBasicStatistics)
+      else:
+        # BasicStatistics returned a xr.Dataset, EconomicRatio returned dict (empty)
+        outputSet = outputSetBasicStatistics
     else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+      if isinstance(outputSetBasicStatistics, dict):
+        # EconomicRatio returned xarray.Dataset, but BasicStatistics was dict (empty)
+        pass
+      else:
+        # Both BasicStatistics and EconomicRatio returned xarray.Datasets
+        outputSet = xr.merge([outputSet, outputSetBasicStatistics])
+
+    return outputSet
