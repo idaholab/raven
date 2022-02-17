@@ -145,7 +145,7 @@ class RFE(BaseType):
     # self.scores_ will not be calculated when calling _fit through fit
 
     # Initialization
-    nFeatures = X.shape[1]
+    nFeatures = X.shape[-1]
     if self.nFeaturesToSelect is None:
       nFeaturesToSelect = nFeatures // 2
     else:
@@ -174,12 +174,12 @@ class RFE(BaseType):
       
       print("Fitting estimator with %d features." % np.sum(support_))
 
-      estimator._train(X[:, features], y)
+      estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y)
       coefs = None
       # Get coefs
       estimator.featureImportances_
       if hasattr(estimator, 'featureImportances_'):
-        coefs = np.abs(estimator.featureImportances_)
+        coefs = estimator.featureImportances_
       if coefs is None:
         coefs = np.ones(nFeatures)
       

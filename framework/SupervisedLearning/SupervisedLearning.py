@@ -226,8 +226,13 @@ class SupervisedLearning(BaseInterface):
     pass
 
   @property
-  def feature_importances_(self):
-    return np.ones(len(self.features))
+  def featureImportances_(self):
+    """
+      Method to return the features' importances
+      @ In, None
+      @ Out, featureImportances_, dict of dicts, dict of importances {'target1':{feature1:importance, feature1:importance,...},...}
+    """
+    return dict.fromkeys(self.target,dict.fromkeys(self.features,1.))
 
   def train(self, tdict, indexMap=None):
     """

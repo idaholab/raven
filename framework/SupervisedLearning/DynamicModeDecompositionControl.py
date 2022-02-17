@@ -144,6 +144,14 @@ class DMDC(DMD):
     self.outputVals = None # output values (e.g. Y)
     self.parameterValues = None #  parameter values
 
+  def __setstate__(self,state):
+    """
+      Initializes the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
@@ -213,6 +221,33 @@ class DMDC(DMD):
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
+
+  @property
+  def featureImportances_(self):
+    """
+      Method to return the features' importances
+      @ In, None
+      @ Out, featureImportances_, dict of dicts, dict of importances {'target1':{feature1:importance, feature1:importance,...},...}
+    """
+    importances = dict.fromkeys(self.outputID, dict.fromkeys(self.parametersIDs+self.stateID,1.) )
+    
+    for outcnt, output in enumerate(self.outputID):
+      # the importances for the state variables are inferred from the C matrix/operator since 
+      # directely linked to the output variables
+      minVal, minIdx = np.finfo(float).max, -1
+      for stateCnt, stateID in enumerate(self.stateID):
+        importances[output][stateID] =  abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt])))
+        if minVal > importances[output][stateID]:
+          minVal = importances[output][stateID]
+          minIdx = stateCnt
+      # as first approximation we assume that the feature importance
+      # are assessable via a perturbation of the only feature space
+      # on the C matrix
+      for featCnt, feat in enumerate(self.parametersIDs):
+        permutations = set(self.parameterValues[:,featCnt])
+        indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
+        importances[output][feat] = abs(float(np.average(self.__Ctilde[indeces,outcnt,minIdx])))
+    return importances
 
   #######
   def __evaluateLocal__(self,featureVals):
