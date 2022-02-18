@@ -696,7 +696,6 @@ def findCrowModule(name):
     @ In, name, str, the name of the module
     @ Out, module, instance, the instance of module of "name"
   """
-  print(sys.path)
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
@@ -705,6 +704,7 @@ def findCrowModule(name):
     module = import_module("crow_modules.{}".format(name))
   except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
+      print('sys.path:', sys.path)
       raise ie
     module = import_module("{}".format(name))
   return module
