@@ -96,11 +96,11 @@ class SimulatedAnnealing(RavenSampled):
     specs = super(SimulatedAnnealing, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
                             to perform a global search in large design spaces. The methodology rose
-                            from statistical physics and was inspitred by metallurgy where
+                            from statistical physics and was inspired by metallurgy where
                             it was found that fast cooling might lead to smaller and defected crystals,
-                            and that reheating and slowly controling cooling will lead to better states.
+                            and that reheating and slowly controlling cooling will lead to better states.
                             This allows climbing to avoid being stuck in local minima and hence facilitates
-                            finding the global minima for non-convex probloems.
+                            finding the global minima for non-convex problems.
                             More information can be found in: Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
                             ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680."""
 
@@ -165,7 +165,7 @@ class SimulatedAnnealing(RavenSampled):
     # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
     # # -> but really should only include active ones, not all of them. This seems like it should work
     # #    when the InputData can scan forward to determine which entities are actually used.
-    new['amp_{VAR}'] = 'amplitued associated to each variable used to compute step size based on cooling method and the corresponding next neighbour'
+    new['amp_{VAR}'] = 'amplitude associated to each variable used to compute step size based on cooling method and the corresponding next neighbor'
     new ['delta_{VAR}'] = 'step size associated to each variable'
     new['Temp'] = 'temperature at current state'
     new['fraction'] = 'current fraction of the max iteration limit'
@@ -594,9 +594,9 @@ class SimulatedAnnealing(RavenSampled):
   ###########
   def _temperature(self, fraction):
     """
-      A utility function to compute the initial temperaturte
+      A utility function to compute the initial temperature
       currently it is just a function of how far in the process are we
-      @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
+      @ In, fraction, float, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
       @ Out, _temperature, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
     """
     return max(0.01,1-fraction)
@@ -627,7 +627,7 @@ class SimulatedAnnealing(RavenSampled):
 
   def _nextNeighbour(self, rlz,fraction=1):
     r"""
-      Perturbs the state to find the next random neighbour based on the cooling schedule
+      Perturbs the state to find the next random neighbor based on the cooling schedule
       @ In, rlz, dict, current realization
       @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
       @ Out, nextNeighbour, dict, the next random state

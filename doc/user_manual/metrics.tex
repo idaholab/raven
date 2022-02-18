@@ -56,7 +56,7 @@ In the RAVEN input file these metrics are defined as follows:
 </Simulation>
 \end{lstlisting}
 
-The metrics, that are available in RAVEN, can be categorized into several main classes:
+The metrics available in RAVEN can be categorized into several main classes:
 \begin{itemize}
   \item \textbf{Paired Distance Metric}, distance metrics between two variables $u$ and $v$, such as \xmlString{euclidean},
     \xmlString{manhattan}, \xmlString{minkowski} and so on.
@@ -409,7 +409,7 @@ This XML node needs to contain the attributes:
 
 
 \begin{itemize}
-  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifices a classical DTW caluclation and $1$ specifies
+  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifies a classical DTW calculation and $1$ specifies
                                                                     a derivative DTW calculation
   \item \xmlNode{localDistance},  \xmlDesc{string, required field}, the ID of the distance function to be employed to determine the local distance
                                                                     evaluation of two time series. Available options are provided by the Scipy
