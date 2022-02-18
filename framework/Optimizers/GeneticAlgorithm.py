@@ -147,7 +147,7 @@ class GeneticAlgorithm(RavenSampled):
                   $nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize$
                   solving for nParents we get:
                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
-                  This will result in a popSize a little lareger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
+                  This will result in a popSize a little larger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -833,7 +833,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, point, xr.DataArray, the DataArray containing the chromosome (point)
       @ In, constraint, external function, explicit constraint function
       @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
-                if $g_j(x)<0$, then the contraint is violated
+                if $g_j(x)<0$, then the constraint is violated
     """
     g = self._applyFunctionalConstraints(point, constraint)
     return g
@@ -845,7 +845,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, opt, float, the objective value at this chromosome (point)
       @ In, constraint, external function, implicit constraint function
       @ out, g, float,the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
-                if $g_j(x)<0$, then the contraint is violated
+                if $g_j(x)<0$, then the constraint is violated
     """
     g = self._checkImpFunctionalConstraints(point, opt, constraint)
     return g
@@ -856,7 +856,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, point, xr.DataArray, the dataArray containing potential point to apply constraints to
       @ In, constraint, external function, constraint function
       @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
-                if $g_j(x)<0$, then the contraint is violated
+                if $g_j(x)<0$, then the constraint is violated
     """
     # are we violating functional constraints?
     g = self._checkFunctionalConstraints(point, constraint)
@@ -868,7 +868,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, point, dict, the dictionary containing the chromosome (point)
       @ In, constraint, external function, explicit constraint function
       @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
-                if $g_j(x)<0$, then the contraint is violated
+                if $g_j(x)<0$, then the constraint is violated
     """
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)
@@ -882,7 +882,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, opt, dict, the dictionary containing the chromosome (point)
       @ In, impConstraint, external function, implicit constraint function
       @ out, g, float, the value g_j(x, objVar) is the value of the constraint function number j when fed with the chromosome (point)
-                if $g_j(x, objVar)<0$, then the contraint is violated
+                if $g_j(x, objVar)<0$, then the constraint is violated
     """
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)

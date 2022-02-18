@@ -91,7 +91,7 @@ class Assembler(MessageUser):
       @ In, subXmlNode, ET, the XML node that needs to be inquired
       @ In, found, dict, a dictionary that check if all the tokens (requested) are found
       @ In, testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
-      @ Out, returnObject, tuple, tuple(found, testObjects) containig in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
+      @ Out, returnObject, tuple, tuple(found, testObjects) containing in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
                                                                          [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
     """
     for subNode in subXmlNode:

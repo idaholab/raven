@@ -173,7 +173,7 @@ class PostProcessor(Model):
 
   def createNewInput(self, myInput, samplerType, **kwargs):
     """
-      This function will return a new input to be submitted to the postprocesor.
+      This function will return a new input to be submitted to the PostProcessor.
       (Not used but required by model base class)
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, passing through (consistent with base class but not used)
@@ -239,7 +239,7 @@ class PostProcessor(Model):
 
   def provideExpectedMetaKeys(self):
     """
-      Overrides the base class method to assure child postprocessor is also polled for its keys.
+      Overrides the base class method to assure child PostProcessor is also polled for its keys.
       @ In, None
       @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
     """
