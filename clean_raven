@@ -10,9 +10,10 @@ rm -f ${RAVEN_DIR}/framework/contrib/AMSC/_amsc*.so \
     ${RAVEN_DIR}/src/contrib/amsc_wrap.cxx \
     ${RAVEN_DIR}/src/contrib/amsc_wrap.cpp \
     ${RAVEN_DIR}/src/contrib/amsc.py \
-    ${RAVEN_DIR}/src/contrib/amsc.pyc \
-    ${RAVE_DIR}/cow/install/
-rm -Rf ${RAVEN_DIR}/build
+    ${RAVEN_DIR}/src/contrib/amsc.pyc
+rm -Rf ${RAVEN_DIR}/build  \
+   ${RAVEN_DIR}/crow/install/ \
+   ${RAVEN_DIR}/install/
 find ${RAVEN_DIR}/framework  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/scripts  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/rook  -name '*.pyc' -exec rm '{}' \;

@@ -31,7 +31,7 @@ except ImportError as e:
 
 from sys import path
 
-from AMSC_Object import QAMSC_Object
+from AMSC.AMSC_Object import QAMSC_Object
 from .BaseTopologicalView import BaseTopologicalView
 from .TopologyMapView import TopologyMapView
 from .SensitivityView import SensitivityView
