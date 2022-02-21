@@ -58,7 +58,7 @@ class FeatureSelection(PostProcessorInterface):
     TargetsInput = InputData.parameterInputFactory("targets", contentType=InputTypes.StringType)
     inputSpecification.addSub(TargetsInput)
     FeaturesInput = InputData.parameterInputFactory("features", contentType=InputTypes.StringType)
-    inputSpecification.addSub(FeaturesInput)    
+    inputSpecification.addSub(FeaturesInput)
     PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     inputSpecification.addSub(PivotParameterInput)
     numberOfFeatures = InputData.parameterInputFactory("minimumNumberOfFeatures", contentType=InputTypes.IntegerType)
@@ -72,7 +72,7 @@ class FeatureSelection(PostProcessorInterface):
     ROMInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
     ROMInput.addParam("class", InputTypes.StringType)
     ROMInput.addParam("type", InputTypes.StringType)
-    inputSpecification.addSub(ROMInput)    
+    inputSpecification.addSub(ROMInput)
     return inputSpecification
 
   def __init__(self):
@@ -105,7 +105,7 @@ class FeatureSelection(PostProcessorInterface):
       elif child.getName() == 'targets':
         self.targets = list(inp.strip() for inp in child.value.strip().split(','))
       elif child.getName() == 'features':
-        self.features = list(inp.strip() for inp in child.value.strip().split(','))      
+        self.features = list(inp.strip() for inp in child.value.strip().split(','))
       elif child.getName() == 'step':
         self.settings[child.getName()] = child.value
       elif child.getName() == 'minimumNumberOfFeatures':
@@ -136,11 +136,11 @@ class FeatureSelection(PostProcessorInterface):
       self.ROM.initializeModel(settings)
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
-    # now we create a wrapper here that can work with scikitlearn 
+    # now we create a wrapper here that can work with scikitlearn
     class scikitLearnWrapper(BaseEstimator):
       def __init__(self, ROM):
           self.ROM = ROM
-  
+
       def fit(self, X):
           self.n_samples_fit_ = X.shape[0]
           self.annoy_ = annoy.AnnoyIndex(X.shape[1], metric=self.metric)
@@ -148,47 +148,47 @@ class FeatureSelection(PostProcessorInterface):
               self.annoy_.add_item(i, x.tolist())
           self.annoy_.build(self.n_trees)
           return self
-  
+
       def transform(self, X):
           return self._transform(X)
-  
+
       def fit_transform(self, X, y=None):
           return self.fit(X)._transform(X=None)
-  
+
       def _transform(self, X):
           """As `transform`, but handles X is None for faster `fit_transform`."""
-  
+
           n_samples_transform = self.n_samples_fit_ if X is None else X.shape[0]
-  
+
           # For compatibility reasons, as each sample is considered as its own
           # neighbor, one extra neighbor will be computed.
           n_neighbors = self.n_neighbors + 1
-  
+
           indices = np.empty((n_samples_transform, n_neighbors), dtype=int)
           distances = np.empty((n_samples_transform, n_neighbors))
-  
+
           if X is None:
               for i in range(self.annoy_.get_n_items()):
                   ind, dist = self.annoy_.get_nns_by_item(
                       i, n_neighbors, self.search_k, include_distances=True
                   )
-  
+
                   indices[i], distances[i] = ind, dist
           else:
               for i, x in enumerate(X):
                   indices[i], distances[i] = self.annoy_.get_nns_by_vector(
                       x.tolist(), n_neighbors, self.search_k, include_distances=True
                   )
-  
+
           indptr = np.arange(0, n_samples_transform * n_neighbors + 1, n_neighbors)
           kneighbors_graph = csr_matrix(
               (distances.ravel(), indices.ravel(), indptr),
               shape=(n_samples_transform, self.n_samples_fit_),
           )
-  
+
           return kneighbors_graph
-      
-    
+
+
 
   def collectOutput(self,finishedJob, output):
     """
@@ -226,11 +226,11 @@ class FeatureSelection(PostProcessorInterface):
       dataSet = currentInput.asDataset()
       inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       if self.features is None:
-        self.features = list(set(list(dataSet.keys())) - set(list(self.targets)) - set(list(self.pivotParameter))) 
+        self.features = list(set(list(dataSet.keys())) - set(list(self.targets)) - set(list(self.pivotParameter)))
       if currentInput.type in ['HistorySet']:
         self.dynamic = True
         if self.pivotParameter in dataSet.keys():
-          self.pivotValue = dataSet[self.pivotParameter].values  
+          self.pivotValue = dataSet[self.pivotParameter].values
         else:
           self.raiseAnError(IOError, self, 'Time-dependent FeatureSelection is requested (HistorySet) but no pivotParameter got inputted or not in dataset!')
       for feat in self.features:
@@ -272,7 +272,7 @@ class FeatureSelection(PostProcessorInterface):
     """
     dataSet = inputIn[0].asDataset()
     #self.__runLocal(dataSet)
-    
+
     inputList = self.inputToInternal(inputIn)
     if not self.dynamic:
       outputDict = self.__runLocal(inputList[0])
@@ -317,41 +317,41 @@ class FeatureSelection(PostProcessorInterface):
       nFeatures = min(nFeatures, len(inputDict['features']))
 
     #kpca = PCA(n_components=10)
-    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)    
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
     #headers = ["PCA_" + str(i+1) for i in range(10)] +  list(inputDict['targets'].keys())
-  
+
     #np.savetxt("pca_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
-    
+
     #kpca = KernelPCA(n_components=10, kernel = "rbf", random_state=0)
     #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
-    
+
     #np.savetxt("kernelpca_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
-     
-    
+
+
     #fica = FastICA(n_components=10)
     #newFeatures = fica.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
-  
+
     #np.savetxt("ica_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
 
     ## 5
 
     #kpca = PCA(n_components=5)
-    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)    
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
     #headers = ["PCA_" + str(i+1) for i in range(5)] +  list(inputDict['targets'].keys())
-  
+
     #np.savetxt("pca_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
-    
+
     #kpca = KernelPCA(n_components=5, kernel = "rbf", random_state=0)
     #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
-    
+
     #np.savetxt("kernelpca_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
-     
-    
+
+
     #fica = FastICA(n_components=5)
     #newFeatures = fica.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
-  
+
     #np.savetxt("ica_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
-    
+
     if self.what == 'PCARFE':
       aggregateTargets = True
     if aggregateTargets:
@@ -390,7 +390,7 @@ class FeatureSelection(PostProcessorInterface):
           outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
     elif self.what == 'PCARFE':
       kpca = PCA(n_components=min(nFeatures*3, len(inputDict['features'].values())))
-      newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)      
+      newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
       selectors = RFE(LinearRegression(), n_features_to_select=nFeatures*3, step=step)
       print(newFeatures.shape, newTarget.shape)
       selectors = selectors.fit(np.atleast_2d(newFeatures), newTarget.flatten())
@@ -398,7 +398,7 @@ class FeatureSelection(PostProcessorInterface):
       print(selectors.support_.shape)
       outputDict[self.name] = newFeatures[:, selectors.support_]
       print(newFeatures[:, selectors.support_].shape)
-    
+
     elif self.what == 'kbest':
       X_new = SelectKBest(f_regression, k=nFeatures).fit_transform(X, y)
       transformer = PCA(n_components=nFeatures, random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)

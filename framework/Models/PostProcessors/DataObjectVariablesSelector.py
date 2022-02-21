@@ -116,14 +116,14 @@ class DataObjectVariablesSelector(PostProcessorInterface):
         if not set([self.target]) <= set(currInp.getVars()):
           self.raiseAnError(KeyError, 'The requested target were not all found in the variableDataObject data! ' +
                             'Unused: {}. '.format(set(inputs[0].getVars()) - set(self.target)) +
-                            'Missing: {}.'.format(set(self.target) - set(inputs[0].getVars())))        
+                            'Missing: {}.'.format(set(self.target) - set(inputs[0].getVars())))
         variableNames = currInp.asDataset()[self.target].values.tolist()
         break
     originalDataset =  inputs[index-1]
     if not set(variableNames) <= set(originalDataset.getVars()):
       self.raiseAnError(KeyError, 'The requested variableNames were not all found in the variableDataObject data! ' +
                         'Unused: {}. '.format(set(originalDataset.getVars()) - set(variableNames)) +
-                        'Missing: {}.'.format(set(variableNames) - set(originalDataset.getVars())))       
+                        'Missing: {}.'.format(set(variableNames) - set(originalDataset.getVars())))
     return originalDataset.asDataset()[variableNames+originalDataset.getVars('output')+originalDataset.getVars('meta')]
 
 

@@ -170,6 +170,14 @@ class DMDC(DMD):
     ### Extract the Initilalization State Variable Names (x). Optional. If not
     ### found, the state is initialized with the initial values in the state field
     self.initStateID = settings.get('initStateVariables')
+    # FIXME 1718
+    try:
+      [el.split("_")[1] for el in self.initStateID]
+    except IndexError:
+      self.raiseAnError(IndexError, "initStateVariables must be named {stateVariable}_init")
+    varsToCheck = [el.split("_")[0] for el in self.initStateID]
+    self.initStateID = [self.initStateID[cnt] for cnt, el in enumerate(varsToCheck) if el in self.stateID]
+    # END FIXME 1718
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     self.dmdParams['centerUXY'] = settings.get('subtractNormUXY')
     # some checks
@@ -227,26 +235,25 @@ class DMDC(DMD):
     """
       Method to return the features' importances
       @ In, None
-      @ Out, featureImportances_, dict of dicts, dict of importances {'target1':{feature1:importance, feature1:importance,...},...}
+      @ Out, featureImportances_, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
+                                                              feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
-    importances = dict.fromkeys(self.outputID, dict.fromkeys(self.parametersIDs+self.stateID,1.) )
-    
-    for outcnt, output in enumerate(self.outputID):
-      # the importances for the state variables are inferred from the C matrix/operator since 
-      # directely linked to the output variables
-      minVal, minIdx = np.finfo(float).max, -1
-      for stateCnt, stateID in enumerate(self.stateID):
-        importances[output][stateID] =  abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt])))
-        if minVal > importances[output][stateID]:
-          minVal = importances[output][stateID]
-          minIdx = stateCnt
-      # as first approximation we assume that the feature importance
-      # are assessable via a perturbation of the only feature space
-      # on the C matrix
-      for featCnt, feat in enumerate(self.parametersIDs):
-        permutations = set(self.parameterValues[:,featCnt])
-        indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        importances[output][feat] = abs(float(np.average(self.__Ctilde[indeces,outcnt,minIdx])))
+    importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
+    # the importances for the state variables are inferred from the C matrix/operator since
+    # directely linked to the output variables
+    minVal, minIdx = np.finfo(float).max, -1
+    for stateCnt, stateID in enumerate(self.stateID):
+      importances[stateID] =  np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+      if minVal > np.min(importances[stateID]):
+        minVal = np.min(importances[stateID])
+        minIdx = stateCnt
+    # as first approximation we assume that the feature importance
+    # are assessable via a perturbation of the only feature space
+    # on the C matrix
+    for featCnt, feat in enumerate(self.parametersIDs):
+      permutations = set(self.parameterValues[:,featCnt])
+      indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
+      importances[feat] = np.asarray([abs(float(np.average(self.__Ctilde[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
     return importances
 
   #######

@@ -63,14 +63,14 @@ class ScikitLearnBase(SupervisedLearning):
         if hasattr(m, 'feature_importances_'):
           coefs = m.feature_importances_
         elif hasattr(m, 'coef_'):
-          coefs = m.coef_    
+          coefs = m.coef_
         if cc is None:
           cc = np.zeros(coefs.shape)
         cc[:]+=coefs[:]
       cc/=float(len(model))
       coefs = cc
     else:
-      
+
       if hasattr(model, 'feature_importances_'):
         coefs = model.feature_importances_
       elif hasattr(model, 'coef_'):

@@ -34,7 +34,7 @@ import numpy as np
 from utils import utils, mathUtils, xmlUtils
 from utils import InputTypes, InputData
 from BaseClasses import BaseInterface
-from .FeatureSelection import RFE
+from .FeatureSelection import factory as featureSelectionFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):
@@ -70,18 +70,21 @@ class SupervisedLearning(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
         descr=r"""If a time-dependent ROM is requested, please specifies the pivot
         variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
-    #feature selection
-    featSelection = InputTypes.makeEnumType("featureSelectionAlgorithm","featureSelectionType",["RFE"])
-    spec.addSub(InputData.parameterInputFactory('featureSelectionAlgorithm',contentType=featSelection,
-        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=None))
-    spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
-        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=None))
-    spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
-        descr=r"""Algorithm, if any, to be used for selecting the most impactuful features.""", default=1.0))
-
+    ######################
+    # feature selections #
+    # dynamically loaded #
+    ######################
+    featureSelection = InputData.parameterInputFactory("featureSelection",
+                                                       descr=r"""Apply feature selection algorithm""")
+    for subType in featureSelectionFactory.knownTypes():
+      validClass = featureSelectionFactory.returnClass(subType)
+      validSpec = validClass.getInputSpecification()
+      featureSelection.addSub(validSpec)
+    spec.addSub(featureSelection)
+    #PCA?
     spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
         descr=r"""Use PCA dimensionality reduction for the feature space?""", default=False))
-        
+
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
         ``CrossValidation``.""")
@@ -133,12 +136,14 @@ class SupervisedLearning(BaseInterface):
     """
     super().__init__()
     self.printTag = 'SupervisedLearning'
+    self.saveParams = True         # the input parameters are saved
     self.features = None           # "inputs" to this model
     self.target = None             # "outputs" of this model
     self.amITrained = False        # "True" if the ROM is alread trained
     self._dynamicHandling = False  # time-like dependence in the model?
     self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
     self.featureSelectionAlgo = None
+    self.doneSelectionFeatures = False
     self.performPCA = False
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
     #average value and sigma are used for normalization of the feature data
@@ -155,15 +160,23 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','featureSelectionAlgorithm','performPCA','step','nFeaturesToSelect'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','performPCA'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
     self.pivotID = nodes['pivotParameter']
-    self.featureSelectionAlgo = nodes['featureSelectionAlgorithm']
+    featSelection = paramInput.findFirst("featureSelection")
+    if featSelection is not None:
+      if len(featSelection.subparts) > 1:
+        self.raiseAnError(IOError, "Only one feature selection algorithm is allowed in the ROM")
+      featAlgo = featSelection.subparts[0]
+      self.featureSelectionAlgo = featureSelectionFactory.returnInstance(featAlgo.getName())
+      if featureSelectionFactory.returnClass(featAlgo.getName()).needROM:
+        self.featureSelectionAlgo.setEstimator(self)
+      # handle input
+      self.featureSelectionAlgo._handleInput(featAlgo)
+
     self.performPCA = nodes['performPCA']
-    self.step = nodes['step']
-    self.nFeaturesToSelect = nodes['nFeaturesToSelect']    
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
@@ -292,13 +305,31 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-    if self.featureSelectionAlgo == 'RFE':
-      featureSelector = RFE.RFE(self,self.nFeaturesToSelect, self.step)
-      newFeatures, support = featureSelector.train(featureValues,targetValues)
-      if self.dynamicFeatures:
-        featureValues = featureValues[:,:,support]
+    if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
+      newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
+      if space == 'feature' and np.sum(support) != len(self.features):
+        self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
+        self.raiseAMessage("Feature Selection removed the following features: {}".format(', '.join(self.removed)))
+        self.raiseAMessage("Old feature space for surrogate model was       : {}".format(', '.join(self.features)))
+        self.raiseAMessage("New feature space for surrogate model is now    : {}".format(', '.join(np.asarray(self.features)[newFeatures].tolist())))
       else:
-        featureValues = featureValues[:,support] 
+        self.removed = set(self.target) - set(np.asarray(self.target)[newFeatures].tolist())
+        self.raiseAMessage("Feature Selection removed the following features (from target space): {}".format(', '.join(self.removed)))
+        self.raiseAMessage("Old feature space (in the target space) for surrogate model was     : {}".format(', '.join(self.target)))
+        self.raiseAMessage("New feature space (in the target space) for surrogate model is now  : {}".format(', '.join(np.asarray(self.target)[newFeatures].tolist())))
+      self.paramInput.findNodesAndSetValues(vals)
+      self._handleInput(self.paramInput)
+      if self.dynamicFeatures:
+        if space == 'feature':
+          featureValues = featureValues[:,:,support]
+        else:
+          targetValues = targetValues[:,:,support]
+      else:
+        if space == 'feature':
+          featureValues = featureValues[:,support]
+        else:
+          targetValues = targetValues[:,support]
+      self.doneSelectionFeatures = True
     self._train(featureValues,targetValues)
     self.amITrained = True
 
@@ -391,7 +422,13 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    evaluation = self.__evaluateLocal__(featureValues)
+    if self.doneSelectionFeatures and self.removed:
+      dummy = np.empty(list(evaluation.values())[0].shape)
+      dummy[:] = np.NaN
+      for rem in self.removed:
+        evaluation[rem] = dummy
+    return evaluation
 
   def reset(self):
     """
