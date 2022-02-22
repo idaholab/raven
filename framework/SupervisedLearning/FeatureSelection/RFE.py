@@ -23,6 +23,7 @@ import sys
 import copy
 import numpy as np
 from scipy import spatial
+from sklearn.decomposition import PCA
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -130,6 +131,8 @@ class RFE(BaseInterface):
         descr=r"""Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
         descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
+    spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
+        descr=r"""perform PCA?""", default="Feature"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
                   of features to remove at each iteration. If within (0.0, 1.0), then step
@@ -143,6 +146,7 @@ class RFE(BaseInterface):
     self.nFeaturesToSelect = None
     self.parametersToInclude = None
     self.whichSpace = "feature"
+    self.performPCA = False
     self.step = 1
 
   def setEstimator(self, estimator):
@@ -160,11 +164,12 @@ class RFE(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','whichSpace'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','whichSpace','performPCA'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
     self.parametersToInclude = nodes['parametersToInclude']
+    self.performPCA = nodes['performPCA']
     self.whichSpace = nodes['whichSpace'].lower()
     if self.step <= 0:
       raise self.raiseAnError(ValueError, '"step" parameter must be > 0' )
@@ -172,7 +177,7 @@ class RFE(BaseInterface):
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
     if self.nFeaturesToSelect > len(self.parametersToInclude):
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" > number of parameters in "parametersToInclude"!' )
-
+#
   @property
   def _estimator_type(self):
     return self.estimator.type
@@ -229,6 +234,7 @@ class RFE(BaseInterface):
 
     # support and ranking for features
     support_ = np.ones(nParams, dtype=np.bool)
+    featuresForRanking = np.arange(nParams)[support_]
     ranking_ = np.ones(nParams, dtype=np.int)
     supportOfSupport_ = np.ones(nFeatures, dtype=np.bool) if self.whichSpace == 'feature' else np.ones(nTargets, dtype=np.bool)
     mask = maskF if self.whichSpace == 'feature' else maskT
@@ -255,7 +261,8 @@ class RFE(BaseInterface):
     while np.sum(support_) > nFeaturesToSelect:
       # Remaining features
       supportIndex = 0
-
+      raminingFeatures = int(np.sum(support_))
+      featuresForRanking = np.arange(nParams)[support_]
       for idx in range(len(supportOfSupport_)):
         if mask[idx]:
           supportOfSupport_[idx] = support_[supportIndex]
@@ -287,11 +294,11 @@ class RFE(BaseInterface):
       if hasattr(estimator, 'featureImportances_'):
         importances = estimator.featureImportances_
         coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        if coefs.shape[0] == nParams:
+        if coefs.shape[0] == raminingFeatures:
           coefs = coefs.T
 
       if coefs is None:
-        coefs = np.ones(nParams)
+        coefs = np.ones(raminingFeatures)
 
       # Get ranks
       if coefs.ndim > 1:
@@ -310,14 +317,13 @@ class RFE(BaseInterface):
       # that have not been eliminated yet
       #if step_score:
       #  self.scores_.append(step_score(estimator, features))
-      support_[features[ranks][:threshold]] = False
+      support_[featuresForRanking[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
 
     # Set final attributes
     supportIndex = 0
     for idx in range(len(supportOfSupport_)):
       if mask[idx]:
-        print(supportIndex)
         supportOfSupport_[idx] = support_[supportIndex]
         supportIndex = supportIndex + 1
     if self.whichSpace == 'feature':

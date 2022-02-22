@@ -172,10 +172,10 @@ class DMDC(DMD):
     self.initStateID = settings.get('initStateVariables')
     # FIXME 1718
     try:
-      [el.split("_")[1] for el in self.initStateID]
+      [el.split("_init")[1] for el in self.initStateID]
     except IndexError:
       self.raiseAnError(IndexError, "initStateVariables must be named {stateVariable}_init")
-    varsToCheck = [el.split("_")[0] for el in self.initStateID]
+    varsToCheck = [el.split("_init")[0] for el in self.initStateID]
     self.initStateID = [self.initStateID[cnt] for cnt, el in enumerate(varsToCheck) if el in self.stateID]
     # END FIXME 1718
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
