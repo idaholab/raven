@@ -999,20 +999,21 @@ class BasicStatistics(PostProcessorInterface):
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
           percentileSte = []
-          for pct in percent:
+          for label, group in targDa.groupby(self.pivotParameter):
             subPercentileSte = []
-            factor = np.sqrt(pct*(1.0 - pct)/en)
-            for label, group in targDa.groupby(self.pivotParameter):
-              if group.values.min() == group.values.max():
-                # all values are the same
+            if group.values.min() == group.values.max():
+              # all values are the same
+              for pct in percent:
                 subPercentileSte.append(0.0)
-              else:
-                # get KDE
-                kde = stats.gaussian_kde(group.values, weights=targWeight)
+            else:
+              # get KDE
+              kde = stats.gaussian_kde(group.values, weights=targWeight)
+              for pct in percent:
+                factor = np.sqrt(pct*(1.0 - pct)/en)
                 val = calculatedPercentiles[target].sel(**{'percent': pct, self.pivotParameter: label}).values
                 subPercentileSte.append(factor/kde(val)[0])
             percentileSte.append(subPercentileSte)
-          da = xr.DataArray(percentileSte, dims=('percent', self.pivotParameter), coords={'percent': percent, self.pivotParameter: self.pivotValue})
+          da = xr.DataArray(percentileSte, dims=(self.pivotParameter, 'percent'), coords={self.pivotParameter: self.pivotValue, 'percent': percent})
           percentileSteSet[target] = da
         else:
           calcPercentiles = calculatedPercentiles[target]

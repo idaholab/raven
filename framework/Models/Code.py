@@ -416,7 +416,7 @@ class Code(Model):
       take care of any required escaping and quoting of arguments. When shell is True, a string is preferred,
       since when a sequence is provided, only the first item specifies the command string, and any additional
       items will be treated as additional arguments to the shell itself.
-      @ In, origCommand, string, The command to check for expantion
+      @ In, origCommand, string, The command to check for expansion
       @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
     """
     if origCommand.strip() == '':
@@ -427,7 +427,7 @@ class Code(Model):
   def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
-      @ In, origCommand, string, The command to check for expantion
+      @ In, origCommand, string, The command to check for expansion
       @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
     """
     if origCommand.strip() == '':

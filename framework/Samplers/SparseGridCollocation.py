@@ -128,8 +128,8 @@ class SparseGridCollocation(Grid):
   def transformDistDict(self):
     """
       Performs distribution transformation
-      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
-      will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
+      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the correlated variables
+      will be transformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
       be also transformed.
       @ In, None
       @ Out, distDicts, dict, distribution dictionary {varName:DistributionObject}

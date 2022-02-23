@@ -138,7 +138,7 @@ Number of EM iterations to perform. \default{100}
 Number of initializations to perform. the best results is kept.
 \default{1}
 	\item \xmlNode{init\_params}, \xmlDesc{string, optional
-field},  The method used to initialize the weights, the means and the precisions. Must be one of 
+field},  The method used to initialize the weights, the means and the precision. Must be one of 
  ``kmeans'' (responsibilities are initialized using kmeans) or ``random'' (responsibilities are 
  initialized randomly)
  \default{kmeans}
@@ -178,7 +178,7 @@ field} Number of mixture components. \default{1}
 field}, describes the type of covariance parameters to use.
 Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
 	\item \xmlNode{alpha}, \xmlDesc{float, optional field},
-represents the concentration parameter of the dirichlet process.
+represents the concentration parameter of the Dirichlet process.
 Intuitively, the Dirichlet Process is as likely to start a new cluster
  for a point as it is to add that point to a cluster with alpha
  elements. A higher alpha means more clusters, as the expected
@@ -191,7 +191,7 @@ number of clusters is ${\alpha*log(N)}$. \default{1}.
 Clustering of unlabeled data can be performed with this subType of
  the DataMining PostProcessor.
 
-An overwiev of the different clustering algorithms is given in
+An overview of the different clustering algorithms is given in
 Table\ref{tab:clustering}.
 
 \begin{table}[!htbp]
@@ -272,7 +272,7 @@ of jobs to use for the computation. This works by breaking down the pairwise
  are used. If 1 is given, no parallel computing code is used at all, which is
 useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Thus
  for n\_jobs = -2, all CPUs but one are used. \default{1}
-	\item \xmlNode{random\_state}, \xmlDesc{integer or numpy.RandomState,
+	\item \xmlNode{random\_state}, \xmlDesc{integer or numpy. RandomState,
  optional field} The generator used to initialize the centers. If an integer
  is given, it fixes the seed. \default{the global numpy random number generator}.
 \end{itemize}
@@ -304,7 +304,7 @@ useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Th
 
 The MiniBatchKMeans is a variant of the KMeans algorithm which uses
 mini-batches to reduce the computation time, while still attempting
- to optimise the same objective function. Mini-batches are subsets of
+ to optimize the same objective function. Mini-batches are subsets of
  the input data, randomly sampled in each training iteration.
 
 MiniBatchKMeans converges faster than KMeans, but the quality of the
@@ -531,7 +531,7 @@ connectivity matrix of the points.
 If the \textit{pyamg} package is installed, it is used: this greatly speeds
 up computation.
 
-\subparagraph{ DBSCAN Clustering } \hfill
+\subparagraph{DBSCAN Clustering} \hfill
 \label{subparagraph:DBSCAN}
 
 The Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
@@ -863,14 +863,14 @@ Dimensionality reduction using truncated SVD (aka LSA).
 \begin{itemize}
 	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Desired dimensionality
 	of output data. Must be strictly less than the number of features. The default value is
-	useful for visualisation. For LSA, a value of 100 is recommended. \default{2}
+	useful for visualization. For LSA, a value of 100 is recommended. \default{2}
 	\item \xmlNode{algorithm}, \xmlDesc{string, optional field}, SVD solver to use:
 	\begin{itemize}
 		\item Randomized: randomized algorithm
 		\item Arpack: ARPACK wrapper in.
 	\end{itemize}
 	\default{Randomized}
-	\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations andomized
+	\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations randomized
 	SVD solver. Not used by ARPACK. \default{5}
 	\item \xmlNode{random\_state}, \xmlDesc{int or Random State, optional field}, Pseudo number
 	generator state used for random sampling. If not given, the numpy.random singleton is used.

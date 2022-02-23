@@ -25,6 +25,8 @@ CROW_DIR = os.path.join(CURR_DIR,'crow')
 
 BOOST_INCLUDE_DIR = os.path.join(CROW_DIR,'contrib','include')
 RAVEN_INCLUDE_DIR = os.path.join('include','contrib')
+DIST_INCLUDE_DIR = os.path.join(CROW_DIR,'include', 'distributions')
+UTIL_INCLUDE_DIR = os.path.join(CROW_DIR,'include', 'utilities')
 
 # We need a custom build order in order to ensure that amsc.py is available
 # before we try to copy it to the target location
@@ -34,19 +36,44 @@ class CustomBuild(build):
                     ('build_clib', build.has_c_libraries),
                     ('build_scripts', build.has_scripts)]
 
-include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
-if sys.version_info.major > 2:
-  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR,'-py3']
-else:
-  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
+
+include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR, DIST_INCLUDE_DIR, UTIL_INCLUDE_DIR]
+swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR,'-I'+DIST_INCLUDE_DIR, '-I'+UTIL_INCLUDE_DIR, '-py3']
 extra_compile_args=['-std=c++11']
-setup(name='amsc',
-      version='0.0',
-      description='A library for computing the Approximate Morse-Smale Complex (AMSC)',
-      ext_modules=[Extension('_amsc',['src/contrib/amsc.i',
-                                      'src/contrib/UnionFind.cpp',
-                                      'src/contrib/AMSC.cpp'],
-                             include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
-      package_dir={'':'src/contrib'},
-      py_modules=['amsc'],
+try:
+    eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"]).decode("ascii")
+except:
+  eigen_flags = ""
+if eigen_flags.startswith("-I"):
+  include_dirs.append(eigen_flags[2:].rstrip())
+setup(name='raven_cxx',
+      version='2.1',
+      description='RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
+      package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules'},
+      ext_modules=[
+          Extension('crow_modules._distribution1D',
+                  ['src/crow_modules/distribution1D.i',
+                   'src/distributions/distribution.cxx',
+                   'src/utilities/MDreader.cxx',
+                   'src/utilities/inverseDistanceWeigthing.cxx',
+                   'src/utilities/microSphere.cxx',
+                   'src/utilities/NDspline.cxx',
+                   'src/utilities/ND_Interpolation_Functions.cxx',
+                   'src/distributions/distributionNDBase.cxx',
+                   'src/distributions/distributionNDNormal.cxx',
+                   'src/distributions/distributionFunctions.cxx',
+                   'src/distributions/DistributionContainer.cxx',
+                   'src/distributions/distribution_1D.cxx',
+                   'src/distributions/randomClass.cxx',
+                   'src/distributions/distributionNDCartesianSpline.cxx'],
+                include_dirs=include_dirs,
+                swig_opts=swig_opts,
+                extra_compile_args=extra_compile_args),
+          Extension('crow_modules._randomENG',['src/crow_modules/randomENG.i','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
+          Extension('crow_modules._interpolationND',['src/crow_modules/interpolationND.i','src/utilities/ND_Interpolation_Functions.cxx','src/utilities/NDspline.cxx','src/utilities/microSphere.cxx','src/utilities/inverseDistanceWeigthing.cxx','src/utilities/MDreader.cxx','src/distributions/randomClass.cxx'],include_dirs=include_dirs,swig_opts=swig_opts,extra_compile_args=extra_compile_args),
+          Extension('AMSC._amsc',['src/contrib/AMSC/amsc.i',
+                             'src/contrib/AMSC/UnionFind.cpp',
+                             'src/contrib/AMSC/AMSC.cpp'],
+                    include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
+      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object'],#+setuptools.find_packages('framework'),
       cmdclass={'build': CustomBuild})

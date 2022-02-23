@@ -54,7 +54,7 @@ for module, found, message, version in report_list:
     print(module,version,"\n",message,"\n")
   else:
     print(module+' not found\n')
-framework_dir = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),"framework"))
+framework_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])),"framework"))
 utils.find_crow(framework_dir)
 try:
   distribution1D = utils.findCrowModule('distribution1D')
