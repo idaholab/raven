@@ -1014,7 +1014,7 @@ class BasicStatistics(PostProcessorInterface):
       relWeight = pbWeights[list(needed[metric]['targets'])]
       for target in needed[metric]['targets']:
         targWeight = relWeight[target].values
-        en = targWeight.sum()**2/np.sum(targWeight**2)
+        en = calculations['equivalentSamples'][target].values
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
           percentileSte = np.zeros((len(self.pivotValue), len(percent))) # array
