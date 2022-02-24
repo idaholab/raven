@@ -594,8 +594,8 @@ class BasicStatistics(PostProcessorInterface):
       Method to compute the weighted percentile in a array of data
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
-      @ In, percent, float/list/numpy.array, the percentile(s) that needs to be computed (between 0.01 and 1.0)
-      @ Out, result, float/list, the percentile(s)
+      @ In, percent, list/numpy.array, the percentile(s) that needs to be computed (between 0.01 and 1.0)
+      @ Out, result, list, the percentile(s)
     """
 
     # only do the argsort once for all requested percentiles
@@ -605,12 +605,7 @@ class BasicStatistics(PostProcessorInterface):
     # is returned.
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    if not hasattr(percent, '__iter__'):
-      # percent is int or float
-      result = self._computeSingleWeightedPercentile(percent, weightsCDF, sortedWeightsAndPoints)
-    else:
-      # percent is iterable
-      result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
+    result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
 
     return result
 
@@ -822,9 +817,9 @@ class BasicStatistics(PostProcessorInterface):
           targWeight = relWeight[target].values
           targDa = dataSet[target]
           if self.pivotParameter in targDa.sizes.keys():
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
+            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=[0.5])[0] for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=[0.5])[0]
           if self.pivotParameter in targDa.sizes.keys():
             da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
           else:
