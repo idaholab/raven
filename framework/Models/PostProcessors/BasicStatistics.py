@@ -594,27 +594,47 @@ class BasicStatistics(PostProcessorInterface):
       Method to compute the weighted percentile in a array of data
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
-      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
-      @ Out, result, float, the percentile
+      @ In, percent, float/list/numpy.array, the percentile(s) that needs to be computed (between 0.01 and 1.0)
+      @ Out, result, float/list, the percentile(s)
     """
 
+    # only do the argsort once for all requested percentiles
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
     # a percentile that is < that the first pb weight is requested. Otherwise the median
     # is returned.
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
+    if not hasattr(percent, '__iter__'):
+      # percent is int or float
+      result = self._computeSingleWeightedPercentile(percent, weightsCDF, sortedWeightsAndPoints)
+    else:
+      # percent is iterable
+      result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
+
+    return result
+
+  def _computeSingleWeightedPercentile(self, pct, weightsCDF, sortedWeightsAndPoints):
+    """
+      Method to compute a single percentile
+      @ In, pct, float, the percentile
+      @ In, weightsCDF, numpy.array, the cumulative sum of weights (CDF)
+      @ In, sortedWeightsAndPoints, numpy.array, array of weights and data points
+      @ Out, result, float, the percentile
+    """
+
     # This step returns the index of the array which is < than the percentile, because
     # the insertion create another entry, this index should shift to the bigger side
-    indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
+    indexL = utils.first(np.asarray(weightsCDF >= pct).nonzero())[0]
     # This step returns the indices (list of index) of the array which is > than the percentile
-    indexH = utils.first(np.asarray(weightsCDF > percent).nonzero())
+    indexH = utils.first(np.asarray(weightsCDF > pct).nonzero())
     try:
       # if the indices exists that means the desired percentile lies between two data points
       # with index as indexL and indexH[0]. Calculate the midpoint of these two points
       result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
     except IndexError:
       result = sortedWeightsAndPoints[indexL,1]
+
     return result
 
   def __runLocal(self, inputData):
@@ -963,17 +983,16 @@ class BasicStatistics(PostProcessorInterface):
         for target in needed[metric]['targets']:
           targWeight = relWeight[target].values
           targDa = dataSet[target]
-          quantile = []
-          for pct in percent:
-            if self.pivotParameter in targDa.sizes.keys():
-              qtl = [self._computeWeightedPercentile(group.values,targWeight,percent=pct) for label,group in targDa.groupby(self.pivotParameter)]
-            else:
-              qtl = self._computeWeightedPercentile(targDa.values,targWeight,percent=pct)
-            quantile.append(qtl)
           if self.pivotParameter in targDa.sizes.keys():
-            da = xr.DataArray(quantile,dims=('percent',self.pivotParameter),coords={'percent':percent,self.pivotParameter:self.pivotValue})
+            quantile = []
+            for label, group in targDa.groupby(self.pivotParameter):
+              qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
+              quantile.append(qtl)
+            da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
           else:
-            da = xr.DataArray(quantile,dims=('percent'),coords={'percent':percent})
+            quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
+            da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
+
           percentileSet[target] = da
 
         # TODO: remove when complete
@@ -998,21 +1017,17 @@ class BasicStatistics(PostProcessorInterface):
         en = targWeight.sum()**2/np.sum(targWeight**2)
         targDa = dataSet[target]
         if self.pivotParameter in targDa.sizes.keys():
-          percentileSte = []
-          for label, group in targDa.groupby(self.pivotParameter):
-            subPercentileSte = []
+          percentileSte = np.zeros((len(self.pivotValue), len(percent))) # array
+          for i, (label, group) in enumerate(targDa.groupby(self.pivotParameter)): # array
             if group.values.min() == group.values.max():
-              # all values are the same
-              for pct in percent:
-                subPercentileSte.append(0.0)
+              subPercentileSte = np.array([0.0]*len(percent))
             else:
               # get KDE
               kde = stats.gaussian_kde(group.values, weights=targWeight)
-              for pct in percent:
-                factor = np.sqrt(pct*(1.0 - pct)/en)
-                val = calculatedPercentiles[target].sel(**{'percent': pct, self.pivotParameter: label}).values
-                subPercentileSte.append(factor/kde(val)[0])
-            percentileSte.append(subPercentileSte)
+              vals = calculatedPercentiles[target].sel(**{'percent': percent, self.pivotParameter: label}).values
+              factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent))/en)
+              subPercentileSte = factor/kde(vals)
+            percentileSte[i, :] = subPercentileSte
           da = xr.DataArray(percentileSte, dims=(self.pivotParameter, 'percent'), coords={self.pivotParameter: self.pivotValue, 'percent': percent})
           percentileSteSet[target] = da
         else:
