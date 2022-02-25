@@ -131,7 +131,7 @@ class RavenPython(Tester):
         return False
       if library_handler.parseVersion(actualVersion) < \
          library_handler.parseVersion(libraryVersion):
-        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
+        self.set_skip('skipped (Outdated library: "'+libraryName+'" needed version '+str(libraryVersion)+' but had version '+str(actualVersion)+')')
         return False
       i += 2
 
