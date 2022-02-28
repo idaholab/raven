@@ -266,7 +266,8 @@ class GradientDescent(RavenSampled):
           self._terminateFollowers = sub.value
           self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
         elif sub.getName() == 'iterationLimit':
-          self._iterationLimit = sub.value
+          # self._iterationLimit = sub.value
+          self._convergenceCriteria['iterationLimit'] = sub.value
         elif sub.getName() == 'constraintExplorationLimit':
           self._functionalConstraintExplorationLimit = sub.value
         else:
@@ -762,8 +763,13 @@ class GradientDescent(RavenSampled):
                                             req=self._convergenceCriteria['gradient']))
     return converged
 
-  def _checkIterationLimit(self,):
-    pass
+  def _checkConvIterationLimit(self,traj):
+    converged = self.getIteration(traj) >= self._convergenceCriteria['iterationLimit']
+    self.raiseADebug(self.convFormat.format(name='iterationLimit',
+                                            conv=str(converged),
+                                            got=self.getIteration(traj),
+                                            req=self._convergenceCriteria['iterationLimit']))
+    return converged
   def _checkConvStepSize(self, traj):
     """
       Checks the step size for convergence
