@@ -640,7 +640,7 @@ class BasicStatistics(PostProcessorInterface):
     # skewness needs               | expectedValue,variance |
     # kurtosis needs               | expectedValue,variance |
     # median needs                 |                        | lowerPartialVariance, higherPartialVariance
-    # percentile needs             |                        |
+    # percentile needs             | expectedValue,sigma    |
     # maximum needs                |                        |
     # minimum needs                |                        |
     # covariance needs             |                        | pearson,VarianceDependentSensitivity,NormalizedSensitivity
@@ -666,7 +666,9 @@ class BasicStatistics(PostProcessorInterface):
     needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
+    needed['expectedValue']['targets'].update(needed['percentile']['targets'])
     needed['sigma']['targets'].update(needed['expectedValue']['targets'])
+    needed['sigma']['targets'].update(needed['percentile']['targets'])
     needed['variance']['targets'].update(needed['sigma']['targets'])
     needed['lowerPartialVariance']['targets'].update(needed['lowerPartialSigma']['targets'])
     needed['higherPartialVariance']['targets'].update(needed['higherPartialSigma']['targets'])
