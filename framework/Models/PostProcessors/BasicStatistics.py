@@ -959,60 +959,38 @@ class BasicStatistics(PostProcessorInterface):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       percent = list(needed[metric]['percent'])
-      # # TODO: this speeds up calculation of percentile when the weights are all equal
-      # # are there probability weights associated with the data?
-      # if self.pbPresent:
-      #   relWeight = pbWeights[list(needed[metric]['targets'])]
-      #   # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
-      #   allSameWeight = True
-      #   for target in needed[metric]['targets']:
-      #     targWeight = relWeight[target].values
-      #     if targWeight.min() != targWeight.max():
-      #       allSameWeight = False
-      #     print('target: {}'.format(target))
-      #     print('targWeight.min(): {}'.format(targWeight.min()))
-      #     print('targWeight.max(): {}'.format(targWeight.max()))
-      #     print('targWeight.min() == targWeight.max(): {}'.format(targWeight.min() == targWeight.max()))
-      #   if allSameWeight:
-      #     # all weights are the same, percentile can be calculated with xarray.DataSet
-      #     percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
-      #     percentileSet = percentileSet.rename({'quantile':'percent'})
-      #   else:
-      #     # probability weights are not all the same
-      #     # xarray does not have capability to calculate weighted quantiles at present
-      #     # implement our own solution
-      #     percentileSet = xr.Dataset()
-      #     for target in needed[metric]['targets']:
-      #       targWeight = relWeight[target].values
-      #       targDa = dataSet[target]
-      #       if self.pivotParameter in targDa.sizes.keys():
-      #         quantile = []
-      #         for label, group in targDa.groupby(self.pivotParameter):
-      #           qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
-      #           quantile.append(qtl)
-      #         da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
-      #       else:
-      #         quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
-      #         da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
-
-      #       percentileSet[target] = da
+      # are there probability weights associated with the data?
       if self.pbPresent:
-        percentileSet = xr.Dataset()
         relWeight = pbWeights[list(needed[metric]['targets'])]
+        # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
+        allSameWeight = True
         for target in needed[metric]['targets']:
           targWeight = relWeight[target].values
-          targDa = dataSet[target]
-          if self.pivotParameter in targDa.sizes.keys():
-            quantile = []
-            for label, group in targDa.groupby(self.pivotParameter):
-              qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
-              quantile.append(qtl)
-            da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
-          else:
-            quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
-            da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
+          if targWeight.min() != targWeight.max():
+            allSameWeight = False
+        if allSameWeight:
+          # all weights are the same, percentile can be calculated with xarray.DataSet
+          percentileSet = dataSet.quantile(percent,dim=self.sampleTag, interpolation='lower')
+          percentileSet = percentileSet.rename({'quantile': 'percent'})
+        else:
+          # probability weights are not all the same
+          # xarray does not have capability to calculate weighted quantiles at present
+          # implement our own solution
+          percentileSet = xr.Dataset()
+          for target in needed[metric]['targets']:
+            targWeight = relWeight[target].values
+            targDa = dataSet[target]
+            if self.pivotParameter in targDa.sizes.keys():
+              quantile = []
+              for label, group in targDa.groupby(self.pivotParameter):
+                qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
+                quantile.append(qtl)
+              da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
+            else:
+              quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
+              da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
 
-          percentileSet[target] = da
+            percentileSet[target] = da
 
         # TODO: remove when complete
         # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
