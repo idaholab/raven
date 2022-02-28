@@ -970,7 +970,7 @@ class BasicStatistics(PostProcessorInterface):
             allSameWeight = False
         if allSameWeight:
           # all weights are the same, percentile can be calculated with xarray.DataSet
-          percentileSet = dataSet.quantile(percent,dim=self.sampleTag, interpolation='lower')
+          percentileSet = dataSet.quantile(percent,dim=self.sampleTag)
           percentileSet = percentileSet.rename({'quantile': 'percent'})
         else:
           # probability weights are not all the same
@@ -1000,47 +1000,57 @@ class BasicStatistics(PostProcessorInterface):
         #dataSetWeighted = dataSet * relWeight
         #percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).mean(self.sampleTag)
       else:
-        percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
+        percentileSet = dataSet.quantile(percent,dim=self.sampleTag)
         percentileSet = percentileSet.rename({'quantile':'percent'})
       calculations[metric] = percentileSet
 
       # because percentile is different, calculate standard error here
-      # TODO: change standard error calculation to standard normal formulation for speed
+      # standard error calculation uses the standard normal formulation for speed
       self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
-      percentileSteSet = xr.Dataset()
-      calculatedPercentiles = calculations[metric]
-      relWeight = pbWeights[list(needed[metric]['targets'])]
-      for target in needed[metric]['targets']:
-        targWeight = relWeight[target].values
-        en = calculations['equivalentSamples'][target].values
-        targDa = dataSet[target]
-        if self.pivotParameter in targDa.sizes.keys():
-          percentileSte = np.zeros((len(self.pivotValue), len(percent))) # array
-          for i, (label, group) in enumerate(targDa.groupby(self.pivotParameter)): # array
-            if group.values.min() == group.values.max():
-              subPercentileSte = np.array([0.0]*len(percent))
-            else:
-              # get KDE
-              kde = stats.gaussian_kde(group.values, weights=targWeight)
-              vals = calculatedPercentiles[target].sel(**{'percent': percent, self.pivotParameter: label}).values
-              factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent))/en)
-              subPercentileSte = factor/kde(vals)
-            percentileSte[i, :] = subPercentileSte
-          da = xr.DataArray(percentileSte, dims=(self.pivotParameter, 'percent'), coords={self.pivotParameter: self.pivotValue, 'percent': percent})
-          percentileSteSet[target] = da
-        else:
-          calcPercentiles = calculatedPercentiles[target]
-          if targDa.values.min() == targDa.values.max():
-            # distribution is a delta function, so no KDE construction
-            percentileSte = list(np.zeros(calcPercentiles.shape))
-          else:
-            # get KDE
-            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
-            factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
-            percentileSte = list(factor/kde(calcPercentiles.values))
-          da = xr.DataArray(percentileSte, dims=('percent'), coords={'percent': percent})
-          percentileSteSet[target] = da
-      calculations[metric+'_ste'] = percentileSteSet
+      norm = stats.norm
+      factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent)))/norm.pdf(norm.ppf(percent))
+      sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      sigmaAdjusted = sigmaAdjusted.expand_dims(dim={'percent': percent})
+      factor = xr.DataArray(data=factor, dims='percent', coords={'percent': percent})
+      calculations[metric + '_ste'] = sigmaAdjusted*factor
+
+      # # TODO: this is the KDE method, it is a more accurate method of calculating standard error
+      # # for percentile, but the computation time is too long. IF this computation can be sped up,
+      # # implement it here:
+      # percentileSteSet = xr.Dataset()
+      # calculatedPercentiles = calculations[metric]
+      # relWeight = pbWeights[list(needed[metric]['targets'])]
+      # for target in needed[metric]['targets']:
+      #   targWeight = relWeight[target].values
+      #   en = calculations['equivalentSamples'][target].values
+      #   targDa = dataSet[target]
+      #   if self.pivotParameter in targDa.sizes.keys():
+      #     percentileSte = np.zeros((len(self.pivotValue), len(percent))) # array
+      #     for i, (label, group) in enumerate(targDa.groupby(self.pivotParameter)): # array
+      #       if group.values.min() == group.values.max():
+      #         subPercentileSte = np.array([0.0]*len(percent))
+      #       else:
+      #         # get KDE
+      #         kde = stats.gaussian_kde(group.values, weights=targWeight)
+      #         vals = calculatedPercentiles[target].sel(**{'percent': percent, self.pivotParameter: label}).values
+      #         factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent))/en)
+      #         subPercentileSte = factor/kde(vals)
+      #       percentileSte[i, :] = subPercentileSte
+      #     da = xr.DataArray(percentileSte, dims=(self.pivotParameter, 'percent'), coords={self.pivotParameter: self.pivotValue, 'percent': percent})
+      #     percentileSteSet[target] = da
+      #   else:
+      #     calcPercentiles = calculatedPercentiles[target]
+      #     if targDa.values.min() == targDa.values.max():
+      #       # distribution is a delta function, so no KDE construction
+      #       percentileSte = list(np.zeros(calcPercentiles.shape))
+      #     else:
+      #       # get KDE
+      #       kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+      #       factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
+      #       percentileSte = list(factor/kde(calcPercentiles.values))
+      #     da = xr.DataArray(percentileSte, dims=('percent'), coords={'percent': percent})
+      #     percentileSteSet[target] = da
+      # calculations[metric+'_ste'] = percentileSteSet
 
     def startVector(metric):
       """
