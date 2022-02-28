@@ -605,30 +605,8 @@ class BasicStatistics(PostProcessorInterface):
     # is returned.
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
-
-    return result
-
-  def _computeSingleWeightedPercentile(self, pct, weightsCDF, sortedWeightsAndPoints):
-    """
-      Method to compute a single percentile
-      @ In, pct, float, the percentile
-      @ In, weightsCDF, numpy.array, the cumulative sum of weights (CDF)
-      @ In, sortedWeightsAndPoints, numpy.array, array of weights and data points
-      @ Out, result, float, the percentile
-    """
-
-    # This step returns the index of the array which is < than the percentile, because
-    # the insertion create another entry, this index should shift to the bigger side
-    indexL = utils.first(np.asarray(weightsCDF >= pct).nonzero())[0]
-    # This step returns the indices (list of index) of the array which is > than the percentile
-    indexH = utils.first(np.asarray(weightsCDF > pct).nonzero())
-    try:
-      # if the indices exists that means the desired percentile lies between two data points
-      # with index as indexL and indexH[0]. Calculate the midpoint of these two points
-      result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
-    except IndexError:
-      result = sortedWeightsAndPoints[indexL,1]
+    weightsCDF            /= weightsCDF[-1]
+    result = np.interp(percent, weightsCDF, sortedWeightsAndPoints[:, 1]).tolist()
 
     return result
 
@@ -811,20 +789,29 @@ class BasicStatistics(PostProcessorInterface):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
-        medianSet = xr.Dataset()
-        relWeight = pbWeights[list(needed[metric]['targets'])]
+        # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
+        allSameWeight = True
         for target in needed[metric]['targets']:
           targWeight = relWeight[target].values
-          targDa = dataSet[target]
-          if self.pivotParameter in targDa.sizes.keys():
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=[0.5])[0] for label,group in targDa.groupby(self.pivotParameter)]
-          else:
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=[0.5])[0]
-          if self.pivotParameter in targDa.sizes.keys():
-            da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
-          else:
-            da = xr.DataArray(quantile)
-          medianSet[target] = da
+          if targWeight.min() != targWeight.max():
+            allSameWeight = False
+        if allSameWeight:
+          medianSet = dataSet.median(dim=self.sampleTag)
+        else:
+          medianSet = xr.Dataset()
+          relWeight = pbWeights[list(needed[metric]['targets'])]
+          for target in needed[metric]['targets']:
+            targWeight = relWeight[target].values
+            targDa = dataSet[target]
+            if self.pivotParameter in targDa.sizes.keys():
+              quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=[0.5])[0] for label,group in targDa.groupby(self.pivotParameter)]
+            else:
+              quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=[0.5])[0]
+            if self.pivotParameter in targDa.sizes.keys():
+              da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
+            else:
+              da = xr.DataArray(quantile)
+            medianSet[target] = da
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
       self.calculations[metric] = medianSet
@@ -972,6 +959,43 @@ class BasicStatistics(PostProcessorInterface):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       percent = list(needed[metric]['percent'])
+      # # TODO: this speeds up calculation of percentile when the weights are all equal
+      # # are there probability weights associated with the data?
+      # if self.pbPresent:
+      #   relWeight = pbWeights[list(needed[metric]['targets'])]
+      #   # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
+      #   allSameWeight = True
+      #   for target in needed[metric]['targets']:
+      #     targWeight = relWeight[target].values
+      #     if targWeight.min() != targWeight.max():
+      #       allSameWeight = False
+      #     print('target: {}'.format(target))
+      #     print('targWeight.min(): {}'.format(targWeight.min()))
+      #     print('targWeight.max(): {}'.format(targWeight.max()))
+      #     print('targWeight.min() == targWeight.max(): {}'.format(targWeight.min() == targWeight.max()))
+      #   if allSameWeight:
+      #     # all weights are the same, percentile can be calculated with xarray.DataSet
+      #     percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
+      #     percentileSet = percentileSet.rename({'quantile':'percent'})
+      #   else:
+      #     # probability weights are not all the same
+      #     # xarray does not have capability to calculate weighted quantiles at present
+      #     # implement our own solution
+      #     percentileSet = xr.Dataset()
+      #     for target in needed[metric]['targets']:
+      #       targWeight = relWeight[target].values
+      #       targDa = dataSet[target]
+      #       if self.pivotParameter in targDa.sizes.keys():
+      #         quantile = []
+      #         for label, group in targDa.groupby(self.pivotParameter):
+      #           qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
+      #           quantile.append(qtl)
+      #         da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
+      #       else:
+      #         quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
+      #         da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
+
+      #       percentileSet[target] = da
       if self.pbPresent:
         percentileSet = xr.Dataset()
         relWeight = pbWeights[list(needed[metric]['targets'])]
@@ -1003,6 +1027,7 @@ class BasicStatistics(PostProcessorInterface):
       calculations[metric] = percentileSet
 
       # because percentile is different, calculate standard error here
+      # TODO: change standard error calculation to standard normal formulation for speed
       self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
       percentileSteSet = xr.Dataset()
       calculatedPercentiles = calculations[metric]
