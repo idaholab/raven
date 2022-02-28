@@ -67,6 +67,7 @@ class GradientDescent(RavenSampled):
                         # TODO change in input space?
                         'objective': r"""provides the maximum relative change in the objective function for convergence.""",
                         'stepSize': r"""provides the maximum size in relative step size for convergence.""",
+                        'iterationLimit': r"""provides the maximum number of iterations at which the optimizer will terminate regardless of the status of any convergence criteria. Note that for Gradient Descent this counts only the optimization sweeps not the gradient evaluations"""
                        }
 
   ##########################
@@ -150,7 +151,6 @@ class GradientDescent(RavenSampled):
         descr=r"""provides the number of consecutive times a functional constraint boundary can be explored
               for an acceptable sampling point before aborting search. Only apples if using a
               \xmlNode{Constraint}. \default{500}"""))
-
     for name, descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType, descr=descr))
     terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType,
@@ -265,6 +265,8 @@ class GradientDescent(RavenSampled):
         elif sub.getName() == 'terminateFollowers':
           self._terminateFollowers = sub.value
           self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
+        elif sub.getName() == 'iterationLimit':
+          self._iterationLimit = sub.value
         elif sub.getName() == 'constraintExplorationLimit':
           self._functionalConstraintExplorationLimit = sub.value
         else:
@@ -760,6 +762,8 @@ class GradientDescent(RavenSampled):
                                             req=self._convergenceCriteria['gradient']))
     return converged
 
+  def _checkIterationLimit(self,):
+    pass
   def _checkConvStepSize(self, traj):
     """
       Checks the step size for convergence
