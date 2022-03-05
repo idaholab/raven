@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on 2017 September 12
+Created on 2021 December 12
 
-@author: Joshua Cogliati
+@author: Dongli Huang
 """
 
 from .MetricInterface import MetricInterface
@@ -22,7 +22,8 @@ from Metrics.metrics import MetricUtilities
 
 class STDReduction(MetricInterface):
   """
-    Metric to compare two datasets using the PDF Common Area.
+    Metric to calculate the reduction fraction of uncertainty (standard deviation) 
+    from prior to posterior distribution.
   """
   def __init__(self):
     """
@@ -38,16 +39,13 @@ class STDReduction(MetricInterface):
 
   def run(self, x, y, weights=None, axis=0, **kwargs):
     """
-      This method computes difference between two points x and y based on given metric
-      @ In, x, instance of Distributions.Distribution, tuple or list, array containing data of x,
-        or given distribution.
-      @ In, y, instance of Distributions.Distribution, tuple or list, array containing data of y,
-        or given distribution.
+      This method computes the reduction fraction of uncertainty from x to y based on given metric
+      @ In, x, tuple or list, array containing data of x.
+      @ In, y, tuple or list, array containing data of y.
       @ In, weights, array_like (numpy.array or list), optional, not used in this metric
       @ In, axis, integer, default is 0, not used for this metric.
       @ In, kwargs, dict, dictionary of parameters characteristic of each metric
-      @ Out, value, float, metric result, PDF common area
+      @ Out, value, float, metric result, standard deviation reduction fraction
     """
-    ##TODO: This can be generalized to handle a Distribution
     value = MetricUtilities._getSTDReduction(x,y)
     return float(value)

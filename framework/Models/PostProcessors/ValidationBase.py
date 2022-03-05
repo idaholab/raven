@@ -180,6 +180,36 @@ class ValidationBase(PostProcessorReadyInterface):
         self.raiseAnError(IOError,
             "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
+  def _getDataFromDataDict(self, datasets, var, names=None):
+    """
+      Utility function to retrieve the data from dataDict
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
+      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
+      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
+    """
+    pw = None
+    if "|" in var and names is not None:
+      do, feat =  var.split("|")
+      dat = datasets[do][feat]
+    else:
+      for doIndex, ds in enumerate(datasets):
+        if var in ds:
+          dat = ds[var]
+          break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
+    return data
+
   # Each individual validation pp should implement their own run method.
   # def run(self, input):
 

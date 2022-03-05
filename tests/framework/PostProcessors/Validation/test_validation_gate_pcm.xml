@@ -2,7 +2,7 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
-    <Sequence>mcRunExp, mcRunApp, PCM</Sequence>
+    <Sequence>mcRunExp,mcRunApp,mcRunMsr,PCM</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -22,45 +22,52 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate.py" name="exp" subType="">
-      <variables>X,ans</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="exp" subType="">
+      <variables>x0,y0,v0,angle,timeOption,y,t</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/tensor_poly2.py" name="app" subType="">
-      <variables>X,ans2</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="app" subType="">
+      <variables>x0,y0,v0,angle,timeOption,r</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="msr" subType="">
+      <variables>x0,y0,v0,angle,timeOption,y,t</variables>
     </ExternalModel>
     <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
-      <Features>outputDataMC1|ans</Features>
-      <Targets>outputDataMC2|ans2</Targets>
-      <!--
-        <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
-      -->
-      <Metric class="Metrics" type="Metric">cdf_diff</Metric>
-      <Metric class="Metrics" type="Metric">pdf_area</Metric>
+      <Features>outputDataMC1|y</Features>
+      <Targets>outputDataMC2|r</Targets>
+      <Measurements>msrData|y</Measurements>
       <Metric class="Metrics" type="Metric">std_reduct</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
-    <Metric name="pdf_area" subType="PDFCommonArea"/>
     <Metric name="std_reduct" subType="STDReduction"/>
   </Metrics>
 
   <Distributions>
-    <MultivariateNormal name="dist_x" method='pca'>
-      <mu>0.1 0.5 -0.3</mu>
-      <covariance type='rel'>
-      1.0 0.7 0.5
-      0.7 1.0 0.8
-      0.5 0.8 1.0
-      </covariance>
-    </MultivariateNormal>
-    <!--
-    <Normal name='dist_x'>
-      <mean>0.8</mean>
-      <sigma>0.2</sigma>
-    </Normal>
-    -->
+    <Uniform name="v0_dist">
+      <lowerBound>50</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="y0_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>30</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="v0_msr_dist">
+      <lowerBound>54.5</lowerBound>
+      <upperBound>55.5</upperBound>
+    </Uniform>
+    <Uniform name="y0_msr_dist">
+      <lowerBound>0.45</lowerBound>
+      <upperBound>0.55</upperBound>
+    </Uniform>
+    <Uniform name="angle_msr_dist">
+      <lowerBound>44</lowerBound>
+      <upperBound>46</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -68,10 +75,34 @@
       <samplerInit>
         <limit>100</limit>
       </samplerInit>
-      <variable name="X">
-        <distribution>dist_x</distribution>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
       </variable>
-    </MonteCarlo>
+      <variable name="y0">
+        <distribution>y0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">0</constant>         
+    </MonteCarlo>    
+    <MonteCarlo name="MC_msr">
+      <samplerInit>
+        <limit>15</limit>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>v0_msr_dist</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_msr_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_msr_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">0</constant>         
+    </MonteCarlo>     
   </Samplers>
 
   <Steps>
@@ -79,7 +110,7 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
       <Model class="Models" type="ExternalModel">exp</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+      <Output class="DataObjects" type="HistorySet">outputDataMC1</Output>
     </MultiRun>
     <MultiRun name="mcRunApp" re-seeding="20021986">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
@@ -87,28 +118,49 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
     </MultiRun>
+    <MultiRun name="mcRunMsr" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">msr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_msr</Sampler>
+      <Output class="DataObjects" type="HistorySet">msrData</Output>
+    </MultiRun>    
     <PostProcess name="PCM">
-      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outputDataMC1</Input>
       <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Input class="DataObjects" type="HistorySet">msrData</Input>
       <Model class="Models" type="PostProcessor">pcm</Model>
-      <Output class="DataObjects" type="PointSet">pcm_metric</Output> <!--possibly a HistorySet, xarray?-->
+      <Output class="DataObjects" type="PointSet">pcm_metric</Output>
       <Output class="OutStreams" type="Print">pcm_metric_dump</Output>
     </PostProcess>
   </Steps>
 
   <DataObjects>
     <PointSet name="inputPlaceHolder1">
-      <Input>X</Input>
+      <Input>v0,y0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="outputDataMC1">
-      <Input>X</Input>
-      <Output>ans</Output>
-    </PointSet>
+    <PointSet name="inputPlaceHolder2">
+      <Input>v0,y0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>    
+    <HistorySet name="outputDataMC1">
+      <Input>v0,y0,angle</Input>
+      <Output>y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>      
+    </HistorySet>
     <PointSet name="outputDataMC2">
-      <Input>X</Input>
-      <Output>ans2</Output>
-    </PointSet>
+      <Input>v0,y0,angle</Input>
+      <Output>r</Output>
+    </PointSet>   
+    <HistorySet name="msrData">
+      <Input>v0,y0,angle</Input>
+      <Output>y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>        
+    </HistorySet>    
     <PointSet name="pcm_metric">
       <Input>InputPlaceHolder</Input>
       <Output>pp1_vars</Output>
@@ -116,7 +168,7 @@
   </DataObjects>
 
   <VariableGroups>
-    <Group name="pp1_vars">pri_post_cdf_diff, pri_post_pdf_area, pri_post_std_reduct</Group>
+    <Group name="pp1_vars">pri_post_std_reduct</Group>
   </VariableGroups>
 
   <OutStreams>
