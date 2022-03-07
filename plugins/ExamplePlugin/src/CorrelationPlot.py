@@ -7,7 +7,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from PluginBaseClasses.OutStreamPlotPlugin import PlotPlugin, InputTypes, InputData
+from framework.PluginBaseClasses.OutStreamPlotPlugin import PlotPlugin, InputTypes, InputData
 
 
 class Correlation(PlotPlugin):

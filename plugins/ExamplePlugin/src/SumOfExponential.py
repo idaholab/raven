@@ -5,7 +5,7 @@
 import numpy as np
 import math
 
-from PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
+from framework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 
 class SumOfExponential(ExternalModelPluginBase):
