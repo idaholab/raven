@@ -247,8 +247,6 @@ class RFE(BaseInterface):
       # Compute step score on the previous selection iteration
       # because 'estimator' must use features
       # that have not been eliminated yet
-      #if step_score:
-      #  self.scores_.append(step_score(estimator, features))
       support_[featuresForRanking[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
 
