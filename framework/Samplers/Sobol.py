@@ -25,11 +25,11 @@ import itertools
 
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
-from utils import utils, InputData
-import Distributions
-import SupervisedLearning
-import Quadratures
-import IndexSets
+from ..utils import utils, InputData
+from .. import Distributions
+from .. import SupervisedLearning
+from .. import Quadratures
+from .. import IndexSets
 
 class Sobol(SparseGridCollocation):
   """

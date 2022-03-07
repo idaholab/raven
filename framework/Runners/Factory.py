@@ -16,10 +16,10 @@
   @author: maljdp
   extracted from alfoa, cogljj, crisr (3/5/2013) JobHandler.py
 """
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
-from utils import utils
+from ..utils import utils
 from .Runner import Runner
 from .DistributedMemoryRunner import DistributedMemoryRunner
 from .InternalRunner import InternalRunner

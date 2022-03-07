@@ -18,7 +18,7 @@ Created on 2017 September 12
 """
 
 from .MetricInterface import MetricInterface
-from Metrics.metrics import MetricUtilities
+from . import MetricUtilities
 
 class CDFAreaDifference(MetricInterface):
   """

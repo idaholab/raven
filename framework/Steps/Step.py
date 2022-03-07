@@ -26,9 +26,9 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseEntity, InputDataUser
-from utils import utils
-from utils import InputData, InputTypes
+from ..BaseClasses import BaseEntity, InputDataUser
+from ..utils import utils
+from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
   Author:--gairabhi
 """
 import copy
-from utils import mathUtils, InputData
+from ...utils import mathUtils, InputData
 
 from .GradientApproximater import GradientApproximater
 

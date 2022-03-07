@@ -28,11 +28,11 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import InputData, InputTypes
-from utils import xmlUtils
-import Files
-import DataObjects
+from ....utils import utils
+from ....utils import InputData, InputTypes
+from ....utils import xmlUtils
+from .... import Files
+from .... import DataObjects
 from ..ValidationBase import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 

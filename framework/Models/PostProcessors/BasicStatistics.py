@@ -28,10 +28,10 @@ import scipy.stats as stats
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import InputData, InputTypes
-from utils import mathUtils
-import Files
+from ...utils import utils
+from ...utils import InputData, InputTypes
+from ...utils import mathUtils
+from ... import Files
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessorInterface):

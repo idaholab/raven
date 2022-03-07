@@ -32,16 +32,16 @@ import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Files
-import Models
+from .. import Files
+from .. import Models
 from .Step import Step
-from utils import utils
-from utils import InputData, InputTypes
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-from OutStreams import OutStreamEntity
-from DataObjects import DataObject
-from Databases import Database
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from ..EntityFactoryBase import EntityFactory
+from ..BaseClasses import BaseEntity, InputDataUser
+from ..OutStreams import OutStreamEntity
+from ..DataObjects import DataObject
+from ..Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
 
 class IOStep(Step):
@@ -227,7 +227,7 @@ class IOStep(Step):
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         self.raiseAMessage('Exporting Model "{}" as FMU named "{}"'.format(inDictionary['Input'][i].name, outputs[i].name))
-        from utils.fmuExporter import FMUexporter
+        from ..utils.fmuExporter import FMUexporter
         fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
         fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
         fmuexec.buildFMU(outputs[i].getAbsFile())

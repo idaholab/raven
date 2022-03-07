@@ -16,7 +16,7 @@ Created on Jul 18 2016
 
 @author: mandd
 """
-from EntityFactoryBase import EntityFactory
+from ...EntityFactoryBase import EntityFactory
 
 from .MetricInterface import MetricInterface
 from .DTW import DTW

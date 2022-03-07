@@ -19,7 +19,7 @@
   Specific ROM implementation for pickledROM
 """
 from .SupervisedLearning import SupervisedLearning
-from utils import InputTypes, InputData
+from ..utils import InputTypes, InputData
 
 class pickledROM(SupervisedLearning):
   """

@@ -19,7 +19,7 @@ This python module performs the loading of data from csv files
 import numpy as np
 import pandas as pd
 
-from BaseClasses import MessageUser
+from .BaseClasses import MessageUser
 
 class CsvLoader(MessageUser):
   """

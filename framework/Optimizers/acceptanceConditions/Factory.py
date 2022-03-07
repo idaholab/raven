@@ -18,7 +18,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from EntityFactoryBase import EntityFactory
+from ...EntityFactoryBase import EntityFactory
 from .AcceptanceCondition import AcceptanceCondition
 from .Strict import Strict
 

@@ -20,8 +20,8 @@ import abc
 
 import numpy as np
 
-from BaseClasses import PluginReadyEntity
-from utils import utils, InputData, InputTypes
+from ..BaseClasses import PluginReadyEntity
+from ..utils import utils, InputData, InputTypes
 from .metrics.Factory import factory as MetricFactory
 
 class MetricEntity(utils.metaclass_insert(abc.ABCMeta, PluginReadyEntity)):

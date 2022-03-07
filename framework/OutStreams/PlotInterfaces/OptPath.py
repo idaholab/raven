@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class OptPath(PlotInterface):
   """

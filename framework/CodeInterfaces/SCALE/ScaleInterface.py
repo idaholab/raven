@@ -23,11 +23,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import copy
 import shutil
-from utils import utils
+from framework.utils import utils
 import xml.etree.ElementTree as ET
 
 from GenericCodeInterface import GenericParser
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 from tritonAndOrigenData import origenAndTritonData
 
 class Scale(CodeInterfaceBase):

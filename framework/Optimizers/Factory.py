@@ -16,7 +16,7 @@
   @author: chenj
 """
 
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
 from .Optimizer import Optimizer

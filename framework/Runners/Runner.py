@@ -27,8 +27,8 @@ import datetime
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from BaseClasses import BaseType, MessageUser
+from ..utils import utils
+from ..BaseClasses import BaseType, MessageUser
 from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 

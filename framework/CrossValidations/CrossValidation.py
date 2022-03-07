@@ -19,8 +19,8 @@ Created on September 2017
 import abc
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import MessageUser
-from utils import utils
+from ..BaseClasses import MessageUser
+from ..utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageUser):

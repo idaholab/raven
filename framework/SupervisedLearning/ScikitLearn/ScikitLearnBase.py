@@ -19,7 +19,7 @@
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.importerUtils import importModuleLazy
+from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ import ast
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..SupervisedLearning import SupervisedLearning
-from utils import utils
+from ...utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ScikitLearnBase(SupervisedLearning):

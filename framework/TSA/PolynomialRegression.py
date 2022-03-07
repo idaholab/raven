@@ -16,10 +16,10 @@
  Polynomial Regression
 """
 import numpy as np
-import utils.importerUtils
-statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
+from ..utils import importerUtils
+statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 
-from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
 from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
 
 

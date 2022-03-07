@@ -26,8 +26,8 @@ import pickle as pk
 import string
 import difflib
 
-from utils import utils, mathUtils
-from BaseClasses import InputDataUser, MessageUser
+from .utils import utils, mathUtils
+from .BaseClasses import InputDataUser, MessageUser
 
 # the database version should be modified
 # everytime a new modification of the internal

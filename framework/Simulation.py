@@ -23,26 +23,26 @@ import datetime
 import numpy as np
 import threading
 
-import MessageHandler # this needs to happen early to instantiate message handler
-from BaseClasses import MessageUser
-import Steps
-import DataObjects
-import Files
-import Samplers
-import Optimizers
-import Models
-import Metrics
-import Distributions
-import Databases
-import Functions
-import OutStreams
-from JobHandler import JobHandler
-from utils import utils, TreeStructure, xmlUtils, mathUtils
-import Decorators
-from Application import __QtAvailable
-from Interaction import Interaction
+from . import MessageHandler # this needs to happen early to instantiate message handler
+from .BaseClasses import MessageUser
+from . import Steps
+from . import DataObjects
+from . import Files
+from . import Samplers
+from . import Optimizers
+from . import Models
+from . import Metrics
+from . import Distributions
+from . import Databases
+from . import Functions
+from . import OutStreams
+from .JobHandler import JobHandler
+from .utils import utils, TreeStructure, xmlUtils, mathUtils
+from . import Decorators
+from .Application import __QtAvailable
+from .Interaction import Interaction
 if __QtAvailable:
-  from Application import InteractiveApplication
+  from .Application import InteractiveApplication
 
 # Load up plugins!
 # -> only available on specially-marked base types
@@ -110,7 +110,7 @@ class SimulationMode(MessageUser):
 
 #Note that this has to be after SimulationMode is defined or the CustomModes
 #don't see SimulationMode when they import Simulation
-import CustomModes
+from . import CustomModes
 
 def splitCommand(s):
   """

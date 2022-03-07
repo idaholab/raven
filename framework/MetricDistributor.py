@@ -23,10 +23,10 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType, MessageUser
-from utils import utils
-import Distributions
-from EntityFactoryBase import EntityFactory
+from .BaseClasses import BaseType, MessageUser
+from .utils import utils
+from . import Distributions
+from .EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
 class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUser):
   """

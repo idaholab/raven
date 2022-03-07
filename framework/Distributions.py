@@ -27,13 +27,13 @@ from numpy import linalg as LA
 import copy
 import math as math
 
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-from utils import utils
-from utils.randomUtils import random
-from utils import randomUtils
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import BaseEntity, InputDataUser
+from .utils import utils
+from .utils.randomUtils import random
+from .utils import randomUtils
 distribution1D = utils.findCrowModule('distribution1D')
-from utils import mathUtils, InputData, InputTypes
+from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):

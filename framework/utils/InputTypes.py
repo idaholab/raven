@@ -19,7 +19,7 @@ Created on 2020-Jan-07
 This a library for defining the data. Split from InputData module.
 """
 import xml.etree.ElementTree as ET
-from utils import utils, mathUtils
+from . import utils, mathUtils
 
 class InputType(object):
   """

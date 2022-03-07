@@ -30,7 +30,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils,randomUtils,InputData, InputTypes
+from ..utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class MonteCarlo(ForwardSampler):

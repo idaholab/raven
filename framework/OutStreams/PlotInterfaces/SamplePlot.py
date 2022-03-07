@@ -19,7 +19,7 @@ Created on April 1, 2021
 import matplotlib.pyplot as plt
 
 from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class SamplePlot(PlotInterface):
   """

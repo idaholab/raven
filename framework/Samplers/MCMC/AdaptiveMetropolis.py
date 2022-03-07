@@ -27,7 +27,7 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 from .MCMC import MCMC
-from utils import utils,randomUtils,InputData, InputTypes
+from ...utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveMetropolis(MCMC):

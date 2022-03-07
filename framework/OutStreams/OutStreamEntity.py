@@ -18,8 +18,8 @@ Created on Nov 14, 2013
 """
 from abc import abstractmethod, ABCMeta
 
-from utils.utils import metaclass_insert
-from BaseClasses import PluginReadyEntity
+from ..utils.utils import metaclass_insert
+from ..BaseClasses import PluginReadyEntity
 
 class OutStreamEntity(metaclass_insert(ABCMeta, PluginReadyEntity)):
   """

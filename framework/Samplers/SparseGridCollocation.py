@@ -26,11 +26,11 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-from utils import utils, InputData, InputTypes
-import Distributions
-import Quadratures
-import OrthoPolynomials
-import IndexSets
+from ..utils import utils, InputData, InputTypes
+from .. import Distributions
+from .. import Quadratures
+from .. import OrthoPolynomials
+from .. import IndexSets
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SparseGridCollocation(Grid):

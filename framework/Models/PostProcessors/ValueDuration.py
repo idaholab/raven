@@ -22,8 +22,8 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import InputData, InputTypes
+from ...utils import utils
+from ...utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class ValueDuration(PostProcessorInterface):

@@ -25,7 +25,7 @@ import shutil
 import re
 from collections import defaultdict
 from math import *
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 import RELAPparser
 
 

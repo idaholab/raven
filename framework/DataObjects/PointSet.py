@@ -31,8 +31,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+from ..BaseClasses import BaseType
+from ..utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   from .DataSet import DataSet
 except ValueError: #attempted relative import in non-package

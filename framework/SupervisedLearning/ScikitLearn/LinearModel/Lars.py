@@ -26,8 +26,8 @@ from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning.ScikitLearn import ScikitLearnBase
-from utils import InputData, InputTypes
+from ....SupervisedLearning.ScikitLearn import ScikitLearnBase
+from ....utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Lars(ScikitLearnBase):

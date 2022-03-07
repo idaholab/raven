@@ -32,9 +32,9 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils
-from utils import InputData, InputTypes
-import GridEntities
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from .. import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Grid(ForwardSampler):

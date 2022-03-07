@@ -26,10 +26,10 @@ import sys
 import copy
 # external libraries
 # RAVEN libraries
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(frameworkDir)
-from utils import xmlUtils
-from BaseClasses import MessageUser
+#frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+#sys.path.append(frameworkDir)
+from ..utils import xmlUtils
+from ..BaseClasses import MessageUser
 
 
 class Template(MessageUser):

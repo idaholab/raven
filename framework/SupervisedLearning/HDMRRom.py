@@ -24,8 +24,8 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils
-from utils import InputData, InputTypes
+from ..utils import mathUtils
+from ..utils import InputData, InputTypes
 from .GaussPolynomialRom import GaussPolynomialRom
 #Internal Modules End--------------------------------------------------------------------------------
 

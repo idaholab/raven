@@ -23,7 +23,7 @@ from scipy import integrate
 import copy
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class HistorySetSampling(PostProcessorReadyInterface):
   """

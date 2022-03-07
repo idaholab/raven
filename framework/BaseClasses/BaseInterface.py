@@ -17,10 +17,10 @@ Created on Mar 16, 2013
 """
 from abc import ABCMeta, abstractmethod
 
-from utils import mathUtils
-from utils.utils import metaclass_insert
-from BaseClasses import BaseType
-from BaseClasses import Assembler
+from ..utils import mathUtils
+from ..utils.utils import metaclass_insert
+from ..BaseClasses import BaseType
+from ..BaseClasses import Assembler
 
 class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
   """

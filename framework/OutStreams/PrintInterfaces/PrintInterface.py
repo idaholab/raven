@@ -18,7 +18,7 @@ Created on April 2, 2021
 """
 
 from abc import abstractmethod
-from OutStreams import OutStreamInterface
+from ...OutStreams import OutStreamInterface
 
 class PrintInterface(OutStreamInterface):
   """

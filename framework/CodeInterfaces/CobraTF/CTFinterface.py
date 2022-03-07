@@ -19,7 +19,7 @@ July 2018
 from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 from ctfdata import ctfdata
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
 class CTF(CodeInterfaceBase):

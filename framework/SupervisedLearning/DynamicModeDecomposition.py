@@ -27,9 +27,9 @@ from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils
-from utils import InputData, InputTypes
-from SupervisedLearning import SupervisedLearning
+from ..utils import mathUtils
+from ..utils import InputData, InputTypes
+from ..SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 

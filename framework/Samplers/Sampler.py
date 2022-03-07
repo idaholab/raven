@@ -23,10 +23,10 @@ import abc
 import json
 import itertools
 import numpy as np
-from BaseClasses.InputDataUser import InputDataUser
+from ..BaseClasses.InputDataUser import InputDataUser
 
-from utils import utils,randomUtils,InputData, InputTypes
-from BaseClasses import BaseEntity, Assembler
+from ..utils import utils,randomUtils,InputData, InputTypes
+from ..BaseClasses import BaseEntity, Assembler
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
   """

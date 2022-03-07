@@ -31,9 +31,9 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, mathUtils, xmlUtils
-from utils import InputTypes, InputData
-from BaseClasses import BaseInterface
+from ..utils import utils, mathUtils, xmlUtils
+from ..utils import InputTypes, InputData
+from ..BaseClasses import BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):

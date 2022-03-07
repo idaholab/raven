@@ -26,14 +26,14 @@ import numpy as np
 import time
 import itertools
 from collections import OrderedDict
-from Decorators.Parallelization import Parallel
+from ..Decorators.Parallelization import Parallel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-from utils import utils, InputData
-from utils import graphStructure
-from Runners import Error as rerror
+from ..utils import utils, InputData
+from ..utils import graphStructure
+from ..Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):

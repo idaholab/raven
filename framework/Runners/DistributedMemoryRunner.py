@@ -19,7 +19,7 @@ Created on Mar 5, 2013
 #External Modules------------------------------------------------------------------------------------
 import sys
 import gc
-from utils import importerUtils as im
+from ..utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
   import ray
@@ -28,7 +28,7 @@ else:
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from ..utils import utils
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 

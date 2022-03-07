@@ -16,7 +16,7 @@
 """
 import copy
 import numpy as np
-from utils import InputData, InputTypes, randomUtils, mathUtils
+from ...utils import InputData, InputTypes, randomUtils, mathUtils
 from .GradientApproximater import GradientApproximater
 
 class FiniteDifference(GradientApproximater):

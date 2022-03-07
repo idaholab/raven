@@ -26,7 +26,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from utils import utils, mathUtils, InputData, InputTypes
+from ..utils import utils, mathUtils, InputData, InputTypes
 
 from .Sampler import Sampler
 

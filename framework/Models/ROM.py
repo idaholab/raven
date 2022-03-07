@@ -26,11 +26,11 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-import Decorators
-from SupervisedLearning import factory
-from utils import utils, xmlUtils, mathUtils
-from utils import InputData, InputTypes
-from Decorators.Parallelization import Parallel
+from .. import Decorators
+from ..SupervisedLearning import factory
+from ..utils import utils, xmlUtils, mathUtils
+from ..utils import InputData, InputTypes
+from ..Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 # set enviroment variable to avoid parallelim degradation in some surrogate models

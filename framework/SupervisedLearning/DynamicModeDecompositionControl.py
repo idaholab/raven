@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils
-from utils import InputData, InputTypes
+from ..utils import mathUtils
+from ..utils import InputData, InputTypes
 from .DynamicModeDecomposition import DMD
 #Internal Modules End--------------------------------------------------------------------------------
 

@@ -21,9 +21,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import math
 import string
-import Simulation
+from framework import Simulation
 
-from utils import utils
+from framework.utils import utils
 
 #For the mode information
 modeName = "mpilegacy"

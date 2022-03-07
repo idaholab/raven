@@ -26,8 +26,8 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
-from utils import InputData, InputTypes
-from utils.RAVENiterators import ravenArrayIterator
+from ...utils import InputData, InputTypes
+from ...utils.RAVENiterators import ravenArrayIterator
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SafestPoint(PostProcessorInterface):
@@ -78,7 +78,7 @@ class SafestPoint(PostProcessorInterface):
     """
     super().__init__()
     # delay loading for import order
-    from Models.PostProcessors import factory
+    from ...Models.PostProcessors import factory
     self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
     self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.

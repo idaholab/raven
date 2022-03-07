@@ -24,10 +24,10 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes, utils, mathUtils
-from SupervisedLearning import factory as romFactory
-import GridEntities
-import Files
+from ...utils import InputData, InputTypes, utils, mathUtils
+from ...SupervisedLearning import factory as romFactory
+from ... import GridEntities
+from ... import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessorInterface):

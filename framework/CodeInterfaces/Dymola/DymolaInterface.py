@@ -103,8 +103,8 @@ import copy
 import numpy
 import pandas as pd
 
-from CodeInterfaceBaseClass import CodeInterfaceBase
-from utils import mathUtils
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.utils import mathUtils
 
 class Dymola(CodeInterfaceBase):
   """

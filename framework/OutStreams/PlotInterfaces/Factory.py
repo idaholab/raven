@@ -17,7 +17,7 @@
   @author: talbpaul
 """
 
-from EntityFactoryBase import EntityFactory
+from ...EntityFactoryBase import EntityFactory
 
 # Entities
 from .PlotInterface import PlotInterface

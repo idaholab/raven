@@ -31,8 +31,8 @@ import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseEntity, InputDataUser
-from utils import InputData, InputTypes
+from ..BaseClasses import BaseEntity, InputDataUser
+from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DateBase(BaseEntity, InputDataUser):

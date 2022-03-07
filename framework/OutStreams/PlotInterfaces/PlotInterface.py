@@ -18,8 +18,8 @@ Created on April 1, 2021
 """
 
 from abc import abstractmethod
-from OutStreams import OutStreamInterface, OutStreamEntity
-from utils.utils import displayAvailable
+from .. import OutStreamInterface, OutStreamEntity
+from ...utils.utils import displayAvailable
 
 class PlotInterface(OutStreamInterface):
   """

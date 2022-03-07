@@ -18,7 +18,7 @@
   historically designed and architected by @alfoa
 """
 
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 # Entities
 from .OutStreamEntity import OutStreamEntity

@@ -18,10 +18,10 @@ Created on April 1, 2021
 """
 import os
 
-import DataObjects
-import Models
-from BaseClasses import BaseInterface
-from utils import InputTypes, InputData
+from .. import DataObjects
+from .. import Models
+from ..BaseClasses import BaseInterface
+from ..utils import InputTypes, InputData
 
 class OutStreamInterface(BaseInterface):
   """

@@ -23,7 +23,7 @@ import copy
 import numpy as np
 import xarray as xr
 
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
 class HistorySetDelay(PostProcessorReadyInterface):

@@ -21,10 +21,11 @@
 """
 
 import numpy as np
-import xarray as xr
-from utils import randomUtils
 from scipy.special import comb
 from itertools import combinations
+import xarray as xr
+from ...utils import randomUtils
+
 
 # @profile
 def onePointCrossover(parents,**kwargs):

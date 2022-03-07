@@ -41,10 +41,10 @@ from .Grid import Grid
 from .MonteCarlo import MonteCarlo
 from .Stratified import Stratified
 from .Sampler import Sampler
-from utils import utils
-from utils import InputData, InputTypes
-import utils.TreeStructure as ETS
-from utils.graphStructure import graphObject as graph
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from ..utils import TreeStructure as ETS
+from ..utils.graphStructure import graphObject as graph
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):

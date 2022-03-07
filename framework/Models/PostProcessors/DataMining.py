@@ -24,11 +24,11 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils, mathUtils
-from utils import InputData, InputTypes
-import Files
-import unSupervisedLearning
-import MetricDistributor
+from ...utils import utils, mathUtils
+from ...utils import InputData, InputTypes
+from ... import Files
+from ... import unSupervisedLearning
+from ... import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 class DataMining(PostProcessorInterface):

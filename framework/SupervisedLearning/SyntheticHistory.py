@@ -20,8 +20,8 @@
 """
 import numpy as np
 
-from utils import InputData, xmlUtils
-from TSA import TSAUser
+from ..utils import InputData, xmlUtils
+from ..TSA import TSAUser
 
 from .SupervisedLearning import SupervisedLearning
 

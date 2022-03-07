@@ -23,8 +23,8 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-import CsvLoader
+from .utils import utils
+from . import CsvLoader
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):

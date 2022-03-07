@@ -128,11 +128,11 @@ import os
 import copy
 import shutil
 import tempfile
-from utils import utils
+from framework.utils import utils
 import xml.etree.ElementTree as ET
 #from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class OpenModelica(CodeInterfaceBase):
   """

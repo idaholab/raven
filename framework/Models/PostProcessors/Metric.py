@@ -25,11 +25,11 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import xmlUtils
-from utils import InputData, InputTypes
-import Files
-import Distributions
-import MetricDistributor
+from ...utils import xmlUtils
+from ...utils import InputData, InputTypes
+from ... import Files
+from ... import Distributions
+from ... import MetricDistributor
 from .PostProcessorInterface import PostProcessorInterface
 #Internal Modules End--------------------------------------------------------------------------------
 

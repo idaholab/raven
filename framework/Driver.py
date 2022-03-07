@@ -22,16 +22,29 @@ This is the command-line based driver of RAVEN
 import os
 import sys
 
-from CustomDrivers import DriverUtils as dutils
-import utils.TreeStructure as TS
+from .CustomDrivers import DriverUtils as dutils
+from .utils import TreeStructure as TS
 
-if __name__ == '__main__':
+def wheelMain():
+  """
+    This is the main called from the raven framework wheel
+    @ In, None
+    @ Out, None
+  """
+  main(False)
+
+def main(checkLibraries):
+  """
+    This is the main driver for the RAVEN framework
+    @ In,checkLibraries, bool, if true check the library versions
+    @ Out, None
+  """
   # This is the default driver for the RAVEN framework
   dutils.doSetup()
-  from Simulation import Simulation
-  from Application import __QtAvailable
-  from Interaction import Interaction
-  from utils import utils
+  from .Simulation import Simulation
+  from .Application import __QtAvailable
+  from .Interaction import Interaction
+  from .utils import utils
   frameworkDir = dutils.findFramework()
 
   verbosity = 'all'
@@ -188,3 +201,6 @@ if __name__ == '__main__':
       print ('\n\n! Exit called, exiting RAVEN.\n\n')
   else:
     raven()
+
+if __name__ == '__main__':
+  main(True)

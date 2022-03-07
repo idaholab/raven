@@ -26,10 +26,10 @@ from functools import reduce
 from scipy import spatial
 from math import ceil
 
-import Distributions
+from .. import Distributions
 from AMSC.AMSC_Object import AMSC_Object
-from utils import randomUtils
-from utils import InputData, InputTypes
+from ..utils import randomUtils
+from ..utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
 
 
@@ -354,7 +354,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ Out, None
     """
     self.converged = False
-    from Models.PostProcessors import factory as ppFactory
+    from ..Models.PostProcessors import factory as ppFactory
     self.limitSurfacePP = ppFactory.returnInstance('LimitSurface')
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]

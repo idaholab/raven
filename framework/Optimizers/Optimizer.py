@@ -29,8 +29,8 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, InputData, InputTypes
-from Samplers import AdaptiveSampler, ForwardSampler
+from ..utils import randomUtils, InputData, InputTypes
+from ..Samplers import AdaptiveSampler, ForwardSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):

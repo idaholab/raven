@@ -18,7 +18,7 @@ Created on Nov 14, 2013
 """
 import os
 
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 from .PrintInterface import PrintInterface
 
 class FilePrint(PrintInterface):

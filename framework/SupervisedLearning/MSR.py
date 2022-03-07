@@ -23,9 +23,9 @@
 import numpy as np
 import math
 import sys
-import utils.importerUtils
-from utils import InputData, InputTypes
-sklearn = utils.importerUtils.importModuleLazy("sklearn", globals())
+from ..utils import importerUtils
+from ..utils import InputData, InputTypes
+sklearn = importerUtils.importModuleLazy("sklearn", globals())
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

@@ -21,8 +21,8 @@ import xarray
 import math
 
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes
-from SupervisedLearning import factory as romFactory
+from ...utils import InputData, InputTypes
+from ...SupervisedLearning import factory as romFactory
 
 
 class LimitSurfaceIntegral(PostProcessorInterface):
@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
       @ Out, None
     """
     super().__init__()
-    from Models.PostProcessors import factory as ppFactory # delay import to allow definition
+    from ...Models.PostProcessors import factory as ppFactory # delay import to allow definition
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance

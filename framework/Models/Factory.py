@@ -15,8 +15,8 @@
 Factory for generating the instances of the  Models Module
 """
 
-from EntityFactoryBase import EntityFactory
-from utils import utils
+from ..EntityFactoryBase import EntityFactory
+from ..utils import utils
 
 from .Model         import Model
 from .Dummy         import Dummy

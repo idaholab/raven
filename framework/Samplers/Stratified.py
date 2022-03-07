@@ -29,7 +29,7 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, randomUtils, InputData, InputTypes
+from ..utils import utils, randomUtils, InputData, InputTypes
 from .Grid import Grid
 from .Sampler import Sampler
 #Internal Modules End--------------------------------------------------------------------------------

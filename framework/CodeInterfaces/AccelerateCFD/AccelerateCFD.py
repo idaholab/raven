@@ -26,9 +26,9 @@ import glob
 import math
 from sklearn import neighbors
 from OpenFoamPP import fieldParser
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
-from utils import mathUtils
+from framework.utils import mathUtils
 
 class AcceleratedCFD(CodeInterfaceBase):
   """

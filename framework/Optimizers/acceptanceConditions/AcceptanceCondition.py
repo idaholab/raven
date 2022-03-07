@@ -19,7 +19,7 @@
 """
 import abc
 
-from utils import utils, InputData, InputTypes
+from ...utils import utils, InputData, InputTypes
 
 class AcceptanceCondition(utils.metaclass_insert(abc.ABCMeta, object)):
   """

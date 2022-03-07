@@ -16,7 +16,7 @@ Created on March 22, 2021
 
 @author: talbpaul
 """
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 
 class InputDataUser(object):
   """

@@ -23,14 +23,14 @@ import abc
 import numpy as np
 import itertools
 from collections import OrderedDict
-from Decorators.Parallelization import Parallel
+from ...Decorators.Parallelization import Parallel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from Models import Dummy
-import Models
-import Files
-from utils import InputData, InputTypes
+from ...Models import Dummy
+from ... import Models
+from ... import Files
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class HybridModelBase(Dummy):

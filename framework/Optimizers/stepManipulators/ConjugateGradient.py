@@ -28,7 +28,7 @@ from scipy.optimize import minpack2
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, InputData, InputTypes, mathUtils, randomUtils
+from ...utils import utils, InputData, InputTypes, mathUtils, randomUtils
 from .StepManipulator import StepManipulator
 from . import NoConstraintResolutionFound, NoMoreStepsNeeded
 #Internal Modules End--------------------------------------------------------------------------------

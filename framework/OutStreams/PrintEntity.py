@@ -17,7 +17,7 @@ Created on April 2, 2021
 @author: talbpaul
 """
 
-from utils import InputTypes
+from ..utils import InputTypes
 from .OutStreamEntity import OutStreamEntity
 from .PrintInterfaces import factory as PrintFactory
 

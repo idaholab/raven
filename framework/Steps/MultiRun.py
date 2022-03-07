@@ -27,9 +27,9 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SingleRun import SingleRun
-import Models
-from utils import utils
-from OutStreams import OutStreamEntity
+from .. import Models
+from ..utils import utils
+from ..OutStreams import OutStreamEntity
 #Internal Modules End--------------------------------------------------------------------------------
 
 

@@ -17,8 +17,8 @@
   @author: alfoa
 """
 #Internal Modules---------------------------------------------------------------
-from utils import importerUtils as im
-from utils.utils import Object
+from ..utils import importerUtils as im
+from ..utils.utils import Object
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------

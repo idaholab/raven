@@ -23,7 +23,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class HistorySetSync(PostProcessorReadyInterface):
   """

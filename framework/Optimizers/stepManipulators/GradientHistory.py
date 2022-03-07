@@ -27,7 +27,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils, randomUtils
+from ...utils import InputData, InputTypes, mathUtils, randomUtils
 from .StepManipulator import StepManipulator
 from . import NoConstraintResolutionFound
 #Internal Modules End--------------------------------------------------------------------------------

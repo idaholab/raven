@@ -26,9 +26,9 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Distributions
-from Samplers import AdaptiveSampler
-from utils import utils,randomUtils,InputData, InputTypes
+from ... import Distributions
+from ...Samplers import AdaptiveSampler
+from ...utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class MCMC(AdaptiveSampler):

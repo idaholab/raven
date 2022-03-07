@@ -23,7 +23,7 @@
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Step import Step
-from Models import ROM
+from ..Models import ROM
 #Internal Modules End--------------------------------------------------------------------------------
 
 class RomTrainer(Step):

@@ -27,7 +27,7 @@ import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from ....utils import utils
 from ..ValidationBase import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 

@@ -26,9 +26,9 @@ import inspect
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-import CustomCommandExecuter
-from utils import utils, InputData, InputTypes, mathUtils
-from Decorators.Parallelization import Parallel
+from .. import CustomCommandExecuter
+from ..utils import utils, InputData, InputTypes, mathUtils
+from ..Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ExternalModel(Dummy):

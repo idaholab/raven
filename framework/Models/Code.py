@@ -33,19 +33,19 @@ import pandas as pd
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
-from utils import utils
-from utils import InputData, InputTypes
-from Decorators.Parallelization import Parallel
-import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
-import Files
-from DataObjects import Data
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from ..Decorators.Parallelization import Parallel
+from .. import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
+from .. import Files
+from ..DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
   """
     This is the generic class that import an external code into the framework
   """
-  CodeInterfaces = importlib.import_module("CodeInterfaces")
+  CodeInterfaces = importlib.import_module("..CodeInterfaces", "framework.Models")
 
   @classmethod
   def getInputSpecification(cls):

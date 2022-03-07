@@ -24,9 +24,9 @@ import numpy as np
 from matplotlib.lines import Line2D
 
 # Internal Imports
-from utils import plotUtils
+from ...utils import plotUtils
 from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class PopulationPlot(PlotInterface):
   """

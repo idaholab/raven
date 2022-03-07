@@ -23,8 +23,8 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes, utils
-import Files
+from ...utils import InputData, InputTypes, utils
+from ... import Files
 #Internal Modules End-----------------------------------------------------------
 
 class ExternalPostProcessor(PostProcessorInterface):

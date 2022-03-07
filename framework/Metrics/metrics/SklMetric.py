@@ -20,12 +20,12 @@ Created on August 20 2016
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import ast
-from utils import utils
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from ...utils import utils
 from .MetricInterface import MetricInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SKL(MetricInterface):

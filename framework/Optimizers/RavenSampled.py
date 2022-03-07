@@ -30,7 +30,7 @@ import copy
 
 # Internal
 #Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 from .Optimizer import Optimizer
 #Internal Modules End--------------------------------------------------------------------------------
 

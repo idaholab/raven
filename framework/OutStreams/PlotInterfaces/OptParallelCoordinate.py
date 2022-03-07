@@ -27,9 +27,9 @@ import pandas as pd
 import imageio
 
 # Internal Imports
-from utils import plotUtils
+from ...utils import plotUtils
 from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class OptParallelCoordinatePlot(PlotInterface):
   """

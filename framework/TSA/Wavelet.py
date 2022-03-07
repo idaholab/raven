@@ -16,7 +16,7 @@
 """
 import numpy as np
 
-from utils import InputData, InputTypes, xmlUtils
+from ..utils import InputData, InputTypes, xmlUtils
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 

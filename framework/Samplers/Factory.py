@@ -20,32 +20,32 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
-from Samplers.Sampler import Sampler
+from .Sampler import Sampler
 # Forward samplers
-from Samplers.ForwardSampler import ForwardSampler
-from Samplers.MonteCarlo import MonteCarlo
-from Samplers.Grid import Grid
-from Samplers.Stratified import Stratified
-from Samplers.FactorialDesign import FactorialDesign
-from Samplers.ResponseSurfaceDesign import ResponseSurfaceDesign
-from Samplers.Sobol import Sobol
-from Samplers.SparseGridCollocation import SparseGridCollocation
-from Samplers.EnsembleForward import EnsembleForward
-from Samplers.CustomSampler import CustomSampler
+from .ForwardSampler import ForwardSampler
+from .MonteCarlo import MonteCarlo
+from .Grid import Grid
+from .Stratified import Stratified
+from .FactorialDesign import FactorialDesign
+from .ResponseSurfaceDesign import ResponseSurfaceDesign
+from .Sobol import Sobol
+from .SparseGridCollocation import SparseGridCollocation
+from .EnsembleForward import EnsembleForward
+from .CustomSampler import CustomSampler
 
 # Adaptive samplers
-from Samplers.AdaptiveSampler import AdaptiveSampler
-from Samplers.LimitSurfaceSearch import LimitSurfaceSearch
-from Samplers.AdaptiveSobol import AdaptiveSobol
-from Samplers.AdaptiveSparseGrid import AdaptiveSparseGrid
-from Samplers.AdaptiveMonteCarlo import AdaptiveMonteCarlo
+from .AdaptiveSampler import AdaptiveSampler
+from .LimitSurfaceSearch import LimitSurfaceSearch
+from .AdaptiveSobol import AdaptiveSobol
+from .AdaptiveSparseGrid import AdaptiveSparseGrid
+from .AdaptiveMonteCarlo import AdaptiveMonteCarlo
 
 # Dynamic Event Tree-based Samplers
-from Samplers.DynamicEventTree import DynamicEventTree
-from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
+from .DynamicEventTree import DynamicEventTree
+from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 
 # MCMC Samplers
 from .MCMC import Metropolis

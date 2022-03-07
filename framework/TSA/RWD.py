@@ -18,17 +18,17 @@
 import collections
 import numpy as np
 import scipy as sp
-import Decorators
+from .. import Decorators
 import string
 import numpy.linalg as LA
 import pandas as pd
 import copy as cp
 
 
-from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
-import Distributions
+from .. import Distributions
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 # utility methods

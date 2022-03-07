@@ -21,7 +21,7 @@ Definition for a common plotting need with synthetic histories versus training d
 import matplotlib.pyplot as plt
 
 from .PlotInterface import PlotInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class SyntheticCloud(PlotInterface):
   """

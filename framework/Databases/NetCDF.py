@@ -24,7 +24,7 @@ import os
 import numpy as np
 import xarray as xr
 
-from utils import InputData, InputTypes, xmlUtils, mathUtils
+from ..utils import InputData, InputTypes, xmlUtils, mathUtils
 from .Database import DateBase
 
 class NetCDF(DateBase):

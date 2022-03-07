@@ -55,7 +55,7 @@ from collections import deque, defaultdict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils, randomUtils, InputData, InputTypes
+from ..utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
 from .stepManipulators import NoConstraintResolutionFound
 #Internal Modules End--------------------------------------------------------------------------------

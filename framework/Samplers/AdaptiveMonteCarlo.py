@@ -20,8 +20,8 @@
 """
 import numpy as np
 
-from Models.PostProcessors import factory as ppFactory
-from utils import InputData, InputTypes
+from ..Models.PostProcessors import factory as ppFactory
+from ..utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
 

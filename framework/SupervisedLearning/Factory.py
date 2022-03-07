@@ -16,7 +16,7 @@
   @author: talbpaul, wangc
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
 """
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
 from .SupervisedLearning import SupervisedLearning

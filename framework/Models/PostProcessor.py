@@ -23,10 +23,10 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Runners
-from Models import Model
-from Decorators.Parallelization import Parallel
-from utils import utils, InputTypes
+from .. import Runners
+from ..Models import Model
+from ..Decorators.Parallelization import Parallel
+from ..utils import utils, InputTypes
 from .PostProcessors import factory
 #Internal Modules End--------------------------------------------------------------------------------
 

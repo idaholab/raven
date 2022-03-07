@@ -28,8 +28,8 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import MessageUser
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
 class IndexSet(MessageUser):

@@ -20,7 +20,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-from utils import utils
+from framework.utils import utils
 
 class MelgenApp():
   """

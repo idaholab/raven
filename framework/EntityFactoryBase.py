@@ -17,10 +17,10 @@ Created March 15, 2020
 @author: talbpaul
 """
 
-from BaseClasses import MessageUser
-from BaseClasses import InputDataUser
-import PluginManager
-from utils import utils
+from .BaseClasses import MessageUser
+from .BaseClasses import InputDataUser
+from . import PluginManager
+from .utils import utils
 
 class EntityFactory(MessageUser):
   """

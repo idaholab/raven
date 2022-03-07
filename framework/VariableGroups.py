@@ -26,7 +26,7 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import BaseClasses
+from . import BaseClasses
 #Internal Modules End--------------------------------------------------------------------------------
 
 #

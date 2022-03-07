@@ -21,8 +21,8 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
-import utils.importerUtils
-statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
+from ..utils import importerUtils
+statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 import numpy as np
 import functools
 from scipy.linalg import solve_discrete_lyapunov
@@ -33,9 +33,9 @@ from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils, utils
-from utils import InputTypes, InputData
-import Distributions
+from ..utils import randomUtils, xmlUtils, mathUtils, utils
+from ..utils import InputTypes, InputData
+from .. import Distributions
 from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 

@@ -25,8 +25,8 @@ import threading
 from collections import deque, defaultdict
 import numpy as np
 
-from utils.utils import findCrowModule
-from utils import mathUtils
+from .utils import findCrowModule
+from . import mathUtils
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
 # Numpy stochastic environment can not pass the test as this point

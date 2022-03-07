@@ -21,8 +21,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from EntityFactoryBase import EntityFactory
-from utils import utils
+from ..EntityFactoryBase import EntityFactory
+from ..utils import utils
 from .CrossValidation import CrossValidation
 from .SklCrossValidation import SciKitLearn
 ## [ Add new class here ]

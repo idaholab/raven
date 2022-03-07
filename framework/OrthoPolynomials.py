@@ -29,9 +29,9 @@ import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from EntityFactoryBase import EntityFactory
-from BaseClasses import MessageUser
-import Distributions
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import MessageUser
+from . import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class OrthogonalPolynomial(MessageUser):

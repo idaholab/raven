@@ -34,10 +34,10 @@ else:
 #Internal Modules------------------------------------------------------------------------------------
 from .SparseGridCollocation import SparseGridCollocation
 from .AdaptiveSampler import AdaptiveSampler
-from utils import utils
-from utils import InputData, InputTypes
-import Quadratures
-import IndexSets
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from .. import Quadratures
+from .. import IndexSets
 #Internal Modules End-------------------------------------------------------------------------------
 
 class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):

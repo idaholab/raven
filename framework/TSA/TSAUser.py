@@ -19,7 +19,7 @@ Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
 
-from utils import xmlUtils, InputData, InputTypes
+from ..utils import xmlUtils, InputData, InputTypes
 
 from .Factory import factory
 

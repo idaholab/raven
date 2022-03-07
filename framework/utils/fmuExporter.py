@@ -29,7 +29,7 @@ from pythonfmu.builder import FmuBuilder
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses.MessageUser import MessageUser
+from ..BaseClasses.MessageUser import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
 # create data type that is returned from pythonfmu
@@ -80,9 +80,9 @@ class FMUexporter(MessageUser):
     if self.indexReturnDict is None:
       self.raiseAMessage("No indexReturnDict has been provided for FMU exporter! Default to 0!")
       self.indexReturnDict = 0
-    self.frameworkDir = self._options.pop("frameworkDir")
-    if self.frameworkDir is None:
-      self.raiseAnError(IOError, "No frameworkDir has been provided for FMU exporter!")
+    self.ravenDir = os.path.dirname(self._options.pop("frameworkDir"))
+    if self.ravenDir is None:
+      self.raiseAnError(IOError, "No ravenDir has been provided for FMU exporter!")
 
   def createModelHandler(self):
     """
@@ -124,7 +124,7 @@ class {className}(Fmi2Slave):
     self.inputVariables = {self.inputVars}
     self.outputVariables = {self.outVars}
     # set path to raven and the serialized model
-    self.raven_path = r"{self.frameworkDir}"
+    self.raven_path = r"{self.ravenDir}"
     # model_path is by default the path to this model that is exported as FMU (serialized). It is stored in the resource folder
     self.model_path = self.resources + "/" + "{filename}"
     #os.path.sep
@@ -148,17 +148,15 @@ class {className}(Fmi2Slave):
     if not self.initialized:
       sys.path.append(self.raven_path)
       # find the RAVEN framework
-      if os.path.dirname(self.raven_path).endswith("framework"):
+      if os.path.isdir(os.path.join(self.raven_path,"framework")):
         # we import the Driver to load the RAVEN enviroment for the un-pickling
         try:
-          import Driver
+          import framework.Driver
         except RuntimeError as ae:
           # we try to add the framework directory
           raise RuntimeError("Importing or RAVEN failed with error:" +str(ae))
       else:
-        # we import the Driver to load the RAVEN enviroment for the un-pickling
-        sys.path.append(os.path.join(self.raven_path,"framework"))
-        import Driver
+        print("framework not found in",self.raven_path)
       # de-serialize the model
       print("model_path", self.model_path)
       self.model = pickle.load(open(self.model_path, mode='rb'))

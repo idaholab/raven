@@ -22,7 +22,7 @@ import copy
 import importlib
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class HistorySetSnapShot(PostProcessorReadyInterface):
   """

@@ -21,7 +21,7 @@ from collections import defaultdict
 from functools import partial
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import mathUtils, utils, InputData, InputTypes
+from ...utils import mathUtils, utils, InputData, InputTypes
 
 class TypicalHistoryFromHistorySet(PostProcessorReadyInterface):
   """

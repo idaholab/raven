@@ -26,8 +26,8 @@ import matplotlib
 import platform
 from scipy import stats
 import os
-import utils.importerUtils
-tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
+from ..utils import importerUtils
+tf = importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

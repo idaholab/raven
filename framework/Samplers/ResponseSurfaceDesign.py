@@ -30,7 +30,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ResponseSurfaceDesign(Grid):

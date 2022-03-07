@@ -30,7 +30,7 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 from .ForwardSampler        import ForwardSampler
 from .MonteCarlo            import MonteCarlo
 from .Grid                  import Grid
@@ -38,7 +38,7 @@ from .Stratified            import Stratified
 from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .CustomSampler         import CustomSampler
-import GridEntities
+from .. import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleForward(ForwardSampler):

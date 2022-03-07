@@ -24,13 +24,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import scipy
 import ast
-from utils import utils
 import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from ...utils import utils
 from .MetricInterface import MetricInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 

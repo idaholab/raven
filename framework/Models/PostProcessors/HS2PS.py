@@ -23,7 +23,7 @@ import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 #Internal Modules End-----------------------------------------------------------
 

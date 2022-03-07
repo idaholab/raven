@@ -25,11 +25,11 @@ from scipy.interpolate import interp1d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
-from BaseClasses import BaseEntity
-import utils.TreeStructure as ETS
-from utils.RAVENiterators import ravenArrayIterator
+from .EntityFactoryBase import EntityFactory
+from .utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
+from .BaseClasses import BaseEntity
+from .utils import TreeStructure as ETS
+from .utils.RAVENiterators import ravenArrayIterator
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):

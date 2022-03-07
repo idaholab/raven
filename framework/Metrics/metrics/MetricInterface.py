@@ -18,8 +18,8 @@ Created on Jul 18 2016
 """
 import abc
 
-from BaseClasses import BaseInterface
-from utils import utils
+from ...BaseClasses import BaseInterface
+from ...utils import utils
 
 class MetricInterface(utils.metaclass_insert(abc.ABCMeta, BaseInterface)):
   """

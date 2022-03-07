@@ -28,9 +28,9 @@ import platform
 import functools
 from scipy import stats
 import os
-import utils.importerUtils
-from utils import InputData, InputTypes
-tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
+from ..utils import importerUtils
+from ..utils import InputData, InputTypes
+tf = importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

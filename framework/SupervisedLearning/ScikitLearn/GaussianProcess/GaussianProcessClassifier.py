@@ -19,16 +19,15 @@
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning.ScikitLearn import ScikitLearnBase
-from utils import utils
-from utils import InputData, InputTypes
+from ....SupervisedLearning.ScikitLearn import ScikitLearnBase
+from ....utils import utils
+from ....utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GaussianProcessClassifier(ScikitLearnBase):

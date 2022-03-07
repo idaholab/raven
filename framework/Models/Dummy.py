@@ -26,9 +26,9 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
-from utils import utils
-from utils.cached_ndarray import c1darray
-from Decorators.Parallelization import Parallel
+from ..utils import utils
+from ..utils.cached_ndarray import c1darray
+from ..Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Dummy(Model):

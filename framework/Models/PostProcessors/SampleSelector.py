@@ -21,8 +21,8 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import InputData, InputTypes
+from ...utils import utils
+from ...utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class SampleSelector(PostProcessorInterface):

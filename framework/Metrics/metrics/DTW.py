@@ -24,7 +24,7 @@ import scipy.spatial.distance as spatialDistance
 
 #Internal Modules------------------------------------------------------------------------------------
 from .MetricInterface import MetricInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DTW(MetricInterface):

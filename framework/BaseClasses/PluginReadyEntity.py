@@ -23,7 +23,7 @@ from abc import abstractmethod
 
 import numpy as np
 
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 from .BaseEntity import BaseEntity
 
 class PluginReadyEntity(BaseEntity):

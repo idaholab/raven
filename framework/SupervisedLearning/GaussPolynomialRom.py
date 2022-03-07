@@ -29,7 +29,7 @@ from scipy import spatial
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SupervisedLearning import SupervisedLearning
-from utils import InputData, InputTypes
+from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 

@@ -23,7 +23,7 @@ from __future__ import division, print_function, absolute_import
 #----- end python 2 - 3 compatibility
 
 #External Modules------------------------------------------------------------------------------------
-import contrib.lazy.lazy_loader as lazy_loader
+from ..contrib.lazy import lazy_loader
 from importlib import util as imutil
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------

@@ -19,18 +19,14 @@ import os
 import sys
 
 from . import DriverUtils
-DriverUtils.doSetup()
-
-import Simulation
-import utils.TreeStructure as TS
-
-framework = DriverUtils.findFramework()
 
 class Raven:
   """
     Class to enable running RAVEN as part of other Python workflows.
     Should provide utility functions to simplify the user's process.
   """
+  framework = None
+
   # ********************
   # INITIALIZATION
   #
@@ -40,6 +36,15 @@ class Raven:
       @ In, None
       @ Out, None
     """
+    if self.framework is None:
+      #Note: doSetup changes the sys.path, which can cause problems
+      # if it is done at the start of this file which is done during import,
+      # so it is only done now
+      DriverUtils.doSetup()
+
+      self.framework = DriverUtils.findFramework()
+
+
     self._simulation = None # RAVEN Simulation object (loaded workflow)
     self._xmlSource = None  # XML file from which workflow is loaded
 
@@ -52,10 +57,16 @@ class Raven:
       @ In, xmlFile, string, target xml file to load (cwd?)
       @ Out, None
     """
+    #Note: PythonRaven is imported as part of framework/__init__.py
+    # so if Simulation is imported at the top, even an import of utils will pull
+    # in almost all of Raven.
+    from .. import Simulation
+    from ..utils import TreeStructure as TS
+
     target = self._findFile(xmlFile)
     root = TS.parse(open(target, 'r')).getroot()
     targetDir = os.path.dirname(target)
-    self._simulation = Simulation.Simulation(framework)
+    self._simulation = Simulation.Simulation(self.framework)
     self._simulation.XMLpreprocess(root, targetDir)
     self._simulation.XMLread(root, runInfoSkip={"DefaultInputFile"}, xmlFilename=target)
     self._simulation.initialize() # TODO separate method?
@@ -108,7 +119,7 @@ class Raven:
         target = fromCWD
     # option: user provided relative to framework
     if target is None:
-      fromFramework = os.path.abspath(os.path.join(framework, wantFile))
+      fromFramework = os.path.abspath(os.path.join(self.framework, wantFile))
       if os.path.isfile(fromFramework):
         target = fromFramework
     # fail: no options yielded a valid file

@@ -25,9 +25,9 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
-from h5py_interface_creator import hdf5Database as h5Data
-from DataObjects import PointSet, HistorySet
+from ..utils import InputData, InputTypes
+from ..h5py_interface_creator import hdf5Database as h5Data
+from ..DataObjects import PointSet, HistorySet
 from .Database import DateBase
 #Internal Modules End--------------------------------------------------------------------------------
 

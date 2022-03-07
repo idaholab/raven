@@ -21,10 +21,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import sys
 import copy
-from utils import utils
+from framework.utils import utils
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 mooseParserPath = os.path.join(os.path.dirname(__file__), '..', 'MooseBasedApp')
 sys.path.append(mooseParserPath)

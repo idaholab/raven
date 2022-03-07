@@ -21,7 +21,7 @@ from scipy import interpolate
 import copy
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 
 class dataObjectLabelFilter(PostProcessorReadyInterface):
   """

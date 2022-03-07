@@ -24,9 +24,9 @@ import scipy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils
-import Files
-import Distributions
+from ...utils import mathUtils
+from ... import Files
+from ... import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 def _countWeightInBins(sortedData, binBoundaries):

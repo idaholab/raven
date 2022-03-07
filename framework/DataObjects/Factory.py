@@ -16,12 +16,12 @@ Created on September 16, 2015
 @author: maljdp
 extracted from alfoa (2/16/2013) DataObjects.py
 """
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
-from DataObjects.DataObject import DataObject
-from DataObjects.DataSet import DataSet
-from DataObjects.PointSet import PointSet
-from DataObjects.HistorySet import HistorySet
+from .DataObject import DataObject
+from .DataSet import DataSet
+from .PointSet import PointSet
+from .HistorySet import HistorySet
 
 factory = EntityFactory('DataObject')
 factory.registerType('DataSet', DataSet)

@@ -31,8 +31,8 @@ import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from utils import utils
+from .EntityFactoryBase import EntityFactory
+from .utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []

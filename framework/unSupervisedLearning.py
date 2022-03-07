@@ -35,10 +35,10 @@ import copy
 import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
-from BaseClasses import MessageUser
-from EntityFactoryBase import EntityFactory
+from .utils import utils
+from .utils import mathUtils
+from .BaseClasses import MessageUser
+from .EntityFactoryBase import EntityFactory
 #Internal Modules End-----------------------------------------------------------
 
 # FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:

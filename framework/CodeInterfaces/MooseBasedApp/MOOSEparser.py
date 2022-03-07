@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 import os
 import copy
 import numpy as np
-from utils.utils import toBytes, toStrish, compare, toString
+from framework.utils.utils import toBytes, toStrish, compare, toString
 import MooseInputParser
 
 class MOOSEparser():

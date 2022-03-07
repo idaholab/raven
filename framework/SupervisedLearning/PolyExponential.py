@@ -24,9 +24,9 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning import SupervisedLearning
-from SupervisedLearning.NDspline import NDspline
-from utils import InputTypes, InputData
+from ..SupervisedLearning import SupervisedLearning
+from ..SupervisedLearning.NDspline import NDspline
+from ..utils import InputTypes, InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 

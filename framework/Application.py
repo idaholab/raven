@@ -24,8 +24,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import MessageUser
-from Interaction import Interaction
+from .BaseClasses import MessageUser
+from .Interaction import Interaction
 #Internal Modules End-----------------------------------------------------------
 
 try:

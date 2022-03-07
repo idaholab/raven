@@ -21,7 +21,7 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 from .PostProcessorInterface import PostProcessorInterface
 #Internal Modules End-----------------------------------------------------------
 

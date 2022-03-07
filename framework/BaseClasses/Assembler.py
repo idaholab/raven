@@ -23,9 +23,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, InputData
-from BaseClasses import MessageUser
-import MessageHandler
+from ..utils import utils, InputData
+from ..BaseClasses import MessageUser
+from .. import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 

@@ -22,7 +22,7 @@ import re
 from collections import OrderedDict
 from enum import Enum
 import xml.etree.ElementTree as ET
-from utils import InputTypes
+from . import InputTypes
 import textwrap
 
 class Quantity(Enum):

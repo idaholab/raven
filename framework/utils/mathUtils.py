@@ -27,10 +27,10 @@ import numpy as np
 import six
 from numpy import linalg
 
-from utils.utils import UreturnPrintTag, UreturnPrintPostTag
+from .utils import UreturnPrintTag, UreturnPrintPostTag
 from .graphStructure import graphObject
 
-import MessageHandler # makes sure getMessageHandler is defined
+from .. import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
 
 # dict of builtin types, filled by getBuiltinTypes
@@ -846,7 +846,7 @@ def readVariableGroups(xmlNode):
     @ In, xmlNode, ElementTree.Element, xml node to read in
     @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
   """
-  import VariableGroups
+  from .. import VariableGroups
   # first find all the names
   names = [node.attrib['name'] for node in xmlNode]
 

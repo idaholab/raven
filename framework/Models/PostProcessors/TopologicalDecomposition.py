@@ -24,8 +24,8 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes
-import Files
+from ...utils import InputData, InputTypes
+from ... import Files
 #Internal Modules End-----------------------------------------------------------
 
 

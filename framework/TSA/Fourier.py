@@ -20,7 +20,7 @@ import collections
 import numpy as np
 import sklearn.linear_model
 
-from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 

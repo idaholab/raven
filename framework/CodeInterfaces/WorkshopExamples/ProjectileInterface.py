@@ -29,7 +29,7 @@ import copy
 import numpy
 from collections import defaultdict
 
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Projectile(CodeInterfaceBase):
   """

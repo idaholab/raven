@@ -32,8 +32,8 @@ from collections import defaultdict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-import PluginManager
+from ..utils import utils
+from .. import PluginManager
 #Internal Modules End--------------------------------------------------------------------------------
 
 

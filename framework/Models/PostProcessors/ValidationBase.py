@@ -27,10 +27,10 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
-from utils import utils, mathUtils, xmlUtils
-from utils import InputData, InputTypes
-import DataObjects
-import MetricDistributor
+from ...utils import utils, mathUtils, xmlUtils
+from ...utils import InputData, InputTypes
+from ... import DataObjects
+from ... import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 

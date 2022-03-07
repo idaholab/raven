@@ -16,7 +16,7 @@
   @author: alfoa
   extracted from alfoa (2/16/2013) Steps.py
 """
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
 # Forward samplers

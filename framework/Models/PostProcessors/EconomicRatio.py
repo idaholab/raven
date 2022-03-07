@@ -25,8 +25,8 @@ import scipy.stats as stats
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
-from utils import utils
-from utils import InputData, InputTypes
+from ...utils import utils
+from ...utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class EconomicRatio(BasicStatistics):

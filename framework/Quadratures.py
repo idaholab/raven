@@ -30,9 +30,9 @@ import operator
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
-from EntityFactoryBase import EntityFactory
-from BaseClasses import MessageUser
-from Decorators.Parallelization import Parallel
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import MessageUser
+from .Decorators.Parallelization import Parallel
 #Internal Modules End-----------------------------------------------------------------
 
 

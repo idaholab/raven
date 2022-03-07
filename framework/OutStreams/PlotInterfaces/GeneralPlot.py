@@ -27,11 +27,11 @@ import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from collections import defaultdict
 
-from utils.InputData import parameterInputFactory as PIF
-from utils import utils, mathUtils
-from utils import mathUtils
+from ...utils.InputData import parameterInputFactory as PIF
+from ...utils import utils, mathUtils
+from ...utils import mathUtils
 from .PlotInterface import PlotInterface
-from ClassProperty import ClassProperty
+from ...ClassProperty import ClassProperty
 
 import matplotlib.pyplot as plt
 

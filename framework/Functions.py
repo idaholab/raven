@@ -27,10 +27,10 @@ from __future__ import division, print_function, absolute_import
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-from utils import utils, InputData, InputTypes
-from CustomCommandExecuter import execCommand
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import BaseEntity, InputDataUser
+from .utils import utils, InputData, InputTypes
+from .CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
 class FunctionCollection(InputData.ParameterInput):

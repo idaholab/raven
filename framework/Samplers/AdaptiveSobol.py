@@ -28,13 +28,13 @@ import itertools
 
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
-from utils import utils
-from utils import InputData, InputTypes
-import DataObjects
-import SupervisedLearning
-import Quadratures
-import IndexSets
-import Models
+from ..utils import utils
+from ..utils import InputData, InputTypes
+from .. import DataObjects
+from .. import SupervisedLearning
+from .. import Quadratures
+from .. import IndexSets
+from .. import Models
 
 class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
   """

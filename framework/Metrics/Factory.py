@@ -16,7 +16,7 @@ Created on Jul 18 2016
 
 @author: mandd
 """
-from EntityFactoryBase import EntityFactory
+from ..EntityFactoryBase import EntityFactory
 
 from .MetricEntity import MetricEntity
 

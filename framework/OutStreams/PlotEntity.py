@@ -19,7 +19,7 @@ Created on April 1, 2021
 import os
 import matplotlib
 
-from utils import utils, InputTypes
+from ..utils import utils, InputTypes
 from .OutStreamEntity import OutStreamEntity
 from .PlotInterfaces import factory as PlotFactory
 

@@ -25,11 +25,11 @@ from scipy import integrate
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import mathUtils
-from utils import InputData, InputTypes
-import Files
-import Distributions
+from ...utils import utils
+from ...utils import mathUtils
+from ...utils import InputData, InputTypes
+from ... import Files
+from ... import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 # global number of integration points

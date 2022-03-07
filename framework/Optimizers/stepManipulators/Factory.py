@@ -20,6 +20,6 @@ from .StepManipulator import StepManipulator
 from .GradientHistory import GradientHistory
 from .ConjugateGradient import ConjugateGradient
 
-from EntityFactoryBase import EntityFactory
+from ...EntityFactoryBase import EntityFactory
 factory = EntityFactory('StepSizer')
 factory.registerAllSubtypes(StepManipulator)

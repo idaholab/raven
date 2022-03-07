@@ -23,8 +23,8 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import InputData, InputTypes
+from ..utils import utils
+from ..utils import InputData, InputTypes
 interpolationND = utils.findCrowModule("interpolationND")
 from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------

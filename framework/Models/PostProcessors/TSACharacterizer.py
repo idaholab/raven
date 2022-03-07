@@ -19,8 +19,8 @@ Created on August 3, 2021
 import numpy as np
 
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes
-from TSA import TSAUser
+from ...utils import InputData, InputTypes
+from ...TSA import TSAUser
 
 class TSACharacterizer(PostProcessorInterface, TSAUser):
   """

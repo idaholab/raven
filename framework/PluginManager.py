@@ -26,8 +26,8 @@ import inspect
 import importlib
 from collections import defaultdict
 
-from PluginBaseClasses import PluginBase
-from utils import xmlUtils
+from .PluginBaseClasses import PluginBase
+from .utils import xmlUtils
 
 
 ## custom errors

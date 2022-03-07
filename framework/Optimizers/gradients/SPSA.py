@@ -16,7 +16,7 @@
   Author: gairabhi
 """
 import numpy as np
-from utils import randomUtils, mathUtils, InputData
+from ...utils import randomUtils, mathUtils, InputData
 from .GradientApproximater import GradientApproximater
 
 class SPSA(GradientApproximater):

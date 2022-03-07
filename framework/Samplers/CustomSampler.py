@@ -28,7 +28,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData, InputTypes, utils, mathUtils
+from ..utils import InputData, InputTypes, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):

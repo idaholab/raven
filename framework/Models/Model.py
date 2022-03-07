@@ -23,9 +23,9 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseEntity, Assembler, InputDataUser
-from utils import utils
-from utils import InputData, InputTypes
+from ..BaseClasses import BaseEntity, Assembler, InputDataUser
+from ..utils import utils
+from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputDataUser)):
@@ -41,7 +41,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ In, cls, uninstantiated object, class to load for
       @ Out, None
     """
-    cls.plugins = importlib.import_module("Models.ModelPlugInFactory")
+    cls.plugins = importlib.import_module(".ModelPlugInFactory","framework.Models")
 
 
   @classmethod

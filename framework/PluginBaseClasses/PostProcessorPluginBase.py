@@ -18,12 +18,12 @@ Created on March 10, 2021
 """
 
 #Internal Modules---------------------------------------------------------------
-import Files
-from utils import InputData, InputTypes
-from DataObjects import DataObject
+from .. import Files
+from ..utils import InputData, InputTypes
+from ..DataObjects import DataObject
 from .PluginBase import PluginBase
-from Models.PostProcessors import PostProcessorReadyInterface
-from Models.PostProcessors import factory
+from ..Models.PostProcessors import PostProcessorReadyInterface
+from ..Models.PostProcessors import factory
 #Internal Modules End-----------------------------------------------------------
 
 class PostProcessorPluginBase(PluginBase, PostProcessorReadyInterface):

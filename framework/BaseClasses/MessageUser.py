@@ -18,7 +18,7 @@ Moved from MessageHandler
 
 @author: talbpaul
 """
-import MessageHandler
+from .. import MessageHandler
 
 class MessageUser(object):
   """

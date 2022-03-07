@@ -29,7 +29,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils
+from ..utils import InputData, InputTypes, mathUtils
 from .RavenSampled import RavenSampled
 
 from .gradients import factory as gradFactory

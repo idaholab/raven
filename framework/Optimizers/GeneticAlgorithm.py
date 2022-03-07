@@ -32,8 +32,8 @@ import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils, randomUtils, InputData, InputTypes
-from utils.gaUtils import dataArrayToDict, datasetToDataArray
+from ..utils import mathUtils, randomUtils, InputData, InputTypes
+from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance

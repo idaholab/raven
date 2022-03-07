@@ -21,7 +21,7 @@ import time
 import bisect
 import builtins
 
-from utils import utils
+from .utils import utils
 
 _starttime = time.time()
 

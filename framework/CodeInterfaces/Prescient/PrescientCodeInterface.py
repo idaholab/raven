@@ -29,7 +29,7 @@ except Exception as inst:
   prescientLocation = None
   prescientException = inst
 
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Prescient(CodeInterfaceBase):
   """
@@ -54,6 +54,7 @@ class Prescient(CodeInterfaceBase):
     """
     if prescientLocation is None:
       warnings.warn(f"Finding Prescient failed with {prescientException}")
+
     runnerInput = []
     for inp in inputFiles:
       if inp.getType() == 'PrescientRunnerInput':

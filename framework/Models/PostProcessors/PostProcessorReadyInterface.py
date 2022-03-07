@@ -18,10 +18,10 @@ Created on March 10, 2021
 """
 
 #Internal Modules---------------------------------------------------------------
-import Files
-from utils import InputData, InputTypes
-from DataObjects import DataObject
-from Models.PostProcessors import PostProcessorInterface
+from ... import Files
+from ...utils import InputData, InputTypes
+from ...DataObjects import DataObject
+from ...Models.PostProcessors import PostProcessorInterface
 #Internal Modules End-----------------------------------------------------------
 
 class PostProcessorReadyInterface(PostProcessorInterface):

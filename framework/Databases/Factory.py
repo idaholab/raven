@@ -16,8 +16,8 @@ Created on March 2, 2020
 
 @author: talbpw
 """
-from utils import utils
-from EntityFactoryBase import EntityFactory
+from ..utils import utils
+from ..EntityFactoryBase import EntityFactory
 
 from .Database import DateBase as Database
 from .HDF5 import HDF5

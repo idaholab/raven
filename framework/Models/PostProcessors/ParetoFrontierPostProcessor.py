@@ -23,10 +23,10 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import InputData, InputTypes
-from utils import frontUtils
-import Runners
+from ...utils import utils
+from ...utils import InputData, InputTypes
+from ...utils import frontUtils
+from ... import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class ParetoFrontier(PostProcessorInterface):

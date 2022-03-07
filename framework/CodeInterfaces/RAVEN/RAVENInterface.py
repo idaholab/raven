@@ -19,10 +19,10 @@ Created on Sept 10, 2017
 import os
 import numpy as np
 from sys import platform
-from utils import utils
-from CodeInterfaceBaseClass import CodeInterfaceBase
-import DataObjects
-import Databases
+from framework.utils import utils
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from framework import DataObjects
+from framework import Databases
 
 class RAVEN(CodeInterfaceBase):
   """

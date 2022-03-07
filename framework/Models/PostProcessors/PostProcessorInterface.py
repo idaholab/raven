@@ -25,9 +25,9 @@ from xarray import Dataset as ds
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseInterface
-from utils import InputTypes, InputData
-import Runners
+from ...BaseClasses import BaseInterface
+from ...utils import InputTypes, InputData
+from ... import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessorInterface(BaseInterface):

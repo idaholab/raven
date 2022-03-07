@@ -19,8 +19,8 @@ Created on Apr 30, 2015
 import os
 from copy import deepcopy
 
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity
+from .EntityFactoryBase import EntityFactory
+from .BaseClasses import BaseEntity
 
 class File(BaseEntity):
   """

@@ -21,7 +21,7 @@ Created March 19, 2021
 Split from original BaseClasses.py module
 """
 
-from utils import mathUtils
+from ..utils import mathUtils
 from .BaseType import BaseType
 
 class BaseEntity(BaseType):

@@ -29,8 +29,8 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 # internal libraries
-from utils import utils, mathUtils, xmlUtils, randomUtils
-from utils import InputData, InputTypes
+from ..utils import utils, mathUtils, xmlUtils, randomUtils
+from ..utils import InputData, InputTypes
 from .SupervisedLearning import SupervisedLearning
 # import pickle as pk # TODO remove me!
 import os

@@ -27,7 +27,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, InputData, InputTypes
+from ...utils import utils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 

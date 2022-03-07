@@ -21,11 +21,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import xml.etree.ElementTree as ET
-from utils import xmlUtils
+from . import xmlUtils
 
 #message handler
 import os, sys
-from BaseClasses import MessageUser
+from ..BaseClasses import MessageUser
 
 ##################
 # MODULE METHODS #

@@ -16,8 +16,8 @@
 """
 import abc
 
-from BaseClasses import BaseEntity
-from utils import utils, InputData, InputTypes
+from ..BaseClasses import BaseEntity
+from ..utils import utils, InputData, InputTypes
 
 class DataObjectsCollection(InputData.ParameterInput):
   """

@@ -24,7 +24,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from ..utils import utils
 interpolationND = utils.findCrowModule("interpolationND")
 from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------

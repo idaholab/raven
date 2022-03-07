@@ -33,8 +33,8 @@ try:
 except ValueError:
   from DataObject import DataObject
 
-import CsvLoader
-from utils import utils, cached_ndarray, xmlUtils, mathUtils
+from .. import CsvLoader
+from ..utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 #
 #

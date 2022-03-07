@@ -18,8 +18,8 @@ Created on April 2, 2021
 @author: talbpaul
 """
 
-from utils import InputData, InputTypes # this lets inheritors access these directly
-from OutStreams.PlotInterfaces import PlotInterface, factory
+from ..utils import InputData, InputTypes # this lets inheritors access these directly
+from ..OutStreams.PlotInterfaces import PlotInterface, factory
 from .PluginBase import PluginBase
 
 class PlotPlugin(PluginBase, PlotInterface):

@@ -25,11 +25,11 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 from .PostProcessorInterface import PostProcessorInterface
-from utils import utils
-from utils import InputData, InputTypes
-import Files
-import Models
-import CrossValidations
+from ...utils import utils
+from ...utils import InputData, InputTypes
+from ... import Files
+from ... import Models
+from ... import CrossValidations
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CrossValidation(PostProcessorInterface):

@@ -18,7 +18,7 @@ Created on April 14, 2014
 """
 
 import os
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from framework.CodeInterfaceBaseClass import CodeInterfaceBase
 import GenericParser
 import MooseData
 import MOOSEparser

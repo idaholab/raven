@@ -19,8 +19,8 @@
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import utils.importerUtils
-tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
+from ..utils import importerUtils
+tf = importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 ######
 #Internal Modules------------------------------------------------------------------------------------
 from .KerasRegression import KerasRegression

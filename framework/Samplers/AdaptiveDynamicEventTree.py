@@ -36,8 +36,8 @@ import itertools
 #Internal Modules------------------------------------------------------------------------------------
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
-from utils import utils
-import utils.TreeStructure as ETS
+from ..utils import utils
+from ..utils import TreeStructure as ETS
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):

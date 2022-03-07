@@ -17,7 +17,7 @@
   Reworked 2020-01
   @author: talbpaul
 """
-from utils import utils, InputData, InputTypes
+from ...utils import utils, InputData, InputTypes
 from .AcceptanceCondition import AcceptanceCondition
 
 class Strict(AcceptanceCondition):
