@@ -28,17 +28,18 @@ import numpy as np
 import xarray as xr
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
-sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from framework.utils.utils import find_crow
 find_crow(frameworkDir)
-import MessageHandler
+from framework import MessageHandler
 
 # find location of data objects
 #sys.path.append(os.path.join(frameworkDir,'DataObjects'))
 
-import DataObjects
+from framework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})

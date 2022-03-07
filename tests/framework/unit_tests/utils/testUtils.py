@@ -10,9 +10,9 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import utils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
+from framework.utils import utils
 
 print (utils)
 

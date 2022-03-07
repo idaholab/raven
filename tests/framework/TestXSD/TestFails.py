@@ -27,12 +27,12 @@ from lxml import etree
 
 testDir = os.getcwd()
 print("testDir", testDir)
-ravenDir = os.path.dirname(os.path.dirname(testDir))
-frameworkDir = os.path.join(ravenDir,"../framework")
-sys.path.append(frameworkDir)
+ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(testDir)))
+frameworkDir = os.path.join(ravenDir,"framework")
+sys.path.append(ravenDir)
 
 
-from utils import InputData
+from framework.utils import InputData
 import test_classes
 
 

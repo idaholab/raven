@@ -26,14 +26,14 @@ import sys, os
 ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd()))))
 print(ravenDir)
 frameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(frameworkDir)
+sys.path.append(ravenDir)
 
-import utils.utils
+from framework.utils import utils
 
-utils.utils.find_crow(frameworkDir)
+utils.find_crow(frameworkDir)
 
-from Metrics.metrics import MetricUtilities
-import Distributions
+from framework.Metrics.metrics import MetricUtilities
+from framework import Distributions
 
 print(dir(MetricUtilities))
 

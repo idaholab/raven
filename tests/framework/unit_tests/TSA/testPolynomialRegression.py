@@ -23,15 +23,16 @@ import matplotlib.pyplot as plt
 np.random.seed(42)
 
 # add RAVEN to path
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4 + ['framework'])))
-if frameworkDir not in sys.path:
-  sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4)))
+if ravenDir not in sys.path:
+  sys.path.append(ravenDir)
 
-from utils.utils import find_crow
+frameworkDir = os.path.join(ravenDir, "framework")
+from framework.utils.utils import find_crow
 find_crow(frameworkDir)
 
-from utils import xmlUtils
-from TSA import PolynomialRegression as PR
+from framework.utils import xmlUtils
+from framework.TSA import PolynomialRegression as PR
 
 plot = False
 

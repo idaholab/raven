@@ -19,13 +19,13 @@ import sys
 
 import numpy as np
 
-ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5, 'framework'))
+ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5))
 print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-from CustomDrivers import DriverUtils
-DriverUtils.setupCpp()
+from framework.CustomDrivers import DriverUtils
+DriverUtils.doSetup()
 
-from Optimizers.gradients import factory # returnInstance
+from framework.Optimizers.gradients import factory # returnInstance
 
 fd = factory.returnInstance('FiniteDifference')
 

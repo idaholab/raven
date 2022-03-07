@@ -22,11 +22,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import utils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+frameworkDir = os.path.join(ravenDir, 'framework')
+sys.path.append(ravenDir)
+from framework.utils import utils
 utils.find_crow(frameworkDir)
-from utils import randomUtils
+from framework.utils import randomUtils
 randomENG = utils.findCrowModule("randomENG")
 
 print (randomUtils)
