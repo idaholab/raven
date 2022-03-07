@@ -88,6 +88,11 @@ class BasicStatistics(PostProcessorInterface):
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputTypes.StringListType)
+        # percentile has additional "interpolation" parameter
+        scalarSpecification.addParam("interpolation", InputTypes.StringType)
+      if scalar == 'median':
+        # median has additional "interpolation" parameter
+        scalarSpecification.addParam("interpolation", InputTypes.StringType)
       scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
@@ -325,7 +330,7 @@ class BasicStatistics(PostProcessorInterface):
     self.toDo = {}
     for child in paramInput.subparts:
       tag = child.getName()
-      #because percentile is strange (has an attached parameter), we address it first
+      #because percentile is strange (has attached parameters), we address it first
       if tag in self.scalarVals + self.vectorVals:
         if 'prefix' not in child.parameterValues:
           self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
@@ -340,17 +345,39 @@ class BasicStatistics(PostProcessorInterface):
           continue
         #prepare storage dictionary, keys are percentiles, values are set(targets)
         if tag not in self.toDo.keys():
-          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str}
+          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str, 'interpolation':str}
         if 'percent' not in child.parameterValues:
           reqPercent = [0.05, 0.95]
           strPercent = ['5','95']
         else:
           reqPercent = set(utils.floatConversion(percent)/100. for percent in child.parameterValues['percent'])
           strPercent = set(percent for percent in child.parameterValues['percent'])
+        if 'interpolation' not in child.parameterValues:
+          interpolation = 'linear'
+        else:
+          if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
+            interpolation = child.parameterValues['interpolation']
+          else:
+            interpolation = 'linear'
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
                                'percent':reqPercent,
-                               'strPercent':strPercent})
+                               'strPercent':strPercent,
+                               'interpolation':interpolation})
+      # median also has an attached parameter
+      elif tag == 'median':
+        if tag not in self.toDo.keys():
+          self.toDo[tag] = [] # list of {'targets':{}, 'prefix':str, 'interpolation':str}
+        if 'interpolation' not in child.parameterValues:
+          interpolation = 'linear'
+        else:
+          if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
+            interpolation = child.parameterValues['interpolation']
+          else:
+            interpolation = 'linear'
+        self.toDo[tag].append({'targets':set(child.value),
+                               'prefix':prefix,
+                               'interpolation':interpolation})
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
@@ -589,11 +616,12 @@ class BasicStatistics(PostProcessorInterface):
     """
     return np.sqrt(variance)
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
+  def _computeWeightedPercentile(self,arrayIn,pbWeight,interpolation,percent=[0.5]):
     """
       Method to compute the weighted percentile in a array of data
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
+      @ In, interpolation, str, 'linear' or 'midpoint'
       @ In, percent, list/numpy.array, the percentile(s) that needs to be computed (between 0.01 and 1.0)
       @ Out, result, list, the percentile(s)
     """
@@ -606,7 +634,36 @@ class BasicStatistics(PostProcessorInterface):
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     weightsCDF            /= weightsCDF[-1]
-    result = np.interp(percent, weightsCDF, sortedWeightsAndPoints[:, 1]).tolist()
+    if interpolation == 'linear':
+      result = np.interp(percent, weightsCDF, sortedWeightsAndPoints[:, 1]).tolist()
+    elif interpolation == 'midpoint':
+      result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
+    else:
+      # currently no other options, but need to return something
+      result = [0.0 for pct in percent]
+
+    return result
+
+  def _computeSingleWeightedPercentile(self, pct, weightsCDF, sortedWeightsAndPoints):
+    """
+      Method to compute a single percentile
+      @ In, pct, float, the percentile
+      @ In, weightsCDF, numpy.array, the cumulative sum of weights (CDF)
+      @ In, sortedWeightsAndPoints, numpy.array, array of weights and data points
+      @ Out, result, float, the percentile
+    """
+
+    # This step returns the index of the array which is < than the percentile, because
+    # the insertion create another entry, this index should shift to the bigger side
+    indexL = utils.first(np.asarray(weightsCDF >= pct).nonzero())[0]
+    # This step returns the indices (list of index) of the array which is > than the percentile
+    indexH = utils.first(np.asarray(weightsCDF > pct).nonzero())
+    try:
+      # if the indices exists that means the desired percentile lies between two data points
+      # with index as indexL and indexH[0]. Calculate the midpoint of these two points
+      result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
+    except IndexError:
+      result = sortedWeightsAndPoints[indexL,1]
 
     return result
 
@@ -621,7 +678,7 @@ class BasicStatistics(PostProcessorInterface):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
+    needed = dict((metric,{'targets':set(),'percent':set(),'interpolation':''}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
     for metric, params in self.toDo.items():
       if metric in self.scalarVals + self.vectorVals:
@@ -633,6 +690,10 @@ class BasicStatistics(PostProcessorInterface):
             pass
           try:
             needed[metric]['percent'].update(entry['percent'])
+          except KeyError:
+            pass
+          try:
+            needed[metric]['interpolation'] = entry['interpolation']
           except KeyError:
             pass
     # variable                     | needs                  | needed for
@@ -789,6 +850,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'median'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
+      print('needed[metric]["interpolation"]: {}'.format(needed[metric]['interpolation']))
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
         # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
@@ -806,9 +868,9 @@ class BasicStatistics(PostProcessorInterface):
             targWeight = relWeight[target].values
             targDa = dataSet[target]
             if self.pivotParameter in targDa.sizes.keys():
-              quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=[0.5])[0] for label,group in targDa.groupby(self.pivotParameter)]
+              quantile = [self._computeWeightedPercentile(group.values,targWeight,needed[metric]['interpolation'],percent=[0.5])[0] for label,group in targDa.groupby(self.pivotParameter)]
             else:
-              quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=[0.5])[0]
+              quantile = self._computeWeightedPercentile(targDa.values,targWeight,needed[metric]['interpolation'],percent=[0.5])[0]
             if self.pivotParameter in targDa.sizes.keys():
               da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
             else:
@@ -959,6 +1021,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'percentile'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
+      print('needed[metric]["interpolation"]: {}'.format(needed[metric]['interpolation']))
       dataSet = inputDataset[list(needed[metric]['targets'])]
       percent = list(needed[metric]['percent'])
       # are there probability weights associated with the data?
@@ -972,7 +1035,7 @@ class BasicStatistics(PostProcessorInterface):
             allSameWeight = False
         if allSameWeight:
           # all weights are the same, percentile can be calculated with xarray.DataSet
-          percentileSet = dataSet.quantile(percent,dim=self.sampleTag)
+          percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation=needed[metric]['interpolation'])
           percentileSet = percentileSet.rename({'quantile': 'percent'})
         else:
           # probability weights are not all the same
@@ -985,11 +1048,11 @@ class BasicStatistics(PostProcessorInterface):
             if self.pivotParameter in targDa.sizes.keys():
               quantile = []
               for label, group in targDa.groupby(self.pivotParameter):
-                qtl = self._computeWeightedPercentile(group.values, targWeight, percent=percent)
+                qtl = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=percent)
                 quantile.append(qtl)
               da = xr.DataArray(quantile, dims=(self.pivotParameter, 'percent'), coords={'percent': percent, self.pivotParameter: self.pivotValue})
             else:
-              quantile = self._computeWeightedPercentile(targDa.values, targWeight, percent=percent)
+              quantile = self._computeWeightedPercentile(targDa.values, targWeight, needed[metric]['interpolation'], percent=percent)
               da = xr.DataArray(quantile, dims=('percent'), coords={'percent': percent})
 
             percentileSet[target] = da
@@ -1002,7 +1065,7 @@ class BasicStatistics(PostProcessorInterface):
         #dataSetWeighted = dataSet * relWeight
         #percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).mean(self.sampleTag)
       else:
-        percentileSet = dataSet.quantile(percent,dim=self.sampleTag)
+        percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation=needed[metric]['interpolation'])
         percentileSet = percentileSet.rename({'quantile':'percent'})
       calculations[metric] = percentileSet
 
