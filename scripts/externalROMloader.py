@@ -81,7 +81,7 @@ class ravenROMexternal(object):
     frameworkDir = os.path.abspath(whereFrameworkIs)
     if not os.path.exists(frameworkDir):
       raise IOError('The RAVEN framework directory does not exist in location "' + str(frameworkDir)+'" !')
-    sys.path.append(frameworkDir)
+    sys.path.append(os.path.dirname(frameworkDir))
     if not os.path.dirname(frameworkDir).endswith("framework"):
       # we import the Driver to load the RAVEN enviroment for the un-pickling
       try:

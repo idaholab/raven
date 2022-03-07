@@ -107,6 +107,10 @@ fi
 PIP_COMMAND=pip3
 (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
 
+#pip install will add a duplicate framework directory, so delete so there isn't
+# confusion over which of the two copies to use.
+(cd $RAVEN_BUILD_DIR && rm -Rf install/framework)
+
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
 if [ ! -z "$RAVEN_SIGNATURE" ];
