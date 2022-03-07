@@ -35,6 +35,10 @@ import RAVENImageDiff
 #  changed.
 myDir = os.path.dirname(os.path.realpath(__file__))
 RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+RAVENROOTDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..'))
+
+#add path so framework is found.
+sys.path.append(os.path.abspath(os.path.dirname(RAVENDIR)))
 
 #Need to add the directory for AMSC for doing module checks.
 os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, '..', 'install') +\
@@ -150,7 +154,7 @@ class RavenFramework(Tester):
     self.required_executable = self.required_executable.replace("%METHOD%",
                                                                 os.environ.get("METHOD", "opt"))
     self.specs['scale_refine'] = False
-    self.driver = os.path.join(RAVENDIR, 'Driver.py')
+    self.driver = os.path.join(RAVENROOTDIR, 'raven_framework.py')
 
   def check_runnable(self):
     """
