@@ -119,16 +119,17 @@ class RFE(BaseInterface):
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" > number of parameters in "parametersToInclude"!' )
 
   def run(self, features, targets, X, y):
-    """Fit the RFE model and then the underlying estimator on the selected
-           features.
-
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, nFeatures]
-            The training input samples.
-
-        y : array-like, shape = [n_samples]
-            The target values.
+    """
+      Run the RFE model and then the underlying estimator
+      on the selected features.
+      @ In, features, list, list of features
+      @ In, targets, list, list of targets
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ Out, newFeatures or newTargets, list, list of new features/targets
+      @ Out, supportOfSupport_, np.array, boolean mask of the selected features
+      @ Out, whichSpace, str, which space?
+      @ Out, vals, dict, dictionary of new values
     """
     maskFeatures = None
     maskTargets = None
