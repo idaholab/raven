@@ -850,7 +850,6 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'median'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      print('needed[metric]["interpolation"]: {}'.format(needed[metric]['interpolation']))
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
         # if all weights are the same, calculate percentile with xarray, no need for _computeWeightedPercentile
@@ -1021,7 +1020,6 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'percentile'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      print('needed[metric]["interpolation"]: {}'.format(needed[metric]['interpolation']))
       dataSet = inputDataset[list(needed[metric]['targets'])]
       percent = list(needed[metric]['percent'])
       # are there probability weights associated with the data?
