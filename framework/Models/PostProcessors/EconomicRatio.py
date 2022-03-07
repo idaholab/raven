@@ -155,9 +155,9 @@ class EconomicRatio(BasicStatistics):
         for key in inputMetaKeys:
           # valueAtRisk standard error has additional index
           if key == "valueAtRisk_ste":
-            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+            params[key] = [self.steMetaIndex, "threshold"]
           else:
-            params[key] = [self.pivotParameter, self.steMetaIndex]
+            params[key] = [self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys, metaParams)
