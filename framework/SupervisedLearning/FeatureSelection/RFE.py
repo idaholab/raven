@@ -34,86 +34,25 @@ from BaseClasses import BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
 class RFE(BaseInterface):
-  """Feature ranking with recursive feature elimination.
-
+  """
+    Feature ranking with recursive feature elimination.
     Given an external estimator that assigns weights to features (e.g., the
     coefficients of a linear model), the goal of recursive feature elimination
     (RFE) is to select features by recursively considering smaller and smaller
     sets of features. First, the estimator is trained on the initial set of
-    features and the importance of each feature is obtained either through a
-    ``coef_`` attribute or through a ``feature_importances_`` attribute.
+    features and the importance of each feature is obtained through a
+    ``feature_importances_``  property.
     Then, the least important features are pruned from current set of features.
     That procedure is recursively repeated on the pruned set until the desired
     number of features to select is eventually reached.
-
-    Read more in the :ref:`User Guide <rfe>`.
-
-    Parameters
-    ----------
-    estimator : object
-        A supervised learning estimator with a ``fit`` method that provides
-        information about feature importance either through a ``coef_``
-        attribute or through a ``feature_importances_`` attribute.
-
-    nFeaturesToSelect : int or None (default=None)
-        The number of features to select. If `None`, half of the features
-        are selected.
-
-    step : int or float, optional (default=1)
-        If greater than or equal to 1, then ``step`` corresponds to the
-        (integer) number of features to remove at each iteration.
-        If within (0.0, 1.0), then ``step`` corresponds to the percentage
-        (rounded down) of features to remove at each iteration.
-
-
-    Attributes
-    ----------
-    nFeatures_ : int
-        The number of selected features.
-
-    support_ : array of shape [nFeatures]
-        The mask of selected features.
-
-    ranking_ : array of shape [nFeatures]
-        The feature ranking, such that ``ranking_[i]`` corresponds to the
-        ranking position of the i-th feature. Selected (i.e., estimated
-        best) features are assigned rank 1.
-
-    estimator_ : object
-        The external estimator fit on the reduced dataset.
-
-    Examples
-    --------
-    The following example shows how to retrieve the 5 right informative
-    features in the Friedman #1 dataset.
-
-    >>> from sklearn.datasets import make_friedman1
-    >>> from sklearn.feature_selection import RFE
-    >>> from sklearn.svm import SVR
-    >>> X, y = make_friedman1(n_samples=50, nFeatures=10, random_state=0)
-    >>> estimator = SVR(kernel="linear")
-    >>> selector = RFE(estimator, 5, step=1)
-    >>> selector = selector.fit(X, y)
-    >>> selector.support_ # doctest: +NORMALIZE_WHITESPACE
-    array([ True,  True,  True,  True,  True, False, False, False, False,
-           False])
-    >>> selector.ranking_
-    array([1, 1, 1, 1, 1, 6, 4, 3, 2, 5])
-
-    See also
-    --------
-    RFECV : Recursive feature elimination with built-in cross-validated
-        selection of the best number of features
-
     References
     ----------
-
-    .. [1] Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
-           for cancer classification using support vector machines",
-           Mach. Learn., 46(1-3), 389--422, 2002.
+    Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
+    for cancer classification using support vector machines",
+    Mach. Learn., 46(1-3), 389--422, 2002.
   """
 
-  needROM = True
+  needROM = True # the estimator is needed
 
   @classmethod
   def getInputSpecification(cls):
@@ -131,8 +70,8 @@ class RFE(BaseInterface):
         descr=r"""Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
         descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
-    spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
-        descr=r"""perform PCA?""", default="Feature"))
+    spec.addSub(InputData.parameterInputFactory('applyOutputScore',contentType=InputTypes.BoolType,
+        descr=r"""use the output scores as additional selection metric""", default="False"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
                   of features to remove at each iteration. If within (0.0, 1.0), then step
@@ -142,11 +81,12 @@ class RFE(BaseInterface):
 
   def __init__(self):
     super().__init__()
+    self.printTag = 'FEATURE SELECTION - RFE'
     self.estimator = None
     self.nFeaturesToSelect = None
     self.parametersToInclude = None
     self.whichSpace = "feature"
-    self.performPCA = False
+    self.applyOutputScore = False
     self.step = 1
 
   def setEstimator(self, estimator):
@@ -164,12 +104,12 @@ class RFE(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','whichSpace','performPCA'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','whichSpace','applyOutputScore'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
     self.parametersToInclude = nodes['parametersToInclude']
-    self.performPCA = nodes['performPCA']
+    self.applyOutputScore = nodes['applyOutputScore']
     self.whichSpace = nodes['whichSpace'].lower()
     if self.step <= 0:
       raise self.raiseAnError(ValueError, '"step" parameter must be > 0' )
@@ -177,14 +117,6 @@ class RFE(BaseInterface):
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
     if self.nFeaturesToSelect > len(self.parametersToInclude):
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" > number of parameters in "parametersToInclude"!' )
-#
-  @property
-  def _estimator_type(self):
-    return self.estimator.type
-
-  @property
-  def classes_(self):
-    return self.estimator_.classes_
 
   def run(self, features, targets, X, y):
     """Fit the RFE model and then the underlying estimator on the selected

@@ -51,11 +51,6 @@
       <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
       <!-- Initialization Variables-->
       <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
-      <!-- Feature select -->
-      <featureSelectionAlgorithm>RFE</featureSelectionAlgorithm>
-      <step>0.8</step>
-      <nFeaturesToSelect>2</nFeaturesToSelect>
-      
     </ROM>
   </Models>
 

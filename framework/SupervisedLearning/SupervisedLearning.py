@@ -28,6 +28,7 @@
 import abc
 import copy
 import numpy as np
+import sklearn
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -82,8 +83,19 @@ class SupervisedLearning(BaseInterface):
       featureSelection.addSub(validSpec)
     spec.addSub(featureSelection)
     #PCA?
-    spec.addSub(InputData.parameterInputFactory('performPCA',contentType=InputTypes.BoolType,
-        descr=r"""Use PCA dimensionality reduction for the feature space?""", default=False))
+    dimReduction = InputData.parameterInputFactory('dimensionalityReduction',
+                                                   descr=r"""Use dimensionality reduction for the feature space?""")
+    pca = InputData.parameterInputFactory('PCA', descr=r"""Use PCA""")
+    pca.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
+        descr=r"""List of IDs of features/variables to exclude from the search.""", default=None))
+    pca.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
+        descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
+    pca.addSub(InputData.parameterInputFactory('whiten',contentType=InputTypes.BoolType,
+        descr=r"""Whiten the signal?""", default=False))
+    pca.addSub(InputData.parameterInputFactory('tol',contentType=InputTypes.BoolType,
+        descr=r"""Tolerance for singular values.""", default=0.0))
+    dimReduction.addSub(pca)
+    spec.addSub(dimReduction)
 
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
@@ -144,7 +156,8 @@ class SupervisedLearning(BaseInterface):
     self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
     self.featureSelectionAlgo = None
     self.doneSelectionFeatures = False
-    self.performPCA = False
+    self.performDimReduction = False
+    self.dimReductionSettings = {}
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
@@ -152,6 +165,7 @@ class SupervisedLearning(BaseInterface):
     self.muAndSigmaFeatures = {}   # normalization parameters
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.pcaTransfMatrix = None
 
   def _handleInput(self, paramInput):
     """
@@ -160,7 +174,7 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter','performPCA'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
@@ -175,8 +189,20 @@ class SupervisedLearning(BaseInterface):
         self.featureSelectionAlgo.setEstimator(self)
       # handle input
       self.featureSelectionAlgo._handleInput(featAlgo)
+    # dim reduction?
+    dimReduction = paramInput.findFirst("dimensionalityReduction")
+    if dimReduction is not None:
+      self.performDimReduction = True
+      pca = dimReduction.findFirst("PCA")
+      if pca is None:
+        self.raiseAnError(IOError, "Only available dimensionality algorithms are: {}".format(",".join(['PCA'])))
+      self.performDimReduction = True
+      nodesPCA, notFound = pca.findNodesAndExtractValues(['parametersToInclude', 'whichSpace', 'nComponents','whiten','tol'])
+      if nodesPCA['nComponents'] is not None: nodesPCA['nComponents'] = int(nodesPCA['nComponents'])
+      if nodesPCA['parametersToInclude'] is None:
+        self.raiseAnError(IOError, '"parametersToInclude" must be present in dimensionality reduction settings (for now)!' )
+      self.dimReductionSettings.update(nodesPCA)
 
-    self.performPCA = nodes['performPCA']
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
@@ -191,7 +217,6 @@ class SupervisedLearning(BaseInterface):
     self.features = inputDict.get('Features', None)
     self.target = inputDict.get('Target', None)
     self.featureSelectionAlgo = inputDict.get('featureSelectionAlgorithm', None)
-    self.performPCA = inputDict.get('performPCA', False)
     self.verbosity = inputDict.get('verbosity', None)
 
   def __getstate__(self):
@@ -305,6 +330,38 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+
+    if self.performDimReduction:
+      # nsamples, timeStep, nFeatures
+      self.dimReductionEngine = sklearn.decomposition.PCA(n_components=len(self.dimReductionSettings['parametersToInclude']),
+                                                          whiten=self.dimReductionSettings['whiten'],
+                                                          tol=self.dimReductionSettings['tol'])
+      params = self.dimReductionSettings['parametersToInclude']
+      space = self.dimReductionSettings['whichSpace'].lower()
+      if space == 'feature':
+        indeces = np.asarray([i for i, e in enumerate(self.features) if e in params])
+      else:
+        indeces = np.asarray([i for i, e in enumerate(self.target) if e in params])
+      if self.dynamicFeatures:
+        # we use the first sample to come up with a transfomation matrix
+        # for the other samples, the transformation is simply applied
+        self.dimReductionEngine.fit(featureValues[0, :, indeces])
+        for s in range(featureValues.shape[0]):
+          if space == 'feature':
+            featureValues[s, :, indeces] = self.dimReductionEngine.transform(featureValues[s, :, indeces])
+          else:
+            targetValues[s, :, indeces] = self.dimReductionEngine.transform(targetValues[s, :, indeces])
+      else:
+        if space == 'feature':
+          featureValues[ :, indeces] = self.dimReductionEngine.fit_transform(featureValues[ :, indeces])
+        else:
+          targetValues[:, indeces] = self.dimReductionEngine.fit_transform(targetValues[ :, indeces])
+      cov = self.dimReductionEngine.get_covariance()
+      components = self.dimReductionEngine.components_
+      var = self.dimReductionEngine.explained_variance_
+      explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
+      singular_values_ = self.dimReductionEngine.singular_values_
+
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):
@@ -422,7 +479,32 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+    if self.performDimReduction:
+      params = self.dimReductionSettings['parametersToInclude']
+      space = self.dimReductionSettings['whichSpace'].lower()
+      if space == 'feature':
+        indeces = np.asarray([i for i, e in enumerate(self.features) if e in params])
+      else:
+        indeces = np.asarray([i for i, e in enumerate(self.target) if e in params])
+        sh = featureValues.shape
+        reconstructed = np.zeros((sh[1],len(self.target))) if self.dynamicFeatures else np.zeros((len(self.target)))
+      if self.dynamicFeatures:
+        for s in range(featureValues.shape[0]):
+          if space == 'feature':
+            featureValues[s, :, indeces] = self.dimReductionEngine.transform(featureValues[s, :, indeces])
+      else:
+        if space == 'feature':
+          featureValues[:, indeces] = self.dimReductionEngine.transform(featureValues[:, indeces])
     evaluation = self.__evaluateLocal__(featureValues)
+    if self.performDimReduction and space != 'feature':
+      # very bad performance
+      for idx in indeces:
+        #np.asarray(self.target)
+        if self.dynamicFeatures:
+          reconstructed[:,idx] = evaluation[np.asarray(self.target)[idx]][:]
+        else:
+          reconstructed[idx] = evaluation[np.asarray(self.target)[idx]]
+       self.dimReductionEngine.transform()
     if self.doneSelectionFeatures and self.removed:
       dummy = np.empty(list(evaluation.values())[0].shape)
       dummy[:] = np.NaN
