@@ -475,7 +475,7 @@ class Optimizer(AdaptiveSampler):
   def denormalizeData(self, normalized):
     """
       Method to normalize the data
-      @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
+      @ In, normalized, dict, dictionary containing the value of decision variables to be denormalized, in form of {varName: varValue}
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
     # some algorithms should not be normalizing and denormalizing!

@@ -106,14 +106,14 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
       Static method (no self) that checks if a 'branch' represents a completed history
       @ In, treeValues, TreeStructure.Node, the node in which the running info are stored
-      @ Out, _checkCompleteHistory, bool, is it a completed history (hit the last thershold?)
+      @ Out, _checkCompleteHistory, bool, is it a completed history (hit the last threshold?)
     """
     return treeValues['completedHistory']
 
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
-      It is implmented by the samplers that need to request special objects
+      It is implemented by the samplers that need to request special objects
       @ In, None
       @ Out, needDict, dict, dictionary listing needed objects
     """
@@ -158,7 +158,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self.raiseADebug("_"*50)
     for key,value in self.values.items():
       self.raiseADebug("Variable name   : "+str(key))
-      self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
+      self.raiseADebug("Distribution name: "+str(self.toBeSampled[key]))
       if key not in self.epistemicVariables.keys():
         cdfValues[key] = self.distDict[key].cdf(value)
         try:
@@ -237,7 +237,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
       Function that checks if the nearest branches found by method _checkClosestBranch are valid
       @ In, branchSet, tuple, tuple of branches
-      @ In, mapping, dict, dictionary of candidated branches
+      @ In, mapping, dict, dictionary of candidate branches
       @ Out, validBranch, TreeStructure.Node, most valid branch (if not found, return None)
     """
     validBranch   = None
@@ -541,7 +541,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
-      Generates the distrbutions and functions.
+      Generates the distributions and functions.
       @ In, availDist, dict, dict of distributions
       @ In, availableFunc, dict, dict of functions
       @ Out, None

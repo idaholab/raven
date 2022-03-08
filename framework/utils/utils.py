@@ -651,7 +651,8 @@ def find_crow(framework_dir):
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
     crowDirs = [os.path.join(ravenDir,"crow"),
-                os.path.join(os.path.dirname(ravenDir),"crow")]
+                os.path.join(os.path.dirname(ravenDir),"crow"),
+                ravenDir]
     if "CROW_DIR" in os.environ:
       crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
     for crowDir in crowDirs:

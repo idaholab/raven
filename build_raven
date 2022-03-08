@@ -105,9 +105,7 @@ if test `uname` = Darwin; then
 fi
 
 PIP_COMMAND=pip3
-(cd $CROW_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
-
-(cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./framework/contrib/AMSC)
+(cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
 
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
