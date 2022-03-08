@@ -248,6 +248,7 @@ class EconomicRatio(BasicStatistics):
               if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
                 interpolation = child.parameterValues['interpolation']
               else:
+                self.raiseAWarning("Unrecognized interpolation  in {}, prefix '{}' using 'linear' instead".format(tag, prefix))
                 interpolation = 'linear'
             self.toDo[tag].append({"targets": set(targets),
                                    "prefix": prefix,
@@ -410,26 +411,6 @@ class EconomicRatio(BasicStatistics):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       threshold = list(needed[metric]['threshold'])
-      # VaRSet = xr.Dataset()
-      # relWeight = pbWeights[list(needed[metric]['targets'])]
-      # targWarn = "" # targets that return negative VaR for warning
-      # for target in needed[metric]['targets']:
-      #   targWeight = relWeight[target].values
-      #   targDa = dataSet[target]
-      #   VaRList = []
-      #   for thd in threshold:
-      #     if self.pivotParameter in targDa.sizes.keys():
-      #       VaR = [-self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
-      #     else:
-      #       VaR = -self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-      #     VaRList.append(VaR)
-      #   if np.any(np.array(VaRList) < 0):
-      #     targWarn += target + ", "
-      #   if self.pivotParameter in targDa.sizes.keys():
-      #     da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
-      #   else:
-      #     da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
-      #   VaRSet[target] = da
       if self.pbPresent:
         relWeight = pbWeights[list(needed[metric]['targets'])]
         # if all weights are the same, calculate with xarray, no need for _computeWeightedPercentile

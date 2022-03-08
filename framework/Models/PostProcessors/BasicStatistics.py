@@ -358,6 +358,7 @@ class BasicStatistics(PostProcessorInterface):
           if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
             interpolation = child.parameterValues['interpolation']
           else:
+            self.raiseAWarning("Unrecognized 'interpolation' in {}, prefix '{}' using 'linear' instead".format(tag, prefix))
             interpolation = 'linear'
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
