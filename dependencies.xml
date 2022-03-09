@@ -18,6 +18,9 @@ Note all install methods after "main" take
  skip run/install check:     <library skip_check='True'>...
  add pip library with extra parameters:
                              <ray source="pip" pip_extra="[tune]">1.9</ray>
+   the above will use pip_extra to translate into a command:
+     pip install ray[tune]==1.9.*
+   which installs ray and the dependencies for Ray Tune
 
  default OS is "all"
  default source is "conda" meaning main conda repo
