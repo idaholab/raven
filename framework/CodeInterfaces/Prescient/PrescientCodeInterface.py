@@ -27,7 +27,7 @@ try:
   prescientLocation = prescient.location
 except Exception as inst:
   prescientLocation = None
-  prestientException = inst
+  prescientException = inst
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -53,7 +53,7 @@ class Prescient(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is a list of commands to run the code (string), returnCommand[1] is the name of the output root
     """
     if prescientLocation is None:
-      warnings.warn(f"Finding Prescient failed with {prestientException}")
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     runnerInput = []
     for inp in inputFiles:
       if inp.getType() == 'PrescientRunnerInput':
@@ -72,7 +72,7 @@ class Prescient(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     if prescientLocation is None:
-      warnings.warn(f"Finding Prescient failed with {prestientException}")
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     self._outputDirectory = None
     for singleInput in inputs:
       if singleInput.getType() == 'PrescientRunnerInput':
