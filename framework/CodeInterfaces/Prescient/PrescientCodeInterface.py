@@ -26,8 +26,8 @@ try:
   prescient = pkg_resources.get_distribution("prescient")
   prescientLocation = prescient.location
 except Exception as inst:
-  warnings.warn(f"Finding Prescient failed with {inst}")
   prescientLocation = None
+  prescientException = inst
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -52,6 +52,8 @@ class Prescient(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is a list of commands to run the code (string), returnCommand[1] is the name of the output root
     """
+    if prescientLocation is None:
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     runnerInput = []
     for inp in inputFiles:
       if inp.getType() == 'PrescientRunnerInput':
@@ -69,6 +71,8 @@ class Prescient(CodeInterfaceBase):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
+    if prescientLocation is None:
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     self._outputDirectory = None
     for singleInput in inputs:
       if singleInput.getType() == 'PrescientRunnerInput':
