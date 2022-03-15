@@ -16,8 +16,8 @@ Created on December 1, 2015
 
 '''
 import copy
-from framework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
-from framework.utils import InputData, InputTypes
+from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from ravenframework.utils import InputData, InputTypes
 
 class testInterfacedPP_PointSet(PostProcessorPluginBase):
   """ This class represents the most basic interfaced post-processor
