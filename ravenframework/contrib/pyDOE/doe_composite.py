@@ -14,10 +14,10 @@ Abraham Lee.
 """
 
 import numpy as np
-from pyDOE.doe_factorial import ff2n
-from pyDOE.doe_star import star
-from pyDOE.doe_union import union
-from pyDOE.doe_repeat_center import repeat_center
+from .doe_factorial import ff2n
+from .doe_star import star
+from .doe_union import union
+from .doe_repeat_center import repeat_center
 
 __all__ = ['ccdesign']
 
