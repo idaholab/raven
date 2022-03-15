@@ -21,10 +21,10 @@ import sys
 # ***********************************************
 # main utilities
 #
-def doSetup():
+def doSetup(checkLibraries=True):
   """
     Fully sets up RAVEN environment and variables.
-    @ In, None
+    @ In,checkLibraries, bool, if true check the library versions
     @ Out, None
   """
   printStatement()
@@ -34,7 +34,8 @@ def doSetup():
   setupFramework()
   setupH5py()
   setupCpp()
-  checkVersions()
+  if checkLibraries:
+    checkVersions()
 
 def findFramework():
   """

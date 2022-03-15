@@ -40,7 +40,7 @@ def main(checkLibraries):
     @ Out, None
   """
   # This is the default driver for the RAVEN framework
-  dutils.doSetup()
+  dutils.doSetup(checkLibraries)
   from .Simulation import Simulation
   from .Application import __QtAvailable
   from .Interaction import Interaction
