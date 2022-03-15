@@ -5,7 +5,7 @@
 import numpy as np
 import math
 
-from framework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
+from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 
 class SumOfExponential(ExternalModelPluginBase):

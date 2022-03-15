@@ -18,8 +18,8 @@ Created on December 1, 2015
 import copy
 import numpy as np
 
-from framework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
-from framework.utils import InputData, InputTypes
+from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from ravenframework.utils import InputData, InputTypes
 
 class testInterfacedPP(PostProcessorPluginBase):
   """ This class represents the most basic interfaced post-processor
