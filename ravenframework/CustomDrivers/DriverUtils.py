@@ -100,7 +100,7 @@ def setupCpp():
   frameworkDir = findFramework()
   from utils import utils
   utils.find_crow(frameworkDir)
-  utils.add_path(os.path.join(frameworkDir,'contrib'))
+  #utils.add_path(os.path.join(frameworkDir,'contrib'))
   ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
   utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 
