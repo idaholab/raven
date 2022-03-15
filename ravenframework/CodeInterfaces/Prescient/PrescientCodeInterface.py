@@ -29,7 +29,7 @@ except Exception as inst:
   prescientLocation = None
   prescientException = inst
 
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Prescient(CodeInterfaceBase):
   """

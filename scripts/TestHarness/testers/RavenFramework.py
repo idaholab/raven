@@ -34,7 +34,7 @@ import RAVENImageDiff
 # Be aware that if this file changes its location, this variable should also be
 #  changed.
 myDir = os.path.dirname(os.path.realpath(__file__))
-RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'ravenframework'))
 RAVENROOTDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..'))
 
 #add path so framework is found.

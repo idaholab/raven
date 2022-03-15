@@ -21,7 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import sys
 import numpy as np
-from framework.utils import mathUtils
+from ravenframework.utils import mathUtils
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html
 if int(np.__version__.split('.')[1]) > 13:

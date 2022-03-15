@@ -24,7 +24,7 @@ import os
 import shutil
 import copy
 from collections import OrderedDict
-from framework.utils import utils, xmlUtils, mathUtils
+from ravenframework.utils import utils, xmlUtils, mathUtils
 
 class RAVENparser():
   """

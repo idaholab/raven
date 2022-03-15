@@ -26,7 +26,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import numpy
 
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ProjectileInterface import Projectile
 
 class ProjectileNoCSV(Projectile):

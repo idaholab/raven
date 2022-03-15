@@ -28,12 +28,12 @@ print(ravenDir)
 frameworkDir = os.path.join(ravenDir,"framework")
 sys.path.append(ravenDir)
 
-from framework.utils import utils
+from ravenframework.utils import utils
 
 utils.find_crow(frameworkDir)
 
-from framework.Metrics.metrics import MetricUtilities
-from framework import Distributions
+from ravenframework.Metrics.metrics import MetricUtilities
+from ravenframework import Distributions
 
 print(dir(MetricUtilities))
 

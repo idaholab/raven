@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
 sys.path.append(ravenDir)
 
-from framework.utils import mathUtils
+from ravenframework.utils import mathUtils
 
 print (mathUtils)
 mh = getMessageHandler()

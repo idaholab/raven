@@ -29,7 +29,7 @@ import copy
 import numpy
 from collections import defaultdict
 
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Projectile(CodeInterfaceBase):
   """

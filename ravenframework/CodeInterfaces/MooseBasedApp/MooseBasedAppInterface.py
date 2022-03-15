@@ -18,7 +18,7 @@ Created on April 14, 2014
 """
 
 import os
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 import GenericParser
 import MooseData
 import MOOSEparser

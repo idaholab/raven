@@ -20,7 +20,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-from framework.utils import utils
+from ravenframework.utils import utils
 
 class MelgenApp():
   """

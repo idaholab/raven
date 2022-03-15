@@ -21,7 +21,7 @@ from __future__ import division, print_function, absolute_import
 import os
 import lxml.etree as ET
 
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Neutrino(CodeInterfaceBase):
   """

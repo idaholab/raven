@@ -21,7 +21,7 @@ import re
 import combine
 import xml.etree.ElementTree as ET
 import copy
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import relapdata
 from PhisicsInterface import Phisics

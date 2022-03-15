@@ -24,12 +24,12 @@ from Tester import Differ
 
 # get access to math tools from RAVEN
 try:
-  from framework.utils import mathUtils
+  from ravenframework.utils import mathUtils
 except ImportError:
   new = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', '..',
                                       '..', '..'))
   sys.path.append(new)
-  from framework.utils import mathUtils
+  from ravenframework.utils import mathUtils
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing

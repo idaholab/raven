@@ -28,21 +28,21 @@ ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir
 sys.path.append(ravenDir)
 frameworkDir = os.path.join(ravenDir, 'framework')
 
-from framework.utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-from framework.utils import randomUtils
+from ravenframework.utils import randomUtils
 
-from framework import MessageHandler
+from ravenframework import MessageHandler
 
 # message handler
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 # input specs come mostly from the Models.ROM
-from framework.Models import ROM
+from ravenframework.Models import ROM
 
 # find location of ARMA
-from framework.SupervisedLearning import ARMA
+from ravenframework.SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
 print(ARMA)

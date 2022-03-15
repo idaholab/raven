@@ -23,9 +23,9 @@ import numpy as np
 ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5))
 print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-from framework.CustomDrivers import DriverUtils
+from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
-from framework.Optimizers.parentSelectors.parentSelectors import returnInstance
+from ravenframework.Optimizers.parentSelectors.parentSelectors import returnInstance
 
 
 rankSelection = returnInstance('tester', 'rankSelection')

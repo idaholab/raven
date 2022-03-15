@@ -21,10 +21,10 @@ import os
 import copy
 import sys
 import MELCORdata
-from framework.utils import utils
+from ravenframework.utils import utils
 import GenericParser
 from melgenInterface import MelgenApp
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class MelcorApp(CodeInterfaceBase):
   """

@@ -26,9 +26,9 @@ import glob
 import math
 from sklearn import neighbors
 from OpenFoamPP import fieldParser
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
-from framework.utils import mathUtils
+from ravenframework.utils import mathUtils
 
 class AcceleratedCFD(CodeInterfaceBase):
   """

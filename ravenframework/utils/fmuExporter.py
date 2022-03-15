@@ -148,7 +148,7 @@ class {className}(Fmi2Slave):
     if not self.initialized:
       sys.path.append(self.raven_path)
       # find the RAVEN framework
-      if os.path.isdir(os.path.join(self.raven_path,"framework")):
+      if os.path.isdir(os.path.join(self.raven_path,"ravenframework")):
         # we import the Driver to load the RAVEN enviroment for the un-pickling
         try:
           import framework.Driver

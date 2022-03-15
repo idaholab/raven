@@ -27,7 +27,7 @@ ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
 frameworkDir = os.path.join(ravenDir,"framework")
 sys.path.append(ravenDir)
 
-from framework.utils import InputData
+from ravenframework.utils import InputData
 import test_classes
 
 

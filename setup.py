@@ -49,10 +49,10 @@ if eigen_flags.startswith("-I"):
 setup(name='raven_framework',
       version='2.1',
       description='RAVEN and RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
-      package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules', 'framework': 'framework'},
+      package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules', 'ravenframework': 'ravenframework'},
       entry_points={
           'console_scripts': [
-              'raven_framework = framework.Driver:wheelMain'
+              'raven_framework = ravenframework.Driver:wheelMain'
           ]
       },
       ext_modules=[
@@ -80,6 +80,6 @@ setup(name='raven_framework',
                              'src/contrib/AMSC/UnionFind.cpp',
                              'src/contrib/AMSC/AMSC.cpp'],
                     include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
-      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object']+['framework.'+x for x in ['Application', 'ClassProperty', 'CodeInterfaceBaseClass', 'CodeInterfaces', 'CsvLoader', 'CustomCommandExecuter', 'Distributions', 'Driver', 'EntityFactoryBase', 'Files', 'Functions', 'GridEntities', 'IndexSets', 'Interaction', 'JobHandler', 'MessageHandler', 'MetricDistributor', 'OrthoPolynomials', 'PluginManager', 'Quadratures', 'Simulation', 'VariableGroups', 'h5py_interface_creator', 'raven_qsub_command', 'unSupervisedLearning']],
-      packages=['framework.'+x for x in setuptools.find_packages('framework')],
+      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object']+['ravenframework.'+x for x in ['Application', 'ClassProperty', 'CodeInterfaceBaseClass', 'CodeInterfaces', 'CsvLoader', 'CustomCommandExecuter', 'Distributions', 'Driver', 'EntityFactoryBase', 'Files', 'Functions', 'GridEntities', 'IndexSets', 'Interaction', 'JobHandler', 'MessageHandler', 'MetricDistributor', 'OrthoPolynomials', 'PluginManager', 'Quadratures', 'Simulation', 'VariableGroups', 'h5py_interface_creator', 'raven_qsub_command', 'unSupervisedLearning']],
+      packages=['ravenframework.'+x for x in setuptools.find_packages('ravenframework')],
       cmdclass={'build': CustomBuild})

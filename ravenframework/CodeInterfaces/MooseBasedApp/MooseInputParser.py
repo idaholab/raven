@@ -18,7 +18,7 @@ Getpot/hit input parsing methods
 import os
 import sys
 
-from framework.utils import utils, TreeStructure
+from ravenframework.utils import utils, TreeStructure
 
 multiIndicators = ('\'', '\"')
 validIndicators = ('=', '[')

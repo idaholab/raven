@@ -32,14 +32,14 @@ ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir
 sys.path.append(ravenDir)
 frameworkDir = os.path.join(ravenDir, 'framework')
 
-from framework.utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-from framework import MessageHandler
+from ravenframework import MessageHandler
 
 # find location of data objects
 #sys.path.append(os.path.join(frameworkDir,'DataObjects'))
 
-from framework import DataObjects
+from ravenframework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})

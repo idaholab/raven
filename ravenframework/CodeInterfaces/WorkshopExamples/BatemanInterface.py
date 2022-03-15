@@ -26,7 +26,7 @@ import os
 import xml.etree.ElementTree as ET
 import numpy as np
 # import CodeInterfaceBaseClass
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html

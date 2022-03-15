@@ -21,13 +21,13 @@ External Loader for serialized surrogate model (ROM) for external usage
 """
 # This is a class and module used to import serialized ROMs (by RAVEN) into an
 # external code.
-# It requires to set the path of the RAVEN framework (e.g. ./raven/framework)
+# It requires to set the path of the RAVEN framework (e.g. ./raven/ravenframework)
 # and the path to the serialized ROM (e.g. ./example/ROMpk.pk)
 # This script can be run with a standalone input file where these info is inputted
 # and some evaluations can be evaluated. For example:
 # <?xml version="1.0" ?>
 # <external_rom>
-#    <RAVENdir>/Users/alfoa/projects/raven_github/raven/framework</RAVENdir>
+#    <RAVENdir>/Users/alfoa/projects/raven_github/raven/ravenframework</RAVENdir>
 #    <ROMfile>/Users/alfoa/projects/raven_github/raven/scripts/ROMpk</ROMfile>
 #    <evaluate>
 #      <x1>0. 1. 0.5</x1>
@@ -92,7 +92,7 @@ class ravenROMexternal(object):
         pass
     else:
       # we import the Driver to load the RAVEN enviroment for the un-pickling
-      sys.path.append(os.path.join(frameworkDir,"framework"))
+      sys.path.append(os.path.join(frameworkDir,"ravenframework"))
       import Driver
     # de-serialize the ROM
     serializedROMlocation = os.path.abspath(binaryFileName)

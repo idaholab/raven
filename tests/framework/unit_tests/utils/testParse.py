@@ -24,8 +24,8 @@ import xml.etree.ElementTree as ET
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir))
 sys.path.append(ravenDir)
 
-import framework.utils.TreeStructure as TS
-from framework.utils.utils import toString
+import ravenframework.utils.TreeStructure as TS
+from ravenframework.utils.utils import toString
 
 results = {'failed':0,'passed':0}
 
