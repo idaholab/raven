@@ -59,14 +59,14 @@
   </OutStreams>
 
   <Metrics>
-    <Metric name="f_test" subType="ScipyMetric">
-      <metricType>full|f_test</metricType>
+    <Metric name="fTest" subType="ScipyMetric">
+      <metricType>full|fTest</metricType>
     </Metric>
-    <Metric name="chi" subType="ScipyMetric">
-      <metricType>seg|chi_square</metricType>
+    <Metric name="chiSquare" subType="ScipyMetric">
+      <metricType>seg|chiSquare</metricType>
     </Metric>
-    <Metric name="ks_test" subType="ScipyMetric">
-      <metricType>sum_seg|ks_test</metricType>
+    <Metric name="ksTest" subType="ScipyMetric">
+      <metricType>sumSeg|ksTest</metricType>
     </Metric>
   </Metrics>
 
