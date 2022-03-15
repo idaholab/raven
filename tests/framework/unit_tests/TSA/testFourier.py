@@ -26,12 +26,12 @@ frameworkDir = os.path.join(ravenDir, 'framework')
 if ravenDir not in sys.path:
   sys.path.append(ravenDir)
 
-from framework.utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
 
-from framework.utils import xmlUtils
+from ravenframework.utils import xmlUtils
 
-from framework.TSA import Fourier
+from ravenframework.TSA import Fourier
 
 plot = False
 

@@ -45,7 +45,7 @@ class Code(Model):
   """
     This is the generic class that import an external code into the framework
   """
-  CodeInterfaces = importlib.import_module("..CodeInterfaces", "framework.Models")
+  CodeInterfaces = importlib.import_module("..CodeInterfaces", "ravenframework.Models")
 
   @classmethod
   def getInputSpecification(cls):

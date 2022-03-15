@@ -25,7 +25,7 @@ import os
 import sys
 import time
 import argparse
-frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
+frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'ravenframework')
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 

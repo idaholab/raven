@@ -41,7 +41,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ In, cls, uninstantiated object, class to load for
       @ Out, None
     """
-    cls.plugins = importlib.import_module(".ModelPlugInFactory","framework.Models")
+    cls.plugins = importlib.import_module(".ModelPlugInFactory","ravenframework.Models")
 
 
   @classmethod

@@ -28,8 +28,8 @@ import sys
 ## caution: using abspath here does not do desirable things on Windows Mingw.
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 sys.path.append(ravenDir)
-from framework.utils import xmlUtils
-from framework.InputTemplates.TemplateBaseClass import Template
+from ravenframework.utils import xmlUtils
+from ravenframework.InputTemplates.TemplateBaseClass import Template
 
 
 

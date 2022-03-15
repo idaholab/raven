@@ -14,7 +14,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-from framework import Simulation
+from ravenframework import Simulation
 import string
 
 def createAndRunQSUB(runInfoDict):

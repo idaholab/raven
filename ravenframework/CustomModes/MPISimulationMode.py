@@ -21,7 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import math
 import string
-from framework import Simulation
+from ravenframework import Simulation
 
 #For the mode information
 modeName = "mpi"

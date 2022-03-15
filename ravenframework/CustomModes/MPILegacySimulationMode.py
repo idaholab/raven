@@ -21,9 +21,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import math
 import string
-from framework import Simulation
+from ravenframework import Simulation
 
-from framework.utils import utils
+from ravenframework.utils import utils
 
 #For the mode information
 modeName = "mpilegacy"

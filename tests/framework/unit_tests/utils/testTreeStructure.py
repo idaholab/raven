@@ -28,7 +28,7 @@ ravenDir = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.p
 print('raven:',ravenDir)
 sys.path.append(ravenDir)
 
-from framework.utils import TreeStructure as TS
+from ravenframework.utils import TreeStructure as TS
 
 results = {"pass":0,"fail":0}
 #type comparison

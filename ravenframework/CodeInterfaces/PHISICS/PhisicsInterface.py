@@ -18,7 +18,7 @@ Created on July 5th, 2017
 from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 import re
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericParser import GenericParser
 import DecayParser
 import FissionYieldParser

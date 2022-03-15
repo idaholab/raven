@@ -18,8 +18,8 @@ import os
 ravenDir = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..','..','..'))
 sys.path.append(ravenDir)
 
-from framework import MessageHandler
-from framework.BaseClasses import MessageUser
+from ravenframework import MessageHandler
+from ravenframework.BaseClasses import MessageUser
 
 #establish a basic message user
 user = MessageUser()

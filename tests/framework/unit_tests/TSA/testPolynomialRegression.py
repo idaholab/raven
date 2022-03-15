@@ -28,11 +28,11 @@ if ravenDir not in sys.path:
   sys.path.append(ravenDir)
 
 frameworkDir = os.path.join(ravenDir, "framework")
-from framework.utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
 
-from framework.utils import xmlUtils
-from framework.TSA import PolynomialRegression as PR
+from ravenframework.utils import xmlUtils
+from ravenframework.TSA import PolynomialRegression as PR
 
 plot = False
 

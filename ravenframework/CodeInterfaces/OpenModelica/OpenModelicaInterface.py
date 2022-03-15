@@ -128,11 +128,11 @@ import os
 import copy
 import shutil
 import tempfile
-from framework.utils import utils
+from ravenframework.utils import utils
 import xml.etree.ElementTree as ET
 #from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 
-from framework.CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class OpenModelica(CodeInterfaceBase):
   """

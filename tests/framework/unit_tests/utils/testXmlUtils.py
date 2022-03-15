@@ -27,7 +27,7 @@ import xml.etree.ElementTree as ET
 
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir))
 sys.path.append(ravenDir)
-from framework.utils import xmlUtils, utils
+from ravenframework.utils import xmlUtils, utils
 
 
 print (xmlUtils)
