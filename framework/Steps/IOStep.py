@@ -222,7 +222,6 @@ class IOStep(Step):
         # check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
-<<<<<<< HEAD
         # call the serialize method within the model
         ## TODO: ADD Deserialization method
         inDictionary['Input'][i].serialize(outputs[i])
@@ -231,7 +230,6 @@ class IOStep(Step):
         outfile = open(outputs[i].getAbsFile(),"w")
         outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
         outfile.close()
-=======
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
@@ -246,7 +244,6 @@ class IOStep(Step):
         fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
         fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
         fmuexec.buildFMU(outputs[i].getAbsFile())
->>>>>>> origin/devel
 
       elif self.actionType[i] == 'FILES-MODEL':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel
