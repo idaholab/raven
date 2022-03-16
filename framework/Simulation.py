@@ -82,7 +82,7 @@ class SimulationMode(MessageUser):
       modifySimulation is called after the runInfoDict has been setup.
       This allows the mode to change any parameters that need changing.
       This typically modifies the precommand and the postcommand that
-      are put infront of the command and after the command.
+      are put in front of the command and after the command.
       @ In, runInfoDict, dict, the run info
       @ Out, dictionary to use for modifications.  If empty, no changes
     """
@@ -224,8 +224,8 @@ class Simulation(MessageUser):
     self.runInfoDict['SimulationFiles'   ] = []            #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir  # the directory where the framework is located
-    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
-    self.runInfoDict['NodeParameter'     ] = '-f'          # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_ec_qsub_command.sh')
+    self.runInfoDict['NodeParameter'     ] = '--hostfile'          # the parameter used to specify the files where the nodes are listed
     self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
     self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'# the command used to run multi-threading commands.
                                                                   # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
@@ -251,7 +251,7 @@ class Simulation(MessageUser):
     self.runInfoDict['postcommand'       ] = ''            # Added after the command that is run.
     self.runInfoDict['delSucLogFiles'    ] = False         # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []            # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''            # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
+    self.runInfoDict['mode'              ] = ''            # Running mode.  Currently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'             ] = []            # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'    # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
@@ -737,19 +737,19 @@ class Simulation(MessageUser):
       @ In, stepName, str, the step to initialize
       @ Out, (stepInputDict, stepInstance), tuple, tuple of step input dictionary and step instance
     """
-    stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-    self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
-    self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
-    stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
-    stepInputDict['Input' ]          = []                         #set the Input to an empty list
-    stepInputDict['Output']          = []                         #set the Output to an empty list
+    stepInstance = self.stepsDict[stepName]   # retrieve the instance of the step
+    self.raiseAMessage(f'-- Beginning {stepInstance.type} step "{stepName}" ... --')
+    self.runInfoDict['stepName'] = stepName   # provide the name of the step to runInfoDict
+    stepInputDict = {}                        # initialize the input dictionary for a step. Never use an old one!!!!!
+    stepInputDict['Input' ] = []              # set the Input to an empty list
+    stepInputDict['Output'] = []              # set the Output to an empty list
     #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
-    for [key,b,c,d] in stepInstance.parList:
+    for role, entity, _, name in stepInstance.parList:
       #Only for input and output we allow more than one object passed to the step, so for those we build a list
-      if key == 'Input' or key == 'Output':
-        stepInputDict[key].append(self.getEntity(b,d))
+      if role == 'Input' or role == 'Output':
+        stepInputDict[role].append(self.getEntity(entity, name))
       else:
-        stepInputDict[key] = self.getEntity(b,d)
+        stepInputDict[role] = self.getEntity(entity, name)
     #add the global objects
     stepInputDict['jobHandler'] = self.jobHandler
     #generate the needed assembler to send to the step
@@ -817,14 +817,14 @@ class Simulation(MessageUser):
       self.raiseADebug('Submitted in queue! Shutting down Jobhandler!')
       self.jobHandler.shutdown()
       return
-    #loop over the steps of the simulation
+    # initialize, then execute, steps
     for stepName in self.__stepSequenceList:
       stepInputDict, stepInstance = self.initiateStep(stepName)
-      #running a step
       self.executeStep(stepInputDict, stepInstance)
     # finalize the simulation
     self.finalizeSimulation()
     self.raiseAMessage('Run complete!', forcePrint=True)
+    return 0
 
   def generateAllAssemblers(self, objectInstance):
     """

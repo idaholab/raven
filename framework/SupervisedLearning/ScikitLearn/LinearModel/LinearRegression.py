@@ -44,9 +44,7 @@ class LinearRegression(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LinearRegression())
+    self.model = sklearn.linear_model.LinearRegression
 
   @classmethod
   def getInputSpecification(cls):
@@ -72,8 +70,9 @@ class LinearRegression(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
-                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
+    # New in sklearn version 0.24
+    # specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
+    #                                              descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -83,7 +82,7 @@ class LinearRegression(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize','positive'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

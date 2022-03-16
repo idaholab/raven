@@ -286,7 +286,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
                                                   (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
                                                   of the model (e.g. frameworkVariableName = "wolf", modelVariableName="thermal_conductivity").
-                                                  Viceversa, when we define aliases for some model output variables, we need to convert the variable
+                                                  Vice versa, when we define aliases for some model output variables, we need to convert the variable
                                                   names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
                                                   frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
@@ -495,4 +495,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     """
     pass
 
+  def getSerializationFiles(self):
+    """
+      Returns a list of any files that this needs if it is serialized
+      @ In, None
+      @ Out, serializationFiles, set, set of filenames that are needed
+    """
+    serializationFiles = set()
+    return serializationFiles
 

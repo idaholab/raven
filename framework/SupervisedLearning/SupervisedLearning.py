@@ -181,10 +181,10 @@ class SupervisedLearning(BaseInterface):
     if 'dynamicFeatures' not in d:
       self.dynamicFeatures = False
 
-  def setEstimator(self, estimator):
+  def setEstimator(self, estimatorList):
     """
       Initialization method
-      @ In, estimator, ROM instance, estimator used by ROM
+      @ In, estimatorList, list of ROM instances/estimators used by ROM
       @ Out, None
     """
     pass
@@ -335,6 +335,9 @@ class SupervisedLearning(BaseInterface):
     names, values  = list(edict.keys()), list(edict.values())
     stepInFeatures = 0
     for index in range(len(values)):
+      #If value is a float, convert to numpy array for evaluation
+      if type(values[index]).__name__ == 'float':
+        values[index] = np.array(values[index])
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])

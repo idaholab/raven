@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import subprocess
 import sys
-import distutils.version
 import platform
 from Tester import Tester
 import OrderedCSVDiffer
@@ -38,7 +37,7 @@ myDir = os.path.dirname(os.path.realpath(__file__))
 RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
 #Need to add the directory for AMSC for doing module checks.
-os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, 'contrib') +\
+os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, '..', 'install') +\
   os.pathsep + os.environ.get("PYTHONPATH", "")
 
 scriptDir = os.path.abspath(os.path.join(RAVENDIR, '..', 'scripts'))
@@ -209,9 +208,9 @@ class RavenFramework(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
-        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
+        self.set_skip('skipped (Outdated library: "'+libraryName+'" needed version '+str(libraryVersion)+' but had version '+str(actualVersion)+')')
         return False
       i += 2
 

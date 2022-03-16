@@ -103,7 +103,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     inputSpecification.addParam("re-seeding", InputTypes.StringType, descr=r"""
               this optional
               attribute could be used to control the seeding of the random number generator (RNG).
-              If inputted, the RNG can be reseeded. The value of this attribute
+              If inputted, the RNG can be re-seeded. The value of this attribute
               can be: either 1) an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} =
               ``20021986''), or 2) string value named ``continue'' where the RNG is not re-initialized""")
     inputSpecification.addParam("pauseAtEnd", InputTypes.StringType)
@@ -165,7 +165,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
           self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
-    if os.environ.get('RAVENinterfaceCheck','False') == 'True':
+    if os.environ.get('RAVENinterfaceCheck', None) == 'True':
       self._clearRunDir = False
     else:
       self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
@@ -284,8 +284,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     ## first collect them
     metaKeys = set()
     metaParams = dict()
-    for role,entities in inDictionary.items():
-      if isinstance(entities,list):
+    for role, entities in inDictionary.items():
+      if isinstance(entities, list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
             keys, params = entity.provideExpectedMetaKeys()

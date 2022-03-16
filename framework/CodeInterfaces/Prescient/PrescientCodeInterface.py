@@ -20,13 +20,14 @@ This is a CodeInterface for the Presient code.
 
 import os
 import re
+import warnings
 try:
   import pkg_resources
   prescient = pkg_resources.get_distribution("prescient")
   prescientLocation = prescient.location
 except Exception as inst:
-  print("Finding Prescient failed with",inst)
   prescientLocation = None
+  prescientException = inst
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -51,6 +52,8 @@ class Prescient(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is a list of commands to run the code (string), returnCommand[1] is the name of the output root
     """
+    if prescientLocation is None:
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     runnerInput = []
     for inp in inputFiles:
       if inp.getType() == 'PrescientRunnerInput':
@@ -68,6 +71,8 @@ class Prescient(CodeInterfaceBase):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
+    if prescientLocation is None:
+      warnings.warn(f"Finding Prescient failed with {prescientException}")
     self._outputDirectory = None
     for singleInput in inputs:
       if singleInput.getType() == 'PrescientRunnerInput':
@@ -132,9 +137,9 @@ class Prescient(CodeInterfaceBase):
     """
       Reads the electricity bus data into a dictionary
       @ In, filename, string, the bus_detail.csv file
-      @ Out, (retDict,busList,datalist), (dictionary,list,list),
-        dictionary of each time, list of all the busses found and
-        the data that each bus has
+      @ Out, (retDict,busList,datalist,hasMinute), (dictionary,list,list,bool),
+        dictionary of each time, list of all the busses found,
+        the data that each bus has, and if the bus has minute by minute data
     """
     with open(filename, "r") as inFile:
       first = True
@@ -145,22 +150,31 @@ class Prescient(CodeInterfaceBase):
         line = line.strip()
         if first:
           first = False
-          if not line.startswith("Date,Hour,Bus,"): # != "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA":
-            assert False, "Unexpected first line of bus detail:" + line
-            a = 1/0 #because debug might be disabled
+          if line.startswith("Date,Hour,Minute,Bus,"):
+            hasMinute = True
+          elif line.startswith("Date,Hour,Bus,"):
+            #line sorta looks like: "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA"
+            hasMinute = False
+          else:
+            raise IOError("Unexpected first line of bus detail in Prescient Code Interface:" + line)
           dataList = [s.replace(" ","_") for s in line.split(",")[3:]]
           continue
         splited = line.split(",")
-        date, hour, bus = splited[:3]
-        rest = splited[3:]
-        key = (date,hour)
+        if hasMinute:
+          date, hour, minute, bus = splited[:4]
+          rest = splited[4:]
+          key = (date,hour,minute)
+        else:
+          date, hour, bus = splited[:3]
+          rest = splited[3:]
+          key = (date,hour)
         busSet.add(bus)
         timeDict = retDict.get(key,{})
         timeDict[bus] = rest
         retDict[key] = timeDict
       busList = list(busSet)
       busList.sort()
-      return retDict, busList, dataList
+      return retDict, busList, dataList, hasMinute
 
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
@@ -179,7 +193,7 @@ class Prescient(CodeInterfaceBase):
       directory = subDirectory
     readFile = os.path.join(directory, toRead)
     if toRead.lower().startswith("hourly"):
-      busData, busList, busDataList = self._readBusData(os.path.join(directory, "bus_detail.csv"))
+      busData, busList, busDataList, hasMinute = self._readBusData(os.path.join(directory, "bus_detail.csv"))
       outDict = {}
       inFile = open(readFile+".csv","r")
       hasNetDemand = False
@@ -214,7 +228,11 @@ class Prescient(CodeInterfaceBase):
           netDemand = outDict["Demand"][-1]  - outDict["RenewablesUsed"][-1]
           outDict["NetDemand"].append(netDemand)
         for bus in busList:
-          for dataName, data in zip(busDataList,busData[(date,hour)][bus]):
+          if hasMinute:
+            busTimeKey = (date, hour, '0')
+          else:
+            busTimeKey = (date, hour)
+          for dataName, data in zip(busDataList,busData[busTimeKey][bus]):
             outDict[bus+"_"+dataName].append(float(data) if len(data) > 0 else float("NaN"))
     return outDict
 

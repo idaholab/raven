@@ -42,10 +42,10 @@ class MultiTaskLasso(ScikitLearnBase):
       @ Out, None
     """
     super().__init__()
+    self.multioutputWrapper = False
     import sklearn
     import sklearn.linear_model
-    import sklearn.multioutput
-    self.model = sklearn.linear_model.MultiTaskLasso()
+    self.model = sklearn.linear_model.MultiTaskLasso
 
   @classmethod
   def getInputSpecification(cls):

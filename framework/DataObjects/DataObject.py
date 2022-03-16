@@ -108,7 +108,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
     self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject
                                    #   in case it is an hierarchical one.
-                                   #   If True, all the branches are going to be printed/plotted independenttly,
+                                   #   If True, all the branches are going to be printed/plotted independently,
                                    #   otherwise the are going to be reconstructed
 
   @property
@@ -239,7 +239,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
 
   def setSelectiveOutput(self,option,value):
     """
-      Sets the output selection method for retreiving subset data.
+      Sets the output selection method for retrieving subset data.
       @ In, option, str, from [outputRow,outputPivotValue,operator]
       @ In, value, int or float or str, index or pivot value or operator name respectively
       @ Out, None

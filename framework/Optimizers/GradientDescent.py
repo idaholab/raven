@@ -209,7 +209,7 @@ class GradientDescent(RavenSampled):
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
-    self._followerProximity = 1e-2   # distance at which annihilation can start ocurring, in ?normalized? space
+    self._followerProximity = 1e-2   # distance at which annihilation can start occurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
     # __private

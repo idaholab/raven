@@ -645,13 +645,14 @@ def find_crow(framework_dir):
     @ Out, None
   """
   try:
-    import crow_modules.distribution1Dpy2
+    import crow_modules.distribution1D
     return
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
     crowDirs = [os.path.join(ravenDir,"crow"),
-                os.path.join(os.path.dirname(ravenDir),"crow")]
+                os.path.join(os.path.dirname(ravenDir),"crow"),
+                ravenDir]
     if "CROW_DIR" in os.environ:
       crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
     for crowDir in crowDirs:
@@ -700,13 +701,13 @@ def findCrowModule(name):
   # assert
   assert(name in availableCrowModules)
   # find the module
-  ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    module = import_module("crow_modules.{}{}".format(name,ext))
+    module = import_module("crow_modules.{}".format(name))
   except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
+      print('sys.path:', sys.path)
       raise ie
-    module = import_module("{}{}".format(name,ext))
+    module = import_module("{}".format(name))
   return module
 
 def getPythonCommand():

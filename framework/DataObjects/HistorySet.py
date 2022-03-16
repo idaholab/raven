@@ -248,7 +248,7 @@ class HistorySet(DataSet):
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """
-      Writes this data objcet to CSV file (for metadata see _toCSVXML)
+      Writes this data object to CSV file (for metadata see _toCSVXML)
       @ In, fileName, str, path/name to write file
       @ In, start, int, optional, starting realization to print
       @ In, kwargs, dict, optional, keywords for options

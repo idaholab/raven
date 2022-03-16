@@ -46,9 +46,7 @@ class LinearDiscriminantAnalysisClassifier(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.discriminant_analysis
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.discriminant_analysis.LinearDiscriminantAnalysis())
+    self.model = sklearn.discriminant_analysis.LinearDiscriminantAnalysis
 
   @classmethod
   def getInputSpecification(cls):

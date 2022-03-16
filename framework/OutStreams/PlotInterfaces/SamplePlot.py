@@ -99,8 +99,9 @@ class SamplePlot(PlotInterface):
         self.raiseAnError(RuntimeError, f'Variable "{var}" has too high dimensionality ({len(dims)}) for the SamplePlotter!')
       values = data[var].values
       self.plotScalar(ax, sampleIDs, values)
-      ax.set_xlabel('RAVEN Sample Number')
       ax.set_ylabel(var)
+    axes[-1].set_xlabel('RAVEN Sample Number')
+    fig.align_ylabels(axes[:])
     plt.savefig(f'{self.name}.png')
 
   def plotScalar(self, ax, ids, vals):

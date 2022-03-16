@@ -7,7 +7,7 @@
 \label{fig:codeinterface}
 \end{figure}
 The procedure of coupling a new code/application with RAVEN is a straightforward process.
-For all the codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D,
+For all the codes currently supported by RAVEN (e.g., RELAP7, RELAP5-3D,
 BISON, MOOSE,etc.), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them into the
   input of the driven code.
 The coupling procedure does not require modifying RAVEN itself. Instead, the developer creates a new Python interface that is going to be embedded
@@ -18,7 +18,7 @@ The coupling procedure does not require modifying RAVEN itself. Instead, the dev
 \end{lstlisting}
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface
-needs to be used. For example, if the Interface module contains the class 	``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be 	``NewCode'':
+needs to be used. For example, if the Interface module contains the class ``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be ``NewCode'':
 \begin{lstlisting}[language=python]
   class NewCode(CodeInterfaceBase):
     ...
@@ -274,7 +274,7 @@ RAVEN is going to call this function passing in the following arguments:
               $.\\ path\_to\_working\_directory\\stepName\\anUniqueIdentifier\\filename.extension$. In case of sampling, the
               ``\textit{anUniqueIdentifier}'' is going to be an integer (e.g. 1).
   \item \textbf{\texttt{oriInputFiles}} , data type = list, List of the original input files;
-  \item  \textbf{\texttt{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
+  \item  \textbf{\texttt{samplerType}} , data type = string, Sampler type (e.g., MonteCarlo,
                Adaptive, etc.). \nb None if no Sampler has been used;
   \item  \textbf{\texttt{Kwargs}} , data type = kwarded dictionary, dictionary of parameters.
                In this dictionary there is another dictionary

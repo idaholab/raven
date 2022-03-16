@@ -111,8 +111,8 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'           # label
     self.cvInstanceName = None            # the name of Cross Validation instance
     self.cvInstance = None                # Instance of provided cross validation
-    self._estimatorName = None            # the name of estimator instance
-    self._estimator = None                # Instance of provided estimator (ROM)
+    self._estimatorNameList = []          # the name list of estimator instance
+    self._estimatorList = []              # List of instances of provided estimators (ROM)
     self._interfaceROM = None             # Instance of provided ROM
 
     self.pickled = False # True if ROM comes from a pickled rom
@@ -122,7 +122,7 @@ class ROM(Dummy):
     self.isADynamicModel = False # True if the ROM is time-dependent
     self.supervisedContainer = [] # List ROM instances
     self.historySteps = [] # The history steps of pivot parameter
-    self.segment = False # True if segmenting/clustring/interpolating is requested
+    self.segment = False # True if segmenting/clustering/interpolating is requested
     self.numThreads = 1 # number of threads used by the ROM
     self.seed = None # seed information
     self._segmentROM = None # segment rom instance
@@ -132,7 +132,7 @@ class ROM(Dummy):
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
-    self.addAssemblerObject('estimator', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('estimator', InputData.Quantity.zero_to_infinity)
 
   def __getstate__(self):
     """
@@ -186,8 +186,8 @@ class ROM(Dummy):
     cvNode = paramInput.findFirst('CV')
     if cvNode is not None:
       self.cvInstanceName = cvNode.value
-    estimatorNode = paramInput.findFirst('estimator')
-    self._estimatorName = estimatorNode.value if estimatorNode is not None else None
+    estimatorNodeList = paramInput.findAll('estimator')
+    self._estimatorNameList = [estimatorNode.value for estimatorNode in estimatorNodeList] if len(estimatorNodeList) > 0 else []
 
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     segmentNode = paramInput.findFirst('Segment')
@@ -211,6 +211,9 @@ class ROM(Dummy):
       self.supervisedContainer = [self._segmentROM]
     else:
       self.supervisedContainer = [self._interfaceROM]
+    #the variable list is needed by things like FMU export
+    self._setVariableList("input", self.supervisedContainer[0].features)
+    self._setVariableList("output", self.supervisedContainer[0].target)
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.pickled = True
@@ -234,9 +237,9 @@ class ROM(Dummy):
       self.cvInstance.initialize(runInfo, inputs, initDict)
 
     # only initialize once
-    if self._estimator is None and self._estimatorName is not None:
-      self._estimator = self.retrieveObjectFromAssemblerDict('estimator', self._estimatorName)
-      self._interfaceROM.setEstimator(self._estimator)
+    if len(self._estimatorList) == 0 and len(self._estimatorNameList) > 0:
+      self._estimatorList = [self.retrieveObjectFromAssemblerDict('estimator', estimatorName) for estimatorName in self._estimatorNameList]
+      self._interfaceROM.setEstimator(self._estimatorList)
 
   def reset(self):
     """

@@ -14,7 +14,7 @@
 """
 Created on July 10, 2013
 
-@author: alfoa, wangc
+@author: alfoa, wangc, dgarrett622
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -23,7 +23,7 @@ import copy
 from collections import OrderedDict, defaultdict
 import six
 import xarray as xr
-
+import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -53,7 +53,7 @@ class BasicStatistics(PostProcessorInterface):
                 'higherPartialVariance',   # Statistic metric not available yet
                 'higherPartialSigma',      # Statistic metric not available yet
                 'lowerPartialSigma',       # Statistic metric not available yet
-                'lowerPartialVariance'    # Statistic metric not available yet
+                'lowerPartialVariance'     # Statistic metric not available yet
                 ]
   vectorVals = ['sensitivity',
                 'covariance',
@@ -67,7 +67,8 @@ class BasicStatistics(PostProcessorInterface):
                 'variance_ste',
                 'sigma_ste',
                 'skewness_ste',
-                'kurtosis_ste']
+                'kurtosis_ste',
+                'percentile_ste']
 
   @classmethod
   def getInputSpecification(cls):
@@ -265,37 +266,62 @@ class BasicStatistics(PostProcessorInterface):
     inputMetaKeys = []
     outputMetaKeys = []
     for metric, infos in self.toDo.items():
-      steMetric = metric + '_ste'
-      if steMetric in self.steVals:
-        for info in infos:
-          prefix = info['prefix']
-          for target in info['targets']:
-            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-            metaDim = inputObj.getDimensions(target)
-            if len(metaDim[target]) == 0:
-              inputMetaKeys.append(metaVar)
-            else:
-              outputMetaKeys.append(metaVar)
+      if metric in self.scalarVals + self.vectorVals:
+        steMetric = metric + '_ste'
+        if steMetric in self.steVals:
+          for info in infos:
+            prefix = info['prefix']
+            for target in info['targets']:
+              if metric == 'percentile':
+                for strPercent in info['strPercent']:
+                  metaVar = prefix + '_' + strPercent + '_ste_' + target if not self.outputDataset else metric + '_ste'
+                  metaDim = inputObj.getDimensions(target)
+                  if len(metaDim[target]) == 0:
+                    inputMetaKeys.append(metaVar)
+                  else:
+                    outputMetaKeys.append(metaVar)
+              else:
+                metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+                metaDim = inputObj.getDimensions(target)
+                if len(metaDim[target]) == 0:
+                  inputMetaKeys.append(metaVar)
+                else:
+                  outputMetaKeys.append(metaVar)
     metaParams = {}
     if not self.outputDataset:
       if len(outputMetaKeys) > 0:
         metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
     else:
       if len(outputMetaKeys) > 0:
-        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
+        params = {}
+        for key in outputMetaKeys + inputMetaKeys:
+          # percentile standard error has additional index
+          if key == 'percentile_ste':
+            params[key] = [self.pivotParameter, self.steMetaIndex, 'percent']
+          else:
+            params[key] = [self.pivotParameter, self.steMetaIndex]
         metaParams.update(params)
       elif len(inputMetaKeys) > 0:
-        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        params = {}
+        for key in inputMetaKeys:
+          # percentile standard error has additional index
+          if key == 'percentile_ste':
+            params[key] = [self.steMetaIndex, 'percent']
+          else:
+            params[key] = [self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
 
-  def _handleInput(self, paramInput):
+  def _handleInput(self, paramInput, childVals=None):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
+      @ In, childVals, list, optional, quantities requested from child statistical object
       @ Out, None
     """
+    if childVals is None:
+      childVals = []
     self.toDo = {}
     for child in paramInput.subparts:
       tag = child.getName()
@@ -355,11 +381,12 @@ class BasicStatistics(PostProcessorInterface):
       elif tag == "multipleFeatures":
         self.multipleFeatures = child.value
       else:
-        self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
+        if tag not in childVals:
+          self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
 
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
-  def __computePower(self, p, dataset):
+  def _computePower(self, p, dataset):
     """
       Compute the p-th power of weights
       @ In, p, int, the power
@@ -383,7 +410,7 @@ class BasicStatistics(PostProcessorInterface):
       @ In, weights, xarray.Dataset, probability weights of all input variables
       @ Out, vp, xarray.Dataset, the sum of p-th power of weights
     """
-    vp = self.__computePower(p,weights)
+    vp = self._computePower(p,weights)
     vp = vp.sum()
     return vp
 
@@ -449,7 +476,7 @@ class BasicStatistics(PostProcessorInterface):
     """
     if dim is None:
       dim = self.sampleTag
-    vr = self.__computePower(2.0, variance)
+    vr = self._computePower(2.0, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
       vp = 1.0/self.__computeVp(1,pbWeight)
@@ -482,7 +509,7 @@ class BasicStatistics(PostProcessorInterface):
     """
     if dim is None:
       dim = self.sampleTag
-    vr = self.__computePower(1.5, variance)
+    vr = self._computePower(1.5, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
       vp = 1.0/self.__computeVp(1,pbWeight)
@@ -589,7 +616,6 @@ class BasicStatistics(PostProcessorInterface):
     except IndexError:
       result = sortedWeightsAndPoints[indexL,1]
     return result
-
 
   def __runLocal(self, inputData):
     """
@@ -730,7 +756,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'sigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      sigmaDS = self._computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
       self.calculations[metric] = sigmaDS
       calculations[metric] = sigmaDS
     #
@@ -806,7 +832,7 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'lowerPartialSigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      lpsDS = self.__computePower(0.5,calculations['lowerPartialVariance'][list(needed[metric]['targets'])])
+      lpsDS = self._computePower(0.5,calculations['lowerPartialVariance'][list(needed[metric]['targets'])])
       calculations[metric] = lpsDS
     #
     # higherPartialVariance
@@ -826,17 +852,22 @@ class BasicStatistics(PostProcessorInterface):
     metric = 'higherPartialSigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      hpsDS = self.__computePower(0.5,calculations['higherPartialVariance'][list(needed[metric]['targets'])])
+      hpsDS = self._computePower(0.5,calculations['higherPartialVariance'][list(needed[metric]['targets'])])
       calculations[metric] = hpsDS
 
     ############################################################
-    # compute standard error for expectedValue
+    # Begin Standard Error Calculations
+    #
+    # Reference for standard error calculations (including percentile):
+    # B. Harding, C. Tremblay and D. Cousineau, "Standard errors: A review and evaluation of
+    # standard error estimators using Monte Carlo simulations", The Quantitative Methods of
+    # Psychology, Vol. 10, No. 2 (2014)
     ############################################################
     metric = 'expectedValue'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting calculate standard error on"'+metric+'"...')
       if self.pbPresent:
-        factor = self.__computePower(0.5,calculations['equivalentSamples'])
+        factor = self._computePower(0.5,calculations['equivalentSamples'])
       else:
         factor = np.sqrt(self.sampleSize)
       calculations[metric+'_ste'] = calculations['sigma'][list(needed[metric]['targets'])]/factor
@@ -848,7 +879,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 2.0 /(en - 1.0)
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
       else:
         factor = np.sqrt(2.0/(float(self.sampleSize) - 1.0))
       calculations[metric+'_ste'] = calculations['sigma'][varList]**2 * factor
@@ -860,7 +891,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 2.0 * (en - 1.0)
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
       else:
         factor = np.sqrt(2.0 * (float(self.sampleSize) - 1.0))
       calculations[metric+'_ste'] = calculations['sigma'][varList] / factor
@@ -878,7 +909,7 @@ class BasicStatistics(PostProcessorInterface):
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
         factor = 6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.))
-        factor = self.__computePower(0.5,factor)
+        factor = self._computePower(0.5,factor)
         calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:
         en = float(self.sampleSize)
@@ -891,8 +922,8 @@ class BasicStatistics(PostProcessorInterface):
       varList = list(needed[metric]['targets'])
       if self.pbPresent:
         en = calculations['equivalentSamples'][varList]
-        factor1 = self.__computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
-        factor2 = self.__computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
+        factor1 = self._computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
+        factor2 = self._computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
         factor = 2.0 * factor1 * factor2
         calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:
@@ -956,6 +987,47 @@ class BasicStatistics(PostProcessorInterface):
         percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
         percentileSet = percentileSet.rename({'quantile':'percent'})
       calculations[metric] = percentileSet
+
+      # because percentile is different, calculate standard error here
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      percentileSteSet = xr.Dataset()
+      calculatedPercentiles = calculations[metric]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        en = targWeight.sum()**2/np.sum(targWeight**2)
+        targDa = dataSet[target]
+        if self.pivotParameter in targDa.sizes.keys():
+          percentileSte = []
+          for label, group in targDa.groupby(self.pivotParameter):
+            subPercentileSte = []
+            if group.values.min() == group.values.max():
+              # all values are the same
+              for pct in percent:
+                subPercentileSte.append(0.0)
+            else:
+              # get KDE
+              kde = stats.gaussian_kde(group.values, weights=targWeight)
+              for pct in percent:
+                factor = np.sqrt(pct*(1.0 - pct)/en)
+                val = calculatedPercentiles[target].sel(**{'percent': pct, self.pivotParameter: label}).values
+                subPercentileSte.append(factor/kde(val)[0])
+            percentileSte.append(subPercentileSte)
+          da = xr.DataArray(percentileSte, dims=(self.pivotParameter, 'percent'), coords={self.pivotParameter: self.pivotValue, 'percent': percent})
+          percentileSteSet[target] = da
+        else:
+          calcPercentiles = calculatedPercentiles[target]
+          if targDa.values.min() == targDa.values.max():
+            # distribution is a delta function, so no KDE construction
+            percentileSte = list(np.zeros(calcPercentiles.shape))
+          else:
+            # get KDE
+            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+            factor = np.sqrt(np.array(percent)*(1.0 - np.array(percent))/en)
+            percentileSte = list(factor/kde(calcPercentiles.values))
+          da = xr.DataArray(percentileSte, dims=('percent'), coords={'percent': percent})
+          percentileSteSet[target] = da
+      calculations[metric+'_ste'] = percentileSteSet
 
     def startVector(metric):
       """
@@ -1198,6 +1270,10 @@ class BasicStatistics(PostProcessorInterface):
                 varName = '_'.join([prefix,percent,target])
                 percentVal = float(percent)/100.
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
+                steMetric = metric + '_ste'
+                if steMetric in self.steVals:
+                  metaVar = '_'.join([prefix,percent,'ste',target])
+                  outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target,'percent':percentVal}))
             else:
               #check if it was skipped for some reason
               skip = self.skipped.get(metric, None)

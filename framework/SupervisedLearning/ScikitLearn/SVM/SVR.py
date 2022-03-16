@@ -48,9 +48,7 @@ class SVR(ScikitLearnBase):
     super().__init__()
     import sklearn
     import sklearn.svm
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.SVR())
+    self.model = sklearn.svm.SVR
 
   @classmethod
   def getInputSpecification(cls):

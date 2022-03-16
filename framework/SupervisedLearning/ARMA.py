@@ -230,7 +230,7 @@ class ARMA(SupervisedLearning):
     specs.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType, default=1))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType,
-                                               descr="""turns on \emph{zero filtering}
+                                               descr=r"""turns on \emph{zero filtering}
                                                  for the listed targets. Zero filtering is a very specific algorithm, and should not be used without
                                                  understanding its application.  When zero filtering is enabled, the ARMA will remove all the values from
                                                  the training data equal to zero for the target, then train on the remaining data (including Fourier detrending
