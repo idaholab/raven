@@ -626,7 +626,8 @@ class ravenROM(ExternalGreyBoxModel):
       sys.path.append(self._raven_framework)
     else:
       sys.path.append(os.path.join(self._raven_framework,"framework"))
-    import Driver
+    from CustomDrivers import DriverUtils as dutils
+    dutils.doSetup()
     # de-serialize the ROM
     self._rom_file = os.path.abspath(self._rom_file)
     if not os.path.exists(self._rom_file):
