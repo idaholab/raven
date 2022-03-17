@@ -540,6 +540,7 @@ class RavenSampled(Optimizer):
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
+      self.__stepCounter[traj] -= 1
     else:  # e.g. rerun
       pass  # nothing to do, just keep moving
 

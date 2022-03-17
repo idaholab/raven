@@ -597,6 +597,7 @@ class GradientDescent(RavenSampled):
       # if this is an opt point rerun, accept it without checking.
       elif self._acceptRerun[traj]:
         acceptable = 'rerun'
+        self.incrementIteration
         self._acceptRerun[traj] = False
         self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       # check if same point
@@ -767,8 +768,8 @@ class GradientDescent(RavenSampled):
     converged = self.getIteration(traj) >= self._convergenceCriteria['iterationLimit']
     self.raiseADebug(self.convFormat.format(name='iterationLimit',
                                             conv=str(converged),
-                                            got=self.getIteration(traj),
-                                            req=self._convergenceCriteria['iterationLimit']))
+                                            got=int(self.getIteration(traj)),
+                                            req=int(self._convergenceCriteria['iterationLimit'])))
     return converged
   def _checkConvStepSize(self, traj):
     """
