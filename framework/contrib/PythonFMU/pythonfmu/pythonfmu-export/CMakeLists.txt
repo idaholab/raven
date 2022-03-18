@@ -44,40 +44,6 @@ if (WIN32)
   set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}/python3.lib)
 endif ()
 
-# ==============================================================================
-# Sources
-# ==============================================================================
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers)
-
-set(sources
-        cpp/cppfmu_cs.cpp
-        cpp/fmi_functions.cpp
-        cpp/PySlaveInstance.cpp
-        )
-
-add_library(pythonfmu-export ${sources})
-target_compile_features(pythonfmu-export PUBLIC "cxx_std_17")
-target_include_directories(pythonfmu-export
-        PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
-        "${Python3_INCLUDE_DIRS}"
-        PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-        )
-
-if (WIN32)
-  target_link_libraries(pythonfmu-export
-        PRIVATE
-        ${Python3_LIBRARIES}
-        )
-else ()
-  target_link_libraries(pythonfmu-export
-        PRIVATE
-        Python3::Module
-        )
-endif ()
-
 if (WIN32)
   set(TARGET_PLATFORM win)
 elseif (APPLE)
@@ -94,14 +60,4 @@ endif ()
 
 message("Building pythonfmu-export for platform ${TARGET_PLATFORM}")
 
-if (WIN32)
-  set_target_properties(pythonfmu-export
-          PROPERTIES
-          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
-          )
-else ()
-  set_target_properties(pythonfmu-export
-          PROPERTIES
-          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
-          )
-endif ()
+add_subdirectory(src)
