@@ -58,13 +58,13 @@ Note all install methods after "main" take
     <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <cmake skip_check='True' optional='True'/>
+    <cmake skip_check='True'/>
     <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
-    <fmpy optional='True'/>
+    <fmpy/>
     <xmlschema source="pip"/>
   </main>
   <alternate name="pip">
