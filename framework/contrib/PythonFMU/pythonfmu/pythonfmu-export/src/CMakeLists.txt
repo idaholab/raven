@@ -26,10 +26,18 @@ target_include_directories(pythonfmu-export
         "${CMAKE_CURRENT_SOURCE_DIR}"
         )
 
-target_link_libraries(pythonfmu-export
+
+if (WIN32)
+  target_link_libraries(pythonfmu-export
+        PRIVATE
+        ${Python3_LIBRARIES}
+        )
+else ()
+  target_link_libraries(pythonfmu-export
         PRIVATE
         Python3::Module
         )
+endif ()
 
 if (WIN32)
   set_target_properties(pythonfmu-export
