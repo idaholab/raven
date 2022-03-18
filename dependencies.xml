@@ -2,7 +2,7 @@
 Structure:
 <root>
   <install-method>
-    ...
+     ...
   </install method>
   <next-install-method> etc
 </root>
