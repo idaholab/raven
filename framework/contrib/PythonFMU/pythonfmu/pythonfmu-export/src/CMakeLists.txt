@@ -28,7 +28,7 @@ target_include_directories(pythonfmu-export
 
 target_link_libraries(pythonfmu-export
         PRIVATE
-        ${Python3_LIBRARIES}
+        Python3::Module
         )
 
 if (WIN32)

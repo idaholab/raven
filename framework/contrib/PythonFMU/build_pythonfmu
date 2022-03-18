@@ -63,6 +63,7 @@ then
   cd build
 
   echo "***** MAKING BINARIES *"
+  #Note: to see commands add:  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
   if [[ "$OSTYPE" == "win64" ]]; then
     OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release -A x64)
     echo "${OUTPUT}"
