@@ -148,7 +148,7 @@ function create_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
-    if [[ ${COMMAND} == *"pyomo"* ]];
+    if [[ ${COMMAND} == *"pyomo-6.4"* ]];
     then
       activate_env
       #command -v pyomo
