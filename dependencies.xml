@@ -67,7 +67,7 @@ Note all install methods after "main" take
     <numdifftools source="pip">0.9.39</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
-    <pyomo optional='True'>6.4.0</pyomo>
+    <pyomo optional='True'>6.4</pyomo>
     <glpk skip_check='True' optional='True'/>
     <ipopt source="forge" skip_check='True' optional='True'/>
     <cyipopt skip_check='True' optional='True'/>
