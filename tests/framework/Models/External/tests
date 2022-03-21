@@ -14,6 +14,13 @@
   input = 'serialize_pyomo.xml'
   output = 'SerializePyomo/rom_out.py'
  [../]
+ [./pynumero_GBM]
+  type = 'RavenPython'
+  input = 'rom_out.py -r rom_pickle.pk -f ../../../.. > GrayModelOutput.txt'
+  output = 'GrayModelOutput.txt'
+  python3_only = True
+  minimum_library_versions = 'pyomo 6.4'
+ [../]
  [./fmu_ext_model]
   type = 'RavenFramework'
   input = 'fmu_ext_model_and_use.xml'
