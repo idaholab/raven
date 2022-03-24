@@ -553,7 +553,7 @@ class EconomicRatio(BasicStatistics):
             subCVaR = []
             for label, group in targDa.groupby(self.pivotParameter):
               sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(group.values, targWeight,thd)
-              quantile = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=thd)
+              quantile = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=[thd])[0]
               lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL, 0]*sortedWeightsAndPoints[:indexL,1])
               lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
               Es = lowerPartialE + quantile*(thd - lowerPartialP)
@@ -561,7 +561,7 @@ class EconomicRatio(BasicStatistics):
             CVaRList.append(subCVaR)
           else:
             sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight,thd)
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,needed[metric]['interpolation'],percent=thd)
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,needed[metric]['interpolation'],percent=[thd])[0]
             lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
             lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
             Es = lowerPartialE + quantile*(thd -lowerPartialP)
