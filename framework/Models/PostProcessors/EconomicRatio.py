@@ -68,7 +68,15 @@ class EconomicRatio(BasicStatistics):
         econSpecification.addParam("threshold", InputTypes.StringType)
       elif econ in ["expectedShortfall", "valueAtRisk"]:
         econSpecification.addParam("threshold", InputTypes.FloatType)
-        econSpecification.addParam("interpolation", InputTypes.StringType)
+        econSpecification.addParam("interpolation",
+                                   param_type=InputTypes.makeEnumType("interpolation",
+                                                                      "interpolationType",
+                                                                      ["linear", "midpoint"]),
+                                   default="linear",
+                                   descr="""Interpolation method for expectedShortfall or
+                                            valueAtRisk. 'linear' uses linear interpolation between
+                                            nearest datapoints while 'midpoint' uses the average of
+                                            the nearest datapoints.""")
       econSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(econSpecification)
 
@@ -245,11 +253,7 @@ class EconomicRatio(BasicStatistics):
             if 'interpolation' not in child.parameterValues:
               interpolation = 'linear'
             else:
-              if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
-                interpolation = child.parameterValues['interpolation']
-              else:
-                self.raiseAWarning("Unrecognized interpolation  in {}, prefix '{}' using 'linear' instead".format(tag, prefix))
-                interpolation = 'linear'
+              interpolation = child.parameterValues['interpolation']
             self.toDo[tag].append({"targets": set(targets),
                                    "prefix": prefix,
                                    "threshold": thresholdSet,

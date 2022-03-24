@@ -89,10 +89,26 @@ class BasicStatistics(PostProcessorInterface):
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputTypes.StringListType)
         # percentile has additional "interpolation" parameter
-        scalarSpecification.addParam("interpolation", InputTypes.StringType)
+        scalarSpecification.addParam("interpolation",
+                                     param_type=InputTypes.makeEnumType("interpolation",
+                                                                        "interpolationType",
+                                                                        ["linear", "midpoint"]),
+                                     default="linear",
+                                     descr="""Interpolation method for percentile calculation.
+                                              'linear' uses linear interpolation between nearest
+                                              data points while 'midpoint' uses the average of the
+                                              nearest data points.""")
       if scalar == 'median':
         # median has additional "interpolation" parameter
-        scalarSpecification.addParam("interpolation", InputTypes.StringType)
+        scalarSpecification.addParam("interpolation",
+                                     param_type=InputTypes.makeEnumType("interpolation",
+                                                                        "interpolationType",
+                                                                        ["linear", "midpoint"]),
+                                     default="linear",
+                                     descr="""Interpolation method for median calculation. 'linear'
+                                              uses linear interpolation between nearest data points
+                                              while 'midpoint' uses the average of the nearest data
+                                              points.""")
       scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
@@ -355,11 +371,7 @@ class BasicStatistics(PostProcessorInterface):
         if 'interpolation' not in child.parameterValues:
           interpolation = 'linear'
         else:
-          if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
-            interpolation = child.parameterValues['interpolation']
-          else:
-            self.raiseAWarning("Unrecognized 'interpolation' in {}, prefix '{}' using 'linear' instead".format(tag, prefix))
-            interpolation = 'linear'
+          interpolation = child.parameterValues['interpolation']
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
                                'percent':reqPercent,
@@ -372,10 +384,7 @@ class BasicStatistics(PostProcessorInterface):
         if 'interpolation' not in child.parameterValues:
           interpolation = 'linear'
         else:
-          if child.parameterValues['interpolation'] in ['linear', 'midpoint']:
-            interpolation = child.parameterValues['interpolation']
-          else:
-            interpolation = 'linear'
+          interpolation = child.parameterValues['interpolation']
         self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix,
                                'interpolation':interpolation})
@@ -617,7 +626,7 @@ class BasicStatistics(PostProcessorInterface):
     """
     return np.sqrt(variance)
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,interpolation,percent=[0.5]):
+  def _computeWeightedPercentile(self,arrayIn,pbWeight,interpolation='linear',percent=[0.5]):
     """
       Method to compute the weighted percentile in a array of data
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
@@ -639,9 +648,6 @@ class BasicStatistics(PostProcessorInterface):
       result = np.interp(percent, weightsCDF, sortedWeightsAndPoints[:, 1]).tolist()
     elif interpolation == 'midpoint':
       result = [self._computeSingleWeightedPercentile(pct, weightsCDF, sortedWeightsAndPoints) for pct in percent]
-    else:
-      # currently no other options, but need to return something
-      result = [0.0 for pct in percent]
 
     return result
 
