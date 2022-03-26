@@ -16,6 +16,14 @@ Abraham Lee.
 import numpy as np
 
 def grep(haystack, needle):
+    """
+    Grep element from haystack
+    
+    Returns
+    -------
+    R : 2d-array
+    
+    """
     start = 0
     while True:
         start = haystack.find(needle, start)
