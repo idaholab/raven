@@ -21,7 +21,7 @@ def grep(haystack, needle):
     
     Returns
     -------
-    R : 2d-array
+    start : int
     
     """
     start = 0
