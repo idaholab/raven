@@ -27,7 +27,7 @@ from scipy import spatial
 from math import ceil
 
 import Distributions
-from AMSC_Object import AMSC_Object
+from AMSC.AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler

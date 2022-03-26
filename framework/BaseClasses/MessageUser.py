@@ -64,7 +64,7 @@ class MessageUser(object):
     """
       Raises an error. By default shows in all verbosity levels.
       @ In, etype, Exception, Exception class to raise (e.g. IOError)
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, *args, dict, comma-separated list of things to put in message (as print() function)
       @ In, **kwargs, dict, optional arguments, which can be:
                             verbosity, the priority of the message (default 'silent')
                             tag, the message label (default 'ERROR')
@@ -79,7 +79,7 @@ class MessageUser(object):
   def raiseAWarning(self, *args, **kwargs):
     """
       Prints a warning. By default shows in 'quiet', 'all', and 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, *args, dict, comma-separated list of things to put in message (as print() function)
       @ In, **kwargs, dict, optional arguments, which can be:
                             verbosity, the priority of the message (default 'quiet')
                             tag, the message label (default 'Warning')
@@ -94,7 +94,7 @@ class MessageUser(object):
   def raiseAMessage(self, *args, **kwargs):
     """
       Prints a message. By default shows in 'all' and 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, *args, dict, comma-separated list of things to put in message (as print() function)
       @ In, **kwargs, dict, optional arguments, which can be:
                             verbosity, the priority of the message (default 'all')
                             tag, the message label (default 'Message')
@@ -110,7 +110,7 @@ class MessageUser(object):
   def raiseADebug(self, *args, **kwargs):
     """
       Prints a debug message. By default shows only in 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, *args, dict, comma-separated list of things to put in message (as print() function)
       @ In, **kwargs, dict, optional arguments, which can be:
                             verbosity, the priority of the message (default 'debug')
                             tag, the message label (default 'DEBUG')

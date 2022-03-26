@@ -313,7 +313,7 @@ class MSR(NDinterpolatorRom):
 
     # # Possibly load this here in case people have trouble building it, so it
     # # only errors if they try to use it?
-    from AMSC_Object import AMSC_Object
+    from AMSC.AMSC_Object import AMSC_Object
 
     self.X = featureVals[:][:]
     self.Y = targetVals

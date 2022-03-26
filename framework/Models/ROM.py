@@ -123,7 +123,7 @@ class ROM(Dummy):
     self.isADynamicModel = False # True if the ROM is time-dependent
     self.supervisedContainer = [] # List ROM instances
     self.historySteps = [] # The history steps of pivot parameter
-    self.segment = False # True if segmenting/clustring/interpolating is requested
+    self.segment = False # True if segmenting/clustering/interpolating is requested
     self.numThreads = 1 # number of threads used by the ROM
     self.seed = None # seed information
     self._segmentROM = None # segment rom instance

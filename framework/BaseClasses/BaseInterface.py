@@ -50,7 +50,8 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     self.name             = ''                   # name of this istance (alias)
     self.type             = type(self).__name__  # specific type within this class
     self.verbosity        = None                 # verbosity level (see message handler)
-    self.globalAttributes = {}                   # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self.globalAttributes = {}                   # this is a dictionary that contains parameters that are set at
+                                                 # the level of the base classes defining the types
     self.printTag         = 'BaseType'           # the tag that refers to this class in all the specific printing
     self.variableGroups   = {}                   # the variables this class needs to be aware of
     self.metadataKeys     = set()                # list of registered metadata keys to expect from this entity
