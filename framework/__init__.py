@@ -12,13 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on September 16, 2015
-@author: maljdp
+Created on March 20, 2022
+@author: aalfonsi
 """
-
-from .CustomDrivers.PythonRaven import Raven # allows from framework import Raven
-
 # This file is necessary so that the sub-modules understand the correct hierarchy
-# of things. Once everything is in sub-modules we can possibly do some things
-# with RAVEN in its entirety as a module, but for now this file can remain
-# empty.
+# of the contrib modules. 
