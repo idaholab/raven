@@ -24,8 +24,6 @@ import sys
 import numpy as np
 import scipy
 from sklearn import neighbors
-from scipy import spatial
-import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -229,13 +227,34 @@ class DMDC(DMD):
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
+    if False:
+      evalX, evalY = self.__evaluate(featureVals[:,:,:])
+      VReference = np.concatenate((self.stateVals,self.outputVals),axis=2)
+      VPredicted = np.concatenate((evalX,evalY),axis=2)
+      Vref = np.average(VReference,axis=1)
+      Vstd = np.std(VReference,axis=1)
+      VRefNorm = np.zeros(VReference.shape)
+      VPredNorm = np.zeros(VReference.shape)
+      for i in range(VReference.shape[0]):
+        for j in range(VReference.shape[1]):
+          for k in range(VReference.shape[2]):
+            denominator = Vstd[i,k] if Vstd[i,k] != 0 else 1.
+            VRefNorm[i, j, k] = (VReference[i,j,k]-Vref[i,k])/denominator
+            VPredNorm[i, j, k] = (VPredicted[i, j, k] - Vref[i, k]) / denominator
+            print(VRefNorm[i, j, k], VPredNorm[i, j, k])
+      cost = 0.0
+      for i in range(VReference.shape[0]):
+        for j in range(VReference.shape[1]):
+          for k in range(VReference.shape[2]):
+            cost += np.square(VRefNorm[i, j, k] - VPredNorm[i, j, k])
+      self.raiseAMessage("Cost is : {}".format(cost))
 
   @property
   def featureImportances_(self):
     """
       Method to return the features' importances
       @ In, None
-      @ Out, featureImportances_, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
+      @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
     importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
@@ -243,7 +262,11 @@ class DMDC(DMD):
     # directely linked to the output variables
     minVal, minIdx = np.finfo(float).max, -1
     for stateCnt, stateID in enumerate(self.stateID):
-      importances[stateID] =  np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+      #importances[stateID] = (len(self.outputID) / len(self.stateID)) * np.abs(np.average(np.sum(self.__Atilde[:,stateCnt,:],axis=-1))) / sumA
+      #importances[stateID] = importances[stateID] + np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))]) / sumB
+      importances[stateID] = np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+      self.raiseAMessage("state var {} | {}".format(stateID, np.average(importances[stateID])))
+      #importances[stateID] =  .5*abs(float(np.average(self.__Atilde[:,stateCnt,:]))) + .5*np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
       if minVal > np.min(importances[stateID]):
         minVal = np.min(importances[stateID])
         minIdx = stateCnt
@@ -257,14 +280,7 @@ class DMDC(DMD):
     return importances
 
   #######
-  def __evaluateLocal__(self,featureVals):
-    """
-      This method is used to inquire the DMD to evaluate (after normalization that in
-      this case is not performed)  a set of points contained in featureVals.
-      a KDTree algorithm is used to construct a weighting function for the reconstructed space
-      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
-      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
-    """
+  def __evaluate(self, featureVals):
     indeces = [0]
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
@@ -272,14 +288,11 @@ class DMDC(DMD):
       # using nearest neighbour method to identify the index
       indeces = self.neigh.predict(feats).astype(int)
     nreqs = len(indeces)
-    ### Initialize the final return value ###
-    returnEvaluation = {}
     ### Extract the Actuator signal U ###
     uVector = []
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
       uVector.append(featureVals[:, :, varIndex]) # uVector is a list now
-      returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
     uVector = np.asarray(uVector) # the uVector is not centralized yet
     # Get the time steps for evaluation
     tsEval = uVector.shape[-1] # ts_Eval = 100
@@ -293,19 +306,43 @@ class DMDC(DMD):
     for cnt, index in enumerate(indeces):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        uVector = uVector - self.actuatorVals[0, index, :]
-        initStates = initStates - self.stateVals[0, index, :]
-      evalX[cnt, 0, :] = initStates
+        uVector[:,cnt,:] = uVector[:,cnt,:] - self.actuatorVals[0, index, :]
+        initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
+      evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[cnt,:,i]),(-1,1)).T
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[:,cnt,i]),(-1,1)).T
         evalX[cnt, i+1, :] = xPred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
       if self.dmdParams['centerUXY']:
         evalX = evalX + self.stateVals[0, index, :]
         evalY = evalY + self.outputVals[0, index, :]
+    return evalX, evalY
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      This method is used to inquire the DMD to evaluate (after normalization that in
+      this case is not performed)  a set of points contained in featureVals.
+      a KDTree algorithm is used to construct a weighting function for the reconstructed space
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    evalX, evalY = self.__evaluate(featureVals)
+    indeces = [0]
+    if len(self.parametersIDs):
+      # extract the scheduling parameters (feats)
+      feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
+      # using nearest neighbour method to identify the index
+      indeces = self.neigh.predict(feats).astype(int)
+    nreqs = len(indeces)
+    ### Initialize the final return value ###
+    returnEvaluation = {}
+    ### Extract the Actuator signal U ###
+    for varID in self.actuatorsID:
+      varIndex = self.features.index(varID)
+      returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
     ### Store the results to the dictionary "returnEvaluation"
     for varID in self.stateID:
       varIndex = self.stateID.index(varID)
@@ -313,7 +350,6 @@ class DMDC(DMD):
     for varID in self.outputID:
       varIndex = self.outputID.index(varID)
       returnEvaluation.update({varID: evalY[: , :, varIndex] if nreqs > 1 else evalY[: , :, varIndex].flatten()})
-
     returnEvaluation[self.pivotParameterID] = np.asarray([self.pivotValues] * nreqs) if nreqs > 1 else self.pivotValues
     return returnEvaluation
 

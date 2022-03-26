@@ -20,7 +20,9 @@ from EntityFactoryBase import EntityFactory
 ################################################################################
 ## internal developed feature selection algorithms
 from .RFE import RFE
+from .VarianceThreshold import VarianceThreshold
 ################################################################################
 
 factory = EntityFactory('FeatureSelection')
 factory.registerType("RFE",RFE)
+factory.registerType("VarianceThreshold",VarianceThreshold)

@@ -335,7 +335,10 @@ class SupervisedLearning(BaseInterface):
       # nsamples, timeStep, nFeatures
       self.dimReductionEngine = sklearn.decomposition.PCA(n_components=len(self.dimReductionSettings['parametersToInclude']),
                                                           whiten=self.dimReductionSettings['whiten'],
-                                                          tol=self.dimReductionSettings['tol'])
+                                                          tol=self.dimReductionSettings['tol'],fit_inverse_transform=True,kernel="rbf")
+      #self.dimReductionEngine = sklearn.decomposition.KernelPCA(n_components=len(self.dimReductionSettings['parametersToInclude']),
+      #                                                    whiten=self.dimReductionSettings['whiten'],
+      #                                                    tol=self.dimReductionSettings['tol'])
       params = self.dimReductionSettings['parametersToInclude']
       space = self.dimReductionSettings['whichSpace'].lower()
       if space == 'feature':
@@ -345,23 +348,35 @@ class SupervisedLearning(BaseInterface):
       if self.dynamicFeatures:
         # we use the first sample to come up with a transfomation matrix
         # for the other samples, the transformation is simply applied
-        self.dimReductionEngine.fit(featureValues[0, :, indeces])
+        if space == 'feature':
+          self.dimReductionEngine.fit(featureValues[0, :, indeces].T)
+        else:
+          self.dimReductionEngine.fit(targetValues[0, :, indeces].T)
         for s in range(featureValues.shape[0]):
           if space == 'feature':
-            featureValues[s, :, indeces] = self.dimReductionEngine.transform(featureValues[s, :, indeces])
+            featureValues[s, :, indeces] = self.dimReductionEngine.transform(featureValues[s, :, indeces].T)
           else:
-            targetValues[s, :, indeces] = self.dimReductionEngine.transform(targetValues[s, :, indeces])
+            targetValues[s, :, indeces] = self.dimReductionEngine.transform(targetValues[s, :, indeces].T).T
       else:
         if space == 'feature':
-          featureValues[ :, indeces] = self.dimReductionEngine.fit_transform(featureValues[ :, indeces])
+          featureValues[ :, indeces] = self.dimReductionEngine.fit_transform(featureValues[:, indeces])
         else:
-          targetValues[:, indeces] = self.dimReductionEngine.fit_transform(targetValues[ :, indeces])
+          targetValues[:, indeces] = self.dimReductionEngine.fit_transform(targetValues[ :, indeces]).T
       cov = self.dimReductionEngine.get_covariance()
       components = self.dimReductionEngine.components_
       var = self.dimReductionEngine.explained_variance_
       explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
       singular_values_ = self.dimReductionEngine.singular_values_
-
+      if True:
+        with open("components.csv","w") as fobj:
+          #(n_components, n_features)
+          fobj.write("pc_index,")
+          fobj.write(",".join(params))
+          fobj.write("\n")
+          for nc in range(components.shape[0]):
+            fobj.write("{},".format(nc+1))
+            fobj.write(",".join([str(el) for el in components[nc,:].flatten().tolist()]))
+            fobj.write("\n")
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):
@@ -374,6 +389,10 @@ class SupervisedLearning(BaseInterface):
         self.raiseAMessage("Feature Selection removed the following features (from target space): {}".format(', '.join(self.removed)))
         self.raiseAMessage("Old feature space (in the target space) for surrogate model was     : {}".format(', '.join(self.target)))
         self.raiseAMessage("New feature space (in the target space) for surrogate model is now  : {}".format(', '.join(np.asarray(self.target)[newFeatures].tolist())))
+        if self.performDimReduction:
+          print("pca:")
+          print(newFeatures)
+          print(support)
       self.paramInput.findNodesAndSetValues(vals)
       self._handleInput(self.paramInput)
       if self.dynamicFeatures:
@@ -504,7 +523,14 @@ class SupervisedLearning(BaseInterface):
           reconstructed[:,idx] = evaluation[np.asarray(self.target)[idx]][:]
         else:
           reconstructed[idx] = evaluation[np.asarray(self.target)[idx]]
-       self.dimReductionEngine.transform()
+      reconstructed = self.dimReductionEngine.inverse_transform(reconstructed)
+      for idx in indeces:
+        #np.asarray(self.target)
+        if self.dynamicFeatures:
+          evaluation[np.asarray(self.target)[idx]] = reconstructed[:,idx]
+        else:
+          evaluation[np.asarray(self.target)[idx]] = reconstructed[idx]
+
     if self.doneSelectionFeatures and self.removed:
       dummy = np.empty(list(evaluation.values())[0].shape)
       dummy[:] = np.NaN

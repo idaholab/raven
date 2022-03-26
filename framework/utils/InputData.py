@@ -507,8 +507,7 @@ class ParameterInput(object):
     """
       Finds the first subparts with values.keys().  Once found, the values in input
       are set and if not found, nothing happens and the notFound list is populated
-      @ In, names, string, the names of the nodes to search for
-      @ In, values, dict, dictionary of the found nodes and values
+      @ In, values, dict, dictionary of the nodes and values to set
       @ Out, notFound, list, list of the names that have not been found
     """
     names = list(values.keys())
