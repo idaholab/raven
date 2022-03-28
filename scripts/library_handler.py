@@ -431,7 +431,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
     Reads a single library request node into existing config
     @ In, libNode, xml.etree.ElementTree.Element, node with library request
     @ In, config, dict, mapping of existing configuration requests
-    @ In, toRemove, list, list of library names to be remeoved at the end
+    @ In, toRemove, list, list of library names to be removed at the end
     @ In, opSys, str, operating system (not checked)
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
