@@ -17,7 +17,10 @@ import numpy as np
 
 def grep(haystack, needle):
     """
-    Grep element from haystack
+    Grep element from haystack.
+    Find the index of the char 
+    'needle' in the string hystack
+    and return it as 'start'
     
     Returns
     -------
