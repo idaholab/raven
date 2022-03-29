@@ -22,52 +22,42 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="exp" subType="">
-      <variables>x0,y0,v0,angle,timeOption,y,t</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="exp" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3</outputs>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="app" subType="">
-      <variables>x0,y0,v0,angle,timeOption,r</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="app" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3</outputs>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="msr" subType="">
-      <variables>x0,y0,v0,angle,timeOption,y,t</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="msr" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3</outputs>
     </ExternalModel>
     <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
-      <Features>outputDataMC1|y</Features>
-      <Targets>outputDataMC2|r</Targets>
-      <Measurements>msrData|y</Measurements>
-      <Metric class="Metrics" type="Metric">std_reduct</Metric>
+      <Features>outputDataMC1|F1,outputDataMC1|F2</Features>
+      <Targets>outputDataMC2|F1,outputDataMC2|F2,outputDataMC2|F3</Targets>
+      <Measurements>msrData|F1,msrData|F2</Measurements>
     </PostProcessor>
   </Models>
 
-  <Metrics>
-    <Metric name="std_reduct" subType="STDReduction"/>
-  </Metrics>
-
   <Distributions>
-    <Uniform name="v0_dist">
-      <lowerBound>50</lowerBound>
-      <upperBound>60</upperBound>
-    </Uniform>
-    <Uniform name="y0_dist">
-      <lowerBound>0</lowerBound>
-      <upperBound>1</upperBound>
-    </Uniform>
-    <Uniform name="angle_dist">
-      <lowerBound>30</lowerBound>
-      <upperBound>60</upperBound>
-    </Uniform>
-    <Uniform name="v0_msr_dist">
-      <lowerBound>54.5</lowerBound>
-      <upperBound>55.5</upperBound>
-    </Uniform>
-    <Uniform name="y0_msr_dist">
-      <lowerBound>0.45</lowerBound>
-      <upperBound>0.55</upperBound>
-    </Uniform>
-    <Uniform name="angle_msr_dist">
-      <lowerBound>44</lowerBound>
-      <upperBound>46</upperBound>
-    </Uniform>
+    <Normal name="x1_dist">
+      <mean>5.5</mean>
+      <sigma>0.55</sigma>
+    </Normal>
+    <Normal name="x2_dist">
+      <mean>8</mean>
+      <sigma>0.8</sigma>
+    </Normal>
+    <Normal name="x1_msr_dist">
+      <mean>5.5</mean>
+      <sigma>0.055</sigma>
+    </Normal>
+    <Normal name="x2_msr_dist">
+      <mean>8</mean>
+      <sigma>0.08</sigma>
+    </Normal>
   </Distributions>
 
   <Samplers>
@@ -75,33 +65,23 @@
       <samplerInit>
         <limit>100</limit>
       </samplerInit>
-      <variable name="v0">
-        <distribution>v0_dist</distribution>
+      <variable name="x1">
+        <distribution>x1_dist</distribution>
       </variable>
-      <variable name="y0">
-        <distribution>y0_dist</distribution>
-      </variable>
-      <variable name="angle">
-        <distribution>angle_dist</distribution>
-      </variable>
-      <constant name="x0">0</constant>
-      <constant name="timeOption">0</constant>         
+      <variable name="x2">
+        <distribution>x2_dist</distribution>
+      </variable>   
     </MonteCarlo>    
     <MonteCarlo name="MC_msr">
       <samplerInit>
-        <limit>15</limit>
+        <limit>100</limit>
       </samplerInit>
-      <variable name="v0">
-        <distribution>v0_msr_dist</distribution>
+      <variable name="x1">
+        <distribution>x1_msr_dist</distribution>
       </variable>
-      <variable name="y0">
-        <distribution>y0_msr_dist</distribution>
-      </variable>
-      <variable name="angle">
-        <distribution>angle_msr_dist</distribution>
-      </variable>
-      <constant name="x0">0</constant>
-      <constant name="timeOption">0</constant>         
+      <variable name="x2">
+        <distribution>x2_msr_dist</distribution>
+      </variable>        
     </MonteCarlo>     
   </Samplers>
 
@@ -110,7 +90,7 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
       <Model class="Models" type="ExternalModel">exp</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">outputDataMC1</Output>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
     </MultiRun>
     <MultiRun name="mcRunApp" re-seeding="20021986">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
@@ -118,16 +98,16 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
     </MultiRun>
-    <MultiRun name="mcRunMsr" re-seeding="20021986">
+    <MultiRun name="mcRunMsr" re-seeding="19862002">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
       <Model class="Models" type="ExternalModel">msr</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_msr</Sampler>
-      <Output class="DataObjects" type="HistorySet">msrData</Output>
+      <Output class="DataObjects" type="PointSet">msrData</Output>
     </MultiRun>    
     <PostProcess name="PCM">
-      <Input class="DataObjects" type="HistorySet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
       <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
-      <Input class="DataObjects" type="HistorySet">msrData</Input>
+      <Input class="DataObjects" type="PointSet">msrData</Input>
       <Model class="Models" type="PostProcessor">pcm</Model>
       <Output class="DataObjects" type="PointSet">pcm_metric</Output>
       <Output class="OutStreams" type="Print">pcm_metric_dump</Output>
@@ -136,42 +116,32 @@
 
   <DataObjects>
     <PointSet name="inputPlaceHolder1">
-      <Input>v0,y0,angle</Input>
+      <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder2">
-      <Input>v0,y0,angle</Input>
+      <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>    
-    <HistorySet name="outputDataMC1">
-      <Input>v0,y0,angle</Input>
-      <Output>y</Output>
-      <options>
-        <pivotParameter>t</pivotParameter>
-      </options>      
-    </HistorySet>
+    <PointSet name="outputDataMC1">
+      <Input>x1,x2</Input>
+      <Output>F1,F2</Output>   
+    </PointSet>
     <PointSet name="outputDataMC2">
-      <Input>v0,y0,angle</Input>
-      <Output>r</Output>
+      <Input>x1,x2</Input>
+      <Output>F1,F2,F3</Output>
     </PointSet>   
-    <HistorySet name="msrData">
-      <Input>v0,y0,angle</Input>
-      <Output>y</Output>
-      <options>
-        <pivotParameter>t</pivotParameter>
-      </options>        
-    </HistorySet>    
+    <PointSet name="msrData">
+      <Input>x1,x2</Input>
+      <Output>F1,F2</Output>     
+    </PointSet>    
     <PointSet name="pcm_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>pp1_vars</Output>
+      <Output>pri_post_stdReduct</Output>
     </PointSet>
   </DataObjects>
 
-  <VariableGroups>
-    <Group name="pp1_vars">pri_post_std_reduct</Group>
-  </VariableGroups>
-
-  <OutStreams>
+  <OutStreams>       
     <Print name="pcm_metric_dump">
       <type>csv</type>
       <source>pcm_metric</source>

@@ -59,10 +59,8 @@ class ValidationBase(PostProcessorReadyInterface):
     pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     specs.addSub(pivotParameterInput)
     featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
-    featuresInput.addParam("type", InputTypes.StringType)
     specs.addSub(featuresInput)
     targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
-    targetsInput.addParam("type", InputTypes.StringType)
     specs.addSub(targetsInput)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
     metricInput.addParam("class", InputTypes.StringType)
@@ -91,7 +89,7 @@ class ValidationBase(PostProcessorReadyInterface):
     self.targets = None         # list of target variables
     self.pivotValues = None     # pivot values (present if dynamic == True)
 
-    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
     ## dataset option
     self.setInputDataType('xrDataset')
@@ -136,8 +134,6 @@ class ValidationBase(PostProcessorReadyInterface):
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
     if not self.features:
       self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def initialize(self, runInfo, inputs, initDict):
     """

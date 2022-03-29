@@ -139,8 +139,7 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     fPrimeData[i] = fPrime
   pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
   mean = np.average(data, weights = weights)
-  stdev = np.std(data)
-  dataStats = {"mean":mean,"stdev":stdev,"minBinSize":minBinSize,"low":low,"high":high}
+  dataStats = {"mean":mean,"minBinSize":minBinSize,"low":low,"high":high}
   return dataStats, cdfFunc, pdfFunc
 
 
@@ -227,16 +226,3 @@ def _getPDFCommonArea(data1, data2):
   stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
   return scipy.integrate.quad(lambda x:min(pdf1(x),pdf2(x)),low,high,limit=1000)[0]
-
-def _getSTDReduction(data1, data2):
-  """
-  Gets the uncertainty (in form of standard deviation) reduction from data1 to data2.
-  The closer to 1.0 of the reduction fraction, the better representative the experiment is.
-  @ In, data1, a set of data from the prior distribution
-  @ In, data2, a set of data from the posterior distribution
-  @ Out, STDReduction, float, uncertainty reduction fraction between 0.0-1.0
-  """
-  stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
-  stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
-  stdReduction = 1.0 - stats2["std"]/stats1["std"]
-  return stdReduction
