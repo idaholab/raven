@@ -67,12 +67,11 @@ Note all install methods after "main" take
     <numdifftools source="pip">0.9.39</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
-    <pyomo skip_check='True' optional='True'>6.4</pyomo>
+    <pyomo optional='True'>6.4</pyomo>
     <glpk skip_check='True' optional='True'/>
-    <ipopt skip_check='True' optional='True'/>
+    <ipopt optional='True'/>
     <cyipopt skip_check='True' optional='True'/>
-    <download-extensions source="pyomo" skip_check='True' optional='True'/>
-    <build-extensions source="pyomo" skip_check='True' optional='True'/>
+    <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

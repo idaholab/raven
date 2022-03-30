@@ -120,15 +120,10 @@ function install_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
-    if [[ ${COMMAND} == *"download-extensions"* ]];
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]];
     then
-      local PYNUMEROEXT=`echo pyomo download-extensions`
-      ${PYNUMEROEXT}
-    fi
-    if [[ ${COMMAND} == *"build-extensions"* ]];
-    then
-      local PYNUMEROBLD=`echo pyomo build-extensions`
-      ${PYNUMEROBLD} || echo "Pyomo build failed"
+      pyomo download-extensions
+      pyomo build-extensions || echo "Pyomo build failed"
     fi
   else
     # activate the enviroment
@@ -164,15 +159,10 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
-    if [[ ${COMMAND} == *"download-extensions"* ]];
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]];
     then
-      local PYNUMEROEXT=`echo pyomo download-extensions`
-      ${PYNUMEROEXT}
-    fi
-    if [[ ${COMMAND} == *"build-extensions"* ]];
-    then
-      local PYNUMEROBLD=`echo pyomo build-extensions`
-      ${PYNUMEROBLD} || echo "Pyomo build failed"
+      pyomo download-extensions
+      pyomo build-extensions || echo "Pyomo build failed"
     fi
   else
     #pip create virtual enviroment

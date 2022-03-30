@@ -20,7 +20,7 @@
   output = 'GrayModelOutput.txt'
   python3_only = True
   minimum_library_versions = 'pyomo 6.4'
-  required_libraries = 'cmake glpk ipopt cyipopt'
+  required_libraries = 'ipopt'
  [../]
  [./fmu_ext_model]
   type = 'RavenFramework'
