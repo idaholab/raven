@@ -3,7 +3,7 @@
 	url = https://github.com/idaholab/TEAL.git
 [submodule "plugins/HERON"]
 	path = plugins/HERON
-	url = https://github.com/idaholab/HERON.git
+	url = https://github.com/PaulTalbot-INL/HERON.git 
 [submodule "plugins/SR2ML"]
 	path = plugins/SR2ML
 	url = https://github.com/idaholab/SR2ML.git
