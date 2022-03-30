@@ -378,7 +378,7 @@ def _getInstallMethod(override=None):
     @ In, override, str, optional, use given method if valid
     @ Out, install, str, type of install
   """
-  valid = ['conda', 'pip'] #custom?
+  valid = ['conda', 'pip', 'pyomo'] #custom?
   if override is not None:
     if override.lower() not in valid:
       raise TypeError('Library Handler: Provided override install method not recognized: "{}"! Acceptable options: {}'.format(override, valid))
@@ -529,7 +529,7 @@ if __name__ == '__main__':
         help='Chooses whether to (create) a new environment, (install) in existing environment, ' +
              'or (list) installation libraries.')
   condaParser.add_argument('--subset', dest='subset',
-        choices=('core', 'forge', 'pip'), default='core',
+        choices=('core', 'forge', 'pip', 'pyomo'), default='core',
         help='Use subset of installation libraries, divided by source.')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
@@ -609,6 +609,14 @@ if __name__ == '__main__':
         actionArgs = ''
         addOptional = False
         limit = ['pip']
+      elif args.subset == 'pyomo':
+        src = ''
+        installer = 'pyomo'
+        equals = '=='
+        equalsTail = '.*'
+        actionArgs = ''
+        addOptional = args.addOptional
+        limit = ['pyomo']
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='conda',
                              addOptional=addOptional,

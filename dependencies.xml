@@ -58,7 +58,7 @@ Note all install methods after "main" take
     <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <cmake skip_check='True' optional='True'/>
+    <cmake/>
     <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
@@ -67,10 +67,12 @@ Note all install methods after "main" take
     <numdifftools source="pip">0.9.39</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
-    <pyomo optional='True'>6.4</pyomo>
-    <glpk skip_check='True' optional='True'/>
-    <ipopt source="forge" skip_check='True' optional='True'/>
-    <cyipopt skip_check='True' optional='True'/>
+    <pyomo>6.4</pyomo>
+    <glpk/>
+    <ipopt/>
+    <cyipopt/>
+    <download-extensions source="pyomo"/>
+    <build-extensions source="pyomo"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

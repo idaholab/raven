@@ -109,15 +109,6 @@ function install_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
-    if [[ ${COMMAND} == *"pyomo-6.4"* ]];
-    then
-      activate_env
-      #command -v pyomo
-      local PYNUMEROEXT=`echo pyomo download-extensions`
-      local PYNUMEROBLD=`echo pyomo build-extensions`
-      ${PYNUMEROEXT}
-      ${PYNUMEROBLD} || echo "Pyomo build failed"
-    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -125,6 +116,20 @@ function install_libraries()
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"download-extensions"* ]];
+    then
+      local PYNUMEROEXT=`echo pyomo download-extensions`
+      ${PYNUMEROEXT}
+    fi
+    if [[ ${COMMAND} == *"build-extensions"* ]];
+    then
+      local PYNUMEROBLD=`echo pyomo build-extensions`
+      ${PYNUMEROBLD} || echo "Pyomo build failed"
+    fi
   else
     # activate the enviroment
     activate_env
@@ -148,15 +153,6 @@ function create_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
-    if [[ ${COMMAND} == *"pyomo=6.4"* ]];
-    then
-      activate_env
-      #command -v pyomo
-      local PYNUMEROEXT=`echo pyomo download-extensions`
-      local PYNUMEROBLD=`echo pyomo build-extensions`
-      ${PYNUMEROEXT}
-      ${PYNUMEROBLD} || echo "Pyomo build failed"
-    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -164,6 +160,20 @@ function create_libraries()
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"download-extensions"* ]];
+    then
+      local PYNUMEROEXT=`echo pyomo download-extensions`
+      ${PYNUMEROEXT}
+    fi
+    if [[ ${COMMAND} == *"build-extensions"* ]];
+    then
+      local PYNUMEROBLD=`echo pyomo build-extensions`
+      ${PYNUMEROBLD} || echo "Pyomo build failed"
+    fi
   else
     #pip create virtual enviroment
     local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`
