@@ -28,7 +28,7 @@ from sklearn.linear_model import OrthogonalMatchingPursuit
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, randomUtils
+from utils import InputData, InputTypes
 from .. import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -101,29 +101,28 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     names = kwargs.get('dataobjectNames')
     outputDict = {}
 
-    # Create an empty array with the same dimension as Target
-    featData = np.array([])
-    msrData = np.array([])
-    featPW = np.array([])
-    msrPW = np.array([])    
-    numFeats = len(self.features)
+    # Create empty list for multiple Exp responses
+    featData = []
+    msrData = []
+    featPW = []
+    msrPW = []
     for feat, msr in zip(self.features, self.measurements):
       featDataProb = self._getDataFromDataDict(datasets, feat, names)
       msrDataProb = self._getDataFromDataDict(datasets, msr, names)
       # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
-      featData = np.concatenate((featData, featDataProb[0].reshape(featDataProb[0].shape[0])))
-      msrData = np.concatenate((msrData, msrDataProb[0].reshape(msrDataProb[0].shape[0])))
+      featData.append(featDataProb[0].flatten())
+      msrData.append(msrDataProb[0].flatten())
       # Probability Weights for future use
-      featPW = np.concatenate((featPW, featDataProb[1]))
-      msrPW = np.concatenate((msrPW, msrDataProb[1]))
-    featData = featData.reshape(numFeats, -1).T
-    msrData = msrData.reshape(numFeats, -1).T 
-    featPW = featPW.reshape(numFeats, -1).T
-    msrPW = msrPW.reshape(numFeats, -1).T
+      featPW.append(featDataProb[1])
+      msrPW.append(msrDataProb[1])
+    # *Data of size (num_of_samples, num_of_features)
+    featData = np.array(featData).T
+    msrData = np.array(msrData).T
+    featPW = np.array(featPW).T
+    msrPW = np.array(msrPW).T
 
     # For each Target/Application model/response, calculate an uncertainty reduction fraction
     # using all available Features/Experiments
-    stdReduct = []
     for targ in self.targets:
       targDataProb = self._getDataFromDataDict(datasets, targ, names)
       # Data values in <x>Data, <x>=targ, feat, msr
@@ -159,37 +158,34 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         # Combine measurements by multiple Experiment regression      
         yMsrStd = regrExp.predict(yMsrStd)
 
-      # Kernel Desnity Estimation
+      # Measurement PDF with KDE
+      knlMsr = stats.gaussian_kde(yMsrStd)
+      
+      # KDE for joint PDF between Exp and App
       m1 = yExpReg[:]
       m2 = yAppStd.flatten()
       xmin = m1.min()
       xmax = m1.max()
       ymin = m2.min()
       ymax = m2.max()
-
       # Grid of Experiment (X), grid of Application (Y)
       X, Y = np.mgrid[xmin:xmax:self.binKDE, ymin:ymax:self.binKDE]
       psts = np.vstack([X.ravel(), Y.ravel()])
       vals = np.vstack([m1, m2])
-      randomUtils.randomSeed(0)
-      # Check whether the covavariance matrix is positive definite
-      if np.linalg.det(np.cov(vals))>1e-16:
-        # Kernel
-        # Need to consider probability weights in the future
-        knl = stats.gaussian_kde(vals)
-      # If not, introduce a 
-      else:
-        vals += 1e-5*randomUtils.randomNormal(size=(vals.shape[0], vals.shape[1]))
-        knl = stats.gaussian_kde(vals)      
-      # Joint PDF of Experiment and Application
-      Z = np.reshape(knl(psts).T, X.shape) 
-
-      # Measurement PDF with KDE
-      knlMsr = stats.gaussian_kde(yMsrStd)
+      # Measurement PDF over Exp range
       pdfMsr = knlMsr(X[:, 0])
 
-      # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
-      pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
+      # Check whether the covavariance matrix is positive definite
+      if np.linalg.cond(vals)>=1/np.finfo(vals.dtype).eps:
+        pdfAppPred = knlMsr(Y[0, :])
+      # If not, introduce a 
+      else:
+        knl = stats.gaussian_kde(vals)      
+        # Joint PDF of Experiment and Application
+        Z = np.reshape(knl(psts).T, X.shape) 
+        # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
+        pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
+      
       # Normalized PDF of predicted application  
       pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
 
@@ -211,10 +207,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Consider probability weights in the future
       priStd = np.std(yAppStd)
       # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
-      stdReduct.append(1.0-predStd/priStd)
-    stdReduct = np.array(stdReduct)
-
-    name = "pri_post_stdReduct"
-    outputDict[name] = stdReduct
+      name = "pri_post_stdReduct_" + targ.split('|')[-1]
+      outputDict[name] = (1.0-predStd/priStd)
 
     return outputDict
