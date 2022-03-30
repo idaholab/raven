@@ -387,7 +387,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   def serialize(self,fileObjIn,**kwargs):
     """
       This method is the base class method that is aimed to serialize the model (and derived) instances.
-      @ In, fileo, str or File object, the filename of the output serialized binary file or the RAVEN File instance
+      @ In, fileObjIn, str or File object, the filename of the output serialized binary file or the RAVEN File instance
       @ In, kwargs, dict, dictionary of options that the derived class might require
       @ Out, None
     """

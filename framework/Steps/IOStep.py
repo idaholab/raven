@@ -121,9 +121,6 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
-          #XXX switching on the file extension is not very
-          # extendable.  Possibly should have a type or something
-          #Past condition: if 'py' == outputs[i].getExt().lower():
           if 'Pyomo' == outputs[i].getType():
             self.actionType.append('MODEL-PYOMO')
           if 'FMU' == outputs[i].getType().upper():
