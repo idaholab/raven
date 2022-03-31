@@ -335,10 +335,10 @@ class SupervisedLearning(BaseInterface):
       # nsamples, timeStep, nFeatures
       self.dimReductionEngine = sklearn.decomposition.PCA(n_components=len(self.dimReductionSettings['parametersToInclude']),
                                                           whiten=self.dimReductionSettings['whiten'],
-                                                          tol=self.dimReductionSettings['tol'],fit_inverse_transform=True,kernel="rbf")
+                                                          tol=self.dimReductionSettings['tol'])
       #self.dimReductionEngine = sklearn.decomposition.KernelPCA(n_components=len(self.dimReductionSettings['parametersToInclude']),
       #                                                    whiten=self.dimReductionSettings['whiten'],
-      #                                                    tol=self.dimReductionSettings['tol'])
+      #                                                    tol=self.dimReductionSettings['tol'],fit_inverse_transform=True,kernel="rbf")
       params = self.dimReductionSettings['parametersToInclude']
       space = self.dimReductionSettings['whichSpace'].lower()
       if space == 'feature':
@@ -362,21 +362,11 @@ class SupervisedLearning(BaseInterface):
           featureValues[ :, indeces] = self.dimReductionEngine.fit_transform(featureValues[:, indeces])
         else:
           targetValues[:, indeces] = self.dimReductionEngine.fit_transform(targetValues[ :, indeces]).T
-      cov = self.dimReductionEngine.get_covariance()
-      components = self.dimReductionEngine.components_
-      var = self.dimReductionEngine.explained_variance_
-      explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
-      singular_values_ = self.dimReductionEngine.singular_values_
-      if True:
-        with open("components.csv","w") as fobj:
-          #(n_components, n_features)
-          fobj.write("pc_index,")
-          fobj.write(",".join(params))
-          fobj.write("\n")
-          for nc in range(components.shape[0]):
-            fobj.write("{},".format(nc+1))
-            fobj.write(",".join([str(el) for el in components[nc,:].flatten().tolist()]))
-            fobj.write("\n")
+      #cov = self.dimReductionEngine.get_covariance()
+      #components = self.dimReductionEngine.components_
+      #var = self.dimReductionEngine.explained_variance_
+      #explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
+      #singular_values_ = self.dimReductionEngine.singular_values_
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):

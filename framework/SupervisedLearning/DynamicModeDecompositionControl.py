@@ -227,26 +227,6 @@ class DMDC(DMD):
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
-    if False:
-      evalX, evalY = self.__evaluate(featureVals[:,:,:])
-      VReference = np.concatenate((self.stateVals,self.outputVals),axis=2)
-      VPredicted = np.concatenate((evalX,evalY),axis=2)
-      Vref = np.average(VReference,axis=1)
-      Vstd = np.std(VReference,axis=1)
-      VRefNorm = np.zeros(VReference.shape)
-      VPredNorm = np.zeros(VReference.shape)
-      for i in range(VReference.shape[0]):
-        for j in range(VReference.shape[1]):
-          for k in range(VReference.shape[2]):
-            denominator = Vstd[i,k] if Vstd[i,k] != 0 else 1.
-            VRefNorm[i, j, k] = (VReference[i,j,k]-Vref[i,k])/denominator
-            VPredNorm[i, j, k] = (VPredicted[i, j, k] - Vref[i, k]) / denominator
-            print(VRefNorm[i, j, k], VPredNorm[i, j, k])
-      cost = 0.0
-      for i in range(VReference.shape[0]):
-        for j in range(VReference.shape[1]):
-          for k in range(VReference.shape[2]):
-            cost += np.square(VRefNorm[i, j, k] - VPredNorm[i, j, k])
       self.raiseAMessage("Cost is : {}".format(cost))
 
   @property
@@ -320,6 +300,8 @@ class DMDC(DMD):
         evalX = evalX + self.stateVals[0, index, :]
         evalY = evalY + self.outputVals[0, index, :]
     return evalX, evalY
+
+  def _evaluateLocal(self,featureVals): return self.__evaluateLocal__(featureVals)
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -461,6 +443,66 @@ class DMDC(DMD):
                    'imaginary':" ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.imag.flatten().tolist()]),
                    "matrixShape":",".join(str(x) for x in np.shape(self.__Ctilde[smp, :, :]))}
         writeTo.addVector("Ctilde","realization",valDict, root=targNode, attrs=attributeDict)
+
+  def getSolutionMetadata(self):
+    """
+      Get solution metadata
+    """
+    solutionMetadata = {}
+
+
+    targNode = writeTo._findTarget(writeTo.getRoot(), target)
+    solutionMetadata["acturators"] = self.actuatorsID
+    solutionMetadata["stateVariables"] = self.stateID
+    solutionMetadata["initStateVariables"] = self.initStateID
+    solutionMetadata["outputs"] = self.outputID
+
+    solutionMetadata["dmdTimeScale"] = self._getTimeScale()
+    solutionMetadata["dataBySamples"] = []
+
+
+    for smp in range(self.stateVals.shape[1]):
+      solutionMetadata["dataBySamples"].append({})
+
+      attributeDict = {}
+      if len(self.parametersIDs):
+        attributeDict = {self.parametersIDs[index]:'%.6e' % self.parameterValues[smp,index] for index in range(len(self.parametersIDs))}
+      attributeDict["sample"] = str(smp)
+      solutionMetadata["dataBySamples"][-1]['attributeDict'] = attributeDict
+
+      if self.dmdParams['centerUXY']:
+        valCont = [elm for elm in self.actuatorVals[0, smp, :].T.flatten().tolist()]
+        solutionMetadata["dataBySamples"][-1]['UNorm'] = valCont
+
+      if self.dmdParams['centerUXY']:
+        valCont = [elm for elm in self.stateVals[0, smp, :].T.flatten().tolist()]
+        solutionMetadata["dataBySamples"][-1]['XNorm'] = valCont
+
+      if "XLast" in what:
+        valCont = [elm for elm in self.stateVals[-1, smp, :].T.flatten().tolist()]
+        solutionMetadata["dataBySamples"][-1]['XLast'] = valCont
+
+      if self.dmdParams['centerUXY']:
+        valCont = [elm for elm in self.outputVals[0, smp, :].T.flatten().tolist()]
+        solutionMetadata["dataBySamples"][-1]['YNorm'] = valCont
+
+      if True:
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Atilde[smp, :, :]))}
+        solutionMetadata["dataBySamples"][-1]['Atilde'] = valCont
+
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Btilde[smp, :, :]))}
+        solutionMetadata["dataBySamples"][-1]['Btilde'] = valCont
+
+      if len(self.outputID) > 0:
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Ctilde[smp, :, :]))}
+        solutionMetadata["dataBySamples"][-1]['Ctilde'] = valCont
+    return solutionMetadata
 
   def _evaluateMatrices(self, X1, X2, U, Y1, rankSVD):
     """

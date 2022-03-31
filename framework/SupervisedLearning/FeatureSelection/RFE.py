@@ -68,10 +68,13 @@ class RFE(BaseInterface):
         descr=r"""List of IDs of features/variables to exclude from the search.""", default=None))
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
         descr=r"""Number of features to select""", default=None))
+    spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
+                                                      descr=r"""Number of features to select""", default=None))
+    spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
+                                                      descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
+                                                      default=1e-4))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
         descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
-    spec.addSub(InputData.parameterInputFactory('applyOutputScore',contentType=InputTypes.BoolType,
-        descr=r"""use the output scores as additional selection metric""", default="False"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
                   of features to remove at each iteration. If within (0.0, 1.0), then step
@@ -84,9 +87,10 @@ class RFE(BaseInterface):
     self.printTag = 'FEATURE SELECTION - RFE'
     self.estimator = None
     self.nFeaturesToSelect = None
+    self.maxNumberFeatures = None
+    self.searchTol = None
     self.parametersToInclude = None
     self.whichSpace = "feature"
-    self.applyOutputScore = False
     self.step = 1
 
   def setEstimator(self, estimator):
@@ -104,19 +108,27 @@ class RFE(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','whichSpace','applyOutputScore'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect',
+                                                            'whichSpace','maxNumberFeatures','searchTol'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
+    self.maxNumberFeatures = nodes['maxNumberFeatures']
+    self.searchTol = nodes['searchTol']
     self.parametersToInclude = nodes['parametersToInclude']
-    self.applyOutputScore = nodes['applyOutputScore']
     self.whichSpace = nodes['whichSpace'].lower()
-    if self.step <= 0:
-      raise self.raiseAnError(ValueError, '"step" parameter must be > 0' )
+    # checks
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
-    if self.nFeaturesToSelect > len(self.parametersToInclude):
+    if self.nFeaturesToSelect is not None and self.maxNumberFeatures is not None:
+      raise self.raiseAnError(ValueError, '"nFeaturesToSelect" and "maxNumberFeatures" have been both set. They are mutually exclusive!' )
+    if self.nFeaturesToSelect and self.nFeaturesToSelect > len(self.parametersToInclude):
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" > number of parameters in "parametersToInclude"!' )
+    if self.maxNumberFeatures and self.maxNumberFeatures > len(self.parametersToInclude):
+      raise self.raiseAnError(ValueError, '"maxNumberFeatures" > number of parameters in "parametersToInclude"!' )
+    self.parametersToInclude = nodes['parametersToInclude']
+    if self.step <= 0:
+      raise self.raiseAnError(ValueError, '"step" parameter must be > 0' )
 
   def run(self, features, targets, X, y):
     """
@@ -173,23 +185,15 @@ class RFE(BaseInterface):
     mask = maskF if self.whichSpace == 'feature' else maskT
 
     # features to select
-    if self.nFeaturesToSelect is None:
+    nFeaturesToSelect = self.nFeaturesToSelect if self.nFeaturesToSelect is not None else self.maxNumberFeatures
+    # if both None ==> nFeatures/2
+    if nFeaturesToSelect is None:
       nFeaturesToSelect = nFeatures // 2
-      nFeaturesToSelect = nFeaturesToSelect if self.parametersToInclude is None else min(nFeaturesToSelect,nParams)
-    else:
-      nFeaturesToSelect = self.nFeaturesToSelect
-
-    #if maskT is not None and np.sum(maskT) > 0:
-    #  supportT_ = np.ones(nTargets, dtype=np.bool)
-    #  rankingT_ = np.ones(nTargets, dtype=np.int)
-    #else:
-    #  supportT_ = np.zeros(nTargets, dtype=np.bool)
-    #  rankingT_ = np.zeros(nTargets, dtype=np.bool)
+    nFeaturesToSelect = nFeaturesToSelect if self.parametersToInclude is None else min(nFeaturesToSelect,nParams)
 
     # get estimator parameter
     originalParams = self.estimator.paramInput
-    #if step_score:
-    #  self.scores_ = []
+
     # Elimination
     while np.sum(support_) > nFeaturesToSelect:
       # Remaining features
@@ -222,6 +226,7 @@ class RFE(BaseInterface):
         estimator.paramInput.findNodesAndSetValues(vals)
         estimator._handleInput(estimator.paramInput)
       estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+
       # Get coefs
       coefs = None
       if hasattr(estimator, 'featureImportances_'):
@@ -233,14 +238,8 @@ class RFE(BaseInterface):
       if coefs is None:
         coefs = np.ones(raminingFeatures)
 
-      # Get ranks
-      if coefs.ndim > 1:
-        ranks = np.argsort(np.sqrt(coefs).sum(axis=0))
-      else:
-        ranks = np.argsort(np.sqrt(coefs))
-
-      # for sparse case ranks is matrix
-      ranks = np.ravel(ranks)
+      # Get ranks (for sparse case ranks is matrix)
+      ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
 
       # Eliminate the worse features
       threshold = min(step, np.sum(support_) - nFeaturesToSelect)
@@ -250,6 +249,109 @@ class RFE(BaseInterface):
       # that have not been eliminated yet
       support_[featuresForRanking[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
+
+    # now we check if maxNumberFeatures is set and in case perform an additional reduction based on score
+    # removing the variables one by one
+    if self.maxNumberFeatures is not None:
+      threshold = len(featuresForRanking) - 1
+      print("threshold")
+      print(threshold)
+      print("ranks")
+      print(ranks)
+      print("coefs")
+      coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
+      print(coefs)
+      initialRanks = copy.deepcopy(ranks)
+      #######
+      # NEW SEARCH
+      actualScore = 0.0
+      previousScore = self.searchTol*2
+      add = 0
+      while abs(actualScore - previousScore)/previousScore > self.searchTol or np.sum(support_) == 1:
+        # Remaining features
+        supportIndex = 0
+        raminingFeatures = int(np.sum(support_))
+        featuresForRanking = np.arange(nParams)[support_]
+        for idx in range(len(supportOfSupport_)):
+          if mask[idx]:
+            supportOfSupport_[idx] = support_[supportIndex]
+            supportIndex=supportIndex+1
+        if self.whichSpace == 'feature':
+          features = np.arange(nFeatures)[supportOfSupport_]
+          targets = np.arange(nTargets)
+        else:
+          features = np.arange(nFeatures)
+          targets = np.arange(nTargets)[supportOfSupport_]
+        # Rank the remaining features
+        estimator = copy.deepcopy(self.estimator)
+        self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
+        toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+        survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+        vals = {}
+        if toRemove:
+          for child in originalParams.subparts:
+            if isinstance(child.value,list):
+              newValues = copy.copy(child.value)
+              for el in toRemove:
+                if el in child.value:
+                  newValues.pop(newValues.index(el))
+              vals[child.getName()] = newValues
+          estimator.paramInput.findNodesAndSetValues(vals)
+          estimator._handleInput(estimator.paramInput)
+        estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+
+        # evaluate
+        evaluated = estimator._evaluateLocal(X[:, features] if len(X.shape) < 3 else np.atleast_2d(X[0:1, :,features]))
+        score = 0.0
+        previousScore = actualScore
+        scores = {}
+        for target in evaluated:
+          if target in targetsIds:
+            tidx = targetsIds.index(target)
+            avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
+            if avg == 0: avg = 1
+            s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
+            scores[target] = s
+            score +=  s
+
+        # Get coefs
+        coefs = None
+        if hasattr(estimator, 'featureImportances_'):
+          importances = estimator.featureImportances_
+          cc = []
+          for imp in importances:
+            if imp in self.parametersToInclude:
+              cc.append(importances[imp])
+              if imp in scores:
+                cc[-1] = cc[-1]/(scores[imp]*2./raminingFeatures) if scores[imp] else cc[-1]/(2./raminingFeatures *1e-8)
+
+          coefs = np.asarray(cc)
+          if coefs.shape[0] == raminingFeatures:
+            coefs = coefs.T
+
+        if coefs is None:
+          coefs = np.ones(raminingFeatures)
+
+        # Get ranks (for sparse case ranks is matrix)
+        ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
+
+        ########
+        print("iter: {}. Score: {}".format( add, score))
+        actualScore = score
+        threshold = 1
+        #print(threshold)
+        #print (ranks)
+        #print(len(featuresForRanking))
+        #print(support_)
+        aaa = featuresForRanking[ranks]
+        print( support_[featuresForRanking[ranks][:]])
+
+        support_[featuresForRanking[ranks][:threshold]] = False
+        #print(support_)
+        ranking_[np.logical_not(support_)] += 1
+        #coefs = coefs[:,:threshold] if coefs.ndim > 1 else coefs[:threshold]
+        add+=1
+
 
     # Set final attributes
     supportIndex = 0
