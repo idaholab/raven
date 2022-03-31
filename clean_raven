@@ -3,10 +3,10 @@
 RAVEN_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CROW_DIR=${RAVEN_DIR}/crow
 
-rm -f ${RAVEN_DIR}/framework/contrib/AMSC/_amsc*.so \
-    ${RAVEN_DIR}/framework/contrib/AMSC/amsc*egg-info \
-    ${RAVEN_DIR}/framework/contrib/AMSC/amsc.py \
-    ${RAVEN_DIR}/framework/contrib/AMSC/amsc.pyc \
+rm -f ${RAVEN_DIR}/ravenframework/contrib/AMSC/_amsc*.so \
+    ${RAVEN_DIR}/ravenframework/contrib/AMSC/amsc*egg-info \
+    ${RAVEN_DIR}/ravenframework/contrib/AMSC/amsc.py \
+    ${RAVEN_DIR}/ravenframework/contrib/AMSC/amsc.pyc \
     ${RAVEN_DIR}/src/contrib/amsc_wrap.cxx \
     ${RAVEN_DIR}/src/contrib/amsc_wrap.cpp \
     ${RAVEN_DIR}/src/contrib/amsc.py \
@@ -14,17 +14,17 @@ rm -f ${RAVEN_DIR}/framework/contrib/AMSC/_amsc*.so \
 rm -Rf ${RAVEN_DIR}/build  \
    ${RAVEN_DIR}/crow/install/ \
    ${RAVEN_DIR}/install/
-find ${RAVEN_DIR}/framework  -name '*.pyc' -exec rm '{}' \;
+find ${RAVEN_DIR}/ravenframework  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/scripts  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/rook  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/tests  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/plugins  -name '*.pyc' -exec rm '{}' \;
-find ${RAVEN_DIR}/framework  -name '*.pyo' -exec rm '{}' \;
+find ${RAVEN_DIR}/ravenframework  -name '*.pyo' -exec rm '{}' \;
 find ${RAVEN_DIR}/scripts  -name '*.pyo' -exec rm '{}' \;
 find ${RAVEN_DIR}/rook  -name '*.pyo' -exec rm '{}' \;
 find ${RAVEN_DIR}/tests  -name '*.pyo' -exec rm '{}' \;
 find ${RAVEN_DIR}/plugins  -name '*.pyo' -exec rm '{}' \;
-find ${RAVEN_DIR}/framework  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/ravenframework  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/scripts  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/rook  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/tests  -name '__pycache__' -exec rm -Rf '{}' \;
