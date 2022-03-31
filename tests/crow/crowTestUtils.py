@@ -24,8 +24,8 @@ import importlib
 ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 print("ravenDir",ravenDir)
 ravenFrameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(ravenFrameworkDir)
-from utils import utils
+sys.path.append(ravenDir)
+from ravenframework.utils import utils
 #Get crow path loaded
 utils.find_crow(ravenFrameworkDir)
 

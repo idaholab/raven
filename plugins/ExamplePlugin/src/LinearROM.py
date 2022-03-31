@@ -20,8 +20,8 @@
 import numpy as np
 from scipy import interpolate
 
-from PluginBaseClasses.SupervisedLearningPlugin import SupervisedLearningPlugin
-from utils import InputData, InputTypes
+from ravenframework.PluginBaseClasses.SupervisedLearningPlugin import SupervisedLearningPlugin
+from ravenframework.utils import InputData, InputTypes
 
 class LinearROM(SupervisedLearningPlugin):
   """

@@ -46,10 +46,15 @@ except:
   eigen_flags = ""
 if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
-setup(name='raven_cxx',
+setup(name='raven_framework',
       version='2.1',
-      description='RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
-      package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules'},
+      description='RAVEN and RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
+      package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules', 'ravenframework': 'ravenframework'},
+      entry_points={
+          'console_scripts': [
+              'raven_framework = ravenframework.Driver:wheelMain'
+          ]
+      },
       ext_modules=[
           Extension('crow_modules._distribution1D',
                   ['src/crow_modules/distribution1D.i',
@@ -75,5 +80,6 @@ setup(name='raven_cxx',
                              'src/contrib/AMSC/UnionFind.cpp',
                              'src/contrib/AMSC/AMSC.cpp'],
                     include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
-      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object'],#+setuptools.find_packages('framework'),
+      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object']+['ravenframework.'+x for x in ['Application', 'ClassProperty', 'CodeInterfaceBaseClass', 'CodeInterfaces', 'CsvLoader', 'CustomCommandExecuter', 'Distributions', 'Driver', 'EntityFactoryBase', 'Files', 'Functions', 'GridEntities', 'IndexSets', 'Interaction', 'JobHandler', 'MessageHandler', 'MetricDistributor', 'OrthoPolynomials', 'PluginManager', 'Quadratures', 'Simulation', 'VariableGroups', 'h5py_interface_creator', 'raven_qsub_command', 'unSupervisedLearning']],
+      packages=['ravenframework.'+x for x in setuptools.find_packages('ravenframework')],
       cmdclass={'build': CustomBuild})

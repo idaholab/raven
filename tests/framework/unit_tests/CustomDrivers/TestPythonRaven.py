@@ -28,7 +28,7 @@ sys.path.append(frameworkDir)
 frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, 'tests', 'framework'))
 targetWorkflow = os.path.join(frameworkTestDir, 'basic.xml')
 
-from framework import Raven
+from ravenframework import Raven
 
 
 class TestPythonRaven(unittest.TestCase):
