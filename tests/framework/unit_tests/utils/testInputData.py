@@ -15,10 +15,10 @@
 import os
 import sys
 
-frameworkPath = os.path.join(os.path.dirname(__file__), *(['..']*4), 'framework')
-sys.path.append(frameworkPath)
+ravenPath = os.path.join(os.path.dirname(__file__), *(['..']*4))
+sys.path.append(ravenPath)
 
-from utils import InputData
+from ravenframework.utils import InputData
 print('Testing:', InputData)
 
 results = {'pass':0, 'fail':0}
@@ -27,12 +27,12 @@ results = {'pass':0, 'fail':0}
 # Test InputData creating LaTeX
 #
 # load libraries for all of RAVEN
-from CustomDrivers import DriverUtils
-DriverUtils.setupCpp()
+from ravenframework.CustomDrivers import DriverUtils
+DriverUtils.doSetup()
 DriverUtils.setupBuiltins()
 
 # test MultiRun Step
-import Steps
+from ravenframework import Steps
 
 # write tex
 stepSpec = Steps.factory.returnClass('MultiRun').getInputSpecification()()

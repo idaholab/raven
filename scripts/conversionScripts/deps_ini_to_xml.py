@@ -8,7 +8,7 @@ import sys
 import configparser
 import xml.etree.ElementTree as ET
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'framework')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'ravenframework')))
 from utils import xmlUtils
 
 def readConfig(inFile):
