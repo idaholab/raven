@@ -17,10 +17,13 @@ Adopted from RavenUtils.py
 """
 import os
 import sys
+import re
 import platform
 import argparse
 import subprocess
 from collections import OrderedDict
+import xml.etree.ElementTree as ET
+# NOTE: DO NOT use xmlUtils here! we need to avoid importing any non-standard Python library!
 
 from update_install_data import loadRC
 import plugin_handler as pluginHandler
@@ -30,12 +33,6 @@ if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
   impErr = ModuleNotFoundError
 else:
   impErr = ImportError
-
-# python 2.X uses a different capitalization for configparser
-try:
-  import configparser
-except impErr:
-  import ConfigParser as configparser
 
 try:
   # python 3.8+ includes this in std lib
@@ -57,9 +54,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # some bad actors can't use the metadata correctly
 # and so need special treatment
 # -> see findLibAndVersion
-metaExceptions = ['pyside2', 'AMSC']
-
-skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
+metaExceptions = ['pyside2', 'AMSC', 'PIL']
 
 # load up the ravenrc if it's present
 ## TODO we only want to do this once, but does it need to get updated?
@@ -96,26 +91,72 @@ def checkLibraries(buildReport=False):
     @ Out, missing, list(tuple(str, str)), list of missing libraries and needed versions
     @ Out, notQA, list(tuple(str, str, str)), mismatched versions as (libs, need version, found version)
   """
-  missing = []
-  notQA = []
+  missing = []  # libraries that are not present, that should be
+  notQA = []    # libraries that are not the correct version, but are present
   plugins = pluginHandler.getInstalledPlugins()
   need = getRequiredLibs(plugins=plugins)
   messages = []
-  for lib, needVersion in need.items():
+  for lib, request in need.items():
     # some libs aren't checked from within python
-    if lib in skipChecks:
+    if request['skip_check']:
       continue
+    needVersion = request['version']
     found, msg, foundVersion = checkSingleLibrary(lib, version=needVersion)
     if not found:
       missing.append((lib, needVersion))
       continue
-    if needVersion is not None and foundVersion != needVersion:
+    if needVersion is not None and not checkSameVersion(needVersion, foundVersion):
       notQA.append((lib, needVersion, foundVersion))
     if buildReport:
       messages.append((lib, found, msg, foundVersion))
   if buildReport:
     return messages
   return missing, notQA
+
+def parseVersion(versionString):
+  """
+    Parses a version string into its components
+    @ In, versionStirng, str, the version string to parse
+    @ Out, version, list, list of components as integers and strings
+  """
+  version = []
+  for part in re.split(r'([0-9]+|[a-z]+|\.)',versionString):
+    if len(part) == 0 or part == ".":
+      continue
+    try:
+      version.append(int(part))
+    except ValueError:
+      version.append(part)
+  return version
+
+def checkSameVersion(expected, received):
+  """
+    Compares "expected" to "received" for a version match.
+    @ In, expected, str, expected library version
+    @ In, received, str, received library version
+    @ Out, checkSameVersion, bool, True if libraries are the same version
+  """
+  # if identical, they're the same
+  if expected == received:
+    return True
+  # A.B.C versioning -> 1.1.0 should match 1.1
+  expected = expected.replace("dev0", "0")
+  received = received.replace("dev0", "0")
+  expSplit = [int(x) for x in expected.split('.')]
+  #Only check as many digits as given in expSplit
+  rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
+  # drop trailing 0s on both
+  while expSplit[-1] == 0:
+    expSplit.pop()
+  while rcvSplit[-1] == 0:
+    rcvSplit.pop()
+  exp = '.'.join(str(x) for x in expSplit)
+  rcv = '.'.join(str(x) for x in rcvSplit)
+  if exp == rcv:
+    return True
+  return False
+
+
 
 def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
@@ -172,6 +213,8 @@ def findLibAndVersion(lib, version=None):
     elif lib == 'AMSC':
       # FIXME improve AMSC setup.py so it's compatible with importlib_metadata!
       return findLibAndVersionSubprocess('AMSC')
+    elif lib == 'PIL':
+      return findLibAndVersionSubprocess('PIL')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
   return found, output, foundVersion
@@ -213,32 +256,52 @@ def findLibAndVersionSubprocess(lib, version=None):
       foundVersion = None
   return True, foundExists, foundVersion
 
-def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=None, plugins=None):
+def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limitSources=None, plugins=None):
   """
     Assembles dictionary of required libraries.
     @ In, useOS, str, optional, if provided then assume given operating system
     @ In, installMethod, str, optional, if provided then assume given install method
     @ In, addOptional, bool, optional, if True then add optional libraries to list
-    @ In, limit, list(str), optional, limit sections that are read in
+    @ In, limitSources, list(str), optional, limit sections that are read in
     @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to
                    the required libs
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
-  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
-                                                                   '..', 'dependencies.ini')))
-  config = _readDependencies(mainConfigFile)
+  if plugins is None:
+    plugins = []
   opSys = _getOperatingSystem(override=useOS)
   install = _getInstallMethod(override=installMethod)
-  libs = _parseLibs(config, opSys, install, addOptional=addOptional, limit=limit)
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.xml')))
+  sourceFiles = [mainConfigFile]
+  for pluginName, pluginLoc in plugins:
+    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.xml')
+    if os.path.isfile(pluginConfigFile):
+      sourceFiles.append(pluginConfigFile)
+  libs = _combineSources(sourceFiles, opSys, install, addOptional=addOptional, limitSources=limitSources)
+  return libs
+
+def getSkipCheckLibs(plugins=None):
+  """
+    Assembles dictionary of libraries that would not be checked.
+    @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to
+                   the required libs
+    @ Out, skipCheckLibs, dict, dictionary of libraries {name: version}
+  """
+  skipCheckLibs = OrderedDict()
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.xml')))
+  config = _readDependencies(mainConfigFile)
+  if config.has_section('skip-check'):
+    _addLibsFromSection(config.items('skip-check'), skipCheckLibs)
   # extend config with plugin libs
   for pluginName, pluginLoc in plugins:
     pluginConfigFile = os.path.join(pluginLoc, 'dependencies.ini')
     if os.path.isfile(pluginConfigFile):
       pluginConfig = _readDependencies(pluginConfigFile)
-      pluginLibs = _parseLibs(pluginConfig, opSys, install, addOptional=addOptional, limit=limit)
-      pluginLibs = _checkForUpdates(libs, pluginLibs, pluginName)
-      libs.update(pluginLibs)
-  return libs
+      if pluginConfig.has_section('skip-check'):
+        _addLibsFromSection(pluginConfig.items('skip-check'), skipCheckLibs)
+  return skipCheckLibs
 
 def _checkForUpdates(libs, pluginLibs, pluginName):
   """
@@ -326,60 +389,128 @@ def _getInstallMethod(override=None):
   # no suggestion given, so we assume conda
   return 'conda'
 
-def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=None):
+def _combineSources(sources, opSys, install, addOptional=False, limitSources=None):
   """
     Parses config file to get libraries to install, using given options.
-    @ In, config, configparser.ConfigParser, read-in dependencies
+    @ In, sources, list(str), full-path dependency file locations
     @ In, opSys, str, operating system (not checked)
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
-    @ In, limit, list(str), optional, if provided then only read the given sections
-    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config)
                    that should be added to the parsing
-    @ Out, libs, dict, dictionary of libraries {name: version}
+    @ In, limitSources, list(str), optional, limit sections that are read in
+    @ Out, config, dict, dictionary of libraries {name: version}
   """
-  libs = OrderedDict()
-  # get the main libraries, depending on request
-  for src in ['core', 'forge', 'pip']:
-    if config.has_section(src) and (True if limit is None else (src in limit)):
-      _addLibsFromSection(config.items(src), libs)
-  # os-specific are part of 'core' right now
-  if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
-    _addLibsFromSection(config.items(opSys), libs)
-  # optional are part of 'core' right now, but leave that up to the requester?
-  if addOptional and config.has_section('optional'):
-    _addLibsFromSection(config.items('optional'), libs)
-  if install == 'pip' and config.has_section('pip-install'):
-    _addLibsFromSection(config.items('pip-install'), libs)
-  return libs
-
-def _addLibsFromSection(configSection, libs):
-  """
-    Reads in libraries for a section of the config.
-    @ In, configSection, dict, libs: versions
-    @ In, libs, dict, libraries tracking dict
-    @ Out, None (changes libs in place)
-  """
-  for lib, version in configSection:
-    #if lib not in configSection:
-    #  return
-    if version == 'remove':
-      libs.pop(lib, None)
+  config = {}
+  toRemove = []
+  for source in sources:
+    requestor = os.path.basename(os.path.dirname(source))
+    src = _readDependencies(source)
+    # always load main, if present
+    root = src.find('main')
+    if root is not None:
+      for libNode in root:
+        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor)
+    # if using alternate install, load modifications
+    ## find matching install node, if any
+    for candidate in src.findall('alternate'):
+      if candidate.attrib['name'] == install:
+        altRoot = candidate
+        break
     else:
-      # python 3 fix to work with python 2 syntax
-      if version is not None and version.strip() == '':
-        version = None
-      libs[lib] = version
+      altRoot = None
+    if altRoot is not None:
+      for libNode in altRoot:
+        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor)
+  # remove stuff in toRemove
+  for entry in toRemove:
+    config.pop(entry, None)
+  return config
+
+def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor):
+  """
+    Reads a single library request node into existing config
+    @ In, libNode, xml.etree.ElementTree.Element, node with library request
+    @ In, config, dict, mapping of existing configuration requests
+    @ In, toRemove, list, list of library names to be remeoved at the end
+    @ In, opSys, str, operating system (not checked)
+    @ In, install, str, installation method (not checked)
+    @ In, addOptional, bool, optional, if True then include optional libraries
+    @ In, limitSources, list(str), limit sources to those in this list (or defaults if None)
+    @ In, requestor, str, name of requesting plugin (for error verbosity)
+    @ Out, None
+  """
+  tag = libNode.tag
+  # FIXME check if library already in the toRemove pile; if so, don't check it?
+  # check OS
+  ## note that None means "mac,os,linux" in this case
+  libOS = libNode.attrib.get('os', None)
+  # does library have a specified OS?
+  if libOS is not None:
+    # if this library's OS's don't match the requested OS, then we move on
+    if opSys not in [x.lower().strip() for x in libOS.split(',')]:
+      return # nothing to do
+  # check optional
+  ## note that None means "not optional" in this case
+  ## further note anything besides "True" is taken to mean "not optional"
+  libOptional = libNode.attrib.get('optional', None)
+  if libOptional is not None and libOptional.strip().lower() == 'true' and not addOptional:
+    return # nothing to do
+  # check limited sources
+  libSource = libNode.attrib.get('source', None)
+  if libSource is None:
+    libSource = 'forge' # DEFAULT
+  if limitSources is not None and libSource not in limitSources:
+    return # nothing to do
+  # otherwise, we have a valid request to handle
+  text = libNode.text
+  if text is not None:
+    text = text.strip().lower()
+  # check for removal
+  ## this says the library should be removed from the existing list, which we do at the end!
+  if text == 'remove':
+    toRemove.append(tag)
+    return
+  libVersion = text
+  libSkipCheck = libNode.attrib.get('skip_check', None)
+  request = {'skip_check': libSkipCheck, 'version': libVersion, 'requestor': requestor}
+  pipExtra = libNode.attrib.get('pip_extra', None)
+  if pipExtra is not None:
+    request['pip_extra'] = pipExtra
+  # does this entry already exist?
+  if tag in config:
+    existing = config[tag]
+    okay = True # tracks if duplicate entry is okay or error needs raising
+    # check if either existing or requested is default (None) for each of the dictionary entries
+    for entry, requestValue in request.items():
+      if entry in ['requestor']:
+        continue
+      existValue = existing[entry]
+      # duplicates might be okay; for example, if the request/existing are identical
+      if requestValue != existValue:
+        # also okay if one of them is None (defaulting)
+        if None in [requestValue, existValue]:
+          # at least one is defaulting, so use the non-default one
+          if requestValue is None:
+            request[entry] = existValue
+          # if existValue is None, then keep the requestValue
+        else:
+          # there is a request conflict
+          print('ERROR: Dependency "{t}" has conflicting requirements for "{e}"'.format(t=tag, e=entry),
+                '({ev} in "{es}" vs {rv} in "{rs}")!'.format(ev=existValue, es=existing['requestor'], rv=requestValue, rs=requestor))
+          okay = False
+    if not okay:
+      raise KeyError('There were errors resolving library handling requests; see above.')
+  # END if tag in config
+  config[tag] = request
 
 def _readDependencies(initFile):
   """
     Reads in the library list using config parsing.
     @ In, None
-    @ Out, configparser.ConfigParser, configurations read in
+    @ Out, xml.etree.ElementTree.Element, configurations read in the most basic form
   """
-  config = configparser.ConfigParser(allow_no_value=True)
-  config.read(initFile)
-  return config
+  root = ET.parse(initFile).getroot()
+  return root
 
 if __name__ == '__main__':
   mainParser = argparse.ArgumentParser(description='RAVEN Library Handler')
@@ -450,7 +581,8 @@ if __name__ == '__main__':
     libs = getRequiredLibs(useOS=args.useOS, installMethod='conda',
                            addOptional=args.addOptional, plugins=plugins)
     msg = '\\begin{itemize}\n'
-    for lib, version in libs.items():
+    for lib, request in libs.items():
+      version = request['version']
       msg += '  \\item {}{}\n'.format(
              lib.replace('_', '\\_'), ('' if version is None else '-'+version))
     msg += '\\end{itemize}'
@@ -458,31 +590,29 @@ if __name__ == '__main__':
   else:
     # provide an installation command
     preamble = '{installer} {action} {args} '
+    equalsTail = '' #if something is needed after an equals
     if args.installer == 'conda':
       installer = 'conda'
       equals = '='
       actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
-      if args.subset == 'core':
-        # no special source
-        src = ''
+      if args.subset == 'core' or args.subset == 'forge':
+        # from defaults
+        src = '-c conda-forge'
         addOptional = args.addOptional
-        limit = ['core']
-      elif args.subset == 'forge':
-        # take libs from conda-forge
-        src = '-c conda-forge '
-        addOptional = False
         limit = ['forge']
       elif args.subset == 'pip':
         src = ''
         installer = 'pip'
+        equals = '=='
+        equalsTail = '.*'
         actionArgs = ''
         addOptional = False
         limit = ['pip']
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='conda',
                              addOptional=addOptional,
-                             limit=limit,
+                             limitSources=limit,
                              plugins=plugins)
       # conda can create, install, or list
       if args.action == 'create':
@@ -490,25 +620,32 @@ if __name__ == '__main__':
       elif args.action == 'install':
         action = 'install'
       elif args.action == 'list':
+        action = 'list'
         preamble = ''
       actionArgs = actionArgs.format(env=envName, src=src)
     elif args.installer == 'pip':
       installer = 'pip3'
       equals = '=='
+      equalsTail = '.*'
       actionArgs = ''
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='pip',
                              addOptional=args.addOptional,
-                             limit=None,
+                             limitSources=None,
                              plugins=plugins)
       if args.action == 'install':
         action = 'install'
       elif args.action == 'list':
+        action = 'list'
         preamble = ''
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{ver}'
+    libTexts = ' '.join(['{lib}{extra}{ver}'
                          .format(lib=lib,
-                                 ver=('{}{}'.format(equals, ver) if ver is not None else ''))
-                         for lib, ver in libs.items()])
-    print(preamble + libTexts)
+                                 extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
+                                 ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
+                         for lib, request in libs.items()])
+    if len(libTexts) > 0:
+      print(preamble + libTexts)
+    else:
+      print("echo no libs")

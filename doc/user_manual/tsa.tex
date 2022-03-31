@@ -1,0 +1,145 @@
+\newcommand{\tsaList}[0]
+{
+In addition, any number of the following TSA algorithms may be included as subnodes:
+
+\begin{itemize}
+  %%%%% Wavelet %%%%%
+\item \xmlNode{Wavelet} performs a discrete wavelet transform on time-dependent
+  data. Note: This TSA module requires pywavelets to be installed within your
+  python environment.
+  \begin{itemize}
+  \item \xmlAttr{target}, \xmlDesc{comma sperated string, require field},
+    indicates which target signals should be trained as part of this entity using this
+    TSA algorithm.
+  \item \xmlNode{family}, \xmlDesc{string, required field}, indicates which family
+    of wavelets to use.
+
+    There are several possible families to choose from, and most families contain
+    more than one variation. For more information regarding the wavelet families,
+    refer to the Pywavelets documentation.
+
+    Possible values are:
+    \begin{itemize}
+    \item \textbf{haar family}: haar
+    \item \textbf{db family}: db1, db2, db3, db4, db5, db6, db7, db8, db9, db10, db11,
+      db12, db13, db14, db15, db16, db17, db18, db19, db20, db21, db22, db23,
+      db24, db25, db26, db27, db28, db29, db30, db31, db32, db33, db34, db35,
+      db36, db37, db38
+    \item \textbf{sym family}: sym2, sym3, sym4, sym5, sym6, sym7, sym8, sym9, sym10,
+      sym11, sym12, sym13, sym14, sym15, sym16, sym17, sym18, sym19, sym20
+    \item \textbf{coif family}: coif1, coif2, coif3, coif4, coif5, coif6, coif7, coif8,
+      coif9, coif10, coif11, coif12, coif13, coif14, coif15, coif16, coif17
+    \item \textbf{bior family}: bior1.1, bior1.3, bior1.5, bior2.2, bior2.4, bior2.6,
+      bior2.8, bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4, bior5.5,
+      bior6.8
+    \item \textbf{rbio family}: rbio1.1, rbio1.3, rbio1.5, rbio2.2, rbio2.4, rbio2.6,
+      rbio2.8, rbio3.1, rbio3.3, rbio3.5, rbio3.7, rbio3.9, rbio4.4, rbio5.5,
+      rbio6.8
+    \item \textbf{dmey family}: dmey
+    \item \textbf{gaus family}: gaus1, gaus2, gaus3, gaus4, gaus5, gaus6, gaus7, gaus8
+    \item \textbf{mexh family}: mexh
+    \item \textbf{morl family}: morl
+    \item \textbf{cgau family}: cgau1, cgau2, cgau3, cgau4, cgau5, cgau6, cgau7, cgau8
+    \item \textbf{shan family}: shan
+    \item \textbf{fbsp family}: fbsp
+    \item \textbf{cmor family}: cmor
+    \end{itemize}
+  \end{itemize}
+  %%%%% PolynomialRegression %%%%%
+\item \xmlNode{PolynomialRegression} fits time-series data using a polynomial function of degree one or greater.
+
+  \xmlNode{PolynomialRegression} has the following attributes:
+  \begin{itemize}
+    \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
+        target signals should be trained as part of this entity using this TSA algorithm.
+  \end{itemize}
+
+  \xmlNode{PolynomialRegression} has the following subnodes:
+  \begin{itemize}
+  \item \xmlNode{degree}, \xmlDesc{integer, required field}, indicates which
+    degree of polynomial to fit to the presented data.
+  \end{itemize}
+
+  %%%%% FOURIER %%%%%
+  \item \xmlNode{Fourier} uses regression to fit requested Fourier bases by their amplitudes to
+    deterministically match the training signal. Fourier signals are defined with the following form:
+    \begin{equation*}
+      F_m(t) = C_m\sin\left( \frac{2\pi}{k_m}t + \phi_m\right)
+    \end{equation*}
+    where $m$ indexes a particular base period $k_m$, $C_m$ is the amplitude of this Fourier base in the
+    training signal, and $\phi_m$ is the phase shift of this Fourier base in the training signal.
+
+    \xmlNode{Fourier} has the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
+        target signals should be trained as part of this entity using this TSA algorithm.
+      \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
+        random number generation in this algorithm. Unused for the Fourier TSA algorithm.
+    \end{itemize}
+    \xmlNode{Fourier} further has the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{periods}, \xmlDesc{comma separated floats, required field}, indicates which base
+        periods whose Fourier representations should be fit to the training signal. For example, in
+        a signal with hourly measurements, selecting the period \xmlString{12, 24} would fit the daily
+        (24-hour) and half-daily (12-hour) periodic trends.
+    \end{itemize}
+
+  %%%%% ARMA %%%%%
+  \item \xmlNode{ARMA} characterizes the signal using Auto-Regressive and Moving Average
+    coefficients to stochastically fit the training signal.
+    The ARMA representation has the following form:
+    \begin{equation*}
+      A_t = \sum_{i=1}^P \phi_i A_{t-i} + \epsilon_t + \sum_{j=1}^Q \theta_j \epsilon_{t-j},
+    \end{equation*}
+    where $t$ indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
+    coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
+    term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+    noise lag terms to consider. The ARMA algorithms are developed in RAVEN using the
+    \texttt{statsmodels} Python library.
+
+    \xmlNode{ARMA} has the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
+        target signals should be trained as part of this entity using this TSA algorithm.
+      \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
+        random number generation in this algorithm. This applies both to the training and sampling of this
+        algorithm.
+      \item \xmlAttr{reduce\_memory}, \xmlDesc{boolean, optional field}, activates a lower memory
+        usage ARMA training. This does tend to result
+        in a slightly slower training time, at the benefit of lower memory usage. For
+        example, in one 1000-length history test, low memory reduced memory usage by 2.3
+        MiB (80\%), but increased training time by 0.4 seconds (20\%). No change in results has been
+        observed switching between modes. Note that the ARMA must be
+        retrained to change this property; it cannot be applied to serialized ARMAs.
+        \default{False}
+    \end{itemize}
+    \xmlNode{ARMA} further has the following subnodes:
+    \begin{itemize}
+    \item \xmlNode{SignalLag}, \xmlDesc{integer, required field}, number of signal
+      lag terms to include in the autoregression term.
+    \item \xmlNode{NoiseLag}, \xmlDesc{integer, required field}, number of noise
+      lag terms to include in the moving average term.
+    \end{itemize}
+    \item \xmlNode{RWD} characterizes the signal using Randomized Window
+      Decomposition. This algorithm leverages the \xmlNode{PostProcessor} subtype
+      \xmlAttr{TSACharacterizer}. This algorithm can only characterize, it cannot
+      generate data.
+      \xmlNode{RWD} has the following parameters:
+      \begin{itemize}
+      \item \xmlNode{signatureWindowLength} \xmlDesc{integer, required field} the
+        size of signature window, which represents as a snapshot for a certain
+        time step; typically represented as $w$ in literature.
+      \item \xmlNode{featureIndex} \xmlDesc{integer, required field} Index used
+        for feature selection, which requires pre-analysis for now, will be
+        addresses via other non human work required method.
+      \item \xmlNode{sampleType} \xmlDesc{integer, required field} Determines the
+        type of sampling to perform indicated by an integer value given ranging from $0$ to $2$.
+        \begin{itemize}
+        \item $0 = \text{Sequential Sampling}$
+        \item $1 = \text{Random Sampling}$
+        \item $2 = \text{Piecewise Sampling}$
+        \end{itemize}
+        \item \xmlNode{seed} \xmlDesc{integer} Indicating the random seed.
+      \end{itemize}
+\end{itemize}
+}

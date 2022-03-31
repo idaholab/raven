@@ -1,0 +1,325 @@
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%% MELCOR INTERFACE %%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MELCOR Interface}
+\label{subsec:MELCORInterface}
+
+The current implementation of MELCOR interface is valid for MELCOR 2.1/2.2; its validity for MELCOR
+1.8 is \textbf{not been tested}.
+
+\subsubsection{Sequence}
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first multirun ``Grid\_Sampler'' and the second
+multirun ``MC\_Sampler'' in the sequence section we should see this:
+\begin{lstlisting}[style=XML]
+<Sequence>Grid_Sampler,MC_Sampler</Sequence>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{batchSize and mode}
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below:
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>Grid_Sampler,MC_Sampler</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+\end{lstlisting}
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simultaneous (parallel) instances
+of MELCOR are going to be executed when a sampling strategy is employed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of MELCOR, the files typically needed are:
+\begin{itemize}
+  \item MELCOR Input file (file extension ``.i'' or ``.inp'')
+  \item Restart file (if present)
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='melcorInputFile' type=''>inputFileMelcor.i</Input>
+  <Input name='aRestart' type=''>restartFile</Input>
+</Files>
+\end{lstlisting}
+
+It is a good practice to put inside the working directory (\xmlNode{WorkingDir}) all of these files.
+
+\textcolor{red}{
+\textbf{It is important to notice that the interface output collection  (i.e., the parser of the MELCOR output)
+currently is able to extract \textit{CONTROL VOLUME HYDRODYNAMICS EDIT AND CONTROL FUNCTION EDIT} data only. Only those
+variables are going to be exported and make available to RAVEN.
+In addition, it is important to notice that:}
+\begin{itemize}
+  \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
+  \item \textbf{all the variables specified in the \textit{CONTROL VOLUME HYDRODYNAMICS EDIT}
+   block are going to be converted using underscores. For example, the following EDITs:}
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{ccccc}
+        VOLUME & PRESSURE & TLIQ   & TVAP   & MASS     \\
+                & PA       & K      & K      & KG       \\
+             1      & 1.00E+07 & 584.23 & 584.23 & 1.66E+03
+     \end{tabular}
+    \end{table}
+    \\\textbf{will be converted in the following way (CSV):}
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{ccccc}
+         $time$ & $volume\_1\_PRESSURE$& $volume\_1\_TLIQ$ & $volume\_1\_TVAP$   & $volume\_1\_MASS$     \\
+             1.0   & 1.00E+07 & 584.23 & 584.23 & 1.66E+03
+     \end{tabular}
+    \end{table}
+\end{itemize}
+}
+
+CONTROL FUNCTION EDIT data will not be converted in this manner. All data will be labeled using a label identical to what was entered in the MELCOR input file, with no changes.
+
+Remember also that a MELCOR simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the
+following message:
+
+\textcolor{red}{Normal termination}
+
+If the a MELCOR simulation run stops with messages other than this one than the simulation is considered as
+crashed, i.e., it will not be saved.
+Hence, it is strongly recommended to set up the MELCOR input file so that the simulation exiting conditions are set through control logic
+trip variables.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the \xmlNode{Models} block here is a standard example of how it would look
+when using MELCOR 2.1/2.2 as the external code:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyMELCOR' subType='Melcor'>
+    <executable>~/path_to_the_executable_of_melcor</executable>
+    <preexec>~/path_to_the_executable_of_melgen</preexec>
+  </Code>
+</Models>
+\end{lstlisting}
+As it can be seen above, the \xmlNode{preexec} node must be specified, since MELCOR 2.1/2.2 must run the MELGEN utility
+code before executing. Once the \xmlNode{preexec} node is inputted, the execution of MELGEN is performed automatically by the Interface.
+\\In addition, if some command line parameters need to be passed to MELCOR, the user might use (optionally) the \xmlNode{clargs} XML nodes.
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyMELCOR' subType='Melcor'>
+    <executable>~/path_to_the_executable_of_melcor</executable>
+    <preexec>~/path_to_the_executable_of_melgen</preexec>
+    <clargs type="text" arg="-r whatever command line instruction"/>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers}
+block.
+%
+For all the possible distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we report an example of a Normal distribution:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+    <Normal name="temper">
+      <mean>1.E+7</mean>
+      <sigma>1.5</sigma>
+      <upperBound>9.E+6</upperBound>
+      <lowerBound>1.1E+7</lowerBound>
+    </Normal>
+ </Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the \xmlNode{Samplers} block we want to define the variables that are going
+to be sampled.
+%
+\textbf{Example}:
+We want to do the sampling of 1 single variable:
+\begin{itemize}
+  \item The in pressure ($P\_in$) of a control volume regulated by a Tabular Function $TF\_TAB$
+\end{itemize}
+
+We are going to sample this variable using two different sampling methods:
+Grid and MonteCarlo.
+
+The interface of MELCOR uses the \textbf{\textit{GenericCode}} (see section \ref{subsec:genericInterface})
+interface for the input perturbation; this means that the original input file (listed in the \xmlNode{Files} XML block)
+needs to implement wild-cards.
+%
+In this example we are sampling the variable:
+\begin{itemize}
+  \item \textit{PRE}, which acts on the Tabular Function $TF\_TAB$ whose $TF\_ID $ is $P\_in$.
+\end{itemize}
+
+We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <Grid name='Grid_Sampler' >
+    <variable name='PRE'>
+      <distribution>temper</distribution>
+      <grid type='CDF' construction='equal'  steps='10'>0.001 0.999</grid>
+    </variable>
+  </Grid>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit>
+       <limit>1000</limit>
+     </samplerInit>
+    <variable name='PRE'>
+      <distribution>temper</distribution>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+It can be seen that each variable is connected with a proper distribution
+defined in the \\\xmlNode{Distributions} block (from the previous example).
+%
+The following demonstrates how the input for the variable is read.
+
+We are sampling a variable whose wild-card in the original input file is named $\$RAVEN-PRE\$$
+using a Grid sampling method.
+%
+The distribution that this variable is following is a Normal distribution
+(see section above).
+%
+We are sampling this variable beginning from 0.001 (CDF) in 10 \textit{equal} steps of
+0.0998 (CDF).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MELCOR interface, the \xmlNode{MultiRun} step type will most likely be
+used.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item MELCOR input file
+  \item any other file needed by the calculation (e.g. restart file)
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyMELCOR</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+\end{lstlisting}
+Following is the example of two MultiRun steps which use different sampling
+methods (Grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+    <Model   class='Models'    type='Code'>MyMELCOR</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >GridMelcorPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>GridMelcorHistorySet</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type=''>inputFileMelcor.i</Input>
+    <Input   class='Files' type=''>restartFile</Input>
+    <Model   class='Models'    type='Code'>MyMELCOR</Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >MonteCarloMelcorPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>MonteCarloMelcorHistorySet</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Databases}
+As shown in the \xmlNode{Steps} block, the code is creating two database objects
+called \texttt{Grid\_out} and \texttt{MC\_out}.
+%
+So the user needs to input the following:
+\begin{lstlisting}[style=XML]
+<Databases>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
+</Databases>
+\end{lstlisting}
+As listed before, this will create two databases.
+%
+The files will have names corresponding to their \xmlAttr{name} appended with
+the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{DataObjects}
+As shown in the \xmlNode{Steps} block, the code is creating $4$ data objects ($2$ HistorySet and $2$ PointSet)
+called \texttt{GridMelcorPointSet} \texttt{GridMelcorHistorySet} \texttt{MonteCarloMelcorPointSet} and
+ \texttt{MonteCarloMelcorHistorySet}.
+%
+So the user needs to input the following block as well, where the Input and Output variables are listed:
+\begin{lstlisting}[style=XML]
+  <DataObjects>
+    <PointSet name="GridMelcorPointSet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </PointSet>
+    <HistorySet name="GridMelcorHistorySet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </HistorySet>
+    <PointSet name="MonteCarloMelcorPointSet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </PointSet>
+    <HistorySet name="MonteCarloMelcorHistorySet">
+      <Input>PRE</Input>
+      <Output>
+        time,volume_1_PRESSURE,volume_1_TLIQ,
+        volume_1_TVAP,volume_1_MASS
+      </Output>
+    </HistorySet>
+  </DataObjects>
+\end{lstlisting}
+As mentioned before, this will create $4$ DataObjects.

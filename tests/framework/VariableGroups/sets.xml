@@ -21,6 +21,7 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-09-25">implicit nested group usage instead of explicit</revision>
+      <revision author="talbpaul" date="2020-10-15">empty vg with comment</revision>
     </revisions>
   </TestInfo>
 
@@ -34,6 +35,8 @@
     <Group name="complement">x_odd, -x_first</Group>
     <Group name="intersect">x_even, ^x_first</Group>
     <Group name="sym_diff">x_odd, % x_first</Group>
+    <Group name="empty"> <!-- comment --></Group>
+    <Group name="emptier"/>
   </VariableGroups>
 
   <Distributions>
@@ -112,7 +115,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="addrem">
-      <Input>add_remove</Input>
+      <Input>add_remove, empty</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="uni">

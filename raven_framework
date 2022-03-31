@@ -47,6 +47,13 @@ do
     --skip-conda)
       SKIP_CONDA=0
       ;;
+    --profile)
+      # run profiling using kernprof
+      # note that methods to profile should be decorated with @profile
+      # see https://github.com/pyutils/line_profiler
+      # see also https://stackoverflow.com/questions/23885147/how-do-i-use-line-profiler-from-robert-kern
+      MODE='profile'
+      ;;
     *)
       # otherwise, pass through arguments to Driver.py
       ARGS[${#ARGS[@]}]="$1"
@@ -59,6 +66,7 @@ if [[ ! $SKIP_CONDA == 0 ]]; then
 else
   source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet --installation-manager PIP
 fi
+
 PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 # if there's no file to run after parsing arguments, run "help" after warning of the problem.
@@ -72,11 +80,15 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    $PYTHON_COMMAND -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    $PYTHON_COMMAND -O $RAVEN_DIR/raven_framework.py "${ARGS[@]}"
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    $PYTHON_COMMAND $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    $PYTHON_COMMAND $RAVEN_DIR/raven_framework.py "${ARGS[@]}"
+    ;;
+  'profile' )
+    echo 'Running RAVEN in "profiling" mode.'
+    kernprof -l -v $RAVEN_DIR/raven_framework.py "${ARGS[@]}"
     ;;
   'help' )
     echo ''
@@ -97,7 +109,10 @@ case $MODE in
     echo ''
     echo '  Options:'
     echo '    -D'
-    echo '      Development mode.  Turns Python "assert" statements on.'
+    echo '      Run in development mode.  Turns Python "assert" statements on.'
+    echo ''
+    echo '    --profile'
+    echo '      Development tool.  Turns on use of @profile decorator for method profiling.'
     echo ''
     echo '    --skip-conda'
     echo '      Skip CONDA activation.  This assumes the correct python libraries are already in place.'

@@ -69,9 +69,34 @@
  [./line]
   type = 'RavenFramework'
   input = 'line_plot.xml'
-  output = 'linePlot/to_plot_line.png'
-  image  = 'linePlot/to_plot_line.png'
-  rel_err = 0.0001
-  required_libraries = 'PIL'
+  image  = 'linePlot/test_filename.png'
+  rel_err = 0.1
+ [../]
+
+ [./MultipleScatteredData]
+  type = 'RavenFramework'
+  input = 'plot/multipleScatter.xml'
+  image  = 'plot/1-plot_both_scatter-scatter.png'
+  rel_err = 0.1
+ [../]
+
+ [./SamplePlot]
+  type = 'RavenFramework'
+  input = 'sample_plot.xml'
+  output = 'SamplePlot/plotter.png'
+ [../]
+  
+ [./PopulationPlot]
+  type = 'RavenFramework'
+  input = 'ga_population_plot.xml'
+  image = 'GApopulation/plotter.png'
+  rel_err = 0.1
+ [../]
+ 
+ [./ParallelCoordinatePlot]
+  type = 'RavenFramework'
+  input = 'parallel_coordinate_plot.xml'
+  image = 'GApopulation/plotter1.png'
+  rel_err = 0.5
  [../]
 []

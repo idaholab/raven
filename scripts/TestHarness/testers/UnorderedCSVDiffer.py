@@ -24,12 +24,12 @@ from Tester import Differ
 
 # get access to math tools from RAVEN
 try:
-  from utils import mathUtils
+  from ravenframework.utils import mathUtils
 except ImportError:
   new = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', '..',
-                                      '..', '..', 'framework'))
+                                      '..', '..'))
   sys.path.append(new)
-  from utils import mathUtils
+  from ravenframework.utils import mathUtils
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
@@ -53,23 +53,23 @@ class UnorderedCSVDiffer:
       @ Out, None.
     """
     assert len(outFiles) == len(goldFiles)
-    self.__out_files = outFiles
-    self.__gold_files = goldFiles
-    self.__message = ""
-    self.__same = True
-    self.__check_absolute_values = absoluteCheck
-    self.__rel_err = relativeError
-    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
-    self.__ignore_sign = ignoreSign
+    self._out_files = outFiles
+    self._gold_files = goldFiles
+    self._message = ""
+    self._same = True
+    self._check_absolute_values = absoluteCheck
+    self._rel_err = relativeError
+    self._zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
+    self._ignore_sign = ignoreSign
     if debug or whoAmI:
-      print('out files:', self.__out_files)
-      print('gold files:', self.__gold_files)
+      print('out files:', self._out_files)
+      print('gold files:', self._gold_files)
     if debug:
-      print('err      :', self.__rel_err)
-      print('abs check:', self.__check_absolute_values)
-      print('zero thr :', self.__zero_threshold)
+      print('err      :', self._rel_err)
+      print('abs check:', self._check_absolute_values)
+      print('zero thr :', self._zero_threshold)
 
-  def finalize_message(self, same, msg, filename):
+  def finalizeMessage(self, same, msg, filename):
     """
       Compiles useful messages to print, prepending with file paths.
       @ In, same, bool, True if files are the same
@@ -78,8 +78,8 @@ class UnorderedCSVDiffer:
       @ Out, None
     """
     if not same:
-      self.__same = False
-      self.__message += '\nDIFF in {}: \n  {}'.format(filename, '\n  '.join(msg))
+      self._same = False
+      self._message += '\n'+'*'*20+'\nDIFF in {}: \n  {}'.format(filename, '\n  '.join(msg))
 
   def find_row(self, row, csv):
     """
@@ -117,12 +117,12 @@ class UnorderedCSVDiffer:
       ## if values are floats, then matches could be as low as val(1-relErr)
       ## and as high as val(1+relErr)
       if matchIsNumber:
-        pval = abs(val) if self.__ignore_sign else val
-        pmatch = abs(match[idx].values) if self.__ignore_sign else match[idx].values
+        pval = abs(val) if self._ignore_sign else val
+        pmatch = abs(match[idx].values) if self._ignore_sign else match[idx].values
         # adjust for negative values
         sign = np.sign(pval)
-        lowest = np.searchsorted(pmatch, pval*(1.0-sign*self.__rel_err))
-        highest = np.searchsorted(pmatch, pval*(1.0+sign*self.__rel_err), side='right')-1
+        lowest = np.searchsorted(pmatch, pval*(1.0-sign*self._rel_err))
+        highest = np.searchsorted(pmatch, pval*(1.0+sign*self._rel_err), side='right')-1
       ## if not floats, then check exact matches
       else:
         lowest = np.searchsorted(match[idx].values, val)
@@ -135,7 +135,7 @@ class UnorderedCSVDiffer:
           print('  Match is past end of sort list!')
         return []
       ## if entry at lowest index doesn't match entry, then it's not to be found
-      if not self.matches(match[idx].values[lowest], val, matchIsNumber, self.__rel_err):
+      if not self.matches(match[idx].values[lowest], val, matchIsNumber, self._rel_err):
         if debug:
           print('  Match is not equal to insert point!')
         return []
@@ -156,10 +156,10 @@ class UnorderedCSVDiffer:
     """
     if not isNumber:
       return aObj == bObj
-    if self.__ignore_sign:
+    if self._ignore_sign:
       aObj = abs(aObj)
       bObj = abs(bObj)
-    if self.__check_absolute_values:
+    if self._check_absolute_values:
       return abs(aObj-bObj) < tol
     # otherwise, relative error
     scale = abs(bObj) if bObj != 0 else 1.0
@@ -173,7 +173,7 @@ class UnorderedCSVDiffer:
       @ Out, messages, str, messages to print on fail
     """
     # read in files
-    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
+    for testFilename, goldFilename in zip(self._out_files, self._gold_files):
       # local "same" and message list
       same = True
       msg = []
@@ -199,7 +199,7 @@ class UnorderedCSVDiffer:
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       # at this point, we've loaded both files (even if they're empty), so compare them.
       ## first, cover the case when both files are empty.
@@ -211,14 +211,14 @@ class UnorderedCSVDiffer:
           else:
             msg.append('Gold file is empty, but Test is not!')
         # either way, move on to the next file, as no more comparison is needed
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       ## at this point, both files have data loaded
       ## check columns using symmetric difference
       diffColumns = set(goldCsv.columns)^set(testCsv.columns)
       if len(diffColumns) > 0:
         same = False
-        msg.append('Columns are not the same! Different: {}'.format(', '.join(diff_columns)))
+        msg.append('Columns are not the same! Different: {}'.format(', '.join(diffColumns)))
         self.finalizeMessage(same, msg, testFilename)
         continue
       ## check index length
@@ -226,14 +226,14 @@ class UnorderedCSVDiffer:
         same = False
         msg.append(('Different number of entires in Gold ({}) versus'+
                     ' Test ({})!').format(len(goldCsv.index), len(testCsv.index)))
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
       testCsv = testCsv[goldCsv.columns.tolist()]
       ## set marginal values to zero, fix infinites
-      testCsv = self.prep_data_frame(testCsv, self.__zero_threshold)
-      goldCsv = self.prep_data_frame(goldCsv, self.__zero_threshold)
+      testCsv = self.prep_data_frame(testCsv, self._zero_threshold)
+      goldCsv = self.prep_data_frame(goldCsv, self._zero_threshold)
       ## check for matching rows
       for idx in goldCsv.index:
         find = goldCsv.iloc[idx].rename(None)
@@ -246,8 +246,8 @@ class UnorderedCSVDiffer:
           msg.append(str(testCsv))
           # stop looking once a mismatch is found
           break
-      self.finalize_message(same, msg, testFilename)
-    return self.__same, self.__message
+      self.finalizeMessage(same, msg, testFilename)
+    return self._same, self._message
 
   def prep_data_frame(self, csv, tol):
     """
@@ -259,7 +259,7 @@ class UnorderedCSVDiffer:
       @ Out, csv, converted dataframe
     """
     # use absolute or relative?
-    key = {'atol':tol} if self.__check_absolute_values else {'rtol':tol}
+    key = {'atol':tol} if self._check_absolute_values else {'rtol':tol}
     # take care of infinites
     csv = csv.replace(np.inf, -sys.float_info.max)
     csv = csv.replace(np.nan, sys.float_info.max)
@@ -305,13 +305,13 @@ class UnorderedCSV(Differ):
       @ Out, None.
     """
     Differ.__init__(self, name, params, testDir)
-    self.__zero_threshold = self.specs['zero_threshold']
-    self.__ignore_sign = bool(self.specs['ignore_sign'])
+    self._zero_threshold = self.specs['zero_threshold']
+    self._ignore_sign = bool(self.specs['ignore_sign'])
     if len(self.specs['rel_err']) > 0:
-      self.__rel_err = float(self.specs['rel_err'])
+      self._rel_err = float(self.specs['rel_err'])
     else:
-      self.__rel_err = 1e-10
-    self.__check_absolute_value = self.specs["check_absolute_value"]
+      self._rel_err = 1e-10
+    self._check_absolute_value = self.specs["check_absolute_value"]
 
   def check_output(self):
     """
@@ -326,8 +326,8 @@ class UnorderedCSV(Differ):
     goldFiles = self._get_gold_files()
     csvDiff = UnorderedCSVDiffer(csvFiles,
                                   goldFiles,
-                                  relativeError=self.__rel_err,
-                                  zeroThreshold=self.__zero_threshold,
-                                  ignoreSign=self.__ignore_sign,
-                                  absoluteCheck=self.__check_absolute_value)
+                                  relativeError=self._rel_err,
+                                  zeroThreshold=self._zero_threshold,
+                                  ignoreSign=self._ignore_sign,
+                                  absoluteCheck=self._check_absolute_value)
     return csvDiff.diff()

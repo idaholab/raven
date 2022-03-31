@@ -29,14 +29,15 @@ import xarray as xr
 import copy
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
-sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-import MessageHandler
+from ravenframework import MessageHandler
 
-import DataObjects
+from ravenframework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
@@ -168,7 +169,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     res = False
     print("checking answer",comment,'|','lengths do not match:',len(first),len(second))
   else:
-    for key,val in first.items():
+    for key, val in first.items():
       if key in skip:
         continue
       if isinstance(val,(float,int,np.int64,np.int32)):
@@ -186,6 +187,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         else:
           pres = val.equals(second[key])
       else:
+        print('ERROR: unrecognized type for', key)
         raise TypeError(type(val))
       if not pres:
         print('checking dict',comment,'|','entry "{}" does not match: {} != {}'.format(key,first[key],second[key]))
@@ -342,22 +344,22 @@ data.addRealization(dict(rlz0))
 
 
 # get realization by index, from collector
-checkRlz('Dataset append 0',data.realization(index=0),rlz0,skip=['time'])
+checkRlz('Dataset append 0',data.realization(index=0),rlz0,skip=['time', '_indexMap'])
 # try to access the inaccessible
 checkFails('DataSet get nonexistant realization by index','DataSet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(dict(rlz1))
 data.addRealization(dict(rlz2))
 # get realization by index
-checkRlz('Dataset append 1 idx 0',data.realization(index=0),rlz0,skip=['time'])
-checkRlz('Dataset append 1 idx 1',data.realization(index=1),rlz1,skip=['time'])
-checkRlz('Dataset append 1 idx 2',data.realization(index=2),rlz2,skip=['time'])
+checkRlz('Dataset append 1 idx 0',data.realization(index=0),rlz0,skip=['time', '_indexMap'])
+checkRlz('Dataset append 1 idx 1',data.realization(index=1),rlz1,skip=['time', '_indexMap'])
+checkRlz('Dataset append 1 idx 2',data.realization(index=2),rlz2,skip=['time', '_indexMap'])
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
 m,match = data.realization(matchDict={'a':11.0})
 checkSame('Dataset append 1 match index',m,1)
-checkRlz('Dataset append 1 match',match,rlz1,skip=['time'])
+checkRlz('Dataset append 1 match',match,rlz1,skip=['time', '_indexMap'])
 idx,rlz = data.realization(matchDict={'x':1.0})
 checkSame('Dataset find bogus match index',idx,3)
 checkNone('Dataset find bogus match',rlz)
@@ -422,12 +424,12 @@ rlz3 = {'a' :31.0,
 formatRealization(rlz3)
 data.addRealization(dict(rlz3))
 # get new entry (should be in the collector, but we shouldn't care)
-checkRlz('Dataset append 2 idx 3',data.realization(index=3),rlz3,skip=['time'])
+checkRlz('Dataset append 2 idx 3',data.realization(index=3),rlz3,skip=['time', '_indexMap'])
 # make sure old entry is still there
-checkRlz('Dataset append 2 idx 1',data.realization(index=1),rlz1,skip=['time'])
+checkRlz('Dataset append 2 idx 1',data.realization(index=1),rlz1,skip=['time', '_indexMap'])
 # test grabbing negative indices
-checkRlz('Dataset append 2 idx -1',data.realization(index=-1),rlz3,skip=['time'])
-checkRlz('Dataset append 2 idx -3',data.realization(index=-3),rlz1,skip=['time'])
+checkRlz('Dataset append 2 idx -1',data.realization(index=-1),rlz3,skip=['time', '_indexMap'])
+checkRlz('Dataset append 2 idx -3',data.realization(index=-3),rlz1,skip=['time', '_indexMap'])
 
 data.asDataset()
 # check new sample IDs
@@ -515,8 +517,10 @@ checkSame('Metadata DataSet/dims/y value',y.text,'time')
 checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
 checkSame('Metadata DataSet/dims/c value',c.text,'time')
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName,inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'DataSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -571,7 +575,7 @@ checkTrue('Check aligned data is aligned', dataAlign.checkIndexAlignment('t'))
 # to CSV
 ## test writing to file
 csvname = 'DataSetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="DataSet">',
            '  <DataSet type="Static">',
@@ -580,6 +584,7 @@ correct = ['<DataObjectMetadata name="DataSet">',
            '      <y>time</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>DataSet</datasetName>',
            '      <inputs>a,b,c</inputs>',
            '      <outputs>x,y,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
@@ -641,19 +646,19 @@ os.remove(csvname+'.xml')
 ######################################
 # test contents of data in parallel
 # by index
-checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1,skip=['time'])
+checkRlz('Dataset full origin idx 1',data.realization(index=1),rlz1,skip=['time', '_indexMap'])
 #checkRlz('Dataset full netcdf idx 1',dataNET.realization(index=1),rlz1,skip=['time'])
-checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time','z'])
+checkRlz('Dataset full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['time', '_indexMap','z'])
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full origin match idx',idx,2)
-checkRlz('Dataset full origin match',rlz,rlz2,skip=['time'])
+checkRlz('Dataset full origin match',rlz,rlz2,skip=['time', '_indexMap'])
 #idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
 #checkSame('Dataset full netcdf match idx',idx,2)
 #checkRlz('Dataset full netCDF match',rlz,rlz2,skip=['time'])
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('Dataset full csvxml match idx',idx,2)
-checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time','z'])
+checkRlz('Dataset full csvxml match',rlz,rlz2,skip=['time', '_indexMap','z'])
 # TODO metadata checks?
 
 ## remove files, for cleanliness (comment out to debug)
@@ -669,7 +674,7 @@ data.addVariable('f',f)
 rlzAdd = dict(rlz2)
 rlzAdd['f'] = np.atleast_1d(29.)
 checkArray('Dataset add variable column',data.asDataset()['f'].values,f,float)
-checkRlz('Dataset add variable rlz 2',data.realization(index=2),rlzAdd,skip='time')
+checkRlz('Dataset add variable rlz 2',data.realization(index=2),rlzAdd,skip=['time', '_indexMap'])
 
 
 ######################################
@@ -908,13 +913,18 @@ correct = {'a':np.array([  1.0,  1.1]),
            'x':np.array([ 10.0, 10.1]),
            'y':np.array([100.0,100.1]),
            'trajID':np.array([1])}
-checkRlz('Cluster read [0]',data2.realization(index=0),correct)
+indexMap = dict((var, ['varsUpdate']) for var in correct)
+indexMap['trajID'] = []
+indexMap = np.atleast_1d(indexMap)
+correct['_indexMap'] = indexMap
+checkRlz('Cluster read [0]', data2.realization(index=0), correct, skip=['_indexMap'])
 correct = {'a':np.array([  2.0,  2.1]),
            'b':np.array([  6.0,  6.1]),
            'x':np.array([ 20.0, 20.1]),
            'y':np.array([200.0,200.1]),
            'trajID':np.array([2])}
-checkRlz('Cluster read [1]',data2.realization(index=1),correct)
+correct['_indexMap'] = indexMap
+checkRlz('Cluster read [1]',data2.realization(index=1),correct, skip=['_indexMap'])
 
 ######################################
 #             DATA TYPING            #
@@ -994,8 +1004,9 @@ correct0 = {'alpha':np.array([0.0]),
             'gamma':np.array([0.5]),
             'delta':np.array([0.5, 0.6, 0.7]),
             'jobID':np.array(['0']),
-            'timelike':np.array([0.01, 0.02, 0.03])}
-checkRlz('Rename in collector: variables',data2.realization(index=0),correct0,skip='timelike')
+            'timelike':np.array([0.01, 0.02, 0.03]),
+            '_indexMap': None} # dummy, matches length of correct realization
+checkRlz('Rename in collector: variables',data2.realization(index=0),correct0,skip=['timelike', '_indexMap'])
 checkArray('Rename in collector: index',data2.indexes,['timelike'],str)
 
 # now asDataset(), then rename
@@ -1007,8 +1018,8 @@ data3.renameVariable('c','gamma')
 data3.renameVariable('d','delta')
 data3.renameVariable('prefix','jobID')
 data3.renameVariable('t','timelike')
-checkRlz('Rename in dataset: variables',data3.realization(index=0),correct0,skip='timelike')
-checkArray('Rename in dataset: index',data3.indexes,['timelike'],str)
+checkRlz('Rename in dataset: variables',data3.realization(index=0),correct0,skip=['timelike', '_indexMap'])
+checkArray('Rename in dataset: index', data3.indexes, ['timelike'], str)
 
 # now asDatset, then append, then rename
 data.asDataset()
@@ -1031,8 +1042,8 @@ correct1 = {'alpha':np.array([1.0]),
             'delta':np.array([1.5, 1.6, 1.7]),
             'jobID':np.array(['1']),
             'timelike':np.array([0.01, 0.02, 0.03])}
-checkRlz('Rename in both: variables[0]',data.realization(index=0),correct0,skip='timelike')
-checkRlz('Rename in both: variables[1]',data.realization(index=1),correct1,skip='timelike')
+checkRlz('Rename in both: variables[0]',data.realization(index=0),correct0,skip=['timelike', '_indexMap'])
+checkRlz('Rename in both: variables[1]',data.realization(index=1),correct1,skip=['timelike', '_indexMap'])
 checkArray('Rename in both: index',data.indexes,['timelike'],str)
 # make sure adding a new realization without the renaming fails
 checkFails('Add old-named data after renaming variables','Provided realization does not have all requisite values for object \"DataSet\": \"alpha\"',data.addRealization,args=[rlz1])

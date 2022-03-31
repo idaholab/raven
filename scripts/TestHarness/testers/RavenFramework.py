@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import subprocess
 import sys
-import distutils.version
 import platform
 from Tester import Tester
 import OrderedCSVDiffer
@@ -35,10 +34,14 @@ import RAVENImageDiff
 # Be aware that if this file changes its location, this variable should also be
 #  changed.
 myDir = os.path.dirname(os.path.realpath(__file__))
-RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'ravenframework'))
+RAVENROOTDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..'))
+
+#add path so framework is found.
+sys.path.append(os.path.abspath(os.path.dirname(RAVENDIR)))
 
 #Need to add the directory for AMSC for doing module checks.
-os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, 'contrib') +\
+os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, '..', 'install') +\
   os.pathsep + os.environ.get("PYTHONPATH", "")
 
 scriptDir = os.path.abspath(os.path.join(RAVENDIR, '..', 'scripts'))
@@ -135,8 +138,7 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.img_files = self.specs['image'].split(" ") if len(self.specs['image']) > 0 else []
-    self.all_files = self.img_files
+    self.all_files = []
     self.__make_differ('output', ExistsDiff.Exists)
     self.__make_differ('csv', OrderedCSVDiffer.OrderedCSV)
     self.__make_differ('UnorderedCsv', UnorderedCSVDiffer.UnorderedCSV)
@@ -149,13 +151,10 @@ class RavenFramework(Tester):
       if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')\
       if len(self.specs['minimum_library_versions']) > 0 else []
-    #for image tests, minimum library is always scipy 0.15.0
-    if len(self.img_files) > 0:
-      self.minimum_libraries += ['scipy', '0.15.0']
     self.required_executable = self.required_executable.replace("%METHOD%",
                                                                 os.environ.get("METHOD", "opt"))
     self.specs['scale_refine'] = False
-    self.driver = os.path.join(RAVENDIR, 'Driver.py')
+    self.driver = os.path.join(RAVENROOTDIR, 'raven_framework.py')
 
   def check_runnable(self):
     """
@@ -172,7 +171,7 @@ class RavenFramework(Tester):
     ## required module is present, but too old
     if _notQAModules and _checkVersions:
       self.set_fail('skipped (Incorrectly versioned python modules: ' +
-                    " ".join(['{}-{}'.format(*m) for m in _notQAModules]) +
+                    " ".join(['required {}-{}, but found {}'.format(*m) for m in _notQAModules]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
@@ -213,9 +212,9 @@ class RavenFramework(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
-        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
+        self.set_skip('skipped (Outdated library: "'+libraryName+'" needed version '+str(libraryVersion)+' but had version '+str(actualVersion)+')')
         return False
       i += 2
 

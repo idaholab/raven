@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.Wavelet</name>
+    <author>dylanjm</author>
+    <created>2021-03-02</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.Wavelet</classesTested>
+    <description>
+      Tests the SyntheticHistory ROM using only the Wavelet TimeSeriesAnalyzer algorithm.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Wavelet</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="infile">../TrainingData/Wavelet_A.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <wavelet target="signal1, signal2">
+        <family>db2</family>
+      </wavelet>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling</Input>
+      <Output>signal1, signal2</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>signal1, signal2</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

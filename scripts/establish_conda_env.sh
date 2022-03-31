@@ -14,7 +14,13 @@ ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_LIB_HANDLER=${ECE_SCRIPT_DIR}/library_handler.py
 
 # fail if ANYTHING this script fails (mostly, there are exceptions)
-set -e
+if [ -o errexit ]
+then
+    export UNSET_ERREXIT=""
+else
+    set -o errexit
+    export UNSET_ERREXIT="true"
+fi
 
 function establish_OS ()
 {
@@ -51,7 +57,7 @@ function find_conda_defs ()
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
       # default location of conda definitions, windows is unsurprisingly an exception
-      if [[ "$OSOPTION" = "--windows" ]];
+      if [[ "$OSOPTION" = "--os windows" ]];
       then
         CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
       elif test -e "$HOME/miniconda3/etc/profile.d/conda.sh";
@@ -74,14 +80,30 @@ function find_conda_defs ()
   CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
+function guess_conda_defs ()
+{
+	if [ -z ${CONDA_DEFS} ];
+	then
+      CONDA_DEFS=$(which conda | tail -1)
+      if [[ "$CONDA_DEFS" != "" ]]; then
+        # we found it
+        LOCATION_CONDASH="etc/profile.d/conda.sh"
+        if [[ "$CONDA_PATH" == *"condabin"* ]]; then
+          CONDA_DEFS=`echo "${CONDA_DEFS/condabin\/conda/$LOCATION_CONDASH}"`
+        else
+          CONDA_DEFS=`echo "${CONDA_DEFS/bin\/conda/$LOCATION_CONDASH}"`
+        fi
+        # fix Windows backslashes to be forward, compatible with all *nix including mingw
+        CONDA_DEFS="${CONDA_DEFS//\\//}"
+      fi
+	fi
+}
+
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: \"${COMMAND}\"; fi
-    ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
@@ -91,6 +113,7 @@ function install_libraries()
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -99,6 +122,7 @@ function install_libraries()
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi
@@ -110,18 +134,16 @@ function create_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
-    ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -134,6 +156,7 @@ function create_libraries()
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi
@@ -160,6 +183,9 @@ function display_usage()
 	echo ''
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
+	echo ''
+	echo '    --proxy <proxy>'
+	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
 	echo '    --install'
 	echo '      Installs current python library versions for this release of RAVEN using conda'
@@ -222,6 +248,7 @@ INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
 INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+PROXY_COMM="" # proxy is none
 
 # parse command-line arguments
 while test $# -gt 0
@@ -234,6 +261,10 @@ do
     --installation-manager)
       shift
       INSTALL_MANAGER=$1
+      ;;
+    --proxy)
+      shift
+      PROXY_COMM=$1
       ;;
     --load)
       ECE_MODE=1
@@ -304,10 +335,7 @@ if [ -z $PYTHON_COMMAND ];
 then
     # check the RC file first
     PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
-    local_py_command=python3
-    if ! python_com="$(type -p python3)" || [[ -z $python_com ]]; then
-      local_py_command=python
-    fi
+    local_py_command=python
     #If not found through the RC file, will be empty string, so default python
     PYTHON_COMMAND=${PYTHON_COMMAND:=$local_py_command}
 fi
@@ -321,7 +349,7 @@ fi
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
+  export RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
@@ -352,10 +380,24 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
     source ${CONDA_DEFS}
+    #The next lines are useful sometimes, but excessivly verbose.
+    #if [[ $ECE_VERBOSE == 0 ]]; then
+    #  echo ... conda:
+    #  which conda || echo no conda
+    #  conda info || echo conda info failed
+    #fi
   else
-    echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
-    echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
-    exit 1
+    # try to guess
+    guess_conda_defs
+    if test -e ${CONDA_DEFS};
+    then
+      if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
+      source ${CONDA_DEFS}
+    else
+      echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
+      echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
+      exit 1
+    fi
   fi
 else
   # check if pip exists
@@ -413,14 +455,20 @@ then
   # if it doesn't exist, make some noise.
   else
     echo ${INSTALL_MANAGER} environment ${RAVEN_LIBS_NAME} not found!
-    echo Please run "raven/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
+    echo Please run "raven/scripts/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
     exit 1
   fi
 fi
 
+
 ## install mode
 if [[ $ECE_MODE == 2 ]];
 then
+  # Right before library installation, install ExamplePlugin
+  echo Installing ExamplePlugin...
+  parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+  ${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
   # if libraries already exist, depends on if in "clean" mode or not
   if [[ $LIBS_EXIST == 0 ]];
   then
@@ -432,6 +480,8 @@ then
       then
         conda deactivate
         conda remove -n ${RAVEN_LIBS_NAME} --all -y
+        #Activate base to get python back
+        conda activate
       else
         rm -rf ${PIP_ENV_LOCATION}
       fi
@@ -453,4 +503,20 @@ fi
 # activate environment and write settings if successful
 activate_env
 
+if [ -z "$RAVEN_SIGNATURE" ];
+then
+    RAVEN_SIGNATURE=$(read_ravenrc "RAVEN_SIGNATURE")
+fi
+if [ ! -z "$RAVEN_SIGNATURE" ];
+then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo "... Using '$RAVEN_SIGNATURE' for signing ..."; fi
+    export RAVEN_SIGNATURE
+fi
+
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi
+
+if [ "$UNSET_ERREXIT" == "true" ]
+then
+   #Go back to no errexit
+   set +o errexit
+fi

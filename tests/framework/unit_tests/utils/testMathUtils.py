@@ -16,23 +16,17 @@
   It cannot be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import os,sys
 import numpy as np
 import xml.etree.ElementTree as ET
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import mathUtils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
 
-from MessageHandler import MessageHandler
-mh = MessageHandler()
-mh.initialize({})
+from ravenframework.utils import mathUtils
 
 print (mathUtils)
+mh = getMessageHandler()
+mh.verbosity = 'debug'
 
 results = {"pass":0,"fail":0}
 
@@ -145,18 +139,6 @@ for test in tests:
 
 ### check "createInterp"
 # TODO
-
-### check "simpson"
-def f(x):
-  """
-    Simple squaring function.
-    @ In, x, float, value
-    @ Out, f, float, square value
-  """
-  return x*x
-
-simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.
@@ -427,6 +409,43 @@ checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
 checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
 checkAnswer('isABoolean long' ,mathUtils.isABoolean(123456789012345678901234567890),False)
 
+### check "computeCrowdingDistance"
+testArray = np.array([[12, 0],
+                       [11.5, 0.5],
+                       [11, 1],
+                       [10.8, 1.2],
+                       [10.5, 1.5],
+                       [10.3, 1.8],
+                       [9.5, 2],
+                       [9, 2.5],
+                       [7, 3],
+                       [5, 4],
+                       [2.5, 6],
+                       [2, 10],
+                       [1.5, 11],
+                       [1, 11.5],
+                       [0.8, 11.7],
+                       [0, 12]])
+
+coefficients = mathUtils.computeCrowdingDistance(np.transpose(testArray))
+answerCrowDist = np.array([119.08161951276647,
+                           109.2619226092585,
+                           100.8790871063812,
+                           98.10139629904984,
+                           94.8017490328036,
+                           92.91272785789454,
+                           89.93788160742562,
+                           88.57611185090744,
+                           90.17330254797025,
+                           96.24681848299262,
+                           110.60453537188977,
+                           124.83521571274046,
+                           133.45644952194021,
+                           140.37420550092074,
+                           143.72992359213447,
+                           154.22771732002948])
+checkArray('computeCrowdingDistance',coefficients,answerCrowDist,1e-7)
+
 ###################
 # Variable Groups #
 ###################
@@ -454,7 +473,7 @@ example = """<VariableGroups>
   <Group name="symmrev">d,%a</Group>
 </VariableGroups>"""
 node = ET.fromstring(example)
-groups = mathUtils.readVariableGroups(node,mh,None)
+groups = mathUtils.readVariableGroups(node)
 
 # test contents
 def testVarGroup(groups,g,right):

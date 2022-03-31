@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity = 'debug'>
-    
+
   <TestInfo>
     <name>framework/OutStreams.line</name>
     <author>wangc</author>
@@ -10,6 +10,9 @@
         Test to check the functionalities of OutStreams system in RAVEN of line Plot, when
         HistorySet is used. Fix issue #722
     </description>
+    <revisions>
+      <revision author="alfoa" date="2020-04-07">Modified test to be consistent with newer projectile model</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -30,10 +33,10 @@
       <Output  class="OutStreams"   type="Plot"           >to_plot</Output>
     </IOStep>
   </Steps>
-  
+
   <Models>
     <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
-      <variables>v0,angle,r,x,y,time,var1,timeOption</variables>
+      <variables>v0,angle,r,x,y,t,var1,timeOption</variables>
     </ExternalModel>
   </Models>
 
@@ -79,17 +82,21 @@
     </PointSet>
     <HistorySet name="results">
       <Input>v0,y0,angle,var1</Input>
-      <Output>x,y,time</Output>
+      <Output>x,y,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Plot  name="to_plot">
+      <filename>test_filename</filename>
       <plotSettings>
         <plot>
           <type>line</type>
           <marker>.</marker>
-          <x>results|Output|time</x>
+          <x>results|Output|t</x>
           <y>results|Output|x</y>
           <z>results|Output|y</z>
         </plot>

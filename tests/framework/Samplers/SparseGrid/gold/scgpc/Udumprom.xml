@@ -1,7 +1,7 @@
 <DataObjectMetadata name="rom_stats">
   <UROM type="Static">
     <ROM>
-      <type>GAUSSgpcROM(ans)</type>
+      <type>GAUSSgpcROM</type>
     </ROM>
     <ans>
       <mean>6.0</mean>
@@ -9,7 +9,6 @@
       <variance>2.66666666667</variance>
       <samples>9</samples>
       <polyCoeffs>
-        <inputVariables>x1,x2</inputVariables>
         <_0_0_>6.0</_0_0_>
         <_0_1_>1.15470053838</_0_1_>
         <_0_2_>-4.77395900589e-15</_0_2_>
@@ -19,21 +18,22 @@
         <_2_0_>-4.77395900589e-15</_2_0_>
         <_2_1_>-6.66133814775e-16</_2_1_>
         <_2_2_>1.11022302463e-16</_2_2_>
+        <inputVariables>x1,x2</inputVariables>
       </polyCoeffs>
       <partialVariance>
-        <x2>1.33333333333</x2>
         <x1>1.33333333333</x1>
         <x1.x2>9.49098276594e-31</x1.x2>
+        <x2>1.33333333333</x2>
       </partialVariance>
       <sobolIndices>
-        <x2>0.5</x2>
         <x1>0.5</x1>
         <x1.x2>3.55911853723e-31</x1.x2>
+        <x2>0.5</x2>
       </sobolIndices>
       <sobolTotalIndices>
-        <x2>0.5</x2>
         <x1>0.5</x1>
         <x1.x2>3.55911853723e-31</x1.x2>
+        <x2>0.5</x2>
       </sobolTotalIndices>
     </ans>
   </UROM>

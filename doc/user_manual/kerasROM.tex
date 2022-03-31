@@ -33,7 +33,7 @@
 }
 \newcommand{\biasInitializer}[0]
 {
-  \item \xmlNode{bias\_initializer}, \xmlDesc{string, optional field}, intializer for the bias vector
+  \item \xmlNode{bias\_initializer}, \xmlDesc{string, optional field}, initializer for the bias vector
     (see ~\ref{initializersDNN}).
     \default{zeros}
 }
@@ -240,7 +240,7 @@
     randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
     which helps prevent overfitting.
     \layerNameAttr
-    In addition, this node also accepts the following subnode
+    In addition, this node also accepts the following subnodes
     \begin{itemize}
         \rate
         \noiseShape
@@ -301,7 +301,7 @@ and production, with three key advantages:
 models that include first-class support for TensorFlow-specific functionality, such as eager \textit{execution},
 \textit{tf.data} pipelines, and \textit{Estimators}. \textbf{tf.keras} makes TensorFlow easier to use without sacrificing
 flexibility and performance. RAVEN will utilize this high-level API to build and train deep neural networks (DNNs) as ROMs, and
-these ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
+these ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model optimization and data analysis.
 
 Before analyzing each classifier in detail, it is important to mention that each type has a similar syntax. In the
 example below, the subnodes that can be included in the main XML node \xmlNode{ROM} are reported:
@@ -469,7 +469,7 @@ can be initialized with the following children:
           \default{0.002}
         \end{itemize}
   \end{itemize}
-  \item \xmlNode{layer\_layout}, \xmlDesc{comma seperated string, required}, the layout/order of layers in the
+  \item \xmlNode{layer\_layout}, \xmlDesc{comma separated string, required}, the layout/order of layers in the
     deep neural networks. The values in the subnode should be the name of layers defined in layer node, such as
     \xmlNode{Dense}, \xmlNode{Dropout}, and \xmlNode{Conv1D}.
 \end{itemize}
@@ -543,7 +543,7 @@ Available initializers include:
 %%%%% Rgularizer Functions  %%%%%%%
 \paragraph{Regularizer Functions}
 \label{regularizersDNN}
-Regularizers allow to apply penalities on layer parameters or layer activity during optimization.
+Regularizers allow to apply penalties on layer parameters or layer activity during optimization.
 These penalties are incorporated in the loss function that the network optimizes. The exact API
 will depend on the layer, but the layers \xmlNode{Dense, Conv1D, Conv2D, and Conv3D} have a
 unified API.
@@ -568,26 +568,27 @@ Available constraints include:
     and an upper bound.
 \end{itemize}
 
-%%%%% ROM Model - KerasMLPClassifier  %%%%%%%
-\paragraph{KerasMLPClassifier}
+%%%%% ROM Model - KerasMLPClassifier and KerasMLPRegression  %%%%%%%
+\paragraph{KerasMLPClassifier and KerasMLPRegression}
 \label{KerasMLPClassifier}
+\label{KerasMLPRegression}
 
 Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
 ANN, can be viewed as a logistic regression classifier where input is first transformed
-using a non-linear transformation. This transformation probjects the input data into a
+using a non-linear transformation. This transformation projects the input data into a
 space where it becomes linearly separable. This intermediate layer is referred to as a
 \textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
 input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
-utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
+utilizes a supervised learning technique called \textbf{Backpropagation} for training.
 Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
 However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
 relationships. The extra layers enable composition of features from lower layers, potentially
 modeling complex data with fewer units than a similarly performing shallow network.
 
-\zNormalizationPerformed{KerasMLPClassifier}
+\zNormalizationPerformed{KerasMLPClassifier \textup{and} KerasMLPRegression}
 
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
-be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
+be \xmlString{KerasMLPClassifier} or \xmlString{KerasMLPRegression} (see the examples below). This model can be initialized with
 the following layers:
 
 \begin{itemize}
@@ -595,7 +596,7 @@ the following layers:
   \DropoutLayer
 \end{itemize}
 
-\textbf{Example:}
+\textbf{KerasMLPClassifier Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
@@ -641,6 +642,35 @@ the following layers:
 </Simulation>
 \end{lstlisting}
 
+\textbf{KerasMLPRegression Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    <ROM name="modelUnderTest" subType="KerasMLPRegression">
+      <Features>x1,x2,x3,x4,x5,x6,x7,x8</Features>
+      <Target>y</Target>
+      <loss>mean_squared_error</loss>
+      <batch_size>10</batch_size>
+      <epochs>60</epochs>
+      <plot_model>False</plot_model>
+      <validation_split>0.25</validation_split>
+      <random_seed>1986</random_seed>
+      <Dense name="layer1">
+          <dim_out>30</dim_out>
+      </Dense>
+      <Dense name="layer2">
+          <dim_out>12</dim_out>
+      </Dense>
+      <Dense name="outLayer">
+      </Dense>
+      <layer_layout>layer1, layer2, outLayer</layer_layout>
+    </ROM>
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
 %%%%% ROM Model - KerasConvNetClassifier  %%%%%%%
 \paragraph{KerasConvNetClassifier}
 \label{KerasClassifier}
@@ -651,7 +681,7 @@ architecture of a CNN is analogous to that of the connectivity pattern of Neuron
 and was inspired by the organization of the Visual Cortex. Individual neurons respond to stimuli only
 in a restricted region of the visual field known as the Receptive Field. A collection of such fields
 overlap to cover the entire visual area. CNN is able to successfully capture the spatial and temporal
-dependencies in an image through the applicaiton of relevant filters. The architecture performs
+dependencies in an image through the application of relevant filters. The architecture performs
 a better fitting to the image dataset due to the reduction in the number of parameters involved
 and reusability of weights. In other words, the network can be trained to understand the sophistication
 of the image better.
@@ -816,19 +846,23 @@ the following layers:
 \end{lstlisting}
 
 %%%%% ROM Model - KerasLSTMClassifier  %%%%%%%
-\paragraph{KerasLSTMClassifier}
+\paragraph{KerasLSTMClassifier and KerasLSTMRegression}
 \label{KerasClassifier}
 
 Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
 of learning long-term dependencies. They work tremendously well on a large variety of problems, and
-are now widely used. LSTMs are explicity designed to avoid the long-term dependency problem. Remembering
+are now widely used. LSTMs are explicitly designed to avoid the long-term dependency problem. Remembering
 information for long periods of time is practically their default behavior, not something that they
 struggle to learn.
 
-\zNormalizationPerformed{KerasLSTMClassifier}
+LSTM's can be used for either classification (with
+\xmlString{KerasLSTMClassifier}) or prediction of values (with
+\xmlString{KerasLSTMRegression}).
+
+\zNormalizationPerformed{KerasLSTMClassifier \textup{and} KerasLSTMRegression}
 
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
-be \xmlString{KerasLSTMClassifier} (see the example below). This model can be initialized with
+be \xmlString{KerasLSTMClassifier} or \xmlString{KerasLSTMRegression} (see the examples below). This model can be initialized with
 the following layers:
 
 \begin{itemize}
@@ -864,7 +898,7 @@ the following layers:
     \end{itemize}
 \end{itemize}
 
-\textbf{Example:}
+\textbf{KerasLSTMClassifier Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
@@ -902,6 +936,34 @@ the following layers:
           <activation>softmax</activation>
       </Dense>
       <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{KerasLSTMRegression Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="lstmROM" subType="KerasLSTMRegression">
+      <Features>prev_sum, prev_square, prev_square_sum</Features>
+      <Target>sum, square</Target>
+      <pivotParameter>index</pivotParameter>
+      <loss>mean_squared_error</loss>
+      <LSTM name="lstm1">
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dense name="dense">
+      </Dense>
+      <layer_layout>lstm1, lstm2, dense</layer_layout>
+
     </ROM>
     ...
   </Models>

@@ -28,14 +28,15 @@ import numpy as np
 import xarray as xr
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
-sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-import MessageHandler
+from ravenframework import MessageHandler
 
-import DataObjects
+from ravenframework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
@@ -320,12 +321,43 @@ checkRlz('PointSet append 1 idx 2',data.realization(index=2),rlz2)
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
-m,match = data.realization(matchDict={'a':11.0})
-checkSame('PointSet append 1 match index',m,1)
-checkRlz('PointSet append 1 match',match,rlz1)
-idx,rlz = data.realization(matchDict={'x':1.0})
+print('DEBUGG data:', data._collector)
+m, match = data.realization(matchDict={'a':11.0})
+checkSame('PointSet append 1 match index', m, 1)
+checkRlz('PointSet append 1 match', match, rlz1)
+idx, rlz = data.realization(matchDict={'x':1.0})
 checkSame('PointSet find bogus match index',idx,3)
 checkNone('PointSet find bogus match',rlz)
+print('DEBUGG\n\n')
+
+data2 = copy.deepcopy(data)
+# add a realization that is the same as one, but different in one element
+rlz3 = {'a' :11.0,
+        'b': 12.0,
+        'x': 14.0,
+        'z': 16.0,
+        'prefix': 'fourth',
+       }
+formatRealization(rlz3)
+data2.addRealization(rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+print('DEBUGG match3:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+print('DEBUGG match1:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
+
+# now as a datset
+data2.asDataset()
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
 
 ######################################
 #        COLLAPSING DATA SET         #
@@ -410,8 +442,10 @@ checkSame('Metadata DataSet entries',len(treeDS),1) # 2
 general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName, inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'PointSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -449,11 +483,12 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 # to CSV
 ## test writing to file
 csvname = 'PointSetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',
            '    <general>',
+           '      <datasetName>PointSet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',

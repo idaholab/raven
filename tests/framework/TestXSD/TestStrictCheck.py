@@ -24,11 +24,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import xml.etree.ElementTree as ET
 import sys, os
 
-ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
-frameworkDir = os.path.join(ravenDir,"../framework")
-sys.path.append(frameworkDir)
+ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
+frameworkDir = os.path.join(ravenDir,"framework")
+sys.path.append(ravenDir)
 
-from utils import InputData
+from ravenframework.utils import InputData
 import test_classes
 
 passFails = [0,0]
@@ -58,9 +58,9 @@ outerInput.parseNode(parser.getroot(), errors)
 
 print(errors)
 
-checkAnswer('Required parameter required_string not in inner', errors[0])
-checkAnswer('no_such_element not in attributes and strict mode on in inner', errors[1])
-checkAnswer('Childs \"[no_such_sub]\" not allowed as sub-elements of \"ordered\"', errors[2])
+checkAnswer('outer.inner: Required attribute "required_string" not in "inner"', errors[0])
+checkAnswer('outer.inner: "no_such_element" not in node attributes and strict mode on in "inner"', errors[1])
+checkAnswer('outer.ordered: Unrecognized input node "no_such_sub"! Allowed: [sub_1, sub_2, sub_3, sub_bool], tried []', errors[2])
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])

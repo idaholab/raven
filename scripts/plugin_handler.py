@@ -18,13 +18,14 @@
 # It takes the following command line arguments
 # -s, the plugin directory that needs to be installed
 # -f, force the copy if the directory in the destination location already exists
+# -z, print the framework directory
 # to run the script use the following command:
 #  python install_plugins -s path/to/plugin -f
 import os
 import sys
 import time
 import argparse
-frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
+frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'ravenframework')
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 
@@ -98,7 +99,7 @@ def updatePluginXML(root, name, location):
     @ In, location, str, location of plugin on disk
     @ Out, match, xml.etree.ElementTree.Element, updated element
   """
-  match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
+  match = root.findall('./plugin/[name=\'{}\']'.format(name))[0]
   oldPath = match.find('location').text
   # nothing to do if old path and new path are the same!
   if oldPath != location:
@@ -124,8 +125,13 @@ def tellPluginAboutRaven(loc):
   if ravenLoc is None:
     ravenLoc = xmlUtils.newNode('FrameworkLocation')
     root.append(ravenLoc)
-  ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
-  xmlUtils.toFile(configFile, root)
+  ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
+  if ravenLoc.text != ravenFrameworkLoc:
+    # we write only in case the location is either different or the file
+    # is not present (so, only one processor in case of RAVENrunningRAVEN
+    # will write the file if not present
+    ravenLoc.text = ravenFrameworkLoc
+    xmlUtils.toFile(configFile, root)
   return ravenLoc.text
 
 def loadPluginTree():
@@ -182,6 +188,8 @@ if __name__ == '__main__':
                       help='provides location of requested plugin')
   parser.add_argument('-l', '--list', dest='list', action='store_true',
                       help='lists installed plugins')
+  parser.add_argument('-z', '--framework-dir', dest='framework_dir',
+                      action='store_true', help='prints framework directory')
 
   # no arguments? get some help!
   if len(sys.argv) == 1:
@@ -189,6 +197,8 @@ if __name__ == '__main__':
     sys.exit(1)
 
   args = parser.parse_args()
+  if args.framework_dir:
+    print(os.path.abspath(frameworkDir))
   # plugins list
   doList = args.list
   if doList:

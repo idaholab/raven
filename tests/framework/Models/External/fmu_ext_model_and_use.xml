@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Models.External.fmu_ext_model</name>
+    <author>alfoa</author>
+    <created>2021-05-10</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+      This test is used to exercise the ability of RAVEN to
+      export an FMU of the RAVEN external model class to be used in any FMI FMU compatible framework.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SerializeWrkd</WorkingDir>
+    <Sequence>extFMUexport</Sequence>
+  </RunInfo>
+  <Files>
+    <Input name="attenuate_pk2.fmu" type="FMU">attenuate_pk2.fmu</Input>
+  </Files>
+  <Steps>
+    <IOStep name="extFMUexport">
+      <Input class="Models" type="ExternalModel">attenuate</Input>
+      <Output class="Files" type="">attenuate_pk2.fmu</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
+      <inputs>y1,y2</inputs>
+      <outputs>ans</outputs>
+      <moreXMLInfo>
+        <valueForXML>3.14159</valueForXML>
+      </moreXMLInfo>
+    </ExternalModel>
+    <ExternalModel name="attenuate2" subType="pickledModel"/>
+  </Models>
+
+</Simulation>

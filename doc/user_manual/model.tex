@@ -74,7 +74,7 @@
   In order to use the \textit{#1} PP, the user needs to set the
   \xmlAttr{subType} of a \xmlNode{PostProcessor} node:
 
-  \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{#2}/}.
+  \xmlNode{PostProcessor \xmlAttr{name}=\xmlString{ppName} \xmlAttr{subType}=\xmlString{#2}/}.
 
    Several sub-nodes are available:
 }
@@ -107,7 +107,7 @@
 
 \newcommand{\nIterNoChangeDescriptionA}[1]
 {
-  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping. 
+  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -383,7 +383,7 @@
   \verDescriptionA{False}
   %
   \nb This setting takes advantage of a per-process runtime setting in libsvm
-  that, if enabled, may not work properly in a multithreaded context.
+  that, if enabled, may not work properly in a multi-threaded context.
 }
 
 \newcommand{\randomStateSVMDescription}[1]
@@ -800,7 +800,7 @@
 }
 \newcommand{\warmStartMLPDescription}[1]
 {
-  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of 
+  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of
   previous call to fit as initialization, otherise, just erase the previous solution.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
@@ -852,7 +852,7 @@
 }
 \newcommand{\betaBMLPDescription}[1]
 {
-  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponentail decay rate for estimates of second moment
+  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponential decay rate for estimates of second moment
   vector in adam. should be in [0, 1). only used when solver = `adam'
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
@@ -979,8 +979,8 @@ to couple a new code.
   \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
   of the executable to be used.
 
-  \item \xmlNode{walltime}  \xmlDesc{string, optional field} specifies the maximum 
-  allowed run time of the code; if the code running time is greater than the specified 
+  \item \xmlNode{walltime}  \xmlDesc{string, optional field} specifies the maximum
+  allowed run time of the code; if the code running time is greater than the specified
   walltime then the code run is stopped. The stopped run is then considered as if it crashed.
   %
   \nb Both absolute and relative path can be used. In addition, the relative path
@@ -1001,7 +1001,7 @@ to couple a new code.
   \begin{itemize}
     \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
     command-line argument to add.  Options include \xmlString{input},
-    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, 
+    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend},
     \xmlString{text}, and \xmlString{python}.
     %
     \item \xmlAttr{arg} \xmlDesc{string, optional field} specifies the flag to
@@ -1019,6 +1019,8 @@ to couple a new code.
       the extension given by \xmlAttr{extension}.
       \nb This is currently only used to link the \xmlAttr{arg} and input file. i.e.
       the \xmlAttr{type} should be \xmlString{input} in order to use this feature.
+   \item \xmlAttr{csv} \xmlDesc{bool, optional field} specifies if a csv file needs to be 
+      printed for each code run (default False)
   \end{itemize}
   The execution command is combined in the order \xmlString{prepend}, \xmlNode{python}
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
@@ -1184,10 +1186,14 @@ This XML node needs to contain the attributes:
   %
   \nb As with the other objects, this is the name that can be used to refer to
   this specific entity from other input blocks in the XML.
-  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be kept
-  empty.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, external model type. It must be kept empty, except in the following cases:
+  \begin{itemize}
+    \item  \textbf{\textit{pluginType}}, in this case the  \xmlAttr{subType} is the spefic plugin to use (e.g. \textbf{TEAL.CashFlow})
+    \item  \textbf{\textit{pickledModel}}, a pickled external model (serialized model). See \ref{subsubsec:pickledModel}   for details.
+  \end{itemize}    
+  
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
-  with its absolute or relative path.
+  with its absolute or relative path. This attribute is specified just for Generic ExternalModel (i.e.  empty \xmlAttr{subType})
   %
   \nb If a relative path is specified, the code first checks relative
   to the working directory, then it checks with respect to where the
@@ -1208,9 +1214,24 @@ in a RAVEN internal object.
 %
 These variables are specified within a \xmlNode{variables} block:
 \begin{itemize}
-  \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
+  \item \xmlNode{variables}, \xmlDesc{string, optional parameter}.
   %
   Comma-separated list of variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
+  model.
+  \nb \textbf{This node (\xmlNode{variables}) is deprecated and will be removed in RAVEN 3.0 in favor of the two following nodes (\xmlNode{inputs}, \xmlNode{outputs}) }
+  %
+   \item \xmlNode{inputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of input variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
+  model.
+  %
+   \item \xmlNode{outputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of output variable names.
   %
   Each variable name needs to match a variable used/defined in the external python
   model.
@@ -1230,7 +1251,13 @@ Each variable defined in the \xmlNode{ExternalModel} block is available in the
 module (each method implemented) as a python ``self.''
 %
 
-In the External Python module, the user can implement all the methods that are
+
+\subsubsection{Generic External Model}
+\label{subsubsec:generic_external_model}
+As mentioned before, the generic external model is a python module that is going to be
+treated as a predefined internal model object.
+
+In the External Python module (if not a plugin or  \textbf{\textit{pickledModel}}), the user can implement all the methods that are
 needed for the functionality of the model, but only the following methods, if
 present, are called by the framework:
 \begin{itemize}
@@ -1261,8 +1288,8 @@ present, are called by the framework:
 In the following sub-sections, all the methods are going to be analyzed in
 detail.
 
-\subsubsection{Method: \texttt{def \_readMoreXML}}
-\label{subsubsec:externalReadMoreXML}
+\paragraph{Method: \texttt{def \_readMoreXML}}
+\label{subsubsubsec:externalReadMoreXML}
 As already mentioned, the \textbf{readMoreXML} method can be implemented by the
 user if the XML input that belongs to this External Model needs to be extended
 to contain other information.
@@ -1315,8 +1342,8 @@ def _readMoreXML(self,xmlNode):
 \end{lstlisting}
 
 
-\subsubsection{Method: \texttt{def initialize}}
-\label{subsubsec:externalInitialize}
+\paragraph{\texttt{def initialize}}
+\label{subsubsubsec:externalInitialize}
 The \textbf{initialize} method can be implemented in the \textbf{External Model}
 in order to initialize some variables needed by it.
 %
@@ -1331,7 +1358,7 @@ RAVEN will communicate, thorough a set of method attributes, all the information
 that are generally needed to perform a initialization:
 \begin{itemize}
   \item runInfo, a dictionary containing information regarding how the
-  calculation is set up (e.g. number of processors, etc.).
+  calculation is set up (e.g., number of processors, etc.).
   %
   It contains the following attributes:
   \begin{itemize}
@@ -1362,7 +1389,7 @@ that are generally needed to perform a initialization:
     \item \texttt{deleteOutExtension} -- if a simulation (code run) has not
     failed, delete the relative output files with the listed extension (comma
     separated list, for example: `e,r,txt')
-    \item \texttt{mode} -- running mode, curently the only mode supported is
+    \item \texttt{mode} -- running mode, currently the only mode supported is
       mpi (but custom modes can be created)
     \item \textit{expectedTime} -- how long the complete input is expected to
     run
@@ -1382,9 +1409,8 @@ def initialize(self,runInfo,inputs):
 \end{lstlisting}
 
 
-\subsubsection{Method: \texttt{def createNewInput}}
-\label{subsubsec:externalcreateNewInput}
-
+\paragraph{Method: \texttt{def createNewInput}}
+\label{subsubsubsec:externalcreateNewInput}
 The \textbf{createNewInput} method can be implemented by the user to create a
 new input with the information coming from the RAVEN framework.
 %
@@ -1392,7 +1418,7 @@ In this function, the user can retrieve the information coming from the RAVEN
 framework, during the employment of a calculation flow, and use them to
 construct a new input that is going to be transferred to the ``run'' method.
 %
-The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
+The new input created needs to be returned to RAVEN (i.e., ``return NewInput'').
 \\This method expects that the new input is returned in a Python ``dictionary''.
 %
 RAVEN communicates, thorough a set of method attributes, all the information
@@ -1427,8 +1453,8 @@ def createNewInput(self,inputs,samplerType,**Kwargs):
   return avariable*Kwargs['SampledVars']['aSampledVar']
 \end{lstlisting}
 
-\subsubsection{Method: \texttt{def run}}
-\label{subsubsec:externalRun}
+\paragraph{Method: \texttt{def run}}
+\label{subsubsubsec:externalRun}
 As stated previously, the only method that \emph{must} be present in an
 External Module is the \textbf{run} function.
 %
@@ -1457,14 +1483,51 @@ def run(self,Input):
   self.outcome = self.sigma*self.rho*input[``whatEver'']
 \end{lstlisting}
 
-%\subsection{Projector}
-%\label{sec:models_projector}
-%
-%Description
 
-%Summary
+\subsubsection{pickledModel}
+\label{subsubsec:pickledModel}
+It is not uncommon for a Model to be created and encapsulate in one RAVEN
+run, then serialized to file (pickled), then loaded into another RAVEN run to be used as a model.
+When this is the case, a \xmlNode{ExternalModel} with subtype ’pickledModel’ is used to hold the place of the
+ExternalModel that will be loaded from file. The notation for this ExternalModel is much less than a typical ExternalModel; it
+only requires a name and its subtype.
+Note that when loading ExternalModels from file, RAVEN will not perform any checks on the expected
+inputs or outputs of an ExternalModel; it is expected that a user know at least the $I/O$ of a ExternalModel before trying
+to use it as a model.  
+Initially, a pickledModel is not usable. It cannot be sampled; attempting to do so will
+raise an error. An \xmlNode{IOStep} is used to load the ExternalModel from file, at which point the ExternalModel will
+have all the same characteristics as when it was pickled in a previous RAVEN run.
+Example: For this example the ExternalModel has already been created in another RAVEN
+run, then serialized to a file called rom \texttt{pickle.pk}. In the example, the file is identified in
+\xmlNode{Files}, the model is defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
 
-%Example
+{\footnotesize
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Files>
+    <Input name="pickle.pk" type="">pickle.pk</Input>
+  </Files>
+  ...
+  <Models>
+    ...
+    <ExternalModel name="myModel" subType="pickledModel"/>
+    ...
+  </Models>
+  ...
+  <Steps>
+    ...
+    <IOStep name="loadModel">
+      <Input class="Files" type="">pickle.pk</Input>
+      <Output class="Models" type="pickledModel">myModel</Output>
+    </IOStep>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
+}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%         PostProcessor         %%%%%%%%%
@@ -1546,19 +1609,19 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here 
-        specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here
+        specified are not part
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to 
-        be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to
+        be transferred to other
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
-        Note that the structure of each Output dataObject must include only variables (either input or output) that are 
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are
         defined among the model.
-        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model 
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model
         level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of 
-        both classes ``DataObjects'' and ``Databases'' 
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of
+        both classes ``DataObjects'' and ``Databases''
         (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5})
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
@@ -1585,7 +1648,7 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is 
+     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is
      activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
         otherwise an error will be raised.
@@ -1596,13 +1659,13 @@ It is important to notice that when the EnsembleModel detects a chain of models 
  \newline \xmlNode{TargetEvaluation} determines how the data are going to be transferred from a model to
   the other. If for example the chain of models is $A \rightarrow B$:}}
 \begin{itemize}
-  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
-  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}
+  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either
   a \textit{PointSet} or a \textit{DataSet} (where the output variables that need to be transferred to the model $A$ are scalars) }    }
-   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
-  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}
+  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either
   a \textit{HistorySet} or a \textit{DataSet}  }    }
-  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}  
+  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}
   of the  both models  $A$  and $B$ will be  \textit{PointSet}s  }  }
 \end{itemize}
 
@@ -1699,11 +1762,11 @@ It is important to notice that when the EnsembleModel detects a chain of models 
 \subsection{HybridModel}
 \label{subsec:models_HybridModel}
 The \textbf{HybridModel} is a new \textit{Model} entity. This new Model is able to combine reduced order model
-(ROMs) and any other high-fidelity Model (i.e. Code, ExternalModel). The ROMs will be trained based on the results
+(ROMs) and any other high-fidelity Model (i.e., Code, ExternalModel). The ROMs will be trained based on the results
 from the high-fidelity model. The accuracy of the ROMs will be evaluated based on the cross validation scores,
 and the validity of the ROMs will be determined via some local validation metrics (\nb currently only one metric
-is available, i.e. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
-the Model (i.e the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
+is available, i.e,. CrowdingDistance). After these ROMs are trained, the \textbf{HybridModel} can decide which of
+the Model (i.e., the ROMs or high-fidelity model) to be executed based on the accuracy and validity of the ROMs.
 
 Currently this model is only able to share information (i.e. data) using \textbf{PointSet}.
 
@@ -1727,7 +1790,7 @@ This XML node needs to contain the attributes:
 \vspace{-5mm}
 
 Within the \xmlNode{HybridModel} XML node, the multiple entities that constitute
-this HybridModel needs to be inputted. 
+this HybridModel needs to be inputted.
 
 \begin{itemize}
   \item \xmlNode{Model}, \xmlDesc{XML node, required parameter}.
@@ -1751,7 +1814,7 @@ this HybridModel needs to be inputted.
     ``CrossValidation``.
   %
     \assemblerAttrDescription{Model}
-  % 
+  %
   \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter}.
   %
     The text portion of this node needs to contain the name of a data object defined in the \xmlNode{DataObjects} block.
@@ -1784,20 +1847,20 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
   \end{itemize}
   \item \xmlNode{validationMethod}, \xmlDesc{XML node, optional parameter}.
   %
-  The validity methods that are used to determine which model to run (i.e. ROMs or high-fidelity Model).
+  The validity methods that are used to determine which model to run (i.e., ROMs or high-fidelity Model).
   This XML node needs to contain the attributes:
   %
   \begin{itemize}
     \itemsep0em
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this \xmlNode{validationMethod}.
-      \nb Currently, only one method is available, ie. ``CrowdingDistance``.
+      \nb Currently, only one method is available, i.e., ``CrowdingDistance``.
   \end{itemize}
   %
-  The body of this sub-node  contains the following XML sub-nodes:
+  The body of this sub-node contains the following XML sub-nodes:
   %
   \begin{itemize}
-     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance`` method.
+     \item \xmlNode{threshold}, \xmlDesc{XML node, required field}, the threshold that is used for ``CrowdingDistance'' method.
   \end{itemize}
 \end{itemize}
 
@@ -1928,3 +1991,8 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
 %
 \nb For this example, the user needs to provide all the inputs for the \textbf{HybridModel}, i.e. Files for the
 \textbf{Code} and DataObject for the \textbf{ROM} defined in the \textbf{HybridModel}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%            Logical Model                %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{logical_model.tex}

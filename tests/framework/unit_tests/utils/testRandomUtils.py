@@ -22,11 +22,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import utils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+frameworkDir = os.path.join(ravenDir, 'framework')
+sys.path.append(ravenDir)
+from ravenframework.utils import utils
 utils.find_crow(frameworkDir)
-from utils import randomUtils
+from ravenframework.utils import randomUtils
 randomENG = utils.findCrowModule("randomENG")
 
 print (randomUtils)
@@ -134,6 +135,7 @@ checkAnswer('First float from second seed for local engine provided',randomUtils
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
 
+print(' ... sampling ...')
 vals = np.array([randomUtils.random(engine=None) for _ in range(int(1e5))])
 mean = np.average(vals)
 stdv = np.std(vals)
@@ -202,18 +204,18 @@ vals = randomUtils.randomNormal(3,engine=eng)
 checkArray('random normal single point for local engine provided',vals,right)
 ## test many points
 
-vals = randomUtils.randomNormal(3,5,engine=None)
+vals = randomUtils.randomNormal((5,3),engine=None)
 checkAnswer('randomNormal number of samples for engine not provided',len(vals),5)
 checkAnswer('randomNormal size of sample for engine not provided',len(vals[0]),3)
 
-vals = randomUtils.randomNormal(3,5,engine=eng)
+vals = randomUtils.randomNormal((5,3),engine=eng)
 checkAnswer('randomNormal number of samples for local engine provided',len(vals),5)
 checkAnswer('randomNormal size of sample for local engine provided',len(vals[0]),3)
 
 ### randomIntegers(), sampling integers in a range
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
-right = [14,18,20,12,17]
+right = [14,18,20,12,18]
 for i in range(5):
   n = randomUtils.randomIntegers(10,20,None,engine=None) #no message handler, error handling will error out
   checkAnswer('random integer, {} sample for engine not provided'.format(i),n,right[i])
@@ -221,14 +223,26 @@ for i in range(5):
 for i in range(5):
   n = randomUtils.randomIntegers(10,20,None,engine=eng) #no message handler, error handling will error out
   checkAnswer('random integer, {} sample for local engine provided'.format(i),n,right[i])
+### randomChoice(), sampling an element from a array-like object (1D or ND)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+arrayLike = [1,2,3,4]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from list [1D] of reals for engine not provided',n,2)
+arrayLike = np.asarray(([1,2,3],[5,6,7],[9,10,11]))
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from ND-array of reals for engine not provided',n,11)
+arrayLike = [["andrea","paul","diego"],["joshua","congjian","mohammad"]]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkTrue('random choice from ND-array of objects (strings) for engine not provided',n, ["andrea","paul","diego"])
 ### randomPermutation(), rearranging lists
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
 l = [1,2,3,4,5]
 l2 = randomUtils.randomPermutation(l,None,engine=None)
-checkArray('random permutation for engine not provided',l2,[2,4,5,1,3])
+checkArray('random permutation for engine not provided',l2,[2,5,4,1,3])
 l2 = randomUtils.randomPermutation(l,None,engine=eng)
-checkArray('random permutation for local engine provided',l2,[2,4,5,1,3])
+checkArray('random permutation for local engine provided',l2,[2,5,4,1,3])
 ### randPointsOnHypersphere(), unit hypersphere surface sampling (aka random direction)
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
@@ -278,6 +292,27 @@ if False:
   y = samps[:,1]
   plt.plot(x,y,'.')
   plt.show()
+
+### testing randomChoice(), a random sample or a sequence of random samples from a given array
+randomUtils.randomSeed(42,engine=None)
+
+testArray     = np.array([1,2,3,5])
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 1',testChoice,2)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 2',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 3',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 4',testChoice,1)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 5',testChoice,3)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 6',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 7',testChoice,3)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 8',testChoice,3)
 
 ### randPointsInHypersphere(), random point in hypersphere
 randomUtils.randomSeed(42,engine=None)
@@ -361,6 +396,7 @@ engine = randomUtils.newRNG()
 engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
+
 
 print(results)
 

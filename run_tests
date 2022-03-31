@@ -44,6 +44,8 @@ for A in "$@"; do
         --test_all)
             TEST_SET=2
             ;;
+	--pedantic-checks)
+	    ;;
         *)
             ARGS+=("$A")
             ;;
@@ -81,6 +83,10 @@ for A in "$@"; do
             ;;
     esac
 done
+
+#Note that this is from the perspective of python
+FRAMEWORK_DIR=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -z`
+
 
 # run the tests
 # success/fail storage
@@ -122,7 +128,9 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
+  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+  # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
+  $ROOK_COMMAND
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
   if [[ $rc != 0 ]]; then
@@ -147,8 +155,18 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo "********************************************************************************"
     echo
     echo Starting tests for plugin "$P" ...
-    $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
-    rc=$?
+    # add RAVEN testers to plugin testers
+    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+    echo Running ROOK command: "$ROOK_COMMAND" ...
+    {
+      # try
+      $ROOK_COMMAND
+      rc=$?
+    } || {
+      # catch
+      rc=1
+    }
+
     ALL_PASS=$(($ALL_PASS + $rc))
     if [[ $rc != 0 ]]; then
       echo  ... there were failed tests for plugin "$P"!

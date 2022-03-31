@@ -292,6 +292,46 @@
     output = 'data/outMLPRegressor.xml'
     rel_err = 1.0e-8
   [../]
+  [./votingRegressor]
+    type = 'RavenFramework'
+    input = 'votingRegressor.xml'
+    csv = 'data/outVotingRegressor.csv'
+    output = 'data/outVotingRegressor.xml'
+    rel_err = 1.0e-8
+  [../]
+  [./votingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'votingRegressor_plotting.xml'
+    csv = 'data/outVotingRegressor_plotting.csv'
+    image = 'data/votingRegressor_scatter-scatter-scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+  [../]
+  [./baggingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'baggingRegressor_plotting.xml'
+    csv = 'data/outBaggingRegressor_plotting.csv'
+    image = 'data/BaggingRegressor_scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+  [../]
+  [./adaBoostRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'adaBoostRegressor_plotting.xml'
+    csv = 'data/outAdaBoostRegressor_plotting.csv'
+    image = 'data/AdaBoostRegressor_scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+  [../]
+  [./stackingRegressor_plotting]
+    type = 'RavenFramework'
+    input = 'stackingRegressor_plotting.xml.xml'
+    csv = 'data/outStackingRegressor_plotting.csv'
+    image = 'data/stackingRegressor_scatter-scatter-scatter-scatter-scatter.png'
+    required_libraries = 'imageio'
+    skip = "require sklearn version 0.24"
+    rel_err = 0.0001
+  [../]
   ##############################################################################
   ## Inconsistent Results
   #[./DTR]

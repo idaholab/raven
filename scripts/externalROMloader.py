@@ -21,13 +21,13 @@ External Loader for serialized surrogate model (ROM) for external usage
 """
 # This is a class and module used to import serialized ROMs (by RAVEN) into an
 # external code.
-# It requires to set the path of the RAVEN framework (e.g. ./raven/framework)
+# It requires to set the path of the RAVEN framework (e.g. ./raven/ravenframework)
 # and the path to the serialized ROM (e.g. ./example/ROMpk.pk)
 # This script can be run with a standalone input file where these info is inputted
 # and some evaluations can be evaluated. For example:
 # <?xml version="1.0" ?>
 # <external_rom>
-#    <RAVENdir>/Users/alfoa/projects/raven_github/raven/framework</RAVENdir>
+#    <RAVENdir>/Users/alfoa/projects/raven_github/raven/ravenframework</RAVENdir>
 #    <ROMfile>/Users/alfoa/projects/raven_github/raven/scripts/ROMpk</ROMfile>
 #    <evaluate>
 #      <x1>0. 1. 0.5</x1>
@@ -66,27 +66,59 @@ class ravenROMexternal(object):
       @ In, whereFrameworkIs, str, the location of RAVEN framework (path)
       @ Out, None
     """
+    self._binaryLoc = binaryFileName
+    self._frameworkLoc = whereFrameworkIs
+    self._load(binaryFileName, whereFrameworkIs)
+
+  def _load(self, binaryFileName, whereFrameworkIs):
+    """
+      Load the ROM.
+      @ In, binaryFileName, str, the location of the serialized (pickled) ROM that needs to be imported
+      @ In, whereFrameworkIs, str, the location of RAVEN framework (path)
+      @ Out, None
+    """
     # find the RAVEN framework
     frameworkDir = os.path.abspath(whereFrameworkIs)
     if not os.path.exists(frameworkDir):
       raise IOError('The RAVEN framework directory does not exist in location "' + str(frameworkDir)+'" !')
-    sys.path.append(frameworkDir)
+    sys.path.append(os.path.dirname(frameworkDir))
     if not os.path.dirname(frameworkDir).endswith("framework"):
       # we import the Driver to load the RAVEN enviroment for the un-pickling
       try:
-        import Driver
+        from CustomDrivers import DriverUtils
+        DriverUtils.doSetup()
       except ImportError:
         # we try to add the framework directory
         pass
     else:
       # we import the Driver to load the RAVEN enviroment for the un-pickling
-      sys.path.append(os.path.join(frameworkDir,"framework"))
+      sys.path.append(os.path.join(frameworkDir,"ravenframework"))
       import Driver
     # de-serialize the ROM
     serializedROMlocation = os.path.abspath(binaryFileName)
     if not os.path.exists(serializedROMlocation):
       raise IOError('The serialized (binary) file has not been found in location "' + str(serializedROMlocation)+'" !')
     self.rom = pickle.load(open(serializedROMlocation, mode='rb'))
+
+  def __getstate__(self):
+    """
+      Deep copy.
+      @ In, None
+      @ Out, d, dict, self representation
+    """
+    d = {'binaryFileName': self._binaryLoc,
+         'whereFrameworkIs': self._frameworkLoc}
+    return d
+
+  def __setstate__(self, d):
+    """
+      Deep paste.
+      @ In, d, dict, self representation
+      @ Out, None
+    """
+    self._binaryLoc = d['binaryFileName']
+    self._frameworkLoc = d['whereFrameworkIs']
+    self._load(self._binaryLoc, self._frameworkLoc)
 
   def evaluate(self,request):
     """

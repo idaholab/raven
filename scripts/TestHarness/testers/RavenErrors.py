@@ -22,8 +22,7 @@ import subprocess
 from Tester import Tester
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
-raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'framework',
-                                     'Driver.py'))
+raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'raven_framework.py'))
 scriptsDir = os.path.abspath(os.path.join(fileDir, '..', '..'))
 sys.path.append(scriptsDir)
 import library_handler
@@ -90,7 +89,7 @@ class RavenErrors(Tester):
     """
     missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
-      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+      self.set_skip('skipped (Missing python modules: '+str(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(notQa) > 0:

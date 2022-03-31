@@ -19,7 +19,6 @@ from __future__ import absolute_import
 import os
 import sys
 import subprocess
-import distutils.version
 from Tester import Tester
 
 scriptsDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -130,9 +129,9 @@ class RavenPython(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actualVersion) < \
-         distutils.version.LooseVersion(libraryVersion):
-        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
+      if library_handler.parseVersion(actualVersion) < \
+         library_handler.parseVersion(libraryVersion):
+        self.set_skip('skipped (Outdated library: "'+libraryName+'" needed version '+str(libraryVersion)+' but had version '+str(actualVersion)+')')
         return False
       i += 2
 
@@ -155,12 +154,11 @@ class RavenPython(Tester):
       return False
     missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
-      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
-                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
+      self.set_fail('skipped (Missing python modules: '+ str(missing)+" PYTHONPATH="+ str(os.environ.get("PYTHONPATH", "")) +')')
       return False
     if len(notQa) > 0 and library_handler.checkVersions():
       self.set_fail('skipped (Incorrectly versioned python modules: ' +
-                    " ".join(['{}-{}'.format(*m) for m in notQa]) +
+                    " ".join(['required {}-{}, but found {}'.format(*m) for m in notQa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

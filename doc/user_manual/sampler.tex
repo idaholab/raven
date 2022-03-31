@@ -181,7 +181,7 @@ XML node and the requirements for other attributes change:
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
   \ref{sec:functions}. This function must implement a method named ``evaluate''.
- \nb{Alternatively, this node must be ommitted
+ \nb{Alternatively, this node must be omitted
   if the \xmlNode{distribution} node is supplied.}
 }
 
@@ -201,7 +201,7 @@ XML node and the requirements for other attributes change:
       thresholds, and 2) \xmlString{value}, the grid will be provided
       using variable values.
     \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
-      the grid needs to be constructed, independent of its type (i.e.
+      the grid needs to be constructed, independent of its type (i.e.,
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescriptionOnlyCustom
@@ -342,7 +342,7 @@ XML node and the requirements for other attributes change:
         supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
         distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
-        \default{1e-15}
+        \default{1e-14}
     \end{itemize}
 }
 \newcommand{\constantSourceDescription}[1]
@@ -363,7 +363,7 @@ XML node and the requirements for other attributes change:
         \item \xmlAttr{distribution}, \xmlDesc{required string attribute}, the name for the distribution defined in the XML node \xmlNode{Distributions}.
         This attribute indicates the values of \xmlNode{manifestVariables} are drawn from \xmlAttr{distribution}.
       \end{itemize}
-      In addition, this XML node also accepts three childen nodes:
+      In addition, this XML node also accepts three children nodes:
       \begin{itemize}
         \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
         are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
@@ -401,6 +401,82 @@ XML node and the requirements for other attributes change:
         \texttt{out\_100.pk}.
     \end{itemize}
 }
+
+\newcommand{\convergenceDescriptionAMC}
+{
+  \xmlNode{Convergence} recognizes the following child nodes:
+    \begin{itemize}
+      \item \xmlNode{limit}, \xmlDesc{integer required field}, the
+        maximum number of adaptive samples (iterations).
+        %
+        \default{infinite}.
+      \item \xmlNode{forceIteration}, \xmlDesc{boolean optional field},
+        this attribute controls if at least a number of iterations equal to
+        \textbf{limit} must be performed.
+        %
+        \default{False}.
+      \item \xmlNode{persistence}, \xmlDesc{integer optional field},
+        offers an additional convergence check.
+        %
+        It represents the number of times the computed error needs to be
+        below the inputted tolerance before convergence is reported.
+        %
+        \default{5}.
+
+      \item \xmlNode{"metric"}, \xmlDesc{comma separated string list, required field},
+        specifications for the aggregate metrics on which \xmlNode{AdaptiveMonteCarlo} will attempt to converge. The name of each node is the requested metric. The text of the node is a comma-separated list of the
+        parameters for which the metric should be calculated. See the example below.\\
+
+
+        \xmlNode{AdaptiveMonteCarlo} will attempt to converge the standard errors of the requested metrics. Currently the metrics available are:
+        \begin{itemize}
+          \item \textbf{expectedValue}: expected value or mean
+          \item \textbf{median}: median
+          \item \textbf{variance}: variance
+          \item \textbf{sigma}: standard deviation
+          \item \textbf{skewness}: skewness
+          \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+        \end{itemize}
+
+
+
+      The nodes containing metrics need to contain the following attributes:
+      \begin{itemize}
+        \itemsep0em
+        \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+          For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+          For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
+          ``mean\_x'' will be defined by RAVEN.
+          For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+          For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+          variable ``sen\_y\_x'' will be defined by RAVEN.
+          \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+          \textbf{DataObjects} and \textbf{OutStreams}.
+
+          \item \xmlAttr{tol}, \xmlDesc{required float attribute}, convergence tolerance for the standard error of the metric.
+
+      \end{itemize}
+      %
+      \vspace{12pt}
+      RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
+      store the standard error of the given \textbf{metric} with respect to the given parameter. This variable needs to be included in the \xmlNode{TargetEvaluation} \xmlNode{DataObject} which is an output of the \xmlNode{Step} in which the \xmlNode{AdaptiveMonteCarlo} is used. This variable is also available for output to the \xmlNode{SolutionExport} \xmlNode{DataObjec}.  \\
+
+      \nb When defining the metrics to use, it is possible to have multiple nodes with the same name.  For
+      example, if a problem has inputs $X1$, and $X2$, and the responses are $Y1$, $Y2$, it is possible that
+      the desired metrics are the \xmlNode{sigma} of $Y1$,and $Y2$ on same tolerance, and \xmlNode{expectedValue}
+      of $Y1$,and $Y2$ on different tolerance. The first has the parameters $Y1,Y2$ in the same node with one
+      tolerance attribute, while the second need to divide into two nodes. One has target $Y1$ and another one
+      has target $Y2$ instead.  This could reduce some computation effort in problems with many responses or inputs.
+      An example of this is shown below.\\
+
+    \end{itemize}
+
+    In summary, the \xmlNode{convergence} node contains the information that is needed in order
+    to control the \xmlNode{AdaptiveMonteCarlo} sampler's convergence criteria.
+}
+%
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
@@ -630,7 +706,6 @@ bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound}). Allowed f
  \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
-%\end{itemize}
 
 If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a
 multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
@@ -638,8 +713,8 @@ covariance matrix is provided and the input parameters is assumed to have the mu
 \textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of
 \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables
-specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
+\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to transform the variables
+specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by \xmlNode{manifestVariables}
 in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
 listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
 
@@ -668,7 +743,7 @@ Example:
       <distribution>aDistributionNameDefinedInDistributionBlock
       </distribution>
     </variable>
-    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <Restart class='DataObjects' type='PointSet'>data</Restart>
   </MonteCarlo>
   ...
 </Samplers>
@@ -728,8 +803,8 @@ covariance matrix is provided and the input parameters is assumed to have the mu
 the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
 provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{Grid} sampling. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
@@ -774,7 +849,7 @@ Example:
       </distribution>
       <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
-    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <Restart class='DataObjects' type='PointSet'>data</Restart>
     <restartTolerance>1e-6</restartTolerance>
   </Grid>
   ...
@@ -858,8 +933,8 @@ and the input parameters are assumed to have the multivariate normal distributio
 This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
 of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to transform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by
 \xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
 in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
@@ -934,7 +1009,7 @@ are used by the \xmlNode{Models}.
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
 The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
-interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimension separately.  At
 order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
@@ -1079,7 +1154,7 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach,
+For N-dimensional  (ND) distributions, there are two different approaches to perform the stratified sampling. In the first approach,
 the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed
 on a grid on a CDF, while the user is required to specify the same CDF grid for all the dimensions of the ND distribution.
 This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the
@@ -1112,8 +1187,8 @@ sample the input parameters in the transformed space (aka subspace, reduced spac
 the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
 provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{Stratified} sampler. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not used for approach.
 
@@ -1218,7 +1293,7 @@ this family of methods:
       are the medians of the values used in the factorial portion.
       This point is often replicated in order to improve the precision of the
       experiment;
-    \item A set of axial points, experimental runs identical to the centre
+    \item A set of axial points, experimental runs identical to the center
       points except for one factor, which will take on values both below and
       above the median of the two factorial levels, and typically both outside
       their range.
@@ -1305,8 +1380,8 @@ Furthermore, if the covariance matrix is provided and the input parameters are a
 \textbf{ResponseSurfaceDesign} approach to sample the input parameters in the transformed space (aka subspace, reduced space).
 In this case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
-required for \textbf{ResponseSurfaceDesign} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+required for \textbf{ResponseSurfaceDesign} sampling. This node is used to transform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables specified by \xmlNode{manifestVariables} in the input space. The variables listed
 in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
@@ -1556,9 +1631,9 @@ Example:
 \subsubsection{Ensemble Forward Sampling strategy}
 \label{subsubsubsec:EnsembleSampler}
 The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies
-into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a
+into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g., a
 stochastic event
-modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g. because part of a parametric space modeled with a Grid-based approach).
+modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g., because part of a parametric space modeled with a Grid-based approach).
 \specBlock{a}{EnsembleForward}
 %
 \attrsIntro
@@ -2082,15 +2157,15 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Adaptive Samplers}
 \label{subsec:AdaptSamplers}
-The Adaptive Samplers' family provides the possibility to perform smart sampling
-(also known as adaptive sampling) as an alternative to classical “Forward”
+The Adaptive Samplers family provides the possibility to perform smart sampling
+(also known as adaptive sampling) as an alternative to classical ``Forward''
 techniques.
 %
 The motivation is that system simulations are often computationally expensive,
 time-consuming, and high dimensional with respect to the number of input
 parameters.
 %
-Thus, exploring the space of all possible simulation outcomes is infeasible
+Thus, exploring the space of all possible simulation outcomes is unfeasible
 using finite computing resources.
 %
 During simulation-based probabilistic risk analysis, it is important to discover
@@ -2114,6 +2189,7 @@ Currently, RAVEN provides support for the following adaptive algorithms:
 
 \begin{itemize}
   \item Limit Surface Search
+  \item Adaptive Monte Carlo
   \item Adaptive Dynamic Event Tree
   \item Adaptive Hybrid Dynamic Event Tree
   \item Adaptive Sparse Grid
@@ -2317,6 +2393,90 @@ def __residuumSign(self):
     return  1
   else:
     return -1
+\end{lstlisting}
+
+%%% Adaptive Samplers: ADMC
+\subsubsection{Adaptive Monte Carlo}
+\label{subsubsubsec:ADMC}
+The \xmlNode{AdaptiveMonteCarlo} approach is an extension of the \xmlNode{MonteCarlo} sampler.
+However, instead of having a predefined number of samples, the \xmlNode{AdaptiveMonteCarlo} sampler continues sampling until the standard error of all the desired metrics are less than the specified tolerance.
+%
+
+\specBlock{an}{AdaptiveMonteCarlo}
+%
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{AdaptiveMonteCarlo}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+  \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+  \end{itemize}
+  \item \constantVariablesDescription
+\end{itemize}
+
+ In addition to the \xmlNode{variable} nodes, the main
+\xmlNode{AdaptiveMonteCarlo} node needs to contain the following supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescriptionAMC
+  \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field},
+  initial seeding of random number generator for Monte Carlo sampler. By default, RAVEN uses an internal static seed.
+  \default{20021986}
+  % Assembler Objects
+  \item \assemblerDescription{AdaptiveMonteCarlo}
+    \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveMonteCarlo name = 'AdaptiveName'>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
+    <Convergence>
+      <forceIteration>False</forceIteration>
+      <limit>30</limit>
+      <persistence>6</persistence>
+      <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
+      <sigma prefix="sigma" tol="6e-2">y1</sigma>
+      <sigma prefix="sigma" tol="5e-2">y2</sigma>
+    </Convergence>
+    <variable name = 'var1'>
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock1
+        </distribution>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock2
+        </distribution>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock3
+        </distribution>
+    </variable>
+  </AdaptiveMonteCarlo>
+  ...
+</Samplers>
 \end{lstlisting}
 
 %%% Adaptive Samplers: ADET
@@ -2795,8 +2955,8 @@ and the input parameters are assumed to have the multivariate normal distributio
 This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
 of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
-\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to transform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables specified by
 \xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
 in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
@@ -2973,6 +3133,291 @@ Example:
     <ROM class = 'Models' type = 'ROM'>hdmrrom</ROM>
     <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
   </AdaptiveSobol>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Markov Chain Monte Carlo %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Markov Chain Monte Carlo}
+\label{subsec:MCMC}
+The Markov chain Monte Carlo (MCMC) is a Sampler entity in the RAVEN framework.
+It provides enormous scope for realistic statistical modeling. MCMC is essentially
+Monte Carlo integration using Markov chain. Bayesians, and sometimes also frequentists,
+need to integrate over possibly high-dimensional probability distributions to make inference
+about model parameters or to make predictions. Bayesians need to integrate over the posterior
+distributions of model parameters given the data, and frequentists may need to integrate
+over the distribution of observables given parameter values. Monte Carlo integration draws
+samples from the required distribution, and then forms samples averages to approximate expectations.
+MCMC draws these samples by running a cleverly constructed Markov chain for a long time.
+There are a large number of MCMC algorithms, and popular families include Gibbs sampling,
+Metropolis-Hastings, slice sampling, Hamiltonian Monte Carlo, and many others. Regardless
+of the algorithm, the goal in Bayesian inference is to maximize the unnormalized joint
+posterior distribution and collect samples of the target distributions, which are marginal
+posterior distributions, later to be used for inference.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Metropolis-Hastings Sampler %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Metropolis (Metropolis-Hastings Sampler)}
+\label{subsubsubsec:metropolis}
+The Metropolis-Hastings (MH) algorithm is a MCMC method for obtaining a sequence of random samples from a probability
+distribution from which direct sampling is difficult. This sequence can be used to approximate the distribution or
+to compute an integral. It simulates from a probability distribution by making
+use of the full joint density function and (independent) proposal distributions for each of
+the variables of interest.
+
+\specBlock{an}{Metropolis}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Metropolis}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+      \item \xmlNode{initial}, \xmlDesc{float, optional field}, specified the initial value for given variable.
+      \item \xmlNode{proposal}, \xmlDesc{Assembler Object}, specifies the proposal distribution for this variable.
+      \nb We only allow one-dimensional symmetric distribution to be the proposal distribution.
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Distributions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type.
+      \end{itemize}
+      \item \xmlNode{probabilityFunction}, \xmlDesc{Assembler Object}, specifies the prior distribution function..
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Functions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type. Only ``External'' is allowed.
+      \end{itemize}
+    \end{itemize}
+    \nb For MCMC sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
+    In addition, we allow the user to provide their defined prior distribution through the
+    \xmlNode{probabilityFunction}. In this case, the ``pdf'' method needs to be defined in the external function.
+    For example:
+    \begin{lstlisting}[language=python]
+    def pdf(self):
+      """
+        Method required for "probabilityFunction" used by MCMC sampler
+        that is used to define the prior probability function
+        @ In, None
+        @ Out, priorPDF, float, the prior pdf value
+      """
+      priorPDF = 1/(1-self.rho**2)**(3/2)
+      return priorPDF
+    \end{lstlisting}
+    \item \constantVariablesDescription
+\end{itemize}
+
+In the \textbf{Metropolis} input block, the user needs to specify the variables need to be sampled.
+As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}.
+In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
+\begin{itemize}
+  \item \xmlNode{samplerInit},  \xmlDesc{required field}. In this xml-node, the following xml sub-nodes need to be specified:
+  \begin{itemize}
+    \item \xmlNode{limit},  \xmlDesc{integer, required field}, number of Metropolis samples needs to be generated;
+    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator;
+    \item \xmlNode{burnIn}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
+    \default{0}
+    \item \xmlNode{tune}, \xmlDesc{bool, optional field}, indicates whether to tune the scaling parameter of proposal distributions or not;
+    \default{`True'}
+    \item \xmlNode{tuneInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each tuning of scaling parameter;
+    \default{100}
+  \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{Metropolis} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
+  This node accept one attribute:
+  \begin{itemize}
+    \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
+    provided or not. When True, the code expects to receive the log likelihood value.
+    \default{`False'}
+  \end{itemize}
+  \item \assemblerDescription{Metropolis}
+  \constantSourceDescription{Metropolis}
+  \begin{itemize}
+    \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+      represents the container where the system evaluations are stored.
+      %
+      From a practical point of view, this XML node must contain the name of
+      a data object defined in the \xmlNode{DataObjects} block (see
+      Section~\ref{sec:DataObjects}). The object here specified must be
+      input as  \xmlNode{Output} in the Steps that employ this sampling strategy.
+      %
+      The Metropolis sampling accepts ``DataObjects'' of type
+      ``PointSet'' only.
+  \end{itemize}
+  \restartDescription{Metropolis}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <Metropolis name="Metropolis">
+    <samplerInit>
+      <limit>1000</limit>
+      <initialSeed>070419</initialSeed>
+      <tune>10</tune>
+    </samplerInit>
+    <likelihood log="False">zout</likelihood>
+    <variable name="xin">
+      <distribution>normal</distribution>
+      <initial>0</initial>
+      <proposal class="Distributions" type="Normal">normal</proposal>
+    </variable>
+    <variable name="yin">
+      <distribution>normal</distribution>
+      <initial>0</initial>
+      <proposal class="Distributions" type="Normal">normal</proposal>
+      <!-- <proposal>normal</proposal> -->
+    </variable>
+    <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+  </Metropolis>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Adaptive Metropolis Sampler %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Adaptive Metropolis Sampler}
+\label{subsubsubsec:adaptiveMetropolis}
+
+The search for improved proposal distributions of Metropolis sampler is often
+done manually, through trial and error, though this can be difficult especially
+in high dimensions. An alternative approach is adaptive Metropolis, which asks
+the computer to automatically ``learn'' better parameter values ``on the fly''.
+
+\specBlock{an}{AdaptiveMetropolis}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{AdaptiveMetropolis}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+      \item \xmlNode{initial}, \xmlDesc{float, optional field}, specified the initial value for given variable.
+      \item \xmlNode{proposal}, \xmlDesc{Assembler Object}, specifies the proposal distribution for this variable.
+      \nb We only allow one-dimensional symmetric distribution to be the proposal distribution.
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Distributions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type.
+        \item \xmlAttr{dim}, \xmlDesc{positive integer, optional attribute}, required for
+        multivariate normal proposal distribution, indicates the dimension within the multivariate
+        normal distribution that corresponds to this variable.
+      \end{itemize}
+      \item \xmlNode{probabilityFunction}, \xmlDesc{Assembler Object}, specifies the prior distribution function..
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Functions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type. Only ``External'' is allowed.
+      \end{itemize}
+      \textcolor{red}{\\\textbf{THIS NODE IS CURRENTLY NOT ALLOWED FOR ADAPTIVE METROPOLIS SAMPLER.}}
+    \end{itemize}
+    \nb For this sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
+    \item \constantVariablesDescription
+\end{itemize}
+
+In the \textbf{AdaptiveMetropolis} input block, the user needs to specify the variables need to be sampled.
+As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}.
+In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
+\begin{itemize}
+  \item \xmlNode{samplerInit},  \xmlDesc{required field}. In this xml-node, the following xml sub-nodes need to be specified:
+  \begin{itemize}
+    \item \xmlNode{limit},  \xmlDesc{integer, required field}, number of Metropolis samples needs to be generated;
+    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator;
+    \item \xmlNode{burnIn}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
+    \default{0}
+    \item \xmlNode{tune}, \xmlDesc{bool, optional field}, indicates whether to tune the scaling parameter of proposal distributions or not;
+    \default{`True'}
+    \item \xmlNode{tuneInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each tuning of scaling parameter;
+    \default{100}
+    \item \xmlNode{adaptiveInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each proposal parameters update;
+    \default{20}
+  \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{AdaptiveMetropolis} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
+  This node accept one attribute:
+  \begin{itemize}
+    \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
+    provided or not. When True, the code expects to receive the log likelihood value.
+    \default{`False'}
+  \end{itemize}
+  \item \assemblerDescription{Metropolis}
+  \constantSourceDescription{Metropolis}
+  \begin{itemize}
+    \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+      represents the container where the system evaluations are stored.
+      %
+      From a practical point of view, this XML node must contain the name of
+      a data object defined in the \xmlNode{DataObjects} block (see
+      Section~\ref{sec:DataObjects}). The object here specified must be
+      input as  \xmlNode{Output} in the Steps that employ this sampling strategy.
+      %
+      The Adaptive Metropolis sampling accepts ``DataObjects'' of type
+      ``PointSet'' only.
+  \end{itemize}
+  \restartDescription{Metropolis}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveMetropolis name="AdaptiveMetropolis">
+    <samplerInit>
+      <limit>1000</limit>
+      <initialSeed>070419</initialSeed>
+      <burnIn>500</burnIn>
+    </samplerInit>
+    <likelihood log="False">zout</likelihood>
+    <variable name="xin">
+      <distribution>normal</distribution>
+      <initial>2</initial>
+    </variable>
+    <variable name="yin">
+      <distribution>normal</distribution>
+      <initial>2</initial>
+    </variable>
+    <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+  </AdaptiveMetropolis>
   ...
 </Samplers>
 \end{lstlisting}

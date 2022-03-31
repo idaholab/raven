@@ -45,7 +45,7 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_plugin" subType="RAVEN">
-        <executable>python %FRAMEWORK_DIR%/../framework/Driver.py</executable>
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>dumpSumOfExpOutput</outputExportOutStreams>
         <alias variable="b"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:b</alias>
         <alias variable="a"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:a</alias>
