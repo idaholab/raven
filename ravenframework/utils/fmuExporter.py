@@ -151,7 +151,7 @@ class {className}(Fmi2Slave):
       if os.path.isdir(os.path.join(self.raven_path,"ravenframework")):
         # we import the Driver to load the RAVEN enviroment for the un-pickling
         try:
-          import framework.Driver
+          import ravenframework.Driver
         except RuntimeError as ae:
           # we try to add the framework directory
           raise RuntimeError("Importing or RAVEN failed with error:" +str(ae))
