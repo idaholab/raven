@@ -18,11 +18,11 @@
 
 import os,sys
 import numpy as np
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import utils
-utils.find_crow(frameworkDir)
-from utils import frontUtils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
+from ravenframework.utils import utils
+utils.find_crow(ravenDir)
+from ravenframework.utils import frontUtils
 
 randomENG = utils.findCrowModule("randomENG")
 

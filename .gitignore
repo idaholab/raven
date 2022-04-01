@@ -62,6 +62,18 @@ build/
 .failed_tests
 .ravenrc
 *.ravenStatus
+install/
+src/crow_modules/distribution1D.py
+src/crow_modules/distribution1D_wrap.cpp
+src/crow_modules/interpolationND.py
+src/crow_modules/interpolationND_wrap.cpp
+src/crow_modules/randomENG.py
+src/crow_modules/randomENG_wrap.cpp
+build_out*
+test_out*
+framework/contrib/PythonFMU/pythonfmu.egg-info/
+raven_framework.egg-info/
+raven_framework*.whl
 
 # eclipse
 .project
