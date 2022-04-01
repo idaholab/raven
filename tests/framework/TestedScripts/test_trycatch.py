@@ -15,12 +15,11 @@ import sys
 import os
 
 #establish required paths for importing MessageHandler
-frameworkDir = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..','..','..','framework'))
-sys.path.append(frameworkDir)
-sys.path.append(os.path.join(frameworkDir,'utils'))
+ravenDir = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..','..','..'))
+sys.path.append(ravenDir)
 
-import MessageHandler
-from BaseClasses import MessageUser
+from ravenframework import MessageHandler
+from ravenframework.BaseClasses import MessageUser
 
 #establish a basic message user
 user = MessageUser()

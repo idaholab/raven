@@ -6,7 +6,7 @@
 num_fails=0
 fails=''
 
-pushd ../../framework
+pushd ../../ravenframework
 RAVEN_FRAMEWORK_DIR=$(pwd)
 popd
 

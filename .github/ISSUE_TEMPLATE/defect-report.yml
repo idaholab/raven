@@ -2,7 +2,6 @@ name: Defect Report
 description: Report a DEFECT you experienced using the code
 title: "[DEFECT] "
 labels: defect, priority_normal
-assignees: PaulTalbot-INL, joshua-cogliati-inl, wangcj05, mandd
 body:
   - type: checkboxes
     id: requirements
