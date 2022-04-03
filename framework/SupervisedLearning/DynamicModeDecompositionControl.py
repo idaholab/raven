@@ -227,7 +227,6 @@ class DMDC(DMD):
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
-      self.raiseAMessage("Cost is : {}".format(cost))
 
   @property
   def featureImportances_(self):
