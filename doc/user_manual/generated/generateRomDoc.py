@@ -20,16 +20,16 @@
 # get driver and path and import it, to get RAVEN paths correct
 import os
 import sys
-ravenFramework = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'framework'))
-sys.path.append(ravenFramework)
+ravenDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(ravenDir)
 try:
-  import Driver
+  import ravenframework.Driver
 except Exception as e:
   print('\nWe did not find the modules needed for RAVEN; maybe the conda env is not activated?')
   raise e
 sys.path.pop()
 
-from utils.InputData import wrapText
+from ravenframework.utils.InputData import wrapText
 
 # examples
 ndSpline = r"""
@@ -737,8 +737,8 @@ user need to specify following information for \xmlNode{Segment}:
 \end{itemize}
 """
 
-import SupervisedLearning
-from SupervisedLearning import ScikitLearnBase
+from ravenframework import SupervisedLearning
+from ravenframework.SupervisedLearning import ScikitLearnBase
 excludeObj = ['SupervisedLearning',
               'ScikitLearnBase',
               'KerasBase',
