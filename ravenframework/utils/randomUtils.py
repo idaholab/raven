@@ -27,6 +27,7 @@ import numpy as np
 
 from .utils import findCrowModule
 from . import mathUtils
+from ..CustomDrivers.DriverUtils import setupCpp
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
 # Numpy stochastic environment can not pass the test as this point
@@ -87,6 +88,7 @@ class BoxMullerGenerator:
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
+  setupCpp()
   crowStochEnv = findCrowModule('randomENG').RandomClass()
   # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
