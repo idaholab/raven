@@ -78,7 +78,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     # Number of samples between Features and Measurements can be different
     if len(self.features) != len(self.measurements):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Measurements"')
-    
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -151,16 +151,16 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         yMsrStd = yMsrStd.flatten()
       # Pseudo response of multiple Experiment responses
       # OrthogonalMatchingPursuit from sklearn used here
-      # Possibly change to other regressors      
+      # Possibly change to other regressors
       elif yExpStd.shape[1]>1:
         regrExp = OrthogonalMatchingPursuit(fit_intercept=False).fit(yExpStd, yAppStd)
         yExpReg = regrExp.predict(yExpStd)
-        # Combine measurements by multiple Experiment regression      
+        # Combine measurements by multiple Experiment regression
         yMsrStd = regrExp.predict(yMsrStd)
 
       # Measurement PDF with KDE
       knlMsr = stats.gaussian_kde(yMsrStd)
-      
+
       # KDE for joint PDF between Exp and App
       m1 = yExpReg[:]
       m2 = yAppStd.flatten()
@@ -178,15 +178,15 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Check whether the covavariance matrix is positive definite
       if np.linalg.cond(vals)>=1/np.finfo(vals.dtype).eps:
         pdfAppPred = knlMsr(Y[0, :])
-      # If not, introduce a 
+      # If not, introduce a
       else:
-        knl = stats.gaussian_kde(vals)      
+        knl = stats.gaussian_kde(vals)
         # Joint PDF of Experiment and Application
-        Z = np.reshape(knl(psts).T, X.shape) 
+        Z = np.reshape(knl(psts).T, X.shape)
         # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
         pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
-      
-      # Normalized PDF of predicted application  
+
+      # Normalized PDF of predicted application
       pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
 
       # Calculate Expectation (average value) of predicted application
