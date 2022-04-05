@@ -98,7 +98,7 @@ def setupCpp():
     @ Out, None
   """
   frameworkDir = findFramework()
-  from utils import utils
+  from ravenframework.utils import utils
   utils.find_crow(frameworkDir)
   utils.add_path(os.path.join(frameworkDir,'contrib'))
   ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
