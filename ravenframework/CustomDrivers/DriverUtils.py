@@ -98,11 +98,15 @@ def setupCpp():
     @ Out, None
   """
   frameworkDir = findFramework()
-  from ravenframework.utils import utils
-  utils.find_crow(frameworkDir)
-  utils.add_path(os.path.join(frameworkDir,'contrib'))
-  ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+  ravenDir = os.path.dirname(frameworkDir)
+  if any(os.path.normcase(sp) == os.path.join(ravenDir, 'crow') for sp in sys.path):
+    print(f'WARNING: "{os.path.join(ravenDir, "crow")}" already in system path. Skipping CPP setup')
+  else:
+    from ravenframework.utils import utils
+    utils.find_crow(frameworkDir)
+    utils.add_path(os.path.join(frameworkDir,'contrib'))
+    ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+    utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 
 def checkVersions():
   """
