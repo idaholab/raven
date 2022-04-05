@@ -52,11 +52,11 @@
   <Distributions>
     <Normal name="dist1">
       <mean>5.5</mean>
-      <sigma>0.0001</sigma>
+      <sigma>0.55</sigma>
     </Normal>
     <Normal name="dist2">
       <mean>8</mean>
-      <sigma>0.0001</sigma>
+      <sigma>0.8</sigma>
     </Normal>
   </Distributions>
 

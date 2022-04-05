@@ -1173,7 +1173,7 @@ class BasicStatistics(PostProcessorReadyInterface):
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
-      return outputDict
+      return outputDict,outputSet
 
   def corrCoeff(self, covM):
     """
@@ -1359,7 +1359,7 @@ class BasicStatistics(PostProcessorReadyInterface):
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
     inputData = self.inputToInternal(inputIn)
-    outputSet = self.__runLocal(inputData)
+    _,outputSet = self.__runLocal(inputData)
     return outputSet
 
   def collectOutput(self, finishedJob, output):
