@@ -32,7 +32,7 @@
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <skewness prefix="skew">x,y</skewness>
       <variationCoefficient prefix="vc">x,y</variationCoefficient>
-      <percentile prefix="percentile">x,y</percentile>
+      <percentile prefix="percentile" interpolation="midpoint">x,y</percentile>
       <expectedValue prefix="mean">x,y</expectedValue>
       <kurtosis prefix="kurt">x,y</kurtosis>
       <median prefix="median">x,y</median>
