@@ -266,8 +266,11 @@ class RFE(BaseInterface):
       # NEW SEARCH
       actualScore = 0.0
       previousScore = self.searchTol*2
+      error = 1.0
       add = 0
-      while abs(actualScore - previousScore)/previousScore > self.searchTol or np.sum(support_) == 1:
+      while error > self.searchTol and int(np.sum(support_)) > 0:
+
+        
         # Remaining features
         supportIndex = 0
         raminingFeatures = int(np.sum(support_))
@@ -306,6 +309,7 @@ class RFE(BaseInterface):
         previousScore = actualScore
         scores = {}
         for target in evaluated:
+          #if target in ['Electric_Power','Turbine_Pressure']:
           if target in targetsIds:
             tidx = targetsIds.index(target)
             avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
@@ -336,8 +340,9 @@ class RFE(BaseInterface):
         ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
 
         ########
-        print("iter: {}. Score: {}".format( add, score))
         actualScore = score
+        print("iter: {}. Score: {}, Tol: {}".format( add, score, abs(actualScore - previousScore)/previousScore))
+        error = abs(actualScore - previousScore)/previousScore
         threshold = 1
         #print(threshold)
         #print (ranks)
@@ -351,6 +356,7 @@ class RFE(BaseInterface):
         ranking_[np.logical_not(support_)] += 1
         #coefs = coefs[:,:threshold] if coefs.ndim > 1 else coefs[:threshold]
         add+=1
+        
 
 
     # Set final attributes
