@@ -21,11 +21,11 @@ app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 app_name = 'RAVEN'
 
 MOOSE_DIR = os.path.abspath(os.path.join(app_path, '..' 'moose'))
-FRAMEWORK_DIR = os.path.abspath(os.path.join(app_path, '..', 'moose', 'framework'))
+FRAMEWORK_DIR = os.path.abspath(os.path.join(app_path, '..', 'moose', 'ravenframework'))
 #### See if MOOSE_DIR is already in the environment instead
 if os.environ.has_key("MOOSE_DIR"):
   MOOSE_DIR = os.environ['MOOSE_DIR']
-  FRAMEWORK_DIR = os.path.join(MOOSE_DIR, 'framework')
+  FRAMEWORK_DIR = os.path.join(MOOSE_DIR, 'ravenframework')
 if os.environ.has_key("FRAMEWORK_DIR"):
   FRAMEWORK_DIR = os.environ['FRAMEWORK_DIR']
 
