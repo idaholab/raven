@@ -111,11 +111,16 @@ data objects, depending on the type of statistics the user wants to compute:
     \begin{equation}
       \sum_{i = 1}^{k - 1} w_i \le 1/2  and \sum_{i = k + 1}^{n} w_i \le 1/2
     \end{equation}
+    The user can specify the parameter \textit{interpolation='X'} for the interpolation method used to calculate the median when it falls between data points. \textit{X} can be \textit{'linear'} (default) or \textit{'midpoint'}
+    where \textit{'linear'} uses linear interpolation between points and \textit{'midpoint'} uses the midpoint or average.
     \item \textbf{variance}: variance
     \item \textbf{sigma}: standard deviation
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
                                Otherwise the user can specify this quantity with a parameter \textit{percent='X'}, where the \textit{X} represents the requested
-                               percentile (a floating point value between 0.0 and 100.0)
+                               percentile (a floating point value between 0.0 and 100.0). The user can also specify the parameter \textit{interpolation='X'} for
+                               the interpolation method used to calculate the percentile when it falls between data points. \textit{X} can be \textit{'linear'}
+                               (default) or \textit{'midpoint'} where \textit{'linear'} uses linear interpolation between points and \textit{'midpoint'} uses the
+                               midpoint or average.
     \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
     the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{skewness}: skewness
@@ -163,6 +168,10 @@ data objects, depending on the type of statistics the user wants to compute:
   (xml). For these ROMs, computing the basic statistics on data generated from
   one of these sampler/ROM combinations may not provide the information that the
   user expects.
+  \\
+  \nb Determining the percentile requires many samples, especially if the requested percentile is in
+  the tail of the distribution. The standard error of the percentile requires a large number of
+  samples for accuracy due to the asymptotic variance method used.
   \\
   In addition, RAVEN will automatically calculate the standard errors on the following scalar quantities:
   \begin{itemize}

@@ -448,7 +448,7 @@ cd $PBS_O_WORKDIR
 module load raven-devel-gcc
 
 #Start Raven
-python  ../../framework/Driver.py test_mpi.xml
+python  ../../raven_framework.py test_mpi.xml
 \end{lstlisting}
 
 Alternatively, RAVEN can be asked to submit the qsub directory.  With
@@ -472,7 +472,7 @@ this, the RunInfo is:
 In this case, the command run from the cluster submit node:
 
 \begin{lstlisting}[language=bash]
-python ../../framework/Driver.py test_mpiqsub_local.xml
+python ../../raven_framework.py test_mpiqsub_local.xml
 \end{lstlisting}
 
 %\begin{itemize}
@@ -580,7 +580,7 @@ An example Python class is given below with the functions that can and should be
 overridden:
 
 \begin{lstlisting}[language=python]
-import Simulation
+from ravenframework import Simulation
 class NewMode(Simulation.SimulationMode):
   def remoteRunCommand(self, runInfoDict):
     # If it returns a dictionary, then run the command in args

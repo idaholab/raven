@@ -7,7 +7,7 @@ os.chdir(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
 
 #add framework contrib path
 RAVEN_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
+os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'ravenframework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
 
 print("PYTHONPATH="+os.environ.get("PYTHONPATH",""))
 path = os.environ.get("PATH","")
@@ -54,7 +54,7 @@ for module, found, message, version in report_list:
     print(module,version,"\n",message,"\n")
   else:
     print(module+' not found\n')
-framework_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])),"framework"))
+framework_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])),"ravenframework"))
 utils.find_crow(framework_dir)
 try:
   distribution1D = utils.findCrowModule('distribution1D')

@@ -14,7 +14,7 @@
 import os, sys, json
 
 #find TreeStructure module
-sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework')))
+sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'ravenframework')))
 
 from reader_hdf5_from_Feb_2018_to_Oct_2021 import AfterFeb2018ToOct2021HDF5Database
 from reader_hdf5_prior_Feb_2018 import PriorFeb2018HDF5Database

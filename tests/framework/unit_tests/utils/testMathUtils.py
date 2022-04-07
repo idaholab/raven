@@ -19,10 +19,10 @@
 import os,sys
 import numpy as np
 import xml.etree.ElementTree as ET
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
 
-from utils import mathUtils
+from ravenframework.utils import mathUtils
 
 print (mathUtils)
 mh = getMessageHandler()

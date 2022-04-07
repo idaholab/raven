@@ -14,7 +14,7 @@
 import os, sys
 
 #find TreeStructure module
-utilsDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'framework','utils'))
+utilsDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'ravenframework','utils'))
 sys.path.append(utilsDir)
 import TreeStructure as TS
 

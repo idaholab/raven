@@ -171,7 +171,7 @@ that will contain few methods (with strict syntax) that are called by RAVEN duri
 \\ When loading a ``Code Interface'', RAVEN expects to find, in the class representing the code,
  the following required methods:
 \begin{lstlisting}[language=python]
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None)
   def createNewInput(self, currentInputFiles, oriInputFiles,
@@ -179,7 +179,7 @@ class NewCode(CodeInterfaceBase):
 \end{lstlisting}
 In addition, the following optional methods can be specified:
 \begin{lstlisting}[language=python]
-from CodeInterfaceBaseClass import CodeInterfaceBase
+from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
   ...
   def initialize(self, runInfoDict, oriInputFiles)

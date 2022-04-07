@@ -210,12 +210,19 @@ ROM model can be of any kind and is the user's decision to choose the training m
 When loading ROMs from file, the user is expected to know the I/O of a ROM and loading of the ROM file must use \xmlNode{IOStep}.
 
 To verify the output files in the given example below are runnable with GrayBoxModel, several optional RAVEN dependencies are required.
-The following are the required optional libraries: pyomo 6.4 or over, cmake, glpk, ipopt, cyipopt, and pyomo-extensions.
+The following are the required optional libraries: pyomo 6.4 or over, cmake, glpk, ipopt, cyipopt, and pyomo-extensions. The syntax to run
+trained ROMs and GayBoxModel is the following:
+
+\begin{lstlisting}
+  python3 python_output_file.py -r rom_pickle_file.pk -f location_of_raven_framework
+\end{lstlisting}
 
 If the user does not have a setup pyomo and pynumero environment, it is recommended to activate RAVEN libraries using the following command
 on the terminal:
 
+\begin{lstlisting}
 source scripts/establish_conda_env.sh --load
+\end{lstlisting}
 
 \textbf{Example:} For this example the external model is trained and further loaded as `out\_rom'. The loaded trained model is separately
 processed to `rom\_out.py' and `rom\_pickle.pk'.

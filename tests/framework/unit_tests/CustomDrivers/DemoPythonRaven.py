@@ -29,7 +29,7 @@ frameworkTestDir = os.path.abspath(os.path.join(frameworkDir, 'tests', 'framewor
 targetWorkflow = os.path.join(frameworkTestDir, 'basic.xml')
 
 # instantiate a RAVEN instance
-from framework import Raven
+from ravenframework import Raven
 raven = Raven()
 
 # load a workflow

@@ -1,0 +1,20 @@
+
+Problem: 
+- Name: unknown
+  Lower bound: -inf
+  Upper bound: 0.3587964554159516
+  Number of objectives: 1
+  Number of constraints: 1
+  Number of variables: 3
+  Number of binary variables: 0
+  Number of integer variables: 0
+  Number of continuous variables: 3
+  Sense: minimize
+Solver: 
+- Name: cyipopt
+  Status: ok
+  Return code: 0
+  Message: b'Algorithm terminated successfully at a locally optimal point, satisfying the convergence tolerances (can be specified by options).'
+  Wallclock time: 0.15934334900000002
+  Termination condition: optimal
+
