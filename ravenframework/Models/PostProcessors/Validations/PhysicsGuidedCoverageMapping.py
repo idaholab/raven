@@ -28,7 +28,7 @@ from sklearn.linear_model import OrthogonalMatchingPursuit
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
+from ravenframework.utils import InputData, InputTypes
 from .. import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -87,16 +87,19 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
-    names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
+    names = list(dataDict.keys())#[self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
     evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
     return evaluation
 
   def _evaluate(self, datasets, **kwargs):
     """
-      Main method to "do what you do".
+      Main method of PCM. It collects the response values from Feature and Target models,
+      and Measurements from experiment, maps the biases and uncertainties from Feature to
+      Target side, and calculates the uncertainty reduction fraction using Feature to
+      validate Target.
       @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
       @ In, kwargs, dict, keyword arguments
-      @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
+      @ Out, outputDict, dict, dictionary containing the results {"pri_post_stdReduct_<targName>":value}
     """
     names = kwargs.get('dataobjectNames')
     outputDict = {}
@@ -121,6 +124,19 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     featPW = np.array(featPW).T
     msrPW = np.array(msrPW).T
 
+    # Probability Weights to be used in the future
+    yExp = np.array(featData)
+    yMsr = np.array(msrData)
+    # Reference values of Experiments, yExpRef in M
+    # Sample mean as reference value for simplicity
+    # Can be user-defined in the future
+    yExpRef = np.mean(yExp, axis=0)      
+    # Usually the reference value is given,
+    # and will not be zero, e.g. reference fuel temperature.
+    # Standardization
+    yExpStd = (yExp-yExpRef)/yExpRef
+    yMsrStd = (yMsr-yExpRef)/yExpRef
+
     # For each Target/Application model/response, calculate an uncertainty reduction fraction
     # using all available Features/Experiments
     for targ in self.targets:
@@ -130,20 +146,12 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Probability Weights values in <x>PW, , <x>=targ, feat, msr
       targPW = targDataProb[1]
 
-      # Probability Weights to be used in the future
-      yExp = np.array(featData)
+      # Application responses yApp in Nx1
       yApp = np.array(targData)
-      yMsr = np.array(msrData)
-      # Sample mean as reference value for simplicity
-      # Can be user-defined in the future
-      yExpRef = np.mean(yExp, axis=0)
+      # Reference values of Application, yAppRef is a scalar
       yAppRef = np.mean(yApp)
-      # Usually the reference value is given,
-      # and will not be zero, e.g. reference fuel temperature.
       # Standardization
-      yExpStd = (yExp-yExpRef)/yExpRef
       yAppStd = (yApp-yAppRef)/yAppRef
-      yMsrStd = (yMsr-yExpRef)/yExpRef
 
       # Single Experiment response
       if yExpStd.shape[1]==1:

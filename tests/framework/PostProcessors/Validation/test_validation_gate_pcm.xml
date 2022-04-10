@@ -9,12 +9,17 @@
   <TestInfo>
     <name>framework/PostProcessors/Validation/test_validation_gate_pcm</name>
     <author>dhuang</author>
-    <created>2021-07-21</created>
-    <classesTested>PostProcessors.Validation</classesTested>
+    <created>2022-03-21</created>
+    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
     <description>
         This test is aimed to show how PCM works.
-        For simplicity, this test is using attenuate as experiment and tensor_ploy as application.
-        The output name convention is ...``feature name''\_``target name''\_``metric name''.
+        For simplicity, this test is using a linear model 
+        as experiment (Feature) and application (Target) models.
+        The linear model has two input variables and three responses,
+        all of which (F1, F2, F3) serve as three Targets and two (F1, F2) as two Features.
+        The output is a fraction value reflecting the uncertainty reduction fraction 
+        using Feature to validate Target comparing to the Target prior.
+        The output name convention is 'pri_post_stdReduct_'+"Target name".
     </description>
     <revisions>
       <revision author="dhuang" date="2021-08-26">...</revision>
