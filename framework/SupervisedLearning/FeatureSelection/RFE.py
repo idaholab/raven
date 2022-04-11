@@ -25,6 +25,7 @@ import numpy as np
 from scipy import spatial
 from sklearn.decomposition import PCA
 from collections import OrderedDict
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -264,101 +265,96 @@ class RFE(BaseInterface):
       initialRanks = copy.deepcopy(ranks)
       #######
       # NEW SEARCH
+      # in here we perform a best subset search
       actualScore = 0.0
       previousScore = self.searchTol*2
       error = 1.0
       add = 0
-      while error > self.searchTol and int(np.sum(support_)) > 0:
-
+      initialNumbOfFeatures = int(np.sum(support_))
+      featuresForRanking = np.arange(nParams)[support_]
+      originalSupport = copy.copy(support_)
+      scorelist = []            
+      featureList = []    
+      numbFeatures = []         
+      # this can be time consuming
+      for k in range(1,initialNumbOfFeatures + 1):
+        #Looping over all possible combinations: from initialNumbOfFeatures choose k
+        for combo in itertools.combinations(featuresForRanking,k):
+          support_ = copy.copy(originalSupport)
+          support_[featuresForRanking] = False
+          support_[np.asarray(combo)] = True
+          print(np.sum(support_))
+          supportIndex = 0
+          for idx in range(len(supportOfSupport_)):
+            if mask[idx]:
+              supportOfSupport_[idx] = support_[supportIndex]
+              supportIndex=supportIndex+1
+          if self.whichSpace == 'feature':
+            features = np.arange(nFeatures)[supportOfSupport_]
+            targets = np.arange(nTargets)
+          else:
+            features = np.arange(nFeatures)
+            targets = np.arange(nTargets)[supportOfSupport_]      
         
-        # Remaining features
-        supportIndex = 0
-        raminingFeatures = int(np.sum(support_))
-        featuresForRanking = np.arange(nParams)[support_]
-        for idx in range(len(supportOfSupport_)):
-          if mask[idx]:
-            supportOfSupport_[idx] = support_[supportIndex]
-            supportIndex=supportIndex+1
-        if self.whichSpace == 'feature':
-          features = np.arange(nFeatures)[supportOfSupport_]
-          targets = np.arange(nTargets)
-        else:
-          features = np.arange(nFeatures)
-          targets = np.arange(nTargets)[supportOfSupport_]
-        # Rank the remaining features
-        estimator = copy.deepcopy(self.estimator)
-        self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
-        toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
-        survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-        vals = {}
-        if toRemove:
-          for child in originalParams.subparts:
-            if isinstance(child.value,list):
-              newValues = copy.copy(child.value)
-              for el in toRemove:
-                if el in child.value:
-                  newValues.pop(newValues.index(el))
-              vals[child.getName()] = newValues
-          estimator.paramInput.findNodesAndSetValues(vals)
-          estimator._handleInput(estimator.paramInput)
-        estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
-
-        # evaluate
-        evaluated = estimator._evaluateLocal(X[:, features] if len(X.shape) < 3 else np.atleast_2d(X[0:1, :,features]))
-        score = 0.0
-        previousScore = actualScore
-        scores = {}
-        for target in evaluated:
-          #if target in ['Electric_Power','Turbine_Pressure']:
-          if target in targetsIds:
-            tidx = targetsIds.index(target)
-            avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
-            if avg == 0: avg = 1
-            s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
-            scores[target] = s
-            score +=  s
-
-        # Get coefs
-        coefs = None
-        if hasattr(estimator, 'featureImportances_'):
-          importances = estimator.featureImportances_
-          cc = []
-          for imp in importances:
-            if imp in self.parametersToInclude:
-              cc.append(importances[imp])
-              if imp in scores:
-                cc[-1] = cc[-1]/(scores[imp]*2./raminingFeatures) if scores[imp] else cc[-1]/(2./raminingFeatures *1e-8)
-
-          coefs = np.asarray(cc)
-          if coefs.shape[0] == raminingFeatures:
-            coefs = coefs.T
-
-        if coefs is None:
-          coefs = np.ones(raminingFeatures)
-
-        # Get ranks (for sparse case ranks is matrix)
-        ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
-
-        ########
-        actualScore = score
-        print("iter: {}. Score: {}, Tol: {}".format( add, score, abs(actualScore - previousScore)/previousScore))
-        error = abs(actualScore - previousScore)/previousScore
-        threshold = 1
-        #print(threshold)
-        #print (ranks)
-        #print(len(featuresForRanking))
-        #print(support_)
-        aaa = featuresForRanking[ranks]
-        print( support_[featuresForRanking[ranks][:]])
-
-        support_[featuresForRanking[ranks][:threshold]] = False
-        #print(support_)
-        ranking_[np.logical_not(support_)] += 1
-        #coefs = coefs[:,:threshold] if coefs.ndim > 1 else coefs[:threshold]
-        add+=1
         
-
-
+          estimator = copy.deepcopy(self.estimator)
+          self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
+          toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+          survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+          vals = {}
+          if toRemove:
+            for child in originalParams.subparts:
+              if isinstance(child.value,list):
+                newValues = copy.copy(child.value)
+                for el in toRemove:
+                  if el in child.value:
+                    newValues.pop(newValues.index(el))
+                vals[child.getName()] = newValues
+            estimator.paramInput.findNodesAndSetValues(vals)
+            estimator._handleInput(estimator.paramInput)
+          estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+  
+          # evaluate
+          for samp in range(X.shape[0]):
+            evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
+            score = 0.0
+            previousScore = actualScore
+            scores = {}
+            dividend = 0
+            for target in evaluated:
+              #if target in ['Electric_Power','Turbine_Pressure']:
+              #if target in targetsIds and target not in self.parametersToInclude:
+              if target in targetsIds:
+                if target not in self.parametersToInclude:
+                  w = 1.0
+                else:
+                  w = 1./float(len(combo))
+                tidx = targetsIds.index(target)
+                avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
+                if avg == 0: avg = 1
+                s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
+                scores[target] = s*w
+                score +=  s*w
+                dividend+=1.
+            score/=dividend
+            print("score: "+str(score))
+            
+            
+          scorelist.append(score)                  #Append lists
+          featureList.append(combo)
+          numbFeatures.append(len(combo))   
+      
+      idxx = np.argmin(scorelist)
+      support_ = copy.copy(originalSupport)
+      support_[featuresForRanking] = False
+      support_[np.asarray(featureList[idxx])] = True
+      print(scorelist[idxx])
+      print(featureList[idxx])
+      print(numbFeatures[idxx])
+      print(featureList[idxx])
+      print([self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]])
+  
+  
     # Set final attributes
     supportIndex = 0
     for idx in range(len(supportOfSupport_)):
