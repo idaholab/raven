@@ -333,8 +333,8 @@ class RFE(BaseInterface):
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
                 if avg == 0: avg = 1
                 s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
-                scores[target] = s*w
-                score +=  s*w
+                scores[target] = s*w*(np.mean(importances[target]) if target in importances else 1.0)
+                score +=  s*w*(np.mean(importances[target]) if target in importances else 1.0)
                 dividend+=1.
             score/=dividend
             print("score: "+str(score))
