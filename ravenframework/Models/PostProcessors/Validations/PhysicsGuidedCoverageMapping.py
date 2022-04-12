@@ -130,7 +130,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     # Reference values of Experiments, yExpRef in M
     # Sample mean as reference value for simplicity
     # Can be user-defined in the future
-    yExpRef = np.mean(yExp, axis=0)      
+    yExpRef = np.mean(yExp, axis=0)
     # Usually the reference value is given,
     # and will not be zero, e.g. reference fuel temperature.
     # Standardization
