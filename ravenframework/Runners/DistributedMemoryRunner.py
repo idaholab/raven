@@ -69,7 +69,15 @@ class DistributedMemoryRunner(InternalRunner):
     if self.thread is None:
       return True
     else:
-      return (self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]) if im.isLibAvail("ray") else self.thread.finished
+      if im.isLibAvail("ray"):
+        try:
+          ray.get(self.thread, timeout=waitTimeOut)
+          return True
+        except ray.exceptions.GetTimeoutError:
+          return False
+      else:
+        self.thread.finished
+      #return (self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]) if im.isLibAvail("ray") else self.thread.finished
 
   def _collectRunnerResponse(self):
     """
