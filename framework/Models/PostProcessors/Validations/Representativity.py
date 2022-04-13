@@ -27,8 +27,8 @@ import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
-from utils import utils
+from ravenframework.utils import InputData, InputTypes
+from ravenframework.utils import utils
 from .. import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 

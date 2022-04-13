@@ -23,7 +23,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .MetricInterface import MetricInterface
-from utils import InputData, InputTypes
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class RepresentativityFactors(MetricInterface):
