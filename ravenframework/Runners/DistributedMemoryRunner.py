@@ -79,7 +79,7 @@ class DistributedMemoryRunner(InternalRunner):
         #self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
         #which ran slower in ray 1.9
       else:
-        self.thread.finished
+        return self.thread.finished
 
   def _collectRunnerResponse(self):
     """
