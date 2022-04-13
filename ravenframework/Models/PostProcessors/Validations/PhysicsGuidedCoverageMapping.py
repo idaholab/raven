@@ -87,7 +87,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
-    names = list(dataDict.keys())#[self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
+    names = list(dataDict.keys())#
     evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
     return evaluation
 
@@ -156,7 +156,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Single Experiment response
       if yExpStd.shape[1]==1:
         yExpReg = yExpStd.flatten()
-        yMsrStd = yMsrStd.flatten()
+        yMsrReg = yMsrStd.flatten()
       # Pseudo response of multiple Experiment responses
       # OrthogonalMatchingPursuit from sklearn used here
       # Possibly change to other regressors
@@ -164,10 +164,10 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         regrExp = OrthogonalMatchingPursuit(fit_intercept=False).fit(yExpStd, yAppStd)
         yExpReg = regrExp.predict(yExpStd)
         # Combine measurements by multiple Experiment regression
-        yMsrStd = regrExp.predict(yMsrStd)
+        yMsrReg = regrExp.predict(yMsrStd)
 
       # Measurement PDF with KDE
-      knlMsr = stats.gaussian_kde(yMsrStd)
+      knlMsr = stats.gaussian_kde(yMsrReg)
 
       # KDE for joint PDF between Exp and App
       m1 = yExpReg[:]
