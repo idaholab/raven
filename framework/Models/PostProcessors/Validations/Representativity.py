@@ -146,7 +146,7 @@ class Representativity(ValidationBase):
     for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
-      Parameters = self._getDataFromDatasets(datasets, param, names)
+      parameters = self._getDataFromDatasets(datasets, param, names)
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
       covParameters = senFOMs @ senMeasurables.T
       for metric in self.metrics:
