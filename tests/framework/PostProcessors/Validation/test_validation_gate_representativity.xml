@@ -12,9 +12,8 @@
     <created>2021-04-29</created>
     <classesTested>PostProcessors.Validation</classesTested>
     <description>
-        This test is aimed to show how to use the mechanics of the Validation Post-Processor. For semplicity,
-        this test is using the attenuation model (analytical) and simple representativity factors metrics.
-        The output name convention is ``feature name''\underscore``target name''\underscore``metric name''=.
+        This test assesses the mechanics of the representativity workflow; one of the validation algorithms used in RAVEN.
+        This test uses a toy 1D slab reflective model as both the mock experiment and the target plant models. The expected representativity factor should be close to one for each measurable F_i and Figure of merit FOM_i. Currently the test utilizes the bias factor metric to compute the representativity factors.
     </description>
     <revisions>
       <revision author="Mohammad Abdo (@Jimmy-INL)" date="2021-04-11">Added Modification for new PP API</revision>
@@ -22,9 +21,6 @@
   </TestInfo>
 
   <Models>
-    <!-- <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
-    </ExternalModel> -->
     <ExternalModel ModuleToLoad="../../../AnalyticModels/Toy1DSlabReflective.py" name="slab" subType="">
       <variables>time,phi_0,x,a_tilde,phi</variables>
     </ExternalModel>
@@ -32,21 +28,15 @@
       <Features>outputDataMC1|ans</Features>
       <Targets>outputDataMC2|ans2</Targets>
       <Metric class="Metrics" type="Metric">simIndex</Metric>
-      <!-- <Derivatives type=??>?</Derivatives> -->
       <featureParameters>outputDataMC1|x1,outputDataMC1|x2</featureParameters>
       <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
       <pivotParameter>outputDataMC1|time</pivotParameter>
       <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
-      <!-- <Representativity name="repPP">
-        <Parameters>outputDataMC1|x1,outputDataMC1|x2</Parameters>
-        <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
-      </Representativity> -->
     </PostProcessor>
   </Models>
 
   <Metrics>
     <Metric name="simIndex" subType="RepresentativityFactors"/>
-    <!-- <RepresentativityFactors name="simIndex"/> -->
   </Metrics>
 
   <Distributions>
@@ -106,13 +96,8 @@
     </HistorySet>
     <HistorySet name="pp1_metric">
       <Input>InputPlaceHolder</Input>
-      <!-- <Output>OutputPlaceHolder</Output> -->
     </HistorySet>
   </DataObjects>
-
-  <!-- <VariableGroups>
-    <Group name="pp1_vars">ans_ans2_simIndex</Group>
-  </VariableGroups> -->
 
   <OutStreams>
     <Print name="pp1_metric_dump">
