@@ -19,12 +19,10 @@ Created on April 29 2021
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-#import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .MetricInterface import MetricInterface
-# from Metrics.metrics import MetricUtilities
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -82,8 +80,6 @@ class RepresentativityFactors(MetricInterface):
       @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result
     """
-    # assert (isinstance(x, np.ndarray))
-    # assert (isinstance(y, np.ndarray))
     senMeasurables = kwargs['senMeasurables']
     senFOMs = kwargs['senFOMs']
     covParameters = kwargs['covParameters']
