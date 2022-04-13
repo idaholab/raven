@@ -27,14 +27,9 @@ import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-#from utils import xmlUtils
 from utils import InputData, InputTypes
-#import Files
-#import Distributions
-#import MetricDistributor
 from utils import utils
 from .. import ValidationBase
-# from utils.mathUtils import partialDerivative, derivatives
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Representativity(ValidationBase):
@@ -159,11 +154,8 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().initialize(runInfo, inputs, initDict)
-    # self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.features), 'features':set(self.featureParameters),'prefix':'nsen'}]}
     self.stat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[1] for x in self.features]), 'features':set([x.split("|")[1] for x in self.featureParameters]),'prefix':'nsen'}]}
-    # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
-    # fakeRunInfo = {'workingDir':'','stepName':''}
-    self.stat.initialize(runInfo, inputs, initDict)#self.featureParameters, self.featureParameters, **kwargs
+    self.stat.initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -192,7 +184,6 @@ class Representativity(ValidationBase):
     names=[]
     if isinstance(inputIn['Data'][0][-1], xr.Dataset):
       names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
-      # names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
       if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
         if 'dynamic' not in self.dynamicType: #self.model.dataType:
           self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
@@ -214,24 +205,16 @@ class Representativity(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    # self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
     senMeasurables = self.stat.run({"Data":[[None, None, datasets[0]]]})
     senFOMs = self.stat.run({"Data":[[None, None, datasets[1]]]})
 
-
-    # for data in datasets:
-    #   sen = self.stat.run(data)
     names = kwargs.get('dataobjectNames')
     outs = {}
-    # for feat, targ, param, targParam in zip(self.features, self.targets, self.Parameters, self.targetParameters):
     for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
       Parameters = self._getDataFromDatasets(datasets, param, names)
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-      # senFOMs = partialDerivative(featData.data,np.atleast_2d(Parameters.data)[0,:],'x1')
-      # senFOMs = np.atleast_2d(Parameters[0])#.data
-      # senMeasurables = np.atleast_2d(targetParameters[0])
       covParameters = senFOMs @ senMeasurables.T
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
@@ -263,7 +246,6 @@ class Representativity(ValidationBase):
     elif 'ProbabilityWeight' in datasets[names.index(do)]:
       pw = datasets[doindex]['ProbabilityWeight'].values
     dim = len(dat.shape)
-    # (numRealizations,  numHistorySteps) for MetricDistributor
     dat = dat.values
     if dim == 1:
       #  the following reshaping does not require a copy

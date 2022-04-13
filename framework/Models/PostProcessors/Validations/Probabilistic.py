@@ -125,8 +125,6 @@ class Probabilistic(ValidationBase):
     pw = None
     if "|" in var and names is not None:
       do, feat =  var.split("|")
-      # doIndex = names.index(do)
-      # dat = datasets[doIndex][feat]
       dat = datasets[do][feat]
     else:
       for doIndex, ds in enumerate(datasets):
