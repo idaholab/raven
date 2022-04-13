@@ -48,13 +48,17 @@ class Representativity(ValidationBase):
         specifying input of cls.
     """
     specs = super(Representativity, cls).getInputSpecification()
-    parametersInput = InputData.parameterInputFactory("featureParameters", contentType=InputTypes.StringListType)
+    parametersInput = InputData.parameterInputFactory("featureParameters", contentType=InputTypes.StringListType,
+                      descr=r"""mock model parameters/inputs""")
     parametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(parametersInput)
-    targetParametersInput = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType)
+    targetParametersInput = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType,
+                            descr=r"""Target model parameters/inputs""")
     targetParametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(targetParametersInput)
-    targetPivotParameterInput = InputData.parameterInputFactory("targetPivotParameter", contentType=InputTypes.StringType)
+    targetPivotParameterInput = InputData.parameterInputFactory("targetPivotParameter", contentType=InputTypes.StringType,
+                                descr=r"""ID of the temporal variable of the target model. Default is ``time''.
+        \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).""")
     specs.addSub(targetPivotParameterInput)
     return specs
 
