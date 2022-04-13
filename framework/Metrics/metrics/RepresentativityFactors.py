@@ -56,29 +56,13 @@ class RepresentativityFactors(MetricInterface):
       @ In, None
       @ Out, None
     """
-    # Metric.__init__(self)
     super().__init__()
     # The type of given analysis
     self.actionType                      = None
     # True indicates the metric needs to be able to handle dynamic data
-    self._dynamicHandling = True
+    self._dynamicHandling                = True
     # True indicates the metric needs to be able to handle pairwise data
-    self._pairwiseHandling = False
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Method that reads the portion of the xml input that belongs to this specialized class
-      and initialize internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = Metric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    for child in paramInput.subparts:
-      if child.getName() == "actionType":
-        self.order = child.value
-      else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
+    self._pairwiseHandling               = False
 
   def run(self, x, y, weights = None, axis = 0, **kwargs):
     """
