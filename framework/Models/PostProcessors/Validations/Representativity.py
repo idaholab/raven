@@ -77,78 +77,6 @@ class Representativity(ValidationBase):
     self.stat = ppFactory.returnInstance('BasicStatistics')
     self.stat.what = ['NormalizedSensitivities'] # expected value calculation
 
-  # def initialize(self, runInfo, inputs, initDict=None):
-  #   """
-  #     This function is used to initialize the plugin, i.e. set up working dir,
-  #     call the initializePlugin method from the plugin
-  #     @ In, runInfo, dict, it is the run info from the jobHandler
-  #     @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
-  #     @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
-  #   """
-  #   super().initialize(runInfo, inputs, initDict)
-    # if self._keepInputMeta:
-    #   ## add meta keys from input data objects
-    #   for inputObj in inputs:
-    #     if isinstance(inputObj, DataObject.DataObject):
-    #       metaKeys = inputObj.getVars('meta')
-    #       self.addMetaKeys(metaKeys)
-
-
-  # def inputToInternal(self, currentInputs):
-  #   """
-  #     Method to convert an input object into the internal format that is
-  #     understandable by this pp.
-  #     @ In, currentInputs, list or DataObject, data object or a list of data objects
-  #     @ Out, measureList, list of (feature, target), the list of the features and targets to measure the distance between
-  #   """
-  #   if type(currentInputs) != list:
-  #     currentInputs = [currentInputs]
-  #   hasPointSet = False
-  #   hasHistorySet = False
-  #   #Check for invalid types
-  #   for currentInput in currentInputs:
-  #     inputType = None
-  #     if hasattr(currentInput, 'type'):
-  #       inputType = currentInput.type
-
-  #     if isinstance(currentInput, Files.File):
-  #       self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
-  #     elif isinstance(currentInput, Distributions.Distribution):
-  #       pass #Allowed type
-  #     elif inputType == 'HDF5':
-  #       self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
-  #     elif inputType == 'PointSet':
-  #       hasPointSet = True
-  #     elif inputType == 'HistorySet':
-  #       hasHistorySet = True
-  #       if self.multiOutput == 'raw_values':
-  #         self.dynamic = True
-  #         if self.pivotParameter not in currentInput.getVars('indexes'):
-  #           self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
-  #         if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-  #           self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
-  #         pivotValues = currentInput.asDataset()[self.pivotParameter].values
-  #         if len(self.pivotValues) == 0:
-  #           self.pivotValues = pivotValues
-  #         elif set(self.pivotValues) != set(pivotValues):
-  #           self.raiseAnError(IOError, "Pivot values for pivot parameter",self.pivotParameter, "in provided HistorySets are not the same")
-  #     else:
-  #       self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
-  #   if self.multiOutput == 'raw_values' and hasPointSet and hasHistorySet:
-  #       self.multiOutput = 'mean'
-  #       self.raiseAWarning("Reset 'multiOutput' to 'mean', since both PointSet and HistorySet are provided as Inputs. Calculation outputs will be aggregated by averaging")
-
-  #   measureList = []
-
-  #   for cnt in range(len(self.features)):
-  #     feature = self.features[cnt]
-  #     target = self.targets[cnt]
-  #     featureData =  self.__getMetricSide(feature, currentInputs)
-  #     targetData = self.__getMetricSide(target, currentInputs)
-  #     measureList.append((featureData, targetData))
-
-    # return measureList
-
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the DataMining pp.
@@ -194,6 +122,7 @@ class Representativity(ValidationBase):
         else:
           pivotParameter = self.pivotParameter
     evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}#inputIn
+    ## TODO: This is a placeholder to remember the time dependent case
     # if pivotParameter:
     #   # Uncomment this to cause crash: print(dataSets[0], pivotParameter)
     #   if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
