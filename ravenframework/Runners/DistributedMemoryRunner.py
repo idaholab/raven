@@ -14,7 +14,7 @@
 """
 Created on Mar 5, 2013
 
-@author: alfoa, cogljj, crisr
+@author: alfoa, cogljj, crisr, talbp, maljd
 """
 #External Modules------------------------------------------------------------------------------------
 import sys
