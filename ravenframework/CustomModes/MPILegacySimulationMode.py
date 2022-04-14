@@ -59,7 +59,8 @@ def createAndRunQSUB(runInfoDict):
              "-l","walltime="+runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="../raven_framework '+
-             " ".join(runInfoDict["SimulationFiles"])+'"',
+             " ".join(runInfoDict["SimulationFiles"])+'",'+
+             'RAVEN_FRAMEWORK_DIR="{}"'.format(frameworkDir),
              runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   remoteRunCommand = {}
