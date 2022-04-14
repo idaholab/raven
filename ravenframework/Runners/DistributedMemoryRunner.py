@@ -76,7 +76,7 @@ class DistributedMemoryRunner(InternalRunner):
         except ray.exceptions.GetTimeoutError:
           return False
         #Alternative that was tried:
-        #self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
+        #return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
         #which ran slower in ray 1.9
       else:
         return self.thread.finished
