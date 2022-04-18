@@ -68,9 +68,10 @@ class RFE(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to exclude from the search.""", default=None))
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
-        descr=r"""Number of features to select""", default=None))
+        descr=r"""Exact Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
-                                                      descr=r"""Number of features to select""", default=None))
+                                                      descr=r"""Maximum Number of features to select, the algorithm will automatically determine the 
+        feature list to minimize a total score.""", default=None))
     spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
                                                       descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
                                                       default=1e-4))
@@ -279,11 +280,12 @@ class RFE(BaseInterface):
       # this can be time consuming
       for k in range(1,initialNumbOfFeatures + 1):
         #Looping over all possible combinations: from initialNumbOfFeatures choose k
+        iteration = 0
         for combo in itertools.combinations(featuresForRanking,k):
+          iteration+=1
           support_ = copy.copy(originalSupport)
           support_[featuresForRanking] = False
           support_[np.asarray(combo)] = True
-          print(np.sum(support_))
           supportIndex = 0
           for idx in range(len(supportOfSupport_)):
             if mask[idx]:
@@ -298,7 +300,7 @@ class RFE(BaseInterface):
         
         
           estimator = copy.deepcopy(self.estimator)
-          self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
+          self.raiseAMessage("Iteration {}. Fitting estimator with {} features.".format(iteration,np.sum(support_)))
           toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
           survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
           vals = {}
@@ -334,13 +336,13 @@ class RFE(BaseInterface):
                 if avg == 0: avg = 1
                 s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
                 scores[target] = s*w*(np.mean(importances[target]) if target in importances else 1.0)
-                score +=  s*w*(np.mean(importances[target]) if target in importances else 1.0)
+                #score +=  s*w*(np.mean(importances[target]) if target in importances else 1.0)
+                score +=  s*w
                 dividend+=1.
-            score/=dividend
-            print("score: "+str(score))
-            
-            
-          scorelist.append(score)                  #Append lists
+          score/=dividend
+          self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
+             
+          scorelist.append(score)  
           featureList.append(combo)
           numbFeatures.append(len(combo))   
       
