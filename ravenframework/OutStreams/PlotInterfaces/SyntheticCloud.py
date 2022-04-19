@@ -132,7 +132,7 @@ class SyntheticCloud(PlotInterface):
         axes = [axes]
       axes[-1].set_xlabel(self.microName)
 
-      mSamples = samples.drop_sel({self.macroName: mac})
+      mSamples = samples.sel({self.macroName: mac}, drop=True)
       mTraining = None
       if self.macroName in training:
         if int(mac) in training[self.macroName]:
@@ -145,6 +145,8 @@ class SyntheticCloud(PlotInterface):
         # plot cloud of sample data
         for s in mSamples[sTag].values:
           samp = mSamples[{sTag: s}]
+          print(f'DEBUGG m: {m}, v: {v} {var}, s: {s}, samp.micro.shape: {samp[self.microName].values.shape}, ' +
+              f'samp.var.shape: {samp[var].values.shape}')
           ax.plot(samp[self.microName].values, samp[var].values, 'b-.', alpha=alpha)
         ax.set_title(f'{var}, {self.macroName} {int(mac)}')
         ax.set_ylabel(var)
