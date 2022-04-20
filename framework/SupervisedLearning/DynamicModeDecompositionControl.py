@@ -227,7 +227,6 @@ class DMDC(DMD):
       Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
       # compute A,B,C matrices
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
-    self.featureImportances_()
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
@@ -240,12 +239,11 @@ class DMDC(DMD):
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
     if self._importances is None:
+      from sklearn import preprocessing
       # the importances are evaluated in the transformed space
       CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       for smp in range(self.__Ctilde.shape[0]):
-        offset = np.average(self.stateVals[:,smp,:],axis=0)
-        scale = np.std(self.stateVals[:,smp,:],axis=0)
-        ss = (self.stateVals[:,smp,:] - offset)/scale
+        ss = preprocessing.normalize(self.stateVals[:,smp,:]) 
         X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
