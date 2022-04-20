@@ -2562,14 +2562,14 @@ class LogNormal(BoostDistribution):
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
-      self.lowerBound = -sys.float_info.max
+      self.lowerBound = 0.0
       self.upperBound =  sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,self.lowerBound,self.upperBound)
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.lowerBound,self.upperBound, self.low)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
 
