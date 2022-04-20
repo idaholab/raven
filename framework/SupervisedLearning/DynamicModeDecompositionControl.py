@@ -246,8 +246,8 @@ class DMDC(DMD):
         offset = np.average(self.stateVals[:,smp,:],axis=0)
         scale = np.std(self.stateVals[:,smp,:],axis=0)
         ss = (self.stateVals[:,smp,:] - offset)/scale
-        X1 = (ss[:-1,smp,:] - ss[0,smp,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,smp,:].T
-        X2 = (ss[1:,smp,:]  - ss[0,smp,:]).T    if self.dmdParams['centerUXY'] else ss[1:,smp,:].T
+        X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
+        X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
         Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T      
         _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
