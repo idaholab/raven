@@ -175,7 +175,8 @@ class DMD(SupervisedLearning):
       @ In, feat, feature to normalize
       @ Out, None
     """
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+    super()._localNormalizeData(values,names,feat)
+    #self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   #######
   def _getTimeScale(self,dmd=True):

@@ -141,6 +141,7 @@ class DMDC(DMD):
     self.stateVals = None # state values (e.g. X)
     self.outputVals = None # output values (e.g. Y)
     self.parameterValues = None #  parameter values
+    self._importances = None # importances
 
   def __setstate__(self,state):
     """
@@ -199,6 +200,7 @@ class DMDC(DMD):
     """
     ### Extract the Pivot Values (Actuator, U) ###
     self.neigh = None
+    self._importances = None # we reset importances
     if len(self.parametersIDs):
       self.parameterValues =  np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       self.neigh = neighbors.KNeighborsRegressor(n_neighbors=1)
@@ -225,6 +227,7 @@ class DMDC(DMD):
       Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
       # compute A,B,C matrices
       self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+    self.featureImportances_()
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
@@ -236,27 +239,41 @@ class DMDC(DMD):
       @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
-    importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
-    # the importances for the state variables are inferred from the C matrix/operator since
-    # directely linked to the output variables
-    minVal, minIdx = np.finfo(float).max, -1
-    for stateCnt, stateID in enumerate(self.stateID):
-      #importances[stateID] = (len(self.outputID) / len(self.stateID)) * np.abs(np.average(np.sum(self.__Atilde[:,stateCnt,:],axis=-1))) / sumA
-      #importances[stateID] = importances[stateID] + np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))]) / sumB
-      importances[stateID] = np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
-      self.raiseAMessage("state var {} | {}".format(stateID, np.average(importances[stateID])))
-      #importances[stateID] =  .5*abs(float(np.average(self.__Atilde[:,stateCnt,:]))) + .5*np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
-      if minVal > np.min(importances[stateID]):
-        minVal = np.min(importances[stateID])
-        minIdx = stateCnt
-    # as first approximation we assume that the feature importance
-    # are assessable via a perturbation of the only feature space
-    # on the C matrix
-    for featCnt, feat in enumerate(self.parametersIDs):
-      permutations = set(self.parameterValues[:,featCnt])
-      indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-      importances[feat] = np.asarray([abs(float(np.average(self.__Ctilde[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-    return importances
+    if self._importances is None:
+      # the importances are evaluated in the transformed space
+      CtildeNormalized =  np.zeros(self.__Ctilde.shape)
+      for smp in range(self.__Ctilde.shape[0]):
+        offset = np.average(self.stateVals[:,smp,:],axis=0)
+        scale = np.std(self.stateVals[:,smp,:],axis=0)
+        ss = (self.stateVals[:,smp,:] - offset)/scale
+        X1 = (ss[:-1,smp,:] - ss[0,smp,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,smp,:].T
+        X2 = (ss[1:,smp,:]  - ss[0,smp,:]).T    if self.dmdParams['centerUXY'] else ss[1:,smp,:].T
+        U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
+        Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T      
+        _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+      
+      self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
+      # the importances for the state variables are inferred from the C matrix/operator since
+      # directely linked to the output variables
+      minVal, minIdx = np.finfo(float).max, -1
+      for stateCnt, stateID in enumerate(self.stateID):
+        #importances[stateID] = (len(self.outputID) / len(self.stateID)) * np.abs(np.average(np.sum(self.__Atilde[:,stateCnt,:],axis=-1))) / sumA
+        #importances[stateID] = importances[stateID] + np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))]) / sumB
+        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
+        #importances[stateID] =  .5*abs(float(np.average(self.__Atilde[:,stateCnt,:]))) + .5*np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        if minVal > np.min(self._importances[stateID]):
+          minVal = np.min(self._importances[stateID])
+          minIdx = stateCnt
+      # as first approximation we assume that the feature importance
+      # are assessable via a perturbation of the only feature space
+      # on the C matrix
+      for featCnt, feat in enumerate(self.parametersIDs):
+        permutations = set(self.parameterValues[:,featCnt])
+        indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
+        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
+    
+    return self._importances
 
   #######
   def __evaluate(self, featureVals):
