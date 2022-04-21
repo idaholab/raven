@@ -54,6 +54,7 @@ CodeInterfaceTests/MammothInterface/Rattlesnake_Bison/perturbAll/*/out~quarter_p
 CodeInterfaceTests/MammothInterface/Rattlesnake_Bison/perturbAll/*/quarter_pin_with_fuel.i
 CodeInterfaceTests/MammothInterface/Rattlesnake_Bison/perturbAll/bison_2way_fuel_clad_elastic.i
 CodeInterfaceTests/MammothInterface/Rattlesnake_Bison/perturbAll/quarter_pin_with_fuel.i
+CodeInterfaceTests/MelcorInterface/testMelcor/*
 CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/formattest.i
 CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/[12]/out~formattest
 CodeInterfaceTests/MOOSEBaseApps/InputParser/sample/formattest.i
@@ -96,6 +97,7 @@ ensembleModelTests/metaModelWith2CodesAndSelectiveOutputs/sampleMC/
 ensembleModelTests/metaModelWithCode/sampleMC/
 hybridModel/logicalCode/logicalModelCode/
 hybridModel/runCode/hybridModelCode/
+mode_test/FirstMRun/
 Optimizers/GeneticAlgorithms/discrete/unconstrained/MinwReplacementConvAHDpUsingCode/optimize
 Optimizers/RavenRunningRaven/sample/
 out*snc01
@@ -106,6 +108,8 @@ PostProcessors/InterfacedPostProcessor/hs_sync_*/make/
 PostProcessors/InterfacedPostProcessor/metadataUsageInInterfacePP/testDummyStep/*/dummy.i
 PostProcessors/InterfacedPostProcessor/metadataUsageInInterfacePP/testDummyStep/*/out~dummy
 PostProcessors/InterfacedPostProcessor/metadataUsageInInterfacePP/testDummyStep/dummy.i
+RedundantInputs/sim_py_grid/
+RedundantInputs/sim_py_MC/
 RedundantInputs/sim_py_SC/
 RedundantInputs/sobol_redundant/
 ROM/pickleTests/StochasticPolyPickleTest/ROMpk
