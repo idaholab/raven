@@ -1,22 +1,19 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
-    <author>talbpaul</author>
-    <created>2018-01-18</created>
+    <author>dgarrett622</author>
+    <created>2022-04-20</created>
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
-      Basic test of the raven-runs-raven interface.
-      Outer raven runs a grid sampling by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
-      Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
+      Basic test of the raven-runs-raven interface for running in Python workflows (same as integrated
+      RAVEN runs RAVEN basic test). Outer raven runs a grid sampling by changing the upper and lower
+      bounds of the sampledVars distribution on the inner raven. Inner raven runs 100 MC samples,
+      does basic stats, and returns the mean, sigma to the outer raven.
     </description>
     <analytic>
       Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
       the "attenuate" analytic model documentation.
     </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
-      <revision author="talbpaul" date="2018-11-06">modified inner run to use grid for speed, consistent results</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -38,7 +35,7 @@
   </Steps>
 
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="inner_input" type="raven">../../../CodeInterfaceTests/RAVEN/Basic/inner_sample.xml</Input>
   </Files>
 
   <Models>
