@@ -20,25 +20,23 @@ Currently, the following types are available in RAVEN:
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
   \item \textbf{DataMining}
-  \item \textbf{HistorySetDelay}
-  \item \textbf{HS2PS}
-  \item \textbf{HStoPSOperator}
-  \item \textbf{HistorySetSampling}
-  \item \textbf{HistorySetSnapShot}
-  \item \textbf{HistorySetSync}
-  \item \textbf{TypicalHistoryFromHistorySet}
-  \item \textbf{dataObjectLabelFilter}
+  \item \textbf{ParetoFrontier}
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
   \item \textbf{ValueDuration}
   \item \textbf{FastFourierTransform}
   \item \textbf{SampleSelector}
-  \item \textbf{ParetoFrontier}
-  \item \textbf{EconomicRatio}
   \item \textbf{Validation}
+  \item \textbf{EconomicRatio}
+  \item \textbf{HistorySetDelay}
+  \item \textbf{HStoPSOperator}
+  \item \textbf{HistorySetSampling}
+  \item \textbf{HistorySetSync}
+  \item \textbf{HistorySetSnapShot}
+  \item \textbf{HS2PS}
+  \item \textbf{TypicalHistoryFromHistorySet}
+  \item \textbf{dataObjectLabelFilter}
   \item \textbf{TSACharacterizer}
-  %\item \textbf{PrintCSV}
-  %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
 
 The specifications of these types must be defined within the XML block
@@ -144,10 +142,11 @@ In the following sections the specifications of each type are reported.
 %%%%% dataObjectLabelFilter %%%%%%
 \input{PostProcessors/dataObjectLabelFilter.tex}
 
+%%%%%%%%%%%%%%% TSACharacterizer %%%%%%%%%%%%%%%%%%%
+\input{PostProcessors/TSACharacterizer.tex}
+
+
 %%%%%%%%%%%%%% InterfacedPostProcessors %%%%%%%%%%%%%%%%
 % To be replaced by the PostProcessor Plugin
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\input{PostProcessors/InterfacedPostProcessors.tex}
-
-%%%%%%%%%%%%%%% TSACharacterizer %%%%%%%%%%%%%%%%%%%
-\input{PostProcessors/TSACharacterizer.tex}
