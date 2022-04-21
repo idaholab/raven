@@ -81,7 +81,7 @@ CodeInterfaceTests/RELAP5/*EventTree/RELAP_DET/*/out~input
 CodeInterfaceTests/RELAP5/*EventTree/RELAP_DET/*/restrt_SS
 CodeInterfaceTests/RELAP5/*EventTree/RELAP_DET/input.i
 CodeInterfaceTests/RELAP5/*EventTree/RELAP_DET/restrt_SS
-CodeInterfaceTests/Serpent/SerpentTestBasic/sampleInput/*/testInput.Serpent
+CodeInterfaceTests/Serpent/SerpentTestBasic/sampleInput/*/testInput.serpent
 CodeInterfaceTests/Serpent/SerpentTestBasic/sampleInput/*/testInput.serpent_res
 CodeInterfaceTests/TestRattlesnake/MCTest/*/*.i
 CodeInterfaceTests/TestRattlesnake/MCTest/*/out*
@@ -101,8 +101,8 @@ mode_test/FirstMRun/
 Optimizers/GeneticAlgorithms/discrete/unconstrained/MinwReplacementConvAHDpUsingCode/optimize
 Optimizers/RavenRunningRaven/sample/
 out*snc01
-Outstreams/GApopulation/plotter.gif
-Outstreams/IO_ROM_PICKLE/pickle1
+OutStreams/GApopulation/plotter.gif
+OutStreams/IO_ROM_PICKLE/pickle1
 pca_sobol/states.txt
 PostProcessors/InterfacedPostProcessor/hs_sync_*/make/
 PostProcessors/InterfacedPostProcessor/metadataUsageInInterfacePP/testDummyStep/*/dummy.i
