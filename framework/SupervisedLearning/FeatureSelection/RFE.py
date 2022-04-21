@@ -324,7 +324,7 @@ class RFE(BaseInterface):
             scores = {}
             dividend = 0.
             stateW = float(len(targets)-1-len(combo))/float(len(combo))
-            #print("stateW: "+ str(stateW))
+            print("stateW: "+ str(stateW))
             for target in evaluated:
               #if target in ['Electric_Power','Turbine_Pressure']:
               #if target in targetsIds and target not in self.parametersToInclude:
@@ -333,6 +333,7 @@ class RFE(BaseInterface):
                   w = 1.0
                 else:
                   w = stateW # the weight of Haoyu's GA cost function
+                
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
                 std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
