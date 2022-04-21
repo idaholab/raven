@@ -244,6 +244,7 @@ class DMDC(DMD):
       CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       for smp in range(self.__Ctilde.shape[0]):
         ss = preprocessing.normalize(self.stateVals[:,smp,:]) 
+        #ss = self.stateVals[:,smp,:]
         X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
@@ -254,12 +255,12 @@ class DMDC(DMD):
       # the importances for the state variables are inferred from the C matrix/operator since
       # directely linked to the output variables
       minVal, minIdx = np.finfo(float).max, -1
+      denominator = np.max(CtildeNormalized)
       for stateCnt, stateID in enumerate(self.stateID):
         #importances[stateID] = (len(self.outputID) / len(self.stateID)) * np.abs(np.average(np.sum(self.__Atilde[:,stateCnt,:],axis=-1))) / sumA
         #importances[stateID] = importances[stateID] + np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))]) / sumB
-        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/denominator
         self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
-        #importances[stateID] =  .5*abs(float(np.average(self.__Atilde[:,stateCnt,:]))) + .5*np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
           minIdx = stateCnt

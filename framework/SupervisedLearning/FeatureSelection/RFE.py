@@ -322,7 +322,9 @@ class RFE(BaseInterface):
             evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
             previousScore = actualScore
             scores = {}
-            dividend = 0
+            dividend = 0.
+            stateW = float(len(targets)-1-len(combo))/float(len(combo))
+            #print("stateW: "+ str(stateW))
             for target in evaluated:
               #if target in ['Electric_Power','Turbine_Pressure']:
               #if target in targetsIds and target not in self.parametersToInclude:
@@ -330,20 +332,23 @@ class RFE(BaseInterface):
                 if target not in self.parametersToInclude:
                   w = 1.0
                 else:
-                  w = float(len(targets)-1-len(combo))/float(len(combo)) # the weight of Haoyu's GA cost function
+                  w = stateW # the weight of Haoyu's GA cost function
                 tidx = targetsIds.index(target)
-                #avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx])
+                avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
                 std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
-                #if avg == 0: avg = 1
+                if avg == 0: avg = 1
                 if std == 0: std = 1.
+                ev = (evaluated[target] - avg)/std
+                ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
+                s = np.sum(np.sqrt(np.square(ref-ev)))
                 #s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
-                s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]))/std)**2
+                #s = np.linalg.norm((evaluated[target] -)/std)
                 #scores[target] = s*w*(np.mean(importances[target]) if target in importances else 1.0)
                 #score +=  s*w*(np.mean(importances[target]) if target in importances else 1.0)
                 scores[target] = s*w
                 score +=  s*w
                 #dividend+=1.
-          #score/=dividend
+          score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
              
           scorelist.append(score)  
