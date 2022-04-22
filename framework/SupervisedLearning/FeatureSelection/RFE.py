@@ -254,15 +254,15 @@ class RFE(BaseInterface):
 
     # now we check if maxNumberFeatures is set and in case perform an additional reduction based on score
     # removing the variables one by one
+
+
     if self.maxNumberFeatures is not None:
+      f = None
+      if f is None:
+        f = np.asarray(featuresIds) if self.whichSpace == 'feature' else np.asarray(targetsIds)
+      self.raiseAMessage("Starting Features are {}".format( " ".join(f[np.asarray(featuresForRanking)]) ))      
       threshold = len(featuresForRanking) - 1
-      print("threshold")
-      print(threshold)
-      print("ranks")
-      print(ranks)
-      print("coefs")
       coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
-      print(coefs)
       initialRanks = copy.deepcopy(ranks)
       #######
       # NEW SEARCH
@@ -276,7 +276,8 @@ class RFE(BaseInterface):
       originalSupport = copy.copy(support_)
       scorelist = []            
       featureList = []    
-      numbFeatures = []         
+      numbFeatures = []
+      bestForNumberOfFeatures = {}
       # this can be time consuming
       for k in range(1,initialNumbOfFeatures + 1):
         #Looping over all possible combinations: from initialNumbOfFeatures choose k
@@ -324,7 +325,6 @@ class RFE(BaseInterface):
             scores = {}
             dividend = 0.
             stateW = float(len(targets)-1-len(combo))/float(len(combo))
-            print("stateW: "+ str(stateW))
             for target in evaluated:
               #if target in ['Electric_Power','Turbine_Pressure']:
               #if target in targetsIds and target not in self.parametersToInclude:
@@ -341,7 +341,7 @@ class RFE(BaseInterface):
                 if std == 0: std = 1.
                 ev = (evaluated[target] - avg)/std
                 ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
-                s = np.sum(np.sqrt(np.square(ref-ev)))
+                s = np.sum(np.square(ref-ev))
                 #s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
                 #s = np.linalg.norm((evaluated[target] -)/std)
                 #scores[target] = s*w*(np.mean(importances[target]) if target in importances else 1.0)
@@ -349,9 +349,15 @@ class RFE(BaseInterface):
                 scores[target] = s*w
                 score +=  s*w
                 #dividend+=1.
-          score/=float(X.shape[0])
+          #score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
-             
+          if f is None:
+            f = np.asarray(featuresIds) if self.whichSpace == 'feature' else np.asarray(targetsIds)
+          if k in bestForNumberOfFeatures.keys():
+            if bestForNumberOfFeatures[k][0] > score:
+              bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
+          else:
+            bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
           scorelist.append(score)  
           featureList.append(combo)
           numbFeatures.append(len(combo))   
@@ -360,12 +366,8 @@ class RFE(BaseInterface):
       support_ = copy.copy(originalSupport)
       support_[featuresForRanking] = False
       support_[np.asarray(featureList[idxx])] = True
-      print(scorelist[idxx])
-      print(featureList[idxx])
-      print(numbFeatures[idxx])
-      print(featureList[idxx])
-      print([self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]])
-  
+      for k in bestForNumberOfFeatures:
+        self.raiseAMessage(f"Best score for {k} features is {bestForNumberOfFeatures[k][0]} with the following features {bestForNumberOfFeatures[k][1]} ")
   
     # Set final attributes
     supportIndex = 0
