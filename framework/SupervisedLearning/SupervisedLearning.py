@@ -264,9 +264,13 @@ class SupervisedLearning(BaseInterface):
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         if self.dynamicFeatures:
           featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+          # targetValues[:,cnt] = (targetValues[:]- self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-
+          # targetValues[cnt] = ( (targetValues[0] if len(valueToUse.shape) > 1 else targetValues[:]) - self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
+    # self.targetMean = np.mean(targetValues)
+    # self.targetStd = np.std(targetValues)
+    targetValues = (targetValues - self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -280,6 +284,7 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
+    self.muAndSigmaFeatures[self.target[0]] = mathUtils.normalizationFactors(values[names.index(self.target[0])])
 
   def confidence(self, edict):
     """
@@ -356,7 +361,9 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    target = self.__evaluateLocal__(featureValues)
+    target.update((x, y * self.muAndSigmaFeatures[self.target[0]][1] + self.muAndSigmaFeatures[self.target[0]][0]) for x, y in target.items())
+    return target
 
   def reset(self):
     """

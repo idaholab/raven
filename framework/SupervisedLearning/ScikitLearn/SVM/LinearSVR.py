@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa, wangc
-  Linear Support Vector Classifier
+  Linear Support Vector Regressor
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
