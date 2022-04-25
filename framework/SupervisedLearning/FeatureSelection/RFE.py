@@ -259,7 +259,7 @@ class RFE(BaseInterface):
     if self.maxNumberFeatures is not None:
       f = None
       if f is None:
-        f = np.asarray(featuresIds) if self.whichSpace == 'feature' else np.asarray(targetsIds)
+        f = np.asarray(self.parametersToInclude)
       self.raiseAMessage("Starting Features are {}".format( " ".join(f[np.asarray(featuresForRanking)]) ))      
       threshold = len(featuresForRanking) - 1
       coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
@@ -352,7 +352,7 @@ class RFE(BaseInterface):
           #score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
           if f is None:
-            f = np.asarray(featuresIds) if self.whichSpace == 'feature' else np.asarray(targetsIds)
+            f = np.asarray(self.parametersToInclude)
           if k in bestForNumberOfFeatures.keys():
             if bestForNumberOfFeatures[k][0] > score:
               bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
