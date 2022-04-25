@@ -30,7 +30,7 @@ class RAVEN(CodeInterfaceBase):
   """
   def __init__(self):
     CodeInterfaceBase.__init__(self)
-    self.preCommand = "" # this is the precommand (bash.exe in case of win)
+    self.preCommand = "python " # this is the precommand
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
@@ -43,7 +43,7 @@ class RAVEN(CodeInterfaceBase):
     # 'noscalar' = True if convertNotScalarSampledVariables exists in extModForVarsManipulation module
     # 'scalar'   = True if manipulateScalarSampledVariables exists in extModForVarsManipulation module
     self.hasMethods                = {'noscalar':False, 'scalar':False}
-    # inner workind directory
+    # inner working directory
     self.innerWorkingDir = ''
     # linked DataObjects and Databases
     self.linkedDataObjectOutStreamsNames = None
@@ -72,7 +72,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, None.
     """
     baseName = os.path.basename(xmlNode.find("executable").text)
-    if baseName not in ['raven_framework','Driver.py']:
+    if baseName not in ['raven_framework','raven_framework.py']:
       raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
@@ -169,11 +169,13 @@ class RAVEN(CodeInterfaceBase):
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
-    pre = ""
-    if "python" not in executable.lower() or not executable.endswith(".py"):
-      pre = self.preCommand.strip() + " "
-    executeCommand = [('serial',pre + executable+ ' '+inputFiles[index].getFilename())]
+    # executable command will be: "python <path>/raven_framework.py"
+    # make sure executable ends with .py
+    if not executable.endswith(".py"):
+      executable += ".py"
+    executeCommand = [('serial', self.preCommand + executable+ ' ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
+
     return returnCommand
 
   def initialize(self, runInfo, oriInputFiles):
@@ -219,9 +221,6 @@ class RAVEN(CodeInterfaceBase):
     self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
-    # check operating system and define prefix if needed
-    if platform.startswith("win") and utils.which("bash.exe") is not None:
-      self.preCommand = 'bash.exe'
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
