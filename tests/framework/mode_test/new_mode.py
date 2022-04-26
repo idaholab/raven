@@ -17,7 +17,7 @@ Implements a new mode that runs a command with python.
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import Simulation
+from ravenframework import Simulation
 
 class NewMode(Simulation.SimulationMode):
   """

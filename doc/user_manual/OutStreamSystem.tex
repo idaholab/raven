@@ -1689,7 +1689,7 @@ For example,
 \subsubsection{SamplePlot}
 The \xmlString{SamplePlot} \xmlAttr{subType} is a very simple plotting tool meant for quickly
 viewing the results of sampling, or as a basis for adding new plotting strategies. This plotter
-constructs a series of verticle plots whose x-axis is the sample ID and y-axis is a particular
+constructs a series of vertical plots whose x-axis is the sample ID and y-axis is a particular
 variables' values.
 
 The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
@@ -1764,3 +1764,81 @@ For example,
   </OutStreams>
 </Simulations>
 \end{lstlisting}
+
+
+
+\subsubsection{PopulationPlot}
+The \xmlString{PopulationPlot} \xmlAttr{subType} shows the path taken during a \xmlNode{MultiRun} using
+an \xmlNode{Optimizer} as the sampling strategy. This is in particular useful to monitor the evolution of multiple
+trajectories or a population of points.
+The evolution step should be indicated in the dataObject as a variable specified in the \xmlNode{index} node.
+This plotter constructs a series of plots whose x-axis is the variable specified in the \xmlNode{index} node 
+and y-axis is a particular variable's values evaluated during that iteration. 
+
+The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, selects which DataObject should be used
+      to take data for plotting. This DataObject must be listed in the Step in which this
+      OutStream is used, and is usually the result of as \xmlNode{MultiRun} step.
+  \item \xmlNode{vars}, \xmlDesc{required, comma-separated strings}, identifies which variables should
+      be plotted. These variables must be included in the \xmlNode{source}
+      DataObject.
+  \item \xmlNode{logVars}, \xmlDesc{required, comma-separated strings}, identifies which variables should
+      be plotted in a log scale. These variables must be included in the \xmlNode{source}
+      DataObject.
+  \item \xmlNode{index}, \xmlDesc{required, string}, identifies the variable which indicates
+      the evolution step. This variable must be included in the \xmlNode{source} DataObject.
+  \item \xmlNode{how}, \xmlDesc{required, string}, Digital format of the generated picture (png, pdf, svg, jpeg).
+\end{itemize}
+
+For example,
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <OutStreams>
+    <Plot name="plotter" subType="PopulationPlot">
+      <source>samples</source>
+      <vars>a,b,c,d,ans</vars>
+      <logVars>ans</logVars>
+      <index>batchId</index>
+      <how>jpeg</how>
+    </Plot>
+  </OutStreams>
+</Simulations>
+\end{lstlisting}
+
+
+\subsubsection{OptParallelCoordinatePlot}
+The \xmlString{OptParallelCoordinatePlot} \xmlAttr{subType} shows the path taken during a \xmlNode{MultiRun} using
+an \xmlNode{Optimizer} as the sampling strategy. This is in particular usefull to monitor the evolution of multiple
+trajectories or a population of points.
+The evolution step should be indicated in the dataObject as a variable specified in the \xmlNode{index} node.
+This plotter constructs a gif which plots the parallel coordinate plots of particular variable's values evaluated 
+during that iteration for each iteration indicated by the variable specified in the \xmlNode{index} node.
+
+The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, selects which DataObject should be used
+      to take data for plotting. This DataObject must be listed in the Step in which this
+      OutStream is used, and is usually the result of as \xmlNode{MultiRun} step.
+  \item \xmlNode{vars}, \xmlDesc{required, comma-separated strings}, identifies which variables should
+      be plotted. These variables must be included in the \xmlNode{source}
+      DataObject.
+  \item \xmlNode{index}, \xmlDesc{required, string}, identifies the variable which indicates
+      the evolution step. This variable must be included in the \xmlNode{source} DataObject.
+\end{itemize}
+
+For example,
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <OutStreams>
+    <Plot name="plotter" subType="OptParallelCoordinatePlot">
+      <source>samples</source>
+      <vars>a,b,c,d</vars>
+      <index>batchId</index>
+    </Plot>
+  </OutStreams>
+</Simulations>
+\end{lstlisting}
+

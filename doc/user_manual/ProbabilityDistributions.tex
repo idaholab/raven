@@ -1017,14 +1017,14 @@ Markov model.
 %%%%%% N-Dimensional Probability distributions
 \subsection{N-Dimensional Probability Distributions}
 \label{subsec:NdDist}
-The group of $N$-Dimensional distributions allow the user to model stochastic dependences between parameters. Thus instead of using $N$ distributions for $N$ parameters, the user can define a single distribution lying in a $N$-Dimensional space.
+The group of $N$-Dimensional distributions allow the user to model stochastic dependencies between parameters. Thus instead of using $N$ distributions for $N$ parameters, the user can define a single distribution lying in a $N$-Dimensional space.
 The following $N$-Dimensional Probability Distributions are available within RAVEN:
 \begin{itemize}
 \item MultivariateNormal: Multivariate normal distribution (see Section~\ref{MultivariateNormal})
 \item NDInverseWeight: ND Inverse Weight interpolation distribution (see Section~\ref{NDInverseWeight})
 \item NDCartesianSpline: ND spline interpolation distribution (see Section~\ref{NDCartesianSpline})
 \end{itemize}
-For NDInverseWeight and NDCartesianSpline distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
+For NDInverseWeight and NDCartesianSpline distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a Cartesian grid (for NDCartesianSpline).
 
 The user could specify, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
@@ -1114,7 +1114,7 @@ Example:
 \end{lstlisting}
 
 In the following, we defined a distribution with a transformation node using PCA method. The number of principal components is
-defined in \xmlNode{rank}. In this distribution, PCA is employed to restruct the multivariate normal distribution. In addition,
+defined in \xmlNode{rank}. In this distribution, PCA is employed to restructure the multivariate normal distribution. In addition,
 the size of uncorrelated variables is also determined by \xmlNode{rank}.
 
 \begin{lstlisting}[style=XML]
@@ -1204,7 +1204,7 @@ Example scattered data file:
 \label{NDCartesianSpline}
 
 The NDCartesianSpline distribution creates a $N$-Dimensional distribution given a set of points
-regularly distributed on a cartesian grid. These points sample the PDF of the original distribution.
+regularly distributed on a Cartesian grid. These points sample the PDF of the original distribution.
 Distribution values (PDF or CDF) are calculated using the ND spline
 interpolation scheme.
 

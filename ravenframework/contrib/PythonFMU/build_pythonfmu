@@ -1,0 +1,101 @@
+#!/bin/bash
+# This script is aimed to check and build
+# PythonFMU RAVEN compatible
+# With this script we can support all the OSs
+# we support in RAVEN
+# @author, Andrea Alfonsi
+# @date, 05/05/2021
+# fail if anything here fails
+set -e
+
+#Set RAVEN_INSTALLATION_MANAGER if not set
+RAVEN_INSTALLATION_MANAGER=${RAVEN_INSTALLATION_MANAGER:=CONDA}
+# establish conda
+source ../../../scripts/establish_conda_env.sh --load --installation-manager $RAVEN_INSTALLATION_MANAGER
+#../../../scripts/establish_conda_env.sh --load
+echo "start PythonFMU (RAVEN compatible) installation ......"
+# firstly lets check if the resources/binaries folders are empty or not
+# (some binaries are released with the code). At least for the current
+# operating system. Supporter are Win64, linux64, darwin64
+
+OSDIR=""
+DIRB="./pythonfmu/resources/binaries"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  OSDIR="linux64"
+elif [[ "$OSTYPE" == "linux" ]]; then
+  OSDIR="linux64"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  OSDIR="darwin64"
+elif [[ "$OSTYPE" == "cygwin" ]]; then
+  OSDIR="linux64"
+elif [[ "$OSTYPE" == "msys" ]]; then
+  OSDIR="win64"
+elif [[ "$OSTYPE" == "win64" ]]; then
+  OSDIR="win64"
+else
+  echo "OS $OSTYPE not supported!"
+  exit 1
+fi
+
+BINARYFOLDER="$DIRB/$OSDIR"
+BUILDIT=0
+# look for empty dir
+if [ "$(ls -A $BINARYFOLDER)" ]; then
+  echo "** PythonFMU binary folder for OS '$OSDIR' has been found at $BINARYFOLDER. No build is required!"
+else
+  echo "** PythonFMU binary folder for OS '$OSDIR' has NOT been found at $BINARYFOLDER. BUILD is required!"
+  BUILDIT=1
+fi
+
+if [[ $BUILDIT == 1 ]];
+then
+  echo "** Building RAVEN version of PythonFMU ..."
+  DIR="./pythonfmu/pythonfmu-export"
+  cd $DIR
+  if [ -d "build" ]
+  then
+    echo "** build directory exists. Not creating a new one ..."
+  else
+    # make the directory
+    mkdir "build"
+  fi
+
+  cd build
+
+  echo "***** MAKING BINARIES *"
+  if [[ "$OSTYPE" == "win64" ]]; then
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release -A x64)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build . --config Release)
+    echo "${OUTPUT}"
+  elif [[ "$OSTYPE" == "msys" ]]; then
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release -A x64)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build . --config Release)
+    echo "${OUTPUT}"
+  else
+    PYTHON_COMMAND=`which python3`
+    echo PYTHON_COMMAND $PYTHON_COMMAND
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPython3_EXECUTABLE=$PYTHON_COMMAND -LA)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build . --verbose)
+    echo "${OUTPUT}"
+  fi
+  echo "***** MAKING BINARIES SUCCEDED*"
+  cd ../../../
+fi
+
+echo "** Check binaries in resource folder *"
+if [ "$(ls -A $BINARYFOLDER)" ]; then
+  echo "***** binaries successfully installed at '$BINARYFOLDER'*"
+else
+  echo "***** ERROR: binaries not found at '$BINARYFOLDER'*"
+  exit 1
+fi
+
+echo "** Installing RAVEN compatible PythonFMU library *"
+# FIXME: uncomment when new version of pip is installed by RAVEN
+#pip install . --use-feature=in-tree-build >$(tty)
+OUTPUT=$(pip install .)
+echo "${OUTPUT}"
+echo "...... PythonFMU (RAVEN compatible) installation done!"

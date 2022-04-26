@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <external_rom>
-  <RAVENdir>../../../../framework</RAVENdir>
+  <RAVENdir>../../../../ravenframework</RAVENdir>
   <ROMfile>StochasticPolyPickleTest/ROMpk</ROMfile>
   <evaluate>
     <x1>0. 1. 0.5</x1>
