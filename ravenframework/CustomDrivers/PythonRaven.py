@@ -64,7 +64,8 @@ class Raven:
     from ..utils import TreeStructure as TS
 
     target = self._findFile(xmlFile)
-    root = TS.parse(open(target, 'r')).getroot()
+    with open(target, 'r') as inputXML:
+      root = TS.parse(inputXML).getroot()
     targetDir = os.path.dirname(target)
     self._simulation = Simulation.Simulation(self.framework)
     self._simulation.XMLpreprocess(root, targetDir)
@@ -88,13 +89,18 @@ class Raven:
       @ In, name, str, identifier for entity (i.e. name of the entity)
       @ Out, entity, instance, RAVEN instance (None if not found)
     """
-    # TODO is this the fastest way to get-and-check objects?
-    kindGroup = self._simulation.entities.get(kind, None)
-    if kindGroup is None:
-      raise KeyError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
-    entity = kindGroup.get(name, None)
-    if entity is None:
-      raise KeyError(f'No entity named "{name}" found among "{kind}" entities! Found: {list(self._simulation.entities[kind].keys())}')
+    try:
+      # TODO is this the fastest way to get-and-check objects?
+      kindGroup = self._simulation.entities.get(kind, None)
+      if kindGroup is None:
+        raise KeyError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
+      entity = kindGroup.get(name, None)
+      if entity is None:
+        raise KeyError(f'No entity named "{name}" found among "{kind}" entities! Found: {list(self._simulation.entities[kind].keys())}')
+    except AttributeError:
+      print('Entities have not been instantiated, run loadWorkflowFromFile!')
+      entity = None
+
     return entity
 
 
