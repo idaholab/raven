@@ -787,7 +787,7 @@ class Simulation(MessageUser):
       self.raiseAnError(KeyError,f'Entity kind "{kind}" not recognized! Found: {list(self.entities.keys())}')
     entity = kindGroup.get(name, None)
     if entity is None:
-      self.raiseAnError(KeyError,'No entity named "{name}" found among "{kind}" entities! Found: {list(self.entities[kind].keys())}')
+      self.raiseAnError(KeyError,f'No entity named "{name}" found among "{kind}" entities! Found: {list(self.entities[kind].keys())}')
     return entity
 
   def initiateStep(self, stepName):
