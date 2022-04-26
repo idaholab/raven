@@ -27,8 +27,8 @@
     <PostProcessor name="timeDepEconomicRatio" subType="EconomicRatio" verbosity="silent">
       <dataset>True</dataset>
       <pivotParameter>time</pivotParameter>
-      <valueAtRisk prefix="VaR" threshold="0.05">x0,y0,z0,x,y,z</valueAtRisk>
-      <expectedShortfall prefix="es" threshold="0.05">x0,y0,z0,x,y,z</expectedShortfall>
+      <valueAtRisk prefix="VaR" threshold="0.05" interpolation="midpoint">x0,y0,z0,x,y,z</valueAtRisk>
+      <expectedShortfall prefix="es" threshold="0.05" interpolation="midpoint">x0,y0,z0,x,y,z</expectedShortfall>
       <sharpeRatio prefix="sharpe">x0,y0,z0,x,y,z</sharpeRatio>
       <variance prefix="var">x0,y0,z0,x,y,z</variance>
       <covariance prefix="cov">
