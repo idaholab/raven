@@ -27,19 +27,11 @@ import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-<<<<<<< HEAD:framework/Models/PostProcessors/BasicStatistics.py
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import utils
 from ...utils import InputData, InputTypes
 from ...utils import mathUtils
 import Files
-=======
-from .PostProcessorInterface import PostProcessorInterface
-from ...utils import utils
-from ...utils import InputData, InputTypes
-from ...utils import mathUtils
-from ... import Files
->>>>>>> devel:ravenframework/Models/PostProcessors/BasicStatistics.py
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessorReadyInterface):
