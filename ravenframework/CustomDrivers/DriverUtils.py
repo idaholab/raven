@@ -125,7 +125,11 @@ def checkVersions():
     sys.path.append(scriptDir)
   else:
     remove = False
-  import library_handler as LH
+  try:
+    import library_handler as LH
+  except ModuleNotFoundError:
+    print("ERROR: Unable to check library versions because library_handler not found")
+    return
   if remove:
     sys.path.pop(sys.path.index(scriptDir))
   # if libraries are not to be checked, we're done here
