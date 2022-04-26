@@ -14,16 +14,18 @@
 """
 Module that contains the driver for the whole the simulation flow (Simulation Class)
 """
-import xml.etree.ElementTree as ET
+# import xml.etree.ElementTree as ET
 import os,subprocess
 import sys
 import io
 import string
 import datetime
-import numpy as np
 import threading
+import copy
+import numpy as np
 
-from . import MessageHandler # this needs to happen early to instantiate message handler
+
+# from . import MessageHandler # this needs to happen early to instantiate message handler
 from .BaseClasses import MessageUser
 from . import Steps
 from . import DataObjects
@@ -94,9 +96,9 @@ class SimulationMode(MessageUser):
     except NotImplementedError:
       pass
     if runInfoDict['NumThreads'] > 1:
-       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
-       #add number of threads to the post command.
-       newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
+      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
+      #add number of threads to the post command.
+      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     return newRunInfo
 
   def XMLread(self,xmlNode):
@@ -205,7 +207,7 @@ class Simulation(MessageUser):
       @ Out, None
     """
     super().__init__()
-    self.FIXME          = False
+    self.FIXME = False
     #set the numpy print threshold to avoid ellipses in array truncation
     np.set_printoptions(threshold=np.inf)
     self.verbosity = verbosity
@@ -218,6 +220,12 @@ class Simulation(MessageUser):
                                     'suppressErrs':suppressErrs})
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
+    # initial XML
+    self.initialXML = None
+    # current XML (only different from initalXML if simulation run multiple times with changes)
+    self.currentXML = None
+    # flag for checking if simulation has been run before
+    self.ranPreviously = False
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
     self.runInfoDict['DefaultInputFile'  ] = 'test.xml'    #Default input file to use
@@ -379,87 +387,24 @@ class Simulation(MessageUser):
     """
     xmlUtils.expandExternalXML(node,cwd)
 
-  def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
+  def XMLread(self, xmlNode, runInfoSkip=None, xmlFilename=None):
     """
-      parses the xml input file, instances the classes need to represent all objects in the simulation
+      instantiates the classes from the input XML file needed to represent all entities in the simulation
       @ In, xmlNode, ElementTree.Element, xml node to read in
       @ In, runInfoSkip, set, optional, nodes to skip
       @ In, xmlFilename, string, optional, xml filename for relative directory
       @ Out, None
     """
+
     self.raiseADebug("Reading XML", xmlFilename)
-    #TODO update syntax to note that we read InputTrees not XmlTrees
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color','profile'],list(xmlNode.attrib.keys()))
-    if len(unknownAttribs) > 0:
-      errorMsg = 'The following attributes are unknown:'
-      for element in unknownAttribs:
-        errorMsg += ' ' + element
-      self.raiseAnError(IOError,errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity','all').lower()
-    if 'printTimeStamps' in xmlNode.attrib.keys():
-      self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
-      self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
-    if 'color' in xmlNode.attrib.keys():
-      self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
-      self.messageHandler.setColor(xmlNode.attrib['color'])
-    if 'profile' in xmlNode.attrib.keys():
-      thingsToProfile = list(p.strip().lower() for p in xmlNode.attrib['profile'].split(','))
-      if 'jobs' in thingsToProfile:
-        self.jobHandler.setProfileJobs(True)
-    self.messageHandler.verbosity = self.verbosity
-    runInfoNode = xmlNode.find('RunInfo')
-    if runInfoNode is None:
-      self.raiseAnError(IOError,'The RunInfo node is missing!')
-    self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
-    ### expand variable groups before continuing ###
-    ## build variable groups ##
-    varGroupNode = xmlNode.find('VariableGroups')
-    # init, read XML for variable groups
-    if varGroupNode is not None:
-      varGroups = mathUtils.readVariableGroups(varGroupNode)
-    else:
-      varGroups={}
-    # read other nodes
-    for child in xmlNode:
-      if child.tag == 'VariableGroups':
-        continue #we did these before the for loop
-      xmlUtils.replaceVariableGroups(child, varGroups)
-      if child.tag in self.entities:
-        className = child.tag
-        # we already took care of RunInfo block
-        if className in ['RunInfo']:
-          continue
-        self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
-        if len(child.attrib) == 0:
-          globalAttributes = {}
-        else:
-          globalAttributes = child.attrib
-        module = self.entityModules[className]
-        if module.factory.returnInputParameter:
-          paramInput = module.returnInputParameter()
-          paramInput.parseNode(child)
-          for childChild in paramInput.subparts:
-            childName = childChild.getName()
-            entity = module.factory.returnInstance(childName)
-            entity.applyRunInfo(self.runInfoDict)
-            entity.handleInput(childChild, globalAttributes=globalAttributes)
-            name = entity.name
-            self.entities[className][name] = entity
-        else:
-          for childChild in child:
-            kind, name, entity = module.factory.instanceFromXML(childChild)
-            self.raiseADebug(f'Reading class "{kind}" named "{name}" ...')
-            #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
-            #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-            if name in self.entities[className]:
-              self.raiseAnError(IOError, f'Two objects of class "{className}" have the same name "{name}"!')
-            self.entities[className][name] = entity
-            entity.applyRunInfo(self.runInfoDict)
-            entity.readXML(childChild, varGroups, globalAttributes=globalAttributes)
-      else:
-        #tag not in entities, check if it's a documentation tag
-        if child.tag not in ['TestInfo']:
-          self.raiseAnError(IOError,'<'+child.tag+'> is not among the known simulation components '+repr(child))
+    self.setOptionalAttributes(xmlNode)
+    self.instantiateEntities(xmlNode, runInfoSkip, xmlFilename)
+    # if this is the first time instantiating entities, store the XML file
+    if self.initialXML is None:
+      self.initialXML = copy.deepcopy(xmlNode)
+    # current XML file
+    self.currentXML = copy.deepcopy(xmlNode)
+
     # If requested, duplicate input
     # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
     if self.runInfoDict.get('printInput',False):
@@ -470,6 +415,117 @@ class Simulation(MessageUser):
       outFile.close()
     if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.__stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
+
+  def setOptionalAttributes(self, xmlNode):
+    """
+      Sets optional attributes for the simulation
+      @ In, xmlNode, ElementTree.Element, XML node to read
+      @ Out, None
+    """
+
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps', 'verbosity', 'color', 'profile'], list(xmlNode.attrib.keys()))
+    if len(unknownAttribs) > 0:
+      errorMsg = 'The following attributes are unknown:'
+      for element in unknownAttribs:
+        errorMsg += ' ' + element
+      self.raiseAnError(IOError, errorMsg)
+    self.verbosity = xmlNode.attrib.get('verbosity', 'all').lower()
+    if 'printTimeStamps' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting "printTimeStamps" to', xmlNode.attrib['printTimeStamps'])
+      self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
+    if 'color' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting color output mode to', xmlNode.attrib['color'])
+      self.messageHandler.setColor(xmlNode.attrib['color'])
+    if 'profile' in xmlNode.attrib.keys():
+      thingsToProfile = list(p.strip().lower() for p in xmlNode.attrib['profile'].split(','))
+      if 'jobs' in thingsToProfile:
+        self.jobHandler.setProfileJobs(True)
+    self.messageHandler.verbosity = self.verbosity
+
+  def instantiateRunInfo(self, xmlNode, runInfoSkip=None, xmlFilename=None):
+    """
+      Instantiates RunInfo entity
+      @ In, xmlNode, ElementTree.Element, XML node to read
+      @ In, runInfoSkip, set, optional, nodes to skip
+      @ In, xmlFilename, string, optional, XML filename for relative directory
+    """
+
+    runInfoNode = xmlNode.find('RunInfo')
+    if runInfoNode is None:
+      self.raiseAnError(IOError,'The RunInfo node is missing!')
+    self.__readRunInfo(runInfoNode, runInfoSkip, xmlFilename)
+
+  def buildVariableGroups(self, xmlNode):
+    """
+      Gets variable groups from XML
+      @ In, xmlNode, ElementTree.Element, XML node to read
+      @ Out, varGroups, dict, variable groups
+    """
+
+    varGroupNode = xmlNode.find('VariableGroups')
+    # get variable groups from XML
+    if varGroupNode is not None:
+      varGroups = mathUtils.readVariableGroups(varGroupNode)
+    else:
+      varGroups={}
+
+    return varGroups
+
+  def instantiateEntities(self, xmlNode, runInfoSkip=None, xmlFilename=None):
+    """
+      Instantiates all entities for simulation from XML
+      @ In, xmlNode, ElementTree.Element, XML node to read
+      @ In, runInfoSkip, set, optional, nodes to skip
+      @ In, xmlFilename, string, optional, XML filename for relative directory
+      @ Out, None
+    """
+
+    self.instantiateRunInfo(xmlNode, runInfoSkip, xmlFilename)
+    # build variable groups
+    varGroups = self.buildVariableGroups(xmlNode)
+    # read other nodes
+    for inputBlock in xmlNode:
+      # inputBlock is one of RunInfo, Files, VariableGroups, Distributions, Samplers, Optimizers
+      # DataObjects, Databases, OutStreams, Models, Functions, Metrics, or Steps
+      if inputBlock.tag == 'VariableGroups':
+        continue #we did these before the for loop
+      xmlUtils.replaceVariableGroups(inputBlock, varGroups)
+      if inputBlock.tag in self.entities:
+        className = inputBlock.tag
+        # we already took care of RunInfo block
+        if className in ['RunInfo']:
+          continue
+        self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(inputBlock.tag))+2*'-')
+        if len(inputBlock.attrib) == 0:
+          globalAttributes = {}
+        else:
+          globalAttributes = inputBlock.attrib
+        module = self.entityModules[className]
+        if module.factory.returnInputParameter:
+          paramInput = module.returnInputParameter()
+          paramInput.parseNode(inputBlock)
+          # block is specific input block, MonteCarlo, Uniform, PointSet, etc.
+          for block in paramInput.subparts:
+            blockName = block.getName()
+            entity = module.factory.returnInstance(blockName)
+            entity.applyRunInfo(self.runInfoDict)
+            entity.handleInput(block, globalAttributes=globalAttributes)
+            name = entity.name
+            self.entities[className][name] = entity
+        else:
+          for block in inputBlock:
+            kind, name, entity = module.factory.instanceFromXML(block)
+            self.raiseADebug(f'Reading class "{kind}" named "{name}" ...')
+            # place the instance in the proper dictionary (self.entities[Type]) under class name as key
+            if name in self.entities[className]:
+              self.raiseAnError(IOError, f'Two objects of class "{className}" have the same name "{name}"!')
+            self.entities[className][name] = entity
+            entity.applyRunInfo(self.runInfoDict)
+            entity.readXML(block, varGroups, globalAttributes=globalAttributes)
+      else:
+        #tag not in entities, check if it's a documentation tag
+        if inputBlock.tag not in ['TestInfo']:
+          self.raiseAnError(IOError,'<'+inputBlock.tag+'> is not among the known simulation components '+repr(inputBlock))
 
   def initialize(self):
     """
@@ -496,7 +552,7 @@ class Simulation(MessageUser):
       #If 1, probably just default
       self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
-    for key in self.filesDict.keys():
+    for key in self.filesDict:
       self.__createAbsPath(key)
     #Let the mode handler do any modification here
     newRunInfo = self.__modeHandler.modifyInfo(dict(self.runInfoDict))
@@ -517,8 +573,8 @@ class Simulation(MessageUser):
       @ In, stepName, string, the name of the step to check
       @ Out, None
     """
-    for [role, myClass, objectType, name] in stepInstance.parList:
-      if myClass != 'Step' and myClass not in list(self.entities.keys()):
+    for [role, myClass, _, name] in stepInstance.parList:
+      if myClass != 'Step' and myClass not in list(self.entities):
         self.raiseAnError(IOError, f'For step named "{stepName}" the role "{role}" has been ' +
                                    f'assigned to an unknown class type "{myClass}"!')
       if name not in self.entities[myClass]:
@@ -543,8 +599,12 @@ class Simulation(MessageUser):
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity']
     self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
+    if runInfoSkip is None:
+      runInfoSkipIter = set()
+    else:
+      runInfoSkipIter = runInfoSkip
     for element in xmlNode:
-      if element.tag in runInfoSkip:
+      if element.tag in runInfoSkipIter:
         self.raiseAWarning("Skipped element ",element.tag)
       elif element.tag == 'printInput':
         text = element.text.strip() if element.text is not None else ''
@@ -576,7 +636,7 @@ class Simulation(MessageUser):
         elif "runRelative" in element.attrib:
           self.runInfoDict['WorkingDir'] = os.path.abspath(tempName)
         else:
-          if xmlFilename == None:
+          if xmlFilename is None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
           # store location of the input
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
@@ -715,20 +775,20 @@ class Simulation(MessageUser):
     self.raiseADebug(msg)
 
   def getEntity(self, kind, name):
-     """
-       Return an entity from RAVEN simulation
-       @ In, kind, str, type of entity (e.g. DataObject, Sampler)
-       @ In, name, str, identifier for entity (i.e. name of the entity)
-       @ Out, entity, instance, RAVEN instance (None if not found)
-     """
-     # TODO is this the fastest way to get-and-check objects?
-     kindGroup = self.entities.get(kind, None)
-     if kindGroup is None:
-       self.raiseAnError(KeyError,f'Entity kind "{kind}" not recognized! Found: {list(self.entities.keys())}')
-     entity = kindGroup.get(name, None)
-     if entity is None:
-       self.raiseAnError(KeyError,'No entity named "{name}" found among "{kind}" entities! Found: {list(self.entities[kind].keys())}')
-     return entity
+    """
+      Return an entity from RAVEN simulation
+      @ In, kind, str, type of entity (e.g. DataObject, Sampler)
+      @ In, name, str, identifier for entity (i.e. name of the entity)
+      @ Out, entity, instance, RAVEN instance (None if not found)
+    """
+    # TODO is this the fastest way to get-and-check objects?
+    kindGroup = self.entities.get(kind, None)
+    if kindGroup is None:
+      self.raiseAnError(KeyError,f'Entity kind "{kind}" not recognized! Found: {list(self.entities.keys())}')
+    entity = kindGroup.get(name, None)
+    if entity is None:
+      self.raiseAnError(KeyError,'No entity named "{name}" found among "{kind}" entities! Found: {list(self.entities[kind].keys())}')
+    return entity
 
   def initiateStep(self, stepName):
     """
@@ -753,7 +813,7 @@ class Simulation(MessageUser):
     #add the global objects
     stepInputDict['jobHandler'] = self.jobHandler
     #generate the needed assembler to send to the step
-    for key in stepInputDict.keys():
+    for key in stepInputDict:
       if type(stepInputDict[key]) == list:
         stepindict = stepInputDict[key]
       else:
@@ -836,7 +896,7 @@ class Simulation(MessageUser):
       neededobjs    = {}
       neededObjects = objectInstance.whatDoINeed()
       for mainClassStr in neededObjects.keys():
-        if mainClassStr not in self.entities.keys() and mainClassStr != 'internal':
+        if mainClassStr not in self.entities and mainClassStr != 'internal':
           self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
         neededobjs[mainClassStr] = {}
         for obj in neededObjects[mainClassStr]:
