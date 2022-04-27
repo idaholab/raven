@@ -10,7 +10,7 @@
     <name>framework/PostProcessors/Validation/test_validation_gate_representativity</name>
     <author>Mohammad Abdo (@Jimmy-INL)</author>
     <created>2021-04-29</created>
-    <classesTested>PostProcessors.Validation</classesTested>
+    <classesTested>PostProcessors.Validation.Representativity</classesTested>
     <description>
         This test is aimed to show how to use the mechanics of the Validation Post-Processor. For semplicity,
         this test is using the attenuation model (analytical) and simple representativity factors metrics.
@@ -23,30 +23,22 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
+      <inputs>x1, x2</inputs>
+      <outputs>ans, ans2</outputs>
     </ExternalModel>
-    <!-- <ExternalModel ModuleToLoad="../../../AnalyticModels/Toy1DSlabReflective.py" name="slab" subType="">
-      <variables>time,phi_0,x,a_tilde,phi</variables>
-    </ExternalModel> -->
     <PostProcessor name="pp1" subType="Representativity">
       <Features>outputDataMC1|ans</Features>
       <Targets>outputDataMC2|ans2</Targets>
       <Metric class="Metrics" type="Metric">simIndex</Metric>
-      <!-- <Derivatives type=??>?</Derivatives> -->
       <featureParameters>outputDataMC1|x1,outputDataMC1|x2</featureParameters>
       <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
       <pivotParameter>outputDataMC1|time</pivotParameter>
       <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
-      <!-- <Representativity name="repPP">
-        <Parameters>outputDataMC1|x1,outputDataMC1|x2</Parameters>
-        <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
-      </Representativity> -->
     </PostProcessor>
   </Models>
 
   <Metrics>
     <Metric name="simIndex" subType="RepresentativityFactors"/>
-    <!-- <RepresentativityFactors name="simIndex"/> -->
   </Metrics>
 
   <Distributions>
@@ -106,13 +98,9 @@
     </PointSet>
     <PointSet name="pp1_metric">
       <Input>InputPlaceHolder</Input>
-      <!-- <Output>OutputPlaceHolder</Output> -->
+      <Output>ans_ans2_simIndex</Output>
     </PointSet>
   </DataObjects>
-
-  <!-- <VariableGroups>
-    <Group name="pp1_vars">ans_ans2_simIndex</Group>
-  </VariableGroups> -->
 
   <OutStreams>
     <Print name="pp1_metric_dump">

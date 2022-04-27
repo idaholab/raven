@@ -69,13 +69,24 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().__init__()
-    from Models.PostProcessors import factory as ppFactory # delay import to allow definition
     self.printTag = 'POSTPROCESSOR Representativity'
     self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
     self.name = 'Representativity'
-    self.stat = ppFactory.returnInstance('BasicStatistics')
-    self.stat.what = ['NormalizedSensitivities'] # expected value calculation
+    self.stat = [None, None]
+    self.featureDataObject = None
+    self.targetDataObject = None
+
+  def getBasicStat(self):
+    """
+      Get Basic Statistic PostProcessor
+      @ In, None
+      @ Out, stat, object, Basic Statistic PostProcessor Object
+    """
+    from .. import factory as ppFactory # delay import to allow definition
+    stat = ppFactory.returnInstance('BasicStatistics')
+    stat.what = ['NormalizedSensitivities'] # expected value calculation
+    return stat
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -86,8 +97,49 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().initialize(runInfo, inputs, initDict)
-    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[1] for x in self.features]), 'features':set([x.split("|")[1] for x in self.featureParameters]),'prefix':'nsen'}]}
-    self.stat.initialize(runInfo, inputs, initDict)
+    if len(inputs) != 2:
+      self.raiseAnError(IOError, "PostProcessor", self.name, "can only accept two DataObjects, but got {}!".format(str(len(inputs))))
+    params = self.features+self.targets+self.featureParameters+self.targetParameters
+    validParams = [True if "|" in x  else False for x in params]
+    if not all(validParams):
+      notValid = list(np.asarray(params)[np.where(np.asarray(validParams)==False)[0]])
+      self.raiseAnError(IOError, "'Features', 'Targets', 'featureParameters', and 'targetParameters' should use 'DataObjectName|variable' format, but variables {} do not follow this rule.".format(','.join(notValid)))
+    # Assume features and targets are in the format of: DataObjectName|Variables
+    names = set([x.split("|")[0] for x in self.features] + [x.split("|")[0] for x in self.featureParameters])
+    if len(names) != 1:
+      self.raiseAnError(IOError, "'Features' and 'featureParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
+    featDataObject = list(names)[0]
+    names = set([x.split("|")[0] for x in self.targets] + [x.split("|")[0] for x in self.targetParameters])
+    if len(names) != 1:
+      self.raiseAnError(IOError, "'Targets' and 'targetParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
+    targetDataObject = list(names)[0]
+    featVars = [x.split("|")[-1] for x in self.features] + [x.split("|")[1] for x in self.featureParameters]
+    targVars = [x.split("|")[-1] for x in self.targets] + [x.split("|")[1] for x in self.targetParameters]
+
+    for i, inp in enumerate(inputs):
+      if inp.name == featDataObject:
+        self.featureDataObject = (inp, i)
+      else:
+        self.targetDataObject = (inp, i)
+
+    vars = self.featureDataObject[0].vars + self.featureDataObject[0].indexes
+    if not set(featVars).issubset(set(vars)):
+      missing = featVars - set(vars)
+      self.raiseAnError(IOError, "Variables {} are missing from DataObject {}".format(','.join(missing), self.featureDataObject[0].name))
+    vars = self.targetDataObject[0].vars + self.targetDataObject[0].indexes
+    if not set(targVars).issubset(set(vars)):
+      missing = targVars - set(vars)
+      self.raiseAnError(IOError, "Variables {} are missing from DataObject {}".format(','.join(missing), self.targetDataObject[0].name))
+
+    featStat = self.getBasicStat()
+    featStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':'nsen'}]}
+    featStat.initialize(runInfo, [self.featureDataObject[0]], initDict)
+    self.stat[self.featureDataObject[-1]] = featStat
+    tartStat = self.getBasicStat()
+    tartStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':'nsen'}]}
+    tartStat.initialize(runInfo, [self.targetDataObject[0]], initDict)
+    self.stat[self.targetDataObject[-1]] = tartStat
+
 
   def _handleInput(self, paramInput):
     """
@@ -138,8 +190,8 @@ class Representativity(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    senMeasurables = self.stat.run({"Data":[[None, None, datasets[0]]]})
-    senFOMs = self.stat.run({"Data":[[None, None, datasets[1]]]})
+    senMeasurables = self.stat[0].run({"Data":[[None, None, datasets[0]]]})
+    senFOMs = self.stat[1].run({"Data":[[None, None, datasets[1]]]})
 
     names = kwargs.get('dataobjectNames')
     outs = {}
