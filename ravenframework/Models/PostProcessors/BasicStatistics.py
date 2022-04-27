@@ -31,7 +31,7 @@ from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import utils
 from ...utils import InputData, InputTypes
 from ...utils import mathUtils
-import Files
+from ... import Files
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessorReadyInterface):
@@ -164,46 +164,39 @@ class BasicStatistics(PostProcessorReadyInterface):
     self.sampleSize     = None # number of sample size
     self.calculations   = {}
     self.validDataType  = ['PointSet', 'HistorySet', 'DataSet'] # The list of accepted types of DataObject
+    self.inputDataObjectName = None # name for input data object
     self.setInputDataType('xrDataset')
 
-  def inputToInternal(self, currentInp):
+  def inputToInternal(self, inputIn):
     """
-      Method to convert an input object into the internal format that is
+      Method to select corresponding data from Data Objects and normalize the ProbabilityWeight of corresponding data
       understandable by this pp.
-      @ In, currentInp, object, an object that needs to be converted
+      @ In, inputIn, dict, a dictionary that contains the input Data Object information
       @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
     """
-    # The BasicStatistics postprocessor only accept Datasets
-    currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    inpVars, outVars, dataSet = inputIn['Data'][0]
     pbWeights = None
 
-    # extract all required data from input DataObjects, an input dataset is constructed
-    inpVars, outVars, dataSet = currentInput['Data'][0]
     try:
       inputDataset = dataSet[self.parameters['targets']]
     except KeyError:
       missing = [var for var in self.parameters['targets'] if var not in dataSet]
-      self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),currentInput.name))
+      self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),self.inputDataObjectName))
     self.sampleTag = utils.first(dataSet.dims)
 
     if self.dynamic:
       dims = inputDataset.sizes.keys()
       if self.pivotParameter is None:
-        if len(dims) > 1:
-          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
-                got inputted!')
+        self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
+              got inputted!')
       elif self.pivotParameter not in dims:
         self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
                 requested variables', ','.join(self.parameters['targets']))
-      else:
-        self.dynamic = True
-        #if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-        #  self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
-        self.pivotValue = inputDataset[self.pivotParameter].values
-        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
-          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
-          " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
-          self.raiseAnError(IOError, msg)
+      self.pivotValue = dataSet[self.pivotParameter].values
+      if self.pivotValue.size != len(dataSet.groupby(self.pivotParameter)):
+        msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+        " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
+        self.raiseAnError(IOError, msg)
     # extract all required meta data
     self.pbPresent = 'ProbabilityWeight' in dataSet
     if self.pbPresent:
@@ -229,6 +222,12 @@ class BasicStatistics(PostProcessorReadyInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one DataObject')
+    if self.pivotParameter is not None:
+      if not inputs[-1].checkIndexAlignment(indexesToCheck=self.pivotParameter):
+        self.raiseAnError(IOError, "The data provided by the input data object is not synchronized!")
+    self.inputDataObjectName = inputs[-1].name
     #construct a list of all the parameters that have requested values into self.allUsedParams
     self.allUsedParams = set()
     for metricName in self.scalarVals + self.vectorVals:
@@ -1342,7 +1341,7 @@ class BasicStatistics(PostProcessorReadyInterface):
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
-      return outputDict,outputSet
+      return outputDict
 
   def corrCoeff(self, covM):
     """
@@ -1528,7 +1527,7 @@ class BasicStatistics(PostProcessorReadyInterface):
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
     inputData = self.inputToInternal(inputIn)
-    _,outputSet = self.__runLocal(inputData)
+    outputSet = self.__runLocal(inputData)
     return outputSet
 
   def collectOutput(self, finishedJob, output):
