@@ -76,6 +76,7 @@ class Representativity(ValidationBase):
     self.stat = [None, None]
     self.featureDataObject = None
     self.targetDataObject = None
+    self.senPrefix = 'nsen'
 
   def getBasicStat(self):
     """
@@ -132,11 +133,11 @@ class Representativity(ValidationBase):
       self.raiseAnError(IOError, "Variables {} are missing from DataObject {}".format(','.join(missing), self.targetDataObject[0].name))
 
     featStat = self.getBasicStat()
-    featStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':'nsen'}]}
+    featStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':self.senPrefix}]}
     featStat.initialize(runInfo, [self.featureDataObject[0]], initDict)
     self.stat[self.featureDataObject[-1]] = featStat
     tartStat = self.getBasicStat()
-    tartStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':'nsen'}]}
+    tartStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':self.senPrefix}]}
     tartStat.initialize(runInfo, [self.targetDataObject[0]], initDict)
     self.stat[self.targetDataObject[-1]] = tartStat
 
@@ -190,8 +191,10 @@ class Representativity(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    senMeasurables = self.stat[0].run({"Data":[[None, None, datasets[0]]]})
-    senFOMs = self.stat[1].run({"Data":[[None, None, datasets[1]]]})
+    sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
+    senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens)
+    sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
+    senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens)
 
     names = kwargs.get('dataobjectNames')
     outs = {}
@@ -202,9 +205,27 @@ class Representativity(ValidationBase):
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
       covParameters = senFOMs @ senMeasurables.T
       for metric in self.metrics:
-        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
+        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
         outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
     return outs
+
+  def _generateSensitivityMatrix(self, outputs, inputs, sensDict):
+    """
+      Reconstruct sensitivity matrix from the Basic Statistic calculation
+      @ In, inputs, list, list of input variables
+      @ In, outputs, list, list of output variables
+      @ In, sensDict, dict, dictionary contains the sensitivities
+      @ Out, sensMatr, numpy.array, 2-D array of the reconstructed sensitivity matrix
+    """
+    sensMatr = np.zeros((len(outputs), len(inputs)))
+    inputVars = [x.split("|")[-1] for x in inputs]
+    outputVars = [x.split("|")[-1] for x in outputs]
+    for i, outVar in enumerate(outputVars):
+      for j, inpVar in enumerate(inputVars):
+        senName = "{}_{}_{}".format(self.senPrefix, outVar, inpVar)
+        # Assume static data (PointSets are provided as input)
+        sensMatr[i, j] = sensDict[senName][0]
+    return sensMatr
 
   def _getDataFromDatasets(self, datasets, var, names=None):
     """
