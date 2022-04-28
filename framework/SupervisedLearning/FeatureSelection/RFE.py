@@ -70,11 +70,14 @@ class RFE(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
         descr=r"""Exact Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
-                                                      descr=r"""Maximum Number of features to select, the algorithm will automatically determine the 
+                                                      descr=r"""Maximum Number of features to select, the algorithm will automatically determine the
         feature list to minimize a total score.""", default=None))
     spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
                                                       descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
                                                       default=1e-4))
+    spec.addSub(InputData.parameterInputFactory('applyClusteringFiltering',contentType=InputTypes.BoolType,
+                                                      descr=r"""Applying clustering before RFE search?""",
+                                                      default=False))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
         descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
@@ -91,6 +94,7 @@ class RFE(BaseInterface):
     self.nFeaturesToSelect = None
     self.maxNumberFeatures = None
     self.searchTol = None
+    self.applyClusteringFiltering = False
     self.parametersToInclude = None
     self.whichSpace = "feature"
     self.step = 1
@@ -111,7 +115,7 @@ class RFE(BaseInterface):
     """
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect',
-                                                            'whichSpace','maxNumberFeatures','searchTol'])
+                                                            'whichSpace','maxNumberFeatures','searchTol','applyClusteringFiltering'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
@@ -119,6 +123,7 @@ class RFE(BaseInterface):
     self.searchTol = nodes['searchTol']
     self.parametersToInclude = nodes['parametersToInclude']
     self.whichSpace = nodes['whichSpace'].lower()
+    self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     # checks
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
@@ -175,9 +180,6 @@ class RFE(BaseInterface):
     #FIXME 1718
     nParams = len(self.parametersToInclude)
     #nParams = nFeatures if self.parametersToInclude is None else len(self.parametersToInclude)
-    # compute number of steps
-    step = int(self.step) if self.step > 1 else int(max(1, self.step * nParams))
-
 
     # support and ranking for features
     support_ = np.ones(nParams, dtype=np.bool)
@@ -195,6 +197,56 @@ class RFE(BaseInterface):
 
     # get estimator parameter
     originalParams = self.estimator.paramInput
+
+    # clustering appraoch here
+    if self.applyClusteringFiltering:
+      from scipy.stats import spearmanr
+      from scipy.cluster import hierarchy
+      from scipy.spatial.distance import squareform
+      from collections import defaultdict
+      #import matplotlib.pyplot as plt
+      #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+      if self.whichSpace == 'feature':
+        space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
+      else:
+        space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
+
+      corr = spearmanr(space,axis=0).correlation
+      corr = (corr + corr.T) / 2
+      np.fill_diagonal(corr, 1)
+
+      # We convert the correlation matrix to a distance matrix before performing
+      # hierarchical clustering using Ward's linkage.
+      distance_matrix = 1 - np.abs(corr)
+      dist_linkage = hierarchy.ward(squareform(distance_matrix))
+      #dendro = hierarchy.dendrogram(dist_linkage, labels=self.parametersToInclude, ax=ax1, leaf_rotation=90)
+      #dendro_idx = np.arange(0, len(dendro["ivl"]))
+      #ax2.imshow(corr[dendro["leaves"], :][:, dendro["leaves"]])
+      #ax2.set_xticks(dendro_idx)
+      #ax2.set_yticks(dendro_idx)
+      #ax2.set_xticklabels(dendro["ivl"], rotation="vertical")
+      #ax2.set_yticklabels(dendro["ivl"])
+      #fig.tight_layout()
+      #plt.show()
+      t = 0.00005*np.max(dist_linkage)
+      self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
+      self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
+      cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
+      cluster_id_to_feature_ids = defaultdict(list)
+      for idx, cluster_id in enumerate(cluster_ids):
+        cluster_id_to_feature_ids[cluster_id].append(idx)
+      selected_features = [v[0] for v in cluster_id_to_feature_ids.values()]
+      self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selected_features)}!")
+      support_[:] = False
+      support_[np.asarray(selected_features)] = True
+
+    # compute number of steps
+    setStep = int(self.step) if self.step > 1 else int(max(1, self.step * nParams))
+    nSteps = (int(np.sum(support_)) - nFeaturesToSelect)/setStep
+    lowerStep = int(nSteps)
+    diff = nSteps - lowerStep
+    firstStep = int(setStep * (1+diff))
+    step = firstStep
 
     # Elimination
     while np.sum(support_) > nFeaturesToSelect:
@@ -245,6 +297,7 @@ class RFE(BaseInterface):
 
       # Eliminate the worse features
       threshold = min(step, np.sum(support_) - nFeaturesToSelect)
+      step = setStep
 
       # Compute step score on the previous selection iteration
       # because 'estimator' must use features
@@ -260,7 +313,7 @@ class RFE(BaseInterface):
       f = None
       if f is None:
         f = np.asarray(self.parametersToInclude)
-      self.raiseAMessage("Starting Features are {}".format( " ".join(f[np.asarray(featuresForRanking)]) ))      
+      self.raiseAMessage("Starting Features are {}".format( " ".join(f[np.asarray(featuresForRanking)]) ))
       threshold = len(featuresForRanking) - 1
       coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
       initialRanks = copy.deepcopy(ranks)
@@ -274,8 +327,8 @@ class RFE(BaseInterface):
       initialNumbOfFeatures = int(np.sum(support_))
       featuresForRanking = np.arange(nParams)[support_]
       originalSupport = copy.copy(support_)
-      scorelist = []            
-      featureList = []    
+      scorelist = []
+      featureList = []
       numbFeatures = []
       bestForNumberOfFeatures = {}
       # this can be time consuming
@@ -297,9 +350,9 @@ class RFE(BaseInterface):
             targets = np.arange(nTargets)
           else:
             features = np.arange(nFeatures)
-            targets = np.arange(nTargets)[supportOfSupport_]      
-        
-        
+            targets = np.arange(nTargets)[supportOfSupport_]
+
+
           estimator = copy.deepcopy(self.estimator)
           self.raiseAMessage("Iteration {}. Fitting estimator with {} features.".format(iteration,np.sum(support_)))
           toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
@@ -316,7 +369,7 @@ class RFE(BaseInterface):
             estimator.paramInput.findNodesAndSetValues(vals)
             estimator._handleInput(estimator.paramInput)
           estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
-  
+
           # evaluate
           score = 0.0
           for samp in range(X.shape[0]):
@@ -333,7 +386,7 @@ class RFE(BaseInterface):
                   w = 1.0
                 else:
                   w = stateW # the weight of Haoyu's GA cost function
-                
+
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
                 std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
@@ -358,17 +411,17 @@ class RFE(BaseInterface):
               bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
           else:
             bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
-          scorelist.append(score)  
+          scorelist.append(score)
           featureList.append(combo)
-          numbFeatures.append(len(combo))   
-      
+          numbFeatures.append(len(combo))
+
       idxx = np.argmin(scorelist)
       support_ = copy.copy(originalSupport)
       support_[featuresForRanking] = False
       support_[np.asarray(featureList[idxx])] = True
       for k in bestForNumberOfFeatures:
         self.raiseAMessage(f"Best score for {k} features is {bestForNumberOfFeatures[k][0]} with the following features {bestForNumberOfFeatures[k][1]} ")
-  
+
     # Set final attributes
     supportIndex = 0
     for idx in range(len(supportOfSupport_)):

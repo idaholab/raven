@@ -243,14 +243,14 @@ class DMDC(DMD):
       # the importances are evaluated in the transformed space
       CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       for smp in range(self.__Ctilde.shape[0]):
-        ss = preprocessing.normalize(self.stateVals[:,smp,:]) 
-        #ss = self.stateVals[:,smp,:]
+        #ss = preprocessing.normalize(self.stateVals[:,smp,:])
+        ss = self.stateVals[:,smp,:]
         X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
-        Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T      
+        Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
         _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
-      
+
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
       # the importances for the state variables are inferred from the C matrix/operator since
       # directely linked to the output variables
@@ -271,7 +271,7 @@ class DMDC(DMD):
         permutations = set(self.parameterValues[:,featCnt])
         indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
         self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-    
+
     return self._importances
 
   #######
