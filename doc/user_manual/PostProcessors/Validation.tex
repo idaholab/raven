@@ -1,0 +1,150 @@
+\subsubsection{Validation PostProcessors}
+\label{subsubsec:Validation}
+
+The \textbf{Validation} PostProcessors represent a group of validation methods
+for applying a different range of algorithms to validate (e.g. compare)
+dataset and/or models (e.g. Distributions).
+
+Several post-processors are available for model validation:
+\begin{itemize}
+  \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
+  \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
+  % \item  \textbf{Representativity}
+  % \item  \textbf{PCM}
+\end{itemize}
+%
+
+The choices of the available metrics and acceptable data objects are specified in table \ref{tab:ValidationAlgorithms}.
+
+\begin{table}[]
+\caption{Validation Algorithms and respective available metrics and DataObjects}
+\label{tab:ValidationAlgorithms}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
+Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
+PPDSS                         & HistorySet                                                     & DSS                                                           \\ \hline
+\end{tabular}
+\end{table}
+
+These post-processors can accept multiple \textbf{DataObjects} as inputs. When multiple DataObjects are provided,
+The user can use $DataObjectName|InputOrOutput|VariableName$ nomenclature to specify the variable
+in \xmlNode{Features} and \xmlNode{Targets} for comparison.
+
+\paragraph{Probabilistic}
+The \textbf{Probabilistic} specify that the validation needs to be performed
+using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})
+or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea})
+
+%
+\ppType{Probabilistic}{Probabilistic}
+%
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+    targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
+    number of targets should be equal to the number of features.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
+    The pivot parameter is the shared index of the output variables in the data object.
+  \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g., Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g., SKL, Minkowski)
+    \end{itemize}
+    \nb The choices of the available metrics are \xmlString{CDFAreaDifference} and \xmlString{PDFCommonArea}, please
+    refer to \ref{sec:Metrics} for detailed descriptions about these metrics.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Metrics>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
+  </Metrics>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp1" subType="Probabilistic">
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\paragraph{PPDSS}
+\textbf{PPDSS} specifies that the validation needs to be performed
+using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (\ref{subsection:DSS}).
+
+%
+\ppType{PPDSS}{PPDSS}
+%
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+    targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
+    number of targets should be equal to the number of features.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
+    The pivot parameter is the shared index of the output variables in the data object.
+  \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g., Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g., SKL, Minkowski)
+    \end{itemize}
+    \nb The choice of the available metric is \xmlString{DSS}, please
+    refer to \ref{sec:Metrics} for detailed descriptions about this metric.
+    \item \xmlNode{pivotParameterFeature}, \xmlDesc{string, required field}, specifies the pivotParameter for a feature <HistorySet>. The feature pivot parameter is the shared index of the output variables in the data object.
+    \item \xmlNode{pivotParameterTarget}, \xmlDesc{string, required field}, specifies the pivotParameter for a target <HistorySet>. The target pivot parameter is the shared index of the output variables in the data object.
+    \item \xmlNode{multiOutput}, \xmlDesc{string, required field}, to extract raw values for the HistorySet. The user must use ‘raw values’ for the full set of metrics’ calculations to be dumped.
+    \item \xmlNode{scale}, \xmlDesc{string, required field}, specifies the type of time scaling. The following are the options for scaling (specific definitions for each scaling type is provided in \ref{sec:dssdoc}):
+      \begin{itemize}
+        \item \textbf{DataSynthesis}, calculating the distortion for two data sets without applying other scaling ratios.
+        \item \textbf{2\_2\_affine}, calculating the distortion for two data sets with scaling ratios for parameter of interest and agent of changes.
+        \item \textbf{dilation}, calculating the distortion for two data sets with scaling ratios for parameter of interest and agent of changes.
+        \item \textbf{beta\_strain}, calculating the distortion for two data sets with scaling ratio for parameter of interest.
+        \item \textbf{omega\_strain}, calculating the distortion for two data sets with scaling ratios for agent of changes.
+        \item \textbf{identity}, calculating the distortion for two data sets with scaling ratios of 1.
+      \end{itemize}
+    \item \xmlNode{scaleBeta}, \xmlDesc{float or comma separated list of floats, required field}, specifies the parameter of interest scaling ratio between the feature and target.
+    To provide more than one scaling factor, separate by adding a comma in between each number. Providing more than one scaling factor presumes there are more than one parameter to be post-processed.
+    If so, \xmlNode{Features}, \xmlNode{Targets}, and \xmlNode{scaleOmega} must have the same number scaling factors.
+    \item \xmlNode{scaleOmega}, \xmlDesc{float or comma separated list of floats, required field}, specifies the agents of change scaling ratio between the feature and target.
+    To provide more than one scaling factor, separate by adding a comma in between each number. Providing more than one scaling factor presumes there are more than one parameter to be post-processed.
+    If so, \xmlNode{Features}, \xmlNode{Targets}, and \xmlNode{scaleBeta} must have the same number scaling factors.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Metrics>
+    <Metric name="dss" subType="DSS"/>
+  </Metrics>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp2" subType="PPDSS">
+      <Features>outMC1|x1,outMC1|y1</Features>
+      <Targets>outMC2|x2,outMC2|y2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1,1</scaleBeta>
+      <scaleOmega>1,1</scaleOmega>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
