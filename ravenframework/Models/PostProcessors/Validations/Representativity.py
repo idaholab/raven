@@ -195,15 +195,18 @@ class Representativity(ValidationBase):
     senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens)
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
     senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens)
-
+    c = np.zeros((datasets[0].dims['RAVEN_sample_ID'],len(self.featureParameters)))
     names = kwargs.get('dataobjectNames')
     outs = {}
+    ## TODO this loop is not needed
     for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
       parameters = self._getDataFromDatasets(datasets, param, names)
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-      covParameters = senFOMs @ senMeasurables.T
+      for ind,var in enumerate(self.featureParameters):
+        c[:,ind] = np.squeeze(self._getDataFromDatasets(datasets, var, names)[0])
+      covParameters = c.T @ c
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
         outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)

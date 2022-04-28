@@ -18,6 +18,8 @@ Created on April 29 2021
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import scipy as sp
+from scipy.linalg import sqrtm
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
@@ -83,7 +85,8 @@ class RepresentativityFactors(MetricInterface):
     senMeasurables = kwargs['senMeasurables']
     senFOMs = kwargs['senFOMs']
     covParameters = kwargs['covParameters']
-    r = (senFOMs.T @ covParameters @ senMeasurables)/\
-        np.sqrt(senFOMs.T @ covParameters @ senFOMs)/\
-        np.sqrt(senMeasurables.T @ covParameters @ senMeasurables)
+    # r = (senFOMs.T @ covParameters @ senMeasurables)/\
+    #     np.sqrt(senFOMs.T @ covParameters @ senFOMs)/\
+    #     np.sqrt(senMeasurables.T @ covParameters @ senMeasurables)
+    r = (sp.linalg.pinv(sqrtm(senFOMs @ covParameters @ senFOMs.T)) @ sqrtm(senFOMs @ covParameters @ senMeasurables.T) @ sqrtm(senFOMs @ covParameters @ senMeasurables.T) @ sp.linalg.pinv(sqrtm(senMeasurables @ covParameters @ senMeasurables.T))).real
     return r
