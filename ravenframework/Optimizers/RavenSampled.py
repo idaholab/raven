@@ -120,6 +120,7 @@ class RavenSampled(Optimizer):
     self._stepTracker = {}  # action tracking: what is collected, what needs collecting?
     self._optPointHistory = {}  # by traj, is a deque (-1 is most recent)
     self._maxHistLen = 2  # FIXME who should set this?
+    self._rerunsSinceAccept = {} # by traj, how long since our last accepted point
     # __private
     self.__stepCounter = {}  # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     # additional methods
@@ -536,12 +537,24 @@ class RavenSampled(Optimizer):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
-      # self.incrementIteration(traj)
+      self._rerunsSinceAccept[traj] = 0
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
-    else:  # e.g. rerun
-      pass  # nothing to do, just keep moving
+    elif acceptable == 'rerun':
+      # update the most recently obtained opt value for the rerun point
+      # NOTE we do this because if we got "lucky" in an opt point evaluation, we can get stuck
+      #      there even as we rerun and discover that original value is not reliable.
+      # so use successive reruns to update the average
+      # note 1 rerun means 2 total values to work with, so use this in averaging update
+      # TODO could we ever use old rerun gradients to inform the gradient direction as well?
+      self._rerunsSinceAccept[traj] += 1
+      N = self._rerunsSinceAccept[traj] + 1
+      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
+      newAvg = ((N-1)*oldVal + optVal) / N
+      self._optPointHistory[traj][-1][0][self._objectiveVar] = newAvg
+    else:
+      self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
@@ -670,6 +683,7 @@ class RavenSampled(Optimizer):
     traj = Optimizer.initializeTrajectory(self, traj=traj)
     self._optPointHistory[traj] = deque(maxlen=self._maxHistLen)
     self.__stepCounter[traj] = -1  # allows 0-based counting
+    self._rerunsSinceAccept[traj] = 0
     self._initializeStep(traj)
     return traj
 
