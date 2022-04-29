@@ -14,14 +14,13 @@
 """
 Module that contains the driver for the whole the simulation flow (Simulation Class)
 """
-# import xml.etree.ElementTree as ET
+
 import os,subprocess
 import sys
 import io
 import string
 import datetime
 import threading
-import copy
 import numpy as np
 
 
@@ -220,10 +219,6 @@ class Simulation(MessageUser):
                                     'suppressErrs':suppressErrs})
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
-    # initial XML
-    self.initialXML = None
-    # current XML (only different from initalXML if simulation run multiple times with changes)
-    self.currentXML = None
     # flag for checking if simulation has been run before
     self.ranPreviously = False
     #this dictionary contains the general info to run the simulation
@@ -337,16 +332,7 @@ class Simulation(MessageUser):
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
-
-    self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
-    ## This allows RAVEN to exit when the only thing left is the JobHandler
-    ## This should no longer be necessary since the jobHandler now has an off
-    ## switch that this object can flip when it is complete, however, if
-    ## simulation fails before it is finished, we should probably still ensure
-    ## that this thread is killed as well, so maybe it is best to keep it for
-    ## now.
-    self.pollingThread.daemon = True
-    self.pollingThread.start()
+    self.pollingThread = None # set up when simulation is run to allow subsequent runs without reinstantiating everything
 
   @Decorators.timingProfile
   def setInputFiles(self,inputFiles):
@@ -399,11 +385,6 @@ class Simulation(MessageUser):
     self.raiseADebug("Reading XML", xmlFilename)
     self.setOptionalAttributes(xmlNode)
     self.instantiateEntities(xmlNode, runInfoSkip, xmlFilename)
-    # if this is the first time instantiating entities, store the XML file
-    if self.initialXML is None:
-      self.initialXML = copy.deepcopy(xmlNode)
-    # current XML file
-    self.currentXML = copy.deepcopy(xmlNode)
 
     # If requested, duplicate input
     # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
@@ -803,11 +784,34 @@ class Simulation(MessageUser):
     stepInputDict = {}                        # initialize the input dictionary for a step. Never use an old one!!!!!
     stepInputDict['Input' ] = []              # set the Input to an empty list
     stepInputDict['Output'] = []              # set the Output to an empty list
-    #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
+    #fill the take a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
     for role, entity, _, name in stepInstance.parList:
       #Only for input and output we allow more than one object passed to the step, so for those we build a list
-      if role == 'Input' or role == 'Output':
+      if role == 'Input':
         stepInputDict[role].append(self.getEntity(entity, name))
+      elif role == 'Output':
+        if self.ranPreviously and entity == 'DataObjects':
+          # if simulation was run previously, output DataObjects need to be reset
+          outputDataObject = self.getEntity(entity, name)
+          # _data must be None
+          outputDataObject._data = None
+          # clear _metavars
+          outputDataObject._metavars = []
+          # remove added entries in _orderedVars
+          outputDataObject._orderedVars.remove('prefix')
+          outputDataObject._orderedVars = [x for x in outputDataObject._orderedVars if 'Probability' not in x]
+          # empty _meta
+          outputDataObject._meta = {}
+          # clear _collector
+          outputDataObject._collector = None
+          # empty _scaleFactors
+          outputDataObject._scaleFactors = {}
+          # types to None
+          outputDataObject.types = None
+          # now add to stepInputDict
+          stepInputDict[role].append(outputDataObject)
+        else:
+          stepInputDict[role].append(self.getEntity(entity, name))
       else:
         stepInputDict[role] = self.getEntity(entity, name)
     #add the global objects
@@ -842,7 +846,7 @@ class Simulation(MessageUser):
   def finalizeSimulation(self):
     """
       This method is called at end of the simulation to finalize it
-      It is in charge of shutting dow the job handler and clean up the execution
+      It is in charge of shutting down the job handler and clean up the execution
       @ In, None
       @ Out, None
     """
@@ -850,6 +854,7 @@ class Simulation(MessageUser):
     self.messageHandler.printWarnings()
     # implicitly, the job finished successfully if we got here.
     self.writeStatusFile()
+    self.ranPreviously = True
 
   def stepSequence(self):
     """
@@ -865,6 +870,19 @@ class Simulation(MessageUser):
       @ In, None
       @ Out, None
     """
+    if self.jobHandler.completed:
+      # this must be False in order to set up the queue
+      self.jobHandler.completed = False
+
+    self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
+    ## This allows RAVEN to exit when the only thing left is the JobHandler
+    ## This should no longer be necessary since the jobHandler now has an off
+    ## switch that this object can flip when it is complete, however, if
+    ## simulation fails before it is finished, we should probably still ensure
+    ## that this thread is killed as well, so maybe it is best to keep it for
+    ## now.
+    self.pollingThread.daemon = True
+    self.pollingThread.start()
     #to do list
     #can we remove the check on the existence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
