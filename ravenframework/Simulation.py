@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module that contains the driver for the whole the simulation flow (Simulation Class)
+Module that contains the driver for the whole simulation flow (Simulation Class)
 """
 
-import os,subprocess
+import os
+import subprocess
 import sys
 import io
 import string
@@ -23,8 +24,6 @@ import datetime
 import threading
 import numpy as np
 
-
-# from . import MessageHandler # this needs to happen early to instantiate message handler
 from .BaseClasses import MessageUser
 from . import Steps
 from . import DataObjects
@@ -147,18 +146,15 @@ def splitCommand(s):
 
 #----------------------------------------------------------------------
 
-#
-#
-#
 #-----------------------------------------------------------------------------------------------------
 class Simulation(MessageUser):
   """
-    This is a class that contain all the object needed to run the simulation
+    This is a class that contain all the objects needed to run the simulation
     Usage:
     myInstance = Simulation()                          !Generate the instance
-    myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
+    myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generates all the objects living in the simulation
     myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
-    myInstance.run()                                   !This method run the simulation
+    myInstance.run()                                   !This method runs the simulation
     Utility methods:
      myInstance.printDicts                              !prints the dictionaries representing the whole simulation
      myInstance.setInputFiles                           !re-associate the set of files owned by the simulation
@@ -221,49 +217,49 @@ class Simulation(MessageUser):
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
-    #this dictionary contains the general info to run the simulation
+    # this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'    #Default input file to use
-    self.runInfoDict['SimulationFiles'   ] = []            #the xml input file
+    self.runInfoDict['DefaultInputFile'  ] = 'test.xml' # Default input file to use
+    self.runInfoDict['SimulationFiles'   ] = []     # the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir  # the directory where the framework is located
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_ec_qsub_command.sh')
-    self.runInfoDict['NodeParameter'     ] = '--hostfile'          # the parameter used to specify the files where the nodes are listed
-    self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
-    self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'# the command used to run multi-threading commands.
-                                                                  # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
-                                                                  # that require the num of threads to be inputted without a
-                                                                  # blank space we can have something like --my-nthreads=%NUM_CPUS%
-                                                                  # (e.g. --my-nthreads=10), otherwise we can have something like
-                                                                  # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
-                                                                  # space is always added (e.g. --mycommand => --mycommand 10)
-    self.runInfoDict['includeDashboard'  ] = False        # in case of internalParalle True, instanciate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
-    self.runInfoDict['WorkingDir'        ] = ''            # the directory where the framework should be running
-    self.runInfoDict['TempWorkingDir'    ] = ''            # the temporary directory where a simulation step is run
-    self.runInfoDict['NumMPI'            ] = 1             # the number of mpi process by run
-    self.runInfoDict['NumThreads'        ] = 1             # Number of Threads by run
-    self.runInfoDict['numProcByRun'      ] = 1             # Total number of core used by one run (number of threads by number of mpi)
-    self.runInfoDict['batchSize'         ] = 1             # number of contemporaneous runs
-    self.runInfoDict['internalParallel'  ] = False         # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
-    self.runInfoDict['ParallelCommand'   ] = ''            # the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'  ] = ''            # the command should be used to submit multi-threaded
-    self.runInfoDict['totalNumCoresUsed' ] = 1             # total number of cores used by driver
-    self.runInfoDict['queueingSoftware'  ] = ''            # queueing software name
-    self.runInfoDict['stepName'          ] = ''            # the name of the step currently running
-    self.runInfoDict['precommand'        ] = ''            # Add to the front of the command that is run
-    self.runInfoDict['postcommand'       ] = ''            # Added after the command that is run.
-    self.runInfoDict['delSucLogFiles'    ] = False         # If a simulation (code run) has not failed, delete the relative log file (if True)
-    self.runInfoDict['deleteOutExtension'] = []            # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''            # Running mode.  Currently the only mode supported is mpi but others can be added with custom modes.
-    self.runInfoDict['Nodes'             ] = []            # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
-    self.runInfoDict['expectedTime'      ] = '10:00:00'    # How long the complete input is expected to run.
+    self.runInfoDict['NodeParameter'     ] = '--hostfile' # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['MPIExec'           ] = 'mpiexec'  # the command used to run mpi commands
+    self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'  # the command used to run multi-threading commands.
+                                                                    # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
+                                                                    # that require the num of threads to be inputted without a
+                                                                    # blank space we can have something like --my-nthreads=%NUM_CPUS%
+                                                                    # (e.g. --my-nthreads=10), otherwise we can have something like
+                                                                    # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
+                                                                    # space is always added (e.g. --mycommand => --mycommand 10)
+    self.runInfoDict['includeDashboard'  ] = False  # in case of internalParallel True, instantiate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
+    self.runInfoDict['WorkingDir'        ] = ''     # the directory where the framework should be running
+    self.runInfoDict['TempWorkingDir'    ] = ''     # the temporary directory where a simulation step is run
+    self.runInfoDict['NumMPI'            ] = 1      # the number of mpi process by run
+    self.runInfoDict['NumThreads'        ] = 1      # Number of Threads by run
+    self.runInfoDict['numProcByRun'      ] = 1      # Total number of core used by one run (number of threads by number of mpi)
+    self.runInfoDict['batchSize'         ] = 1      # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False  # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['ParallelCommand'   ] = ''     # the command that should be used to submit jobs in parallel (mpi)
+    self.runInfoDict['ThreadingCommand'  ] = ''     # the command that should be used to submit multi-threaded
+    self.runInfoDict['totalNumCoresUsed' ] = 1      # total number of cores used by driver
+    self.runInfoDict['queueingSoftware'  ] = ''     # queueing software name
+    self.runInfoDict['stepName'          ] = ''     # the name of the step currently running
+    self.runInfoDict['precommand'        ] = ''     # Add to the front of the command that is run
+    self.runInfoDict['postcommand'       ] = ''     # Added after the command that is run.
+    self.runInfoDict['delSucLogFiles'    ] = False  # If a simulation (code run) has not failed, delete the relative log file (if True)
+    self.runInfoDict['deleteOutExtension'] = []     # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
+    self.runInfoDict['mode'              ] = ''     # Running mode.  Currently the only mode supported is mpi but others can be added with custom modes.
+    self.runInfoDict['Nodes'             ] = []     # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
+    self.runInfoDict['expectedTime'      ] = '10:00:00' # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
-    self.runInfoDict['clusterParameters' ] = []            # Extra parameters to use with the qsub command.
+    self.runInfoDict['clusterParameters' ] = []     # Extra parameters to use with the qsub command.
     self.runInfoDict['maxQueueSize'      ] = None
 
-    #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
-    #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
-    #The value corresponding to a keyword is the instance of the corresponding class
+    # A set of dictionaries that, in a manner consistent with their names, collect the instances of all objects needed in the simulation.
+    # Their keywords in the dictionaries are the user given names of data, sampler, etc.
+    # The value corresponding to a keyword is the instance of the corresponding class
     self.stepsDict            = {}
     self.dataDict             = {}
     self.samplersDict         = {}
@@ -276,45 +272,45 @@ class Simulation(MessageUser):
     self.outStreamsDict       = {}
     self.__stepSequenceList     = [] #the list of step of the simulation
 
-    #list of supported queue-ing software:
+    # list of supported queue-ing software:
     self.knownQueueingSoftware = []
     self.knownQueueingSoftware.append('None')
     self.knownQueueingSoftware.append('PBS Professional')
 
-    #Dictionary of mode handlers for the
+    #Dictionary of mode handlers
     self.__modeHandlerDict           = CustomModes.modeHandlers
-    #self.__modeHandlerDict['mpi']    = CustomModes.MPISimulationMode
-    #self.__modeHandlerDict['mpilegacy'] = CustomModes.MPILegacySimulationMode
+    # self.__modeHandlerDict['mpi']    = CustomModes.MPISimulationMode
+    # self.__modeHandlerDict['mpilegacy'] = CustomModes.MPILegacySimulationMode
 
-    #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
-    #the keywords are the name of the module that contains the specialization of that specific entity
+    # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
+    # the keywords are the name of the module that contains the specialization of that specific entity
     self.entityModules  = {}
-    self.entityModules['Steps'            ] = Steps
-    self.entityModules['DataObjects'      ] = DataObjects
-    self.entityModules['Samplers'         ] = Samplers
-    self.entityModules['Optimizers'       ] = Optimizers
-    self.entityModules['Models'           ] = Models
-    self.entityModules['Distributions'    ] = Distributions
-    self.entityModules['Databases'        ] = Databases
-    self.entityModules['Functions'        ] = Functions
-    self.entityModules['Files'            ] = Files
-    self.entityModules['Metrics'          ] = Metrics
-    self.entityModules['OutStreams'       ] = OutStreams
+    self.entityModules['Steps'        ] = Steps
+    self.entityModules['DataObjects'  ] = DataObjects
+    self.entityModules['Samplers'     ] = Samplers
+    self.entityModules['Optimizers'   ] = Optimizers
+    self.entityModules['Models'       ] = Models
+    self.entityModules['Distributions'] = Distributions
+    self.entityModules['Databases'    ] = Databases
+    self.entityModules['Functions'    ] = Functions
+    self.entityModules['Files'        ] = Files
+    self.entityModules['Metrics'      ] = Metrics
+    self.entityModules['OutStreams'   ] = OutStreams
 
-    #Mapping between an entity type and the dictionary containing the instances for the simulation
+    # Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
-    self.entities['Steps'           ] = self.stepsDict
-    self.entities['DataObjects'     ] = self.dataDict
-    self.entities['Samplers'        ] = self.samplersDict
-    self.entities['Optimizers'      ] = self.samplersDict
-    self.entities['Models'          ] = self.modelsDict
-    self.entities['RunInfo'         ] = self.runInfoDict
-    self.entities['Files'           ] = self.filesDict
-    self.entities['Distributions'   ] = self.distributionsDict
-    self.entities['Databases'       ] = self.dataBasesDict
-    self.entities['Functions'       ] = self.functionsDict
-    self.entities['Metrics'         ] = self.metricsDict
-    self.entities['OutStreams'      ] = self.outStreamsDict
+    self.entities['Steps'        ] = self.stepsDict
+    self.entities['DataObjects'  ] = self.dataDict
+    self.entities['Samplers'     ] = self.samplersDict
+    self.entities['Optimizers'   ] = self.samplersDict
+    self.entities['Models'       ] = self.modelsDict
+    self.entities['RunInfo'      ] = self.runInfoDict
+    self.entities['Files'        ] = self.filesDict
+    self.entities['Distributions'] = self.distributionsDict
+    self.entities['Databases'    ] = self.dataBasesDict
+    self.entities['Functions'    ] = self.functionsDict
+    self.entities['Metrics'      ] = self.metricsDict
+    self.entities['OutStreams'   ] = self.outStreamsDict
 
     # The QApplication
     ## The benefit of this enumerated type is that anything other than
@@ -325,9 +321,9 @@ class Simulation(MessageUser):
     else:
       self.app = None
 
-    #the handler of the runs within each step
+    # the handler of the runs within each step
     self.jobHandler = JobHandler()
-    #handle the setting of how the jobHandler act
+    # handle the setting of how the jobHandler act
     self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
@@ -335,7 +331,7 @@ class Simulation(MessageUser):
     self.pollingThread = None # set up when simulation is run to allow subsequent runs without reinstantiating everything
 
   @Decorators.timingProfile
-  def setInputFiles(self,inputFiles):
+  def setInputFiles(self, inputFiles):
     """
       Method that can be used to set the input files that the program received.
       These are currently used for cluster running where the program
@@ -343,7 +339,7 @@ class Simulation(MessageUser):
       @ In, inputFiles, list, input files list
       @ Out, None
     """
-    self.runInfoDict['SimulationFiles'   ] = inputFiles
+    self.runInfoDict['SimulationFiles'] = inputFiles
 
   def getDefaultInputFile(self):
     """
@@ -354,7 +350,7 @@ class Simulation(MessageUser):
     defaultInputFile = self.runInfoDict['DefaultInputFile']
     return defaultInputFile
 
-  def __createAbsPath(self,fileIn):
+  def __createAbsPath(self, fileIn):
     """
       Assuming that the file in is already in the self.filesDict it places, as value, the absolute path
       @ In, fileIn, string, the file name that needs to be made "absolute"
@@ -362,9 +358,9 @@ class Simulation(MessageUser):
     """
     curfile = self.filesDict[fileIn]
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
-    curfile.prependPath(path) #this respects existing path from the user input, if any
+    curfile.prependPath(path) # this respects existing path from the user input, if any
 
-  def XMLpreprocess(self,node,cwd):
+  def XMLpreprocess(self, node, cwd):
     """
       Preprocess the input file, load external xml files into the main ET
       @ In, node, TreeStructure.InputNode, element of RAVEN input file
@@ -469,7 +465,7 @@ class Simulation(MessageUser):
       # inputBlock is one of RunInfo, Files, VariableGroups, Distributions, Samplers, Optimizers
       # DataObjects, Databases, OutStreams, Models, Functions, Metrics, or Steps
       if inputBlock.tag == 'VariableGroups':
-        continue #we did these before the for loop
+        continue # we did these already
       xmlUtils.replaceVariableGroups(inputBlock, varGroups)
       if inputBlock.tag in self.entities:
         className = inputBlock.tag
@@ -485,7 +481,7 @@ class Simulation(MessageUser):
         if module.factory.returnInputParameter:
           paramInput = module.returnInputParameter()
           paramInput.parseNode(inputBlock)
-          # block is specific input block, MonteCarlo, Uniform, PointSet, etc.
+          # block is specific input block: MonteCarlo, Uniform, PointSet, etc.
           for block in paramInput.subparts:
             blockName = block.getName()
             entity = module.factory.returnInstance(blockName)
@@ -504,50 +500,49 @@ class Simulation(MessageUser):
             entity.applyRunInfo(self.runInfoDict)
             entity.readXML(block, varGroups, globalAttributes=globalAttributes)
       else:
-        #tag not in entities, check if it's a documentation tag
+        # tag not in entities, check if it's a documentation tag
         if inputBlock.tag not in ['TestInfo']:
           self.raiseAnError(IOError,'<'+inputBlock.tag+'> is not among the known simulation components '+repr(inputBlock))
 
   def initialize(self):
     """
       Method to initialize the simulation.
-      Check/created working directory, check/set up the parallel environment, call step consistency checker
+      Check/create working directory, check/set up the parallel environment, call step consistency checker
       @ In, None
       @ Out, None
     """
-    #move the full simulation environment in the working directory
+
+    # move the full simulation environment in the working directory
     self.raiseADebug('Moving to working directory:',self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
-    #add also the new working dir to the path
+    # add the new working dir to the path
     sys.path.append(os.getcwd())
     # clear the raven status file, if any
     self.clearStatusFile()
-    #check consistency and fill the missing info for the // runs (threading, mpi, batches)
+    # check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     oldTotalNumCoresUsed = self.runInfoDict['totalNumCoresUsed']
     self.runInfoDict['totalNumCoresUsed'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     if self.runInfoDict['totalNumCoresUsed'] < oldTotalNumCoresUsed:
-      #This is used to reserve some cores
+      # This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1:
-      #If 1, probably just default
+      # If 1, probably just default
       self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
-    #transform all files in absolute path
+    # transform all files in absolute path
     for key in self.filesDict:
       self.__createAbsPath(key)
-    #Let the mode handler do any modification here
+    # Let the mode handler do any modification here
     newRunInfo = self.__modeHandler.modifyInfo(dict(self.runInfoDict))
     for key in newRunInfo:
-      #Copy in all the new keys
+      # Copy in all the new keys
       self.runInfoDict[key] = newRunInfo[key]
     self.jobHandler.applyRunInfo(self.runInfoDict)
     self.jobHandler.initialize()
-    # only print the dictionaries when the verbosity is set to debug
-    #if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
-  def checkStep(self,stepInstance,stepName):
+  def checkStep(self, stepInstance, stepName):
     """
       This method checks the coherence of the simulation step by step
       @ In, stepInstance, instance, instance of the step
@@ -559,17 +554,14 @@ class Simulation(MessageUser):
         self.raiseAnError(IOError, f'For step named "{stepName}" the role "{role}" has been ' +
                                    f'assigned to an unknown class type "{myClass}"!')
       if name not in self.entities[myClass]:
-        self.raiseADebug('name:',name)
-        self.raiseADebug('myClass:',myClass)
-        self.raiseADebug('list:',list(self.entities[myClass].keys()))
-        self.raiseADebug('entities[myClass]',self.entities[myClass])
+        self.raiseADebug('name: ',name)
+        self.raiseADebug('myClass: ',myClass)
+        self.raiseADebug('list: ',list(self.entities[myClass].keys()))
+        self.raiseADebug('entities[myClass] ',self.entities[myClass])
         self.raiseAnError(IOError, f'In step "{stepName}" the class "{myClass}" named "{name}" ' +
                           f'supposed to be used for the role "{role}" has not been found!')
-      if myClass != 'Files':
-        # check if object type is consistent
-        objtype = self.entities[myClass][name].type
 
-  def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
+  def __readRunInfo(self, xmlNode, runInfoSkip, xmlFilename):
     """
       Method that reads the xml input file for the RunInfo block
       @ In, xmlNode, xml.etree.Element, the xml node that belongs to Simulation
@@ -589,14 +581,14 @@ class Simulation(MessageUser):
         self.raiseAWarning("Skipped element ",element.tag)
       elif element.tag == 'printInput':
         text = element.text.strip() if element.text is not None else ''
-        #extension fixing
+        # extension fixing
         if len(text) >= 4 and text[-4:].lower() == '.xml':
           text = text[:-4]
         # if the user asked to not print input instead of leaving off tag, respect it
         if utils.stringIsFalse(text):
           self.runInfoDict['printInput'] = False
         # if the user didn't provide a name, provide a default
-        elif len(text)<1:
+        elif len(text) < 1:
           self.runInfoDict['printInput'] = 'duplicated_input.xml'
         # otherwise, use the user-provided name
         else:
@@ -630,7 +622,7 @@ class Simulation(MessageUser):
         try:
           self.runInfoDict['maxQueueSize'] = int(element.text)
         except ValueError:
-          self.raiseAnError('Value give for RunInfo.maxQueueSize could not be converted to integer: {}'.format(element.text))
+          self.raiseAnError(f'Value give for RunInfo.maxQueueSize could not be converted to integer: {element.text}')
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName:
@@ -646,33 +638,33 @@ class Simulation(MessageUser):
       elif element.tag == 'threadParameter':
         self.runInfoDict['threadParameter'] = element.text.strip()
       elif element.tag == 'JobName':
-        self.runInfoDict['JobName'           ] = element.text.strip()
+        self.runInfoDict['JobName'] = element.text.strip()
       elif element.tag == 'ParallelCommand':
-        self.runInfoDict['ParallelCommand'   ] = element.text.strip()
+        self.runInfoDict['ParallelCommand'] = element.text.strip()
       elif element.tag == 'queueingSoftware':
-        self.runInfoDict['queueingSoftware'  ] = element.text.strip()
+        self.runInfoDict['queueingSoftware'] = element.text.strip()
       elif element.tag == 'ThreadingCommand':
-        self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
+        self.runInfoDict['ThreadingCommand'] = element.text.strip()
       elif element.tag == 'NumThreads':
-        self.runInfoDict['NumThreads'        ] = int(element.text)
+        self.runInfoDict['NumThreads'] = int(element.text)
       elif element.tag == 'totalNumCoresUsed':
-        self.runInfoDict['totalNumCoresUsed' ] = int(element.text)
+        self.runInfoDict['totalNumCoresUsed'] = int(element.text)
       elif element.tag == 'NumMPI':
-        self.runInfoDict['NumMPI'            ] = int(element.text)
+        self.runInfoDict['NumMPI'] = int(element.text)
       elif element.tag == 'internalParallel':
-        self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
+        self.runInfoDict['internalParallel'] = utils.interpretBoolean(element.text)
         dashboard = element.attrib.get("dashboard",'False')
         self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
       elif element.tag == 'batchSize':
-        self.runInfoDict['batchSize'         ] = int(element.text)
+        self.runInfoDict['batchSize'] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
-        self.runInfoDict['maxQueueSize'      ] = int(element.text)
+        self.runInfoDict['maxQueueSize'] = int(element.text)
       elif element.tag == 'MaxLogFileSize':
-        self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
+        self.runInfoDict['MaxLogFileSize'] = int(element.text)
       elif element.tag == 'precommand':
-        self.runInfoDict['precommand'        ] = element.text
+        self.runInfoDict['precommand'] = element.text
       elif element.tag == 'postcommand':
-        self.runInfoDict['postcommand'       ] = element.text
+        self.runInfoDict['postcommand'] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
       elif element.tag == 'headNode':
@@ -685,13 +677,13 @@ class Simulation(MessageUser):
         self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
-          self.runInfoDict['delSucLogFiles'    ] = True
+          self.runInfoDict['delSucLogFiles'] = True
         else:
-          self.runInfoDict['delSucLogFiles'    ] = False
+          self.runInfoDict['delSucLogFiles'] = False
       elif element.tag == 'logfileBuffer':
         self.runInfoDict['logfileBuffer'] = utils.convertMultipleToBytes(element.text.lower())
       elif element.tag == 'clusterParameters':
-        self.runInfoDict['clusterParameters'].extend(splitCommand(element.text)) #extend to allow adding parameters at different points.
+        self.runInfoDict['clusterParameters'].extend(splitCommand(element.text)) # extend to allow adding parameters at different points.
       elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
@@ -701,7 +693,7 @@ class Simulation(MessageUser):
         else:
           self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
       elif element.tag == 'expectedTime':
-        self.runInfoDict['expectedTime'      ] = element.text.strip()
+        self.runInfoDict['expectedTime'] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
           self.__stepSequenceList.append(stepName.strip())
@@ -711,7 +703,7 @@ class Simulation(MessageUser):
         modeName = element.text.strip()
         modeClass = element.attrib["class"]
         modeFile = element.attrib["file"]
-        #XXX This depends on if the working directory has been set yet.
+        # XXX This depends on if the working directory has been set yet.
         # So switching the order of WorkingDir and CustomMode can
         # cause different results.
         modeFile = modeFile.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
@@ -731,28 +723,27 @@ class Simulation(MessageUser):
 
   def printDicts(self):
     """
-      utility function capable to print a summary of the dictionaries
+      utility function to print a summary of the dictionaries
       @ In, None
       @ Out, None
     """
-    def __prntDict(Dict,msg):
-      """utility function capable to print a dictionary"""
+    def __prntDict(Dict, msg):
+      """utility function to print a single dictionary"""
       for key in Dict:
         msg+=key+'= '+str(Dict[key])+'\n'
       return msg
     msg=''
-    msg=__prntDict(self.runInfoDict,msg)
-    msg=__prntDict(self.stepsDict,msg)
-    msg=__prntDict(self.dataDict,msg)
-    msg=__prntDict(self.samplersDict,msg)
-    msg=__prntDict(self.modelsDict,msg)
-    msg=__prntDict(self.metricsDict,msg)
-    #msg=__prntDict(self.testsDict,msg)
-    msg=__prntDict(self.filesDict,msg)
-    msg=__prntDict(self.dataBasesDict,msg)
-    msg=__prntDict(self.outStreamsDict,msg)
-    msg=__prntDict(self.entityModules,msg)
-    msg=__prntDict(self.entities,msg)
+    msg=__prntDict(self.runInfoDict, msg)
+    msg=__prntDict(self.stepsDict, msg)
+    msg=__prntDict(self.dataDict, msg)
+    msg=__prntDict(self.samplersDict, msg)
+    msg=__prntDict(self.modelsDict, msg)
+    msg=__prntDict(self.metricsDict, msg)
+    msg=__prntDict(self.filesDict, msg)
+    msg=__prntDict(self.dataBasesDict, msg)
+    msg=__prntDict(self.outStreamsDict, msg)
+    msg=__prntDict(self.entityModules, msg)
+    msg=__prntDict(self.entities, msg)
     self.raiseADebug(msg)
 
   def getEntity(self, kind, name):
@@ -773,8 +764,7 @@ class Simulation(MessageUser):
 
   def initiateStep(self, stepName):
     """
-      This method is aimed to assemble and initialize
-      the step to make it ready to be executed
+      This method assembles and initializes the step to make it ready to be executed
       @ In, stepName, str, the step to initialize
       @ Out, (stepInputDict, stepInstance), tuple, tuple of step input dictionary and step instance
     """
@@ -784,41 +774,35 @@ class Simulation(MessageUser):
     stepInputDict = {}                        # initialize the input dictionary for a step. Never use an old one!!!!!
     stepInputDict['Input' ] = []              # set the Input to an empty list
     stepInputDict['Output'] = []              # set the Output to an empty list
-    #fill the take a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
+    # fill the take a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
     for role, entity, _, name in stepInstance.parList:
-      #Only for input and output we allow more than one object passed to the step, so for those we build a list
+      # Only for input and output we allow more than one object passed to the step, so for those we build a list
       if role == 'Input':
         stepInputDict[role].append(self.getEntity(entity, name))
       elif role == 'Output':
         if self.ranPreviously and entity == 'DataObjects':
           # if simulation was run previously, output DataObjects need to be reset
           outputDataObject = self.getEntity(entity, name)
-          # _data must be None
-          outputDataObject._data = None
-          # clear _metavars
-          outputDataObject._metavars = []
+          outputDataObject._data = None # _data must be None
+          outputDataObject._metavars = [] # clear _metavars
           # remove added entries in _orderedVars
           outputDataObject._orderedVars.remove('prefix')
           outputDataObject._orderedVars = [x for x in outputDataObject._orderedVars if 'Probability' not in x]
-          # empty _meta
-          outputDataObject._meta = {}
-          # clear _collector
-          outputDataObject._collector = None
-          # empty _scaleFactors
-          outputDataObject._scaleFactors = {}
-          # types to None
-          outputDataObject.types = None
+          outputDataObject._meta = {} # empty _meta
+          outputDataObject._collector = None # clear _collector
+          outputDataObject._scaleFactors = {} # empty _scaleFactors
+          outputDataObject.types = None # types to None
           # now add to stepInputDict
           stepInputDict[role].append(outputDataObject)
         else:
           stepInputDict[role].append(self.getEntity(entity, name))
       else:
         stepInputDict[role] = self.getEntity(entity, name)
-    #add the global objects
+    # add the global objects
     stepInputDict['jobHandler'] = self.jobHandler
-    #generate the needed assembler to send to the step
+    # generate the needed assembler to send to the step
     for key in stepInputDict:
-      if type(stepInputDict[key]) == list:
+      if isinstance(stepInputDict, list):
         stepindict = stepInputDict[key]
       else:
         stepindict = [stepInputDict[key]]
@@ -830,8 +814,7 @@ class Simulation(MessageUser):
 
   def executeStep(self, stepInputDict, stepInstance):
     """
-      This method is aimed to execute and finalize the step
-      (it can be splitted in 2 in case needed)
+      This method executes and finalizes the step
       @ In, stepInputDict, dict, the step dictionary
       @ In, stepInstance, instance, step instance
       @ Out, None
@@ -846,7 +829,7 @@ class Simulation(MessageUser):
   def finalizeSimulation(self):
     """
       This method is called at end of the simulation to finalize it
-      It is in charge of shutting down the job handler and clean up the execution
+      It is in charge of shutting down the job handler and cleaning up the execution
       @ In, None
       @ Out, None
     """
@@ -883,7 +866,7 @@ class Simulation(MessageUser):
     ## now.
     self.pollingThread.daemon = True
     self.pollingThread.start()
-    #to do list
+    # to do list
     #can we remove the check on the existence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
@@ -915,7 +898,7 @@ class Simulation(MessageUser):
       neededObjects = objectInstance.whatDoINeed()
       for mainClassStr in neededObjects.keys():
         if mainClassStr not in self.entities and mainClassStr != 'internal':
-          self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+          self.raiseAnError(IOError,'Main Class '+mainClassStr+' unknown!')
         neededobjs[mainClassStr] = {}
         for obj in neededObjects[mainClassStr]:
           if obj[1] in vars(self):
