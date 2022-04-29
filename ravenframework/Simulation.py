@@ -783,15 +783,7 @@ class Simulation(MessageUser):
         if self.ranPreviously and entity == 'DataObjects':
           # if simulation was run previously, output DataObjects need to be reset
           outputDataObject = self.getEntity(entity, name)
-          outputDataObject._data = None # _data must be None
-          outputDataObject._metavars = [] # clear _metavars
-          # remove added entries in _orderedVars
-          outputDataObject._orderedVars.remove('prefix')
-          outputDataObject._orderedVars = [x for x in outputDataObject._orderedVars if 'Probability' not in x]
-          outputDataObject._meta = {} # empty _meta
-          outputDataObject._collector = None # clear _collector
-          outputDataObject._scaleFactors = {} # empty _scaleFactors
-          outputDataObject.types = None # types to None
+          outputDataObject.flushOutputDataObject()
           # now add to stepInputDict
           stepInputDict[role].append(outputDataObject)
         else:

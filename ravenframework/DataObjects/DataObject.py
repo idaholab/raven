@@ -254,6 +254,22 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     self._selectOutput = (option,value)
     self.raiseADebug('Set selective output to',self._selectOutput)
 
+  def flushOutputDataObject(self):
+    """
+      Resets the DataObject used for output to its initial condition in order to run a RAVEN
+      workflow after one has already been run.
+      @ In, None
+      @ Out, None
+    """
+
+    self._data = None
+    self._metavars = []
+    self._orderedVars.remove('prefix')
+    self._orderedVars = [x for x in self._orderedVars if 'Probability' not in x]
+    self._meta = {}
+    self._collector = None
+    self._scaleFactors = {}
+
   ######################
   # DATA CONTAINER API #
   ######################
