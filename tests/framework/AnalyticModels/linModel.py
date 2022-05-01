@@ -21,18 +21,18 @@
 import numpy as np
 ##################
 
-A = np.array([[3, -3],[1,8],[-5, -5]])
-b = np.array([[0],[0],[0]])
+A = np.array([[2, -3],[4, -6],[2.5, -2.6],[3, 2]])
+b = np.array([[0],[0],[0],[0]])
 
 def run(self,Input):
   """
     Method require by RAVEN to run this as an external model.
-    Linear model with three responses and two input variables.
+    Linear model with four responses and two input variables.
     @ In, self, object, object to store members on
     @ In, Input, dict, dictionary containing inputs (x=[x1, x2], {'xi':values}) from RAVEN
-    @ Out, three function values F1, F2, F3 corresponding to 1, 2, 3 elements of Ax+b
+    @ Out, four function values F1, F2, F3, F4 corresponding to 1, 2, 3, 4 elements of Ax+b
   """
-  self.F1,self.F2,self.F3 = main(Input)
+  self.F1,self.F2,self.F3,self.F4 = main(Input)
 
 def main(Input):
   y = A @ np.array(list(Input.values())).reshape(-1,1) + b

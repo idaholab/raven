@@ -183,8 +183,12 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Measurement PDF over Exp range
       pdfMsr = knlMsr(X[:, 0])
 
+      # Condition number of matrix of feature and target
+      condNum = np.linalg.cond(vals)
+      # Inverse of system error (to determine whether two vectors are identical)
+      invErr = 1/np.finfo(vals.dtype).eps
       # Check whether the covavariance matrix is positive definite
-      if np.linalg.cond(vals)>=1/np.finfo(vals.dtype).eps:
+      if condNum>=invErr:
         pdfAppPred = knlMsr(Y[0, :])
       # If not, introduce a
       else:
