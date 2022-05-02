@@ -96,7 +96,7 @@ class SimulationMode(MessageUser):
     if runInfoDict['NumThreads'] > 1:
       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
-      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
+      newRunInfo['postcommand'] = f" {newRunInfo['threadParameter']} {runInfoDict['postcommand']}"
     return newRunInfo
 
   def XMLread(self,xmlNode):
@@ -794,7 +794,7 @@ class Simulation(MessageUser):
     stepInputDict['jobHandler'] = self.jobHandler
     # generate the needed assembler to send to the step
     for key in stepInputDict:
-      if isinstance(stepInputDict, list):
+      if isinstance(stepInputDict[key], list):
         stepindict = stepInputDict[key]
       else:
         stepindict = [stepInputDict[key]]
@@ -827,7 +827,8 @@ class Simulation(MessageUser):
     """
     self.jobHandler.shutdown()
     self.messageHandler.printWarnings()
-    # implicitly, the job finished successfully if we got here.
+    # implicitly, the job finished successfully if we got here -- self.pollingThread.is_Alive()
+    # returns False and no new jobs can be queued.
     self.writeStatusFile()
     self.ranPreviously = True
 
