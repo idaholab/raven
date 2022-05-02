@@ -14,6 +14,7 @@
 import sys
 import argparse
 import configparser
+import time
 
 def checkAux():
   """
@@ -70,7 +71,7 @@ def write(a, b, c, x, y, out):
     @ In, y, float, float
     @ In, out, string, filename to write results to
   """
-  print('Writing to', out)
+  print('Writing to', out, time.ctime())
   with open(out, 'w') as f:
     f.writelines(','.join('abcxy') + '\n')
     f.writelines(','.join(str(i) for i in [a, b, c, x, y]) + '\n')
@@ -82,3 +83,4 @@ if __name__ == '__main__':
   a, b, x, y, out = readInput(infileName)
   c = run(a, b, x, y)
   write(a, b, c, x, y, out)
+  print("Goodbye", time.ctime())

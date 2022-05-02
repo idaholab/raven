@@ -1,0 +1,142 @@
+\subsubsection{ImportanceRank}
+\label{ImportanceRank}
+The \textbf{ImportanceRank} PostProcessor is specifically used
+to compute sensitivity indices and importance indices with respect to input parameters
+associated with multivariate normal distributions. In addition, the user can also request the transformation
+matrix and the inverse transformation matrix when the PCA reduction is used.
+%
+\ppType{ImportanceRank}{ImportanceRank}
+%
+\begin{itemize}
+  \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
+  %
+  List of quantities to be computed.
+  %
+  Currently the quantities available are:
+  \begin{itemize}
+    \item \xmlString{SensitivityIndex}: used to measure the impact of sensitivities on the model.
+    \item \xmlString{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
+    \item \xmlString{PCAIndex}: the indices of principal component directions, used to measure the impact
+    of principal component directions on input covariance matrix.
+    \nb \xmlString{PCAIndex} can be only requested when subnode \xmlNode{latent} is defined in \xmlNode{features}.
+    \item \xmlString{transformation}: the transformation matrix used to map the latent variables to the manifest variables in the original input space.
+    \item \xmlString{InverseTransformation}: the inverse transformation matrix used to map the manifest variables to the latent variables in the transformed space.
+    \item \xmlString{ManifestSensitivity}: the sensitivity coefficients of \xmlNode{target} with respect to \xmlNode{manifest} variables defined in \xmlNode{features}.
+
+    \nb In order to request \xmlString{transformation} matrix or \xmlString{InverseTransformation} matrix or \xmlString{ManifestSensitivity},
+    the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
+    %
+  \end{itemize}
+  %
+  \nb For each computed quantity, RAVEN will define a unique variable name so that the data can be accessible by the users
+  through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. These variable names are defined as follows:
+  \begin{itemize}
+    \item \xmlString{SensitivityIndex}: `sensitivityIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{ImportanceIndex}: `importanceIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{PCAIndex}: `pcaIndex' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{transformation}: `transformation' + `\_' + `manifestFeatureVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{InverseTransformation}: `inverseTransformation' + `\_' + `latentFeatureVariableName' + `\_' + `manifestFeatureVariableName'
+    \item \xmlString{ManifestSensitivity}: `manifestSensitivity' + `\_' + `targetVariableName' + `\_' + `manifestFeatureVariableName'
+  \end{itemize}
+  %
+  If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
+  \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
+
+  Since the transformation and InverseTransformation matrix can be very large, they are not printed with option \xmlString{all}.
+  In order to request the transformation matrix (or inverse transformation matrix) from this post processor,
+  the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
+  both  \xmlNode{manifest} and \xmlNode{latent} subnodes are required and should be defined in node \xmlNode{features}. For example, let $\mathbf{L, P}$ represent
+  the transformation and inverse transformation matrices, respectively. We will define vectors $\mathbf x$ as manifest variables and vectors $\mathbf y$
+  as latent variables. If a absolute covariance matrix is used in given distribution, the following equation will be used:
+
+  $
+  \mathbf{\delta x} = \mathbf L * \mathbf y
+  $
+
+  $
+  \mathbf y = \mathbf P * \mathbf \delta \mathbf x
+  $
+
+  If a relative covariance matrix is used in given distribution, the following equation will be used:
+
+  $
+  \frac{\mathbf \delta \mathbf x}{\mathbf \mu} = \mathbf L * \mathbf y
+  $
+
+  $
+  \mathbf y = \mathbf P * {\frac{\mathbf \delta \mathbf x}{\mathbf \mu}}
+  $
+
+  where $\mathbf{\delta x}$ denotes the changes in the input vector $\mathbf x$, and $\mathbf \mu$ denotes the mean values of the input vector $\mathbf x$.
+
+  %
+  %
+  \item \xmlNode{features}, \xmlDesc{XML node, required parameter}, used to specify the information for the input variables.
+  In this xml-node, the following xml sub-nodes need to be specified:
+    \begin{itemize}
+      \item \xmlNode{manifest},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the original input space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists manifest variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the manifest variables.
+          If not provided, the dimensions are determined by the order indices of given manifest variables.
+        \end{itemize}
+      \item \xmlNode{latent},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the transformed space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists latent variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the latent variables.
+          If not provided, the dimensions are determined by the order indices of given latent variables.
+        \end{itemize}
+      \nb At least one of the subnodes, i.e. \xmlNode{manifest} and \xmlNode{latent} needs to be specified.
+    \end{itemize}
+  %
+  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field}, lists output responses.
+  %
+  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
+  multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present. It requires two attributes:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+        ``class'' the listed object is from, the only acceptable class for
+        this post-processor is \xmlString{Distributions};
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the type of distributions,
+        the only acceptable type is \xmlString{MultivariateNormal}
+    \end{itemize}
+\end{itemize}
+  %
+  %
+  Here is an example to show the user how to request the transformation matrix, the inverse transformation matrix, the
+  manifest sensitivities and other quantities.
+  %
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
+      <what>SensitivityIndex,ImportanceIndex,Transformation, InverseTransformation,ManifestSensitivity</what>
+      <features>
+        <manifest>
+          <variables>x1,x2</variables>
+          <dimensions>1,2</dimensions>
+        </manifest>
+        <latent>
+          <variables>latent1</variables>
+          <dimensions>1</dimensions>
+        </latent>
+      </features>
+      <targets>y</targets>
+      <mvnDistribution>MVN</mvnDistribution>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+The calculation results can be accessible via variables ``sensitivityIndex\_y\_latent1, importanceIndex\_y\_latent1,
+manifestSensitivity\_y\_x1, manifestSensitivity\_y\_x2, transformation\_x1\_latent1, transformation\_x2\_latent1,
+inverseTransformation\_latnet1\_x1, inverseTransformation\_laent1\_x2'' through RAVEN entities \textbf{DataObjects}
+and \textbf{OutStreams}.

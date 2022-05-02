@@ -20,7 +20,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="attenuate" name="attenuate" subType="">
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/attenuate" name="attenuate" subType="">
       <variables>y1,y2,ans</variables>
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics">
