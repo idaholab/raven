@@ -19,6 +19,7 @@ Moved from MessageHandler
 @author: talbpaul
 """
 from .. import MessageHandler
+from ..MessageHandler import getMessageHandler
 
 class MessageUser(object):
   """
@@ -31,7 +32,6 @@ class MessageUser(object):
       @ In, verbosity, MessageHandler.MessageHandler, optional, message handler
       @ Out, None
     """
-    # NOTE getMessageHandler is inserted into the builtins by the MessageHandler module
     self.messageHandler = getMessageHandler() # instance responsible for handling messages
     self.verbosity = None                     # message verbosity for this instance
 
