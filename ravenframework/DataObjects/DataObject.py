@@ -264,7 +264,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
 
     self._data = None
     self._metavars = []
-    self._orderedVars.remove('prefix')
+    if 'prefix' in self._orderedVars:
+      self._orderedVars.remove('prefix')
     self._orderedVars = [x for x in self._orderedVars if 'Probability' not in x]
     self._meta = {}
     self._collector = None
