@@ -24,7 +24,6 @@ import sys
 import threading
 from random import randint
 import socket
-import time
 
 from .utils import importerUtils as im
 from .utils import utils
