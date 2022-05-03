@@ -22,6 +22,7 @@ import io
 import string
 import datetime
 import threading
+import time
 import numpy as np
 
 from .BaseClasses import MessageUser
@@ -209,11 +210,10 @@ class Simulation(MessageUser):
     callerLength = 25
     tagLength = 15
     suppressErrs = False
-    self.messageHandler.initialize({'verbosity':self.verbosity,
-                                    'callerLength':callerLength,
-                                    'tagLength':tagLength,
-                                    'suppressErrs':suppressErrs})
-    readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
+    self.messageHandler.initialize({'verbosity': self.verbosity,
+                                    'callerLength': callerLength,
+                                    'tagLength': tagLength,
+                                    'suppressErrs': suppressErrs})
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
@@ -326,8 +326,6 @@ class Simulation(MessageUser):
     # handle the setting of how the jobHandler act
     self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
-    self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
-
     self.pollingThread = None # set up when simulation is run to allow subsequent runs without reinstantiating everything
 
   @Decorators.timingProfile
@@ -849,6 +847,11 @@ class Simulation(MessageUser):
     if self.jobHandler.completed:
       # this must be False in order to set up the queue
       self.jobHandler.completed = False
+
+    # reset the Simulation time
+    self.messageHandler.starttime = time.time()
+    readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
+    self.raiseAMessage('Simulation started at', readtime, verbosity='silent')
 
     self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
     ## This allows RAVEN to exit when the only thing left is the JobHandler
