@@ -1,0 +1,42 @@
+\subsubsection{TSACharacterizer}
+\label{TSACharacterizer}
+The \xmlNode{TSACharacterizer} PostProcessor is a tool to characterize sets of histories using
+the Time Series Analysis (TSA) module. It takes each history realization from the input data object
+and returns characterizations. Note the characterizations are entirely stored in the \texttt{metadata}
+portion of the output data object; no data is store in the input or output.
+
+The \xmlNode{SampleSelector} PostProcessor can only act on \xmlNode{HistorySet} \xmlNode{DataObjects},
+and generates a \xmlNode{PointSet} \xmlNode{DataObject} in return with as many realizations as the input
+history set.
+
+\ppType{TSACharacterizer}{TSACharacterizer}
+%
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, specifies the name of the time-like
+    monotonic variable used for the signals in the input history set.
+\end{itemize}
+
+\tsaList
+
+\textbf{TSACharacterizer Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="chz" subType="TSACharacterizer">
+      <pivotParameter>pivot</pivotParameter>
+      <fourier target='signal_f, signal_fa'>
+        <periods>2, 5, 10</periods>
+      </fourier>
+      <arma target="signal_a, signal_fa" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}

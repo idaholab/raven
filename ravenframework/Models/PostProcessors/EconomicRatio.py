@@ -68,6 +68,15 @@ class EconomicRatio(BasicStatistics):
         econSpecification.addParam("threshold", InputTypes.StringType)
       elif econ in ["expectedShortfall", "valueAtRisk"]:
         econSpecification.addParam("threshold", InputTypes.FloatType)
+        econSpecification.addParam("interpolation",
+                                   param_type=InputTypes.makeEnumType("interpolation",
+                                                                      "interpolationType",
+                                                                      ["linear", "midpoint"]),
+                                   default="linear",
+                                   descr="""Interpolation method for expectedShortfall or
+                                            valueAtRisk. 'linear' uses linear interpolation between
+                                            nearest datapoints while 'midpoint' uses the average of
+                                            the nearest datapoints.""")
       econSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(econSpecification)
 
@@ -155,9 +164,9 @@ class EconomicRatio(BasicStatistics):
         for key in inputMetaKeys:
           # valueAtRisk standard error has additional index
           if key == "valueAtRisk_ste":
-            params[key] = [self.pivotParameter, self.steMetaIndex, "threshold"]
+            params[key] = [self.steMetaIndex, "threshold"]
           else:
-            params[key] = [self.pivotParameter, self.steMetaIndex]
+            params[key] = [self.steMetaIndex]
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys, metaParams)
@@ -241,10 +250,15 @@ class EconomicRatio(BasicStatistics):
             strThreshold = set()
             for val in thresholdSet:
               strThreshold.add(str(val))
+            if 'interpolation' not in child.parameterValues:
+              interpolation = 'linear'
+            else:
+              interpolation = child.parameterValues['interpolation']
             self.toDo[tag].append({"targets": set(targets),
                                    "prefix": prefix,
                                    "threshold": thresholdSet,
-                                   "strThreshold": strThreshold})
+                                   "strThreshold": strThreshold,
+                                   "interpolation": interpolation})
         else:
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
@@ -321,7 +335,7 @@ class EconomicRatio(BasicStatistics):
     #construct a dict of required computations
     needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.econVals)
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
-    needed.update(dict((metric,{'targets':set(),'threshold':set()}) for metric in ['valueAtRisk', 'expectedShortfall']))
+    needed.update(dict((metric,{'targets':set(),'threshold':set(),'interpolation':''}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
       if metric in self.vectorVals:
         # vectorVals handled in BasicStatistics, not here
@@ -341,6 +355,10 @@ class EconomicRatio(BasicStatistics):
             thd = entry['threshold']
             if thd not in needed[metric]['threshold']:
               needed[metric]['threshold'].update(thd)
+            try:
+              needed[metric]['interpolation'] = entry['interpolation']
+            except KeyError:
+              pass
 
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
@@ -351,6 +369,7 @@ class EconomicRatio(BasicStatistics):
     # sharpeRatio needs            | expectedValue,sigma    |
     # sortinoRatio needs           | expectedValue,median   |
     # gainLossRatio needs          | expectedValue,median   |
+    # valueAtRisk needs            | expectedValue,sigma    |
 
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
@@ -359,7 +378,9 @@ class EconomicRatio(BasicStatistics):
     needed['expectedValue']['targets'].update(needed['sharpeRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['sortinoRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['gainLossRatio']['targets'])
+    needed['expectedValue']['targets'].update(needed['valueAtRisk']['targets'])
     needed['sigma']['targets'].update(needed['sharpeRatio']['targets'])
+    needed['sigma']['targets'].update(needed['valueAtRisk']['targets'])
     needed['variance']['targets'].update(needed['sigma']['targets'])
     needed['median']['targets'].update(needed['sortinoRatio']['targets'])
     needed['median']['targets'].update(needed['gainLossRatio']['targets'])
@@ -394,26 +415,51 @@ class EconomicRatio(BasicStatistics):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       threshold = list(needed[metric]['threshold'])
-      VaRSet = xr.Dataset()
-      relWeight = pbWeights[list(needed[metric]['targets'])]
+      if self.pbPresent:
+        relWeight = pbWeights[list(needed[metric]['targets'])]
+        # if all weights are the same, calculate with xarray, no need for _computeWeightedPercentile
+        allSameWeight = True
+        for target in needed[metric]['targets']:
+          targWeight = relWeight[target].values
+          if targWeight.min() != targWeight.max():
+            allSameWeight = False
+        if allSameWeight:
+          # all weights are the same, calculate with xarray
+          VaRSet = -dataSet.quantile(threshold, dim=self.sampleTag, interpolation=needed[metric]['interpolation'])
+          VaRSet = VaRSet.rename({'quantile':'threshold'})
+        else:
+          # probability weights are not all the same
+          # xarray does not have capability to calculate weighted percentiles at present
+          # implement our own solution
+          VaRSet = xr.Dataset()
+          for target in needed[metric]['targets']:
+            targWeight = relWeight[target].values
+            targDa = dataSet[target]
+            if self.pivotParameter in targDa.sizes.keys():
+              VaRList = []
+              for label, group in targDa.groupby(self.pivotParameter):
+                VaR = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=threshold)
+                for i in len(VaR):
+                  VaR[i] = -VaR[i]
+                VaRList.append(VaR)
+              da = xr.DataArray(VaRList, dims=('threshold',self.pivotParameter), coords={'threshold':threshold, self.pivotParameter:self.pivotValue})
+            else:
+              VaRList = self._computeWeightedPercentile(targDa.values, targWeight, needed[metric]['interpolation'], percent=threshold)
+              for i in len(VaRList):
+                VaRList[i] = -VaRList[i]
+              da = xr.DataArray(VaRList, dims=('threshold'), coords={'threshold':threshold})
+
+            VaRSet[target] = da
+      else:
+        VaRSet = -dataSet.quantile(threshold, dim=self.sampleTag, interpolation=needed[metric]['interpolation'], percent=threshold)
+        VaRSet = VaRSet.rename({'quantile':'threshold'})
+      # check if there are any negative VaR values
       targWarn = "" # targets that return negative VaR for warning
       for target in needed[metric]['targets']:
-        targWeight = relWeight[target].values
-        targDa = dataSet[target]
-        VaRList = []
-        for thd in threshold:
-          if self.pivotParameter in targDa.sizes.keys():
-            VaR = [-self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
-          else:
-            VaR = -self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
-          VaRList.append(VaR)
-        if np.any(np.array(VaRList) < 0):
+        VaRs = VaRSet[target].values
+        if np.any(VaRs < 0.0):
           targWarn += target + ", "
-        if self.pivotParameter in targDa.sizes.keys():
-          da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
-        else:
-          da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
-        VaRSet[target] = da
+
       # write warning for negative VaR values
       if len(targWarn) > 0:
         self.raiseAWarning("At least one negative VaR value calculated for target(s) {}. Negative VaR implies high probability of profit.".format(targWarn[:-2]))
@@ -425,44 +471,69 @@ class EconomicRatio(BasicStatistics):
       # standard error estimators using Monte Carlo simulations", The Quantitative Methods of
       # Psychology, Vol. 10, No. 2 (2014)
       self.raiseADebug('Starting "'+metric+'" standard error...')
-      VaRSteSet = xr.Dataset()
-      calculatedVaR = calculations[metric]
-      relWeight = pbWeights[list(needed[metric]['targets'])]
-      for target in needed[metric]['targets']:
-        targWeight = relWeight[target].values
-        en = targWeight.sum()**2/np.sum(targWeight**2)
-        targDa = dataSet[target]
-        if self.pivotParameter in targDa.sizes.keys():
-          VaRSte = []
-          for thd in threshold:
-            subVaRSte = []
-            factor = np.sqrt(thd*(1.0 - thd)/en)
-            for label, group in targDa.groupby(self.pivotParameter):
-              if group.values.min() == group.values.max():
-                # all values are the same
-                subVaRSte.append(0.0)
-              else:
-                # get KDE
-                kde = stats.gaussian_kde(group.values, weights=targWeight)
-                val = calculatedVaR[target].sel(**{'threshold': thd, self.pivotParameter: label}).values
-                subVaRSte.append(factor/kde(val)[0])
-            VaRSte.append(subVaRSte)
-          da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter),
-                            coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
-          VaRSteSet[target] = da
+      # get equivalent sample size for standard error calculation
+      if self.pbPresent:
+        relWeight = pbWeights[list(needed[metric]['targets'])]
+        calculations['equivalentSamples'] = super()._BasicStatistics__computeEquivalentSampleSize(relWeight)
+      else:
+        # otherwise use sampleSize
+        if self.dynamic:
+          sampleMat = np.zeros((len(list(needed[metric]['targets'])), len(self.pivotValue)))
+          sampleMat.fill(self.sampleSize)
+          samplesDA = xr.DataArray(sampleMat,dims=('targets', self.pivotParameter), coords={'targets':self.parameters['targets'][list(needed[metric]['targets'])], self.pivotParameter:self.pivotValue})
         else:
-          calcVaR = calculatedVaR[target]
-          if targDa.values.min() == targDa.values.max():
-            # distribution is a delta function, so no KDE construction
-            VaRSte = list(np.zeros(calcVaR.shape))
-          else:
-            # get KDE
-            kde = stats.gaussian_kde(targDa.values, weights=targWeight)
-            factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
-            VaRSte = list(factor/kde(calcVaR.values))
-          da = xr.DataArray(VaRSte, dims=('threshold'), coords={'threshold': threshold})
-          VaRSteSet[target] = da
-      calculations[metric+'_ste'] = VaRSteSet
+          sampleMat = np.zeros(len(list(needed[metric]['targets'])))
+          sampleMat.fill(self.sampleSize)
+          samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
+        calculations['equivalentSamples'] = samplesDA
+      norm = stats.norm
+      factor = np.sqrt(np.asarray(threshold)*(1.0 - np.asarray(threshold)))/norm.pdf(norm.ppf(np.asarray(threshold)))
+      sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      sigmaAdjusted = sigmaAdjusted.expand_dims(dim={'threshold': threshold})
+      factor = xr.DataArray(data=factor, dims='threshold', coords={'threshold': threshold})
+      calculations[metric + '_ste'] = sigmaAdjusted*factor
+
+      # # TODO: this is the KDE method, it is a more accurate method of calculating standard error
+      # # for value at risk, but the computation time is too long. IF this computation can be sped
+      # # up, implement it here:
+      # VaRSteSet = xr.Dataset()
+      # calculatedVaR = calculations[metric]
+      # relWeight = pbWeights[list(needed[metric]['targets'])]
+      # for target in needed[metric]['targets']:
+      #   targWeight = relWeight[target].values
+      #   en = targWeight.sum()**2/np.sum(targWeight**2)
+      #   targDa = dataSet[target]
+      #   if self.pivotParameter in targDa.sizes.keys():
+      #     VaRSte = []
+      #     for thd in threshold:
+      #       subVaRSte = []
+      #       factor = np.sqrt(thd*(1.0 - thd)/en)
+      #       for label, group in targDa.groupby(self.pivotParameter):
+      #         if group.values.min() == group.values.max():
+      #           # all values are the same
+      #           subVaRSte.append(0.0)
+      #         else:
+      #           # get KDE
+      #           kde = stats.gaussian_kde(group.values, weights=targWeight)
+      #           val = calculatedVaR[target].sel(**{'threshold': thd, self.pivotParameter: label}).values
+      #           subVaRSte.append(factor/kde(val)[0])
+      #       VaRSte.append(subVaRSte)
+      #     da = xr.DataArray(VaRSte, dims=('threshold', self.pivotParameter),
+      #                       coords={'threshold': threshold, self.pivotParameter: self.pivotValue})
+      #     VaRSteSet[target] = da
+      #   else:
+      #     calcVaR = calculatedVaR[target]
+      #     if targDa.values.min() == targDa.values.max():
+      #       # distribution is a delta function, so no KDE construction
+      #       VaRSte = list(np.zeros(calcVaR.shape))
+      #     else:
+      #       # get KDE
+      #       kde = stats.gaussian_kde(targDa.values, weights=targWeight)
+      #       factor = np.sqrt(np.array(threshold)*(1.0 - np.array(threshold))/en)
+      #       VaRSte = list(factor/kde(calcVaR.values))
+      #     da = xr.DataArray(VaRSte, dims=('threshold'), coords={'threshold': threshold})
+      #     VaRSteSet[target] = da
+      # calculations[metric+'_ste'] = VaRSteSet
     #
     # ExpectedShortfall
     #
@@ -482,7 +553,7 @@ class EconomicRatio(BasicStatistics):
             subCVaR = []
             for label, group in targDa.groupby(self.pivotParameter):
               sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(group.values, targWeight,thd)
-              quantile = self._computeWeightedPercentile(group.values, targWeight, percent=thd)
+              quantile = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=[thd])[0]
               lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL, 0]*sortedWeightsAndPoints[:indexL,1])
               lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
               Es = lowerPartialE + quantile*(thd - lowerPartialP)
@@ -490,7 +561,7 @@ class EconomicRatio(BasicStatistics):
             CVaRList.append(subCVaR)
           else:
             sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight,thd)
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,needed[metric]['interpolation'],percent=[thd])[0]
             lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
             lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
             Es = lowerPartialE + quantile*(thd -lowerPartialP)

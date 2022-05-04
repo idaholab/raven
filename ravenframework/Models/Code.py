@@ -564,6 +564,7 @@ class Code(Model):
     command = command.replace("%BASE_WORKING_DIR%",kwargs['BASE_WORKING_DIR'])
     command = command.replace("%METHOD%",kwargs['METHOD'])
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
+    command = command.replace("%PYTHON%", sys.executable)
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
