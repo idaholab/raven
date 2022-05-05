@@ -228,7 +228,7 @@ class RFE(BaseInterface):
       #ax2.set_yticklabels(dendro["ivl"])
       #fig.tight_layout()
       #plt.show()
-      t = 0.00005*np.max(dist_linkage)
+      t = 0.00001*np.max(dist_linkage)
       self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
       self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
       cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
@@ -285,6 +285,8 @@ class RFE(BaseInterface):
       coefs = None
       if hasattr(estimator, 'featureImportances_'):
         importances = estimator.featureImportances_
+         # since we get the importance, highest importance must be kept => we get the inverse of coefs
+        coefs = 1./np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
         coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
         if coefs.shape[0] == raminingFeatures:
           coefs = coefs.T

@@ -242,25 +242,36 @@ class DMDC(DMD):
       from sklearn import preprocessing
       # the importances are evaluated in the transformed space
       CtildeNormalized =  np.zeros(self.__Ctilde.shape)
+      CtildeNormalizedNormalized = np.zeros(self.__Ctilde.shape)
+      #oo = self.outputVals
+      #for out in range(self.outputVals.shape[-1]):
+      #  oo = self.outputVals[:,:,out]/np.average(self.outputVals[:,:,out])
       for smp in range(self.__Ctilde.shape[0]):
-        #ss = preprocessing.normalize(self.stateVals[:,smp,:])
+        ss = preprocessing.normalize(self.stateVals[:,smp,:])
         ss = self.stateVals[:,smp,:]
         X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
+        #Y1 = (oo[:-1,smp,:]   - oo[0,smp,:]).T   if self.dmdParams['centerUXY'] else oo[:-1,smp,:].T
         Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
         _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+        CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:]
+        scaler = preprocessing.MinMaxScaler()
+        scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
+        CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
+        #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=1, norm='l1' )
+        #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=0, norm='l1' )
 
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
       # the importances for the state variables are inferred from the C matrix/operator since
       # directely linked to the output variables
       minVal, minIdx = np.finfo(float).max, -1
-      denominator = np.max(CtildeNormalized)
       for stateCnt, stateID in enumerate(self.stateID):
-        #importances[stateID] = (len(self.outputID) / len(self.stateID)) * np.abs(np.average(np.sum(self.__Atilde[:,stateCnt,:],axis=-1))) / sumA
-        #importances[stateID] = importances[stateID] + np.asarray([abs(float(np.average(self.__Ctilde[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))]) / sumB
-        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/denominator
-        self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
+        #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/abs(np.average(self.stateVals[:,:,stateCnt]))
+        #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+      
+        
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
           minIdx = stateCnt
@@ -270,8 +281,14 @@ class DMDC(DMD):
       for featCnt, feat in enumerate(self.parametersIDs):
         permutations = set(self.parameterValues[:,featCnt])
         indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-
+        #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx])/abs(np.average(self.stateVals[:,:,minIdx])))) for outcnt in range(len(self.outputID))])
+        #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
+        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
+      
+      self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
+      if True:
+        for stateID, val in self._importances.items():
+          self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
     return self._importances
 
   #######
