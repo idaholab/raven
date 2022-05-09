@@ -1,0 +1,8 @@
+include LICENSE
+include README.md
+
+recursive-include pythonfmu/tests/data *
+recursive-include pythonfmu/tests/slaves *
+
+recursive-include pythonfmu/resources *
+recursive-include pythonfmu/pythonfmu-export *

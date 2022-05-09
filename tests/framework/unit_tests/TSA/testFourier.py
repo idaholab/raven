@@ -21,16 +21,17 @@ import copy
 import numpy as np
 
 # add RAVEN to path
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4 + ['framework'])))
-if frameworkDir not in sys.path:
-  sys.path.append(frameworkDir)
+ravenDir =  os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4)))
+frameworkDir = os.path.join(ravenDir, 'framework')
+if ravenDir not in sys.path:
+  sys.path.append(ravenDir)
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
 
-from utils import xmlUtils
+from ravenframework.utils import xmlUtils
 
-from TSA import Fourier
+from ravenframework.TSA import Fourier
 
 plot = False
 

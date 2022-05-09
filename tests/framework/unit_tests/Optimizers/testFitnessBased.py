@@ -20,11 +20,12 @@ import sys
 import xarray as xr
 import numpy as np
 
-ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5, 'framework'))
+ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5))
 print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-import Driver
-from Optimizers.survivorSelectors.survivorSelectors import returnInstance
+from ravenframework.CustomDrivers import DriverUtils
+DriverUtils.doSetup()
+from ravenframework.Optimizers.survivorSelectors.survivorSelectors import returnInstance
 
 fitnessBased = returnInstance('tester', 'fitnessBased')
 
@@ -102,8 +103,8 @@ for i in range(np.shape(offSprings)[0]):
     val = offSprings[i][j]
     d[var] = {'dims':() ,'data': val}
   rlz.append(xr.Dataset.from_dict(d))
-rlz = xr.concat(rlz)
-newPop2,newFit2,newAge2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitness, offSpringsFitness=offSpringsFitness)
+rlz = xr.concat(rlz,dim='data')
+newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitness, offSpringsFitness=offSpringsFitness, popObjectiveVal=popFitness)
 print('Fitness Based Selection')
 print('*'*19)
 print('new population: {}, \n new Fitness {}, \n new age'.format(newPop2,newFit2,newAge2))

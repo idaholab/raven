@@ -16,12 +16,8 @@ import sys, os
 raven_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.join(raven_dir,"crow","install"))
 
-if sys.version_info.major > 2:
-  import crow_modules.distribution1Dpy3
-  import crow_modules.interpolationNDpy3
-else:
-  import crow_modules.distribution1Dpy2
-  import crow_modules.interpolationNDpy2
+import crow_modules.distribution1D
+import crow_modules.interpolationND
 
 sys.exit(0)
 

@@ -36,8 +36,8 @@ else
     cd $BUILD_DIR
     #SHA256=56e448f051a201c5ebbaa86a5efd0ca90d327204d8b059ab25ad0f35fbfd79f1
     $DOWNLOADER https://files.pythonhosted.org/packages/35/fe/e7df7289d717426093c68d156e0fd9117c8f4872b6588e8a8928a0f68424/coverage-4.5.1.tar.gz
-    tar -xvzf coverage-3.7.1.tar.gz
-    cd coverage-3.7.1
+    tar -xvzf coverage-4.5.1.tar.gz
+    cd coverage-4.5.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
@@ -46,7 +46,7 @@ update_python_path
 cd $SCRIPT_DIR
 
 #coverage help run
-FRAMEWORK_DIR=`(cd framework && pwd)`
+FRAMEWORK_DIR=`(cd ravenframework && pwd)`
 
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
 # get display var

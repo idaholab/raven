@@ -57,7 +57,7 @@ function find_conda_defs ()
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
       # default location of conda definitions, windows is unsurprisingly an exception
-      if [[ "$OSOPTION" = "--windows" ]];
+      if [[ "$OSOPTION" = "--os windows" ]];
       then
         CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
       elif test -e "$HOME/miniconda3/etc/profile.d/conda.sh";

@@ -17,6 +17,7 @@ Adopted from RavenUtils.py
 """
 import os
 import sys
+import re
 import platform
 import argparse
 import subprocess
@@ -111,6 +112,22 @@ def checkLibraries(buildReport=False):
   if buildReport:
     return messages
   return missing, notQA
+
+def parseVersion(versionString):
+  """
+    Parses a version string into its components
+    @ In, versionStirng, str, the version string to parse
+    @ Out, version, list, list of components as integers and strings
+  """
+  version = []
+  for part in re.split(r'([0-9]+|[a-z]+|\.)',versionString):
+    if len(part) == 0 or part == ".":
+      continue
+    try:
+      version.append(int(part))
+    except ValueError:
+      version.append(part)
+  return version
 
 def checkSameVersion(expected, received):
   """
@@ -456,6 +473,9 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   libVersion = text
   libSkipCheck = libNode.attrib.get('skip_check', None)
   request = {'skip_check': libSkipCheck, 'version': libVersion, 'requestor': requestor}
+  pipExtra = libNode.attrib.get('pip_extra', None)
+  if pipExtra is not None:
+    request['pip_extra'] = pipExtra
   # does this entry already exist?
   if tag in config:
     existing = config[tag]
@@ -620,8 +640,9 @@ if __name__ == '__main__':
         preamble = ''
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{ver}'
+    libTexts = ' '.join(['{lib}{extra}{ver}'
                          .format(lib=lib,
+                                 extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
                                  ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:

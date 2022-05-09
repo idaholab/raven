@@ -16,6 +16,11 @@ Note all install methods after "main" take
  add library from forge:     <library source='forge'>...
  optional:                   <library optional='True'>...
  skip run/install check:     <library skip_check='True'>...
+ add pip library with extra parameters:
+                             <ray source="pip" pip_extra="[tune]">1.9</ray>
+   the above will use pip_extra to translate into a command:
+     pip install ray[tune]==1.9.*
+   which installs ray and the dependencies for Ray Tune
 
  default OS is "all"
  default source is "conda" meaning main conda repo
@@ -53,13 +58,16 @@ Note all install methods after "main" take
     <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip">1.3</ray>
-    <imageio optional='True'/>
+    <cmake skip_check='True' optional='True'/>
+    <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
+    <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
     <python-sensors source='pip'/>
+    <fmpy optional='True'/>
     <xmlschema source="pip"/>
+    <setuptools/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
