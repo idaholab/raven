@@ -15,6 +15,7 @@ from distutils.core import setup, Extension
 from distutils.command.build import build
 import os
 import sys
+import setuptools
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
 # If the Makefile changes to be more robust, so should this
