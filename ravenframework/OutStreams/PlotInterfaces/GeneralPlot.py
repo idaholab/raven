@@ -821,10 +821,10 @@ class GeneralPlot(PlotInterface):
         self.options['plotSettings']['plot'][pltIndex]['epsilon'] = '2'
       if 'smooth' not in self.options['plotSettings']['plot'][pltIndex]:
         self.options['plotSettings']['plot'][pltIndex]['smooth'] = '0.0'
-      if 'cmap' not in self.options['plotSettings']['plot'][pltIndex]:
+      if ('cmap' not in self.options['plotSettings']['plot'][pltIndex]) or (self.options['plotSettings']['plot'][pltIndex]['cmap'] is None):
         self.options['plotSettings']['plot'][pltIndex]['cmap'] = 'None'
-      elif self.options['plotSettings']['plot'][pltIndex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltIndex]['cmap'] not in matplotlib.cm.datad:
-        self.raiseAnError(IOError, f'The colorMap specified does not exist... Available are {matplotlib.cm.datad.keys()}')
+      elif (self.options['plotSettings']['plot'][pltIndex]['cmap'] != 'None') and (self.options['plotSettings']['plot'][pltIndex]['cmap'] not in matplotlib.cm.datad):
+        self.raiseAnError(IOError, f'The colorMap "{self.options["plotSettings"]["plot"][pltIndex]["cmap"]}" does not exist... Available are {matplotlib.cm.datad.keys()}')
       if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltIndex]:
         self.options['plotSettings']['plot'][pltIndex]['interpolationTypeBackUp'] = 'nearest'
       elif self.options['plotSettings']['plot'][pltIndex]['interpolationTypeBackUp'] not in self.availableInterpolators:
