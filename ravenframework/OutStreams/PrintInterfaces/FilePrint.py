@@ -140,14 +140,10 @@ class FilePrint(PrintInterface):
     if self.what:
       dictOptions['what'] = self.what
 
-    if 'target' in self.options.keys():
+    if 'target' in self.options:
       dictOptions['target'] = self.options['target']
 
     for index in range(len(self.sourceName)):
-      try:
-        empty = self.sourceData[index].isEmpty
-      except AttributeError:
-        empty = False
       if self.options['type'] == 'csv':
         filename = dictOptions['filenameroot']
         rlzIndex = self.indexPrinted.get(filename,0)
@@ -155,28 +151,26 @@ class FilePrint(PrintInterface):
         # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
         if 'clusterLabel' in self.options:
           if type(self.sourceData[index]).__name__ != 'PointSet':
-            self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
+            self.raiseAWarning(f'Label clustering currently only works for PointSet data objects!  Skipping for {self.sourceData[index].name}')
           else:
             dictOptions['clusterLabel'] = self.options['clusterLabel']
         try:
           rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
         except AttributeError:
-          self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+          self.raiseAnError(NotImplementedError, f'No implementation for source type {self.sourceData[index].type} and output type "{self.options["type"].strip()}"!')
         finally:
           self.indexPrinted[filename] = rlzIndex
       elif self.options['type'] == 'xml':
         try:
           self.sourceData[index].printXML(dictOptions)
         except AttributeError:
-          self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
-
-
+          self.raiseAnError(NotImplementedError, f'No implementation for source type {self.sourceData[index].type} and output type "{self.options["type"].strip()}"!')
 
   def finalize(self):
     """
-      End-of-step operations for cleanup.
+      End-of-step operations to enable re-running workflows.
       @ In, None
       @ Out, None
     """
-    # clear history of printed realizations; start fresh for next step
+    # clear history of printed realizations
     self.indexPrinted = {}

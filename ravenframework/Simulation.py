@@ -812,10 +812,12 @@ class Simulation(MessageUser):
       @ Out, None
     """
     stepInstance.takeAstep(stepInputDict)
-    #---------------here what is going on? Please add comments-----------------
+    # FilePrint has a finalize method that should be run at the end of the step,
+    # run this method for each instance
     for output in stepInputDict['Output']:
-      if "finalize" in dir(output):
-        output.finalize()
+      if "_printer" in output.__dict__:
+        output._printer.finalize()
+
     self.raiseAMessage('-'*2+' End step {0:50} '.format(stepInstance.name+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
 
   def finalizeSimulation(self):
