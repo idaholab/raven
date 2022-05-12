@@ -264,9 +264,16 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
 
     self._data = None
     self._metavars = []
+    # remove 'prefix' from _orderdVars and _outputs
     if 'prefix' in self._orderedVars:
       self._orderedVars.remove('prefix')
+    if 'prefix' in self._outputs:
+      self._outputs.remove('prefix')
+    # remove variable names with 'Probability' attached
     self._orderedVars = [x for x in self._orderedVars if 'Probability' not in x]
+    # remove variable names with '_ste' attached
+    self._orderedVars = [x for x in self._orderedVars if '_ste' not in x]
+    self._outputs = [x for x in self._outputs if '_ste' not in x]
     self._meta = {}
     self._collector = None
     self._scaleFactors = {}
