@@ -329,8 +329,8 @@ class hdf5Database(InputDataUser, MessageUser):
               movingCounter  += 1
           break
     self.parentGroupName = "/" + groupNameInit
-    # Create the group
-    grp = self.h5FileW.create_group(groupNameInit)
+    # if the group exists, return it, otherwise create it
+    grp = self.h5FileW.require_group(groupNameInit)
     # Add metadata
     grp.attrs.update(attribs)
     grp.attrs['rootname'  ] = True

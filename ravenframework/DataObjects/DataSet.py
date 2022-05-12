@@ -239,7 +239,7 @@ class DataSet(DataObject):
     newData = newData[:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
-      self._collector = self._newCollector(width=len(rlz))
+      self._collector = self._newCollector(width=len(self._orderedVars))
     # append
     self._collector.append(newData)
 
