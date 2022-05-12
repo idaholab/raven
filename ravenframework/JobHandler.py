@@ -187,8 +187,9 @@ class JobHandler(BaseType):
       if 'UPDATE_PYTHONPATH' in self.runInfoDict:
         sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
 
-      self.rayInstanciatedOutside = False
-      if len(self.runInfoDict['Nodes']) > 0:
+      # is ray instanciated outside?
+      self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+      if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
         ## identify the local host name and get the number of local processors
@@ -200,11 +201,13 @@ class JobHandler(BaseType):
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        # is ray instanciated outside?
-        self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+
         if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
-          # create head node cluster
-          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
+          if self.rayInstanciatedOutside:
+            address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword'])
+          else:
+            # create head node cluster
+            address, redisPassword = self.__runHeadNode(nProcsHead)
           # add names in runInfo
           self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
           if _rayAvail:
