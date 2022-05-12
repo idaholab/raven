@@ -424,6 +424,11 @@ class JobHandler(BaseType):
           utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         ## update list of servers
         servers.append(nodeId)
+      if _rayAvail:
+        #wait for the servers to finish starting (prevents zombies)
+        for nodeId in uniqueNodes:
+          self.remoteServers[nodeId].wait()
+          self.raiseADebug("server "+str(nodeId)+" result: "+str(self.remoteServers[nodeId]))
 
     return servers
 
