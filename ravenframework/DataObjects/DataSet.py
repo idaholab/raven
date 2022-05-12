@@ -271,29 +271,33 @@ class DataSet(DataObject):
       column = self._collapseNDtoDataArray(values, varName, labels=labels)
       # add to the dataset
       self._data = self._data.assign(**{varName:column})
-    if classify == 'input':
+    if classify == 'input' and varName not in self._inputs:
       self._inputs.append(varName)
-    elif classify == 'output':
+    elif classify == 'output' and varName not in self._outputs:
       self._outputs.append(varName)
     else:
-      self._metavars.append(varName)
+      if varName not in self._metavars:
+        self._metavars.append(varName)
     # move from the elif classify =='output', since the metavars can also contain the
     # time-dependent meta data.
     if len(values) and type(values[0]) == xr.DataArray:
       indexes = values[0].sizes.keys()
       for index in indexes:
-        if index in self._pivotParams.keys():
-          self._pivotParams[index].append(varName)
+        if index in self._pivotParams:
+          if varName not in self._pivotParams[index]:
+            self._pivotParams[index].append(varName)
         else:
           self._pivotParams[index]=[varName]
     # if provided, set the indices for this variable
     for index in indices:
       if index in self._pivotParams:
-        self._pivotParams[index].append(varName)
+        if varName not in self._pivotParams[index]:
+          self._pivotParams[index].append(varName)
       else:
         self._pivotParams[index] = [varName]
     # register variable in order
-    self._orderedVars.append(varName)
+    if varName not in self._orderedVars:
+      self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):
     """
