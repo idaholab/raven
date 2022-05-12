@@ -69,8 +69,8 @@ class LogicalModel(HybridModelBase):
     """
     super().__init__()
     self.printTag = 'LogicalModel MODEL' # print tag
-    # Function object that is used to control the execution of models
-    self.controlFunction = None
+    self.controlFunction = None          # Function object that is used to control the execution of models
+    self.controlFunctionName = None      # name (str) of function controlling execution of models
     # assembler objects to be requested
     self.addAssemblerObject('ControlFunction', InputData.Quantity.one)
 
@@ -84,8 +84,8 @@ class LogicalModel(HybridModelBase):
     HybridModelBase.localInputAndChecks(self, xmlNode)
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-    self.controlFunction = paramInput.findFirst('ControlFunction').value
-    if self.controlFunction is None:
+    self.controlFunctionName = paramInput.findFirst('ControlFunction').value
+    if self.controlFunctionName is None:
       self.raiseAnError(IOError, '"ControlFunction" is required for "{}", but it is not provided!'.format(self.name))
 
   def initialize(self, runInfo, inputs, initDict=None):
@@ -97,7 +97,7 @@ class LogicalModel(HybridModelBase):
       @ Out, None
     """
     HybridModelBase.initialize(self,runInfo,inputs,initDict)
-    self.controlFunction = self.retrieveObjectFromAssemblerDict('ControlFunction', self.controlFunction)
+    self.controlFunction = self.retrieveObjectFromAssemblerDict('ControlFunction', self.controlFunctionName)
     if "evaluate" not in self.controlFunction.availableMethods():
       self.raiseAnError(IOError,'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
                         'It must be present if this needs to be used in a {}!'.format(self.name))
