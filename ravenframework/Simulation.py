@@ -20,6 +20,7 @@ import sys
 import io
 import string
 import datetime
+import time
 import numpy as np
 import threading
 
@@ -823,6 +824,7 @@ class Simulation(MessageUser):
       self.executeStep(stepInputDict, stepInstance)
     # finalize the simulation
     self.finalizeSimulation()
+    self.raiseADebug(time.ctime())
     self.raiseAMessage('Run complete!', forcePrint=True)
     return 0
 
@@ -880,3 +882,6 @@ class Simulation(MessageUser):
     """
     with open('.ravenStatus', 'w') as f:
       f.writelines('Success')
+      #force it to disk
+      f.flush()
+      os.fsync(f.fileno())
