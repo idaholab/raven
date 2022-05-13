@@ -642,8 +642,7 @@ class GeneralPlot(PlotInterface):
         else:
           self.ax.set_frame_on(self.options[key][key])
       elif key == 'axis':
-        self.ax.axis(xlim=(self.options[key][key][0], self.options[key][key][1]),
-                     ylim=(self.options[key][key][2], self.options[key][key][3]))
+        self.ax.axis(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key]:
           self.options[key]['b'] = 'off'
@@ -744,7 +743,8 @@ class GeneralPlot(PlotInterface):
         self.options[key]['figsize'] = None
       else:
         if self.options[key]['figsize'] is not None:
-          self.options[key]['figsize'] = tuple([float(elm) for elm in  ast.literal_eval(self.options[key]['figsize'])])
+          if isinstance(self.options[key]['figsize'], str):
+            self.options[key]['figsize'] = tuple([float(elm) for elm in  ast.literal_eval(self.options[key]['figsize'])])
       if 'dpi' not in self.options[key]:
         self.options[key]['dpi'] = 'None'
       if 'facecolor' not in self.options[key]:
