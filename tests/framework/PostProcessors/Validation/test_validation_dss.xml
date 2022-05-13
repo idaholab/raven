@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/PostProcessors/Validation/test_validation_dss</name>
     <author>yoshrk</author>
-    <created>2021-03-16</created>
+    <created>2022-05-13</created>
     <classesTested>PostProcessors.Validation</classesTested>
     <description>
       This test checks the DSS PostProcessor with DSS metric
@@ -15,7 +15,7 @@
 
   <RunInfo>
     <WorkingDir>DSS</WorkingDir>
-    <Sequence>mcRun1, mcRun2, PP2</Sequence>
+    <Sequence>mcRun1, mcRun2, PP1, PP2, PP3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -26,15 +26,37 @@
     <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_II" name="PythonModule2" subType="">
       <variables>sigma,rho,beta,x2,y2,z2,time2,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="pp2" subType="PPDSS">
-      <Features>outMC1|x1,outMC1|y1</Features>
-      <Targets>outMC2|x2,outMC2|y2</Targets>
+    <PostProcessor name="pp1" subType="PPDSS">
+      <Features>outMC1|x1</Features>
+      <Targets>outMC2|x2</Targets>
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>
       <scale>DataSynthesis</scale>
-      <scaleBeta>1,1</scaleBeta>
-      <scaleOmega>1,1</scaleOmega>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
+    </PostProcessor>
+    <PostProcessor name="pp2" subType="PPDSS">
+      <Features>outMC1|x1</Features>
+      <Targets>outMC2|x2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <separateData>0.0|0.5</separateData>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
+    </PostProcessor>
+    <PostProcessor name="pp3" subType="PPDSS">
+      <Features>outMC1|y1</Features>
+      <Targets>outMC2|y2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <separateData>0.5|1.0</separateData>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
     </PostProcessor>
   </Models>
 
@@ -48,9 +70,24 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <HistorySet name="pp1_out">
+      <Output>
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
     <HistorySet name="pp2_out">
       <Output>
-          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1,
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="pp3_out">
+      <Output>
           dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_deviation_y2_y1
       </Output>
       <options>
@@ -74,9 +111,17 @@
   </DataObjects>
 
   <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
     <Print name="pp2_print">
       <type>csv</type>
       <source>pp2_out</source>
+    </Print>
+    <Print name="pp3_print">
+      <type>csv</type>
+      <source>pp3_out</source>
     </Print>
   </OutStreams>
 
@@ -127,12 +172,26 @@
       <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
       <Output    class="DataObjects"      type="HistorySet"     >outMC2</Output>
     </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="HistorySet">outMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
+    </PostProcess>
     <PostProcess name="PP2">
       <Input class="DataObjects" type="HistorySet">outMC1</Input>
       <Input class="DataObjects" type="HistorySet">outMC2</Input>
       <Model class="Models" type="PostProcessor">pp2</Model>
       <Output class="DataObjects" type="PointSet">pp2_out</Output>
       <Output class="OutStreams" type="Print">pp2_print</Output>
+    </PostProcess>
+    <PostProcess name="PP3">
+      <Input class="DataObjects" type="HistorySet">outMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outMC2</Input>
+      <Model class="Models" type="PostProcessor">pp3</Model>
+      <Output class="DataObjects" type="PointSet">pp3_out</Output>
+      <Output class="OutStreams" type="Print">pp3_print</Output>
     </PostProcess>
   </Steps>
 
