@@ -22,6 +22,9 @@ import os
 import sys
 import unittest
 
+#if importing matplotlib is removed, this test fails on sawtooth
+import matplotlib.pyplot as plt
+
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(frameworkDir)
 

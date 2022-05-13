@@ -18,6 +18,8 @@ import os
 import sys
 
 import numpy as np
+#if importing matplotlib is removed, this test fails on sawtooth
+import matplotlib.pyplot as plt
 
 ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5))
 print('... located RAVEN at:', ravenPath)
