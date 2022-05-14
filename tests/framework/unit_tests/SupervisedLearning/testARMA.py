@@ -23,25 +23,26 @@ import numpy as np
 import pandas as pd
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 
-sys.path.append(frameworkDir)
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-from utils import randomUtils
+from ravenframework.utils import randomUtils
 
-import MessageHandler
+from ravenframework import MessageHandler
 
 # message handler
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 # input specs come mostly from the Models.ROM
-from Models import ROM
+from ravenframework.Models import ROM
 
 # find location of ARMA
-from SupervisedLearning import ARMA
+from ravenframework.SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
 print(ARMA)

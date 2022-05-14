@@ -1,0 +1,98 @@
+\subsubsection{LimitSurfaceIntegral}
+\label{LimitSurfaceIntegral}
+The \textbf{LimitSurfaceIntegral} PostProcessor computes the likelihood (probability) of the event, whose boundaries are
+represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{PointSet} and needs to contain
+both boundary sides (-1.0, +1.0).
+%\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as output  \textbf{PointSet}s only.
+
+\ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
+\begin{itemize}
+\item \variableDescription
+ \variableChildIntro
+ \begin{itemize}
+     \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
+               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
+    \item   \xmlNode{distribution}, \xmlDesc{string,
+               optional field}, name of the distribution that is associated to this variable.
+              Its name needs to be contained in the \xmlNode{Distributions} block explained
+              in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound}
+              and  \xmlNode{upperBound} XML nodes must be inputted. It requires the following two attributes:
+            \begin{itemize}
+              \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+              ``class'' the listed object is from, the only acceptable class for
+              this post-processor is \xmlString{Distributions};
+              \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the type of distributions,
+                i.e. Normal, Uniform.
+            \end{itemize}
+   \item   \xmlNode{lowerBound}, \xmlDesc{float,
+               optional field}, lower limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
+   \item   \xmlNode{upperBound}, \xmlDesc{float,
+               optional field}, upper limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
+  \end{itemize}
+
+    \item  \xmlNode{tolerance}, \xmlDesc{float, optional field}, specifies the tolerance for
+               numerical integration confidence.
+                \default{1.0e-4}
+     \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
+                need to be used. Currently only MonteCarlo integration is available
+                \default{MonteCarlo}
+    \item  \xmlNode{computeBounds}, \xmlDesc{bool, optional field},
+    activates the computation of the bounding error of the limit
+    surface integral ( maximum error in the identification of the
+    limit surface location). If True, the bounding error is stored
+    in a variable named as \xmlNode{outputName} appending the suffix
+    ``\_err''. For example, if \xmlNode{outputName} is
+    ``EventProbability'', the bounding error will be stored as
+    ``EventProbability\_err'' (this variable name must be listed as
+    variable in the output DataObject).
+                \default{False}
+     \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
+                \default{20021986}
+     \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
+                the $f\left ( \bar{x} \right )$ that needs to be integrated.
+                \default{last output found in the inputted PointSet}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug,class,type}]
+<Simulation>
+ ...
+ <Models>
+  ...
+    <PostProcessor name="LimitSurfaceIntegralDistributions" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <outputName>EventProbability</outputName>
+        <variable name='x0'>
+          <distribution>x0_distrib</distribution>
+        </variable>
+        <variable name='y0'>
+          <distribution>y0_distrib</distribution>
+        </variable>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralLowerUpperBounds" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <outputName>EventProbability</outputName>
+        <variable name='x0'>
+          <lowerBound>-2.0</lowerBound>
+          <upperBound>12.0</upperBound>
+        </variable>
+        <variable name='y0'>
+            <lowerBound>-1.0</lowerBound>
+            <upperBound>11.0</upperBound>
+        </variable>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}

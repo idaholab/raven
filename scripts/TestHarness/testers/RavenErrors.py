@@ -22,8 +22,7 @@ import subprocess
 from Tester import Tester
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
-raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'framework',
-                                     'Driver.py'))
+raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'raven_framework.py'))
 scriptsDir = os.path.abspath(os.path.join(fileDir, '..', '..'))
 sys.path.append(scriptsDir)
 import library_handler
