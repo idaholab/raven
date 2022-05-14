@@ -30,9 +30,8 @@ import pandas as pd
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessorInterface import PostProcessorInterface
-from utils import InputData, InputTypes
-import Files
-from SupervisedLearning import factory as romFactory
+from ...utils import InputData, InputTypes
+from ...SupervisedLearning import factory as romFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 

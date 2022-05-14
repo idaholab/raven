@@ -15,7 +15,7 @@
   Created on Feb 18, 2022
   @author: aalfonsi
 """
-from EntityFactoryBase import EntityFactory
+from ...EntityFactoryBase import EntityFactory
 
 ################################################################################
 ## internal developed feature selection algorithms
