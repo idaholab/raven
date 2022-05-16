@@ -247,7 +247,7 @@ class DMDC(DMD):
       #for out in range(self.outputVals.shape[-1]):
       #  oo = self.outputVals[:,:,out]/np.average(self.outputVals[:,:,out])
       for smp in range(self.__Ctilde.shape[0]):
-        ss = preprocessing.normalize(self.stateVals[:,smp,:])
+        #ss = preprocessing.normalize(self.stateVals[:,smp,:])
         ss = self.stateVals[:,smp,:]
         X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
