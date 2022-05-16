@@ -35,15 +35,10 @@ from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .EconomicRatio import EconomicRatio
-<<<<<<< HEAD:framework/Models/PostProcessors/Factory.py
-from .Validation import Validation
-from .validationAlgorithms.Probabilistic import Probabilistic
-from .validationAlgorithms.Representativity import Representativity
-=======
 from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
+from .Validations import Representativity
 from .Validations import PPDSS
->>>>>>> upstream:ravenframework/Models/PostProcessors/Factory.py
 from .TSACharacterizer import TSACharacterizer
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)

@@ -81,7 +81,6 @@ class Probabilistic(ValidationBase):
       @ In, inputIn, list, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-<<<<<<< HEAD:framework/Models/PostProcessors/validationAlgorithms/Probabilistic.py
     # inpVars, outVars, dataSet = inputIn['Data'][0]
     # dataSets = [data for _, _, data in inputIn['Data']]
     dataDict = {data.attrs['name']: data for _, _, data in inputIn['Data']}
@@ -105,7 +104,6 @@ class Probabilistic(ValidationBase):
 
     if pivotParameter:
       #if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
-=======
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     pivotParameter = self.pivotParameter
     names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
@@ -115,15 +113,11 @@ class Probabilistic(ValidationBase):
     evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
 
     if pivotParameter:
->>>>>>> upstream:ravenframework/Models/PostProcessors/Validations/Probabilistic.py
       if len(inputIn['Data'][0][-1]['time']) != len(list(evaluation.values())[0]):
         self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
       if pivotParameter not in evaluation:
         evaluation[pivotParameter] = inputIn['Data'][0][-1]['time']
-<<<<<<< HEAD:framework/Models/PostProcessors/validationAlgorithms/Probabilistic.py
         #evaluation[pivotParameter] = dataSets[0][pivotParameter]
-=======
->>>>>>> upstream:ravenframework/Models/PostProcessors/Validations/Probabilistic.py
     return evaluation
 
   ### utility functions
@@ -137,13 +131,9 @@ class Probabilistic(ValidationBase):
     names = kwargs.get('dataobjectNames')
     outputDict = {}
     for feat, targ in zip(self.features, self.targets):
-<<<<<<< HEAD:framework/Models/PostProcessors/validationAlgorithms/Probabilistic.py
       # featData = self._getDataFromDatasets(datasets, feat, names)
       featData = self._getDataFromDataDict(datasets, feat, names)
       # targData = self._getDataFromDatasets(datasets, targ, names)
-=======
-      featData = self._getDataFromDataDict(datasets, feat, names)
->>>>>>> upstream:ravenframework/Models/PostProcessors/Validations/Probabilistic.py
       targData = self._getDataFromDataDict(datasets, targ, names)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
@@ -161,50 +151,12 @@ class Probabilistic(ValidationBase):
     pw = None
     if "|" in var and names is not None:
       do, feat =  var.split("|")
-<<<<<<< HEAD:framework/Models/PostProcessors/validationAlgorithms/Probabilistic.py
-      doIndex = names.index(do)
-      dat = datasets[doIndex][feat]
-=======
-      dat = datasets[do][feat]
->>>>>>> upstream:ravenframework/Models/PostProcessors/Validations/Probabilistic.py
-    else:
-      for doIndex, ds in enumerate(datasets):
-        if var in ds:
-          dat = ds[var]
-          break
-<<<<<<< HEAD:framework/Models/PostProcessors/validationAlgorithms/Probabilistic.py
-    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
-      pw = datasets[doIndex]['ProbabilityWeight-{}'.format(feat)].values
-    elif 'ProbabilityWeight' in datasets[names.index(do)]:
-      pw = datasets[doIndex]['ProbabilityWeight'].values
-    dim = len(dat.shape)
-    # (numRealizations,  numHistorySteps) for MetricDistributor
-    dat = dat.values
-    if dim == 1:
-      #  the following reshaping does not require a copy
-      dat.shape = (dat.shape[0], 1)
-    data = dat, pw
-    return data
-
-  def _getDataFromDataDict(self, datasets, var, names=None):
-    """
-      Utility function to retrieve the data from datasets
-      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
-      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
-      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
-      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
-    """
-    pw = None
-    if "|" in var and names is not None:
-      do, feat =  var.split("|")
       dat = datasets[do][feat]
     else:
       for doIndex, ds in enumerate(datasets):
         if var in ds:
           dat = ds[var]
           break
-=======
->>>>>>> upstream:ravenframework/Models/PostProcessors/Validations/Probabilistic.py
     if 'ProbabilityWeight-{}'.format(feat) in datasets[do]:
       pw = datasets[do]['ProbabilityWeight-{}'.format(feat)].values
     elif 'ProbabilityWeight' in datasets[do]:
