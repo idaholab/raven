@@ -21,7 +21,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
-import pickle as pk
 
 import numpy as np
 import pandas as pd
@@ -97,7 +96,11 @@ class DataSet(DataObject):
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
-      return keys
+      # when re-running workflow, 'prefix' can be removed, make sure it is in _orderedVars
+      if 'prefix' not in self._orderedVars and 'prefix' in self._inputs:
+        keys = ['prefix']
+      else:
+        return keys
     # CANNOT add expected meta after samples are started
     if not overwrite:
       assert(self._data is None)
@@ -1290,7 +1293,6 @@ class DataSet(DataObject):
       @ In, None
       @ Out, xarray.Dataset, all the data from this data object.
     """
-    # TODO make into a protected method? Should it be called from outside?
     # if we have collected data, collapse it
     if self._collector is not None and len(self._collector) > 0:
       # keep track of the first sampling index, if we already have some samples (otherwise 0)
