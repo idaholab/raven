@@ -20,11 +20,12 @@ import sys
 import xarray as xr
 import numpy as np
 
-ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5, 'framework'))
+ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5))
 print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-import Driver
-from Optimizers.crossOverOperators.crossovers import returnInstance
+from ravenframework.CustomDrivers import DriverUtils
+DriverUtils.doSetup()
+from ravenframework.Optimizers.crossOverOperators.crossovers import returnInstance
 
 twoPointsCrossover = returnInstance('tester', 'twoPointsCrossover')
 

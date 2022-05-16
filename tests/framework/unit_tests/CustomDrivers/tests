@@ -1,0 +1,16 @@
+[Tests]
+  [./test_python_raven]
+    type = 'RavenPython'
+    input = 'TestPythonRaven.py'
+  [../]
+
+  [./demo_python_raven]
+    type = 'RavenPython'
+    input = 'DemoPythonRaven.py'
+  [../]
+
+  [./test_python_raven_running_raven]
+    type = 'RavenPython'
+    input = 'DemoPythonRavenRunningRaven.py'
+  [../]
+[]

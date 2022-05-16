@@ -29,6 +29,7 @@ import inspect
 import time
 import threading
 import signal
+import traceback
 
 try:
   import psutil
@@ -240,14 +241,18 @@ def get_testers_and_differs(directory):
   os.sys.path.append(directory)
   for filename in os.listdir(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
-      module = __import__(filename[:-3]) #[:-3] to remove .py
-      for name, val in module.__dict__.items():
-        if inspect.isclass(val) and val is not Tester\
-           and issubclass(val, Tester):
-          tester_dict[name] = val
-        if inspect.isclass(val) and val is not Differ\
-           and issubclass(val, Differ):
-          differ_dict[name] = val
+      try:
+        module = __import__(filename[:-3]) #[:-3] to remove .py
+        for name, val in module.__dict__.items():
+          if inspect.isclass(val) and val is not Tester\
+             and issubclass(val, Tester):
+            tester_dict[name] = val
+          if inspect.isclass(val) and val is not Differ\
+             and issubclass(val, Differ):
+            differ_dict[name] = val
+      except Exception as ex:
+        print("Failed loading",filename,"with exception:",ex)
+        traceback.print_exc()
 
   return tester_dict, differ_dict
 

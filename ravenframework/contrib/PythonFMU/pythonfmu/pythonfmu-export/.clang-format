@@ -1,0 +1,36 @@
+Language: Cpp
+Standard: Cpp11
+BasedOnStyle: WebKit
+NamespaceIndentation: None
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+FixNamespaceComments: true
+MaxEmptyLinesToKeep: 2
+SpaceAfterTemplateKeyword: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+BreakBeforeBinaryOperators: None
+Cpp11BracedListStyle: true
+SpaceBeforeCpp11BracedList: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: true
+  AfterClass: true
+  SplitEmptyFunction: false
+  AfterFunction: true
+  AfterNamespace : true
+  AfterControlStatement: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:      '^[<"]pythonfmu[/.]'
+    Priority:   20
+  - Regex:      '^[<"](cppfmu)[/.]'
+    Priority:   30
+  - Regex:      '^"'
+    Priority:   10
+  - Regex:      '.*'
+    Priority:   40

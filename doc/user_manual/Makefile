@@ -11,7 +11,7 @@ LIB_FILES = ../../scripts/library_handler.py ../../dependencies.xml
 all: raven_user_manual.pdf
 
 raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt pip_commands.txt
-	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex || echo expected to fail
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex

@@ -1,4 +1,11 @@
 [Tests]
+ [./Basic]
+   type = 'RavenFramework'
+   input = 'basic.xml'
+   output = 'Basic/to_file.xml Basic/to_plot_scatter.png'
+   csv = 'Basic/to_file.csv'
+ [../]
+
  [./pcaResponseSurface]
   type = 'RavenFramework'
   input = 'test_pca_responseSurface.xml'
