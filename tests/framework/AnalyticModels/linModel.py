@@ -21,7 +21,7 @@
 import numpy as np
 ##################
 
-A = np.array([[3, -3],[1,8],[-5, -5]])
+A = np.array([[2, -3],[1,8],[-5, -5]])
 b = np.array([[0],[0],[0]])
 
 def run(self,Input):

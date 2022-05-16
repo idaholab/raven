@@ -86,7 +86,7 @@ class Representativity(ValidationBase):
     """
     from .. import factory as ppFactory # delay import to allow definition
     stat = ppFactory.returnInstance('BasicStatistics')
-    stat.what = ['NormalizedSensitivities'] # expected value calculation
+    stat.what = ['sensitivity'] # expected value calculation
     return stat
 
   def initialize(self, runInfo, inputs, initDict):
@@ -133,11 +133,11 @@ class Representativity(ValidationBase):
       self.raiseAnError(IOError, "Variables {} are missing from DataObject {}".format(','.join(missing), self.targetDataObject[0].name))
 
     featStat = self.getBasicStat()
-    featStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':self.senPrefix}]}
+    featStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':self.senPrefix}]}
     featStat.initialize(runInfo, [self.featureDataObject[0]], initDict)
     self.stat[self.featureDataObject[-1]] = featStat
     tartStat = self.getBasicStat()
-    tartStat.toDo = {'NormalizedSensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':self.senPrefix}]}
+    tartStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':self.senPrefix}]}
     tartStat.initialize(runInfo, [self.targetDataObject[0]], initDict)
     self.stat[self.targetDataObject[-1]] = tartStat
 
