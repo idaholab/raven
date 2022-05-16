@@ -53,7 +53,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="p1">
         <distribution>dist1</distribution>
