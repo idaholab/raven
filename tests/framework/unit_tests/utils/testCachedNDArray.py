@@ -29,9 +29,9 @@ import numpy as np
 if int(np.__version__.split('.')[1]) > 13:
   np.set_printoptions(**{'legacy':'1.13'})
 
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import cached_ndarray
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
+from ravenframework.utils import cached_ndarray
 print (cached_ndarray)
 
 

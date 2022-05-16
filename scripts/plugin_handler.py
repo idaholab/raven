@@ -25,7 +25,7 @@ import os
 import sys
 import time
 import argparse
-frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
+frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'ravenframework')
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 
@@ -127,6 +127,9 @@ def tellPluginAboutRaven(loc):
     root.append(ravenLoc)
   ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
   if ravenLoc.text != ravenFrameworkLoc:
+    # we write only in case the location is either different or the file
+    # is not present (so, only one processor in case of RAVENrunningRAVEN
+    # will write the file if not present
     ravenLoc.text = ravenFrameworkLoc
     xmlUtils.toFile(configFile, root)
   return ravenLoc.text

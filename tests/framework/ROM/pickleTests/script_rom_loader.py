@@ -19,7 +19,7 @@ import cloudpickle as pk
 
 # add romLoader to path
 here = os.path.abspath(os.path.dirname(__file__))
-frameworkPath = os.path.abspath(os.path.join(here, *['..']*4, 'framework'))
+frameworkPath = os.path.abspath(os.path.join(here, *['..']*4, 'ravenframework'))
 sys.path.append(os.path.abspath(os.path.join(frameworkPath, '..', 'scripts')))
 import externalROMloader
 

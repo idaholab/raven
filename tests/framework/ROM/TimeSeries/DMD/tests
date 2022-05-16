@@ -24,4 +24,20 @@
    prereq = HighOrderDMD
   [../]
 
+  [./ParameterizedDMDC]
+    type = 'RavenFramework'
+    input = 'test_parameterized_dmdc.xml'
+    output = 'DMDC/ParameterizedDMDC/ROMpk DMDC/ParameterizedDMDC/DMDcCxCoeff.xml'
+    csv = 'DMDC/ParameterizedDMDC/outputData_0.csv DMDC/ParameterizedDMDC/outputData_1.csv'
+    rel_err = 0.001
+   [../]
+
+  [./UnparameterizedDMDC]
+    type = 'RavenFramework'
+    input = 'test_unparameterized_dmdc.xml'
+    output = 'DMDC/UnparameterizedDMDC/DMDcCxCoeff.xml'
+    csv = 'DMDC/UnparameterizedDMDC/outputData_0.csv'
+    rel_err = 0.001
+   [../]
+
 []

@@ -28,14 +28,15 @@ import numpy as np
 import xarray as xr
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
-sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-import MessageHandler
+from ravenframework import MessageHandler
 
-import DataObjects
+from ravenframework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
@@ -483,8 +484,10 @@ checkSame('Metadata HistorySet/dims/x value',x.text,'Timelike')
 checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
-checkSame('Metadata HistorySet/general entries',len(general),4)
-inputs,outputs,pointwise_meta,sampleTag = general[:]
+checkSame('Metadata HistorySet/general entries',len(general),5)
+dsName,inputs,outputs,pointwise_meta,sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'HistorySet')
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -531,6 +534,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
            '      <y>Timelike</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>HistorySet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,y</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
@@ -742,6 +746,7 @@ correct = ['<DataObjectMetadata name="HistorySet">',
            '      <y>Timelike</y>',
            '    </dims>',
            '    <general>',
+           '      <datasetName>HistorySet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>y</outputs>',
            '      <pointwise_meta>prefix,vectorMeta</pointwise_meta>',

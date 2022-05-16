@@ -28,14 +28,15 @@ import numpy as np
 import xarray as xr
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
-sys.path.append(frameworkDir)
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-import MessageHandler
+from ravenframework import MessageHandler
 
-import DataObjects
+from ravenframework import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
@@ -441,8 +442,10 @@ checkSame('Metadata DataSet entries',len(treeDS),1) # 2
 general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
-checkSame('Metadata DataSet/general entries',len(general),4)
-inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general entries',len(general),5)
+dsName, inputs, outputs, pointwise_meta, sampleTag = general[:]
+checkSame('Metadata DataSet/general/datasetName tag',dsName.tag,'datasetName')
+checkSame('Metadata DataSet/general/datasetName value',dsName.text,'PointSet')
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -485,6 +488,7 @@ data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.sp
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',
            '    <general>',
+           '      <datasetName>PointSet</datasetName>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',

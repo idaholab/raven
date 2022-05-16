@@ -1,0 +1,19 @@
+This folder contains the script needed
+for converting OLD HDF5 data format into RAVEN current version (v1.0).
+3 options are available for the databases conversion (Old HDF5 database):
+
+- Prior to Feb 2018. VERSION Keyword is "Jan2018"
+- From Feb 2018 to Oct 2021. VERSION Keyword is "Oct2021"
+- From Nov 2021 (current). VERSION  Keyword is "v1.0"
+
+In order to execute the conversion, the following command needs to be launched:
+
+python conversionFromOldToNewDatabase.py OLD_DATABASE.h5 NEW_DATABASE_FILENAME.h5 VERSION
+
+where - OLD_DATABASE.h5 is the path to the OLD database that needs to be converted
+      - NEW_DATABASE_FILENAME.h5 is the path (And filename) of the new database that will 
+        be created
+      - VERSION is the version of the OLD databases
+
+For example:
+python conversionFromOldToNewDatabase.py old.h5 new.h5 Oct2021 

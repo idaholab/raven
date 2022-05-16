@@ -45,3 +45,10 @@ crow_modules/interpolationNDpy3_wrap.cpp
 crow_modules/randomENGpy3_wrap.cpp
 build/
 install/
+crow.egg-info/
+crow_modules/distribution1D.py
+crow_modules/distribution1D_wrap.cpp
+crow_modules/interpolationND.py
+crow_modules/interpolationND_wrap.cpp
+crow_modules/randomENG.py
+crow_modules/randomENG_wrap.cpp

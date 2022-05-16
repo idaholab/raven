@@ -77,7 +77,7 @@
       <SpecificFourier variables="A,B">
         <periods>20,100</periods>
       </SpecificFourier>
-      <Fourier>50.000000, 10.000000</Fourier>
+      <Fourier>50 10</Fourier>
       <!-- will apply to the rest (C,D) -->
       <P>3</P>
       <Q>1</Q>

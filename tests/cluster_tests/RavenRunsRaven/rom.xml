@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>framework/cluster_tests/RavenRunsRaven.ROM</name>
     <author>alfoa</author>
@@ -54,11 +54,11 @@
       <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
       <conversion>
         <module source="testConversionModule.py">
-          <variables>Models|ROM@subType:SciKitLearn@name:ROM1|C</variables>
+          <variables>Models|ROM@subType:SVR@name:ROM1|C</variables>
         </module>
       </conversion>
-      <alias type="input" variable="loss_factor">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
-      <alias type="input" variable="tollerance">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
+      <alias type="input" variable="loss_factor">Models|ROM@subType:SVR@name:ROM1|C</alias>
+      <alias type="input" variable="tollerance">Models|ROM@subType:SVR@name:ROM1|tol</alias>
       <alias type="input" variable="DG1recoveryTime">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
     </Code>
   </Models>

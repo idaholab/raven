@@ -42,7 +42,7 @@
       <Target>Z</Target>
       <partitionPredictor>kde</partitionPredictor>
       <kernel>cosine</kernel>
-      <smooth/>
+      <smooth>True</smooth>
       <bandwidth>0.2</bandwidth>
       <simplification>0.04</simplification>
     </ROM>

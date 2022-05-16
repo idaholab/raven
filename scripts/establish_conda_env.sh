@@ -57,7 +57,7 @@ function find_conda_defs ()
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
       # default location of conda definitions, windows is unsurprisingly an exception
-      if [[ "$OSOPTION" = "--windows" ]];
+      if [[ "$OSOPTION" = "--os windows" ]];
       then
         CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
       elif test -e "$HOME/miniconda3/etc/profile.d/conda.sh";
@@ -104,9 +104,6 @@ function install_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: \"${COMMAND}\"; fi
-    ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
@@ -137,12 +134,9 @@ function create_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
-    ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only

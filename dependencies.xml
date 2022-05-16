@@ -16,6 +16,11 @@ Note all install methods after "main" take
  add library from forge:     <library source='forge'>...
  optional:                   <library optional='True'>...
  skip run/install check:     <library skip_check='True'>...
+ add pip library with extra parameters:
+                             <ray source="pip" pip_extra="[tune]">1.9</ray>
+   the above will use pip_extra to translate into a command:
+     pip install ray[tune]==1.9.*
+   which installs ray and the dependencies for Ray Tune
 
  default OS is "all"
  default source is "conda" meaning main conda repo
@@ -37,7 +42,7 @@ Note all install methods after "main" take
     <pandas>1.1</pandas>
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
-    <matplotlib source='forge'>3.2</matplotlib>
+    <matplotlib>3.2</matplotlib>
     <statsmodels/>
     <cloudpickle>1.6</cloudpickle>
     <tensorflow>2.0</tensorflow>
@@ -50,17 +55,18 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
-    <pyside2 source='forge'/>
+    <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip">1.3</ray>
-    <!-- ray is not compatible with aioredis 2.0
-      https://github.com/ray-project/ray/issues/17475 -->
-    <aioredis os="mac,linux" source="pip">1.3</aioredis>
-    <pillow optional='True'>6.0</pillow>
+    <cmake skip_check='True' optional='True'/>
+    <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
+    <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <fmpy optional='True'/>
+    <xmlschema source="pip"/>
+    <setuptools/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

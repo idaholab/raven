@@ -56,7 +56,7 @@ In the RAVEN input file these metrics are defined as follows:
 </Simulation>
 \end{lstlisting}
 
-The metrics, that are available in RAVEN, can be categorized into several main classes:
+The metrics available in RAVEN can be categorized into several main classes:
 \begin{itemize}
   \item \textbf{Paired Distance Metric}, distance metrics between two variables $u$ and $v$, such as \xmlString{euclidean},
     \xmlString{manhattan}, \xmlString{minkowski} and so on.
@@ -70,8 +70,7 @@ The metrics, that are available in RAVEN, can be categorized into several main c
   \item \textbf{Other metric}, such as \xmlString{DTW}.
 \end{itemize}
 
-The valid \textbf{MetricID}s are: \xmlAttr{SKL}, \xmlAttr{ScipyMetric}, \xmlAttr{DTW}, \xmlAttr{CDFAreaDifference},
-and \xmlAttr{PDFCommonArea}. This XML node requires the following attributes:
+The valid \textbf{MetricID}s are: \xmlAttr{SKL}, \xmlAttr{ScipyMetric}, \xmlAttr{DTW}, \xmlAttr{CDFAreaDifference}, \xmlAttr{PDFCommonArea}, and \xmlAttr{DSS}. This XML node requires the following attributes:
 \begin{itemize}
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this metric. \nb As with other
     objects, this name can be used to refer to this specific entity from other input blocks in the XML.
@@ -410,7 +409,7 @@ This XML node needs to contain the attributes:
 
 
 \begin{itemize}
-  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifices a classical DTW caluclation and $1$ specifies
+  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifies a classical DTW calculation and $1$ specifies
                                                                     a derivative DTW calculation
   \item \xmlNode{localDistance},  \xmlDesc{string, required field}, the ID of the distance function to be employed to determine the local distance
                                                                     evaluation of two time series. Available options are provided by the Scipy
@@ -599,3 +598,25 @@ in previous sections.
 
 In addition to this XML subnode, the users can also specify the corresponding parameters for each `metric' according to
 previous sections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamical System Scaling}
+\label{subsection:DSS}
+The Dynamical System Scaling (DSS) is a distance metrics that is used to measure the separation
+between two time-dependent data sets.
+
+The specifications of a DSS metric is defined within the \xmlNode{Metric} XML block. The XML node \xmlAttr{subType} must be \textbf{PPDSS} (see \ref{subsubsec:Validation}) in the \xmlNode{PostProcessor} for the outputs of the post-processor to be in the right format for DSS metric inputs.
+
+An example of DSS  defined in RAVEN is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <Metric name="example" subType="DSS">
+    </Metric>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}

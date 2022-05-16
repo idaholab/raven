@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
 
   <RunInfo>
     <WorkingDir>Inner</WorkingDir>
     <Sequence>sample, aggregate, print</Sequence>
     <batchSize>4</batchSize>
+    <NodeParameter>--hostfile</NodeParameter>
   </RunInfo>
 
   <Steps>
@@ -46,7 +47,7 @@
   <Models>
     <Code name="simple" subType="GenericCode">
       <executable>Simple.py</executable>
-      <clargs arg="python" type="prepend"/>
+      <clargs arg="%PYTHON%" type="prepend"/>
       <clargs arg="-i" extension=".inp" type="input"/>
       <fileargs arg="output" type="output"/>
     </Code>

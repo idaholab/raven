@@ -1,7 +1,9 @@
 <DataObjectMetadata name="analyticalTest_basicStatPP">
   <DataSet type="Static">
     <general>
+      <datasetName>analyticalTest_basicStatPP</datasetName>
       <outputs>percentile_0.1_x,percentile_0.1_y,percentile_0.5_x,percentile_0.5_y</outputs>
+      <pointwise_meta>percentile_0.1_ste_x,percentile_0.1_ste_y,percentile_0.5_ste_x,percentile_0.5_ste_y</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
