@@ -112,15 +112,15 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
       The start and end time should be in ratios or raw values of the full interval. In this case 0.5 would be either the midpoint time or time 0.5 of the given time units. This is node is not required and if not provided, the default is the full time interval.
       the following attributes need to be specified:
       \begin{itemize}
-        \item \xmlAttr{type}, \xmlDesc{required string attribute}, options are `ratio' or `raw_values'. The default is `ratio'.
+        \item \xmlAttr{type}, \xmlDesc{required string attribute}, options are `ratio' or `raw\_values'. The default is `ratio'.
       \end{itemize}
     \item \xmlNode{separateTargetData}, \xmlDesc{string, optional field}, specifies the custom target interval to apply DSS postprocessing. The string should contain three parts; start time, `|', and end time all in one. For example, 0.0|0.5.
       The start and end time should be in ratios or raw values of the full interval. In this case 0.5 would be either the midpoint time or time 0.5 of the given time units. This is node is not required and if not provided, the default is the full time interval.
       the following attributes need to be specified:
       \begin{itemize}
-        \item \xmlAttr{type}, \xmlDesc{required string attribute}, options are `ratio' or `raw_values'. The default is `ratio'.
+        \item \xmlAttr{type}, \xmlDesc{required string attribute}, options are `ratio' or `raw\_values'. The default is `ratio'.
       \end{itemize}
-    \item \xmlNode{multiOutput}, \xmlDesc{string, required field}, to extract raw values for the HistorySet. The user must use ‘raw values’ for the full set of metrics’ calculations to be dumped.
+    \item \xmlNode{multiOutput}, \xmlDesc{string, required field}, to extract raw values for the HistorySet. The user must use `raw values' for the full set of metrics’ calculations to be dumped.
     \item \xmlNode{scale}, \xmlDesc{string, required field}, specifies the type of time scaling. The following are the options for scaling (specific definitions for each scaling type is provided in \ref{sec:dssdoc}):
       \begin{itemize}
         \item \textbf{DataSynthesis}, calculating the distortion for two data sets without applying other scaling ratios.
