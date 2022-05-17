@@ -57,14 +57,24 @@ class PPDSS(ValidationBase):
     pivotParameterTargetInput = InputData.parameterInputFactory("pivotParameterTarget", contentType=InputTypes.StringType,
                                                                 descr="""Pivot parameter for target inputs""")
     inputSpecification.addSub(pivotParameterTargetInput)
-    separateDataInput = InputData.parameterInputFactory("separateData", contentType=InputTypes.StringType,
-                                                                descr="""Time points to separate data and conduct DSS postprocessing
+    separateFeatureDataInput = InputData.parameterInputFactory("separateFeatureData", contentType=InputTypes.StringType,
+                                                                descr="""Time points to separate feature data and conduct DSS postprocessing
                                                                 on selected time interval. Values must be fractions of the full time interval.
                                                                 To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
                                                                 To provide more than one selection for the same data set,
                                                                 '+' should be placed at the end of each interval to start defining the new interval. Example: 0.0|0.4+0.4|1.0
                                                                 If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
-    inputSpecification.addSub(separateDataInput)
+    separateFeatureDataInput.addParam("type", InputTypes.StringType)
+    inputSpecification.addSub(separateFeatureDataInput)
+    separateTargetDataInput = InputData.parameterInputFactory("separateTargetData", contentType=InputTypes.StringType,
+                                                                descr="""Time points to separate target data and conduct DSS postprocessing
+                                                                on selected time interval. Values must be fractions of the full time interval.
+                                                                To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
+                                                                To provide more than one selection for the same data set,
+                                                                '+' should be placed at the end of each interval to start defining the new interval. Example: 0.0|0.4+0.4|1.0
+                                                                If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
+    separateTargetDataInput.addParam("type", InputTypes.StringType)
+    inputSpecification.addSub(separateTargetDataInput)
     scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.makeEnumType("scale","scaleType",['DataSynthesis','2_2_affine','dilation','beta_strain','omega_strain','identity']),
                                                       descr="""Scaling type for the time transformation. Available types are DataSynthesis,
                                                       2_2_affine, dilation, beta_strain, omega_strain, and identity""")
@@ -96,7 +106,10 @@ class PPDSS(ValidationBase):
     self.pivotValuesFeature    = [] # Feature pivot parameter values
     self.pivotParameterTarget  = None # Target pivot parameter variable
     self.pivotValuesTarget     = [] # Target pivot parameter values
-    self.separateData          = None # String of data separation points. Default is None.
+    self.separateFeatureData   = None # String of data separation points. Default is None.
+    self.separateFeatureType   = 'ratio' # defines the type of feature time separation to apply. Options are ratio and raw_values
+    self.separateTargetData    = None # String of data separation points. Default is None.
+    self.separateTargetType    = 'ratio' # defines the type of target time separation to apply. Options are ratio and raw_values
     self.scaleType             = None # Scaling type
     # assembler objects to be requested
     self.scaleRatioBeta        = [] # Scaling ratio for the parameter of interest
@@ -123,8 +136,18 @@ class PPDSS(ValidationBase):
         self.pivotParameterFeature = child.value
       elif child.getName() == 'pivotParameterTarget':
         self.pivotParameterTarget = child.value
-      elif child.getName() == 'separateData':
-        self.separateData = child.value
+      elif child.getName() == 'separateFeatureData':
+        if 'type' not in child.parameterValues.keys():
+          self.raiseAnError(IOError, 'Tag separateFeatureData must have attribute "type"')
+        else:
+          self.separateFeatureType = child.parameterValues["type"]
+          self.separateFeatureData = child.value
+      elif child.getName() == 'separateTargetData':
+        if 'type' not in child.parameterValues.keys():
+          self.raiseAnError(IOError, 'Tag separateTargetData must have attribute "type"')
+        else:
+          self.separateTargetType = child.parameterValues["type"]
+          self.separateTargetData = child.value
       elif child.getName() == 'scale':
         self.scaleType = child.value
       elif child.getName() == 'scaleBeta':
@@ -161,9 +184,9 @@ class PPDSS(ValidationBase):
     if not isinstance(evaluation, list):
       self.raiseAnError(IOError,"The data type in evaluation is not list")
     if pivotParameterFeature and pivotParameterTarget:
-      if self.separateData == None:
-        if len(datasets[0][pivotParameterFeature]) != len(list(evaluation[0].values())[0]) and len(datasets[1][pivotParameterTarget]) != len(list(evaluation[1].values())[0]):
-          self.raiseAnError(RuntimeError, "The pivotParameterFeature value '{}' has size '{}' and validation output has size '{}' The pivotParameterTarget value '{}' has size '{}' and validation output has size '{}'.".format( len(datasets[0][self.pivotParameterFeature]), len(evaluation.values()[0])))
+      if self.separateFeatureData == None and self.separateTargetData:
+        if len(datasets[0][pivotParameterFeature]) != len(list(evaluation[0].values())[0]) and len(datasets[1][pivotParameterTarget]) != len(list(evaluation[0].values())[0]):
+          self.raiseAnError(RuntimeError, "The pivotParameterFeature values has size '{}' and pivotParameterTarget values has size '{}'. The validation output has size '{}' and must match either pivot parameters.".format(len(datasets[0][self.pivotParameterFeature]), len(datasets[0][self.pivotParameterTarget]), len(evaluation[0].values()[0])))
     return evaluation
 
   def _evaluate(self, datasets, **kwargs):
@@ -218,41 +241,64 @@ class PPDSS(ValidationBase):
     pivotFeatureData = np.transpose(pivotFeatureData)[0]
     pivotTargetData = self._getDataFromDatasets(datasets, names[1]+"|"+self.pivotParameterTarget, names)[0]
     pivotTargetData = np.transpose(pivotTargetData)[0]
-    if self.separateData != None:
-      separateTime = self.separateData
+    if self.separateFeatureData != None:
+      separateTime = self.separateFeatureData
       separateTime = separateTime.split("|")
       startTime = separateTime[0]
       endTime = separateTime[1]
       if startTime >= endTime:
-          self.raiseAnError(IOError, "Start time", startTime, "is equal or larger than end time", endTime)
+        self.raiseAnError(IOError, "Feature start time", startTime, "is equal or larger than end time", endTime)
+      if self.separateFeatureType == "ratio":
+        featureStartTime = pivotFeatureData[0]+float(startTime)*(pivotFeatureData[len(pivotFeatureData)-1]-pivotFeatureData[0])
+        featureEndTime = pivotFeatureData[0]+float(endTime)*(pivotFeatureData[len(pivotFeatureData)-1]-pivotFeatureData[0])
+      elif self.separateFeatureType == "raw_values":
+        featureStartTime = float(startTime)
+        featureEndTime = float(endTime)
+      else:
+        self.raiseAnError(IOError, 'separateFeatureData attribute "type" must be either "ratio" or "raw_values"')
       featureStartCount = 0
       startFeatureLocation = None
       endFeatureLocation = None
       for i in range(len(pivotFeatureData)):
-        if pivotFeatureData[i] >= pivotFeatureData[0]+float(startTime)*(pivotFeatureData[len(pivotFeatureData)-1]-pivotFeatureData[0]) and featureStartCount == 0:
+        if pivotFeatureData[i] >= featureStartTime and featureStartCount == 0:
           startFeatureLocation = i
           featureStartCount += 1
-        if pivotFeatureData[i] > pivotFeatureData[0]+float(endTime)*(pivotFeatureData[len(pivotFeatureData)-1]-pivotFeatureData[0]):
+        if pivotFeatureData[i] > featureEndTime:
           endFeatureLocation = i-1
           break
-        elif pivotFeatureData[i] == pivotFeatureData[0]+float(endTime)*(pivotFeatureData[len(pivotFeatureData)-1]-pivotFeatureData[0]):
+        elif pivotFeatureData[i] == featureEndTime:
           endFeatureLocation = i
           break
       pivotFeature = pivotFeatureData[startFeatureLocation:endFeatureLocation]
       featData = np.zeros((np.shape(featDataSet)[0],endFeatureLocation-startFeatureLocation))
       for i in range(len(featDataSet)):
         featData[i] = featDataSet[i][startFeatureLocation:endFeatureLocation]
+    if self.separateTargetData != None:
+      separateTime = self.separateTargetData
+      separateTime = separateTime.split("|")
+      startTime = separateTime[0]
+      endTime = separateTime[1]
+      if startTime >= endTime:
+        self.raiseAnError(IOError, "Target start time", startTime, "is equal or larger than end time", endTime)
+      if self.separateTargetType == "ratio":
+        targetStartTime = pivotTargetData[0]+float(startTime)*(pivotTargetData[len(pivotTargetData)-1]-pivotTargetData[0])
+        targetEndTime = pivotTargetData[0]+float(endTime)*(pivotTargetData[len(pivotTargetData)-1]-pivotTargetData[0])
+      elif self.separateTargetType == "raw_values":
+        targetStartTime = float(startTime)
+        targetEndTime = float(endTime)
+      else:
+        self.raiseAnError(IOError, 'separateTargetData attribute "type" must be either "ratio" or "raw_values"')
       targetStartCount = 0
       startTargetLocation = None
       endTargetLocation = None
       for j in range(len(pivotTargetData)):
-        if pivotTargetData[j] >= pivotTargetData[0]+float(startTime)*(pivotTargetData[len(pivotTargetData)-1]-pivotTargetData[0]) and targetStartCount == 0:
+        if pivotTargetData[j] >= targetStartTime and targetStartCount == 0:
           startTargetLocation = j
           targetStartCount += 1
-        if pivotTargetData[j] > pivotTargetData[0]+float(endTime)*(pivotTargetData[len(pivotTargetData)-1]-pivotTargetData[0]):
+        if pivotTargetData[j] > targetEndTime:
           endTargetLocation = j-1
           break
-        elif pivotTargetData[j] == pivotTargetData[0]+float(endTime)*(pivotTargetData[len(pivotTargetData)-1]-pivotTargetData[0]):
+        elif pivotTargetData[j] == targetEndTime:
           endTargetLocation = j
       pivotTarget = pivotTargetData[startTargetLocation:endTargetLocation]
       targData = np.zeros((np.shape(targDataSet)[0],endTargetLocation-startTargetLocation))
