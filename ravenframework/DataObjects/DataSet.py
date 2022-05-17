@@ -105,8 +105,12 @@ class DataSet(DataObject):
     if not overwrite:
       assert(self._data is None)
       assert(self._collector is None or len(self._collector) == 0)
-    self._metavars.extend(keys)
-    self._orderedVars.extend(keys)
+    # add keys to _metavars if they are not already there
+    monkeys = [key for key in keys if key not in self._metavars]
+    self._metavars.extend(monkeys)
+    # do the same for _orderedVars
+    okays = [key for key in keys if key not in self._orderedVars]
+    self._orderedVars.extend(okays)
     self.setPivotParams(params)
     return keys
 
