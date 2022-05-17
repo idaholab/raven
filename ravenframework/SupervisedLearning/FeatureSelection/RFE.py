@@ -15,7 +15,6 @@
   Created on May 8, 2018
 
   @author: alfoa
-  Base subclass definition for DynamicModeDecomposition ROM (transferred from alfoa in SupervisedLearning)
 """
 
 #External Modules------------------------------------------------------------------------------------
@@ -228,7 +227,7 @@ class RFE(BaseInterface):
       #ax2.set_yticklabels(dendro["ivl"])
       #fig.tight_layout()
       #plt.show()
-      t = 0.00001*np.max(dist_linkage)
+      t = 0.000001*np.max(dist_linkage)
       self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
       self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
       cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
@@ -406,6 +405,7 @@ class RFE(BaseInterface):
                 #dividend+=1.
           #score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
+          self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
           if f is None:
             f = np.asarray(self.parametersToInclude)
           if k in bestForNumberOfFeatures.keys():
