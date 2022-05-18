@@ -134,6 +134,8 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
     \item \xmlNode{scaleOmega}, \xmlDesc{float, required field}, specifies the agents of change scaling ratio between the feature and target.
 \end{itemize}
 
+The output \textbf{DataObjects} pivot parameter must be named `pivot\_parameter' and this array is assigned within the post-processor algorithm.
+
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType}]
 <Simulation>
@@ -180,6 +182,35 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
     </PostProcessor>
     ...
   <Models>
+  ...
+  <DataObjects>
+    ...
+    <HistorySet name="pp1_out">
+      <Output>
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="pp2_out">
+      <Output>
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="pp3_out">
+      <Output>
+          dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_deviation_y2_y1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    ...
+  </DataObjects>
   ...
 <Simulation>
 \end{lstlisting}
