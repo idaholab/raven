@@ -292,3 +292,12 @@ class Grid(ForwardSampler):
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
+
+  def flushSampler(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushSampler()
+    self.gridEntity.flushGridBase()

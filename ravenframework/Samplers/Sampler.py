@@ -1144,5 +1144,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.counter = 0
     self.auxcnt = 0
     self.distDict = {}
+    self.funcDict = {}
     self.values = {}
     self.inputInfo = {'SampledVars': {}, 'SampledVarsPb': {}, 'crowDist': {}}

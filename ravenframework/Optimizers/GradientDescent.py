@@ -465,6 +465,7 @@ class GradientDescent(RavenSampled):
     self._acceptHistory = {}
     self._stepRecommendations = {}
     self._acceptRerun = {}
+    self._trajectoryFollowers = defaultdict(list)
 
   def _resolveNewGradPoint(self, traj, rlz, optVal, info):
     """

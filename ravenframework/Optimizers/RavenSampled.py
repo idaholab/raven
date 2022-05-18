@@ -372,6 +372,7 @@ class RavenSampled(Optimizer):
     self._optPointHistory = {}
     self._rerunsSinceAccept = {}
     self.__stepCounter = {}
+    self._submissionQueue = deque()
 
   ###################
   # Utility Methods #

@@ -438,3 +438,12 @@ class ConjugateGradient(StepManipulator):
                                            task=task, stpmin=1e-100, stpmax=1e100,
                                            isave=iSave, dsave=dSave)
     return stepSize, task
+
+  def flushStepManipulator(self):
+    """
+      Reset ConjugateGradient attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushStepManipulator()
+    self._persistence = None

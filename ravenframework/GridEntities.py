@@ -207,6 +207,14 @@ class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):
       @ Out, coordinate, tuple or dict, tuple containing the coordinates
     """
     pass
+
+  def flushGridBase(self):
+    """
+      Reset GridBase attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    pass
 #
 #
 #
@@ -692,6 +700,29 @@ class GridEntity(GridBase):
     if not returnDict:
       coordinates = tuple(coordinates)
     return coordinates
+
+  def flushGridBase(self):
+    """
+      Reset GridEntity attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushGridBase()
+    self.gridContainer['dimensionNames'] = []
+    self.gridContainer['gridVectors'] = {}
+    self.gridContainer['bounds'] = {'upperBounds':{},'lowerBounds':{}}
+    self.gridContainer['gridLength'] = 0
+    self.gridContainer['gridShape'] = None
+    self.gridContainer['gridMatrix'] = None
+    self.gridContainer['gridCoorShape'] = None
+    self.gridContainer['gridCoord'] = None
+    self.gridContainer['nVar'] = 0
+    self.gridContainer['transformationMethods'] = None
+    self.gridContainer['cellIDs'] = {}
+    self.gridContainer['vertexToCellIds'] = {}
+    self.gridContainer['initDictionary'] = None
+    self.uniqueCellNumber = 0
+    self.gridIterator = None
 
 class MultiGridEntity(GridBase):
   """
