@@ -64,6 +64,7 @@
     <Print name="info">
       <type>csv</type>
       <source>clusterInfo</source>
+      <what>Output</what>
     </Print>
     <Print name="dummy">
       <type>csv</type>
