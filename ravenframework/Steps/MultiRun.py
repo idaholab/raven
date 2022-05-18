@@ -46,6 +46,7 @@ class MultiRun(SingleRun):
     super().__init__()
     self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
     self.counter          = 0  #just an handy counter of the runs already performed
+    self._outputCollectionLambda = None # lambda function list to collect the output without checking the type
     self.printTag = 'STEP MULTIRUN'
 
   def _localInputAndCheckParam(self,paramInput):
@@ -98,19 +99,15 @@ class MultiRun(SingleRun):
     self._initializeSampler(inDictionary)
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
-    self._outputDictCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
       if not isinstance(output, OutStreamEntity):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
-          self._outputDictCollectionLambda.append((lambda x:None, outIndex))
         else:
           self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
-          self._outputDictCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutputFromDict(x[0],x[1]), outIndex) )
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
-        self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self._registerMetadata(inDictionary)
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
@@ -337,3 +334,14 @@ class MultiRun(SingleRun):
       # through if we add several samples at once through the restart. If we actually returned
       # a Realization object from the Sampler, this would not be a problem. - talbpaul
     return newInp
+
+  def flushStep(self):
+    """
+      Reset Step attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushStep()
+    self._samplerInitDict = {}
+    self.counter = 0
+    self._outputCollectionLambda = None

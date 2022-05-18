@@ -1133,3 +1133,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+
+  def flushSampler(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self.assemblerDict = {}
+    self.counter = 0
+    self.auxcnt = 0
+    self.distDict = {}
+    self.values = {}
+    self.inputInfo = {'SampledVars': {}, 'SampledVarsPb': {}, 'crowDist': {}}

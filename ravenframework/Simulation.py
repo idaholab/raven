@@ -764,6 +764,8 @@ class Simulation(MessageUser):
       @ Out, (stepInputDict, stepInstance), tuple, tuple of step input dictionary and step instance
     """
     stepInstance = self.stepsDict[stepName]   # retrieve the instance of the step
+    if self.ranPreviously:
+      stepInstance.flushStep()
     self.raiseAMessage(f'-- Beginning {stepInstance.type} step "{stepName}" ... --')
     self.runInfoDict['stepName'] = stepName   # provide the name of the step to runInfoDict
     stepInputDict = {}                        # initialize the input dictionary for a step. Never use an old one!!!!!
@@ -778,13 +780,29 @@ class Simulation(MessageUser):
         if self.ranPreviously and entity == 'DataObjects':
           # if simulation was run previously, output DataObjects need to be reset
           outputDataObject = self.getEntity(entity, name)
-          outputDataObject.flushOutputDataObject()
+          outputDataObject.flushDataObject()
           # now add to stepInputDict
           stepInputDict[role].append(outputDataObject)
         else:
           stepInputDict[role].append(self.getEntity(entity, name))
+      elif role == 'SolutionExport' and entity == 'DataObjects' and self.ranPreviously:
+        # if self.ranPreviously and entity == 'DataObjects':
+        # if simulation was run previously, SolutionExport DataObjects need to be reset
+        exportDataObject = self.getEntity(entity, name)
+        exportDataObject.flushDataObject()
+        # now add to stepInputDict
+        stepInputDict[role] = exportDataObject
+        # else:
+        #   stepInputDict[role] = self.getEntity(entity, name)
+      elif role == 'Optimizer' and self.ranPreviously:
+        # if simulation was run previously, Optimizer needs to be reset
+        resetOptimizer = self.getEntity(entity, name)
+        resetOptimizer.flushOptimizer()
+        # now add to stepInputDict
+        stepInputDict[role] = resetOptimizer
       else:
         stepInputDict[role] = self.getEntity(entity, name)
+
     # add the global objects
     stepInputDict['jobHandler'] = self.jobHandler
     # generate the needed assembler to send to the step

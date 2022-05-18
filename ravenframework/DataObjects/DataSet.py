@@ -35,10 +35,6 @@ except ValueError:
 from .. import CsvLoader
 from ..utils import utils, cached_ndarray, xmlUtils, mathUtils
 
-#
-#
-#
-#
 class DataSet(DataObject):
   """
     This class outlines the behavior for the basic in-memory DataObject, including support
@@ -786,14 +782,14 @@ class DataSet(DataObject):
     else:
       return len(self) # so that other entities can track which realization we've written
 
-  def flushOutputDataObject(self):
+  def flushDataObject(self):
     """
       Resets the DataObject used for output to its initial condition in order to run a RAVEN
       workflow after one has already been run.
       @ In, None
       @ Out, None
     """
-    super().flushOutputDataObject()
+    super().flushDataObject()
     self.types = None
 
   ### BUIlTINS AND PROPERTIES ###

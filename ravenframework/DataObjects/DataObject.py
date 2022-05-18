@@ -24,10 +24,7 @@ class DataObjectsCollection(InputData.ParameterInput):
     Class for reading in a collection of data objects.
   """
 DataObjectsCollection.createClass("DataObjects")
-#
-#
-#
-#
+
 class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     Base class.  Data objects are RAVEN's method for storing data internally and passing it from one
@@ -254,7 +251,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     self._selectOutput = (option,value)
     self.raiseADebug('Set selective output to',self._selectOutput)
 
-  def flushOutputDataObject(self):
+  def flushDataObject(self):
     """
       Resets the DataObject used for output to its initial condition in order to run a RAVEN
       workflow after one has already been run.

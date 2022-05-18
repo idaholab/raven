@@ -23,6 +23,7 @@
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
+import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -328,3 +329,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     self.raiseAMessage('***     Closing the step      ***')
     self._endStepActions(inDictionary)
     self.raiseAMessage('***        Step closed        ***')
+
+  def flushStep(self):
+    """
+      Reset Step attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    pass

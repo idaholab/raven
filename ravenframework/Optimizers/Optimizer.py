@@ -159,20 +159,21 @@ class Optimizer(AdaptiveSampler):
     ## Instance Variable Initialization
     # public
     # _protected
-    self._seed = None           # random seed to apply
-    self._minMax = 'min'        # maximization or minimization?
-    self._activeTraj = []       # tracks live trajectories
-    self._cancelledTraj = {}    # tracks cancelled trajectories, and reasons
-    self._convergedTraj = {}    # tracks converged trajectories, and values obtained
-    self._numRepeatSamples = 1  # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = None   # objective variable for optimization
-    self._initialValues = None  # initial variable values (trajectory starting locations), list of dicts
-    self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
-    self._trajCounter = 0       # tracks numbers to assign to trajectories
-    self._initSampler = None    # sampler to use for picking initial seeds
-    self._constraintFunctions = [] # list of constraint functions
-    self._impConstraintFunctions = [] # list of implicit constraint functions
-    self._requireSolnExport = True # optimizers only produce result in solution export
+    self._seed = None                   # random seed to apply
+    self._minMax = 'min'                # maximization or minimization?
+    self._activeTraj = []               # tracks live trajectories
+    self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
+    self._convergedTraj = {}            # tracks converged trajectories, and values obtained
+    self._numRepeatSamples = 1          # number of times to repeat sampling (e.g. denoising)
+    self._objectiveVar = None           # objective variable for optimization
+    self._initialValuesFromInput = None # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
+    self._initialValues = None          # initial variable values (trajectory starting locations), list of dicts
+    self._variableBounds = None         # dictionary of upper/lower bounds for each variable (may be inf?)
+    self._trajCounter = 0               # tracks numbers to assign to trajectories
+    self._initSampler = None            # sampler to use for picking initial seeds
+    self._constraintFunctions = []      # list of constraint functions
+    self._impConstraintFunctions = []   # list of implicit constraint functions
+    self._requireSolnExport = True      # optimizers only produce result in solution export
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
@@ -269,11 +270,12 @@ class Optimizer(AdaptiveSampler):
       if initsNode:
         inits = initsNode.value
         # initialize list of dictionaries if needed
-        if not self._initialValues:
-          self._initialValues = [{} for _ in inits]
+        if not self._initialValuesFromInput:
+          self._initialValuesFromInput = [{} for _ in inits]
         # store initial values
         for i, init in enumerate(inits):
-          self._initialValues[i][var] = init
+          self._initialValuesFromInput[i][var] = init
+    self._initialValues = copy.copy(self._initialValuesFromInput)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -497,3 +499,17 @@ class Optimizer(AdaptiveSampler):
     """
     # overload as needed in inheritors
     return False
+
+  def flushOptimizer(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    # since Optimizer inherits a Sampler, flush that too
+    self.flushSampler()
+    self.assemblerDict = {}
+    self._convergedTraj = {}
+    self._initialValues = copy.copy(self._initialValuesFromInput)
+    self._variableBounds = None
+    self._trajCounter = 0

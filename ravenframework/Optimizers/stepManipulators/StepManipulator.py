@@ -177,3 +177,10 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
   ###################
   # Utility Methods #
   ###################
+  def flushStepManipulator(self):
+    """
+      Reset StepManipulator attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self._optVars = None

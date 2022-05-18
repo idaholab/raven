@@ -202,3 +202,13 @@ class AdaptiveSampler(Sampler):
       else:
         new.append(template)
     return new
+
+  def flushSampler(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushSampler()
+    self._targetEvaluation = None
+    self._solutionExport = None

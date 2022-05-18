@@ -451,6 +451,21 @@ class GradientDescent(RavenSampled):
       self._convergenceInfo[traj][criteria] = False
     return traj
 
+  def flushOptimizer(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushOptimizer()
+    self._gradientInstance.flushGradient()
+    self._stepInstance.flushStepManipulator()
+    self._gradHistory = {}
+    self._stepHistory = {}
+    self._acceptHistory = {}
+    self._stepRecommendations = {}
+    self._acceptRerun = {}
+
   def _resolveNewGradPoint(self, traj, rlz, optVal, info):
     """
       Consider and store a new gradient evaluation point
@@ -569,6 +584,7 @@ class GradientDescent(RavenSampled):
       @ Out, old, dict, old opt point
       @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
+
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]

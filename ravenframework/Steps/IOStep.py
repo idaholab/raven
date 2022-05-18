@@ -58,6 +58,7 @@ class IOStep(Step):
     super().__init__()
     self.printTag = 'STEP IOCOMBINED'
     self.fromDirectory = None
+    self.actionType = None
 
   def __getOutputs(self, inDictionary):
     """
@@ -291,3 +292,12 @@ class IOStep(Step):
     """
     if 'fromDirectory' in paramInput.parameterValues:
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
+
+  def flushStep(self):
+    """
+      Reset Step attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushStep()
+    self.actionType = None
