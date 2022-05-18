@@ -73,6 +73,10 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None    # population fitness
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
+    self.bestPoint = None
+    self.bestFitness = None
+    self.bestObjective = None
+    self.objectiveVal = None
 
   ##########################
   # Initialization Methods #
@@ -565,6 +569,23 @@ class GeneticAlgorithm(RavenSampled):
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
+
+  def flushOptimizer(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushOptimizer()
+    self.population = None
+    self.popAge = None
+    self.fitness = None
+    self.ahdp = np.NaN
+    self.ahd = np.NaN
+    self.bestPoint = None
+    self.bestFitness = None
+    self.bestObjective = None
+    self.objectiveVal = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *

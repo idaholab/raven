@@ -241,3 +241,12 @@ class SingleRun(Step):
         and each parameter's initial value as the dictionary values
     """
     return {}
+
+  def flushStep(self):
+    """
+      Reset SingleRun attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushStep()
+    self.failedRuns = []

@@ -516,3 +516,4 @@ class Optimizer(AdaptiveSampler):
     self._trajCounter = 0
     self._constraintFunctions = []
     self._impConstraintFunctions = []
+    self._initSampler = None
