@@ -187,8 +187,9 @@ class JobHandler(BaseType):
       if 'UPDATE_PYTHONPATH' in self.runInfoDict:
         sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
 
-      self.rayInstanciatedOutside = False
-      if len(self.runInfoDict['Nodes']) > 0:
+      # is ray instanciated outside?
+      self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+      if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
         ## identify the local host name and get the number of local processors
@@ -200,11 +201,14 @@ class JobHandler(BaseType):
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        # is ray instanciated outside?
-        self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
+
         if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
-          # create head node cluster
-          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
+          if self.rayInstanciatedOutside:
+            address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword'])
+          else:
+            # create head node cluster
+            # port 0 lets ray choose an available port
+            address, redisPassword = self.__runHeadNode(nProcsHead, 0)
           # add names in runInfo
           self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
           if _rayAvail:
@@ -237,9 +241,12 @@ class JobHandler(BaseType):
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
+      else:
+        self.raiseADebug("JobHandler initialized without ray")
     else:
       ## We are just using threading
       self.rayServer = None
+      self.raiseADebug("JobHandler initialized with threading")
     # ray is initialized
     self.isRayInitialized = True
 
@@ -290,10 +297,11 @@ class JobHandler(BaseType):
       # shutdown ray API (object storage, plasma, etc.)
       ray.shutdown()
 
-  def __runHeadNode(self, nProcs):
+  def __runHeadNode(self, nProcs, port=None):
     """
       Method to activate the head ray server
       @ In, nProcs, int, the number of processors
+      @ In, port, int, desired port (None: ray default, 0: ray finds available)
       @ Out, address, str, the retrieved address (ip:port)
       @ Out, redisPassword, str, the redis password
     """
@@ -305,6 +313,8 @@ class JobHandler(BaseType):
       command = ["ray","start","--head"]
       if nProcs is not None:
         command.append("--num-cpus="+str(nProcs))
+      if port is not None:
+        command.append("--port="+str(port))
       outFile = open("ray_head.ip", 'w')
       rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
       rayStart.wait()
@@ -325,7 +335,7 @@ class JobHandler(BaseType):
     address, redisPassword = None, None
     with open(rayLog, 'r') as rayLogObj:
       for line in rayLogObj.readlines():
-        if "ray start" in line.strip():
+        if " ray start" in line.strip():
           ix = line.strip().find("ray start")
           address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
           redisPassword = redisPassword.split("=")[-1].replace("'","")
@@ -421,6 +431,11 @@ class JobHandler(BaseType):
           utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         ## update list of servers
         servers.append(nodeId)
+      if _rayAvail:
+        #wait for the servers to finish starting (prevents zombies)
+        for nodeId in uniqueNodes:
+          self.remoteServers[nodeId].wait()
+          self.raiseADebug("server "+str(nodeId)+" result: "+str(self.remoteServers[nodeId]))
 
     return servers
 
