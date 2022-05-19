@@ -15,6 +15,7 @@
   Base class for both in-memory and in-disk data structures.
 """
 import abc
+import copy
 
 from ..BaseClasses import BaseEntity
 from ..utils import utils, InputData, InputTypes
@@ -86,9 +87,12 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     self.protectedTags    = ['RAVEN_parentID','RAVEN_isEnding'] # list(str) protected RAVEN variable names,
                                                                 #   should not be avail to user as var names
     self._inputs          = []     # list(str) if input variables
+    self._inputsInitial   = []     # list(str) of initial input variables
     self._outputs         = []     # list(str) of output variables
+    self._outputsInitial  = []     # list(str) of initial output variables
     self._metavars        = []     # list(str) of POINTWISE metadata variables
     self._orderedVars     = []     # list(str) of vars IN ORDER of their index
+    self._orderedVarsInitial = []  # list(str) of initial vars IN ORDER of their index
 
     self._meta            = {}     # dictionary to collect meta until data is collapsed
     self._selectInput     = None   # if not None, describes how to collect input data from history
@@ -195,6 +199,9 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     # check if protected vars have been violated
     if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
+    self._inputsInitial = copy.copy(self._inputs)
+    self._outputsInitial = copy.copy(self._outputs)
+    self._orderedVarsInitial = copy.copy(self._orderedVars)
 
   def _setDefaultPivotParams(self):
     """
@@ -261,16 +268,9 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
 
     self._data = None
     self._metavars = []
-    # remove 'prefix' from _orderdVars and _outputs
-    if 'prefix' in self._orderedVars:
-      self._orderedVars.remove('prefix')
-    if 'prefix' in self._outputs:
-      self._outputs.remove('prefix')
-    # remove variable names with 'Probability' attached
-    self._orderedVars = [x for x in self._orderedVars if 'Probability' not in x]
-    # remove variable names with '_ste' attached
-    self._orderedVars = [x for x in self._orderedVars if '_ste' not in x]
-    self._outputs = [x for x in self._outputs if '_ste' not in x]
+    self._orderedVars = copy.copy(self._orderedVarsInitial)
+    self._inputs = copy.copy(self._inputsInitial)
+    self._outputs = copy.copy(self._outputsInitial)
     self._meta = {}
     self._collector = None
     self._scaleFactors = {}
