@@ -363,6 +363,13 @@
       Hyper-parameter : inverse scale parameter (rate parameter) for
       the Gamma distribution prior over the lambda parameter.
 
+    \item \xmlNode{alpha\_init}: \xmlDesc{float}, 
+      Initial value for alpha (precision of the noise).
+      If not set, alpha\_init is $1/Var(y)$.
+
+    \item \xmlNode{lambda\_init}: \xmlDesc{float}, 
+      Initial value for lambda (precision of the weights).
+
     \item \xmlNode{compute\_score}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True, compute the objective function at each step of the
       model.
