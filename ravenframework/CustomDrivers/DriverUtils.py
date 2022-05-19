@@ -103,10 +103,9 @@ def setupCpp():
   from ravenframework.utils import utils
   utils.find_crow(frameworkDir)
 
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir,'contrib') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir,"contrib")}" already in system path. Skipping CPP setup')
+  if any(os.path.normcase(sp) == os.path.join(frameworkDir,'contrib', 'pp') for sp in sys.path):
+    print(f'WARNING: "{os.path.join(frameworkDir,"contrib", "pp")}" already in system path. Skipping CPP setup')
   else:
-    #utils.add_path(os.path.join(frameworkDir,'contrib'))
     ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
     utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 

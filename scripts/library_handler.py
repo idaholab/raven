@@ -575,7 +575,7 @@ if __name__ == '__main__':
       raise IOError('During library installation, the following requested plugin libraries '+
                     ' were not found: {}'.format(', '.join(missing)))
 
-  item_seperator = ' '
+  itemSeperator = ' '
   ### Il Grande Albero Decisionale
   # "optional" and "os" are passed through
   if args.installer == 'manual':
@@ -646,10 +646,10 @@ if __name__ == '__main__':
 [options]
 install_requires =
     """
-        item_seperator = '\n    '
+        itemSeperator = '\n    '
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = item_seperator.join(['{lib}{extra}{ver}'
+    libTexts = itemSeperator.join(['{lib}{extra}{ver}'
                          .format(lib=lib,
                                  extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
                                  ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
