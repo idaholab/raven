@@ -528,7 +528,12 @@ class Simulation(MessageUser):
       # Copy in all the new keys
       self.runInfoDict[key] = newRunInfo[key]
     self.jobHandler.applyRunInfo(self.runInfoDict)
-    self.jobHandler.initialize()
+    self.__remoteRunCommand = self.__modeHandler.remoteRunCommand(dict(self.runInfoDict))
+    if self.__remoteRunCommand is None:
+      # If __remoteRunCommand is None, then we are *not* going to run remotely,
+      # so need to start jobhandler stuff
+      self.jobHandler.initialize()
+
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
@@ -892,13 +897,13 @@ class Simulation(MessageUser):
     # can we remove the check on the existence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     # controlling the PBS environment
-    remoteRunCommand = self.__modeHandler.remoteRunCommand(dict(self.runInfoDict))
-    if remoteRunCommand is not None:
-      subprocess.call(args=remoteRunCommand["args"],
-                      cwd=remoteRunCommand.get("cwd", None),
-                      env=remoteRunCommand.get("env", None))
+    if self.__remoteRunCommand is not None:
+      subprocess.call(args=self.__remoteRunCommand["args"],
+                      cwd=self.__remoteRunCommand.get("cwd", None),
+                      env=self.__remoteRunCommand.get("env", None))
       self.raiseADebug('Submitted in queue! Shutting down Jobhandler!')
-      self.jobHandler.shutdown()
+      #Note that jobhandler has not been initialized,
+      # so no need to call self.jobHandler.shutdown()
       return
     # initialize, then execute, steps
     for stepName in self.__stepSequenceList:
@@ -906,6 +911,7 @@ class Simulation(MessageUser):
       self.executeStep(stepInputDict, stepInstance)
     # finalize the simulation
     self.finalizeSimulation()
+    self.raiseADebug(time.ctime())
     self.raiseAMessage('Run complete!\n', forcePrint=True)
 
     return 0
@@ -962,3 +968,6 @@ class Simulation(MessageUser):
     """
     with open('.ravenStatus', 'w') as f:
       f.writelines('Success')
+      #force it to disk
+      f.flush()
+      os.fsync(f.fileno())
