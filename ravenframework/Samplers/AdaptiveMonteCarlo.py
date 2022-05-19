@@ -97,7 +97,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     self.forceIteration = False   # flag control if at least a self.limit number of iteration should be done
     self.solutionExport = None    # data used to export the solution (it could also not be present)
     self.tolerance = {}           # dictionary stores the tolerance for each variables
-    self.converged = False        # flag convergence
     self.basicStatPP = None       # post-processor to compute the basic statistics
     self.converged = False        # flag that is set to True when the sampler converged
     self.printTag = 'SAMPLER ADAPTIVE MC'
@@ -250,3 +249,13 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       else:
         new.append(template)
     return set(new)
+
+  def flushSampler(self):
+    """
+      Reset AdaptiveMonteCarlo attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushSampler()
+    self.persistenceCounter = 0
+    self.basicStatPP = None

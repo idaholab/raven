@@ -773,33 +773,37 @@ class Simulation(MessageUser):
     stepInputDict['Output'] = []              # set the Output to an empty list
     # fill the take a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
     for role, entity, _, name in stepInstance.parList:
+      print(f'Simulation.initiateStep role: {role} entity: {entity} name: {name}')
       # Only for input and output we allow more than one object passed to the step, so for those we build a list
       if role == 'Input':
         stepInputDict[role].append(self.getEntity(entity, name))
       elif role == 'Output':
         if self.ranPreviously and entity == 'DataObjects':
-          # if simulation was run previously, output DataObjects need to be reset
-          outputDataObject = self.getEntity(entity, name)
-          outputDataObject.flushDataObject()
+          # if simulation was run previously, output DataObjects need to be flushed
+          flushDataObject = self.getEntity(entity, name)
+          flushDataObject.flushDataObject()
           # now add to stepInputDict
-          stepInputDict[role].append(outputDataObject)
+          stepInputDict[role].append(flushDataObject)
         else:
           stepInputDict[role].append(self.getEntity(entity, name))
       elif role == 'SolutionExport' and entity == 'DataObjects' and self.ranPreviously:
-        # if self.ranPreviously and entity == 'DataObjects':
-        # if simulation was run previously, SolutionExport DataObjects need to be reset
-        exportDataObject = self.getEntity(entity, name)
-        exportDataObject.flushDataObject()
+        # if simulation was run previously, SolutionExport DataObjects need to be flushed
+        flushDataObject = self.getEntity(entity, name)
+        flushDataObject.flushDataObject()
         # now add to stepInputDict
-        stepInputDict[role] = exportDataObject
-        # else:
-        #   stepInputDict[role] = self.getEntity(entity, name)
+        stepInputDict[role] = flushDataObject
       elif role == 'Optimizer' and self.ranPreviously:
-        # if simulation was run previously, Optimizer needs to be reset
-        resetOptimizer = self.getEntity(entity, name)
-        resetOptimizer.flushOptimizer()
+        # if simulation was run previously, Optimizer needs to be flushed
+        flushOptimizer = self.getEntity(entity, name)
+        flushOptimizer.flushOptimizer()
         # now add to stepInputDict
-        stepInputDict[role] = resetOptimizer
+        stepInputDict[role] = flushOptimizer
+      elif role == 'Sampler' and self.ranPreviously:
+        # if simulation was run previously, Sampler needs to be flushed
+        flushSampler = self.getEntity(entity, name)
+        flushSampler.flushSampler()
+        # now add to stepInputDict
+        stepInputDict[role] = flushSampler
       else:
         stepInputDict[role] = self.getEntity(entity, name)
 
