@@ -59,6 +59,10 @@ class Sobol(SparseGridCollocation):
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
     self.addAssemblerObject('ROM', InputData.Quantity.one)
+    self.features = None
+    self.SQs = {}
+    self.ROMs = {}
+    self.pointsToRun = []
 
   def _localWhatDoINeed(self):
     """
@@ -211,3 +215,22 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+
+  def flushSampler(self):
+    """
+      Reset Sobol attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self.maxPolyOrder = None
+    self.polyDict = {}
+    self.quadDict = {}
+    self.importanceDict = {}
+    self.ROM = None
+    self.sobolOrder = None
+    self.references = {}
+    self.distinctPoints = set()
+    self.features = None
+    self.SQs = {}
+    self.ROMs = {}
+    self.pointsToRun = []

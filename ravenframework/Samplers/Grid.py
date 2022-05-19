@@ -300,4 +300,5 @@ class Grid(ForwardSampler):
       @ Out, None
     """
     super().flushSampler()
-    self.gridEntity.flushGridBase()
+    if self.gridEntity is not None:
+      self.gridEntity.flushGridBase()

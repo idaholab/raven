@@ -1100,6 +1100,14 @@ class MultiGridEntity(GridBase):
           self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')
     self.updateParameter(parameterName, value, True, nodeName)
 
+  def flushGridBase(self):
+    """
+      Reset GridBase attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushGridBase()
+
 factory = EntityFactory('GridEntities')
 factory.registerType('GridEntity', GridEntity)
 factory.registerType('MultiGridEntity', MultiGridEntity)
