@@ -187,6 +187,7 @@ class SimulatedAnnealing(RavenSampled):
     self.T = None                                               # current temperature
     self._coolingMethod = None                                  # initializing cooling method
     self._coolingParameters = {}                                # initializing the cooling schedule parameters
+    self.info = {}
 
   def handleInput(self, paramInput):
     """
@@ -242,7 +243,6 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self.info = {}
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
@@ -323,6 +323,11 @@ class SimulatedAnnealing(RavenSampled):
         self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
         return
       self._submitRun(suggested, traj, self.getIteration(traj))
+
+  def flushOptimizer(self):
+    super().flushOptimizer()
+    self.T = None
+    self.info = {}
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
