@@ -541,13 +541,13 @@ Gradient Descent Example:
 \subsection{SimulatedAnnealing}
   The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
   to perform a global search in large design spaces. The methodology rose
-  from statistical physics and was inspitred by metallurgy where                             it was
+  from statistical physics and was inspired by metallurgy where                             it was
   found that fast cooling might lead to smaller and defected crystals,
-  and that reheating and slowly controling cooling will lead to better states.
+  and that reheating and slowly controlling cooling will lead to better states.
   This allows climbing to avoid being stuck in local minima and hence facilitates
-  finding the global minima for non-convex probloems.                             More information
+  finding the global minima for non-convex problems.                             More information
   can be found in: Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
-  ``Optimization by Simulated Annealing". Science. 220 (4598): 671-680.
+  ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -558,7 +558,7 @@ Gradient Descent Example:
              \item \texttt{rejectReason}: discription of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
-             \item \texttt{amp\_\{VAR\}}: amplitued associated to each variable used to compute step size based on cooling method and the corresponding next neighbour
+             \item \texttt{amp\_\{VAR\}}: amplitude associated to each variable used to compute step size based on cooling method and the corresponding next neighbor
              \item \texttt{delta\_\{VAR\}}: step size associated to each variable
              \item \texttt{Temp}: temperature at current state
              \item \texttt{fraction}: current fraction of the max iteration limit
@@ -1115,7 +1115,7 @@ Simulated Annealing Example:
           such that the population size is kept constant.                   $nChildren = 2 \times
           {nParents \choose 2} = nParents \times (nParents-1) = popSize$                   solving
           for nParents we get:                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
-          This will result in a popSize a little lareger than the initial one, these excessive
+          This will result in a popSize a little larger than the initial one, these excessive
           children will be later thrawn away and only the first popSize child will be kept
 
         \item \xmlNode{reproduction}:
