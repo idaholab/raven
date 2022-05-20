@@ -22,14 +22,12 @@ import pandas as pd
 
 from Tester import Differ
 
-# get access to math tools from RAVEN
-try:
-  from ravenframework.utils import mathUtils
-except ImportError:
-  new = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', '..',
-                                      '..', '..'))
+new = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'))
+if new not in sys.path:
   sys.path.append(new)
-  from ravenframework.utils import mathUtils
+
+# get access to math tools from RAVEN
+from ravenframework.utils import mathUtils
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
