@@ -24,10 +24,10 @@ from ravenframework.utils import utils
 # ***********************************************
 # main utilities
 #
-def doSetup():
+def doSetup(checkLibraries=True):
   """
     Fully sets up RAVEN environment and variables.
-    @ In, None
+    @ In,checkLibraries, bool, if true check the library versions
     @ Out, None
   """
   printStatement()
@@ -37,7 +37,8 @@ def doSetup():
   setupFramework()
   setupH5py()
   setupCpp()
-  checkVersions()
+  if checkLibraries:
+    checkVersions()
 
 def findFramework():
   """
@@ -102,12 +103,11 @@ def setupCpp():
 
   utils.find_crow(frameworkDir)
 
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir, "contrib")}" already in system path. Skipping CPP setup')
+  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib', 'pp') for sp in sys.path):
+    print(f'WARNING: "{os.path.join(frameworkDir,"contrib", "pp")}" already in system path. Skipping CPP setup')
   else:
-    utils.add_path(os.path.join(frameworkDir,'contrib'))
-    ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-    utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+    # TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+    utils.add_path_recursively(os.path.join(frameworkDir, 'contrib', 'pp'))
 
 def checkVersions():
   """
@@ -124,7 +124,11 @@ def checkVersions():
     sys.path.append(scriptDir)
   else:
     remove = False
-  import library_handler as LH
+  try:
+    import library_handler as LH
+  except ModuleNotFoundError:
+    print("ERROR: Unable to check library versions because library_handler not found")
+    return
   if remove:
     sys.path.pop(sys.path.index(scriptDir))
   # if libraries are not to be checked, we're done here
