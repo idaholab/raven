@@ -337,7 +337,9 @@ class HistorySet(DataSet):
       @ Out, None
     """
     extraKeys = DataSet.addExpectedMeta(self, keys, params=params, overwrite=overwrite)
-    self._inputMetaVars.extend(list(key for key in extraKeys if key not in params))
+    # are the extraKeys actually new?
+    actualExtraKeys = [key for key in extraKeys if key not in params or key not in self._inputMetaVars]
+    self._inputMetaVars.extend(actualExtraKeys)
     if params:
       self._outputMetaVars.extend(list(key for key in extraKeys if key in params))
     return extraKeys

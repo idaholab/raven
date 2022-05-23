@@ -52,7 +52,7 @@ class FilePrint(PrintInterface):
     self.type = 'OutStreamFilePrint'
     self.printTag = 'OUTSTREAM PRINT'
     self.sourceName = []
-    self.sourceData = None
+    self.sourceData = []
     self.what = None
     self.options = {}    # outstreaming options # no addl info from original developer
     # dictionary of what indices have already been printed, so we don't duplicate writing efforts
@@ -174,3 +174,4 @@ class FilePrint(PrintInterface):
     """
     # clear history of printed realizations
     self.indexPrinted = {}
+    self.sourceData = []
