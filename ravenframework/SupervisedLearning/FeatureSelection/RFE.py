@@ -17,7 +17,7 @@
   @author: alfoa
 """
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules--------------------------------------------------------------------------------
 import sys
 import copy
 import numpy as np
@@ -25,13 +25,13 @@ from scipy import spatial
 from sklearn.decomposition import PCA
 from collections import OrderedDict
 import itertools
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End----------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules--------------------------------------------------------------------------------
 from ...utils import mathUtils
 from ...utils import InputData, InputTypes
 from ...BaseClasses import BaseInterface
-#Internal Modules End--------------------------------------------------------------------------------
+#Internal Modules End----------------------------------------------------------------------------
 
 class RFE(BaseInterface):
   """
@@ -213,12 +213,14 @@ class RFE(BaseInterface):
       corr = spearmanr(space,axis=0).correlation
       corr = (corr + corr.T) / 2
       np.fill_diagonal(corr, 1)
-
+      print(corr)
+      for i in range(corr.shape[0]):
+        print(" ".join([str(e) for e in corr[i,:].tolist()]))
       # We convert the correlation matrix to a distance matrix before performing
       # hierarchical clustering using Ward's linkage.
       distance_matrix = 1 - np.abs(corr)
       dist_linkage = hierarchy.ward(squareform(distance_matrix))
-      t = 0.000001*np.max(dist_linkage)
+      t = float('{:.3e}'.format(0.000001*np.max(dist_linkage)))
       self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
       self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
       cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
@@ -237,7 +239,6 @@ class RFE(BaseInterface):
     diff = nSteps - lowerStep
     firstStep = int(setStep * (1+diff))
     step = firstStep
-
     # Elimination
     while np.sum(support_) > nFeaturesToSelect:
       # Remaining features
@@ -297,11 +298,12 @@ class RFE(BaseInterface):
       support_[featuresForRanking[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
 
-    # now we check if maxNumberFeatures is set and in case perform an additional reduction based on score
+    # now we check if maxNumberFeatures is set and in case perform an
+    # additional reduction based on score
     # removing the variables one by one
 
-
     if self.maxNumberFeatures is not None:
+      featuresForRanking = np.arange(nParams)[support_]
       f = None
       if f is None:
         f = np.asarray(self.parametersToInclude)
