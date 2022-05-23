@@ -41,6 +41,99 @@
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
       \xmlAttr{subType}         ``CrossValidation``.
@@ -123,6 +216,99 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -307,6 +493,99 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
       aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
@@ -472,6 +751,99 @@ Example:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
       aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
@@ -623,6 +995,99 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -797,6 +1262,99 @@ Example:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
       \xmlAttr{subType}         ``CrossValidation``.
@@ -887,6 +1445,99 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1159,6 +1810,99 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1554,6 +2298,99 @@ General ARMA Example:
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
 
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
       \xmlAttr{subType}         ``CrossValidation``.
@@ -1697,6 +2534,99 @@ Example to export the coefficients of trained PolyExponential ROM:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1870,6 +2800,99 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+
+    \item \xmlNode{featureSelection}:
+      Apply feature selection algorithm
+
+      The \xmlNode{featureSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{RFE}:
+          -- no description yet --
+          The \xmlNode{RFE} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{RFE} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
+              Exact Number of features to select
+
+            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
+              Maximum Number of features to select, the algorithm will automatically determine the
+              feature list to minimize a total score.
+
+            \item \xmlNode{searchTol}: \xmlDesc{float}, 
+              Relative tolerance for serarch! Only if maxNumberFeatures is set
+
+            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying clustering before RFE search?
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{step}: \xmlDesc{float}, 
+              If greater than or equal to 1, then step corresponds to the (integer) number
+              of features to remove at each iteration. If within (0.0, 1.0), then step
+              corresponds to the percentage (rounded down) of features to remove at
+              each iteration.
+          \end{itemize}
+
+        \item \xmlNode{VarianceThreshold}:
+          -- no description yet --
+          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{name}: \xmlDesc{string, required}, 
+                User-defined name to designate this entity in the RAVEN input file.
+              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+                Desired verbosity of messages coming from this entity
+          \end{itemize}
+
+          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to include in the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{threshold}: \xmlDesc{float}, 
+              Features with a training-set variance lower than this threshold                   will
+              be removed. The default is to keep all features with non-zero
+              variance, i.e. remove the features that have the same value in all
+              samples.
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{dimensionalityReduction}:
+      Use dimensionality reduction for the feature space?
+
+      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{PCA}:
+          Use PCA
+
+          The \xmlNode{PCA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+              List of IDs of features/variables to exclude from the search.
+
+            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+              Which space to search? Target or Feature (this is temporary till MR #1718)
+
+            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Whiten the signal?
+
+            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Tolerance for singular values.
+          \end{itemize}
+      \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
