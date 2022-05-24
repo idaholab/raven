@@ -266,6 +266,7 @@ class GridEntity(GridBase):
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
     self.volumetricRatio                        = None               # volumetric ratio (optional if steplenght is read or passed in initDict)
+    self.nVar = None
 
   def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
     """
@@ -723,6 +724,7 @@ class GridEntity(GridBase):
     self.gridContainer['initDictionary'] = None
     self.uniqueCellNumber = 0
     self.gridIterator = None
+    self.nVar = None
 
 class MultiGridEntity(GridBase):
   """
