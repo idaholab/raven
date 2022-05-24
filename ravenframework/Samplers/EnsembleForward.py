@@ -86,6 +86,7 @@ class EnsembleForward(ForwardSampler):
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
     self.dependentSample      = {}
+    self.gridEnsemble = None
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -242,3 +243,12 @@ class EnsembleForward(ForwardSampler):
         self.values[corrVar.strip()] = test
         self.inputInfo['SampledVars'][corrVar.strip()] = test
 
+  def flushSampler(self):
+    """
+      Reset EnsembleForward attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushSampler()
+    self.samplersCombinations = {}
+    self.gridEnsemble = None

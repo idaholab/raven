@@ -282,3 +282,14 @@ class CustomSampler(ForwardSampler):
         self._incrementCounter()
     if self.inputInfo['batchMode']:
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
+
+  def flushSampler(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushSampler()
+    self.infoFromCustom = {}
+    self.pointsToSample = {}
+    self.readingFrom = None
