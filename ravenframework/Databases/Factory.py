@@ -19,7 +19,7 @@ Created on March 2, 2020
 from ..utils import utils
 from ..EntityFactoryBase import EntityFactory
 
-from .Database import DateBase as Database
+from .Database import DataBase as Database
 from .HDF5 import HDF5
 from .NetCDF import NetCDF
 

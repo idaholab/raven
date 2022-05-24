@@ -28,10 +28,10 @@ import numpy as np
 from ..utils import InputData, InputTypes
 from ..h5py_interface_creator import hdf5Database as h5Data
 from ..DataObjects import PointSet, HistorySet
-from .Database import DateBase
+from .Database import DataBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class HDF5(DateBase):
+class HDF5(DataBase):
   """
     class to handle h5py (hdf5) databases,
     Used to add and retrieve attributes and values from said database
@@ -167,7 +167,7 @@ class HDF5(DateBase):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = DateBase.getInitParams(self)
+    paramDict = DataBase.getInitParams(self)
     paramDict['exist'] = self.exist
     return paramDict
 

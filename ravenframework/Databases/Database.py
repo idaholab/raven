@@ -35,7 +35,7 @@ from ..BaseClasses import BaseEntity, InputDataUser
 from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DateBase(BaseEntity, InputDataUser):
+class DataBase(BaseEntity, InputDataUser):
   """
     class to handle a database,
     Used to add and retrieve attributes and values from said database
@@ -129,7 +129,7 @@ class DateBase(BaseEntity, InputDataUser):
       self.initializeDatabase()
     self.raiseAMessage(f'Database is located at "{fullpath}"')
 
-  def initialize(*args, **kwargs):
+  def initialize(self, *args, **kwargs):
     """
       Initialization for data object, if any.
       @ In, args, list, ordered arguments

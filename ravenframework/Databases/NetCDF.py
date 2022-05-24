@@ -25,9 +25,9 @@ import numpy as np
 import xarray as xr
 
 from ..utils import InputData, InputTypes, xmlUtils, mathUtils
-from .Database import DateBase
+from .Database import DataBase
 
-class NetCDF(DateBase):
+class NetCDF(DataBase):
   """
     Stores data in netCDF format
   """
@@ -63,8 +63,6 @@ class NetCDF(DateBase):
       @ In, source, DataObjects.DataObject, object to write to file
       @ Out, None
     """
-    # if in write mode, wipe the file before writing
-    self.initializeDatabase()
     ds, meta = source.getData()
     # we actually just tell the DataSet to write out as netCDF
     path = self.get_fullpath()
@@ -79,6 +77,7 @@ class NetCDF(DateBase):
         if mathUtils.isAString(ds[var].values[0]):
           ds[var] = ds[var].astype(str)
     # is there existing data? Read it in and merge it, if so
+    # -> we've already wiped the file in initializeDatabase if it's in write mode
     if os.path.isfile(path):
       exists = xr.load_dataset(path)
       if 'RAVEN_sample_ID' in exists:
