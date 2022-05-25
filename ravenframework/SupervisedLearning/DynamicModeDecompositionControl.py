@@ -270,8 +270,8 @@ class DMDC(DMD):
         #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/abs(np.average(self.stateVals[:,:,stateCnt]))
         #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
         self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
-      
-        
+
+
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
           minIdx = stateCnt
@@ -284,7 +284,7 @@ class DMDC(DMD):
         #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx])/abs(np.average(self.stateVals[:,:,minIdx])))) for outcnt in range(len(self.outputID))])
         #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
         self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-      
+
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
       if True:
         for stateID, val in self._importances.items():
@@ -318,7 +318,11 @@ class DMDC(DMD):
     for cnt, index in enumerate(indeces):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        uVector[:,cnt,:] = uVector[:,cnt,:] - self.actuatorVals[0, index, :]
+        # print("** uVector shape =",(uVector[:,cnt,:]).shape)
+        # print("** self.actuatorVals shape =",(self.actuatorVals[0, index, :]).shape)
+        # print("** initStates shape =",(initStates[cnt,:]).shape)
+        # print("** self.stateVals shape =",(self.stateVals[0, index, :]).shape)
+        uVector[:,cnt,:] = (uVector[:,cnt,:].T - self.actuatorVals[0, index, :]).T
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
@@ -554,7 +558,7 @@ class DMDC(DMD):
     # SVD
     uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
-    rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
+    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-6, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
       uTruc = uTrucSVD[:, :rankTruc]
       vTruc = vTrucSVD[:, :rankTruc]
@@ -567,8 +571,13 @@ class DMDC(DMD):
     # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
     qsTruc, rsTruc = np.linalg.qr(sTruc)
     # if rsTruc is singular matrix, raise an error
-    if np.linalg.det(rsTruc) == 0:
-      self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
+    # if np.linalg.det(rsTruc) == 0:
+    #   print("\nsTrucSVD=",sTrucSVD)
+    #   print("\nrankTruc=",rankTruc)
+    #   print("\nsTruc=",sTruc.shape)
+    #   print("\nrsTruc=",rsTruc.shape,"\n",rsTruc)
+    #   np.savetxt('D:\\GitProjects\\offcial_forks\\raven\\rsTruc.csv', rsTruc, delimiter=",")
+    #   self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
     beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
     A = beta.dot(uTruc[0:n, :].T)
     B = beta.dot(uTruc[n:, :].T)

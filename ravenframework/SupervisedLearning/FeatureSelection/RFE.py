@@ -199,12 +199,11 @@ class RFE(BaseInterface):
 
     # clustering appraoch here
     if self.applyClusteringFiltering:
-      from scipy.stats import spearmanr
+      from scipy.stats import spearmanr, pearsonr
       from scipy.cluster import hierarchy
       from scipy.spatial.distance import squareform
       from collections import defaultdict
-      #import matplotlib.pyplot as plt
-      #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+ 
       if self.whichSpace == 'feature':
         space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
       else:
@@ -213,9 +212,7 @@ class RFE(BaseInterface):
       corr = spearmanr(space,axis=0).correlation
       corr = (corr + corr.T) / 2
       np.fill_diagonal(corr, 1)
-      print(corr)
-      for i in range(corr.shape[0]):
-        print(" ".join([str(e) for e in corr[i,:].tolist()]))
+
       # We convert the correlation matrix to a distance matrix before performing
       # hierarchical clustering using Ward's linkage.
       distance_matrix = 1 - np.abs(corr)
