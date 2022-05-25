@@ -25,9 +25,10 @@ import os
 import sys
 import time
 import argparse
-frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'ravenframework')
-sys.path.append(frameworkDir)
-from utils import xmlUtils
+ravenDir = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'ravenframework')
+from ravenframework.utils import xmlUtils
 
 # python changed the import error in 3.6
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
