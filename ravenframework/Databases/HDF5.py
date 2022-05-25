@@ -106,6 +106,8 @@ class HDF5(DataBase):
       @ In, None
       @ Out, None
     """
+    if self.database is not None:
+      self.database.closeDatabaseW()
     super(HDF5, self).initializeDatabase()
     self.database = h5Data(self.name, self.databaseDir, self.filename, self.exist, self.variables)
 
