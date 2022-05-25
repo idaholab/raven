@@ -61,19 +61,17 @@ class PPDSS(ValidationBase):
                                                                 descr="""Time points to separate feature data and conduct DSS postprocessing
                                                                 on selected time interval. Values must be fractions of the full time interval.
                                                                 To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
-                                                                To provide more than one selection for the same data set,
-                                                                '+' should be placed at the end of each interval to start defining the new interval. Example: 0.0|0.4+0.4|1.0
                                                                 If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
-    separateFeatureDataInput.addParam("type", InputTypes.StringType)
+    separateFeatureDataInput.addParam("type", InputTypes.StringType, descr="""Specifies what type of user defined time intervals have been selected from
+                                                                    the feature pivot parameter. Options are currently `ratio' or `raw_values'""")
     inputSpecification.addSub(separateFeatureDataInput)
     separateTargetDataInput = InputData.parameterInputFactory("separateTargetData", contentType=InputTypes.StringType,
                                                                 descr="""Time points to separate target data and conduct DSS postprocessing
                                                                 on selected time interval. Values must be fractions of the full time interval.
                                                                 To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
-                                                                To provide more than one selection for the same data set,
-                                                                '+' should be placed at the end of each interval to start defining the new interval. Example: 0.0|0.4+0.4|1.0
                                                                 If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
-    separateTargetDataInput.addParam("type", InputTypes.StringType)
+    separateTargetDataInput.addParam("type", InputTypes.StringType, descr="""Specifies what type of user defined time intervals have been selected from
+                                                                    the target pivot parameter. Options are currently `ratio' or `raw_values'""")
     inputSpecification.addSub(separateTargetDataInput)
     scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.makeEnumType("scale","scaleType",['DataSynthesis','2_2_affine','dilation','beta_strain','omega_strain','identity']),
                                                       descr="""Scaling type for the time transformation. Available types are DataSynthesis,
@@ -137,15 +135,11 @@ class PPDSS(ValidationBase):
       elif child.getName() == 'pivotParameterTarget':
         self.pivotParameterTarget = child.value
       elif child.getName() == 'separateFeatureData':
-        if 'type' not in child.parameterValues.keys():
-          self.raiseAnError(IOError, 'Tag separateFeatureData must have attribute "type"')
-        else:
+        if 'type' in child.parameterValues.keys():
           self.separateFeatureType = child.parameterValues["type"]
           self.separateFeatureData = child.value
       elif child.getName() == 'separateTargetData':
-        if 'type' not in child.parameterValues.keys():
-          self.raiseAnError(IOError, 'Tag separateTargetData must have attribute "type"')
-        else:
+        if 'type' in child.parameterValues.keys():
           self.separateTargetType = child.parameterValues["type"]
           self.separateTargetData = child.value
       elif child.getName() == 'scale':
@@ -455,7 +449,7 @@ class PPDSS(ValidationBase):
       outputDict['feature_D_'+nameTarg[1]+'_'+nameFeat[1]] = featureD[cnt]
       outputDict['target_D_'+nameTarg[1]+'_'+nameFeat[1]] = targetD[cnt]
       outputDict['process_time_'+nameTarg[1]+'_'+nameFeat[1]] = newfeatureData[1][cnt]
-      outputDict['standard_deviation_'+nameTarg[1]+'_'+nameFeat[1]] = sigma[cnt]
+      outputDict['standard_error_'+nameTarg[1]+'_'+nameFeat[1]] = sigma[cnt]
       rlz.append(outputDict)
     realizationArray.append(rlz)
     #---------------

@@ -9,7 +9,9 @@
       This test checks the DSS PostProcessor with DSS metric
     </description>
     <revisions>
-      <revision author='yoshrk' date='2021-05-17'>no writing directly to files from postprocessors</revision>
+      <revision author='yoshrk' date='2021-03-16'>no writing directly to files from postprocessors</revision>
+      <revision author='yoshrk' date='2021-10-20'>accepted format to merge with RAVEN devel</revision>
+      <revision author='yoshrk' date='2022-05-25'>added capability to postprocess based on user defined time segmentation</revision>
     </revisions>
   </TestInfo>
 
@@ -74,7 +76,7 @@
     </PointSet>
     <HistorySet name="pp1_out">
       <Output>
-          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_error_x2_x1
       </Output>
       <options>
         <pivotParameter>pivot_parameter</pivotParameter>
@@ -82,7 +84,7 @@
     </HistorySet>
     <HistorySet name="pp2_out">
       <Output>
-          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_error_x2_x1
       </Output>
       <options>
         <pivotParameter>pivot_parameter</pivotParameter>
@@ -90,7 +92,7 @@
     </HistorySet>
     <HistorySet name="pp3_out">
       <Output>
-          dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_deviation_y2_y1
+          dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_error_y2_y1
       </Output>
       <options>
         <pivotParameter>pivot_parameter</pivotParameter>
