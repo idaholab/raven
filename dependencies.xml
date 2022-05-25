@@ -66,6 +66,7 @@ Note all install methods after "main" take
     <pywavelets optional='True'>1.1</pywavelets>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
+    <python-sensors source="pip"/>
     <setuptools/>
   </main>
   <alternate name="pip">
