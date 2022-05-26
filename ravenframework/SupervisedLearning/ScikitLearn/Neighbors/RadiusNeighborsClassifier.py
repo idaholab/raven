@@ -124,4 +124,10 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
                                                                'leaf_size', 'p','metric','outlier_label'])
     # notFound must be empty
     assert(not notFound)
+    if 'outlier_label' in settings and settings['outlier_label'] is not None\
+       and len(settings['outlier_label']) == 1:
+      if settings['outlier_label'][0] == 'None':
+        settings['outlier_label'] = None
+      elif settings['outlier_label'][0] == 'most_frequent':
+        settings['outlier_label'] = 'most_frequent'
     self.initializeModel(settings)

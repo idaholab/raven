@@ -20,8 +20,8 @@
     <JobName>RrR_Code_o</JobName>
     <WorkingDir>Code</WorkingDir>
     <Sequence>sample, print</Sequence>
-    <batchSize>2</batchSize>
-    <NumMPI>4</NumMPI>
+    <batchSize>8</batchSize>
+    <NumMPI>8</NumMPI>
     <mode>
       mpi
       <runQSUB/>

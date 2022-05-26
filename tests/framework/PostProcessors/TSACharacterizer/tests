@@ -4,7 +4,7 @@
     input = 'basic.xml'
     output = 'Basic/chz.xml'
     csv = 'Basic/chz.csv'
-    rel_err = 0.02 # limited by ARMA__signal_fa__constant
+    rel_err = 0.06 # limited by ARMA__signal_fa__constant
     zero_threshold = 1e-12
   [../]
   [./RWD]
