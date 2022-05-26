@@ -73,7 +73,7 @@ class Representativity(ValidationBase):
     super().__init__()
     self.printTag = 'POSTPROCESSOR Representativity'
     self.dynamicType = ['static','dynamic'] #  for now only static is available
-    self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
+    # self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
     self.name = 'Representativity'
     self.stat = [None, None]
     self.featureDataObject = None
@@ -212,16 +212,21 @@ class Representativity(ValidationBase):
 
 
     # names = kwargs.get('dataobjectNames')
-    # outs = {}
-    # for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
-    #   featData = self._getDataFromDatasets(datasets, feat, names)
-    #   targData = self._getDataFromDatasets(datasets, targ, names)
-    #   parameters = self._getDataFromDatasets(datasets, param, names)
-    #   targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-    #   # covParameters = senFOMs @ senMeasurables.T
-    #   for metric in self.metrics:
-    #     name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-    #     outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
+    outs = {}
+    for i,targ in enumerate(self.targets):
+      for j,feat in enumerate(self.features):
+      # featData = self._getDataFromDatasets(datasets, feat, names)
+      # targData = self._getDataFromDatasets(datasets, targ, names)
+      # parameters = self._getDataFromDatasets(datasets, param, names)
+      # targetParameters = self._getDataFromDatasets(datasets, targParam, names)
+      # covParameters = senFOMs @ senMeasurables.T
+        name1 = "BiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
+        name2 = "ExactBiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
+        outs[name1] = r_exact[i,j]
+        outs[name2] = r[i,j]
+      # for metric in self.metrics:
+      #   name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+      #   outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
 
 
 
@@ -258,7 +263,7 @@ class Representativity(ValidationBase):
     # print(r)
     # print('UFOMsim_var_tilde_rep')
     # print(UFOMsim_var_tilde_rep)
-    return #outs
+    return outs
 
   def _generateSensitivityMatrix(self, outputs, inputs, sensDict, datasets, normalize=True):
     """
