@@ -211,54 +211,54 @@ class Representativity(ValidationBase):
     r,r_exact = self._calculateBiasFactor(senMeasurables, senFOMs, UParVar, UMeasurablesVar)
 
 
-    names = kwargs.get('dataobjectNames')
-    outs = {}
-    for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
-      featData = self._getDataFromDatasets(datasets, feat, names)
-      targData = self._getDataFromDatasets(datasets, targ, names)
-      parameters = self._getDataFromDatasets(datasets, param, names)
-      targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-      # covParameters = senFOMs @ senMeasurables.T
-      for metric in self.metrics:
-        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-        outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
+    # names = kwargs.get('dataobjectNames')
+    # outs = {}
+    # for feat, targ, param, targParam in zip(self.features, self.targets, self.featureParameters, self.targetParameters):
+    #   featData = self._getDataFromDatasets(datasets, feat, names)
+    #   targData = self._getDataFromDatasets(datasets, targ, names)
+    #   parameters = self._getDataFromDatasets(datasets, param, names)
+    #   targetParameters = self._getDataFromDatasets(datasets, targParam, names)
+    #   # covParameters = senFOMs @ senMeasurables.T
+    #   for metric in self.metrics:
+    #     name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+    #     outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
 
 
 
-    # ## Analysis:
-    # 1. Identify Models: Mock experiment, and Target model.
-    # 2. Generate Data
-    samples = datasets[0]
-    # data = self._getDataFromDatasets(featu,)
-    # 3. Propagate error from parameters to experiment and target outputs.
-    _, _, mes_samples = self._propagateErrors(samples)#par, par_var,Exp_A,Exp_b,samples
-    # Avg =
+    # # ## Analysis:
+    # # 1. Identify Models: Mock experiment, and Target model.
+    # # 2. Generate Data
+    # samples = datasets[0]
+    # # data = self._getDataFromDatasets(featu,)
+    # # 3. Propagate error from parameters to experiment and target outputs.
+    # _, _, mes_samples = self._propagateErrors(samples)#par, par_var,Exp_A,Exp_b,samples
+    # # Avg =
 
 
-    Fsim_check, CFsim,_ = propagateErrors(par, par_var, Exp_A, Exp_b,samples)
-    _,_,FOM_samples = Propagate_errors(par, par_var,Tar_A,Tar_b,samples)
-    Upar, Upar_var = Transform_to_error_space_stoch(par, par_var, par, samples)
-    Umes, Umes_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-    # Umes, Umes_var = Transform_to_error_space_stoch(Fmes, CFmes, Fmes, mes_samples)
-    UF, UF_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-    # 4. Normalize the data (transform to relative errors)
-    expNormalizedSen = normalizeSensetivities(par, F, G)
-    mesParametersNormalizedSen = normalizeSensetivities(par, F, G)
-    nSF = normalizeSensetivities(par, F, G)
-    nSFOM = normalizeSensetivities(par, FOM, G)
-    # 5. Compute correction in parameters
-    par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
-    pm_tilde, Cpm_tilde = Parameter_correction_theory(par, Upar, Upar_var,UF, UF_var,mesParametersNormalizedSen)
-    # 6. Compute correction in targets
-    FOMsim_tilde_theory, FOMsim_var_tilde_theory, UFOMsim_var_tilde_theory, Umes_var, UFOM_var_tilde_no_Umes_var, Inner1  = Target_correction_theory(par, FOM, Upar, Upar_var, Umes, Umes_var, mesParametersNormalizedSen, expNormalizedSen)
-    # 7. Computer representativity factor
-    r,r_exact, UFOMsim_var_tilde_rep,UFOMsim_var_tilde_rep_exact   = Representativity(par, Upar, Upar_var, F, nSF, nSFOM, Umes_var)
-    print('==== Representativity ====')
-    print('r')
-    print(r)
-    print('UFOMsim_var_tilde_rep')
-    print(UFOMsim_var_tilde_rep)
-    return outs
+    # Fsim_check, CFsim,_ = propagateErrors(par, par_var, Exp_A, Exp_b,samples)
+    # _,_,FOM_samples = Propagate_errors(par, par_var,Tar_A,Tar_b,samples)
+    # Upar, Upar_var = Transform_to_error_space_stoch(par, par_var, par, samples)
+    # Umes, Umes_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
+    # # Umes, Umes_var = Transform_to_error_space_stoch(Fmes, CFmes, Fmes, mes_samples)
+    # UF, UF_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
+    # # 4. Normalize the data (transform to relative errors)
+    # expNormalizedSen = normalizeSensetivities(par, F, G)
+    # mesParametersNormalizedSen = normalizeSensetivities(par, F, G)
+    # nSF = normalizeSensetivities(par, F, G)
+    # nSFOM = normalizeSensetivities(par, FOM, G)
+    # # 5. Compute correction in parameters
+    # par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
+    # pm_tilde, Cpm_tilde = Parameter_correction_theory(par, Upar, Upar_var,UF, UF_var,mesParametersNormalizedSen)
+    # # 6. Compute correction in targets
+    # FOMsim_tilde_theory, FOMsim_var_tilde_theory, UFOMsim_var_tilde_theory, Umes_var, UFOM_var_tilde_no_Umes_var, Inner1  = Target_correction_theory(par, FOM, Upar, Upar_var, Umes, Umes_var, mesParametersNormalizedSen, expNormalizedSen)
+    # # 7. Computer representativity factor
+    # r,r_exact, UFOMsim_var_tilde_rep,UFOMsim_var_tilde_rep_exact   = Representativity(par, Upar, Upar_var, F, nSF, nSFOM, Umes_var)
+    # print('==== Representativity ====')
+    # print('r')
+    # print(r)
+    # print('UFOMsim_var_tilde_rep')
+    # print(UFOMsim_var_tilde_rep)
+    return #outs
 
   def _generateSensitivityMatrix(self, outputs, inputs, sensDict, datasets, normalize=True):
     """
