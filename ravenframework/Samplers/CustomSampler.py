@@ -27,11 +27,11 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+from .Sampler import Sampler
 from ..utils import InputData, InputTypes, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CustomSampler(ForwardSampler):
+class CustomSampler(Sampler):
   """
     Custom Sampler
   """

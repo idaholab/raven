@@ -29,11 +29,11 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+from .Sampler import Sampler
 from ..utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MonteCarlo(ForwardSampler):
+class MonteCarlo(Sampler):
   """
     MONTE CARLO Sampler
   """
@@ -92,7 +92,7 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     #TODO remove using xmlNode
-    ForwardSampler.readSamplerInit(self,xmlNode)
+    Sampler.readSamplerInit(self,xmlNode)
     if paramInput.findFirst('samplerInit') != None:
       if self.limit is None:
         self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')

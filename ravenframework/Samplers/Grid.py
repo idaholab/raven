@@ -31,13 +31,13 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from .. import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Grid(ForwardSampler):
+class Grid(Sampler):
   """
     Samples the model on a given (by input) set of points
   """

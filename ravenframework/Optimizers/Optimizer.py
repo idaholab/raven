@@ -30,7 +30,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import randomUtils, InputData, InputTypes
-from ..Samplers import AdaptiveSampler, ForwardSampler
+from ..Samplers import AdaptiveSampler, Sampler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):
@@ -390,7 +390,7 @@ class Optimizer(AdaptiveSampler):
     if not self.assemblerDict.get('Sampler', False):
       return
     sampler = self.assemblerDict['Sampler'][0][3]
-    if not isinstance(sampler, ForwardSampler):
+    if not isinstance(sampler, Sampler):
       self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')
     self._initSampler = sampler
     ## initialize sampler

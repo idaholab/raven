@@ -25,7 +25,6 @@ from ..EntityFactoryBase import EntityFactory
 ################################################################################
 from .Sampler import Sampler
 # Forward samplers
-from .ForwardSampler import ForwardSampler
 from .MonteCarlo import MonteCarlo
 from .Grid import Grid
 from .Stratified import Stratified

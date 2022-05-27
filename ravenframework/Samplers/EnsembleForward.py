@@ -31,7 +31,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes
-from .ForwardSampler        import ForwardSampler
+from .Sampler        import Sampler
 from .MonteCarlo            import MonteCarlo
 from .Grid                  import Grid
 from .Stratified            import Stratified
@@ -41,7 +41,7 @@ from .CustomSampler         import CustomSampler
 from .. import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
-class EnsembleForward(ForwardSampler):
+class EnsembleForward(Sampler):
   """
     Ensemble Forward sampler. This sampler is aimed to combine Forward Sampling strategies
   """
@@ -80,7 +80,7 @@ class EnsembleForward(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    ForwardSampler.__init__(self)
+    Sampler.__init__(self)
     self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign','CustomSampler']
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
@@ -101,7 +101,7 @@ class EnsembleForward(ForwardSampler):
     for child in xmlNode:
       #sampler initialization
       if child.tag == 'samplerInit':
-        ForwardSampler.readSamplerInit(self,xmlNode)
+        Sampler.readSamplerInit(self,xmlNode)
       # read in samplers
       elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
@@ -134,9 +134,9 @@ class EnsembleForward(ForwardSampler):
       @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
-    # clear out toBeSampled, since ForwardSampler uses it for assembling
+    # clear out toBeSampled, since Sampler uses it for assembling
     self.toBeSampled = {}
-    needDict = ForwardSampler._localWhatDoINeed(self)
+    needDict = Sampler._localWhatDoINeed(self)
     for combSampler in self.instanciatedSamplers.values():
       preNeedDict = combSampler.whatDoINeed()
       for key,value in preNeedDict.items():
