@@ -22,13 +22,13 @@
       <Output class="DataObjects" type="PointSet">outMC</Output>
     </MultiRun>
     <PostProcess name="mySPpp">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">outMC</Input>
       <Model class="Models" type="PostProcessor">mySPSL</Model>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="DataObjects" type="PointSet">outPP</Output>
     </PostProcess>
     <IOStep name="plot">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Input class="DataObjects" type="PointSet">romOut</Input>
+      <Input class="DataObjects" type="PointSet">outPP</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">plotMC</Output>
     </IOStep>
   </Steps>
@@ -97,13 +97,17 @@
       <Input>angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="romOut">
+    <PointSet name="outPP">
       <Input>angle</Input>
       <Output>r</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+    </Print>
     <Plot name="plotMC">
       <plotSettings>
         <plot>

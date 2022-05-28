@@ -32,6 +32,8 @@ class SparseSensing(PostProcessorReadyInterface):
     - Manohar, Krithika, et al. "Data-driven sparse sensor placement for reconstruction: Demonstrating the benefits of exploiting known patterns." IEEE Control Systems Magazine 38.3 (2018): 63-86.
     - de Silva, Brian M., et al. "PySensors: A Python package for sparse sensor placement." arXiv preprint arXiv:2102.13476 (2021).
   """
+  goal = {'reconstruction':r"""Sparse sensor placement Optimization for Reconstruction (SSPOR)""",
+          'classification':r"""Sparse sensor placement Optimization for Classification (SSPOC)"""}
   @classmethod
   def getInputSpecification(cls):
     """
@@ -42,30 +44,32 @@ class SparseSensing(PostProcessorReadyInterface):
         specifying input of cls.
     """
     inputSpecification = super(SparseSensing, cls).getInputSpecification()
-    reconstructionSub = InputData.parameterInputFactory("reconstruction",
+    for name,descr in cls.goal.items():
+      goalSub = InputData.parameterInputFactory(name,
                                                   printPriority=108,
-                                                  descr=r"""This node specifies that the optimal sensor placement goal is to reconstruct a signal""")
-    trainingDO = InputData.parameterInputFactory("TrainingData", contentType=InputTypes.StringType,
+                                                  descr=descr)
+      inputSpecification.addSub(goalSub)
+      trainingDO = InputData.parameterInputFactory("TrainingData", contentType=InputTypes.StringType,
                                                   printPriority=108,
                                                   descr=r"""The Dataobject containing the training data""")
-    reconstructionSub.addSub(trainingDO)
-    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.StringType,
+      goalSub.addSub(trainingDO)
+      basis = InputData.parameterInputFactory("basis", contentType=InputTypes.StringType,
                                                              printPriority=108,
                                                              descr=r"""The type of basis onto which the data are projected""")
-    reconstructionSub.addSub(basis)
-    nModes = InputData.parameterInputFactory("nModes", contentType=InputTypes.IntegerType,
+      goalSub.addSub(basis)
+      nModes = InputData.parameterInputFactory("nModes", contentType=InputTypes.IntegerType,
                                                              printPriority=108,
                                                              descr=r"""The number of modes retained""")
-    reconstructionSub.addSub(nModes)
-    nSensors = InputData.parameterInputFactory("nSensors", contentType=InputTypes.IntegerType,
+      goalSub.addSub(nModes)
+      nSensors = InputData.parameterInputFactory("nSensors", contentType=InputTypes.IntegerType,
                                                              printPriority=108,
                                                              descr=r"""The number of sensors used""")
-    reconstructionSub.addSub(nSensors)
-    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.StringType,
+      goalSub.addSub(nSensors)
+      optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.StringType,
                                                              printPriority=108,
                                                              descr=r"""The type of optimizer used""")
-    reconstructionSub.addSub(optimizer)
-    inputSpecification.addSub(reconstructionSub)
+      goalSub.addSub(optimizer)
+      inputSpecification.addSub(goalSub)
     return inputSpecification
 
   def __init__(self):
@@ -94,8 +98,8 @@ class SparseSensing(PostProcessorReadyInterface):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
-    if inputs[0].type != 'HistorySet':
-      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+    # if inputs[0].type != 'HistorySet':
+    #   self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
   def _handleInput(self, paramInput):
     """
