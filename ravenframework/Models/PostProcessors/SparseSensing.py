@@ -16,6 +16,7 @@
   @ Authors: Mohammad Abdo (@Jimmy-INL), Niharika Karnik (@nkarnik), Krithika Manohar (@kmanohar)
 
 '''
+import pysensors as ps
 # import numpy as np
 # import copy
 # from collections import defaultdict
@@ -144,16 +145,30 @@ class SparseSensing(PostProcessorReadyInterface):
       @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
-    # inpVars, outVars, inputDic = inputIn['Data'][0]
+    inpVars, outVars, inputDS = inputIn['Data'][0]
+    numSamples = len(inputDS.coords['RAVEN_sample_ID'])
     # numSamples = inputDic['numberRealizations']
     # inputDict = inputDic['data']
 
     # #identify features
-    # self.features = outVars
-    # #don't keep the pivot parameter in the feature space
-    # if self.pivotParameter in self.features:
-    #   self.features.remove(self.pivotParameter)
+    self.features = inpVars
+    self.targets = outVars
+    #don't keep the pivot parameter in the feature space
+    if self.pivotParameter in self.features:
+      self.features.remove(self.pivotParameter)
+    if self.basis == 'svd':
+      model = ps.SSPOR(basis=ps.basis.SVD(n_basis_modes=self.nModes),n_sensors = self.nSensors)
+    elif self.basis == 'identity':
+      model = ps.SSPOR(basis=ps.basis.Identity(n_basis_modes=self.nModes),n_sensors = self.nSensors)
+    elif self.basis == 'RandomProjection':
+      model = ps.SSPOR(basis=ps.basis.RandomProjection(n_basis_modes=self.nModes),n_sensors = self.nSensors)
+    elif self.basis == 'Custom':
+      model = ps.SSPOR(basis=ps.basis.Custom(n_basis_modes=self.nModes),n_sensors = self.nSensors,U=self.basis)
+    else:
+      self.raiseAnError(IOError, 'basis are not recognized')
 
+    data = inputDS[self.targets].data
+    model.fit()
     # #if output length (size of desired output history) not set, set it now
     # if self.outputLen is None:
     #   self.outputLen = np.asarray(inputDict['output'][utils.first(inputDict['output'].keys())][self.pivotParameter])[-1]
@@ -318,6 +333,7 @@ class SparseSensing(PostProcessorReadyInterface):
     # for var in self.features:
     #   outputDict['dims'][var]=[self.pivotParameter]
     # return outputDict
+    print(model)
     return
 
   # def __computeECDF(self, data, binEdgesIn):

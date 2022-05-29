@@ -86,7 +86,7 @@ def run(raven, inputs):
   vars = {'x0': get_from_raven(raven,'x0', 0),
           'y0': get_from_raven(raven,'y0', 0),
           'v0': get_from_raven(raven,'v0', 1),
-          'ang': get_from_raven(raven,'v0', 45),
+          'ang': get_from_raven(raven,'angle', 45),
           'timeOption': get_from_raven(raven,'timeOption', 0)}
   res = main(vars)
   raven.x = res['x']
@@ -104,7 +104,7 @@ def main(Input):
   x0 = Input.get('x0', 0)
   y0 = Input.get('y0', 0)
   v0 = Input.get('v0', 1)
-  ang = Input.get('angle', 45)
+  ang = Input.get('ang', 45)
   g = Input.get('g', 9.8)
   timeOption = Input.get('timeOption', 0)
   ang = ang * np.pi / 180
