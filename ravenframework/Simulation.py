@@ -906,7 +906,7 @@ class Simulation(MessageUser):
       self.executeStep(stepInputDict, stepInstance)
     # finalize the simulation
     self.finalizeSimulation()
-    self.raiseAMessage('Run complete!', forcePrint=True)
+    self.raiseAMessage('Run complete!\n', forcePrint=True)
 
     return 0
 
