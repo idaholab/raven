@@ -7,7 +7,6 @@
   [./demo_python_raven]
     type = 'RavenPython'
     input = 'DemoPythonRaven.py'
-    UnorderedCsv = 'to_file.csv to_file2.csv'
   [../]
 
   [./test_python_raven_running_raven]
