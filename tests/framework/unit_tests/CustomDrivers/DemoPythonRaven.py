@@ -49,8 +49,14 @@ data.plot.scatter(x="v0", y="angle", hue="r")
 # uncomment for live plotting
 # plt.show()
 
-# run it again - this fails if not re-initialized!
-# raven.runWorkflow()
+# run workflow again to replicate results
+# change csv file name to avoid overwriting the same file
+printer = raven.getEntity('OutStreams', 'to_file')
+printer._printer.name = 'to_file2'
+returnCode2 = raven.runWorkflow()
+# check that re-run was successful
+if returnCode != 0:
+  raise RuntimeError('RAVEN did not re-run successfully!')
 
 """
   <TestInfo>
@@ -62,5 +68,8 @@ data.plot.scatter(x="v0", y="angle", hue="r")
        Demo of using PythonRaven in RAVEN workflows.
        Different from unit tests in that this is easier to read and unerstand
     </description>
+    <revisions>
+      <revision author="dgarrett622" date="2022-05-31">Adding check on re-running workflow.</revision>
+    </revisions>
   </TestInfo>
 """
