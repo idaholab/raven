@@ -16,9 +16,12 @@
   Enables workflow loading, tampering, and running.
 """
 import os
-import sys
 
+from ..utils import TreeStructure as TS
 from . import DriverUtils
+DriverUtils.doSetup() # bad practice, I know, but Simulation can't be imported without profile and
+                      # that gets set up in DriverUtils.doSetup() for some reason.
+from .. import Simulation
 
 class Raven:
   """
@@ -37,13 +40,7 @@ class Raven:
       @ Out, None
     """
     if self.framework is None:
-      #Note: doSetup changes the sys.path, which can cause problems
-      # if it is done at the start of this file which is done during import,
-      # so it is only done now
-      DriverUtils.doSetup()
-
       self.framework = DriverUtils.findFramework()
-
 
     self._simulation = None # RAVEN Simulation object (loaded workflow)
     self._xmlSource = None  # XML file from which workflow is loaded
@@ -57,12 +54,6 @@ class Raven:
       @ In, xmlFile, string, target xml file to load (cwd?)
       @ Out, None
     """
-    #Note: PythonRaven is imported as part of framework/__init__.py
-    # so if Simulation is imported at the top, even an import of utils will pull
-    # in almost all of Raven.
-    from .. import Simulation
-    from ..utils import TreeStructure as TS
-
     target = self._findFile(xmlFile)
     with open(target, 'r') as inputXML:
       root = TS.parse(inputXML).getroot()
@@ -70,7 +61,7 @@ class Raven:
     self._simulation = Simulation.Simulation(self.framework)
     self._simulation.XMLpreprocess(root, targetDir)
     self._simulation.XMLread(root, runInfoSkip={"DefaultInputFile"}, xmlFilename=target)
-    self._simulation.initialize() # TODO separate method?
+    self._simulation.initialize()
 
   def runWorkflow(self):
     """
@@ -78,7 +69,6 @@ class Raven:
       @ In, None
       @ Out, returnCode, int, value/error returned from RAVEN run
     """
-    # FIXME reset the steps if necessary!
     returnCode = self._simulation.run()
     return returnCode
 
@@ -90,7 +80,7 @@ class Raven:
       @ Out, entity, instance, RAVEN instance (None if not found)
     """
     try:
-      # TODO is this the fastest way to get-and-check objects?
+      # TODO is this the fastest way to get-and-check objects? Probably not, but it seems to work
       kindGroup = self._simulation.entities.get(kind, None)
       if kindGroup is None:
         raise KeyError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
@@ -102,7 +92,6 @@ class Raven:
       entity = None
 
     return entity
-
 
   # ********************
   # UTILITIES
@@ -137,4 +126,5 @@ class Raven:
       msg += 'Please check the path for the desired file.'
       raise IOError(msg)
     print(f'Target file found at "{target}"')
+
     return target

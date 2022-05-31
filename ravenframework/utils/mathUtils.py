@@ -22,7 +22,7 @@ import math
 import functools
 import copy
 import scipy
-from scipy import interpolate, stats, integrate
+from scipy import interpolate, stats
 import numpy as np
 import six
 from numpy import linalg
@@ -36,7 +36,7 @@ mh = getMessageHandler()
 # dict of builtin types, filled by getBuiltinTypes
 _bTypes = None
 
-def normal(x,mu=0.0,sigma=1.0):
+def normal(x, mu=0.0, sigma=1.0):
   """
     Computation of normal pdf
     @ In, x, list or np.array, x values
@@ -44,9 +44,9 @@ def normal(x,mu=0.0,sigma=1.0):
     @ In, sigma, float, optional, sigma
     @ Out, returnNormal, list or np.array, pdf
   """
-  return stats.norm.pdf(x,mu,sigma)
+  return stats.norm.pdf(x, mu, sigma)
 
-def normalCdf(x,mu=0.0,sigma=1.0):
+def normalCdf(x, mu=0.0, sigma=1.0):
   """
     Computation of normal cdf
     @ In, x, list or np.array, x values
@@ -54,9 +54,9 @@ def normalCdf(x,mu=0.0,sigma=1.0):
     @ In, sigma, float, optional, sigma
     @ Out, cdfReturn, list or np.array, cdf
   """
-  return stats.norm.cdf(x,mu,sigma)
+  return stats.norm.cdf(x, mu, sigma)
 
-def skewNormal(x,alphafactor,xi,omega):
+def skewNormal(x, alphafactor, xi, omega):
   """
     Computation of skewness normal
     @ In, x, list or np.array, x values
@@ -66,6 +66,7 @@ def skewNormal(x,alphafactor,xi,omega):
     @ Out, returnSkew, float, skew
   """
   returnSkew = (2.0/omega)*normal((x-xi)/omega)*normalCdf(alphafactor*(x-xi)/omega)
+
   return returnSkew
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
@@ -100,6 +101,7 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
         return lowFill
       else:
         return highFill
+
   return myInterp
 
 def countBins(sortedData, binBoundaries):
@@ -121,6 +123,7 @@ def countBins(sortedData, binBoundaries):
       binIndex += 1
     ret[binIndex] += 1
     sortedIndex += 1
+
   return ret
 
 def log2(x):
@@ -129,7 +132,8 @@ def log2(x):
    @ In, x, float, the coordinate x
    @ Out, logTwo, float, log2
   """
-  logTwo = math.log(x,2)
+  logTwo = math.log(x, 2)
+
   return logTwo
 
 def calculateStats(data):
@@ -146,6 +150,7 @@ def calculateStats(data):
   ret["stdev"] = stats.tstd(data)
   ret["skewness"] = stats.skew(data)
   ret["kurtosis"] = stats.kurtosis(data)
+
   return ret
 
 def hyperdiagonal(lengths):
@@ -190,9 +195,10 @@ def historySnapShoots(valueDict, numberOfTimeStep):
   for ts in range(numberOfTimeStep):
     realizationSnap = {}
     realizationSnap.update(inPortion)
-    for variable in outPortion.keys():
+    for variable in outPortion:
       realizationSnap[variable] = outPortion[variable][:,ts]
     outDict.append(realizationSnap)
+
   return outDict
 
 # def historySetWindow(vars,numberOfTimeStep):
@@ -250,12 +256,12 @@ def normalizationFactors(values, mode='z'):
     offset = 0.0
     scale = 1.0
 
-  ## All of the values must be the same, okay just take the scale of the data
-  ## to be the maximum value
+  # All of the values must be the same, okay just take the scale of the data
+  # to be the maximum value
   if scale == 0:
     scale = np.max(np.absolute(values))
 
-  ## All of the values must be zero, okay use 1 to prevent a 0/0 issue
+  # All of the values must be zero, okay use 1 to prevent a 0/0 issue
   if scale == 0:
     scale = 1.0
 
@@ -324,19 +330,20 @@ def convertNumpyToLists(inputDict):
     @ Out, response, dict or list, same object with its content converted
   """
   returnDict = inputDict
-  if type(inputDict) == dict:
+  if isinstance(inputDict, dict):
     for key, value in inputDict.items():
-      if   type(value) == np.ndarray:
+      if isinstance(value, np.ndarray):
         returnDict[key] = value.tolist()
-      elif type(value) == dict:
+      elif isinstance(value, dict):
         returnDict[key] = (convertNumpyToLists(value))
       else:
         returnDict[key] = value
-  elif type(inputDict) == np.ndarray:
+  elif isinstance(inputDict, np.ndarray):
     returnDict = inputDict.tolist()
+
   return returnDict
 
-def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
+def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
   """
     Method to interpolate 2D/3D points
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
@@ -350,43 +357,43 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   if x.size <= 2:
     xi = x
   else:
-    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+    xi = np.linspace(x.min(), x.max(), int(options['interpPointsX']))
   if z is not None:
     if y.size <= 2:
       yi = y
     else:
-      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+      yi = np.linspace(y.min(), y.max(), int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
           zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
         else:
           zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
-        rbf = interpolate.Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        rbf = interpolate.Rbf(x, y, z, function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         zi  = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
+        zi = interpolateFunction(x, y, z, options)
       else:
         raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate:
-      return xig,yig,zi
+      return xig, yig, zi
     else:
       return zi
   else:
     try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
         if options['interpolationType'] != 'nearest' and y.size > 3:
           yi = interpolate.griddata((x), y, (xi[:]), method=options['interpolationType'])
         else:
           yi = interpolate.griddata((x), y, (xi[:]), method='nearest')
       else:
         xig, yig = np.meshgrid(xi, yi)
-        rbf = interpolate.Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        rbf = interpolate.Rbf(x, y, function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         yi  = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
@@ -396,20 +403,20 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
       else:
         raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate:
-      return xi,yi
+      return xi, yi
     else:
       return yi
 
-def distance(points,pt):
+def distance(points, pt):
   """
     Calculates the Euclidean distances between the points in "points" and the point "pt".
     @ In, points, np.array(tuple/list/array), list of points
     @ In, pt, tuple/list/array(int/float), point of distance
     @ Out, distance, np.array(float), distances
   """
-  return np.linalg.norm(points-pt,axis=1)
+  return np.linalg.norm(points-pt, axis=1)
 
-def numpyNearestMatch(findIn,val):
+def numpyNearestMatch(findIn, val):
   """
     Given an array, find the entry that most nearly matches the given value.
     @ In, findIn, np.array, the array to look in
@@ -421,8 +428,8 @@ def numpyNearestMatch(findIn,val):
     findIn = findIn.reshape(-1,1)
   dist = distance(findIn,val)
   idx = dist.argmin()
-  #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
   returnMatch = idx,findIn[idx]
+
   return returnMatch
 
 def relativeDiff(f1, f2):
@@ -436,32 +443,33 @@ def relativeDiff(f1, f2):
     try:
       f1 = float(f1)
     except ValueError:
-      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  First argument is %s type %s' %(str(f1),type(f1)))
+      raise RuntimeError(f'Provided argument to compareFloats could not be cast as a float!  First argument is {f1} type {type(f1)}')
   if not isinstance(f2, float):
     try:
       f2 = float(f2)
     except ValueError:
-      raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
+      raise RuntimeError(f'Provided argument to compareFloats could not be cast as a float!  Second argument is {f2} type {type(f2)}')
   diff = abs(diffWithInfinites(f1, f2))
-  #"scale" is the relative scaling factor
+  # "scale" is the relative scaling factor
   scale = f2
-  #protect against div 0
+  # protect against div 0
   if f2 == 0.0:
-    #try using the "measured" for scale
+    # try using the "measured" for scale
     if f1 != 0.0:
       scale = f1
-    #at this point, they're both equal to zero, so just divide by 1.0
+    # at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
   if abs(scale) == np.inf:
-    #no mathematical rigor here, but typical algorithmic use cases
+    # no mathematical rigor here, but typical algorithmic use cases
     if diff == np.inf:
       return np.inf # assumption: inf/inf = 1
     else:
       return 0.0 # assumption: x/inf = 0 for all finite x
+
   return diff/abs(scale)
 
-def compareFloats(f1,f2,tol=1e-6):
+def compareFloats(f1, f2, tol=1e-6):
   """
     Given two floats, safely compares them to determine equality to provided relative tolerance.
     @ In, f1, float, first value (the value to compare to f2, "measured")
@@ -469,10 +477,11 @@ def compareFloats(f1,f2,tol=1e-6):
     @ In, tol, float, optional, relative tolerance to determine match
     @ Out, compareFloats, bool, True if floats close enough else False
   """
-  diff = relativeDiff(f1,f2)
+  diff = relativeDiff(f1, f2)
+
   return diff < tol
 
-def NDInArray(findIn,val,tol=1e-12):
+def NDInArray(findIn, val, tol=1e-12):
   """
     checks a numpy array of numpy arrays for a near match, then returns info.
     @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
@@ -481,13 +490,13 @@ def NDInArray(findIn,val,tol=1e-12):
     @ Out, (bool,idx,looking) -> (found/not found, index where found or None, findIn entry or None)
   """
   if len(findIn)<1:
-    return False,None,None
+    return False, None, None
   found = False
   for idx,looking in enumerate(findIn):
     num = looking - val
     den = np.array(val)
     #div 0 error
-    for i,v in enumerate(den):
+    for i, v in enumerate(den):
       if v == 0.0:
         if looking[i] != 0:
           den[i] = looking[i]
@@ -499,8 +508,8 @@ def NDInArray(findIn,val,tol=1e-12):
       found = True
       break
   if not found:
-    return False,None,None
-  return found,idx,looking
+    return False, None, None
+  return found, idx, looking
 
 def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
   """
@@ -513,7 +522,7 @@ def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
     @ Out, binEdges, np.array, location of the bins
   """
   # binOps: default to draconis, but allow other options
-  ## TODO additional options could be easily added in the future.
+  # TODO additional options could be easily added in the future.
   # option 2: square root rule
   if binOps == 2:
     numBins = int(np.ceil(np.sqrt(data.size)))
@@ -538,6 +547,7 @@ def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
   binEdges = np.linspace(start=np.asarray(data).min(), stop=np.asarray(data).max(), num=numBins+1)
+
   return numBins, binEdges
 
 def diffWithInfinites(a, b):
@@ -557,6 +567,7 @@ def diffWithInfinites(a, b):
       res = -np.inf
   else:
     res = a - b
+
   return res
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
@@ -572,9 +583,10 @@ def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   VV = V[:rank, :].conj().T.dot(V[:rank, :])
   dX = X.dot(VV)
   dY = Y.dot(VV)
+
   return dX, dY
 
-def computeTruncatedSingularValueDecomposition(X, truncationRank, full = False, conj = True):
+def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, conj=True):
   """
     Compute Singular Value Decomposition and truncate it till a rank = truncationRank
     @ In, X, numpy.ndarray, the 2D matrix on which the SVD needs to be performed
@@ -602,6 +614,7 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full = False, 
   U = U[:, :rank]
   V = V[:, :rank]
   s = np.diag(s)[:rank, :rank] if full else s[:rank]
+
   return U, s, V
 
 def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
@@ -622,6 +635,7 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   # Compute the eigvects and eigvals of the high-dimensional operator
   eigvects = ((Y.dot(V) * np.reciprocal(s)).dot(lowrankEigenvects)) if exactModes else U.dot(lowrankEigenvects)
   eigvals  = lowrankEigenvals.astype(complex)
+
   return eigvals, eigvects
 
 def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
@@ -638,6 +652,7 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
+
   return amplitudes
 
 def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
@@ -658,6 +673,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
   counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
   counts = np.asarray(counts) / float(len(signal))
   dist = stats.rv_histogram((counts, edges))
+
   return dist, (counts, edges)
 
 def convertSinCosToSinPhase(A, B):
@@ -671,9 +687,10 @@ def convertSinCosToSinPhase(A, B):
   """
   p = np.arctan2(B, A)
   C = A / np.cos(p)
+
   return C, p
 
-def evalFourier(period,C,p,t):
+def evalFourier(period, C, p, t):
   """
     Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
     @ In, C, float, equivalent sine-only amplitude
@@ -682,6 +699,7 @@ def evalFourier(period,C,p,t):
     @ Out fourier, np.array, results of the transfered signal
   """
   fourier = C * np.sin(2. * np.pi * t / period + p)
+
   return fourier
 
 def orderClusterLabels(originalLabels):
@@ -701,10 +719,11 @@ def orderClusterLabels(originalLabels):
       new = nextUsableLabel
       nextUsableLabel += 1
     labels[l] = new
+
   return labels
 
 # determining types
-## NOTE: REQUIRES six and numpy, do not move to utils!
+# NOTE: REQUIRES six and numpy, do not move to utils!
 def isSingleValued(val, nanOk=True, zeroDOk=True):
   """
     Determine if a single-entry value (by traditional standards).
@@ -719,6 +738,7 @@ def isSingleValued(val, nanOk=True, zeroDOk=True):
   if zeroDOk:
     # if a zero-d numpy array, then technically it's single-valued, but we need to get into the array
     val = npZeroDToEntry(val)
+
   return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
 
 def isAString(val):
@@ -729,7 +749,7 @@ def isAString(val):
   """
   return isinstance(val, six.string_types)
 
-def isAFloatOrInt(val,nanOk=True):
+def isAFloatOrInt(val, nanOk=True):
   """
     Determine if a float or integer value
     Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
@@ -737,9 +757,9 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
+  return isAnInteger(val, nanOk) or isAFloat(val, nanOk)
 
-def isAFloat(val,nanOk=True):
+def isAFloat(val, nanOk=True):
   """
     Determine if a float value (by traditional standards).
     @ In, val, object, check
@@ -755,9 +775,10 @@ def isAFloat(val,nanOk=True):
       return True
     elif val not in [np.nan, np.inf]:
       return True
+
   return False
 
-def isAnInteger(val,nanOk=False):
+def isAnInteger(val, nanOk=False):
   """
     Determine if an integer value (by traditional standards).
     @ In, val, object, check
@@ -772,6 +793,7 @@ def isAnInteger(val,nanOk=False):
   # also include inf and nan, if requested
   if nanOk and isinstance(val,float) and val in [np.nan, np.inf]:
     return True
+
   return False
 
 def isABoolean(val):
@@ -791,6 +813,7 @@ def npZeroDToEntry(a):
   if isinstance(a, np.ndarray) and a.shape == ():
     # make the thing we're checking the thing inside to the numpy array
     a = a.item()
+
   return a
 
 def toListFromNumpyOrC1array(array):
@@ -813,19 +836,19 @@ def toListFromNumpyOrC1arrayIterative(array):
     @ In, array, object,  object whose content needs to be converted
     @ Out, response, object, a copy of the object in which the string-compatible has been converted
   """
-  if type(array) == list:
+  if isinstance(array, list):
     return [toListFromNumpyOrC1array(x) for x in array]
-  elif type(array) == dict:
+  elif isinstance(array, dict):
     if len(array.keys()) == 0:
       return None
     tempdict = {}
-    for key,value in array.items():
+    for key, value in array.items():
       tempdict[np.toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else:
     return np.toBytes(array)
 
-def sizeMatch(var,sizeToCheck):
+def sizeMatch(var, sizeToCheck):
   """
     This method is aimed to check if a variable has an expected size
     @ In, var, python datatype, the first variable to compare
@@ -835,6 +858,7 @@ def sizeMatch(var,sizeToCheck):
   sizeMatched = True
   if len(np.atleast_1d(var)) != sizeToCheck:
     sizeMatched = False
+
   return sizeMatched
 
 def readVariableGroups(xmlNode):
@@ -896,6 +920,7 @@ def calculateMultivectorMagnitude(vector):
   # --> note that np norm fails on length-1 arrays so we protect against that
   new = [np.linalg.norm(x) if len(np.atleast_1d(x)) > 1 else np.atleast_1d(x)[0] for x in vector]
   mag = np.linalg.norm(new)
+
   return mag
 
 def calculateMagnitudeAndVersor(vector, normalizeInfinity=True):
@@ -948,6 +973,7 @@ def angleBetweenVectors(a, b):
     dot = np.dot(a, b) / normA / normB
     ang = np.arccos(np.clip(dot, -1, 1))
   ang = np.rad2deg(ang)
+
   return ang
 
 # utility function for defaultdict
@@ -988,6 +1014,7 @@ def characterizeCDF(data, binOps=None, minBins=1):
             'pdf' : counts * nBins,
             'cdf' : cdf,
             'lens' : len(data)}
+
   return params
 
 def gaussianize(data, cdf):
@@ -999,6 +1026,7 @@ def gaussianize(data, cdf):
   """
   cdfVals = sampleCDF(data, cdf)
   normed = stats.norm.ppf(cdfVals) # TODO could use RAVEN dist, but this is more modular
+
   return normed
 
 def degaussianize(data, cdf):
@@ -1011,6 +1039,7 @@ def degaussianize(data, cdf):
   """
   cdfVals = stats.norm.cdf(data)
   denormed = sampleICDF(cdfVals, cdf)
+
   return denormed
 
 def sampleCDF(x, cdfParams):
@@ -1043,6 +1072,7 @@ def sampleCDF(x, cdfParams):
   ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
   y[y >= 1.0] = 1.0 - np.finfo(float).eps
   y[y <= 0.0] = np.finfo(float).eps
+
   return y
 
 def sampleICDF(x, cdfParams):
@@ -1069,6 +1099,7 @@ def sampleICDF(x, cdfParams):
   xf = cdfParams['cdf'][indices]
   yf = cdfParams['bins'][indices]
   y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+
   return y
 
 def interpolateDist(x, y, x0, xf, y0, yf, mask):
@@ -1083,7 +1114,7 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
     @ In, mask, np.array, boolean mask in "y" where the distribution values apply
     @ Out, y, np.array, same "y" but with values inserted
   """
-  ### handle divide-by-zero problems first, specially
+  # handle divide-by-zero problems first, specially
   # check for where div zero problems will occur
   divZeroMask = x0 == xf
   # careful with double masking -> doesn't always do what you think it does
@@ -1096,6 +1127,7 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
   frac = x[mask][okayMask] - x0[okayMask]
   okayWhere = [a[okayMask] for a in np.where(mask)]
   y[tuple(okayWhere)] = y0 + dy/dx * frac
+
   return y
 
 def computeCrowdingDistance(trainSet):
@@ -1113,6 +1145,7 @@ def computeCrowdingDistance(trainSet):
       distMat[j,i] = distMat[i,j]
 
   crowdingDist = np.sum(distMat,axis=1)
+
   return crowdingDist
 
 def rankData(x, w=None):
@@ -1126,6 +1159,7 @@ def rankData(x, w=None):
   _, inverseArray, num = np.unique(stats.rankdata(x), return_counts = True, return_inverse = True )
   A = np.bincount(inverseArray, weights)
   rank = (np.cumsum(A) - A)[inverseArray]+((num + 1)/2 * (A/num))[inverseArray]
+
   return rank
 
 def getBuiltinTypes(typ):
@@ -1153,5 +1187,5 @@ def getNumpyTypes(typ):
     for t in np.sctypes['others']:
       if typ in t.__name__:
         nTypes.append(t)
-  return nTypes
 
+  return nTypes

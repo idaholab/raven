@@ -49,7 +49,6 @@ if __QtAvailable:
 # -> only available on specially-marked base types
 Models.Model.loadFromPlugins()
 
-#----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageUser):
   """
     SimulationMode allows changes to the how the simulation
@@ -76,6 +75,7 @@ class SimulationMode(MessageUser):
       a subprocess.call.  It optionally can have a "cwd" for the current
       working directory and a "env" for the environment to use for the command.
     """
+
     return None
 
   def modifyInfo(self, runInfoDict):
@@ -98,6 +98,7 @@ class SimulationMode(MessageUser):
       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       # add number of threads to the post command.
       newRunInfo['postcommand'] = f" {newRunInfo['threadParameter']} {runInfoDict['postcommand']}"
+
     return newRunInfo
 
   def XMLread(self,xmlNode):
@@ -110,7 +111,7 @@ class SimulationMode(MessageUser):
     pass
 
 # Note that this has to be after SimulationMode is defined or the CustomModes
-# don't see SimulationMode when they import Simulation
+# don't see SimulationMode when they import Simulation. Still bad practice though
 from . import CustomModes
 
 def splitCommand(s):
@@ -143,26 +144,24 @@ def splitCommand(s):
     n += 1
   if len(buffer) > 0:
     retList.append(buffer)
+
   return retList
 
-#----------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------------------------
 class Simulation(MessageUser):
   """
     This is a class that contain all the objects needed to run the simulation
     Usage:
-    myInstance = Simulation()                          !Generate the instance
-    myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generates all the objects living in the simulation
-    myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
-    myInstance.run()                                   !This method runs the simulation
+    myInstance = Simulation()                          Generate the instance
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the objects living in the simulation
+    myInstance.initialize()                            This method takes care of setting up the directory/file environment with proper checks
+    myInstance.run()                                   This method runs the simulation
     Utility methods:
-     myInstance.printDicts                              !prints the dictionaries representing the whole simulation
-     myInstance.setInputFiles                           !re-associate the set of files owned by the simulation
-     myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
+     myInstance.printDicts                             prints the dictionaries representing the whole simulation
+     myInstance.setInputFiles                          re-associate the set of files owned by the simulation
+     myInstance.getDefaultInputFile                    return the default name of the input file read by the simulation
     Inherited from the BaseType class:
-     myInstance.whoAreYou()                             !inherited from BaseType class-
-     myInstance.myClassmyCurrentSetting()               !see BaseType class-
+     myInstance.whoAreYou()                            inherited from BaseType class-
+     myInstance.myClassmyCurrentSetting()              see BaseType class-
 
     --how to add a new entity <myClass> to the simulation--
     Add an import for the module where it is defined. Convention is that the module is named with the plural
@@ -228,13 +227,13 @@ class Simulation(MessageUser):
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_ec_qsub_command.sh')
     self.runInfoDict['NodeParameter'     ] = '--hostfile' # the parameter used to specify the files where the nodes are listed
     self.runInfoDict['MPIExec'           ] = 'mpiexec'  # the command used to run mpi commands
-    self.runInfoDict['threadParameter'] = '--n-threads=%NUM_CPUS%'  # the command used to run multi-threading commands.
-                                                                    # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
-                                                                    # that require the num of threads to be inputted without a
-                                                                    # blank space we can have something like --my-nthreads=%NUM_CPUS%
-                                                                    # (e.g. --my-nthreads=10), otherwise we can have something like
-                                                                    # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
-                                                                    # space is always added (e.g. --mycommand => --mycommand 10)
+    self.runInfoDict['threadParameter'   ] = '--n-threads=%NUM_CPUS%'  # the command used to run multi-threading commands.
+                                                                       # The "%NUM_CPUS%" is a wildcard to replace. In this way for commands
+                                                                       # that require the num of threads to be inputted without a
+                                                                       # blank space we can have something like --my-nthreads=%NUM_CPUS%
+                                                                       # (e.g. --my-nthreads=10), otherwise we can have something like
+                                                                       # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
+                                                                       # space is always added (e.g. --mycommand => --mycommand 10)
     self.runInfoDict['includeDashboard'  ] = False  # in case of internalParallel True, instantiate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
     self.runInfoDict['WorkingDir'        ] = ''     # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''     # the temporary directory where a simulation step is run
@@ -259,9 +258,9 @@ class Simulation(MessageUser):
     self.runInfoDict['clusterParameters' ] = []     # Extra parameters to use with the qsub command.
     self.runInfoDict['maxQueueSize'      ] = None
 
-    # A set of dictionaries that, in a manner consistent with their names, collect the instances of all objects needed in the simulation.
-    # Their keywords in the dictionaries are the user given names of data, sampler, etc.
-    # The value corresponding to a keyword is the instance of the corresponding class
+    # A set of dictionaries that collect the instances of all objects needed in the simulation.
+    # The keys are the user given names of data, sampler, etc.
+    # The value is the instance of the corresponding class
     self.stepsDict            = {}
     self.dataDict             = {}
     self.samplersDict         = {}
@@ -280,10 +279,10 @@ class Simulation(MessageUser):
     self.knownQueueingSoftware.append('PBS Professional')
 
     # Dictionary of mode handlers
-    self.__modeHandlerDict           = CustomModes.modeHandlers
+    self.__modeHandlerDict = CustomModes.modeHandlers
 
     # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
-    # the keywords are the name of the module that contains the specialization of that specific entity
+    # the keys are the name of the module that contains the instance of that specific entity
     self.entityModules  = {}
     self.entityModules['Steps'        ] = Steps
     self.entityModules['DataObjects'  ] = DataObjects
@@ -375,7 +374,6 @@ class Simulation(MessageUser):
       @ In, xmlFilename, string, optional, xml filename for relative directory
       @ Out, None
     """
-
     self.raiseADebug("Reading XML", xmlFilename)
     self.setOptionalAttributes(xmlNode)
     self.instantiateEntities(xmlNode, runInfoSkip, xmlFilename)
@@ -396,7 +394,6 @@ class Simulation(MessageUser):
       @ In, xmlNode, ElementTree.Element, XML node to read
       @ Out, None
     """
-
     unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps', 'verbosity', 'color', 'profile'], list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
@@ -423,7 +420,6 @@ class Simulation(MessageUser):
       @ In, runInfoSkip, set, optional, nodes to skip
       @ In, xmlFilename, string, optional, XML filename for relative directory
     """
-
     runInfoNode = xmlNode.find('RunInfo')
     if runInfoNode is None:
       self.raiseAnError(IOError, 'The RunInfo node is missing!')
@@ -435,7 +431,6 @@ class Simulation(MessageUser):
       @ In, xmlNode, ElementTree.Element, XML node to read
       @ Out, varGroups, dict, variable groups
     """
-
     varGroupNode = xmlNode.find('VariableGroups')
     # get variable groups from XML
     if varGroupNode is not None:
@@ -453,7 +448,6 @@ class Simulation(MessageUser):
       @ In, xmlFilename, string, optional, XML filename for relative directory
       @ Out, None
     """
-
     self.instantiateRunInfo(xmlNode, runInfoSkip, xmlFilename)
     # build variable groups
     varGroups = self.buildVariableGroups(xmlNode)
@@ -469,7 +463,7 @@ class Simulation(MessageUser):
         # we already took care of RunInfo block
         if className in ['RunInfo']:
           continue
-        self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(inputBlock.tag))+2*'-')
+        self.raiseADebug(f'-- Reading the block: {inputBlock.tag} --')
         if len(inputBlock.attrib) == 0:
           globalAttributes = {}
         else:
@@ -508,7 +502,6 @@ class Simulation(MessageUser):
       @ In, None
       @ Out, None
     """
-
     # move the full simulation environment in the working directory
     self.raiseADebug(f'Moving to working directory: {self.runInfoDict["WorkingDir"]}')
     os.chdir(self.runInfoDict['WorkingDir'])
@@ -681,7 +674,7 @@ class Simulation(MessageUser):
         self.runInfoDict['clusterParameters'].extend(splitCommand(element.text)) # extend to allow adding parameters at different points.
       elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
-        #parallel environment
+        # parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
           self.__modeHandler.XMLread(element)
@@ -773,7 +766,6 @@ class Simulation(MessageUser):
     stepInputDict['Output'] = []              # set the Output to an empty list
     # fill the take a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
     for role, entity, _, name in stepInstance.parList:
-      print(f'Simulation.initiateStep role: {role} entity: {entity} name: {name}')
       # Only for input and output we allow more than one object passed to the step, so for those we build a list
       if role == 'Input':
         stepInputDict[role].append(self.getEntity(entity, name))
@@ -835,7 +827,7 @@ class Simulation(MessageUser):
       if "_printer" in output.__dict__:
         output._printer.finalize()
 
-    self.raiseAMessage('-'*2+' End step {0:50} '.format(stepInstance.name+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+    self.raiseAMessage(f'-- End step {stepInstance.name} of type: {stepInstance.type} --\n')
 
   def finalizeSimulation(self):
     """
@@ -857,6 +849,7 @@ class Simulation(MessageUser):
       @ In, None
       @ Out, stepSequence, list(str), list of step in sequence
     """
+
     return self.__stepSequenceList
 
   def run(self):
@@ -914,6 +907,7 @@ class Simulation(MessageUser):
     # finalize the simulation
     self.finalizeSimulation()
     self.raiseAMessage('Run complete!', forcePrint=True)
+
     return 0
 
   def generateAllAssemblers(self, objectInstance):

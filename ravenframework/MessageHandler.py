@@ -116,7 +116,7 @@ class MessageHandler(object):
       @ Out, None
     """
     if len(self.warnings)>0:
-      if self.verbCode[self.verbosity]>0:
+      if self.verbCode[self.verbosity] > 0:
         print('-'*50)
         print(f'There were {sum(self.warningCount)} warnings during the simulation run:')
         for w, warning in enumerate(self.warnings):
@@ -171,12 +171,13 @@ class MessageHandler(object):
       @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
       @ Out, tag, string, string to print
     """
-    if type(obj).__name__ in ['str','unicode']: # ?when is this ever not true?
+    if type(obj).__name__ in ['str', 'unicode']: # ?when is this ever not true?
       return obj
     if hasattr(obj,'printTag'):
       tag = str(obj.printTag)
     else:
       tag = str(obj)
+
     return tag
 
   def getDesiredVerbosity(self, caller):
@@ -192,6 +193,7 @@ class MessageHandler(object):
     if localVerb is None:
       localVerb = self.verbosity
     desVerbosity = self.checkVerbosity(localVerb)
+
     return desVerbosity
 
   def checkVerbosity(self, verb):
@@ -203,6 +205,7 @@ class MessageHandler(object):
     if str(verb).strip().lower() not in self.verbCode:
       raise IOError(f'Verbosity key {verb} not recognized!  Options are {list(self.verbCode.keys())}')
     currentVerb = self.verbCode[str(verb).strip().lower()]
+
     return currentVerb
 
   def error(self, caller, etype, message, tag='ERROR', verbosity='silent', color=None):
@@ -279,6 +282,7 @@ class MessageHandler(object):
       return False, ''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message,color)
+
     return shouldIPrint, msg
 
   def stdMessage(self, pre, tag, post, color=None):
@@ -304,6 +308,7 @@ class MessageHandler(object):
       elif tag.lower() in self.colorDict:
         msgend = self.paint(msgend,self.colorDict[tag.lower()])
     msg += msgend
+
     return msg
 
 def timePrint(message):
@@ -326,6 +331,7 @@ def makeHandler(name):
   """
   handler = MessageHandler()
   _handlers[name] = handler
+
   return handler
 
 # default handler

@@ -17,6 +17,9 @@
 
 import os
 import sys
+import builtins
+import warnings
+from ravenframework.utils import utils
 
 # ***********************************************
 # main utilities
@@ -53,10 +56,9 @@ def setupBuiltins():
     @ In, None
     @ Out, None
   """
-  import builtins
   try:
     builtins.profile
-  except (AttributeError,ImportError):
+  except (AttributeError, ImportError):
     # profiler not preset, so pass through
     builtins.profile = lambda f: f
 
@@ -66,7 +68,6 @@ def setupWarnings():
     @ In, None
     @ Out, None
   """
-  import warnings
   if not __debug__:
     warnings.filterwarnings("ignore")
   else:
@@ -88,7 +89,7 @@ def setupH5py():
     @ In, None
     @ Out, None
   """
-  #warning: this needs to be before importing h5py
+  # warning: this needs to be before importing h5py
   os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 def setupCpp():
@@ -99,11 +100,10 @@ def setupCpp():
   """
   frameworkDir = findFramework()
 
-  from ravenframework.utils import utils
   utils.find_crow(frameworkDir)
 
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir,'contrib') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir,"contrib")}" already in system path. Skipping CPP setup')
+  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib') for sp in sys.path):
+    print(f'WARNING: "{os.path.join(frameworkDir, "contrib")}" already in system path. Skipping CPP setup')
   else:
     utils.add_path(os.path.join(frameworkDir,'contrib'))
     ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
@@ -116,7 +116,7 @@ def checkVersions():
     @ In, None
     @ Out, None
   """
-  # import library handler
+  # import library handler (although it is bad practice to import inside a function)
   frameworkDir = findFramework()
   scriptDir = os.path.join(frameworkDir, '..', 'scripts')
   if scriptDir not in sys.path:
@@ -136,15 +136,15 @@ def checkVersions():
     print('ERROR: Some required Python libraries are missing but required to run RAVEN as configured:')
     for lib, version in missing:
       # report the missing library
-      msg = '  -> MISSING: {}'.format(lib)
+      msg = f'  -> MISSING: {lib}'
       # add the required version if applicable
       if version is not None:
-        msg += ' version {}'.format(version)
+        msg += f' version {version}'
       print(msg)
   if notQA:
     print('ERROR: Some required Python libraries have incorrect versions for running RAVEN as configured:')
     for lib, found, need in notQA:
-      print('  -> WRONG VERSION: lib "{}" need "{}" but found "{}"'.format(lib, found, need))
+      print(f'  -> WRONG VERSION: lib "{lib}" need "{need}" but found "{found}"')
   if missing or notQA:
     print('Try installing libraries using instructions on RAVEN repository wiki at ' +
            'https://github.com/idaholab/raven/wiki/Installing_RAVEN_Libraries.')

@@ -459,6 +459,7 @@ class GeneralPlot(PlotInterface):
               for i in range(len(self.colorMapValues[pltIndex][key])):
                 if self.colorMapValues[pltIndex][key][i].size == 0:
                   return False
+
     return True
 
   def __executeActions(self):
@@ -695,6 +696,7 @@ class GeneralPlot(PlotInterface):
     paramDict['Plot is '] = str(self.dim) + 'D'
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
+
     return paramDict
 
   def endInstructions(self, instructionString):
@@ -757,7 +759,13 @@ class GeneralPlot(PlotInterface):
         self.options[key]['frameon'] = 'True'
       elif utils.stringIsFalse(self.options[key]['frameon']):
         self.options[key]['frameon'] = 'False'
-      self.fig, self.ax = plt.subplots(num=self.name, figsize=self.options[key]['figsize'], dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'], edgecolor=self.options[key]['edgecolor'], frameon=ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
+      self.fig, self.ax = plt.subplots(num=self.name,
+                                       figsize=self.options[key]['figsize'],
+                                       dpi=ast.literal_eval(self.options[key]['dpi']),
+                                       facecolor=self.options[key]['facecolor'],
+                                       edgecolor=self.options[key]['edgecolor'],
+                                       frameon=ast.literal_eval(self.options[key]['frameon']),
+                                       **self.options[key].get('attributes', {}))
     else:
       self.fig, self.ax = plt.subplots(num=self.name)
     if 'screen' in self.destinations and display:
