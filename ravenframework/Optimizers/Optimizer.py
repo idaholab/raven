@@ -515,6 +515,7 @@ class Optimizer(AdaptiveSampler):
     """
     # since Optimizer inherits a Sampler, flush that too
     self.flushSampler()
+    self.metadataKeys = set()
     self.assemblerDict = {}
     self._cancelledTraj = {}
     self._convergedTraj = {}

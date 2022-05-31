@@ -1128,6 +1128,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
+    self.metadataKeys = set()
     self.assemblerDict = {}
     self.counter = 0
     self.auxcnt = 0
