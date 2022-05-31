@@ -356,7 +356,7 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo[f'ProbabilityWeight-{dist}'] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight'] *= self.inputInfo['ProbabilityWeight-{dist}']
+        self.inputInfo['ProbabilityWeight'] *= self.inputInfo[f'ProbabilityWeight-{dist}']
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
