@@ -96,6 +96,10 @@
     </PointSet>
     <PointSet name="pp1_metric">
       <Input>InputPlaceHolder</Input>
+      <Output>
+        BiasFactor_F1_F1,BiasFactor_F1_F2,BiasFactor_F1_F3,BiasFactor_F2_F1,BiasFactor_F2_F2,BiasFactor_F2_F3,BiasFactor_F3_F1,BiasFactor_F3_F2,BiasFactor_F3_F3,
+        ExactBiasFactor_F1_F1,ExactBiasFactor_F1_F2,ExactBiasFactor_F1_F3,ExactBiasFactor_F2_F1,ExactBiasFactor_F2_F2,ExactBiasFactor_F2_F3,ExactBiasFactor_F3_F1,ExactBiasFactor_F3_F2,ExactBiasFactor_F3_F3
+      </Output>
     </PointSet>
   </DataObjects>
 

@@ -72,13 +72,12 @@ class Representativity(ValidationBase):
     """
     super().__init__()
     self.printTag = 'POSTPROCESSOR Representativity'
-    self.dynamicType = ['static','dynamic'] #  for now only static is available
-    # self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
+    self.dynamicType = ['static'] #  for now only static is available
     self.name = 'Representativity'
     self.stat = [None, None]
     self.featureDataObject = None
     self.targetDataObject = None
-    self.senPrefix = 'nsen'
+    self.senPrefix = 'sen'
 
   def getBasicStat(self):
     """
@@ -193,64 +192,45 @@ class Representativity(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    self._addRefValues(datasets[0], self.featureParameters, self.features)
-    self._addRefValues(datasets[1], self.targetParameters, self.targets)
+    # # ## Analysis:
+    # # 1. Compute mean and variance:
+    # For mock model
+    self._computeMoments(datasets[0], self.featureParameters, self.features)
+    # For target model
+    self._computeMoments(datasets[1], self.targetParameters, self.targets)
+    # # 2. Propagate error from parameters to experiment and target outputs.
+    # For mock model
     self._computeErrors(datasets[0],self.featureParameters, self.features)
+    # For target model
     self._computeErrors(datasets[1],self.targetParameters, self.targets)
-    self._addRefValues(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters],['err_' + s2.split("|")[-1] for s2 in self.features])
-    self._addRefValues(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targets])
+    # # 3. Compute mean and variance in the error space:
+    self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters],['err_' + s2.split("|")[-1] for s2 in self.features])
+    self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targets])
+    # # 4. Compute Uncertainties in parameters
     UParVar = self._computeUncertaintyinParametersErrorMatrix(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters])
+    # # 5. Compute Uncertainties in outputs
+    # Outputs of Mock model (Measurables F_i)
     UMeasurablesVar = self._computeUncertaintyinParametersErrorMatrix(datasets[0],['err_' + s.split("|")[-1] for s in self.features])
+    # Outputs of Target model (Targets FOM_i)
     UFOMsVar = self._computeUncertaintyinParametersErrorMatrix(datasets[1],['err_' + s.split("|")[-1] for s in self.targets])
-
+    # # 6. Compute Normalized Uncertainties
+    # In mock experiment outputs (measurables)
     sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
     senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens, datasets)
-
+    # In target outputs (FOMs)
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
     senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets)
+    # # 7. Compute representativities
     r,r_exact = self._calculateBiasFactor(senMeasurables, senFOMs, UParVar, UMeasurablesVar)
-
-
-    # names = kwargs.get('dataobjectNames')
+    # # 8. Create outputs
     outs = {}
     for i,targ in enumerate(self.targets):
       for j,feat in enumerate(self.features):
-      # featData = self._getDataFromDatasets(datasets, feat, names)
-      # targData = self._getDataFromDatasets(datasets, targ, names)
-      # parameters = self._getDataFromDatasets(datasets, param, names)
-      # targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-      # covParameters = senFOMs @ senMeasurables.T
         name1 = "BiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
         name2 = "ExactBiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
         outs[name1] = r_exact[i,j]
         outs[name2] = r[i,j]
-      # for metric in self.metrics:
-      #   name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-      #   outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
-
-
-
-    # # ## Analysis:
-    # # 1. Identify Models: Mock experiment, and Target model.
-    # # 2. Generate Data
-    # samples = datasets[0]
-    # # data = self._getDataFromDatasets(featu,)
-    # # 3. Propagate error from parameters to experiment and target outputs.
-    # _, _, mes_samples = self._propagateErrors(samples)#par, par_var,Exp_A,Exp_b,samples
-    # # Avg =
-
-
-    # Fsim_check, CFsim,_ = propagateErrors(par, par_var, Exp_A, Exp_b,samples)
-    # _,_,FOM_samples = Propagate_errors(par, par_var,Tar_A,Tar_b,samples)
-    # Upar, Upar_var = Transform_to_error_space_stoch(par, par_var, par, samples)
-    # Umes, Umes_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-    # # Umes, Umes_var = Transform_to_error_space_stoch(Fmes, CFmes, Fmes, mes_samples)
-    # UF, UF_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-    # # 4. Normalize the data (transform to relative errors)
-    # expNormalizedSen = normalizeSensetivities(par, F, G)
-    # mesParametersNormalizedSen = normalizeSensetivities(par, F, G)
-    # nSF = normalizeSensetivities(par, F, G)
-    # nSFOM = normalizeSensetivities(par, FOM, G)
+    ## TODO:
     # # 5. Compute correction in parameters
     # par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
     # pm_tilde, Cpm_tilde = Parameter_correction_theory(par, Upar, Upar_var,UF, UF_var,mesParametersNormalizedSen)
@@ -318,7 +298,7 @@ class Representativity(ValidationBase):
     data = dat, pw
     return data
 
-  def _addRefValues(self, datasets, features, targets):
+  def _computeMoments(self, datasets, features, targets):
     for var in [x.split("|")[-1] for x in features + targets]: #datasets.data_vars
       datasets[var].attrs['meanValue'] = np.mean(datasets[var].values)
       for var2 in [x.split("|")[-1] for x in features + targets]:
