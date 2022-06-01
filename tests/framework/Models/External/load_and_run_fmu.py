@@ -115,7 +115,7 @@ def simulateCustomInputFMU(fmuFilename,pathToRaven,show_plot=True):
 if __name__ == '__main__':
   import os
   fmuFilename = './SerializeWrkd/attenuate_pk2.fmu'
-  pathToRaven = os.sep.join(['..','..','..','..'])+os.sep+"framework"
+  pathToRaven = os.path.abspath(os.sep.join(['..','..','..','..']))
   print("Loading", fmuFilename)
   print("pathToRaven", pathToRaven)
   simulateCustomInputFMU(fmuFilename, pathToRaven, False)
