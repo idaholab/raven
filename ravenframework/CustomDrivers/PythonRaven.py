@@ -17,7 +17,6 @@
 """
 import os
 
-from ..utils import TreeStructure as TS
 from . import DriverUtils
 
 class Raven:
@@ -52,7 +51,9 @@ class Raven:
       @ In, xmlFile, string, target xml file to load (cwd?)
       @ Out, None
     """
-    from .. import Simulation # really bad practice, but everything in RAVEN is so circular at this point that it can't be avoided
+    # really bad practice to import inside a method, but everything in RAVEN is so circular at this point that it can't be avoided
+    from .. import Simulation
+    from ..utils import TreeStructure as TS
 
     target = self._findFile(xmlFile)
     with open(target, 'r') as inputXML:
