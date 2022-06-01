@@ -24,12 +24,12 @@ from ....utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import ast
+import ast ##TODO: remove if not used
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ....SupervisedLearning.ScikitLearn import ScikitLearnBase
-from ....utils import utils
+from ....utils import utils ##TODO: remove if not used
 from ....utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ class SVR(ScikitLearnBase):
   """
     Support Vector Regressor
   """
-  info = {'problemtype':'regression', 'normalize':True}
+  info = {'problemtype':'regression', 'normalize':True, 'normalizeTargets':True}
 
   def __init__(self):
     """
@@ -49,6 +49,7 @@ class SVR(ScikitLearnBase):
     import sklearn
     import sklearn.svm
     self.model = sklearn.svm.SVR
+    info = {'problemtype':'regression', 'normalize':True, 'normalizeTargets':True}
 
   @classmethod
   def getInputSpecification(cls):
