@@ -896,6 +896,7 @@ class Simulation(MessageUser):
     # to do list
     # can we remove the check on the existence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
+
     # controlling the PBS environment
     if self.__remoteRunCommand is not None:
       subprocess.call(args=self.__remoteRunCommand["args"],
