@@ -19,9 +19,6 @@ import os
 
 from ..utils import TreeStructure as TS
 from . import DriverUtils
-DriverUtils.doSetup() # bad practice, I know, but Simulation can't be imported without profile and
-                      # that gets set up in DriverUtils.doSetup() for some reason.
-from .. import Simulation
 
 class Raven:
   """
@@ -40,6 +37,7 @@ class Raven:
       @ Out, None
     """
     if self.framework is None:
+      DriverUtils.doSetup() # sets up a number of things, really shouldn't be necessary...
       self.framework = DriverUtils.findFramework()
 
     self._simulation = None # RAVEN Simulation object (loaded workflow)
@@ -54,6 +52,8 @@ class Raven:
       @ In, xmlFile, string, target xml file to load (cwd?)
       @ Out, None
     """
+    from .. import Simulation # really bad practice, but everything in RAVEN is so circular at this point that it can't be avoided
+
     target = self._findFile(xmlFile)
     with open(target, 'r') as inputXML:
       root = TS.parse(inputXML).getroot()
