@@ -146,9 +146,9 @@ class GaussianProcessRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                               descr=r"""Seed for the internal random number generator""", default=None))
     specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
-                                                 descr=r"""Per default, the 'L-BGFS-B' algorithm from
+                                                 descr=r"""Per default, the 'fmin_l_bfgs_b' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
-                                                 parameters are kept fixed. """, default='L-BGFS-B'))
+                                                 parameters are kept fixed. """, default='fmin_l_bfgs_b'))#L-BGFS-B
     return specs
 
   def pickKernel(self, name):
