@@ -221,15 +221,27 @@ class Representativity(ValidationBase):
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
     senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets)
     # # 7. Compute representativities
-    r,r_exact = self._calculateBiasFactor(senMeasurables, senFOMs, UParVar, UMeasurablesVar)
-    # # 8. Create outputs
+    r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UParVar, UMeasurablesVar)
+    # # 8. Compute corrected Uncertainties
+    UtarVarTilde = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UParVar,r)
+    UtarVarTildeExact = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UParVar,rExact)
+    # # 9. Create outputs
     outs = {}
     for i,targ in enumerate(self.targets):
       for j,feat in enumerate(self.features):
-        name1 = "BiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
-        name2 = "ExactBiasFactor_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1])
-        outs[name1] = r_exact[i,j]
-        outs[name2] = r[i,j]
+        name1 = "BiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
+        name2 = "ExactBiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
+        outs[name1] = r[i,j]
+        outs[name2] = rExact[i,j]
+      for k,tar in enumerate(self.targets):
+        if k == i:
+          name3 = "CorrectedVar_Tar{}".format(tar.split("|")[-1])
+          name4 = "ExactCorrectedVar_Tar{}".format(tar.split("|")[-1])
+        else:
+          name3 = "CorrectedCov_Tar{}_Tar{}".format(targ.split("|")[-1], tar.split("|")[-1])
+          name4 = "ExactCorrectedCov_Tar{}_Tar{}".format(targ.split("|")[-1], tar.split("|")[-1])
+        outs[name3] = UtarVarTilde[i,k]
+        outs[name4] = UtarVarTildeExact[i,k]
     ## TODO:
     # # 5. Compute correction in parameters
     # par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
@@ -346,33 +358,8 @@ class Representativity(ValidationBase):
     rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
     return r, rExact
 
-def run2(self):
-  # ## Analysis:
-  # 1. Identify Models: Mock experiment, and Target model.
-  # 2. Generate Data
-  samples = genData(par, par_var, nSamples)
-  # 3. Propagate error from parameters to experiment and target outputs.
-  _, _, mes_samples = Propagate_errors(par, par_var,Exp_A,Exp_b,samples)
-  Fsim_check, CFsim,_ = Propagate_errors(par, par_var, Exp_A, Exp_b,samples)
-  _,_,FOM_samples = Propagate_errors(par, par_var,Tar_A,Tar_b,samples)
-  Upar, Upar_var = Transform_to_error_space_stoch(par, par_var, par, samples)
-  Umes, Umes_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-  # Umes, Umes_var = Transform_to_error_space_stoch(Fmes, CFmes, Fmes, mes_samples)
-  UF, UF_var = Transform_to_error_space_stoch(F, F_var, F, mes_samples)
-  # 4. Normalize the data (transform to relative errors)
-  expNormalizedSen = normalizeSensetivities(par, F, G)
-  mesParametersNormalizedSen = normalizeSensetivities(par, F, G)
-  nSF = normalizeSensetivities(par, F, G)
-  nSFOM = normalizeSensetivities(par, FOM, G)
-  # 5. Compute correction in parameters
-  par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
-  pm_tilde, Cpm_tilde = Parameter_correction_theory(par, Upar, Upar_var,UF, UF_var,mesParametersNormalizedSen)
-  # 6. Compute correction in targets
-  FOMsim_tilde_theory, FOMsim_var_tilde_theory, UFOMsim_var_tilde_theory, Umes_var, UFOM_var_tilde_no_Umes_var, Inner1  = Target_correction_theory(par, FOM, Upar, Upar_var, Umes, Umes_var, mesParametersNormalizedSen, expNormalizedSen)
-  # 7. Computer representativity factor
-  r,r_exact, UFOMsim_var_tilde_rep,UFOMsim_var_tilde_rep_exact   = Representativity(par, Upar, Upar_var, F, nSF, nSFOM, Umes_var)
-  print('==== Representativity ====')
-  print('r')
-  print(r)
-  print('UFOMsim_var_tilde_rep')
-  print(UFOMsim_var_tilde_rep)
+  def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
+    # re-compute Utar_var_tilde from r (#eq 80)
+    chol = sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T).real
+    UtarVarTilde =  chol @ (np.eye(np.shape(r)[0]) - r @ r.T) @ chol
+    return UtarVarTilde
