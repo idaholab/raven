@@ -253,7 +253,7 @@ class MultiRun(SingleRun):
       currentTime = time.time()
       if currentTime > nextReportTime:
         nextReportTime = currentTime + reportDeltaTime
-        self.raiseADebug("Continuing to run. isFinished: %r running: %d unclaimed runs: %d" % (jobHandler.isFinished(), jobHandler.numRunning(), len(jobHandler.getFinishedNoPop())))
+        self.raiseADebug("Continuing to run. isFinished: %r running: %d %d unclaimed runs: %d queued: %d" % (jobHandler.isFinished(), jobHandler.numRunningTotal(), jobHandler.numRunning(), len(jobHandler.getFinishedNoPop()), jobHandler._numQueuedTotal()))
       # Note: calling amIreadyToProvideAnInput can change results,
       #  but might be helpful for debugging sometimes
       # "sampler ready with input: %r" sampler.amIreadyToProvideAnInput()
