@@ -62,16 +62,16 @@ class PPDSS(ValidationBase):
                                                                 on selected time interval. Values must be fractions of the full time interval.
                                                                 To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
                                                                 If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
-    separateFeatureDataInput.addParam("type", InputTypes.StringType, descr="""Specifies what type of user defined time intervals have been selected from
-                                                                    the feature pivot parameter. Options are currently `ratio' or `raw_values'""")
+    separateFeatureDataInput.addParam("type", InputTypes.StringType, descr=r"""Specifies what type of user defined time intervals have been selected from
+                                                                    the feature pivot parameter. Options are currently `ratio' or `raw\_values'""")
     inputSpecification.addSub(separateFeatureDataInput)
     separateTargetDataInput = InputData.parameterInputFactory("separateTargetData", contentType=InputTypes.StringType,
                                                                 descr="""Time points to separate target data and conduct DSS postprocessing
                                                                 on selected time interval. Values must be fractions of the full time interval.
                                                                 To distinguish strart and end, '|' should be placed between both values. Example: 0.0|0.4
                                                                 If 'None' is provided, the DSS postprocessing will be applied to the full interval.""")
-    separateTargetDataInput.addParam("type", InputTypes.StringType, descr="""Specifies what type of user defined time intervals have been selected from
-                                                                    the target pivot parameter. Options are currently `ratio' or `raw_values'""")
+    separateTargetDataInput.addParam("type", InputTypes.StringType, descr=r"""Specifies what type of user defined time intervals have been selected from
+                                                                    the target pivot parameter. Options are currently `ratio' or `raw\_values'""")
     inputSpecification.addSub(separateTargetDataInput)
     scaleTypeInput = InputData.parameterInputFactory("scale", contentType=InputTypes.makeEnumType("scale","scaleType",['DataSynthesis','2_2_affine','dilation','beta_strain','omega_strain','identity']),
                                                       descr="""Scaling type for the time transformation. Available types are DataSynthesis,

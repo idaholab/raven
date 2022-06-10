@@ -94,7 +94,7 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
     it will output an error.
   \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, specifies the names of the targets. Make sure the feature data are normalized by a nominal value. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}.
     To enable user defined time interval selection, this postprocessor will only consider the first feature name provided. If user provides more than one,
-    itt will output an error.
+    it will output an error.
   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
     The pivot parameter is the shared index of the output variables in the data object.
   \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
@@ -147,10 +147,6 @@ The output \textbf{DataObjects} has required and optional components to provide 
       \item \textbf{process\_time\_targetName\_featureName}, provides the shared process time data.  `targetName' and `featureName' are the string names of the input target and feature.
       \item \textbf{standard\_error\_targetName\_featureName}, provides the standard error of the overall transient data.  `targetName' and `featureName' are the string names of the input target and feature.
     \end{itemize}
-  \item \xmlNode{Options}
-  \begin{itemize}
-    \item \xmlNode{pivotParameter}
-  \end{itemize}
 \end{itemize}
 pivot parameter must be named `pivot\_parameter' and this array is assigned within the post-processor algorithm.
 
