@@ -20,6 +20,8 @@
 #External Modules--------------------------------------------------------------------------------
 import sys
 import copy
+import gc
+import os, psutil
 import numpy as np
 from scipy import spatial
 from sklearn.decomposition import PCA
@@ -172,7 +174,8 @@ class RFE(BaseInterface):
     #       some features (e.g. DMDC state variables) are stored among the targets
     #       This will go away once (and if) MR #1718 (https://github.com/idaholab/raven/pull/1718) gets merged
     #       whatever marked with ""FIXME 1718"" will need to be modified
-
+    process = psutil.Process(os.getpid())
+    self.raiseAMessage("STARTING MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
     # Initialization
     nFeatures = X.shape[-1]
     nTargets = y.shape[-1]
@@ -294,6 +297,8 @@ class RFE(BaseInterface):
       # that have not been eliminated yet
       support_[featuresForRanking[ranks][:threshold]] = False
       ranking_[np.logical_not(support_)] += 1
+      del estimator
+      gc.collect()
 
     # now we check if maxNumberFeatures is set and in case perform an
     # additional reduction based on score
@@ -396,6 +401,9 @@ class RFE(BaseInterface):
           #score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
           self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
+          self.raiseAMessage("MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
+          del estimator
+          gc.collect()
           if f is None:
             f = np.asarray(self.parametersToInclude)
           if k in bestForNumberOfFeatures.keys():
