@@ -30,7 +30,7 @@ from numpy import linalg
 from .utils import UreturnPrintTag, UreturnPrintPostTag
 from .graphStructure import graphObject
 
-from ..MessageHandler import getMessageHandler
+from .. import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
 
 # dict of builtin types, filled by getBuiltinTypes

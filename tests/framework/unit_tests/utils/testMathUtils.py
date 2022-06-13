@@ -23,7 +23,6 @@ ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.arg
 sys.path.append(ravenDir)
 
 from ravenframework.utils import mathUtils
-from ravenframework.MessageHandler import getMessageHandler
 
 print (mathUtils)
 mh = getMessageHandler()

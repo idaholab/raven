@@ -19,6 +19,7 @@ Created on Apr 20, 2015
 import sys
 import time
 import bisect
+import builtins
 
 from .utils import utils
 
@@ -58,6 +59,10 @@ all other levels.
 
 TL;DR: BaseClasses/MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
 instance, while the MessageHandler is an output stream control tool.
+
+In an effort to make the MH more flexible, we insert getMessageHandler into the python "builtins" module.
+This means that any time after this module (MessageHandler) is imported, you can use
+"getMessageHandler(name='default')" to retrieve a particular message handler as identified by "name".
 """
 
 class MessageHandler(object):
@@ -104,9 +109,9 @@ class MessageHandler(object):
       @ In, initDict, dict, dictionary of global options
       @ Out, None
     """
-    self.verbosity    = initDict.get('verbosity', 'all').lower()
+    self.verbosity = initDict.get('verbosity', 'all').lower()
     self.callerLength = initDict.get('callerLength', 25)
-    self.tagLength    = initDict.get('tagLength', 15)
+    self.tagLength = initDict.get('tagLength', 15)
     self.suppressErrs = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
 
   def printWarnings(self):
@@ -337,7 +342,7 @@ def makeHandler(name):
 # default handler
 makeHandler('default')
 
-def getMessageHandler(name='default'):
+def getHandler(name='default'):
   """
     Retrieve a message handling instance.
     Styled after the Python logging module, maybe we should be switching to that.
@@ -350,3 +355,5 @@ def getMessageHandler(name='default'):
   # NOTE: idk why, but h = _handlers.get(name, makeHandler(name)) does not work.
   # I think it's because it executes makeHandler(name) regardless of if name is present or not.
   return h
+
+builtins.getMessageHandler = getHandler
