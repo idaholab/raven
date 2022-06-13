@@ -38,6 +38,12 @@ class Representativity(ValidationBase):
   """
     Representativity is a base class for validation problems
     It represents the base class for most validation problems
+
+    @ Authors: Mohammad abdo  (@Jimmy-INL)
+               Congjian Wang  (@)
+               Andrea Alfonsi (@)
+               Aaron Epiney   (@)
+
   """
 
   @classmethod
@@ -196,23 +202,33 @@ class Representativity(ValidationBase):
     # # 1. Compute mean and variance:
     # For mock model
     self._computeMoments(datasets[0], self.featureParameters, self.features)
+    measurableNames = [s.split("|")[-1] for s in self.features]
+    measurables = [datasets[0][var].meanValue for var in measurableNames]
     # For target model
     self._computeMoments(datasets[1], self.targetParameters, self.targets)
+    FOMNames = [s.split("|")[-1] for s in self.targets]
+    FOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMNames]).reshape(-1,1)
     # # 2. Propagate error from parameters to experiment and target outputs.
     # For mock model
     self._computeErrors(datasets[0],self.featureParameters, self.features)
+    measurableErrorNames = ['err_' + s.split("|")[-1] for s in self.features]
+    FOMErrorNames = ['err_' + s.split("|")[-1] for s in self.targets]
+    self._computeMoments(datasets[0], measurableErrorNames, measurableErrorNames)
+    UMeasurables = np.atleast_2d([datasets[0][var].meanValue for var in measurableErrorNames]).reshape(-1,1)
     # For target model
     self._computeErrors(datasets[1],self.targetParameters, self.targets)
+    self._computeMoments(datasets[1], FOMErrorNames, FOMErrorNames)
+    UFOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMErrorNames]).reshape(-1,1)
     # # 3. Compute mean and variance in the error space:
     self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters],['err_' + s2.split("|")[-1] for s2 in self.features])
     self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targets])
     # # 4. Compute Uncertainties in parameters
-    UParVar = self._computeUncertaintyinParametersErrorMatrix(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters])
+    UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters])
     # # 5. Compute Uncertainties in outputs
     # Outputs of Mock model (Measurables F_i)
-    UMeasurablesVar = self._computeUncertaintyinParametersErrorMatrix(datasets[0],['err_' + s.split("|")[-1] for s in self.features])
+    UMeasurablesVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.features])
     # Outputs of Target model (Targets FOM_i)
-    UFOMsVar = self._computeUncertaintyinParametersErrorMatrix(datasets[1],['err_' + s.split("|")[-1] for s in self.targets])
+    UFOMsVar = self._computeUncertaintyMatrixInErrors(datasets[1],['err_' + s.split("|")[-1] for s in self.targets])
     # # 6. Compute Normalized Uncertainties
     # In mock experiment outputs (measurables)
     sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
@@ -221,13 +237,33 @@ class Representativity(ValidationBase):
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
     senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets)
     # # 7. Compute representativities
-    r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UParVar, UMeasurablesVar)
+    r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UparVar, UMeasurablesVar)
     # # 8. Compute corrected Uncertainties
-    UtarVarTilde = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UParVar,r)
-    UtarVarTildeExact = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UParVar,rExact)
+    UtarVarTilde = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UparVar,r)
+    UtarVarTildeExact = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UparVar,rExact)
+    # # 9 Compute Corrected Targets,
+    # for var in self.targets:
+    #   self._getDataFromDatasets(datasets, var, names=None)
+    parametersNames = [s.split("|")[-1] for s in self.featureParameters]
+    par = np.atleast_2d([datasets[0][var].meanValue for var in parametersNames]).reshape(-1,1)
+    correctedTargets, correctedTargetCovariance, correctedTargetErrorCov, UtarVarTilde_no_Umes_var, Inner1 = self._targetCorrection(FOMs, UparVar, UMeasurables, UMeasurablesVar, senFOMs, senMeasurables)
+    correctedParameters, correctedParametersCovariance = self._parameterCorrection(par, UparVar, UMeasurables, UMeasurablesVar, senMeasurables)
     # # 9. Create outputs
     outs = {}
+    for i,param in enumerate(self.featureParameters):
+      name4 = "CorrectedParameters_{}".format(param.split("|")[-1])
+      outs[name4] = correctedParameters[i]
+      for j, param2 in enumerate(self.featureParameters):
+        if param == param2:
+          name5 = "VarianceInCorrectedParameters_{}".format(param.split("|")[-1])
+          outs[name5] = correctedParametersCovariance[i,i]
+        else:
+          name6 = "CovarianceInCorrectedParameters_{}_{}".format(param.split("|")[-1],param2.split("|")[-1])
+          outs[name6] = correctedParametersCovariance[i,j]
+
     for i,targ in enumerate(self.targets):
+      name3 = "CorrectedTargets_{}".format(targ.split("|")[-1])
+      outs[name3] = correctedTargets[i]
       for j,feat in enumerate(self.features):
         name1 = "BiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
         name2 = "ExactBiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
@@ -278,6 +314,22 @@ class Representativity(ValidationBase):
           sensMatr[i, j] = sensDict[senName][0]* datasets[0][inpVar].meanValue / datasets[0][outVar].meanValue
     return sensMatr
 
+  # def _generateMatrixFromDataset(self,dataset,rows,cols):
+  #   """
+  #     Reconstruct sensitivity matrix from the Basic Statistic calculation
+  #     @ In, rows, list, list of rows names
+  #     @ In, cols, list, list of colums names
+  #     @ In,
+  #     @ Out, matr, numpy.array, 2-D array of the reconstructed matrix
+  #   """
+  #   matr = np.zeros((len(rows), len(cols)))
+  #   inputVars = [x.split("|")[-1] for x in rows]
+  #   outputVars = [x.split("|")[-1] for x in cols]
+  #   for i, outVar in enumerate(outputVars):
+  #     for j, inpVar in enumerate(inputVars):
+  #       matr[i, j] = dataset[senName]
+  #   return matr
+
   def _getDataFromDatasets(self, datasets, var, names=None):
     """
       Utility function to retrieve the data from datasets
@@ -323,24 +375,10 @@ class Representativity(ValidationBase):
   def _computeErrors(self,datasets,features,targets):
     for var in [x.split("|")[-1] for x in features + targets]:
       datasets['err_'+str(var)] = (datasets[var].values - datasets[var].attrs['meanValue'])/datasets[var].attrs['meanValue']
-      # for var2 in [x.split("|")[-1] for x in features + targets]:
-      #   datasets[var].attrs['err_cov_'+str(var)] = np.cov((datasets[var2].values - datasets[var2].attrs['meanValue'])/datasets[var2].attrs['meanValue'],(datasets[var2].values - datasets[var2].attrs['meanValue'])/datasets[var].attrs['meanValue'])
 
-  # def _propagateErrors(self,data):
-  #   # par = [data[var.split("|")[1]] for var in self.featureParameters]
-  #   # par_var = xr.cov(par[0],par[1])
-  #   # Trans_samples = np.zeros((np.shape(data)[0],np.shape(A)[0]))
-  #   for ind,samp in enumerate(data):
-  #     Trans_samples[ind,:] = linModel(A,samp,b)
-  #   Avg = np.average(Trans_samples, axis=0)
-  #   C = np.cov(Trans_samples.T)
-  #   return Avg, C, Trans_samples
-
-  def _computeUncertaintyinParametersErrorMatrix(self, data, parameters):
+  def _computeUncertaintyMatrixInErrors(self, data, parameters):
 
     uncertMatr = np.zeros((len(parameters), len(parameters)))
-    # inputVars = [x.split("|")[-1] for x in parameters]
-    # outputVars = [x.split("|")[-1] for x in outputs]
     for i, var1 in enumerate(parameters):
       for j, var2 in enumerate(parameters):
         if var1 == var2:
@@ -348,9 +386,6 @@ class Representativity(ValidationBase):
         else:
           uncertMatr[i, j] = data[var1].attrs['cov_'+var2][0,1]
     return uncertMatr
-
-  def _ParameterCorrectionTheory(par, Upar, UparVar, Umes, UmesVar, normalizedSen):
-    pass
 
   def _calculateBiasFactor(self, normalizedSenExp, normalizedSenTar, UparVar, UmesVar=None):
     # Compute representativity (#eq 79)
@@ -363,3 +398,52 @@ class Representativity(ValidationBase):
     chol = sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T).real
     UtarVarTilde =  chol @ (np.eye(np.shape(r)[0]) - r @ r.T) @ chol
     return UtarVarTilde
+
+  def _parameterCorrection(self, par, UparVar, Umes, UmesVar, normalizedSen): #eq 48 and eq 67
+    # Compute adjusted par #eq 48
+    UparTilde = UparVar @ normalizedSen.T @ np.linalg.pinv(normalizedSen @ UparVar @ normalizedSen.T + UmesVar) @ Umes
+
+    # back transform to parameters
+    parTilde = UparTilde * par + par
+
+    # Compute adjusted par_var #eq 67
+    UparVarTilde = UparVar - UparVar @ normalizedSen.T @ np.linalg.pinv(normalizedSen @ UparVar @ normalizedSen.T + UmesVar) @ normalizedSen @ UparVar
+
+    # back transform the variance
+    UparVarTildeDiag = np.diagonal(UparVarTilde)
+    for ind,c in enumerate(UparVarTildeDiag):
+        if c<0:
+            UparVarTilde[ind,ind] = 0
+    UparVarTildeDiag2 = np.sqrt(UparVarTildeDiag)
+    UparVarTildeDiag3 = UparVarTildeDiag2 * np.squeeze(par)
+    parVarTilde = np.square(UparVarTildeDiag3)
+    parVarTilde = np.diag(parVarTilde)
+    return parTilde, parVarTilde
+
+  def _targetCorrection(self, FOMs, UparVar, Umes, UmesVar, normalizedSenTar, normalizedSenExp):
+    # Compute adjusted target #eq 71
+    UtarTilde = normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenTar.T + UmesVar) @ Umes
+    # back transform to parameters
+    tarTilde = UtarTilde * FOMs + FOMs
+
+    # Compute adjusted par_var #eq 74
+    UtarVarTilde = normalizedSenTar @ UparVar @ normalizedSenTar.T - normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenTar.T + UmesVar) @ normalizedSenExp @ UparVar @ normalizedSenTar.T
+
+    # back transform the variance
+    UtarVarTildeDiag = np.diagonal(UtarVarTilde)
+    for ind,c in enumerate(UtarVarTildeDiag):
+        if c<0:
+            UtarVarTilde[ind,ind] = 0
+    UtarVarTildeDiag2 = np.sqrt(UtarVarTildeDiag)
+    UtarVarTildeDiag3 = UtarVarTildeDiag2 * np.squeeze(FOMs)
+    tarVarTilde = np.square(UtarVarTildeDiag3)
+    tarVarTilde = np.diag(tarVarTilde)
+
+    # Compute adjusted par_var neglecting UmesVar (to compare to representativity)
+    # The representativity (#eq 79 negelcts UmesVar)
+    Inner1 = (normalizedSenExp @ UparVar) @ normalizedSenExp.T
+    UtarVarztilde_no_UmesVar = (normalizedSenTar @ UparVar @ normalizedSenTar.T)\
+                                - (normalizedSenTar @ UparVar @ normalizedSenExp.T)\
+                                @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenExp.T)\
+                                @ (normalizedSenExp @ UparVar @ normalizedSenTar.T)
+    return tarTilde, tarVarTilde, UtarVarTilde, UtarVarztilde_no_UmesVar, Inner1
