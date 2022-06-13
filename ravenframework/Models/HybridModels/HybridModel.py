@@ -180,10 +180,7 @@ class HybridModel(HybridModelBase):
         self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
         romIn.reset()
         # reset HybridModel attributes to allow workflow re-running
-        self.romConverged = False
-        self.oldTrainingSize = 0
-        self.modelIndicator = {}
-        self.crowdingDistance = None
+        self.resetHybridModel()
       romIn.initialize(runInfo, inputs, initDict)
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
@@ -586,3 +583,14 @@ class HybridModel(HybridModelBase):
       self.tempTargetEvaluation.addRealization(evaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
     HybridModelBase.collectOutput(self, finishedJob, output)
+
+  def resetHybridModel(self):
+    """
+      Resets HybridModel attributes to allow workflow re-running
+      @ In, None
+      @ Out, None
+    """
+    self.romConverged = False
+    self.oldTrainingSize = 0
+    self.modelIndicator = {}
+    self.crowdingDistance = None
