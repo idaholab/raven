@@ -475,7 +475,7 @@ class DataSet(DataObject):
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
     if self.isEmpty:
-      self.raiseAnError(ValueError, f'DataObject named "{self.name}" is empty!'.format(self.name))
+      self.raiseAnError(ValueError, f'DataObject named "{self.name}" is empty!')
     if mathUtils.isAString(var):
       val = self._data[var]
       # format as scalar
@@ -517,7 +517,7 @@ class DataSet(DataObject):
       self._fromXarrayDataset(fname)
     # TODO dask
     else:
-      self.raiseAnError(NotImplementedError, f'Unrecognized read style: "{style}"'.format(style))
+      self.raiseAnError(NotImplementedError, f'Unrecognized read style: "{style}"')
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
@@ -2289,7 +2289,7 @@ class DataSet(DataObject):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
-        _,ending = self.realization(matchDict={'prefix': ending['RAVEN_parentID']})
+        _, ending = self.realization(matchDict={'prefix': ending['RAVEN_parentID']})
         if ending is None:
           break
         path.append(ending['prefix'])
