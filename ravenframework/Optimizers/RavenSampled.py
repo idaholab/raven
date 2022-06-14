@@ -364,13 +364,13 @@ class RavenSampled(Optimizer):
     # write final best solution to soln export
     self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
-  def flushOptimizer(self):
+  def flush(self):
     """
       Reset Optimizer attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushOptimizer()
+    super().flush()
     self._stepTracker = {}
     self._optPointHistory = {}
     self._rerunsSinceAccept = {}

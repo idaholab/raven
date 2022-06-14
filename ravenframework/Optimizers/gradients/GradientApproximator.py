@@ -143,7 +143,7 @@ class GradientApproximator(utils.metaclass_insert(abc.ABCMeta, object)):
   # Utility Methods #
   ###################
 
-  def flushGradient(self):
+  def flush(self):
     """
       Reset GradientApproximater attributes to allow rerunning a workflow
       @ In, None

@@ -216,12 +216,13 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset Sobol attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
+    super().flush()
     self.maxPolyOrder = None
     self.polyDict = {}
     self.quadDict = {}

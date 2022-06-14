@@ -325,13 +325,13 @@ class SimulatedAnnealing(RavenSampled):
         return
       self._submitRun(suggested, traj, self.getIteration(traj))
 
-  def flushOptimizer(self):
+  def flush(self):
     """
       Reset Optimizer attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushOptimizer()
+    super().flush()
     self.T = None
     self.info = {}
 

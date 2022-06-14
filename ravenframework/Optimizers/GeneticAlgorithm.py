@@ -592,13 +592,13 @@ class GeneticAlgorithm(RavenSampled):
     self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
     self._submissionQueue.append((point, info))
 
-  def flushOptimizer(self):
+  def flush(self):
     """
       Reset Optimizer attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushOptimizer()
+    super().flush()
     self.population = None
     self.popAge = None
     self.fitness = None

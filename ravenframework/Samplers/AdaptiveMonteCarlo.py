@@ -253,12 +253,12 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
         new.append(template)
     return set(new)
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset AdaptiveMonteCarlo attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.persistenceCounter = 0
     self.basicStatPP = None

@@ -200,7 +200,7 @@ class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):
       @ Out, coordinate, tuple or dict, tuple containing the coordinates
     """
 
-  def flushGridBase(self):
+  def flush(self):
     """
       Reset GridBase attributes to allow rerunning a workflow
       @ In, None
@@ -701,13 +701,13 @@ class GridEntity(GridBase):
 
     return coordinates
 
-  def flushGridBase(self):
+  def flush(self):
     """
       Reset GridEntity attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushGridBase()
+    super().flush()
     self.gridContainer['dimensionNames'] = []
     self.gridContainer['gridVectors'] = {}
     self.gridContainer['bounds'] = {'upperBounds':{},'lowerBounds':{}}
@@ -1114,13 +1114,13 @@ class MultiGridEntity(GridBase):
           self.raiseAnError(Exception, f'parameter {parameterName} already present in MultiGridEntity subnode {node.name}!')
     self.updateParameter(parameterName, value, True, nodeName)
 
-  def flushGridBase(self):
+  def flush(self):
     """
       Reset GridBase attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushGridBase()
+    super().flush()
 
 factory = EntityFactory('GridEntities')
 factory.registerType('GridEntity', GridEntity)

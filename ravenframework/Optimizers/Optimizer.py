@@ -507,14 +507,14 @@ class Optimizer(AdaptiveSampler):
     # overload as needed in inheritors
     return False
 
-  def flushOptimizer(self):
+  def flush(self):
     """
       Reset Optimizer attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    # since Optimizer inherits a Sampler, flush that too
-    self.flushSampler()
+    # Sampler also has a flush method
+    super().flush()
     self.metadataKeys = set()
     self.assemblerDict = {}
     self._cancelledTraj = {}

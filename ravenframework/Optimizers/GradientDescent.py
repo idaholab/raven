@@ -455,15 +455,15 @@ class GradientDescent(RavenSampled):
       self._convergenceInfo[traj][criteria] = False
     return traj
 
-  def flushOptimizer(self):
+  def flush(self):
     """
       Reset Optimizer attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushOptimizer()
-    self._gradientInstance.flushGradient()
-    self._stepInstance.flushStepManipulator()
+    super().flush()
+    self._gradientInstance.flush()
+    self._stepInstance.flush()
     self._gradHistory = {}
     self._stepHistory = {}
     self._acceptHistory = {}

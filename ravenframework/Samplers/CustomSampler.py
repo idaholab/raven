@@ -281,13 +281,13 @@ class CustomSampler(Sampler):
     if self.inputInfo['batchMode']:
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset Sampler attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.infoFromCustom = {}
     self.pointsToSample = {}
     self.readingFrom = None

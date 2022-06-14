@@ -274,11 +274,11 @@ class Stratified(Grid):
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset Stratified attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.sampledCoordinate = []

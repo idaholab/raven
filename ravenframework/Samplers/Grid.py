@@ -293,12 +293,12 @@ class Grid(Sampler):
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset Sampler attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     if self.gridEntity is not None:
-      self.gridEntity.flushGridBase()
+      self.gridEntity.flush()

@@ -330,11 +330,11 @@ class SparseGridCollocation(Grid):
 
     return SVL
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset SparsGridCollocation attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.dists = {}

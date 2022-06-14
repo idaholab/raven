@@ -660,13 +660,13 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     rom.train(self.solns)
     pickle.dump(rom,open(fname+'.pk','wb'))
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset SparsGridCollocation attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.ROM = None
     self.solns = None
     self.expImpact = {}

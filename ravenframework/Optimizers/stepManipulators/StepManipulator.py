@@ -177,7 +177,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object), MessageUser):
   ###################
   # Utility Methods #
   ###################
-  def flushStepManipulator(self):
+  def flush(self):
     """
       Reset StepManipulator attributes to allow rerunning a workflow
       @ In, None

@@ -494,6 +494,14 @@ class Simulation(MessageUser):
         # tag not in entities, check if it's a documentation tag
         if inputBlock.tag not in ['TestInfo']:
           self.raiseAnError(IOError, f'<{inputBlock.tag}> is not among the known simulation components {repr(inputBlock)}')
+    # If requested, duplicate input
+    # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
+    if self.runInfoDict.get('printInput', False):
+      fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
+      self.raiseAMessage('Writing duplicate input file:', fileName)
+      outFile = open(fileName, 'w')
+      outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
+      outFile.close()
 
   def initialize(self):
     """
@@ -778,29 +786,18 @@ class Simulation(MessageUser):
         if self.ranPreviously and entity == 'DataObjects':
           # if simulation was run previously, output DataObjects need to be flushed
           flushDataObject = self.getEntity(entity, name)
-          flushDataObject.flushDataObject()
+          flushDataObject.flush()
           # now add to stepInputDict
           stepInputDict[role].append(flushDataObject)
         else:
           stepInputDict[role].append(self.getEntity(entity, name))
-      elif role == 'SolutionExport' and entity == 'DataObjects' and self.ranPreviously:
-        # if simulation was run previously, SolutionExport DataObjects need to be flushed
-        flushDataObject = self.getEntity(entity, name)
-        flushDataObject.flushDataObject()
+      elif role in ['Optimizer', 'Sampler', 'SolutionExport'] and self.ranPreviously:
+        # if simulation was run previously, flush Optimizers, Samplers, and SolutionExport DataObjects
+        flusher = self.getEntity(entity, name)
+        if 'flush' in dir(flusher):
+          flusher.flush()
         # now add to stepInputDict
-        stepInputDict[role] = flushDataObject
-      elif role == 'Optimizer' and self.ranPreviously:
-        # if simulation was run previously, Optimizer needs to be flushed
-        flushOptimizer = self.getEntity(entity, name)
-        flushOptimizer.flushOptimizer()
-        # now add to stepInputDict
-        stepInputDict[role] = flushOptimizer
-      elif role == 'Sampler' and self.ranPreviously:
-        # if simulation was run previously, Sampler needs to be flushed
-        flushSampler = self.getEntity(entity, name)
-        flushSampler.flushSampler()
-        # now add to stepInputDict
-        stepInputDict[role] = flushSampler
+        stepInputDict[role] = flusher
       else:
         stepInputDict[role] = self.getEntity(entity, name)
 
@@ -854,7 +851,6 @@ class Simulation(MessageUser):
       @ In, None
       @ Out, stepSequence, list(str), list of step in sequence
     """
-
     return self.__stepSequenceList
 
   def run(self):

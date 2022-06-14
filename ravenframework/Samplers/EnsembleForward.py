@@ -246,12 +246,12 @@ class EnsembleForward(Sampler):
         self.values[corrVar.strip()] = test
         self.inputInfo['SampledVars'][corrVar.strip()] = test
 
-  def flushSampler(self):
+  def flush(self):
     """
       Reset EnsembleForward attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
-    super().flushSampler()
+    super().flush()
     self.samplersCombinations = {}
     self.gridEnsemble = None

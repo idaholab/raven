@@ -795,14 +795,14 @@ class DataSet(DataObject):
     else:
       return len(self) # so that other entities can track which realization we've written
 
-  def flushDataObject(self):
+  def flush(self):
     """
       Resets the DataObject used for output to its initial condition in order to run a RAVEN
       workflow after one has already been run.
       @ In, None
       @ Out, None
     """
-    super().flushDataObject()
+    super().flush()
     self.types = None
 
   ### BUILTINS AND PROPERTIES ###
