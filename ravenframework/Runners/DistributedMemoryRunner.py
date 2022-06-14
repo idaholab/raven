@@ -75,6 +75,11 @@ class DistributedMemoryRunner(InternalRunner):
           return True
         except ray.exceptions.GetTimeoutError:
           return False
+        except ray.exceptions.RayTaskError:
+          #The code gets this undocumented error, and
+          # I assume it means the task has unfixably died,
+          # and so is done
+          return True
         #Alternative that was tried:
         #return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
         #which ran slower in ray 1.9
