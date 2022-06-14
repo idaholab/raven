@@ -252,12 +252,10 @@ class MultiRun(SingleRun):
         nextReportTime = currentTime + reportDeltaTime
         numRunning = jobHandler.numRunning()
         numTotalRunning = jobHandler.numRunningTotal()
-        self.raiseADebug("Continuing to run. isFinished: %r running: %d rest running: %d unclaimed runs: %d queued: %d" % \
-                         (jobHandler.isFinished(), numRunning,
-                          numTotalRunning - numRunning,
-                          len(jobHandler.getFinishedNoPop()),
-                          jobHandler._numQueuedTotal())
-                         )
+        self.raiseADebug((f"Continuing to run. isFinished: {jobHandler.isFinished()} "
+                          f"running: {numRunning} rest running: {numTotalRunning - numRunning} "
+                          f"unclaimed runs: {len(jobHandler.getFinishedNoPop())} "
+                          f"queued: {jobHandler._numQueuedTotal()}"))
       # Note: calling amIreadyToProvideAnInput can change results,
       # but might be helpful for debugging sometimes
       # "sampler ready with input: %r" sampler.amIreadyToProvideAnInput()
