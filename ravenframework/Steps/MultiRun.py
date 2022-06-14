@@ -44,8 +44,8 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     super().__init__()
-    self._samplerInitDict = {} # dictionary that gets sent to the initialization of the sampler
-    self.counter          = 0  # counter of the runs already performed
+    self._samplerInitDict = {}          # dictionary that gets sent to the initialization of the sampler
+    self.counter = 0                    # counter of the runs already performed
     self._outputCollectionLambda = None # lambda function list to collect the output without checking the type
     self.printTag = 'STEP MULTIRUN'
 
