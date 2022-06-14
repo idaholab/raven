@@ -190,7 +190,11 @@ class DMDC(DMD):
     ### Extract the Output Names (Output, Y)
     self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
-    self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
+    # self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
+    self.parametersIDs = list(set(self.features) - set(self.actuatorsID))
+    for i in range(len(self.parametersIDs)-1,-1,-1):
+      if str(self.parametersIDs[i]).endswith('_init'):
+        self.parametersIDs.remove(self.parametersIDs[i])
 
   def _train(self,featureVals,targetVals):
     """
@@ -326,6 +330,7 @@ class DMDC(DMD):
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
+      print(" ** Index = ", index, ", Centered uVector=", uVector[:,0,0])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
         xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[:,cnt,i]),(-1,1)).T
