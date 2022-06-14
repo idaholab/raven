@@ -248,7 +248,21 @@ class Representativity(ValidationBase):
     par = np.atleast_2d([datasets[0][var].meanValue for var in parametersNames]).reshape(-1,1)
     correctedTargets, correctedTargetCovariance, correctedTargetErrorCov, UtarVarTilde_no_Umes_var, Inner1 = self._targetCorrection(FOMs, UparVar, UMeasurables, UMeasurablesVar, senFOMs, senMeasurables)
     correctedParameters, correctedParametersCovariance = self._parameterCorrection(par, UparVar, UMeasurables, UMeasurablesVar, senMeasurables)
+
     # # 9. Create outputs
+    """
+      Assuming the number of parameters is P,
+      number of measurables in the mock/prototype experiment is M,
+      and the number of figure of merits (FOMS) is F, then the representativity outcomes to be reported are:
+
+      BiasFactor: $R \in \mathbb{R}^{M \times F}$ reported element by element as BiasFactor_MockFi_TarFj
+      ExactBiasFactor: same as the bias factor but assuming measureables are also uncertain.
+      CorrectedParameters: best parameters to perform the measurements at parTilde \in \mathbb{R}^{P}
+      UncertaintyinCorrectedParameters: $parTildeVar \in \mathbb{R}^{P \times P}$
+      CorrectedTargets: $TarTilde \in \mathbb{R}^{F}$
+      UncertaintyinCorrectedTargets:$TarTildeVar \in \mathbb{R}^{F \times F}$
+      ExactUncertaintyinCorrectedTargets:$TarTildeVar \in \mathbb{R}^{F \times F}$
+    """
     outs = {}
     for i,param in enumerate(self.featureParameters):
       name4 = "CorrectedParameters_{}".format(param.split("|")[-1])
@@ -278,19 +292,6 @@ class Representativity(ValidationBase):
           name4 = "ExactCorrectedCov_Tar{}_Tar{}".format(targ.split("|")[-1], tar.split("|")[-1])
         outs[name3] = UtarVarTilde[i,k]
         outs[name4] = UtarVarTildeExact[i,k]
-    ## TODO:
-    # # 5. Compute correction in parameters
-    # par_tilde, par_var_tilde = Parameter_correction_theory(par, Upar, Upar_var, Umes, Umes_var, expNormalizedSen)
-    # pm_tilde, Cpm_tilde = Parameter_correction_theory(par, Upar, Upar_var,UF, UF_var,mesParametersNormalizedSen)
-    # # 6. Compute correction in targets
-    # FOMsim_tilde_theory, FOMsim_var_tilde_theory, UFOMsim_var_tilde_theory, Umes_var, UFOM_var_tilde_no_Umes_var, Inner1  = Target_correction_theory(par, FOM, Upar, Upar_var, Umes, Umes_var, mesParametersNormalizedSen, expNormalizedSen)
-    # # 7. Computer representativity factor
-    # r,r_exact, UFOMsim_var_tilde_rep,UFOMsim_var_tilde_rep_exact   = Representativity(par, Upar, Upar_var, F, nSF, nSFOM, Umes_var)
-    # print('==== Representativity ====')
-    # print('r')
-    # print(r)
-    # print('UFOMsim_var_tilde_rep')
-    # print(UFOMsim_var_tilde_rep)
     return outs
 
   def _generateSensitivityMatrix(self, outputs, inputs, sensDict, datasets, normalize=True):
@@ -313,22 +314,6 @@ class Representativity(ValidationBase):
         else:
           sensMatr[i, j] = sensDict[senName][0]* datasets[0][inpVar].meanValue / datasets[0][outVar].meanValue
     return sensMatr
-
-  # def _generateMatrixFromDataset(self,dataset,rows,cols):
-  #   """
-  #     Reconstruct sensitivity matrix from the Basic Statistic calculation
-  #     @ In, rows, list, list of rows names
-  #     @ In, cols, list, list of colums names
-  #     @ In,
-  #     @ Out, matr, numpy.array, 2-D array of the reconstructed matrix
-  #   """
-  #   matr = np.zeros((len(rows), len(cols)))
-  #   inputVars = [x.split("|")[-1] for x in rows]
-  #   outputVars = [x.split("|")[-1] for x in cols]
-  #   for i, outVar in enumerate(outputVars):
-  #     for j, inpVar in enumerate(inputVars):
-  #       matr[i, j] = dataset[senName]
-  #   return matr
 
   def _getDataFromDatasets(self, datasets, var, names=None):
     """
