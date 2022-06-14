@@ -37,7 +37,7 @@ class SVR(ScikitLearnBase):
   """
     Support Vector Regressor
   """
-  info = {'problemtype':'regression', 'normalize':True, 'normalizeTargets':True}
+  info = {'problemtype':'regression', 'normalize':True, 'normalizeTargets':False}
 
   def __init__(self):
     """
@@ -102,6 +102,10 @@ class SVR(ScikitLearnBase):
                                                  descr=r"""Enable verbose output. Note that this setting takes advantage
                                                  of a per-process runtime setting in libsvm that, if enabled, may not
                                                  work properly in a multithreaded context.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("normalizeTargets", contentType=InputTypes.BoolType,
+                                                 descr=r"""enables target normalization by centering (subtracting the mean) and dividing by the standard deviation.
+                                                 This is known to make the ROM less sensitive to parameters such as epsilon, gamma, etc.""", default=False))
+
     return specs
 
   def _handleInput(self, paramInput):
@@ -114,6 +118,9 @@ class SVR(ScikitLearnBase):
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'kernel', 'degree', 'gamma', 'coef0',
                                                              'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter',
                                                              'verbose'])
+
+    setting,_ = paramInput.findNodesAndExtractValues(['normalizeTargets'])
+    self.info['normalizeTargets'] = setting['normalizeTargets']
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
