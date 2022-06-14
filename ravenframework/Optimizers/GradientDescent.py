@@ -127,7 +127,6 @@ class GradientDescent(RavenSampled):
               below may be selected for this Optimizer.""")
     specs.addSub(accept)
     # common options to all acceptanceCondition descenders
-    # TODO
     # get specs for each acceptanceCondition subclass, and add them to this class's options
     for option in acceptFactory.knownTypes():
       subSpecs = acceptFactory.returnClass(option).getInputSpecification()
