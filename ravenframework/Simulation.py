@@ -859,23 +859,7 @@ class Simulation(MessageUser):
       @ In, None
       @ Out, None
     """
-    if self.jobHandler.completed:
-      # this must be False in order to set up the queue
-      self.jobHandler.completed = False
-
-    # reset warning counts and messages for new simulation if simulation ran previously
-    if self.ranPreviously:
-      self.messageHandler.warningCount = []
-      self.messageHandler.warnings = []
-
-    # re-initialize all databases if overwrite is desired
-    if self.ranPreviously:
-      dbs = self.entities['Databases']
-      for db in dbs:
-        tmpDatabase = dbs[db]
-        tmpDatabase.initializeDatabase()
-
-    # reset the Simulation time
+    # set the Simulation time
     self.messageHandler.starttime = time.time()
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     self.raiseAMessage('Simulation started at', readtime, verbosity='silent')
@@ -968,3 +952,25 @@ class Simulation(MessageUser):
       #force it to disk
       f.flush()
       os.fsync(f.fileno())
+
+  def resetSimulation(self):
+    """
+      Resets and re-initializes for re-running the Simulation
+      @ In, None
+      @ Out, None
+    """
+    if self.jobHandler.completed:
+      # this must be False in order to set up the queue
+      self.jobHandler.completed = False
+
+    # reset warning counts and messages for new simulation if simulation ran previously
+    if self.ranPreviously:
+      self.messageHandler.warningCount = []
+      self.messageHandler.warnings = []
+
+    # re-initialize all databases if overwrite is desired
+    if self.ranPreviously:
+      dbs = self.entities['Databases']
+      for db in dbs:
+        tmpDatabase = dbs[db]
+        tmpDatabase.initializeDatabase()

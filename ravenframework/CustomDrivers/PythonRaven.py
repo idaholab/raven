@@ -70,7 +70,12 @@ class Raven:
       @ In, None
       @ Out, returnCode, int, value/error returned from RAVEN run
     """
+    if self._simulation.ranPreviously:
+      # reset Simulation
+      self._simulation.resetSimulation()
+
     returnCode = self._simulation.run()
+
     return returnCode
 
   def getEntity(self, kind, name):
