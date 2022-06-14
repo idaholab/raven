@@ -16,7 +16,7 @@ else
     echo FILE $RAVEN_FRAMEWORK_DIR/../scripts/establish_conda_env.sh
     echo NOT FOUND
 fi
-module load pbs openmpi
+module load openmpi
 
 which python
 which mpiexec
