@@ -803,6 +803,24 @@ class JobHandler(BaseType):
 
     return activeRuns
 
+  def numRunningTotal(self):
+    """
+      Returns the number of runs currently running in both lists.
+      @ In, None
+      @ Out, activeRuns, int, number of active runs
+    """
+    activeRuns = sum(run is not None for run in self.__running + self.__clientRunning)
+    return activeRuns
+
+  def _numQueuedTotal(self):
+    """
+      Returns the number of runs currently waiting in both queues.
+      @ In, None
+      @ Out, queueSize, int, number of runs in queue
+    """
+    queueSize = len(self.__queue) + len(self.__clientQueue)
+    return queueSize
+
   def numSubmitted(self):
     """
       Method to get the number of submitted jobs
