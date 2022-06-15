@@ -21,7 +21,7 @@ from __future__ import absolute_import
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
 # TODO
-from .GradientApproximater import GradientApproximater
+from .GradientApproximator import GradientApproximator
 from .FiniteDifference import FiniteDifference
 #from .CentralDifference import CentralDifference
 #from .SPSA import SPSA

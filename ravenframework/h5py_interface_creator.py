@@ -17,14 +17,12 @@ Created on Mar 25, 2013
 @author: alfoa
 """
 from datetime import datetime
-
-import h5py  as h5
-import numpy as np
 import os
-import copy
 import pickle as pk
 import string
 import difflib
+import h5py  as h5
+import numpy as np
 
 from .utils import utils, mathUtils
 from .BaseClasses import InputDataUser, MessageUser
@@ -34,7 +32,7 @@ from .BaseClasses import InputDataUser, MessageUser
 # structure of the data is performed
 _hdf5DatabaseVersion = "v2.1"
 
-def _dumps(val, void = True):
+def _dumps(val, void=True):
   """
     Method to convert an arbitary value to something h5py can store
     @ In, val, any, data to encode
@@ -42,6 +40,7 @@ def _dumps(val, void = True):
     @ Out, _dumps, np.void, encoded data
   """
   serialized = pk.dumps(val, protocol=0)
+
   return np.void(serialized) if void else serialized
 
 def _loads(val):
@@ -50,7 +49,7 @@ def _loads(val):
     @ In, val, np.void, data to decode
     @ Out, _loads, any, data decoded
   """
-  if hasattr(val,'tostring'):
+  if hasattr(val, 'tostring'):
     try:
       return pk.loads(val.tostring())
     except UnicodeDecodeError:
@@ -71,9 +70,10 @@ def _checkTypeHDF5(value, neg):
   scalarNumpy = mathUtils.getNumpyTypes('float') + mathUtils.getNumpyTypes('int') + mathUtils.getNumpyTypes('uint')
   scalarBultins = mathUtils.getBuiltinTypes('float') + mathUtils.getBuiltinTypes('int')
   if neg:
-    check = type(value) == np.ndarray and value.dtype not in scalarNumpy and type(value) not in scalarBultins
+    check = isinstance(value, np.ndarray) and value.dtype not in scalarNumpy and type(value) not in scalarBultins
   else:
-    check = type(value) == np.ndarray and value.dtype in scalarNumpy or type(value) in scalarBultins
+    check = isinstance(value, np.ndarray) and value.dtype in scalarNumpy or type(value) in scalarBultins
+
   return check
 
 #
@@ -97,32 +97,18 @@ class hdf5Database(InputDataUser, MessageUser):
       @ Out, None
     """
     super().__init__()
-    # database name (i.e. arbitrary name).
-    # It is the database name that has been found in the xml input
-    self.name       = name
-    # check if we have to store all the variables
+    self.name = name       # database name (i.e. arbitrary name) found in the xml input
     self.variables = variables
-    # Database type :
-    # -> The structure type is "inferred" by the first group is going to be added
-    # * MC  = MonteCarlo => Storing by a Parallel structure
-    # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
-    self.type       = None
-    #self._metavars = []
-    # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
-    self.printTag = 'DATABASE HDF5'
-    # does it exist?
-    self.fileExist = exist
-    # .H5 file name (to be created or read)
-    # File name on disk
-    self.onDiskFile = filename
-    # Database directory
-    self.databaseDir =  databaseDir
-    # Create file name and path
-    self.filenameAndPath = os.path.join(self.databaseDir,self.onDiskFile)
-    # Is the file opened?
-    self.fileOpen       = False
-    # List of the paths of all the groups that are stored in the database
-    self.allGroupPaths = []
+    self.type = None       # Database type -> "inferred" by the first group is added
+                           # * MC  = MonteCarlo => Storing by a Parallel structure
+                           # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
+    self.printTag = 'DATABASE HDF5' # specialize printTag
+    self.fileExist = exist # does it exist?
+    self.onDiskFile = filename # .H5 file name (to be created or read) on disk
+    self.databaseDir =  databaseDir # Database directory
+    self.filenameAndPath = os.path.join(self.databaseDir, self.onDiskFile)
+    self.fileOpen = False
+    self.allGroupPaths = [] # List of the paths of all the groups that are stored in the database
     # List of boolean variables, true if the corresponding group in self.allGroupPaths
     # is an ending group (no sub-groups appended), false otherwise
     self.allGroupEnds = []
@@ -131,15 +117,15 @@ class hdf5Database(InputDataUser, MessageUser):
       # self.h5FileW is the HDF5 object. Open the database in "update" mode
       # check if it exists
       if not os.path.exists(self.filenameAndPath):
-        self.raiseAnError(IOError,'database file has not been found, searched Path is: ' + self.filenameAndPath )
+        self.raiseAnError(IOError, 'database file has not been found, searched Path is: ' + self.filenameAndPath )
       # Open file
-      self.h5FileW = self.openDatabaseW(self.filenameAndPath,'r+')
+      self.h5FileW = self.openDatabaseW(self.filenameAndPath, 'r+')
       # check version
-      version = self.h5FileW.attrs.get("version","None")
+      version = self.h5FileW.attrs.get("version", "None")
       if version != _hdf5DatabaseVersion:
-        self.raiseAnError(IOError,'HDF5 RAVEN version (read mode) is outdated. ' +
-                          'Current version is "{}". '.format(_hdf5DatabaseVersion) +
-                          'Version in HDF5 is "{}".'.format(version) +
+        self.raiseAnError(IOError, 'HDF5 RAVEN version (read mode) is outdated. ' +
+                          f'Current version is "{_hdf5DatabaseVersion}". ' +
+                          f'Version in HDF5 is "{version}".' +
                           'Read README file in folder ' +
                           '"raven/scripts/conversionScripts/conversion_hdf5"' +
                           ' to convert your outdated HDF5 into the new format!')
@@ -162,7 +148,6 @@ class hdf5Database(InputDataUser, MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = '/'
       self.__createFileLevelInfoDatasets()
-
 
   def __len__(self):
     """
@@ -267,9 +252,9 @@ class hdf5Database(InputDataUser, MessageUser):
     # FIXME, I'm not sure how to enable the HDF5 to store the time-dependent metadata,
     # or how to store the time dependent metadata in the HDF5, currently only empty dict of
     # indexes information is returned
-    return meta,{}
+    return meta, {}
 
-  def addGroup(self,rlz):
+  def addGroup(self, rlz):
     """
       Function to add a group into the database
       @ In, groupName, string, group name
@@ -277,7 +262,7 @@ class hdf5Database(InputDataUser, MessageUser):
       @ In, source, File object, data source (for example, csv file)
       @ Out, None
     """
-    parentID  = rlz.get("RAVEN_parentID",[None])[0]
+    parentID  = rlz.get("RAVEN_parentID", [None])[0]
     prefix    = rlz.get("prefix")
 
     groupName = str(prefix if mathUtils.isSingleValued(prefix) else prefix[0])
@@ -298,7 +283,7 @@ class hdf5Database(InputDataUser, MessageUser):
     self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
-  def addGroupInit(self,groupName,attributes=None):
+  def addGroupInit(self, groupName, attributes=None):
     """
       Function to add an empty group to the database
       This function is generally used when the user provides a rootname in the input.
@@ -324,13 +309,13 @@ class hdf5Database(InputDataUser, MessageUser):
               break
             alphabetCounter+=1
             if alphabetCounter >= len(asciiAlphabet):
-              prefix = asciiAlphabet[movingCounter]
+              # prefix = asciiAlphabet[movingCounter]
               alphabetCounter = 0
               movingCounter  += 1
           break
     self.parentGroupName = "/" + groupNameInit
-    # Create the group
-    grp = self.h5FileW.create_group(groupNameInit)
+    # if the group exists, return it, otherwise create it
+    grp = self.h5FileW.require_group(groupNameInit)
     # Add metadata
     grp.attrs.update(attribs)
     grp.attrs['rootname'  ] = True
@@ -562,7 +547,7 @@ class hdf5Database(InputDataUser, MessageUser):
       newData.update({key : unvect(np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt])) for cnt,key in enumerate(varKeysOther)})
     return newData
 
-  def _getRealizationByName(self,name,options = {}):
+  def _getRealizationByName(self, name, options=None):
     """
       Function to retrieve the history whose end group name is "name"
       @ In, name, string, realization name => It must correspond to a group name (string)
@@ -570,6 +555,8 @@ class hdf5Database(InputDataUser, MessageUser):
       @ In, attributes, dict, optional, dictionary of attributes (options)
       @ Out, (newData,attrs), tuple, tuple where position 0 = dict containing the realization, 1 = dictionary of some attributes
     """
+    if options is None:
+      options = {}
     reconstruct = options.get("reconstruct", True)
     path  = ''
     found = False
@@ -613,7 +600,7 @@ class hdf5Database(InputDataUser, MessageUser):
       @ Out, None
     """
     self.h5FileW.close()
-    self.fileOpen       = False
+    self.fileOpen = False
     return
 
   def openDatabaseW(self,filename,mode='w'):
@@ -624,7 +611,7 @@ class hdf5Database(InputDataUser, MessageUser):
       @ Out, fh5, hdf5 object, instance of hdf5
     """
     fh5 = h5.File(filename,mode)
-    self.fileOpen       = True
+    self.fileOpen = True
     return fh5
 
   def __returnGroupPath(self,parentName):
@@ -642,10 +629,5 @@ class hdf5Database(InputDataUser, MessageUser):
           break
     else:
       parentGroupName = '/'
+
     return parentGroupName
-
-
-
-
-
-

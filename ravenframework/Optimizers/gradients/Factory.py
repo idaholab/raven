@@ -13,16 +13,16 @@
 # limitations under the License.
 """
 """
-#for future compatibility with Python 3-----------------------------------------
+# for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
+# End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
 from ...EntityFactoryBase import EntityFactory
-from .GradientApproximater import GradientApproximater
+from .GradientApproximator import GradientApproximator
 from .FiniteDifference import FiniteDifference
 from .CentralDifference import CentralDifference
 from .SPSA import SPSA
 
 factory = EntityFactory('Gradient')
-factory.registerAllSubtypes(GradientApproximater)
+factory.registerAllSubtypes(GradientApproximator)

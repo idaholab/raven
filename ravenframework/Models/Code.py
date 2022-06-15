@@ -564,6 +564,7 @@ class Code(Model):
     command = command.replace("%BASE_WORKING_DIR%",kwargs['BASE_WORKING_DIR'])
     command = command.replace("%METHOD%",kwargs['METHOD'])
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
+    command = command.replace("%PYTHON%", sys.executable)
 
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
@@ -574,6 +575,8 @@ class Code(Model):
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
     self.raiseADebug(f'shell execution command: "{command}"')
+    self.raiseADebug('shell cwd: "'+localenv['PWD']+'"')
+    self.raiseADebug('self pid:' + str(os.getpid())+' ppid: '+str(os.getppid()))
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -594,6 +597,8 @@ class Code(Model):
       process.wait()
 
     returnCode = process.returncode
+    self.raiseADebug(" Process "+str(process.pid)+" finished "+time.ctime()+
+                     " with returncode "+str(process.returncode))
     # procOutput = process.communicate()[0]
 
     ## If the returnCode is already non-zero, we should maintain our current
