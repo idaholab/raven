@@ -42,7 +42,7 @@
       <alpha>1e-10</alpha>
       <n_restarts_optimizer>0</n_restarts_optimizer>
       <normalize_y>True</normalize_y>
-      <optimizer>fmin_l_bfgs_b</optimizer>
+      <kernel>RBF</kernel>
     </ROM>
   </Models>
 
