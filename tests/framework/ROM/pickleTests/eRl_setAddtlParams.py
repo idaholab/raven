@@ -13,9 +13,9 @@
 # limitations under the License.
 """
   This test demonstrates the ability for users to change the clusterEvalMode of a ROM with the new
-  setAdditionalParams method in the externalROMloader file. This method should allow the user to set any ROM 
+  setAdditionalParams method in the externalROMloader file. This method should allow the user to set any ROM
   parameters that are present in the pickledROM class; however, that is not yet demonstrated in existing tests.
-  The benefit of this method is to allow users to externally evaluate pickled ROM(s) with some ability to 
+  The benefit of this method is to allow users to externally evaluate pickled ROM(s) with some ability to
   customize the evaluation settings.
 """
 import sys
@@ -35,7 +35,7 @@ def check(runner, before, after, signal):
     """
       Decides of application of setAdditionalParams was successful
       @ In, runner, externalROMloader object
-      @ In, before/after, list, list of xml objects 
+      @ In, before/after, list, list of xml objects
       @ In, signal, string, name of signal that exists in ROM
       @ Out, results, dict, counts of passes and fails
     """
@@ -49,7 +49,7 @@ def check(runner, before, after, signal):
     beforeResult = res['_indexMap'][0][signal]
     # Checking for clustered index in non clustered eval
     if '_ROM_Cluster' not in beforeResult:
-        results['pass'] += 1 
+        results['pass'] += 1
     else:
         results['fail'] += 1
     runner.setAdditionalParams(after)
@@ -77,7 +77,7 @@ def initialize(picklePath, frameworkPath):
 def nodeGenerator(clusterEvalMode):
     """
       Defines nodes object specifically for setting clusterEvalMode
-      @ In, clusterEvalMode, string, 'full' or 'clustered' 
+      @ In, clusterEvalMode, string, 'full' or 'clustered'
       @ Out, nodes, list, list of xml nodes for setting pickleROM parameters
     """
     #NOTE this kind of node definition should apply to any ROM parameter changes for this method
