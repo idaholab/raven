@@ -31,7 +31,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ..utils import utils, mathUtils, xmlUtils
+from ..utils import mathUtils, xmlUtils
 from ..utils import InputTypes, InputData
 from ..BaseClasses import BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
@@ -134,9 +134,6 @@ class SupervisedLearning(BaseInterface):
     self.muAndSigmaTargets = {}   # normalizing targets
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
-    # self.info = {}
-    # self.info['normalize'] = False
-    # self.info['normalizeTargets'] = False
 
   def _handleInput(self, paramInput):
     """
@@ -272,10 +269,6 @@ class SupervisedLearning(BaseInterface):
           # targetValues[:,cnt] = (targetValues[:]- self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-          # targetValues[cnt] = ( (targetValues[0] if len(valueToUse.shape) > 1 else targetValues[:]) - self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
-    # self.targetMean = np.mean(targetValues)
-    # self.targetStd = np.std(targetValues)
-    # if self.target[0] in self.muAndSigmaFeatures.keys():
     if 'normalizeTargets' in self.info.keys() and self.info['normalizeTargets']==True:
       targetValues = (targetValues - self.muAndSigmaTargets[self.target[0]][0])/self.muAndSigmaTargets[self.target[0]][1]
     self.__trainLocal__(featureValues,targetValues)
@@ -292,7 +285,6 @@ class SupervisedLearning(BaseInterface):
     """
     self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
     self.muAndSigmaTargets[self.target[0]] = mathUtils.normalizationFactors(values[names.index(self.target[0])])
-    # self.muAndSigmaFeatures[self.target[0]] = mathUtils.normalizationFactors(values[names.index(self.target[0])])
 
   def confidence(self, edict):
     """

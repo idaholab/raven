@@ -24,12 +24,10 @@ from ...utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..SupervisedLearning import SupervisedLearning
-from ...utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ScikitLearnBase(SupervisedLearning):
@@ -50,7 +48,6 @@ class ScikitLearnBase(SupervisedLearning):
     self.model = None # Scikitlearn estimator/model
     self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
                                    # the self.model can handle multioutput/multi-targets prediction
-    # info = {'problemtype':None, 'normalize':None, 'normalizeTargets':None}
   def updateSettings(self, settings):
     """
       Update the parameters of the self.model if the model is wrapper by sklearn.multioutput class

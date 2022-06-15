@@ -124,6 +124,14 @@
     UnorderedCsv = 'data/outSVR.csv'
     output = 'data/outSVR.xml'
   [../]
+  [./SVRProjectile]
+    type = 'RavenFramework'
+    input = 'svrProjectile.xml'
+    image = 'data/plotSVRProjectile_scatter-scatter.png'
+    required_libraries = 'imageio'
+    UnorderedCsv = 'data/outSVRProjectile.csv'
+    output = 'data/outSVRProjectile.xml'
+  [../]
   [./KNR]
     type = 'RavenFramework'
     input = 'knr.xml'
