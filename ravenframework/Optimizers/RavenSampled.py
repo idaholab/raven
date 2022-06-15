@@ -17,22 +17,21 @@
   Created 2020-01
   @author: talbpaul
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
 import abc
 from collections import deque
-import numpy as np
 import copy
-#External Modules End--------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
-# Internal
-#Modules------------------------------------------------------------------------------------
+# Internal Modules----------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes
 from .Optimizer import Optimizer
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
 
 class RavenSampled(Optimizer):
@@ -83,6 +82,7 @@ class RavenSampled(Optimizer):
               of the Optimizer.""")
     init.addSub(limit)
     init.addSub(write)
+
     return specs
 
   @classmethod
@@ -99,6 +99,7 @@ class RavenSampled(Optimizer):
                'rejectReason':'discription of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
+
     return ok
 
   def __init__(self):
@@ -108,7 +109,7 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    # # Instance Variable Initialization
+    # Instance Variable Initialization
     # public
     self.limit = None  # max samples
     self.type = 'Sampled Optimizer'  # type
@@ -173,11 +174,12 @@ class RavenSampled(Optimizer):
     """
 
   @abc.abstractmethod
-  def checkConvergence(self, traj):
+  def checkConvergence(self, traj, new, old):
     """
       Check for trajectory convergence
-      @ In, traj, int, trajectory to consider
-      @ Out, None
+      @ In, traj, int, trajectory identifier
+      @ In, new, dict, new opt point
+      @ In, old, dict, previous opt point
     """
 
   @abc.abstractmethod
@@ -209,6 +211,7 @@ class RavenSampled(Optimizer):
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
     ready = ready and len(self._submissionQueue) != 0
+
     return ready
 
   def localGenerateInput(self, model, inp):
@@ -226,7 +229,7 @@ class RavenSampled(Optimizer):
       self.batchId += 1
     else:
       self.inputInfo['batchMode'] = False
-    for idx in range(self.batch):
+    for _ in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
       if self.counter == self.limit + 1:
         break
@@ -245,7 +248,7 @@ class RavenSampled(Optimizer):
         self.values[var] = val  # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
-        inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+        inputInfo[f'ProbabilityWeight-{var}'] = ptProb
         inputInfo['SampledVarsPb'][var] = ptProb
       inputInfo['ProbabilityWeight'] = 1  # TODO assume all weight 1? Not well-distributed samples
       inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
@@ -262,20 +265,20 @@ class RavenSampled(Optimizer):
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
   # @profile
-  def localFinalizeActualSampling(self, job, model, inp):
+  def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
       Runs after each sample is collected from the JobHandler.
-      @ In, job, Runner instance, job runner entity
+      @ In, jobObject, Runner instance, job runner entity
       @ In, model, Model instance, RAVEN model that was run
-      @ In, inp, list, generated inputs for run
+      @ In, myInput, list, generated inputs for run
       @ Out, None
     """
-    Optimizer.localFinalizeActualSampling(self, job, model, inp)
+    Optimizer.localFinalizeActualSampling(self, jobObject, model, myInput)
     # TODO should this be an Optimizer class action instead of Sampled?
     # collect finished job
-    prefix = job.getMetadata()['prefix']
+    prefix = jobObject.getMetadata()['prefix']
     # If we're not looking for the prefix, don't bother with using it
-    ## this usually happens if we've cancelled the run but it's already done
+    # this usually happens if we've cancelled the run but it's already done
     if not self.stillLookingForPrefix(prefix):
       return
     # FIXME implicit constraints probable should be handled here too
@@ -335,7 +338,7 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
     # further check active unfinished trajectories
-    ## FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+    # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
     traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
     # sanity check: if there's no history (we never got any answers) then report than rather than crash
     if len(self._optPointHistory[traj]) == 0:
@@ -360,6 +363,19 @@ class RavenSampled(Optimizer):
     self.raiseAMessage('*' * 80)
     # write final best solution to soln export
     self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+
+  def flush(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self._stepTracker = {}
+    self._optPointHistory = {}
+    self._rerunsSinceAccept = {}
+    self.__stepCounter = {}
+    self._submissionQueue = deque()
 
   ###################
   # Utility Methods #
@@ -400,6 +416,7 @@ class RavenSampled(Optimizer):
     # fix functionals
     normed, funcModded = self._applyFunctionalConstraints(normed, previous)
     modded = boundaryModded or funcModded
+
     return normed, modded
 
   def _checkFunctionalConstraints(self, point):
@@ -414,9 +431,10 @@ class RavenSampled(Optimizer):
     for constraint in self._constraintFunctions:
       okay = constraint.evaluate('constrain', inputs)
       if not okay:
-        self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
+        self.raiseADebug(f'Functional constraint "{constraint.name}" was violated!')
         self.raiseADebug(' ... point:', point)
       allOkay *= okay
+
     return bool(allOkay)
 
   def _applyBoundaryConstraints(self, point):
@@ -434,17 +452,16 @@ class RavenSampled(Optimizer):
       lower = dist.lowerBound
       upper = dist.upperBound
       if val < lower:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
-                          .format(var, val, lower, lower - val))
-        self.raiseADebug(' ... -> for point {}'.format(point))
+        self.raiseADebug(f' BOUNDARY VIOLATION "{var}" suggested value: {val:1.3e} lower bound: {lower:1.3e} under by {lower - val:1.3e}')
+        self.raiseADebug(f' ... -> for point {point}')
         point[var] = lower
         modded = True
       elif val > upper:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
-                          .format(var, val, upper, val - upper))
-        self.raiseADebug(' ... -> for point {}'.format(point))
+        self.raiseADebug(f' BOUNDARY VIOLATION "{var}" suggested value: {val:1.3e} upper bound: {upper:1.3e} over by {val - upper:1.3e}')
+        self.raiseADebug(f' ... -> for point {point}')
         point[var] = upper
         modded = True
+
     return point, modded
 
   def _checkBoundaryConstraints(self, point):
@@ -486,6 +503,7 @@ class RavenSampled(Optimizer):
     denormed = self.denormalizeData(normed)
     denormed[self._objectiveVar] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
+
     return accept
 
   def _checkImpFunctionalConstraints(self, previous):
@@ -499,9 +517,10 @@ class RavenSampled(Optimizer):
     for impConstraint in self._impConstraintFunctions:
       okay = impConstraint.evaluate('implicitConstraint', inputs)
       if not okay:
-        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstraint.name))
+        self.raiseADebug(f'Implicit constraint "{impConstraint.name}" was violated!')
         self.raiseADebug(' ... point:', previous)
       allOkay *= okay
+
     return bool(allOkay)
 
   # END constraint handling
@@ -518,7 +537,7 @@ class RavenSampled(Optimizer):
       @ In, optVal, list of floats, values of objective variable
     """
     self.raiseADebug('*' * 80)
-    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new opt point ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
@@ -570,12 +589,13 @@ class RavenSampled(Optimizer):
     """
 
   @abc.abstractmethod
-  def _updateConvergence(self, traj, rlz, old, acceptable):
+  def _updateConvergence(self, traj, new, old, acceptable):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
-      @ Out, converged, bool, True if converged on ANY criteria
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
     """
 
   @abc.abstractmethod
@@ -671,7 +691,7 @@ class RavenSampled(Optimizer):
         pass  # it must have been submitted since we flagged it for removal
     # get prefixes of already-submitted jobs; get all matches, and pop them so we don't track them anymore
     prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
-    self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(traj, 'all' if step is None else step), prefixes)
+    self.raiseADebug(f'Canceling grad jobs for traj "{traj}" iteration "{"all" if step is None else step}":', prefixes)
     self._jobsToEnd.extend(prefixes)
 
   def initializeTrajectory(self, traj=None):
@@ -685,6 +705,7 @@ class RavenSampled(Optimizer):
     self.__stepCounter[traj] = -1  # allows 0-based counting
     self._rerunsSinceAccept[traj] = 0
     self._initializeStep(traj)
+
     return traj
 
   def _closeTrajectory(self, traj, action, reason, value):
@@ -699,6 +720,3 @@ class RavenSampled(Optimizer):
     Optimizer._closeTrajectory(self, traj, action, reason, value)
     # kill jobs associated with trajectory
     self._cancelAssociatedJobs(traj)
-
-
-

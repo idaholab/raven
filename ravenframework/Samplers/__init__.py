@@ -25,7 +25,6 @@ from __future__ import absolute_import
 # 'from Samplers.Sampler import Sampler' outside of this submodule
 from .Sampler import Sampler
 # Forward Samplers
-from .ForwardSampler        import ForwardSampler
 from .MonteCarlo            import MonteCarlo
 from .Grid                  import Grid
 from .Stratified            import Stratified

@@ -21,7 +21,7 @@ import abc
 
 from ...utils import utils, InputData, InputTypes
 
-class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
+class GradientApproximator(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     GradientApproximators use provided information to both select points
     required to estimate gradients as well as calculate the estimates.
@@ -43,6 +43,7 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
         search at which points should be evaluated to estimate the local gradient. This scalar is a
         multiplier for the step size used to reach this optimal point candidate from the previous
         optimal point, so this scalar should generally be a small percent. \default{0.01}"""))
+
     return specs
 
   @classmethod
@@ -142,4 +143,11 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
   # Utility Methods #
   ###################
 
-
+  def flush(self):
+    """
+      Reset GradientApproximater attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self._optVars = None
+    self.N = None

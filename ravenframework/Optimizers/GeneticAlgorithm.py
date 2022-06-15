@@ -24,15 +24,15 @@
        [2] Z. Michalewicz, "Genetic Algorithms. + Data Structures. = Evolution Programs," Third, Revised
            and Extended Edition, Springer (1996).
 """
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
+from collections import deque, defaultdict
 import numpy as np
 from scipy.special import comb
-from collections import deque, defaultdict
 import xarray as xr
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from ..utils import mathUtils, randomUtils, InputData, InputTypes
+# Internal Modules----------------------------------------------------------------------------------
+from ..utils import mathUtils, InputData, InputTypes
 from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
@@ -41,7 +41,7 @@ from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
   """
@@ -73,6 +73,30 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None    # population fitness
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
+    self.bestPoint = None
+    self.bestFitness = None
+    self.bestObjective = None
+    self.objectiveVal = None
+    self._populationSize = None
+    self._parentSelectionType = None
+    self._parentSelectionInstance = None
+    self._nParents = None
+    self._nChildren = None
+    self._crossoverType = None
+    self._crossoverPoints = None
+    self._crossoverProb = None
+    self._crossoverInstance = None
+    self._mutationType = None
+    self._mutationLocs = None
+    self._mutationProb = None
+    self._mutationInstance = None
+    self._survivorSelectionType = None
+    self._survivorSelectionInstance = None
+    self._fitnessType = None
+    self._objCoeff = None
+    self._penaltyCoeff = None
+    self._fitnessInstance = None
+    self._repairInstance = None
 
   ##########################
   # Initialization Methods #
@@ -239,7 +263,7 @@ class GeneticAlgorithm(RavenSampled):
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
               criteria are given, then the defaults are used.""")
     specs.addSub(conv)
-    for name,descr in cls.convergenceOptions.items():
+    for name, descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
 
     # Persistence
@@ -248,6 +272,7 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
               is considered fully converged. This helps in preventing early false convergence."""))
     specs.addSub(conv)
+
     return specs
 
   @classmethod
@@ -268,6 +293,7 @@ class GeneticAlgorithm(RavenSampled):
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     new['AHD'] = 'Hausdorff Distance between populations'
     ok.update(new)
+
     return ok
 
   def handleInput(self, paramInput):
@@ -285,7 +311,7 @@ class GeneticAlgorithm(RavenSampled):
     # parent selection
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
-    self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
+    self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
     self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
@@ -318,9 +344,9 @@ class GeneticAlgorithm(RavenSampled):
 
     # Check if the fitness requested is among the constrained optimization fitnesses
     # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
-    ## TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
-    if 'Constraint' in self.assemblerObjects.keys() and self._fitnessType not in ['invLinear','feasibleFirst']:
-      self.raiseAnError(IOError, 'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {}'.format(self._fitnessType))
+    # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
+    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {self._fitnessType}')
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
@@ -341,7 +367,6 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
 
-
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -355,9 +380,9 @@ class GeneticAlgorithm(RavenSampled):
     self.addMetaKeys(meta)
     self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
-      self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
+      self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
     for _, init in enumerate(self._initialValues):
-      self._submitRun(init,0,self.getIteration(0)+1)
+      self._submitRun(init, 0, self.getIteration(0) + 1)
 
   def initializeTrajectory(self, traj=None):
     """
@@ -371,6 +396,7 @@ class GeneticAlgorithm(RavenSampled):
     self._convergenceInfo[traj] = {'persistence': 0}
     for criteria in self._convergenceCriteria:
       self._convergenceInfo[traj][criteria] = False
+
     return traj
 
   def needDenormalized(self):
@@ -397,7 +423,7 @@ class GeneticAlgorithm(RavenSampled):
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     for t in self._activeTraj[1:]:
-      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
     info['step'] = self.counter
 
@@ -429,27 +455,27 @@ class GeneticAlgorithm(RavenSampled):
                      dims=['chromosome','Constraint'],
                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
-    ## FIXME The constraint handling is following the structure of the RavenSampled.py,
+    # FIXME The constraint handling is following the structure of the RavenSampled.py,
     #        there are many utility functions that can be simplified and/or merged together
     #        _check, _handle, and _apply, for explicit and implicit constraints.
     #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(offSprings):
       newOpt = individual
       opt = {self._objectiveVar:objectiveVal[index]}
-      for p,v in constraintData.items():
+      for p, v in constraintData.items():
         opt[p] = v[index]
 
-      for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+      for constIndex, constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
         if constraint in self._constraintFunctions:
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
     offSpringFitness = self._fitnessInstance(rlz,
-                                             objVar = self._objectiveVar,
-                                             a = self._objCoeff,
-                                             b = self._penaltyCoeff,
-                                             penalty = None,
+                                             objVar=self._objectiveVar,
+                                             a=self._objCoeff,
+                                             b=self._penaltyCoeff,
+                                             penalty=None,
                                              constraintFunction=g,
                                              type=self._minMax)
 
@@ -460,13 +486,13 @@ class GeneticAlgorithm(RavenSampled):
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age = self.popAge,
-                                                                                             variables = list(self.toBeSampled),
-                                                                                             population = self.population,
-                                                                                             fitness = self.fitness,
-                                                                                             newRlz = rlz,
-                                                                                             offSpringsFitness = offSpringFitness,
-                                                                                             popObjectiveVal = self.objectiveVal)
+        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
+                                                                                             variables=list(self.toBeSampled),
+                                                                                             population=self.population,
+                                                                                             fitness=self.fitness,
+                                                                                             newRlz=rlz,
+                                                                                             offSpringsFitness=offSpringFitness,
+                                                                                             popObjectiveVal=self.objectiveVal)
         self.popAge = age
       else:
         self.population = offSprings
@@ -476,34 +502,34 @@ class GeneticAlgorithm(RavenSampled):
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
       parents = self._parentSelectionInstance(self.population,
-                                              variables = list(self.toBeSampled),
-                                              fitness = self.fitness,
-                                              nParents = self._nParents)
+                                              variables=list(self.toBeSampled),
+                                              fitness=self.fitness,
+                                              nParents=self._nParents)
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      childrenXover = self._crossoverInstance(parents = parents,
-                                              variables = list(self.toBeSampled),
-                                              crossoverProb = self._crossoverProb,
-                                              points = self._crossoverPoints)
+      childrenXover = self._crossoverInstance(parents=parents,
+                                              variables=list(self.toBeSampled),
+                                              crossoverProb=self._crossoverProb,
+                                              points=self._crossoverPoints)
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings = childrenXover,
-                                               distDict = self.distDict,
-                                               locs = self._mutationLocs,
-                                               mutationProb = self._mutationProb,
-                                               variables = list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings=childrenXover,
+                                               distDict=self.distDict,
+                                               locs=self._mutationLocs,
+                                               mutationProb=self._mutationProb,
+                                               variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
       for chrom in range(self._nChildren):
-        unique = set(childrenMutated.data[chrom,:])
+        unique = set(childrenMutated.data[chrom, :])
         if len(childrenMutated.data[chrom,:]) != len(unique):
-          for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to check if a variables strategy is without replacement
-            if (hasattr(self.distDict[var],'strategy') and self.distDict[var].strategy == 'withoutReplacement'):
+          for var in self.toBeSampled: # TODO: there must be a smarter way to check if a variables strategy is without replacement
+            if (hasattr(self.distDict[var], 'strategy') and self.distDict[var].strategy == 'withoutReplacement'):
               needsRepair = True
               break
       if needsRepair:
@@ -515,7 +541,7 @@ class GeneticAlgorithm(RavenSampled):
       counter = 0
       while flag and counter < self._populationSize:
         counter += 1
-        repeated =[]
+        repeated = []
         for i in range(np.shape(self.population.data)[0]):
           for j in range(i,np.shape(children.data)[0]):
             if all(self.population.data[i,:]==children.data[j,:]):
@@ -523,14 +549,14 @@ class GeneticAlgorithm(RavenSampled):
         repeated = list(set(repeated))
         if repeated:
           if len(repeated)> children.shape[0] - self._populationSize:
-            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict=self.distDict, locs=self._mutationLocs, mutationProb=self._mutationProb, variables=list(self.toBeSampled))
             children.data[repeated,:] = newChildren.data
           else:
             children = children.drop_sel(chromosome=repeated)
         else:
           flag = False
       # keeping the population size constant by ignoring the excessive children
-      children = children[:self._populationSize,:]
+      children = children[:self._populationSize, :]
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
@@ -540,9 +566,9 @@ class GeneticAlgorithm(RavenSampled):
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(self.batch):
-        newRlz={}
-        for _,var in enumerate(self.toBeSampled.keys()):
-          newRlz[var] = float(daChildren.loc[i,var].values)
+        newRlz = {}
+        for _, var in enumerate(self.toBeSampled.keys()):
+          newRlz[var] = float(daChildren.loc[i, var].values)
         self._submitRun(newRlz, traj, self.getIteration(traj))
 
   def _submitRun(self, point, traj, step, moreInfo=None):
@@ -563,12 +589,28 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: Currently, GA treats explicit and implicit constraints similarly
     # while box constraints (Boundary constraints) are automatically handled via limits of the distribution
     #
-    self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
+    self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
     self._submissionQueue.append((point, info))
+
+  def flush(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.population = None
+    self.popAge = None
+    self.fitness = None
+    self.ahdp = np.NaN
+    self.ahd = np.NaN
+    self.bestPoint = None
+    self.bestFitness = None
+    self.bestObjective = None
+    self.objectiveVal = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
-
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, info):
     """
       Store a new Generation after checking convergence
@@ -579,10 +621,10 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
     """
     self.raiseADebug('*'*80)
-    self.raiseADebug('Trajectory {} iteration {} resolving new state ...'.format(traj, info['step']))
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
-    acceptable = 'accepted' if self.counter >1 else 'first'
+    acceptable = 'accepted' if self.counter > 1 else 'first'
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
@@ -591,10 +633,10 @@ class GeneticAlgorithm(RavenSampled):
     #       point history.
     if self._writeSteps == 'every':
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
+        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled)
         rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-        self._updateSolutionExport(traj, rlzDict, acceptable,None)
+        self._updateSolutionExport(traj, rlzDict, acceptable, None)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -616,12 +658,13 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-    optPoints,fit,obj = zip(*[[x,y,z] for x,y,z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
-    point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
-    if (self.counter>1 and obj[0] <= self.bestObjective and fit[0]>=self.bestFitness) or self.counter == 1:
+    optPoints,fit,obj = zip(*[[x,y,z] for x, y, z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(self.toBeSampled.keys()))
+    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
       self.bestPoint = point
       self.bestFitness = fit[0]
       self.bestObjective = obj[0]
+
     return point
 
   def _checkAcceptability(self, traj):
@@ -644,9 +687,9 @@ class GeneticAlgorithm(RavenSampled):
     for conv in self._convergenceCriteria:
       fName = conv[:1].upper() + conv[1:]
       # get function from lookup
-      f = getattr(self, '_checkConv{}'.format(fName))
+      f = getattr(self, f'_checkConv{fName}')
       # check convergence function
-      okay = f(traj,new=new,old=old)
+      okay = f(traj, new=new, old=old)
       # store and update
       convs[conv] = okay
 
@@ -668,6 +711,7 @@ class GeneticAlgorithm(RavenSampled):
                                             conv=str(converged),
                                             got=obj,
                                             req=self._convergenceCriteria['objective']))
+
     return converged
 
   def _checkConvAHDp(self, traj, **kwargs):
@@ -682,17 +726,18 @@ class GeneticAlgorithm(RavenSampled):
     """
     old = kwargs['old'].data
     new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
-    if ('p' not in kwargs.keys() or kwargs['p'] == None):
+    if ('p' not in kwargs or kwargs['p'] is None):
       p = 3
     else:
       p = kwargs['p']
-    ahdp = self._ahdp(old,new,p)
+    ahdp = self._ahdp(old, new, p)
     self.ahdp = ahdp
     converged = (ahdp <= self._convergenceCriteria['AHDp'])
     self.raiseADebug(self.convFormat.format(name='AHDp',
                                             conv=str(converged),
                                             got=ahdp,
                                             req=self._convergenceCriteria['AHDp']))
+
     return converged
 
   def _checkConvAHD(self, traj, **kwargs):
@@ -713,18 +758,19 @@ class GeneticAlgorithm(RavenSampled):
                                             conv=str(converged),
                                             got=ahd,
                                             req=self._convergenceCriteria['AHD']))
+
     return converged
 
-  def _ahdp(self,a,b,p):
+  def _ahdp(self, a, b, p):
     """
       p-average Hausdorff Distance for generation convergence
       @ In, a, np.array, old population A
       @ In, b, np.array, new population B
       @ Out, _AHDp, float, average Hausdorff distance
     """
-    return max(self._GDp(a,b,p),self._GDp(b,a,p))
+    return max(self._GDp(a, b, p), self._GDp(b, a, p))
 
-  def _GDp(self,a,b,p):
+  def _GDp(self, a, b, p):
     r"""
       Modified Generational Distance Indicator
       @ In, a, np.array, old population A
@@ -736,6 +782,7 @@ class GeneticAlgorithm(RavenSampled):
     n = np.shape(a)[0]
     for i in range(n):
       s += self._popDist(a[i,:],b)**p
+
     return (1/n * s)**(1/p)
 
   def _popDist(self,ai,b,q=2):
@@ -746,12 +793,13 @@ class GeneticAlgorithm(RavenSampled):
       @ In, q, integer, order of the norm
       @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$
     """
-    nrm=[]
+    nrm = []
     for j in range(np.shape(b)[0]):
-      nrm.append(np.linalg.norm(ai-b[j,:],q))
+      nrm.append(np.linalg.norm(ai-b[j,:], q))
+
     return min(nrm)
 
-  def _ahd(self,a,b):
+  def _ahd(self, a, b):
     """
       Hausdorff Distance for generation convergence
       @ In, a, np.array, old population A
@@ -771,6 +819,7 @@ class GeneticAlgorithm(RavenSampled):
     n = np.shape(a)[0]
     for i in range(n):
       s.append(self._popDist(a[i,:],b))
+
     return max(s)
 
   def _updateConvergence(self, traj, new, old, acceptable):
@@ -782,15 +831,16 @@ class GeneticAlgorithm(RavenSampled):
       @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
-    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
     if acceptable == 'accepted':
-      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
       # check convergence
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
       convDict = dict((var, False) for var in self._convergenceInfo[traj])
     self._convergenceInfo[traj].update(convDict)
+
     return converged
 
   def _updatePersistence(self, traj, converged, optVal):
@@ -835,8 +885,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the constraint is violated
     """
-    g = self._applyFunctionalConstraints(point, constraint)
-    return g
+    return self._applyFunctionalConstraints(point, constraint)
 
   def _handleImplicitConstraints(self, point, opt,constraint):
     """
@@ -847,8 +896,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, float,the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the constraint is violated
     """
-    g = self._checkImpFunctionalConstraints(point, opt, constraint)
-    return g
+    return self._checkImpFunctionalConstraints(point, opt, constraint)
 
   def _applyFunctionalConstraints(self, point, constraint):
     """
@@ -859,8 +907,7 @@ class GeneticAlgorithm(RavenSampled):
                 if $g_j(x)<0$, then the constraint is violated
     """
     # are we violating functional constraints?
-    g = self._checkFunctionalConstraints(point, constraint)
-    return g
+    return self._checkFunctionalConstraints(point, constraint)
 
   def _checkFunctionalConstraints(self, point, constraint):
     """
@@ -873,6 +920,7 @@ class GeneticAlgorithm(RavenSampled):
     inputs = dataArrayToDict(point)
     inputs.update(self.constants)
     g = constraint.evaluate('constrain', inputs)
+
     return g
 
   def _checkImpFunctionalConstraints(self, point, opt, impConstraint):
@@ -889,12 +937,11 @@ class GeneticAlgorithm(RavenSampled):
     inputs.update(opt)
 
     g = impConstraint.evaluate('implicitConstraint', inputs)
+
     return g
 
   # END constraint handling
   # * * * * * * * * * * * *
-
-
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
@@ -904,18 +951,19 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, toAdd, dict, additional entries
     """
     # meta variables
-    toAdd = {'age': 0 if self.popAge==None else self.popAge,
-             'batchId':self.batchId,
-             'fitness':rlz['fitness'],
-             'AHDp':self.ahdp,
-             'AHD':self.ahd}
+    toAdd = {'age': 0 if self.popAge is None else self.popAge,
+             'batchId': self.batchId,
+             'fitness': rlz['fitness'],
+             'AHDp': self.ahdp,
+             'AHD': self.ahd}
 
     for var, val in self.constants.items():
       toAdd[var] = val
 
     toAdd = dict((key, np.atleast_1d(val)) for key, val in toAdd.items())
     for key, val in self._convergenceInfo[traj].items():
-      toAdd['conv_{}'.format(key)] = bool(val)
+      toAdd[f'conv_{key}'] = bool(val)
+
     return toAdd
 
   def _formatSolutionExportVariableNames(self, acceptable):
@@ -933,7 +981,8 @@ class GeneticAlgorithm(RavenSampled):
       if '{CONV}' in template:
         new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
       elif '{VAR}' in template:
-        new.extend([template.format(VAR=var) for var in self.toBeSampled.keys()])
+        new.extend([template.format(VAR=var) for var in self.toBeSampled])
       else:
         new.append(template)
+
     return set(new)

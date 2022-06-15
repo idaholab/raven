@@ -18,10 +18,10 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-import numpy as np
 from operator import mul
 from functools import reduce
 import itertools
+import numpy as np
 
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
@@ -59,6 +59,10 @@ class Sobol(SparseGridCollocation):
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
     self.addAssemblerObject('ROM', InputData.Quantity.one)
+    self.features = None
+    self.SQs = {}
+    self.ROMs = {}
+    self.pointsToRun = []
 
   def _localWhatDoINeed(self):
     """
@@ -68,6 +72,7 @@ class Sobol(SparseGridCollocation):
     """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
+
     return gridDict
 
   def _localGenerateAssembler(self,initDict):
@@ -80,8 +85,8 @@ class Sobol(SparseGridCollocation):
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions):
-        self.raiseAnError(IOError,'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist, Distributions.NDimensionalDistributions):
+        self.raiseAnError(IOError, 'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
 
   def localInitialize(self):
     """
@@ -90,13 +95,13 @@ class Sobol(SparseGridCollocation):
       @ Out, None
     """
     SVL = self.readFromROM()
-    #make combination of ROMs that we need
+    # make combination of ROMs that we need
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
     needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
-    self.ROMs={} #keys are [combo]
+    self.ROMs={} # keys are [combo]
     for combo in needCombos:
       if len(combo)==0:
         continue
@@ -104,7 +109,6 @@ class Sobol(SparseGridCollocation):
       quadDict={}
       polyDict={}
       imptDict={}
-      limit=0
       for c in combo:
         distDict[c]=self.dists[c]
         quadDict[c]=self.quadDict[c]
@@ -119,7 +123,7 @@ class Sobol(SparseGridCollocation):
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
                 'Features'       :combo,       # input variables
                 'Target'         :SVL.target}# set below, per-case basis
-      #initializeDict is for SVL.initialize()
+      # initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
                       'quads':quadDict,             # quadratures
@@ -128,36 +132,36 @@ class Sobol(SparseGridCollocation):
       self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom')
       self.ROMs[combo].initializeFromDict(initDict)
       self.ROMs[combo].initialize(initializeDict)
-    #make combined sparse grids
+    # make combined sparse grids
     self.references={}
     for var in self.features:
       self.references[var]=self.dists[var].untruncatedMean()
     self.pointsToRun=[]
-    #make sure reference case gets in there
+    # make sure reference case gets in there
     newpt = np.zeros(len(self.features))
-    for v,var in enumerate(self.features):
+    for v, var in enumerate(self.features):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
-    #now do the rest
-    for combo,rom in sorted(self.ROMs.items()):
+    # now do the rest
+    for combo, rom in sorted(self.ROMs.items()):
       # just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
-        pt,wt = SG[l]
+        pt, _ = SG[l]
         newpt = np.zeros(len(self.features))
-        for v,var in enumerate(self.features):
+        for v, var in enumerate(self.features):
           if var in combo:
             newpt[v] = pt[combo.index(var)]
           else:
             newpt[v] = self.references[var]
-        newpt=tuple(newpt)
+        newpt = tuple(newpt)
         self.distinctPoints.add(newpt)
         if newpt not in self.pointsToRun:
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
-    self.raiseADebug('Needed points: %i' %self.limit)
+    self.raiseADebug(f'Needed points: {self.limit}')
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.dists,
@@ -168,7 +172,7 @@ class Sobol(SparseGridCollocation):
     #for target in self.targets:
     self.ROM.supervisedContainer[0].initialize(initdict)
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point
       @ In, model, model instance, an instance of a model
@@ -180,7 +184,7 @@ class Sobol(SparseGridCollocation):
     except IndexError:
       self.raiseADebug('All sparse grids are complete!  Moving on...')
       raise utils.NoMoreSamplesNeeded
-    for v,varName in enumerate(self.features):
+    for v, varName in enumerate(self.features):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
@@ -203,7 +207,7 @@ class Sobol(SparseGridCollocation):
           if location > -1:
             ndCoordinates[positionList.index(position)] = pt[location]
           else:
-            self.raiseAnError(IOError,'The variables ' + var + ' listed in sobol sampler, but not used in the ROM!' )
+            self.raiseAnError(IOError, f'The variables {var} listed in sobol sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
@@ -211,3 +215,23 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+
+  def flush(self):
+    """
+      Reset Sobol attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.maxPolyOrder = None
+    self.polyDict = {}
+    self.quadDict = {}
+    self.importanceDict = {}
+    self.ROM = None
+    self.sobolOrder = None
+    self.references = {}
+    self.distinctPoints = set()
+    self.features = None
+    self.SQs = {}
+    self.ROMs = {}
+    self.pointsToRun = []
