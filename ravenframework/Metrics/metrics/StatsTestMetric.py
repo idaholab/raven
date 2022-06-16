@@ -95,4 +95,4 @@ class StatsTestMetric(MetricInterface):
     return value
 
 
-        
+

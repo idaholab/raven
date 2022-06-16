@@ -46,7 +46,7 @@ def buildIntervalSegs(array, interval: int):
   """
   interSegs = []
   for i in range(interval):
-    interSegs.append(array[i::interval])    
+    interSegs.append(array[i::interval])
   return np.array(interSegs)
 
 def sumSegments(array):
@@ -55,7 +55,7 @@ def sumSegments(array):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the segment length desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test.
   """
   sum_segs = []
   for seg in array:
@@ -68,7 +68,7 @@ def compare_segments_ks(array1, array2, segmentLength: int):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the segment length desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -87,7 +87,7 @@ def compare_segments_f(array1, array2, segmentLength: int):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the segment length desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -106,7 +106,7 @@ def compare_segments_chi(array1, array2, segmentLength: int):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the segment length desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -125,7 +125,7 @@ def compare_interval_ks(array1, array2, interval: int):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the interval desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the KS-test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -144,7 +144,7 @@ def compare_interval_f(array1, array2, interval):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the interval desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of the one way f-test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of the one way f-test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -163,7 +163,7 @@ def compare_intervals_chi(array1, array2, interval):
     @In array1, an array-like of the historical data.
     @In array2, an array-like of the synthetic data.
     @In interval, int setting the length of the interval desired
-    @ Out, a Pandas DataFrame containing the statistic and the p-value of a chisquare test. 
+    @ Out, a Pandas DataFrame containing the statistic and the p-value of a chisquare test.
   """
   results = []
   cols = ['segment','statistic', 'p-value']
@@ -181,7 +181,7 @@ def compare_sums_ks(array1, array2):
     This method compares the summed segments from the sumSegements arrays using a KS-test.
     @In array1, an array-like from the sumSegements function.
     @In array2, an array-like from the sumSegements function.
-    @ Out, the output of a scipy two samples KS test.  
+    @ Out, the output of a scipy two samples KS test.
   """
   return stats.ks_2samp(array1, array2)
 
@@ -190,7 +190,7 @@ def compare_sums_f(array1, array2):
     This method compares the summed segments from the sumSegements arrays using an one-way f-test.
     @In array1, an array-like from the sumSegements function.
     @In array2, an array-like from the sumSegements function.
-    @ Out, the output of a scipy one-way f-test.  
+    @ Out, the output of a scipy one-way f-test.
   """
   return stats.f_oneway(array1, array2)
 
@@ -199,6 +199,6 @@ def compare_sums_chi(array1, array2):
     This method compares the summed segments from the sumSegements arrays using a chisquare test.
     @In array1, an array-like from the sumSegements function.
     @In array2, an array-like from the sumSegements function.
-    @ Out, the output of a scipy chisquare test.  
+    @ Out, the output of a scipy chisquare test.
   """
   return stats.chisquare(array1, array2)
