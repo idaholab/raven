@@ -373,15 +373,15 @@ class RFE(BaseInterface):
             previousScore = actualScore
             scores = {}
             dividend = 0.
-            stateW = float(len(targets)-1-len(combo))/float(len(combo))
+            # stateW = 1/float(len(combo))
             for target in evaluated:
               #if target in ['Electric_Power','Turbine_Pressure']:
               #if target in targetsIds and target not in self.parametersToInclude:
               if target in targetsIds:
-                if target not in self.parametersToInclude:
-                  w = 1.0
+                if target not in self.parametersToInclude: # if not state variable, then this target is output variable
+                  w = 1/float(len(targets)-1-len(combo)) #1/ny (targets contains the index to Time, state and output)
                 else:
-                  w = stateW # the weight of Haoyu's GA cost function
+                  w = 1/float(len(combo)) # 1/nx, the weight of Haoyu's GA cost function
 
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
