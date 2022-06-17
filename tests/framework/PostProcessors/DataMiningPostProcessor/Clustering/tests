@@ -2,7 +2,8 @@
   [./KMeans]
     type   = 'RavenFramework'
     input  = 'test_dataMiningKMeans.xml'
-    csv    = 'KMeans/dummy.csv KMeans/info.csv'
+    csv    = 'KMeans/dummy.csv'
+    UnorderedCsv = 'KMeans/info.csv'
     output = 'KMeans/scatter.png'
   [../]
   [./KMeansPCA]

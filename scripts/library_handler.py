@@ -473,6 +473,9 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   libVersion = text
   libSkipCheck = libNode.attrib.get('skip_check', None)
   request = {'skip_check': libSkipCheck, 'version': libVersion, 'requestor': requestor}
+  pipExtra = libNode.attrib.get('pip_extra', None)
+  if pipExtra is not None:
+    request['pip_extra'] = pipExtra
   # does this entry already exist?
   if tag in config:
     existing = config[tag]
@@ -530,9 +533,10 @@ if __name__ == '__main__':
         help='Use subset of installation libraries, divided by source.')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
-  pipParser.add_argument('--action', dest='action', choices=('install', 'list'), default='install',
+  pipParser.add_argument('--action', dest='action', choices=('install', 'list', 'setup.cfg'), default='install',
         help='Chooses whether to (install) in current environment, or ' +
-             '(list) installation libraries.')
+             '(list) installation libraries or ' +
+             '(setup.cfg) output setup.cfg requirements.')
 
   manualParser = subParsers.add_parser('manual', help='provide LaTeX manual list')
 
@@ -571,6 +575,7 @@ if __name__ == '__main__':
       raise IOError('During library installation, the following requested plugin libraries '+
                     ' were not found: {}'.format(', '.join(missing)))
 
+  itemSeperator = ' '
   ### Il Grande Albero Decisionale
   # "optional" and "os" are passed through
   if args.installer == 'manual':
@@ -635,10 +640,18 @@ if __name__ == '__main__':
       elif args.action == 'list':
         action = 'list'
         preamble = ''
+      if args.action == 'setup.cfg':
+        action = 'setup.cfg'
+        preamble = """#setup.cfg from library_handler.py
+[options]
+install_requires =
+    """
+        itemSeperator = '\n    '
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{ver}'
+    libTexts = itemSeperator.join(['{lib}{extra}{ver}'
                          .format(lib=lib,
+                                 extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
                                  ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:

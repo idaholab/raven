@@ -1,7 +1,7 @@
 \subsubsection{HistorySetSync}
 \label{HistorySetSync}
 
-This Post-Processor performs the conversion from HistorySet to HistorySet
+This PostProcessor performs the conversion from HistorySet to HistorySet
 The conversion is made so that all histories are synchronized in time.
 It can be used to allow the histories to be sampled at the same time instant.
 
@@ -11,10 +11,10 @@ which yields an equally-spaced grid of time points. The output values for these 
 using nearest sampled time points, and the new HistorySet will contain only the new grid points.
 
 The other methods are used by specifying \xmlNode{syncMethod} as \xmlString{all}, \xmlString{min}, or
-\xmlString{max}.  For \xmlString{all}, the postprocessor will iterate through the
+\xmlString{max}.  For \xmlString{all}, the PostProcessor will iterate through the
 existing histories, collect all the time points used in any of them, and use these as the new grid on which to
 establish histories, retaining all the exact original values and interpolating linearly where necessary.
-In the event of \xmlString{min} or \xmlString{max}, the postprocessor will find the smallest or largest time
+In the event of \xmlString{min} or \xmlString{max}, the PostProcessor will find the smallest or largest time
 history, respectively, and use those time values as nodes to interpolate between.
 
 \ppType{HistorySetSync}{HistorySetSync}

@@ -50,7 +50,7 @@ In addition, any number of the following TSA algorithms may be included as subno
 
   \xmlNode{PolynomialRegression} has the following attributes:
   \begin{itemize}
-    \item \xmlAttr{target}, \xmlDesc{comma seperated string, required field}, indicates which
+    \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
         target signals should be trained as part of this entity using this TSA algorithm.
   \end{itemize}
 
@@ -71,15 +71,15 @@ In addition, any number of the following TSA algorithms may be included as subno
 
     \xmlNode{Fourier} has the following parameters:
     \begin{itemize}
-      \item \xmlAttr{target}, \xmlDesc{comma seperated string, required field}, indicates which
+      \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
         target signals should be trained as part of this entity using this TSA algorithm.
       \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
         random number generation in this algorithm. Unused for the Fourier TSA algorithm.
     \end{itemize}
     \xmlNode{Fourier} further has the following subnodes:
     \begin{itemize}
-      \item \xmlNode{periods}, \xmlDesc{comma seperated floats, required field}, indicates which base
-        periods whose Fourier reperesentations should be fit to the training signal. For example, in
+      \item \xmlNode{periods}, \xmlDesc{comma separated floats, required field}, indicates which base
+        periods whose Fourier representations should be fit to the training signal. For example, in
         a signal with hourly measurements, selecting the period \xmlString{12, 24} would fit the daily
         (24-hour) and half-daily (12-hour) periodic trends.
     \end{itemize}
@@ -99,7 +99,7 @@ In addition, any number of the following TSA algorithms may be included as subno
 
     \xmlNode{ARMA} has the following parameters:
     \begin{itemize}
-      \item \xmlAttr{target}, \xmlDesc{comma seperated string, required field}, indicates which
+      \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
         target signals should be trained as part of this entity using this TSA algorithm.
       \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
         random number generation in this algorithm. This applies both to the training and sampling of this

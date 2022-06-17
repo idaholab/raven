@@ -3,7 +3,7 @@
 
 The \xmlNode{Files} block defines any files that might be needed within
 the RAVEN run.  This could include inputs to the Model, pickled ROM files,
-or CSV files for postprocessors, to name a few.
+or CSV files for PostProcessors, to name a few.
 %
 Each entry in the \xmlNode{Files} block is a tag with the file type.  Files
 given through the input XML at this point are all \xmlNode{Input} type.
@@ -26,7 +26,7 @@ Each \xmlNode{Input} node has the following attributes:
 
   \item \xmlAttr{perturbable}, \xmlDesc{optional boolean attribute}, flag
   to indicate whether a file can be perturbed or not. RAVEN does not
-  directly use this attribute, but it is availabe in the CodeInterface.
+  directly use this attribute, but it is available in the CodeInterface.
   If not provided, defaults to True.
   %
   

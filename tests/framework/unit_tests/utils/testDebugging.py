@@ -24,9 +24,9 @@ from contextlib import redirect_stdout
 
 import numpy as np
 
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import Debugging
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
+from ravenframework.utils import Debugging
 
 print(Debugging)
 

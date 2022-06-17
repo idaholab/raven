@@ -9,7 +9,7 @@
 This section covers the input specification for running PHISICS through RAVEN.
 The interface can be used to perturb the PHISICS input files including the INSTANT and MRTAU input decks
 and the following libraries: cross sections, fission yield, decay, fission Q-values, decay Q-values and the XML material input.
-The interface also the cabablity to work in MRTAU standlone calculations, in INSTANT/MRTAU mode (PHISICS) and
+The interface also the capability to work in MRTAU standlone calculations, in INSTANT/MRTAU mode (PHISICS) and
 in PHISICS/RELAP5 coupled mode (see~\ref{subsec:PhisicsRelap5Interface}).
 %
 \subsubsection{Files}
@@ -21,7 +21,7 @@ The \xmlAttr{name} attribute is a user-defined internal name for the file contai
 Default: None (required entry).
 
 The \xmlAttr{type} attribute identifies which base-level parser an input file is used within.  The \xmlAttr{type} has to be specified as long as the
-file is parsed by the interface or an interface's parser. \xmlAttr{type} is hardcoded for this speciific inputs, in order to assign each input to its corresponding RAVEN parser.
+file is parsed by the interface or an interface's parser. \xmlAttr{type} is hardcoded for this specific inputs, in order to assign each input to its corresponding RAVEN parser.
 Default: None (required entry if parsed).
 
 The corresponding hardcoded flags accepted by RAVEN are given in Table~\ref{TypeTable}. The type attributes are case-incensitive.
@@ -137,7 +137,7 @@ sample variables in the current RAVEN run.
 For all the possible distributions and their possible inputs please
 refer to the Distributions chapter (see~\ref{sec:distributions}).
 %
-It is good practice to name a distribution and its corresponding sampled variable with identical root names, and appending sufix to the distribution name, since there might be many variables with the
+It is good practice to name a distribution and its corresponding sampled variable with identical root names, and appending suffix to the distribution name, since there might be many variables with the
 same kind of distributions but different input parameters.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
