@@ -54,7 +54,7 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>2000</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -72,6 +72,9 @@
       </acceptance>
       <convergence>
         <iterationLimit>10</iterationLimit>
+        <gradient>1e-4</gradient>
+        <objective>1e-4</objective>
+        <stepSize>1e-12</stepSize>
       </convergence>
     </GradientDescent>
   </Optimizers>
@@ -90,7 +93,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,stepSize,iteration,accepted,conv_iterationLimit</Output>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_iterationLimit,conv_gradient,conv_samePoint,conv_objective</Output>
     </PointSet>
   </DataObjects>
 

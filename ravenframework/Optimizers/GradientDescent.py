@@ -67,7 +67,12 @@ class GradientDescent(RavenSampled):
                         # TODO change in input space?
                         'objective': r"""provides the maximum relative change in the objective function for convergence.""",
                         'stepSize': r"""provides the maximum size in relative step size for convergence.""",
-                        'iterationLimit': r"""provides the maximum number of iterations at which the optimizer will terminate regardless of the status of any convergence criteria. Note that for Gradient Descent this counts only the optimization sweeps not the gradient evaluations"""
+                        'iterationLimit': r"""provides the maximum number of iterations at which the optimizer will terminate regardless of the status of any convergence criteria.
+                                              Note that for Gradient Descent this counts only the optimization sweeps not the gradient evaluations.
+                                              It is important to differentiate this from sampler'sinit <limit> node as the latter counts every model evaluation,
+                                              hence, if n variables we will have 2n gradient evaluation if using centeral difference, number of iteration will be <limit>/(2n). If is less than the <iterationlimit> the GA will honor this lower limit.
+                                              I.e., the termination (given all other covergence criteria are not met) will occur at min{<iterationLimit>, ceil(<limit>/gradient evaluations per variable/\# of variables) +1}
+                                              For instance: if the \# of Variables is 2, and we perform 2 evaluations per variable for gradients, and if <limit> = 20, and <iterationLimit> is 10, the termination will occur at min{ceiling(20/(2*2))+1,10} = 6."""
                        }
 
   ##########################
@@ -266,7 +271,6 @@ class GradientDescent(RavenSampled):
           self._terminateFollowers = sub.value
           self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
         elif sub.getName() == 'iterationLimit':
-          # self._iterationLimit = sub.value
           self._convergenceCriteria['iterationLimit'] = sub.value
         elif sub.getName() == 'constraintExplorationLimit':
           self._functionalConstraintExplorationLimit = sub.value
