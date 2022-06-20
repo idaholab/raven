@@ -223,7 +223,7 @@ class RFE(BaseInterface):
       toprint = ""
       for i in range(space.shape[0]):
         for j in range(space.shape[1]):
-          toprint+= "{:.2f}".format(space[i,j]) + ","
+          toprint+= str(space[i,j]) + ","
         toprint+= "\n"
       with open("featurespace.csv","w") as fo:
         fo.write(toprint)
