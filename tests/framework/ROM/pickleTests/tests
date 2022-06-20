@@ -37,5 +37,8 @@
   [./eRl_setAdditionalParams]
     type = 'RavenPython'
     input = 'eRl_setAddtlParams.py'
+  [./syntheticHistoryARMAPickleTest]
+    type = 'RavenFramework'
+    input = 'synthetic_history_arma_pickle.xml'
   [../]
 []

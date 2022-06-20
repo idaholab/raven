@@ -17,6 +17,8 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
+from pickle import PickleError
+from turtle import update
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -100,6 +102,26 @@ def checkType(comment,value,expected,updateResults=True):
   """
   if type(value) != type(expected):
     print("checking type",comment,value,'|',type(value),"!=",expected,'|',type(expected))
+    if updateResults:
+      results["fail"] += 1
+    return False
+  else:
+    if updateResults:
+      results["pass"] += 1
+    return True
+
+def checkPicklable(comment, updateResults=True):
+  """
+    This method checks if the RNG wrapper class is picklable
+    @ In, comment, str, a comment printed out if it fails
+    @ In, updateResults, bool, optional, if True updates global results
+    @ Out, None
+  """
+  import pickle
+  try:
+    pickle.loads(pickle.dumps(randomUtils.RNG()))
+  except pickle.PicklingError:
+    print(comment)
     if updateResults:
       results["fail"] += 1
     return False
@@ -397,6 +419,9 @@ engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
 
+
+# Picklable RNG
+checkPicklable('RNG class object could not be pickled')
 
 print(results)
 

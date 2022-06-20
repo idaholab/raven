@@ -23,7 +23,9 @@ import sys
 import math
 import threading
 from collections import deque, defaultdict
+from install import crow_modules
 import numpy as np
+import copy
 
 from .utils import findCrowModule
 from . import mathUtils
@@ -327,10 +329,87 @@ def newRNG(env=None):
   if env is None:
     env = stochasticEnv
   if env == 'crow':
-    engine = findCrowModule('randomENG').RandomClass()
+    # engine = findCrowModule('randomENG').RandomClass()
+    engine = RNG()
   elif env == 'numpy':
     engine = np.random.RandomState()
   return engine
+
+
+class RNG(findCrowModule('randomENG').RandomClass):
+  """ Wraps crow RandomClass RNG class to make it serializable """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    self._engine = findCrowModule('randomENG').RandomClass()
+  
+  def __getstate__(self):
+    """
+      Get state for serialization
+      @ In, None
+      @ Out, d, dict, object instance state
+    """
+    d = copy.copy(self.__dict__)
+    eng = d.pop('_engine')  # remove RNG engine from class instance
+    d['seed'] = eng.get_rng_seed()
+    d['count'] = eng.get_rng_state()
+    return d
+  
+  def __setstate__(self, d):
+    """
+      Set object instance state
+      @ In, d, dict, object state
+      @ Out, None
+    """
+    seed = d.pop('seed', 42)
+    count = d.pop('count', 0)
+    self.__dict__.update(d)
+    self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
+    self._engine.seed(seed)
+    self._engine.forward_seed(count)
+  
+  def seed(self, value):
+    """
+      Wrapper for RandomClass.seed()
+      @ In, value, int, RNG seed
+      @ Out, None
+    """
+    self._engine.seed(value)
+  
+  def random(self):
+    """
+      Wrapper for RandomClass.random()
+      @ In, None
+      @ Out, float, random number from RNG engine
+    """
+    return self._engine.random()
+
+  def get_rng_state(self):
+    """
+      Wrapper for RandomClass.get_rng_state()
+      @ In, None
+      @ Out, int, RNG state
+    """
+    return self._engine.get_rng_state()
+  
+  def forward_seed(self, counts):
+    """
+      Wrapper for RandomClass.forward_seed()
+      @ In, counts, int, number of random states to progress
+      @ Out, None
+    """
+    self._engine.forward_seed(counts)
+  
+  def get_rng_seed(self):
+    """
+      Wrapper for RandomClass.get_rng_seed()
+      @ In, None
+      @ Out, int, RNG seed value
+    """
+    return self._engine.get_rng_seed()
 
 ### internal utilities ###
 
