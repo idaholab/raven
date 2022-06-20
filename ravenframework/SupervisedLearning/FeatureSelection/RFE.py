@@ -218,7 +218,17 @@ class RFE(BaseInterface):
         space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
       else:
         space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
-
+      
+      print("feature space:")
+      toprint = ""
+      for i in range(space.shape[0]):
+        for j in range(space.shape[1]):
+          toprint+= "{:.2f}".format(space[i,j]) + ","
+        toprint+= "\n"
+      with open("featurespace.csv","w") as fo:
+        fo.write(toprint)
+      print(toprint)
+      
       corr = spearmanr(space,axis=0).correlation
       corr = (corr + corr.T) / 2
       np.fill_diagonal(corr, 1)
