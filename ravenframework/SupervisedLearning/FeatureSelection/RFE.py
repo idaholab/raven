@@ -168,7 +168,7 @@ class RFE(BaseInterface):
     if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
 
-    featuresForRanking = np.arange(len(self.parametersToInclude))[np.ones(nParams, dtype=np.bool)]
+    featuresForRanking = np.arange(len(self.parametersToInclude))[np.ones(len(self.parametersToInclude), dtype=np.bool)]
     f = np.asarray(self.parametersToInclude)
     print("ORDER OF FEATURES:")
     for feature in f[np.asarray(featuresForRanking)]:
