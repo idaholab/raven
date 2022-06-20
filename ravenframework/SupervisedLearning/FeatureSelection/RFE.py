@@ -167,6 +167,13 @@ class RFE(BaseInterface):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
     if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
+
+    featuresForRanking = np.arange(len(self.parametersToInclude))[np.ones(nParams, dtype=np.bool)]
+    f = np.asarray(self.parametersToInclude)
+    print("ORDER OF FEATURES:")
+    for feature in f[np.asarray(featuresForRanking)]:
+      print(feature)
+
     return self._train(X, y, features, targets, maskF=maskFeatures, maskT=maskTargets)
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None, step_score=None):
