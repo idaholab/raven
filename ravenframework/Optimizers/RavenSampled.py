@@ -560,7 +560,8 @@ class RavenSampled(Optimizer):
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
-      self.__stepCounter[traj] -= 1
+      if self.printTag == 'GradientDescent':
+        self.__stepCounter[traj] -= 1
     elif acceptable == 'rerun':
       # update the most recently obtained opt value for the rerun point
       # NOTE we do this because if we got "lucky" in an opt point evaluation, we can get stuck
