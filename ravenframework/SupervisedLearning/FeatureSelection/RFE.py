@@ -208,7 +208,7 @@ class RFE(BaseInterface):
     originalParams = self.estimator.paramInput
     
     # round
-    X = np.round(X, -6)
+    X = np.round(X, 6)
     
     # clustering appraoch here
     if self.applyClusteringFiltering:
