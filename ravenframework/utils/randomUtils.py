@@ -23,7 +23,6 @@ import sys
 import math
 import threading
 from collections import deque, defaultdict
-from install import crow_modules
 import numpy as np
 import copy
 
@@ -329,7 +328,6 @@ def newRNG(env=None):
   if env is None:
     env = stochasticEnv
   if env == 'crow':
-    # engine = findCrowModule('randomENG').RandomClass()
     engine = RNG()
   elif env == 'numpy':
     engine = np.random.RandomState()
