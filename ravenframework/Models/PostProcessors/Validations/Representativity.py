@@ -232,10 +232,10 @@ class Representativity(ValidationBase):
     # # 6. Compute Normalized Uncertainties
     # In mock experiment outputs (measurables)
     sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
-    senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens, datasets)
+    senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens, datasets[0])
     # In target outputs (FOMs)
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
-    senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets)
+    senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets[1])
     # # 7. Compute representativities
     r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UparVar, UMeasurablesVar)
     # # 8. Compute corrected Uncertainties
@@ -312,7 +312,7 @@ class Representativity(ValidationBase):
         if not normalize:
           sensMatr[i, j] = sensDict[senName][0]
         else:
-          sensMatr[i, j] = sensDict[senName][0]* datasets[0][inpVar].meanValue / datasets[0][outVar].meanValue
+          sensMatr[i, j] = sensDict[senName][0]* datasets[inpVar].meanValue / datasets[outVar].meanValue
     return sensMatr
 
   def _getDataFromDatasets(self, datasets, var, names=None):

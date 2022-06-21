@@ -21,8 +21,8 @@
 import numpy as np
 ##################
 
-A = np.array([[2, -3],[1,8],[-5, -5]])
-b = np.array([[0],[0],[0]])
+# A = np.array([[2, -3],[1,8],[-5, -5]])
+# b = np.array([[0],[0],[0]])
 
 def run(self,Input):
   """
@@ -34,12 +34,24 @@ def run(self,Input):
   self.F1,self.F2,self.F3 = main(Input)
 
 def main(Input):
-  y = A @ np.array(list(Input.values())).reshape(-1,1) + b
+  # y = A @ np.array(list(Input.values())).reshape(-1,1) + b
+  m = len([key for key in Input.keys() if 'e' in key]) # number of experiments
+  n = len([par for par in Input.keys() if 'p' in par]) # number of parameters
+  A = np.array([Input['e1'],Input['e2'],Input['e3']]).reshape(-1,n)
+  b = Input['bE'].reshape(-1,1)
+  x = np.atleast_2d(np.array([Input['p1'],Input['p2']])).reshape(-1,1)
+  assert(np.shape(A)[1],np.shape(b)[0])
+  assert(np.shape(A)[0],np.shape(b)[0],m)
+  y = A @ x + b
   return y[:]
 
 
 if __name__ == '__main__':
   Input = {}
+  Input['e1'] = [2,-3]
+  Input['e2'] = [1,8]
+  Input['e3'] = [-5, -5]
+  Input['bE'] = np.array([[0],[0],[0]])
   Input['x1'] = 5.5
   Input['x2'] = 8
   a,b,c = main(Input)
