@@ -17,8 +17,6 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-from pickle import PickleError
-from turtle import update
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -120,7 +118,7 @@ def checkPicklable(comment, updateResults=True):
   import pickle
   try:
     pickle.loads(pickle.dumps(randomUtils.RNG()))
-  except pickle.PicklingError:
+  except (TypeError, pickle.PicklingError):
     print(comment)
     if updateResults:
       results["fail"] += 1
