@@ -128,9 +128,7 @@ class MonteCarlo(Sampler):
           upper = distData['xMax']
           rvsnum = lower + (upper - lower) * randomUtils.random()
           # TODO (wangc): I think the calculation for epsilon need to be updated as following
-          """
-            epsilon = (upper-lower)/(self.limit+1) * 0.5
-          """
+          # epsilon = (upper-lower)/(self.limit+1) * 0.5
           epsilon = (upper-lower)/self.limit
           midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
           midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
