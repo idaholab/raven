@@ -385,7 +385,7 @@ class RFE(BaseInterface):
 
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
-                std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
+                std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
                 if avg == 0: avg = 1
                 if std == 0: std = 1.
                 ev = (evaluated[target] - avg)/std

@@ -330,7 +330,7 @@ class DMDC(DMD):
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
-      print(" ** Index = ", index, ", Centered uVector=", uVector[:,0,0])
+      # print(" ** Index = ", index, ", Centered uVector=", uVector[:,0,0])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
         xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[:,cnt,i]),(-1,1)).T
@@ -563,7 +563,7 @@ class DMDC(DMD):
     # SVD
     uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
-    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-3, sTrucSVD.tolist()))
+    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-9, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
       uTruc = uTrucSVD[:, :rankTruc]
       vTruc = vTrucSVD[:, :rankTruc]
