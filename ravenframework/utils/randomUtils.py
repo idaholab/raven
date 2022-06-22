@@ -25,6 +25,7 @@ import threading
 from collections import deque, defaultdict
 import numpy as np
 import copy
+import ctypes
 
 from .utils import findCrowModule
 from . import mathUtils
@@ -113,7 +114,7 @@ def randomSeed(value, seedBoth=False, engine=None):
   if engine is None:
     if stochasticEnv == 'crow':
       distStochEnv.seedRandom(value)
-      engine=crowStochEnv
+      engine=RNG(crowStochEnv)
     elif stochasticEnv == 'numpy':
       replaceGlobalEnv=True
       global npStochEnv
@@ -336,13 +337,25 @@ def newRNG(env=None):
 
 class RNG(findCrowModule('randomENG').RandomClass):
   """ Wraps crow RandomClass RNG class to make it serializable """
-  def __init__(self):
+  def __init__(self, engine=None, seed=None):
     """
       Constructor
-      @ In, None
+      @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
+      @ In, reseed_copies, bool, whether or not recovered copies of the class should use a new seed or not
       @ Out, None
     """
-    self._engine = findCrowModule('randomENG').RandomClass()
+    if engine is None:
+      self._engine = findCrowModule('randomENG').RandomClass()
+    elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+      self._engine = engine
+    else:
+      raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by RNG class!')
+
+    if seed is not None:
+      self._seed = abs(int(seed))
+      self._engine.seed(self._seed)
+    else:
+      self._seed = self._engine.get_rng_seed()
   
   def __getstate__(self):
     """
@@ -352,7 +365,6 @@ class RNG(findCrowModule('randomENG').RandomClass):
     """
     d = copy.copy(self.__dict__)
     eng = d.pop('_engine')  # remove RNG engine from class instance
-    d['seed'] = eng.get_rng_seed()
     d['count'] = eng.get_rng_state()
     return d
   
@@ -362,11 +374,10 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, d, dict, object state
       @ Out, None
     """
-    seed = d.pop('seed', 42)
-    count = d.pop('count', 0)
+    count = d.pop('count')
     self.__dict__.update(d)
     self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
-    self._engine.seed(seed)
+    self._engine.seed(self._seed)
     self._engine.forward_seed(count)
   
   def seed(self, value):
@@ -375,7 +386,8 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, value, int, RNG seed
       @ Out, None
     """
-    self._engine.seed(value)
+    self._seed = abs(int(value))
+    self._engine.seed(self._seed)  # takes unsigned long
   
   def random(self):
     """
@@ -383,7 +395,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, None
       @ Out, float, random number from RNG engine
     """
-    return self._engine.random()
+    return self._engine.random()  # returns double
 
   def get_rng_state(self):
     """
@@ -391,7 +403,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, None
       @ Out, int, RNG state
     """
-    return self._engine.get_rng_state()
+    return self._engine.get_rng_state()  # returns int
   
   def forward_seed(self, counts):
     """
@@ -399,7 +411,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, counts, int, number of random states to progress
       @ Out, None
     """
-    self._engine.forward_seed(counts)
+    self._engine.forward_seed(counts)  # takes unsigned int
   
   def get_rng_seed(self):
     """
@@ -407,7 +419,9 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ In, None
       @ Out, int, RNG seed value
     """
-    return self._engine.get_rng_seed()
+    val = self._engine.get_rng_seed()  # returns int
+    self._seed = abs(int(val))
+    return self._seed
 
 ### internal utilities ###
 
@@ -439,7 +453,7 @@ def getEngine(eng):
     if stochasticEnv == 'numpy':
       eng = npStochEnv
     elif stochasticEnv == 'crow':
-      eng = crowStochEnv
+      eng = RNG(crowStochEnv)
   if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng

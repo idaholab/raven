@@ -21,7 +21,9 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
+from xml.dom.minidom import Attr
 from ..utils import importerUtils
+from ..utils.utils import findCrowModule
 statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 import numpy as np
 import functools
@@ -446,9 +448,9 @@ class ARMA(SupervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = super().__getstate__()
-    eng=d.pop("randomEng")
-    randCounts = eng.get_rng_state()
-    d['crow_rng_counts'] = randCounts
+    # eng=d.pop("randomEng")
+    # randCounts = eng.get_rng_state()
+    # d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self, d):
@@ -457,9 +459,17 @@ class ARMA(SupervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    rngCounts = d.pop('crow_rng_counts')
+    rngCounts = d.pop('crow_rng_counts', None)
     super().__setstate__(d)
-    self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
+
+    try:
+      self.randomEng
+    except AttributeError:  # catches where ARMA was pickled without saving the RNG
+      self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
+    else:
+      if type(self.randomEng) == findCrowModule('randomENG').RandomClass:
+        self.randomEng = randomUtils.RNG(self.randomEng, self.seed)  # wraps crow class if needed
+
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
       self.reseed(randd)
@@ -2523,6 +2533,7 @@ class ARMA(SupervisedLearning):
     if count is None:
       count=self.randomEng.get_rng_state()
     eng.forward_seed(count)
+    print('RNG State:', eng.get_rng_state())
     self.randomEng=eng
 
 
