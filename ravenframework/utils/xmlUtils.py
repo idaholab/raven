@@ -338,7 +338,7 @@ def readExternalXML(extFile, extNode, cwd):
       content = inFile.readlines()
     line = content[lineNo-1].strip('\n')
     caret = '{:=>{}}'.format('^', col)
-    err.msg = err.msg = '{}\n{}\n{}\n in input file: {}'.format(err, line, caret, extFile)
+    err.msg = '{}\n{}\n{}\n in input file: {}'.format(err, line, caret, extFile)
     raise err
   if root.tag != extNode.strip():
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode, extFile))
