@@ -585,7 +585,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
         temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
-        self.distDict[temp].updateRNGParam(params)
+        try:
+          self.distDict[temp].updateRNGParam(params)
+        except AttributeError as err:
+          msg =f'Distribution with name {distrib} is not a valid N-Dimensional probability distribution!'
+          err.msg = msg
+          raise err
       else:
         self.raiseAnError(IOError, f'Distribution "{distrib}" specified in distInit block of sampler "{self.name}" does not exist!')
 
