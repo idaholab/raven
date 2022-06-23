@@ -404,7 +404,7 @@ class RFE(BaseInterface):
                 score +=  s*w
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
           self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
-          self.raiseAMessage("MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
+          self.raiseADebug("MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
           del estimator
           gc.collect()
           if f is None:
