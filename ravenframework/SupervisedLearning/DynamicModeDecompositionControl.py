@@ -322,15 +322,10 @@ class DMDC(DMD):
     for cnt, index in enumerate(indeces):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        # print("** uVector shape =",(uVector[:,cnt,:]).shape)
-        # print("** self.actuatorVals shape =",(self.actuatorVals[0, index, :]).shape)
-        # print("** initStates shape =",(initStates[cnt,:]).shape)
-        # print("** self.stateVals shape =",(self.stateVals[0, index, :]).shape)
         uVector[:,cnt,:] = (uVector[:,cnt,:].T - self.actuatorVals[0, index, :]).T
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
-      print(" ** Index = ", index, ", Centered uVector=", uVector[:,0,0])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
         xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[:,cnt,i]),(-1,1)).T
@@ -575,14 +570,6 @@ class DMDC(DMD):
 
     # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
     qsTruc, rsTruc = np.linalg.qr(sTruc)
-    # if rsTruc is singular matrix, raise an error
-    # if np.linalg.det(rsTruc) == 0:
-    #   print("\nsTrucSVD=",sTrucSVD)
-    #   print("\nrankTruc=",rankTruc)
-    #   print("\nsTruc=",sTruc.shape)
-    #   print("\nrsTruc=",rsTruc.shape,"\n",rsTruc)
-    #   np.savetxt('D:\\GitProjects\\offcial_forks\\raven\\rsTruc.csv', rsTruc, delimiter=",")
-    #   self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
     beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
     A = beta.dot(uTruc[0:n, :].T)
     B = beta.dot(uTruc[n:, :].T)

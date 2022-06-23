@@ -167,13 +167,6 @@ class RFE(BaseInterface):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
     if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
-
-    featuresForRanking = np.arange(len(self.parametersToInclude))[np.ones(len(self.parametersToInclude), dtype=np.bool)]
-    f = np.asarray(self.parametersToInclude)
-    print("ORDER OF FEATURES:")
-    for feature in f[np.asarray(featuresForRanking)]:
-      print(feature)
-
     return self._train(X, y, features, targets, maskF=maskFeatures, maskT=maskTargets)
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None, step_score=None):
@@ -207,47 +200,34 @@ class RFE(BaseInterface):
     # get estimator parameter
     originalParams = self.estimator.paramInput
     
-    # round
-    X = np.round(X, 6)
-    
     # clustering appraoch here
     if self.applyClusteringFiltering:
       from scipy.stats import spearmanr, pearsonr
       from scipy.cluster import hierarchy
       from scipy.spatial.distance import squareform
       from collections import defaultdict
- 
+            
       if self.whichSpace == 'feature':
         space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
       else:
         space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
-      
-      #print("feature space:")
-      #toprint = ""
-      #for i in range(space.shape[0]):
-      #  for j in range(space.shape[1]):
-      #    toprint+= str(space[i,j]) + ","
-      #  toprint+= "\n"
-      #with open("featurespace.csv","w") as fo:
-      #  fo.write(toprint)
-      #print(toprint)
-      
-      corr = spearmanr(space,axis=0).correlation
-      corr = (corr + corr.T) / 2
+ 
+      # compute spearman     
+      # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
+      corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
+      corr = (corr + corr.T) / 2.
       np.fill_diagonal(corr, 1)
-      print("correlation space:")
-      toprint = ""
-      for i in range(corr.shape[0]):
-        for j in range(corr.shape[1]):
-          toprint+= str(corr[i,j]) + ","
-        toprint+= "\n"
-      with open("corrspace.csv","w") as fo:
-        fo.write(toprint)
-      print(toprint)      
-
+      print(corr.shape)
+      with open("corr.csv","w") as fo:
+        towrite = ""
+        for i in range(corr.shape[0]):
+          for j in range(corr.shape[1]):
+            towrite+=str(corr[i,j]) +","
+          towrite+="\n" 
+        fo.write(towrite)
       # We convert the correlation matrix to a distance matrix before performing
       # hierarchical clustering using Ward's linkage.
-      distance_matrix = 1 - np.abs(corr)
+      distance_matrix = 1. - np.abs(corr)
       dist_linkage = hierarchy.ward(squareform(distance_matrix))
       t = float('{:.3e}'.format(0.000001*np.max(dist_linkage)))
       self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
@@ -420,14 +400,8 @@ class RFE(BaseInterface):
                 ev = (evaluated[target] - avg)/std
                 ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
                 s = np.sum(np.square(ref-ev))
-                #s = np.linalg.norm( (evaluated[target] -(y[:,tidx] if len(y.shape) < 3 else y[0,:,tidx]))/avg)
-                #s = np.linalg.norm((evaluated[target] -)/std)
-                #scores[target] = s*w*(np.mean(importances[target]) if target in importances else 1.0)
-                #score +=  s*w*(np.mean(importances[target]) if target in importances else 1.0)
                 scores[target] = s*w
                 score +=  s*w
-                #dividend+=1.
-          #score/=float(X.shape[0])
           self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
           self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
           self.raiseAMessage("MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
