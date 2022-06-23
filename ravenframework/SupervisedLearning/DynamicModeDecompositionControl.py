@@ -558,7 +558,7 @@ class DMDC(DMD):
     # SVD
     uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
-    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-3, sTrucSVD.tolist()))
+    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-9, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
       uTruc = uTrucSVD[:, :rankTruc]
       vTruc = vTrucSVD[:, :rankTruc]
