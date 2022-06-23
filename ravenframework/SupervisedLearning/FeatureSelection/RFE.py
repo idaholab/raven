@@ -167,6 +167,13 @@ class RFE(BaseInterface):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
     if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
       self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
+
+    featuresForRanking = np.arange(len(self.parametersToInclude))[np.ones(len(self.parametersToInclude), dtype=np.bool)]
+    f = np.asarray(self.parametersToInclude)
+    print("ORDER OF FEATURES:")
+    for feature in f[np.asarray(featuresForRanking)]:
+      print(feature)
+
     return self._train(X, y, features, targets, maskF=maskFeatures, maskT=maskTargets)
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None, step_score=None):
@@ -199,7 +206,10 @@ class RFE(BaseInterface):
 
     # get estimator parameter
     originalParams = self.estimator.paramInput
-
+    
+    # round
+    X = np.round(X, 6)
+    
     # clustering appraoch here
     if self.applyClusteringFiltering:
       from scipy.stats import spearmanr, pearsonr
@@ -211,10 +221,29 @@ class RFE(BaseInterface):
         space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
       else:
         space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
-
+      
+      #print("feature space:")
+      #toprint = ""
+      #for i in range(space.shape[0]):
+      #  for j in range(space.shape[1]):
+      #    toprint+= str(space[i,j]) + ","
+      #  toprint+= "\n"
+      #with open("featurespace.csv","w") as fo:
+      #  fo.write(toprint)
+      #print(toprint)
+      
       corr = spearmanr(space,axis=0).correlation
       corr = (corr + corr.T) / 2
       np.fill_diagonal(corr, 1)
+      print("correlation space:")
+      toprint = ""
+      for i in range(corr.shape[0]):
+        for j in range(corr.shape[1]):
+          toprint+= str(corr[i,j]) + ","
+        toprint+= "\n"
+      with open("corrspace.csv","w") as fo:
+        fo.write(toprint)
+      print(toprint)      
 
       # We convert the correlation matrix to a distance matrix before performing
       # hierarchical clustering using Ward's linkage.
