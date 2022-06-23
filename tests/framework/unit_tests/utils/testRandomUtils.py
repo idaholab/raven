@@ -108,26 +108,6 @@ def checkType(comment,value,expected,updateResults=True):
       results["pass"] += 1
     return True
 
-def checkPicklable(comment, updateResults=True):
-  """
-    This method checks if the RNG wrapper class is picklable
-    @ In, comment, str, a comment printed out if it fails
-    @ In, updateResults, bool, optional, if True updates global results
-    @ Out, None
-  """
-  import pickle
-  try:
-    pickle.loads(pickle.dumps(randomUtils.RNG()))
-  except (TypeError, pickle.PicklingError):
-    print(comment)
-    if updateResults:
-      results["fail"] += 1
-    return False
-  else:
-    if updateResults:
-      results["pass"] += 1
-    return True
-
 ### BEGIN TESTS
 # NOTE that due to seeding, this test relies HEAVILY on not changing the orders of calls to randomUtils!
 # Reseed at the beginning of sections and add new tests to the end of sections.
@@ -416,10 +396,6 @@ engine = randomUtils.newRNG()
 engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
-
-
-# Picklable RNG
-checkPicklable('RNG class object could not be pickled')
 
 print(results)
 

@@ -87,11 +87,104 @@ class BoxMullerGenerator:
     stdev = np.std(samples)
     return mean,stdev
 
+
+class CrowRNG(findCrowModule('randomENG').RandomClass):
+  """ Wraps crow RandomClass to make it serializable
+  NOTE: CrowRNG inherits from findCrowModule('randomENG').RandomClass but never initializes it in __init__. This is just
+        so it can fool type checks made with the ininstance() function elsewhere which are checking for RandomClass.
+  """
+  def __init__(self, engine=None, seed=None):
+    """
+      Constructor
+      @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
+      @ In, reseed_copies, bool, whether or not recovered copies of the class should use a new seed or not
+      @ Out, None
+    """
+    if engine is None:
+      self._engine = findCrowModule('randomENG').RandomClass()
+    elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+      self._engine = engine
+    else:
+      raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by CrowRNG class!')
+
+    if seed is not None:
+      self._seed = abs(int(seed))
+      self._engine.seed(self._seed)
+    else:
+      self._seed = self._engine.get_rng_seed()
+  
+  def __getstate__(self):
+    """
+      Get state for serialization
+      @ In, None
+      @ Out, d, dict, object instance state
+    """
+    d = copy.copy(self.__dict__)
+    eng = d.pop('_engine')  # remove RNG engine from class instance
+    d['count'] = eng.get_rng_state()
+    return d
+  
+  def __setstate__(self, d):
+    """
+      Set object instance state
+      @ In, d, dict, object state
+      @ Out, None
+    """
+    count = d.pop('count')
+    self.__dict__.update(d)
+    self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
+    self._engine.seed(self._seed)
+    self._engine.forward_seed(count)
+  
+  def seed(self, value):
+    """
+      Wrapper for RandomClass.seed()
+      @ In, value, int, RNG seed
+      @ Out, None
+    """
+    self._seed = abs(int(value))
+    self._engine.seed(self._seed)  # takes unsigned long
+  
+  def random(self):
+    """
+      Wrapper for RandomClass.random()
+      @ In, None
+      @ Out, float, random number from RNG engine
+    """
+    return self._engine.random()  # returns double
+
+  def get_rng_state(self):
+    """
+      Wrapper for RandomClass.get_rng_state()
+      @ In, None
+      @ Out, int, RNG state
+    """
+    return self._engine.get_rng_state()  # returns int
+  
+  def forward_seed(self, counts):
+    """
+      Wrapper for RandomClass.forward_seed()
+      @ In, counts, int, number of random states to progress
+      @ Out, None
+    """
+    self._engine.forward_seed(counts)  # takes unsigned int
+  
+  def get_rng_seed(self):
+    """
+      Wrapper for RandomClass.get_rng_seed()
+      @ In, None
+      @ Out, int, RNG seed value
+    """
+    val = self._engine.get_rng_seed()  # returns int
+    self._seed = abs(int(val))
+    return self._seed
+
+
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   setupCpp()
-  crowStochEnv = findCrowModule('randomENG').RandomClass()
+  crowStochEnv = CrowRNG()
   # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
@@ -114,7 +207,7 @@ def randomSeed(value, seedBoth=False, engine=None):
   if engine is None:
     if stochasticEnv == 'crow':
       distStochEnv.seedRandom(value)
-      engine=RNG(crowStochEnv)
+      engine=CrowRNG(crowStochEnv)
     elif stochasticEnv == 'numpy':
       replaceGlobalEnv=True
       global npStochEnv
@@ -329,99 +422,10 @@ def newRNG(env=None):
   if env is None:
     env = stochasticEnv
   if env == 'crow':
-    engine = RNG()
+    engine = CrowRNG()
   elif env == 'numpy':
     engine = np.random.RandomState()
   return engine
-
-
-class RNG(findCrowModule('randomENG').RandomClass):
-  """ Wraps crow RandomClass RNG class to make it serializable """
-  def __init__(self, engine=None, seed=None):
-    """
-      Constructor
-      @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
-      @ In, reseed_copies, bool, whether or not recovered copies of the class should use a new seed or not
-      @ Out, None
-    """
-    if engine is None:
-      self._engine = findCrowModule('randomENG').RandomClass()
-    elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-      self._engine = engine
-    else:
-      raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by RNG class!')
-
-    if seed is not None:
-      self._seed = abs(int(seed))
-      self._engine.seed(self._seed)
-    else:
-      self._seed = self._engine.get_rng_seed()
-  
-  def __getstate__(self):
-    """
-      Get state for serialization
-      @ In, None
-      @ Out, d, dict, object instance state
-    """
-    d = copy.copy(self.__dict__)
-    eng = d.pop('_engine')  # remove RNG engine from class instance
-    d['count'] = eng.get_rng_state()
-    return d
-  
-  def __setstate__(self, d):
-    """
-      Set object instance state
-      @ In, d, dict, object state
-      @ Out, None
-    """
-    count = d.pop('count')
-    self.__dict__.update(d)
-    self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
-    self._engine.seed(self._seed)
-    self._engine.forward_seed(count)
-  
-  def seed(self, value):
-    """
-      Wrapper for RandomClass.seed()
-      @ In, value, int, RNG seed
-      @ Out, None
-    """
-    self._seed = abs(int(value))
-    self._engine.seed(self._seed)  # takes unsigned long
-  
-  def random(self):
-    """
-      Wrapper for RandomClass.random()
-      @ In, None
-      @ Out, float, random number from RNG engine
-    """
-    return self._engine.random()  # returns double
-
-  def get_rng_state(self):
-    """
-      Wrapper for RandomClass.get_rng_state()
-      @ In, None
-      @ Out, int, RNG state
-    """
-    return self._engine.get_rng_state()  # returns int
-  
-  def forward_seed(self, counts):
-    """
-      Wrapper for RandomClass.forward_seed()
-      @ In, counts, int, number of random states to progress
-      @ Out, None
-    """
-    self._engine.forward_seed(counts)  # takes unsigned int
-  
-  def get_rng_seed(self):
-    """
-      Wrapper for RandomClass.get_rng_seed()
-      @ In, None
-      @ Out, int, RNG seed value
-    """
-    val = self._engine.get_rng_seed()  # returns int
-    self._seed = abs(int(val))
-    return self._seed
 
 ### internal utilities ###
 
@@ -453,7 +457,7 @@ def getEngine(eng):
     if stochasticEnv == 'numpy':
       eng = npStochEnv
     elif stochasticEnv == 'crow':
-      eng = RNG(crowStochEnv)
+      eng = crowStochEnv
   if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
