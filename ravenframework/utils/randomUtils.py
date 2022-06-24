@@ -88,11 +88,8 @@ class BoxMullerGenerator:
     return mean,stdev
 
 
-class CrowRNG(findCrowModule('randomENG').RandomClass):
-  """ Wraps crow RandomClass to make it serializable
-  NOTE: CrowRNG inherits from findCrowModule('randomENG').RandomClass but never initializes it in __init__. This is just
-        so it can fool type checks made with the ininstance() function elsewhere which are checking for RandomClass.
-  """
+class CrowRNG:
+  """ Wraps crow RandomClass to make it serializable """
   def __init__(self, engine=None, seed=None):
     """
       Constructor
@@ -207,7 +204,7 @@ def randomSeed(value, seedBoth=False, engine=None):
   if engine is None:
     if stochasticEnv == 'crow':
       distStochEnv.seedRandom(value)
-      engine=CrowRNG(crowStochEnv)
+      engine = crowStochEnv
     elif stochasticEnv == 'numpy':
       replaceGlobalEnv=True
       global npStochEnv
@@ -217,7 +214,7 @@ def randomSeed(value, seedBoth=False, engine=None):
 
   if isinstance(engine, np.random.RandomState):
     engine = np.random.RandomState(value)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     engine.seed(value)
     if seedBoth:
       np.random.seed(value+1) # +1 just to prevent identical seed sets
@@ -240,7 +237,7 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
     vals = engine.rand(samples,dim)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
@@ -265,7 +262,7 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
     size = (size, )
   if isinstance(engine, np.random.RandomState):
     vals = engine.randn(*size)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     vals = np.zeros(np.prod(size))
     for i in range(len(vals)):
       vals[i] = boxMullerGen.generate(engine=engine)
@@ -305,7 +302,7 @@ def randomIntegers(low, high, caller=None, engine=None):
   engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
     rawInt = math.floor(rawNum)
@@ -359,7 +356,7 @@ def randomPermutation(l,caller,engine=None):
   engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     newList = []
     oldList = l[:]
     while len(oldList) > 0:
@@ -458,7 +455,7 @@ def getEngine(eng):
       eng = npStochEnv
     elif stochasticEnv == 'crow':
       eng = crowStochEnv
-  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
+  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, CrowRNG):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
 

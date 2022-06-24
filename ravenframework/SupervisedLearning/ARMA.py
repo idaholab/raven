@@ -21,7 +21,6 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
-from xml.dom.minidom import Attr
 from ..utils import importerUtils
 from ..utils.utils import findCrowModule
 statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
@@ -467,8 +466,8 @@ class ARMA(SupervisedLearning):
     except AttributeError:  # catches where ARMA was pickled without saving the RNG
       self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
     else:
-      if type(self.randomEng) == findCrowModule('randomENG').RandomClass:
-        self.randomEng = randomUtils.RNG(self.randomEng, self.seed)  # wraps crow class if needed
+      if isinstance(self.randomEng, findCrowModule('randomENG').RandomClass):
+        self.randomEng = randomUtils.RNG(self.randomEng, self.seed)  # wraps raw crow RNG
 
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
