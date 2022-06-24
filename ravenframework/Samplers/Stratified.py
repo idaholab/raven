@@ -18,10 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
 # External Modules----------------------------------------------------------------------------------
 from operator import mul
 from functools import reduce
