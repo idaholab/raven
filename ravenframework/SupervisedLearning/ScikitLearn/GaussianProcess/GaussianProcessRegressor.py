@@ -88,7 +88,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          """
     # create kernel node
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'Exponentiation',
-                                                                                                                   'Matern', 'Pairwise', 'RBF', 'RationalQuadratic']),
+                                                                                                                   'Matern', 'Pairwise','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
@@ -168,6 +168,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
       kernel = sklearn.gaussian_process.kernels.Exponentiation()
     elif name.lower() == 'matern':
       kernel = sklearn.gaussian_process.kernels.Matern()
+    elif name.lower() == 'pairwise':
+      kernel = sklearn.gaussian_process.kernels.PairwiseKernel()
     elif name.lower() == 'pairwiselinear':
       kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='linear')
     elif name.lower() == 'pairwiseadditivechi2':
