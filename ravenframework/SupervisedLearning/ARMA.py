@@ -2527,8 +2527,8 @@ class ARMA(SupervisedLearning):
     seed=abs(seed)
     eng.seed(seed)
     if count is None:
-      count=self.randomEng.get_rng_state()
-    eng.forward_seed(count)
+      count=self.randomEng.getRNGState()
+    eng.forwardSeed(count)
     self.randomEng=eng
 
 

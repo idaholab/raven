@@ -150,7 +150,7 @@ class CrowRNG:
     """
     return self._engine.random()  # returns double
 
-  def get_rng_state(self):
+  def getRNGState(self):
     """
       Wrapper for RandomClass.get_rng_state()
       @ In, None
@@ -158,7 +158,7 @@ class CrowRNG:
     """
     return self._engine.get_rng_state()  # returns int
 
-  def forward_seed(self, counts):
+  def forwardSeed(self, counts):
     """
       Wrapper for RandomClass.forward_seed()
       @ In, counts, int, number of random states to progress
@@ -166,7 +166,7 @@ class CrowRNG:
     """
     self._engine.forward_seed(counts)  # takes unsigned int
 
-  def get_rng_seed(self):
+  def getRNGSeed(self):
     """
       Wrapper for RandomClass.get_rng_seed()
       @ In, None
