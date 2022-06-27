@@ -18,10 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from crisr
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
 # External Modules----------------------------------------------------------------------------------
 from operator import mul
 from functools import reduce
@@ -131,6 +127,8 @@ class MonteCarlo(Sampler):
           lower = distData['xMin']
           upper = distData['xMax']
           rvsnum = lower + (upper - lower) * randomUtils.random()
+          # TODO (wangc): I think the calculation for epsilon need to be updated as following
+          # epsilon = (upper-lower)/(self.limit+1) * 0.5
           epsilon = (upper-lower)/self.limit
           midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
           midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
