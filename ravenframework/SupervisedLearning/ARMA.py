@@ -447,9 +447,6 @@ class ARMA(SupervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = super().__getstate__()
-    # eng=d.pop("randomEng")
-    # randCounts = eng.get_rng_state()
-    # d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self, d):
@@ -2532,7 +2529,6 @@ class ARMA(SupervisedLearning):
     if count is None:
       count=self.randomEng.get_rng_state()
     eng.forward_seed(count)
-    print('RNG State:', eng.get_rng_state())
     self.randomEng=eng
 
 
