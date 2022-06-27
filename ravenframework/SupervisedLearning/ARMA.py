@@ -22,6 +22,7 @@
 import copy
 import collections
 from ..utils import importerUtils
+from ..utils.utils import findCrowModule
 statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 import numpy as np
 import functools
@@ -446,9 +447,6 @@ class ARMA(SupervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = super().__getstate__()
-    eng=d.pop("randomEng")
-    randCounts = eng.get_rng_state()
-    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self, d):
@@ -457,9 +455,17 @@ class ARMA(SupervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    rngCounts = d.pop('crow_rng_counts')
+    rngCounts = d.pop('crow_rng_counts', None)
     super().__setstate__(d)
-    self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
+
+    try:
+      self.randomEng
+    except AttributeError:  # catches where ARMA was pickled without saving the RNG
+      self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
+    else:
+      if isinstance(self.randomEng, findCrowModule('randomENG').RandomClass):
+        self.randomEng = randomUtils.RNG(self.randomEng, self.seed)  # wraps raw crow RNG
+
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
       self.reseed(randd)

@@ -397,7 +397,6 @@ engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
 
-
 print(results)
 
 sys.exit(results["fail"])
