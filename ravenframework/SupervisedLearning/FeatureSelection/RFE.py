@@ -73,6 +73,8 @@ class RFE(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
                                                       descr=r"""Maximum Number of features to select, the algorithm will automatically determine the
         feature list to minimize a total score.""", default=None))
+    spec.addSub(InputData.parameterInputFactory('onlyOutputScore',contentType=InputTypes.BoolType,
+                                                      descr=r"""If maxNumberFeatures is on, only output score should be considered?.""", default=False))
     spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
                                                       descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
                                                       default=1e-4))
@@ -98,6 +100,7 @@ class RFE(BaseInterface):
     self.applyClusteringFiltering = False
     self.parametersToInclude = None
     self.whichSpace = "feature"
+    self.onlyOutputScore = False
     self.step = 1
 
   def setEstimator(self, estimator):
@@ -115,7 +118,7 @@ class RFE(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect',
+    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','onlyOutputScore',
                                                             'whichSpace','maxNumberFeatures','searchTol','applyClusteringFiltering'])
     assert(not notFound)
     self.step = nodes['step']
@@ -125,6 +128,7 @@ class RFE(BaseInterface):
     self.parametersToInclude = nodes['parametersToInclude']
     self.whichSpace = nodes['whichSpace'].lower()
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
+    self.onlyOutputScore = nodes['onlyOutputScore']
     # checks
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
@@ -384,14 +388,14 @@ class RFE(BaseInterface):
             dividend = 0.
             # stateW = 1/float(len(combo))
             for target in evaluated:
-              #if target in ['Electric_Power','Turbine_Pressure']:
-              #if target in targetsIds and target not in self.parametersToInclude:
+ 
               if target in targetsIds:
                 if target not in self.parametersToInclude: # if not state variable, then this target is output variable
                   w = 1/float(len(targets)-1-len(combo)) #1/ny (targets contains the index to Time, state and output)
                 else:
                   w = 1/float(len(combo)) # 1/nx, the weight of Haoyu's GA cost function
-
+                  if self.onlyOutputScore:
+                    continue
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
                 std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
