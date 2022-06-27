@@ -185,13 +185,15 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       # Condition number of matrix of feature and target
       condNum = np.linalg.cond(vals)
-      # Inverse of system error (to determine whether two vectors are identical)
-      invErr = 1/np.finfo(vals.dtype).eps
+      # If condition number is greater than 100
+      invErr = 100
       # Check whether the covavariance matrix is positive definite
       if condNum>=invErr:
+        # If singular matrix, measurement of Experiment is directly transfered
+        # as predicted Application
         pdfAppPred = knlMsr(Y[0, :])
-      # If not, introduce a
       else:
+        # If not, KDE of Experiment and Application
         knl = stats.gaussian_kde(vals)
         # Joint PDF of Experiment and Application
         Z = np.reshape(knl(psts).T, X.shape)
