@@ -356,7 +356,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       self._engine.seed(self._seed)
     else:
       self._seed = self._engine.get_rng_seed()
-  
+
   def __getstate__(self):
     """
       Get state for serialization
@@ -367,7 +367,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
     eng = d.pop('_engine')  # remove RNG engine from class instance
     d['count'] = eng.get_rng_state()
     return d
-  
+
   def __setstate__(self, d):
     """
       Set object instance state
@@ -379,7 +379,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
     self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
     self._engine.seed(self._seed)
     self._engine.forward_seed(count)
-  
+
   def seed(self, value):
     """
       Wrapper for RandomClass.seed()
@@ -388,7 +388,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
     """
     self._seed = abs(int(value))
     self._engine.seed(self._seed)  # takes unsigned long
-  
+
   def random(self):
     """
       Wrapper for RandomClass.random()
@@ -404,7 +404,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ Out, int, RNG state
     """
     return self._engine.get_rng_state()  # returns int
-  
+
   def forward_seed(self, counts):
     """
       Wrapper for RandomClass.forward_seed()
@@ -412,7 +412,7 @@ class RNG(findCrowModule('randomENG').RandomClass):
       @ Out, None
     """
     self._engine.forward_seed(counts)  # takes unsigned int
-  
+
   def get_rng_seed(self):
     """
       Wrapper for RandomClass.get_rng_seed()
