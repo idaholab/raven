@@ -787,7 +787,6 @@ for name in orderedValidRom:
   obj = SupervisedLearning.factory.returnClass(name)
   specs = obj.getInputSpecification()
   romDescr = wrapText(specs.description, ' ')
-  # msg += romDescr
   tex = specs.generateLatex(sectionLevel=2)
   exampleTex = exampleFactory[name] if name in exampleFactory else ''
   try:
