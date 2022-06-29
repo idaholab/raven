@@ -461,7 +461,7 @@ class ARMA(SupervisedLearning):
     try:
       self.randomEng
     except AttributeError:  # catches where ARMA was pickled without saving the RNG
-      self.setEngine(engine=randomUtils.newRNG(), seed=self.seed, count=rngCounts)
+      self.setEngine(randomUtils.newRNG(), seed=self.seed, count=rngCounts)
 
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
