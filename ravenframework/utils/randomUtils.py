@@ -25,7 +25,6 @@ import threading
 from collections import deque, defaultdict
 import numpy as np
 import copy
-import ctypes
 
 from .utils import findCrowModule
 from . import mathUtils
@@ -87,14 +86,12 @@ class BoxMullerGenerator:
     stdev = np.std(samples)
     return mean,stdev
 
-
 class CrowRNG:
   """ Wraps crow RandomClass to make it serializable """
-  def __init__(self, engine=None, seed=None):
+  def __init__(self, engine=None):
     """
       Constructor
       @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
-      @ In, reseed_copies, bool, whether or not recovered copies of the class should use a new seed or not
       @ Out, None
     """
     if engine is None:
@@ -103,12 +100,6 @@ class CrowRNG:
       self._engine = engine
     else:
       raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by CrowRNG class!')
-
-    if seed is not None:
-      self._seed = abs(int(seed))
-      self._engine.seed(self._seed)
-    else:
-      self._seed = self._engine.get_rng_seed()
 
   def __getstate__(self):
     """
@@ -150,7 +141,7 @@ class CrowRNG:
     """
     return self._engine.random()  # returns double
 
-  def get_rng_state(self):
+  def getRNGState(self):
     """
       Wrapper for RandomClass.get_rng_state()
       @ In, None
@@ -158,7 +149,7 @@ class CrowRNG:
     """
     return self._engine.get_rng_state()  # returns int
 
-  def forward_seed(self, counts):
+  def forwardSeed(self, counts):
     """
       Wrapper for RandomClass.forward_seed()
       @ In, counts, int, number of random states to progress
@@ -166,7 +157,7 @@ class CrowRNG:
     """
     self._engine.forward_seed(counts)  # takes unsigned int
 
-  def get_rng_seed(self):
+  def getRNGSeed(self):
     """
       Wrapper for RandomClass.get_rng_seed()
       @ In, None
@@ -175,7 +166,6 @@ class CrowRNG:
     val = self._engine.get_rng_seed()  # returns int
     self._seed = abs(int(val))
     return self._seed
-
 
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
@@ -206,7 +196,7 @@ def randomSeed(value, seedBoth=False, engine=None):
       distStochEnv.seedRandom(value)
       engine = crowStochEnv
     elif stochasticEnv == 'numpy':
-      replaceGlobalEnv=True
+      replaceGlobalEnv = True
       global npStochEnv
       # global npStochEvn is needed in numpy environment here
       # to prevent referenced before assignment in local loop
@@ -218,10 +208,22 @@ def randomSeed(value, seedBoth=False, engine=None):
     engine.seed(value)
     if seedBoth:
       np.random.seed(value+1) # +1 just to prevent identical seed sets
-  if stochasticEnv== 'numpy' and replaceGlobalEnv:
-    npStochEnv= engine
+  if stochasticEnv == 'numpy' and replaceGlobalEnv:
+    npStochEnv = engine
   if replaceGlobalEnv:
     print('randomUtils: Global random number seed has been changed to',value)
+
+def forwardSeed(count, engine):
+  """
+    Function to advance the state of a random number generator engine
+    @ In, count, int, number of steps to advance the RNG
+    @ In, engine, np.random.RandomState or CrowRNG, RNG engine to modify
+    @ Out, None
+  """
+  if isinstance(engine, np.random.RandomState):
+    engine.rand(count)
+  elif isinstance(engine, CrowRNG):
+    engine.forwardSeed(count)
 
 def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
@@ -327,7 +329,7 @@ def randomChoice(array, size = 1, replace = True, engine = None):
   assert(hasattr(array,"shape") or isinstance(array,list))
 
   if not replace:
-    if hasattr(array,"shape"):
+    if hasattr(array,"shape"):  # TODO: not a problem actually. Should be able to use numpy.random.RandomState.choice(a, replace=False)
       raise RuntimeError("Option with replace False not available for ndarrays")
     if len(array) < size:
       raise RuntimeError("array size < of number of requested samples (size)")

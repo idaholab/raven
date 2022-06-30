@@ -322,7 +322,7 @@ class ARMA(SupervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
+    self.setEngine(randomUtils.newRNG(), seed=self.seed)
 
     # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
@@ -461,10 +461,7 @@ class ARMA(SupervisedLearning):
     try:
       self.randomEng
     except AttributeError:  # catches where ARMA was pickled without saving the RNG
-      self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
-    else:
-      if isinstance(self.randomEng, findCrowModule('randomENG').RandomClass):
-        self.randomEng = randomUtils.RNG(self.randomEng, self.seed)  # wraps raw crow RNG
+      self.setEngine(randomUtils.newRNG(), seed=self.seed, count=rngCounts)
 
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
@@ -2523,15 +2520,12 @@ class ARMA(SupervisedLearning):
      @ Out, None
     """
     if seed is None:
-      seed=self.seed
-    seed=abs(seed)
-    eng.seed(seed)
-    if count is None:
-      count=self.randomEng.get_rng_state()
-    eng.forward_seed(count)
-    self.randomEng=eng
-
-
+      seed = self.seed
+    seed = abs(seed)
+    randomUtils.randomSeed(seed, engine=eng)
+    if count is not None:
+      randomUtils.forwardSeed(count, engine=eng)
+    self.randomEng = eng
 
 #
 #
