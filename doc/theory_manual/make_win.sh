@@ -20,6 +20,14 @@ clean_files () {
 
 # Subroutine to generate files.
 gen_files () {
+
+				if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+        then
+          export TEXINPUTS=.\;`cygpath -w ../tex_inputs`\;$TEXINPUTS
+        else
+          export TEXINPUTS=../tex_inputs/:$TEXINPUTS
+        fi
+
         git log -1 --format="%H %an %aD" .. > ../version.tex
         python ../../scripts/library_handler.py manual > libraries.tex
 	for file in "${files[@]}"
