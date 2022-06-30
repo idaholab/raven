@@ -494,12 +494,13 @@ class SupervisedLearning(BaseInterface):
     # by default, do nothing
     return None, trainingDict
 
-  def adjustLocalRomSegment(self, settings):
+  def adjustLocalRomSegment(self, settings, picker):
     """
       Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
       Call this before training the subspace segment ROMs
       Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
       @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, picker, slice, slice object for selecting the desired segment
       @ Out, None
     """
     # by default, do nothing

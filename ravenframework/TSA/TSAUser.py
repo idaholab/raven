@@ -207,7 +207,9 @@ class TSAUser:
       if not algo.canGenerate():
         self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = algo.generate(params, pivots, settings)
-      result[:, indices] += signal
+      result[:, indices] += signal  # TODO (j-bryan): This is assuming additive signals. Can we generalize this?
+      # I'd like to replace this with a method that does the inverse of getResidual so it acts as a transformer
+      # instead of an additive component thing
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues

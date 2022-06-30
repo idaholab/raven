@@ -57,4 +57,21 @@
       rel_err = 1e-6
     [../]
   [../]
+
+  [./ClusteredFourierARMA]
+    type = 'RavenFramework'
+    input = 'clustered_fourier_arma.xml'
+    output = 'ClusteredFourierARMA/plot_samples_0.png ClusteredFourierARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'ClusteredFourierARMA/samples_0.csv ClusteredFourierARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'ClusteredFourierARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
 []
