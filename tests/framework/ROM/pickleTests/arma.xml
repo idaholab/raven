@@ -37,10 +37,6 @@
   </Files>
 
   <DataObjects>
-    <PointSet name="placeholder">
-      <Input>scaling</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <HistorySet name="input">
       <Input>scaling, Year</Input>
       <Output>Signal, Time</Output>
@@ -73,9 +69,6 @@
         <subspace divisions='10'>Time</subspace>
       </Segment>
     </ROM>
-    <ROM name="rearma" subType="pickledROM">
-      <clusterEvalMode>clustered</clusterEvalMode>
-    </ROM>
     <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>Signal</Features>
@@ -85,13 +78,4 @@
     </PostProcessor>
   </Models>
 
-  <Samplers>
-    <MonteCarlo name="mc">
-      <samplerInit>
-        <limit>1</limit>
-        <initialSeed>42</initialSeed>
-      </samplerInit>
-      <constant name="scaling">1.0</constant>
-    </MonteCarlo>
-  </Samplers>
 </Simulation>
