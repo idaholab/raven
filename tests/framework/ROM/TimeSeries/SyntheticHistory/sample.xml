@@ -59,21 +59,10 @@
       <type>csv</type>
       <source>samples</source>
     </Print>
-    <Print name="romMeta">
-      <type>csv</type>
-      <source>romMeta</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="placeholder"/>
-    <HistorySet name="indata">
-      <Input>scaling</Input>
-      <Output>signal0, signal1</Output>
-      <options>
-        <pivotParameter>seconds</pivotParameter>
-      </options>
-    </HistorySet>
     <HistorySet name="samples">
       <Input>scaling</Input>
       <Output>signal0, signal1</Output>
@@ -81,7 +70,6 @@
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name="romMeta"/>
   </DataObjects>
 
 </Simulation>
