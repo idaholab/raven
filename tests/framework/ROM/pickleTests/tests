@@ -38,6 +38,7 @@
     type = 'RavenFramework'
     input = 'arma.xml'
     output = 'ARMA/arma.pk'
+
   [../]
   [./eRl_setAdditionalParams]
     type = 'RavenPython'
