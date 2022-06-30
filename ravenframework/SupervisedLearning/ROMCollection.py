@@ -393,10 +393,7 @@ class Segments(Collection):
     """
     # write global information
     newNode = xmlUtils.StaticXmlElement('GlobalROM', attrib={'segment':'all'})
-    try:
-      self._templateROM.writeXML(newNode, targets, skip)
-    except KeyError as ke:
-      self.raiseADebug('KeyError when trying to write template ROM XML. Just going to skip this for now')  # TODO (j-bryan)
+    self._templateROM.writeXML(newNode, targets, skip)
     writeTo.getRoot().append(newNode.getRoot())
     # write subrom information
     for i, rom in enumerate(self._roms):

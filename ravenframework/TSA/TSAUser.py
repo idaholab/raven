@@ -163,11 +163,14 @@ class TSAUser:
         NOTE: this should be a single history/realization, not an array of realizations
       @ Out, None
     """
+    import matplotlib.pyplot as plt
     pivotName = self.pivotParameterID
     # NOTE assumption: self.target exists!
     pivotIndex = self.target.index(pivotName)
     # NOTE assumption: only one training signal
     pivots = targetVals[0, :, pivotIndex]
+    depVarIndices = [i for i in range(targetVals.shape[-1])].remove(pivotIndex)
+    plt.plot(pivots, targetVals[0, :, 0].T, label='targetVals')
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     numAlgo = len(self._tsaAlgorithms)
@@ -185,7 +188,10 @@ class TSAUser:
       if a < numAlgo - 1:
         algoResidual = algo.getResidual(signal, params, pivots, settings)
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
+        plt.plot(pivots, algoResidual[:, 0], label=f'residual {a}')
       # TODO meta store signal, residual?
+    plt.legend()
+    plt.show()
 
   def evaluateTSASequential(self):
     """
@@ -223,6 +229,8 @@ class TSAUser:
     """
     root = xml.getRoot()
     for algo in self._tsaAlgorithms:
+      if algo not in self._tsaTrainedParams:
+        continue
       algoNode = xmlUtils.newNode(algo.name)
       algo.writeXML(algoNode, self._tsaTrainedParams[algo])
       root.append(algoNode)

@@ -67,22 +67,27 @@
       <fourier target="signal0,signal1">
         <periods>2, 5, 10</periods>
       </fourier>
-      <arma target="signal0, signal1" seed='42'>
+      <arma target="signal0, signal1" seed="42">
         <SignalLag>2</SignalLag>
         <NoiseLag>3</NoiseLag>
       </arma>
-      <Segment grouping='segment'>
-        <subspace divisions="1">pivot</subspace>
-        <!-- <subspace pivotLength="10">pivot</subspace> -->
+      <Segment grouping="cluster">
+        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
+        <evalMode>full</evalMode>
+        <subspace divisions="10">pivot</subspace>
+        <evaluationClusterChoice>random</evaluationClusterChoice>
       </Segment>
     </ROM>
-    <!-- <PostProcessor name="classifier" subType="DataMining">
+    <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
-        <Features>signal0</Features>
+        <Features>signal0, signal1</Features>
         <SKLtype>cluster|KMeans</SKLtype>
         <n_clusters>2</n_clusters>
+        <tol>1E-12</tol>
+        <init>k-means++</init>
+        <random_state>3</random_state>
       </KDD>
-    </PostProcessor> -->
+    </PostProcessor>
   </Models>
 
   <OutStreams>
