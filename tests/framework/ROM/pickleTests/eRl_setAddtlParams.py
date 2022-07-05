@@ -26,7 +26,8 @@ import numpy as np
 here = os.path.abspath(os.path.dirname(__file__))
 # Paths for the ravenframework and test pk file
 frameworkPath = os.path.abspath(os.path.join(here, *['..']*4, 'ravenframework'))
-picklePath = os.path.join(here,'externalROMloader', 'arma.pk')
+picklePath = os.path.join(here,'ARMA', 'arma.pk')
+assert os.path.exists(picklePath)
 # Appending externalROMloader to path
 sys.path.append(os.path.abspath(os.path.join(frameworkPath, '..', 'scripts')))
 import externalROMloader
@@ -97,7 +98,7 @@ def main():
     # Initializing runner, make sure to call this before nodeGenerator
     runner = initialize(picklePath, frameworkPath)
     # Name of signal in the ROM to run test with
-    signal = 'TOTALLOAD'
+    signal = 'Signal'
     # Getting 'full' and 'clustered' evaluations
     before = nodeGenerator('full')
     after = nodeGenerator('clustered')
