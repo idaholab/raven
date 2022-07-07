@@ -55,7 +55,7 @@ class DistributedMemoryRunner(InternalRunner):
     if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
-    self.thread = None
+    self.__func = None
 
   def isDone(self):
     """
@@ -67,12 +67,12 @@ class DistributedMemoryRunner(InternalRunner):
     if not self.started:
       return False
 
-    if self.thread is None:
+    if self.__func is None:
       return True
     else:
       if im.isLibAvail("ray"):
         try:
-          ray.get(self.thread, timeout=waitTimeOut)
+          ray.get(self.__func, timeout=waitTimeOut)
           return True
         except ray.exceptions.GetTimeoutError:
           return False
@@ -82,10 +82,10 @@ class DistributedMemoryRunner(InternalRunner):
           # and so is done
           return True
         #Alternative that was tried:
-        #return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
+        #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
         #which ran slower in ray 1.9
       else:
-        return self.thread.finished
+        return self.__func.finished
 
   def _collectRunnerResponse(self):
     """
@@ -95,8 +95,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     if not self.hasBeenAdded:
-      if self.thread is not None:
-        self.runReturn = ray.get(self.thread) if im.isLibAvail("ray") else self.thread()
+      if self.__func is not None:
+        self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
       else:
         self.runReturn = None
       self.hasBeenAdded = True
@@ -109,9 +109,9 @@ class DistributedMemoryRunner(InternalRunner):
     """
     try:
       if im.isLibAvail("ray"):
-        self.thread = self.functionToRun(*self.args)
+        self.__func = self.functionToRun(*self.args)
       else:
-        self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
+        self.__func = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
@@ -133,7 +133,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    del self.thread
-    self.thread = None
+    del self.__func
+    self.__func = None
     self.returnCode = -1
     self.trackTime('runner_killed')
