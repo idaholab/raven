@@ -47,5 +47,5 @@ def var_regression_matrix(H, x, model, sigma=1):
         raise ValueError("model and DOE don't suit together")
     
     x_mod = build_regression_matrix(x, model)
-    var = sigma**2*np.dot(np.dot(x_mod.T, np.linalg.inv(np.dot(H.T, H))), x_mod)
+    var = sigma**2*np.linalg.multi_dot([x_mod.T, np.linalg.inv(np.dot(H.T, H)), x_mod])
     return var
