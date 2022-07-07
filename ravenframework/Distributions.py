@@ -2826,7 +2826,7 @@ class Custom1D(Distribution):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = super().getInitParams(self)
+    paramDict = super().getInitParams()
     paramDict['workingDir'] = self.workingDir
     paramDict['dataFilename'] = self.dataFilename
     paramDict['functionID'] = self.functionID
@@ -2941,25 +2941,25 @@ class LogUniform(Distribution):
     if self.base not in ['natural','decimal']:
       self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
 
-def getInitParams(self):
-  """
-    Function to get the initial values of the input parameters that belong to
-    this class
-    @ In, None
-    @ Out, paramDict, dict, dictionary containing the parameter names as keys
-      and each parameter's initial value as the dictionary values
-  """
-  paramDict = super().getInitParams(self)
-  paramDict['base'] = self.base
-  return paramDict
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = super().getInitParams()
+    paramDict['base'] = self.base
+    return paramDict
 
-def _localSetState(self,pdict):
-  """
-    Set the pickling state (local)
-    @ In, pdict, dict, the namespace state
-    @ Out, None
-  """
-  self.base = pdict.pop('base')
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.base = pdict.pop('base')
 
   def pdf(self,x):
     """
@@ -3052,6 +3052,8 @@ class NDimensionalDistributions(Distribution):
     workingDir = paramInput.findFirst('workingDir')
     if workingDir != None:
       self.workingDir = workingDir.value
+    else:
+      self.workingDir = os.getcwd()
 
   def getInitParams(self):
     """
@@ -3200,7 +3202,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = super().getInitParams(self)
+    paramDict = super().getInitParams()
     paramDict['p'] = self.p
     return paramDict
 
@@ -3579,6 +3581,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    super()._handleInput(paramInput)
     if paramInput.parameterValues['method'] == 'pca':
       self.method = 'pca'
     elif paramInput.parameterValues['method'] == 'spline':
