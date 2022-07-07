@@ -56,6 +56,7 @@ class DistributedMemoryRunner(InternalRunner):
     if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
+    # __func (when using ray) is the object ref
     self.__func = None
     # __funcLock is needed because if isDone and kill are called at the
     # same time, isDone might end up trying to use __func after it is deleted
