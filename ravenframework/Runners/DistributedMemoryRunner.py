@@ -19,6 +19,7 @@ Created on Mar 5, 2013
 #External Modules------------------------------------------------------------------------------------
 import sys
 import gc
+import threading
 from ..utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
@@ -56,6 +57,9 @@ class DistributedMemoryRunner(InternalRunner):
       self.__ppserver, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
     self.__func = None
+    # __funcLock is needed because if isDone and kill are called at the
+    # same time, isDone might end up trying to use __func after it is deleted
+    self.__funcLock = threading.RLock()
 
   def isDone(self):
     """
@@ -67,25 +71,26 @@ class DistributedMemoryRunner(InternalRunner):
     if not self.started:
       return False
 
-    if self.__func is None:
-      return True
-    else:
-      if im.isLibAvail("ray"):
-        try:
-          ray.get(self.__func, timeout=waitTimeOut)
-          return True
-        except ray.exceptions.GetTimeoutError:
-          return False
-        except ray.exceptions.RayTaskError:
-          #The code gets this undocumented error, and
-          # I assume it means the task has unfixably died,
-          # and so is done
-          return True
-        #Alternative that was tried:
-        #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
-        #which ran slower in ray 1.9
+    with self.__funcLock:
+      if self.__func is None:
+        return True
       else:
-        return self.__func.finished
+        if im.isLibAvail("ray"):
+          try:
+            ray.get(self.__func, timeout=waitTimeOut)
+            return True
+          except ray.exceptions.GetTimeoutError:
+            return False
+          except ray.exceptions.RayTaskError:
+            #The code gets this undocumented error, and
+            # I assume it means the task has unfixably died,
+            # and so is done
+            return True
+          #Alternative that was tried:
+          #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
+          #which ran slower in ray 1.9
+        else:
+          return self.__func.finished
 
   def _collectRunnerResponse(self):
     """
@@ -133,7 +138,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    del self.__func
-    self.__func = None
+    with self.__funcLock:
+      del self.__func
+      self.__func = None
     self.returnCode = -1
     self.trackTime('runner_killed')
