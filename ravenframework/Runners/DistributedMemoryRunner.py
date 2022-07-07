@@ -55,6 +55,7 @@ class DistributedMemoryRunner(InternalRunner):
     if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
+    self.thread = None
 
   def isDone(self):
     """
