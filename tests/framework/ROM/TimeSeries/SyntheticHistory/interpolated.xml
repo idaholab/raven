@@ -1,18 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/SyntheticHistory.ClusteredFourierARMA</name>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.Clustered</name>
     <author>talbpaul</author>
     <created>2021-02-11</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.Fourier,TSA.ARMA</classesTested>
     <description>
-      Tests the SyntheticHistory ROM using Fourier then ARMA TimeSeriesAnalyzer algorithms.
+      Tests clustering for the SyntheticHistory ROM with Fourier and ARMA steps.
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ClusteredFourierARMA</WorkingDir>
-    <Sequence>read, train, print, sample, plot</Sequence>
+    <WorkingDir>Interpolated</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -34,19 +34,13 @@
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">synth</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="DataObjects" type="DataSet">samples</Output>
       <Output class="OutStreams" type="Print">samples</Output>
     </MultiRun>
-    <IOStep name="plot">
-      <Input class="DataObjects" type="HistorySet">indata</Input>
-      <Input class="DataObjects" type="HistorySet">samples</Input>
-      <Output class="OutStreams" type="Plot">compare_0</Output>
-      <Output class="OutStreams" type="Plot">compare_1</Output>
-    </IOStep>
   </Steps>
 
   <Files>
-    <Input name="infile">../TrainingData/FourierARMA_A.csv</Input>
+    <Input name="infile">../TrainingData/Clustered_A.csv</Input>
   </Files>
 
   <Samplers>
@@ -64,18 +58,15 @@
       <Target>signal0, signal1, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
-      <fourier target="signal0,signal1">
-        <periods>2, 5, 10</periods>
-      </fourier>
-      <arma target="signal0, signal1" seed="42">
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+      <arma target="signal0, signal1" seed='42'>
+        <SignalLag>1</SignalLag>
+        <NoiseLag>0</NoiseLag>
       </arma>
-      <Segment grouping="cluster">
+      <Segment grouping="interpolate">
+        <macroParameter>macro</macroParameter>
         <Classifier class="Models" type="PostProcessor">classifier</Classifier>
-        <evalMode>full</evalMode>
         <subspace divisions="10">pivot</subspace>
-        <evaluationClusterChoice>random</evaluationClusterChoice>
+        <evalMode>full</evalMode>
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
@@ -99,70 +90,26 @@
       <type>csv</type>
       <source>romMeta</source>
     </Print>
-    <Plot name="compare_0" overwrite="True">
-      <filename>plot_samples_0</filename>
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>indata|Output|pivot</x>
-          <y>indata|Output|signal0</y>
-          <interpPointsX>1000</interpPointsX>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>samples|Output|pivot</x>
-          <y>samples|Output|signal0</y>
-          <interpPointsX>1000</interpPointsX>
-        </plot>
-      </plotSettings>
-      <actions>
-        <title>
-          <text>Signal 0 comparison</text>
-        </title>
-        <how>png</how>
-      </actions>
-    </Plot>
-    <Plot name="compare_1" overwrite="True">
-      <filename>plot_samples_1</filename>
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>indata|Output|pivot</x>
-          <y>indata|Output|signal1</y>
-          <interpPointsX>1000</interpPointsX>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>samples|Output|pivot</x>
-          <y>samples|Output|signal1</y>
-          <interpPointsX>1000</interpPointsX>
-        </plot>
-      </plotSettings>
-      <actions>
-        <title>
-          <text>Signal 1 comparison</text>
-        </title>
-        <how>png</how>
-      </actions>
-    </Plot>
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="placeholder"/>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name="indata">
-      <Input>scaling</Input>
-      <Output>signal0, signal1</Output>
+      <Input>scaling, macro</Input>
+      <Output>signal0, signal1, pivot</Output>
       <options>
         <pivotParameter>pivot</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="samples">
+    <DataSet name="samples">
       <Input>scaling</Input>
-      <Output>signal0, signal1</Output>
-      <options>
-        <pivotParameter>pivot</pivotParameter>
-      </options>
-    </HistorySet>
+      <Output>signal0, signal1, pivot</Output>
+      <Index var="pivot">signal0, signal1</Index>
+      <Index var="macro">signal0, signal1</Index>
+    </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
 

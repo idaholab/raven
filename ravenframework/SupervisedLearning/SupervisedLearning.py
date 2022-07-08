@@ -517,7 +517,7 @@ class SupervisedLearning(BaseInterface):
     """
     return evaluation
 
-  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!

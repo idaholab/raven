@@ -58,18 +58,33 @@
     [../]
   [../]
 
-  [./ClusteredFourierARMA]
+  [./Clustered]
     type = 'RavenFramework'
-    input = 'clustered_fourier_arma.xml'
-    output = 'ClusteredFourierARMA/plot_samples_0.png ClusteredFourierARMA/plot_samples_1.png'
+    input = 'clustered.xml'
     [./csv]
       type = OrderedCSV
-      output = 'ClusteredFourierARMA/samples_0.csv ClusteredFourierARMA/samples_1.csv'
-      rel_err = 2e-1 # thank you, Windows
+      output = 'Clustered/samples_0.csv Clustered/samples_1.csv'
+      rel_err = 2e-1
     [../]
     [./xml]
       type = XML
-      output = 'ClusteredFourierARMA/romMeta.xml'
+      output = 'Clustered/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./Interpolated]
+    type = 'RavenFramework'
+    input = 'interpolated.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'Interpolated/samples.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'Interpolated/romMeta.xml'
       rel_err = 1e-2
       zero_threshold = 1e-3
     [../]

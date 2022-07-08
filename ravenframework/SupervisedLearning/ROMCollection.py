@@ -371,7 +371,7 @@ class Segments(Collection):
       delim = self._divisionInfo['delimiters'][s]
       picker = slice(delim[0], delim[-1] + 1)
       result = segment.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
-    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
+    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=None, slicer=None)
     return result
 
   def writePointwiseData(self, writeTo):
@@ -903,6 +903,7 @@ class Clusters(Segments):
         result, weights = self._createNDEvaluation(edict)
       clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
       globalLocalPicker = []
+      nRoms = len(self._roms)
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster

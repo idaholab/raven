@@ -35,10 +35,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
   # class attribute
   ## define the clusterable features for this trainer.
-  _features = ['ar',    # AR parameters
-               'ma',    # MA parameters
-               'var',   # variance
-               'const'] # "mean" kind of
+  _features = ['ar',
+               'ma',
+               'sigma2',
+               'const']
 
   @classmethod
   def getInputSpecification(cls):
@@ -157,7 +157,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       Q = settings['Q']
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
-      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q))
+      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
       # NOTE on low_memory use, test using SyntheticHistory.ARMA test:
       #   case    | time used (s) | memory used (MiB)
@@ -180,10 +180,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       selCov = r.dot(q).dot(r.T)
       initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
       initDist = {'mean': initMean, 'cov': initCov}
-      params[target]['arma'] = {'const': res.params[0], # exog/intercept/constant
-                                'ar': res.arparams,     # AR
-                                'ma': res.maparams,     # MA
-                                'var': res.params[-1],  # variance
+      params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
+                                'ar': -res.polynomial_ar[1:],     # AR  # TODO (j-bryan) breaks if P=0
+                                'ma': res.polynomial_ma[1:],     # MA
+                                'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'model': model}
       if not settings['reduce_memory']:
