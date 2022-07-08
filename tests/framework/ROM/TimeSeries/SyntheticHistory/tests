@@ -14,7 +14,7 @@
     [./csv]
       type = OrderedCSV
       output = 'ARMA/samples_0.csv ARMA/samples_1.csv'
-      rel_err = 3.1e-1 # thank you, Windows and Linux diffs
+      rel_err = 4.7e-1 # thank you, Windows and Linux diffs
       zero_threshold = 1e-12
     [../]
     [./xml]
@@ -22,6 +22,18 @@
       output = 'ARMA/romMeta.xml'
       rel_err = 1e-2
       zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
+    [../]
+  [../]
+
+  [./ARMASample]
+    prereq = ARMA
+    type = 'RavenFramework'
+    input = 'sample.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'ARMA/pk_samples_0.csv ARMA/pk_samples_1.csv'
+      rel_err = 8.8e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
     [../]
   [../]
 
