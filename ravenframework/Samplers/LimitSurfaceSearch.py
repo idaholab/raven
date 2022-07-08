@@ -204,6 +204,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    # check input variables to avoid <variable name='x1,x2,...'> node
+    for val in list(self.toBeSampled.keys()) + list(self.dependentSample.keys()):
+      if len(val.split(',')) > 1:
+        self.raiseAnError(IOError, f'Variables {val} defined using <variable> node can not be accepted, only single variable can be processed!')
     #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
