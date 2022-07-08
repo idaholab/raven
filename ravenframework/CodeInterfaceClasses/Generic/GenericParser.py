@@ -70,57 +70,64 @@ class GenericParser():
       seg = ''
       lines = inputFile.readlines()
       inputFile.close()
-      for line in lines:
+      for lineNo, line in enumerate(lines):
         while self.prefixKey in line and self.postfixKey in line:
           self.segments[infileName].append(seg)
           start = line.find(self.prefixKey)
           end = line.find(self.postfixKey,start+1)
-          var = line[start+len(self.prefixKey):end]
-          if defaultDelim in var or formatDelim in var:
-            optionalPos = [None]*2
-            optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
-            if optionalPos[0] == -1:
-              optionalPos[0]  = sys.maxsize
-            if optionalPos[1] == -1:
-              optionalPos[1] = sys.maxsize
-            defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
-            varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
-            var = var[0:min(optionalPos)]
-            if var in self.defaults.keys() and optionalPos[0] != sys.maxsize:
-              print('multiple default values given for variable',var)
-            if var in self.formats.keys() and optionalPos[1] != sys.maxsize:
-              print('multiple format values given for variable',var)
-            #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize:
-              self.defaults[var] = {}
-            if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize:
-              self.formats[var ] = {}
-            if optionalPos[0] != sys.maxsize:
-              self.defaults[var][infileName]=defval
-            if optionalPos[1] != sys.maxsize:
-              # check if the format is valid
-              if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
-                try:
-                  int(varformat)
-                except ValueError:
-                  raise ValueError("the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
-                                                     " is unknown. Available are either a plain integer or the following "+" ".join(self.acceptFormats.keys()))
-                self.formats[var][infileName ]=varformat,int
-              else:
-                for formVal in self.acceptFormats.keys():
-                  if formVal in varformat:
-                    self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
-          self.segments[infileName].append(line[:start])
-          self.segments[infileName].append(var)
-          if var not in self.varPlaces.keys():
-            self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
-          elif infileName not in self.varPlaces[var].keys():
-            self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
+          # not found in line, since the default self.postfixKey is in self.prefixKey, it can happen.
+          if end == -1:
+            msg = f'Special wildcard prefix "{self.prefixKey}" is found, but postfix "{self.postfixKey}" is not found!'
+            msg += f' Please check your input file "{infileName}"."'
+            msg += f' This error happened in line "{lineNo+1}": i.e., "{line}"'
+            raise IOError(msg)
           else:
-            self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
-          #self.segments.append(line[end+1:])
-          line=line[end+1:]
-          seg = ''
+            var = line[start+len(self.prefixKey):end]
+            if defaultDelim in var or formatDelim in var:
+              optionalPos = [None]*2
+              optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
+              if optionalPos[0] == -1:
+                optionalPos[0]  = sys.maxsize
+              if optionalPos[1] == -1:
+                optionalPos[1] = sys.maxsize
+              defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
+              varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
+              var = var[0:min(optionalPos)]
+              if var in self.defaults.keys() and optionalPos[0] != sys.maxsize:
+                print('multiple default values given for variable',var)
+              if var in self.formats.keys() and optionalPos[1] != sys.maxsize:
+                print('multiple format values given for variable',var)
+              #TODO allow the user to specify take-last or take-first?
+              if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize:
+                self.defaults[var] = {}
+              if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize:
+                self.formats[var ] = {}
+              if optionalPos[0] != sys.maxsize:
+                self.defaults[var][infileName]=defval
+              if optionalPos[1] != sys.maxsize:
+                # check if the format is valid
+                if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
+                  try:
+                    int(varformat)
+                  except ValueError:
+                    raise ValueError("the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
+                                                       " is unknown. Available are either a plain integer or the following "+" ".join(self.acceptFormats.keys()))
+                  self.formats[var][infileName ]=varformat,int
+                else:
+                  for formVal in self.acceptFormats.keys():
+                    if formVal in varformat:
+                      self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
+            self.segments[infileName].append(line[:start])
+            self.segments[infileName].append(var)
+            if var not in self.varPlaces.keys():
+              self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
+            elif infileName not in self.varPlaces[var].keys():
+              self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
+            else:
+              self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
+            #self.segments.append(line[end+1:])
+            line=line[end+1:]
+            seg = ''
         else:
           seg+=line
       self.segments[infileName].append(seg)
