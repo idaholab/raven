@@ -776,7 +776,6 @@ for rom in validInternalRom + validRom:
 internalRom = ''
 sklROM = ''
 dnnRom = ''
-# from ravenframework import Optimizers
 # base classes first
 for name in orderedValidRom:
   if name in excludeObj:
