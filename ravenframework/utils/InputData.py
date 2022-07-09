@@ -620,7 +620,10 @@ class ParameterInput(object):
         msg += ' \\xmlDesc{{{t}}}, '.format(t=cls.contentType.generateLatexType())
       # add description
       msg += '\n{d}'.format(d=desc)
-    # add parameter definitions, if any, tabbed in by 1
+      default = 'default='+ str(cls.default) if cls.default != 'no-default' else ""
+      if default:
+        msg += '\n  {de}'.format(i=doDent(recDepth, 1), de='\\default{'+ str(cls.default) +'}')
+    # # # add parameter definitions, if any, tabbed in by 1
     msg += '\n' + cls.generateParamsLatex(recDepth+1)
     # add subnode definitions in order of printing priority
     if cls.subs:
@@ -661,14 +664,15 @@ class ParameterInput(object):
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
+      default2 = 'default='+ str(info['default']) if info['default'] != 'no-default' else ""
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
-      if default:
+      if default or default2:
         msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d} {de}'.format(i=doDent(recDepth, 1),
                                                                                      n=name,
                                                                                      t=typ,
                                                                                      r=req,
                                                                                      d=desc,
-                                                                                     de=default)
+                                                                                     de=default2)
       else:
         msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
                                                                                      n=name,

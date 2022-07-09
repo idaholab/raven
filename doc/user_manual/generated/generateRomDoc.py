@@ -777,7 +777,6 @@ internalRom = ''
 sklROM = ''
 dnnRom = ''
 # from ravenframework import Optimizers
-msg = ''
 # base classes first
 for name in orderedValidRom:
   if name in excludeObj:
@@ -791,8 +790,8 @@ for name in orderedValidRom:
   exampleTex = exampleFactory[name] if name in exampleFactory else ''
   try:
     if isinstance(obj(), ScikitLearnBase):
-      sklROM += tex
       sklROM += romDescr
+      sklROM += tex
       sklROM += exampleTex
     else:
       internalRom += tex
