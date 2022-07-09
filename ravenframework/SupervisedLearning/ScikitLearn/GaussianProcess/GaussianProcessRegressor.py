@@ -145,9 +145,9 @@ class GaussianProcessRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                               descr=r"""Seed for the internal random number generator. \default{None}""",default=None))
     specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
-                                                 descr=r"""Per default, the 'L-BFGS-b' algorithm from
+                                                 descr=r"""Per default, the 'L-BFGS-B' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel\’s
-                                                 parameters are kept fixed. \default{'fmin_l_bfgs_b'}""",default='fmin_l_bfgs_b'))
+                                                 parameters are kept fixed.""",default='fmin_l_bfgs_b'))
     return specs
 
   def pickKernel(self, name):
@@ -167,8 +167,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
       kernel = sklearn.gaussian_process.kernels.Exponentiation()
     elif name.lower() == 'matern':
       kernel = sklearn.gaussian_process.kernels.Matern()
-    elif name.lower() == 'pairwise':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel()
     elif name.lower() == 'pairwiselinear':
       kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='linear')
     elif name.lower() == 'pairwiseadditivechi2':
