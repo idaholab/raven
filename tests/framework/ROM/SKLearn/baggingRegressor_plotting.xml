@@ -1,0 +1,217 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.BaggingRegressor</name>
+    <author>wangc</author>
+    <created>2021-11-23</created>
+    <classesTested>SupervisedLearning.SciKitLearn.BaggingRegressor</classesTested>
+    <description>
+       An example exercising bagging regressor methods. Comparing Bagging Regressor with
+       SVR regressor.
+       A simple attenuate model is used for the comparison
+    </description>
+    <revisions>
+      <revision author="wangc" date="2021-11-23">Compare Bagging Regressor with individual SVR regressor</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      trainBagging,
+      trainSVR,
+      resample,
+      resampleBagging,
+      resampleSVR,
+      plot
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate.py" name="foo" subType="">
+      <inputs>X, Y</inputs>
+      <outputs>ans</outputs>
+    </ExternalModel>
+    <ROM name="br" subType="BaggingRegressor">
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <max_samples>0.8</max_samples>
+      <estimator class="Models" type="ROM">svr</estimator>
+    </ROM>
+    <ROM name="svr" subType="SVR">
+      <Features>X,Y</Features>
+      <Target>ans</Target>
+      <C>2.0</C>
+      <epsilon>0.02</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outData</Output>
+    </MultiRun>
+    <MultiRun name="resampleBagging" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">br</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataBagging</Output>
+    </MultiRun>
+    <MultiRun name="resampleSVR" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">svr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcReSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataSVR</Output>
+    </MultiRun>
+    <RomTrainer name="trainBagging">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">br</Output>
+    </RomTrainer>
+    <RomTrainer name="trainSVR">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">svr</Output>
+    </RomTrainer>
+    <IOStep name="plot">
+      <Input   class="DataObjects"  type="PointSet">outData</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataBagging</Input>
+      <Input   class="DataObjects"  type="PointSet">outDataSVR</Input>
+      <Output class="OutStreams" type="Print">outData</Output>
+      <Output  class="OutStreams"   type="Plot">BaggingRegressor</Output>
+    </IOStep>
+  </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>200</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="mcReSampler">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>1301</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1</lowerBound>
+      <upperBound>6</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outBaggingRegressor_plotting</filename>
+    </Print>
+    <Plot  name="BaggingRegressor">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outData|Input|prefix</x>
+          <y>outData|Output|ans</y>
+          <marker>*</marker>
+          <c>r</c>
+          <kwargs>
+            <label>Model True Value</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataBagging|Input|prefix</x>
+          <y>outDataBagging|Output|ans</y>
+          <marker>d</marker>
+          <c>b</c>
+          <kwargs>
+            <label>BaggingRegressor</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outDataSVR|Input|prefix</x>
+          <y>outDataSVR|Output|ans</y>
+          <marker>^</marker>
+          <c>g</c>
+          <kwargs>
+            <label>SVR</label>
+          </kwargs>
+        </plot>
+        <xlabel>Test Samples</xlabel>
+        <ylabel>Predicted</ylabel>
+        <legend>
+          <loc>best</loc>
+        </legend>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Bagging Regressor Prediction</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="trainingData">
+      <Input>X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <!-- The output PointSet objects -->
+    <PointSet name="outData">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataBagging">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outDataSVR">
+      <Input>prefix, X,Y</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

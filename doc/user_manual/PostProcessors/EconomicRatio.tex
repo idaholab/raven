@@ -1,0 +1,81 @@
+\subsubsection{EconomicRatio}
+\label{EconomicRatio}
+The \xmlNode{EconomicRatio} PostProcessor provides the economic metrics from the percent change
+period return of the asset or strategy that is given as an input. These metrics measure the risk-adjusted returns.
+\nb Any metric from \xmlNode{BasicStatistics} may be requested from \xmlNode{EconomicRatio}.
+%
+\ppType{EconomicRatio}{EconomicRatio}
+
+\begin{itemize}
+  \item \xmlNode{"metric"}, \xmlDesc{comma separated string or node list, required field},
+  specifications for the metric to be calculated. The name of each node is the requested metric.
+  The text of the node is a comma-separated list of the parameters for which the metric should be calculated.
+
+  Currently the scalar quantities available for request are:
+  \begin{itemize}
+
+  \item \textbf{sharpeRatio}: the Sharpe Ratio, measures the performance of an investment. It is defined as the  historical returns of the investment, divided by the standard deviation of the investment(Volatility).
+  \item \textbf{sortinoRatio}: the Sortino ratio, measures the risk-adjusted return of an investment asset. Discounts the excess return of a portfolio above a target threshold by the volatility of downside returns. If this quantity is inputted as \textit{sortinoRatio} the threshold for separate upside and downside value will assign as $0$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested threshold \xmlAttr{median} or \xmlAttr{zero}.
+
+  \item \textbf{gainLossRatio}: the gain-loss ratio, discounts the first-order higher partial moment of a portfolio's returns, by the first-order lower partial moment of a portfolio's returns. If this quantity is inputted as \textit{gainLossRatio} the threshold for separate upside and downside value will assign as $0$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested threshold \xmlAttr{median} or \xmlAttr{zero}.
+
+
+  \item \textbf{expectedShortfall}: the expected shortfall (Es) or conditional value at risk (CVaR), the expected return on the portfolio in the worst q of cases. If this quantity is inputted as \textit{ExpectedShortfall} the q value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested q value (a floating point value between 0.0 and 1.0)
+  \begin{equation}
+    ES_\alpha = -\frac{1}{\alpha} \int_0^\alpha \operatorname{VaR}_\gamma(X) \, d\gamma
+  \end{equation}
+  \item \textbf{valueAtRisk}: the value at risk for investments. Estimates the maximum possible loss
+  after excluding worse outcomes whose combined probability is at most $\alpha$. If this quantity is
+  inputted as \textit{valueAtRisk} the $\alpha$ value will default to $5\%$. Otherwise the user can
+  specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents
+  the requested $\alpha$ value (a floating point value between 0.0 and 1.0). The user can also specify
+  the parameter \xmlAttr{interpolation='Y'}, where the \xmlAttr{Y} represents the interpolation method
+  to be used (\xmlAttr{linear} (default) or \xmlAttr{midpoint}). \xmlAttr{linear} uses linear
+  interpolation and \xmlAttr{midpoint} uses the midpoint or average between data points. It is
+  calculated (where $ Y = -X $) as,
+
+  \begin{equation}
+    \operatorname{VaR}_\alpha(X)=-\inf\big\{x\in\mathbb{R}:F_X(x)>\alpha\big\} = -F^{-1}_X(\alpha) = F^{-1}_Y(1-\alpha).
+  \end{equation}
+  \end{itemize}
+  This XML node needs to contain the attribute:
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+      For example, if we define ``sharpe'' as the prefix for \textbf{sharpeRatio}, and parameter ``x'', then variable
+      ``sharpe\_x'' will be defined by RAVEN. For \textbf{metrics} that include a ``threshold'' parameter,
+      RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``threshold'' + ``\_'' + ``parameter name''.
+      For example, if we define ``VaR'' as the prefix for \textbf{valueAtRisk}, threshold ``0.05'', and parameter name ``x'',
+      then variable ``VaR\_0.05\_x'' will be defined by RAVEN. If we define ``glr'' as the prefix for \textbf{gainLossRatio},
+      ``median'' as the threshold, and ``x'' as the parameter name, then the variable ``glr\_median\_x''
+      will be defined by RAVEN.
+      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+      For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+      variable ``sen\_y\_x'' will be defined by RAVEN.
+      \nb These variables will be used by RAVEN for the internal calculations. It is also accessible by the user through
+      \textbf{DataObjects} and \textbf{OutStreams}.
+  \end{itemize}
+
+\end{itemize}
+
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,class,type,steps}]
+<Simulation>
+  ...
+    <Models>
+    ...
+    <PostProcessor name="EconomicRatio" subType="EconomicRatio" verbosity="debug">
+      <sharpeRatio prefix="SR">x0,y0,z0,x,y,z</sharpeRatio>
+      <sortinoRatio threshold='zero' prefix="stR">x01,y01,x,z</sortinoRatio>
+      <sortinoRatio threshold='median' prefix="stR2">z01,x0,x01</sortinoRatio>
+      <valueAtRisk threshold='0.07' prefix="VaR">z01,x0,x01</valueAtRisk>
+      <expectedShortfall threshold='0.99' prefix="CVaR">z01,x0,x01</expectedShortfall>
+      <gainLossRatio prefix="glR">x01,y01,z0,x,y,z</gainLossRatio>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}

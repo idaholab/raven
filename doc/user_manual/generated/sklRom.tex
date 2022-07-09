@@ -374,10 +374,6 @@
       If True, compute the objective function at each step of the
       model.
 
-    \item \xmlNode{threshold\_lambda}: \xmlDesc{float}, 
-      threshold for removing (pruning) weights with
-      shigh precision from the computation..
-
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or
       intercept)                                                   should be added to the decision
@@ -684,11 +680,6 @@
 
     \item \xmlNode{n\_nonzero\_coefs}: \xmlDesc{integer}, 
       Target number of non-zero coefficients.
-
-    \item \xmlNode{jitter}: \xmlDesc{float}, 
-      Upper bound on a uniform noise parameter to be added to the
-      y values, to satisfy the model’s assumption of one-at-a-time computations.
-      Might help with stability.
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Sets the verbosity amount.
@@ -1088,11 +1079,6 @@
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
 
-    \item \xmlNode{jitter}: \xmlDesc{float}, 
-      Upper bound on a uniform noise parameter to be added to the y values,
-      to satisfy the model’s assumption of one-at-a-time computations. Might help
-      with stability.
-
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
   \end{itemize}
@@ -1352,9 +1338,6 @@
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
-
-    \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      When set to True, forces the coefficients to be positive.
   \end{itemize}
 
 
@@ -2321,11 +2304,6 @@
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Constant that multiplies the regularization term if regularization is used.
 
-    \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
-      The Elastic Net mixing parameter, with $0 <= l1\_ratio <= 1.$ $l1\_ratio=0$ corresponds to L2
-      penalty,                                                   $l1\_ratio=1$ to L1. Only used if
-      penalty='elasticnet'.
-
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
@@ -2562,7 +2540,7 @@
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
 
-    \item \xmlNode{alphas}: \xmlDesc{comma-separated floats}, 
+    \item \xmlNode{alphas}: \xmlDesc{tuple of comma-separated float}, 
       Array of alpha values to try. Regularization strength; must be a positive float.
       Regularization                                                  improves the conditioning of
       the problem and reduces the variance of the estimates.
@@ -3179,6 +3157,76 @@
 
     \item \xmlNode{norm}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether or not a second normalization of the weights is performed.
+
+    \item \xmlNode{class\_prior}: \xmlDesc{comma-separated floats}, 
+      Prior probabilities of the classes. If specified the priors are
+      not adjusted according to the data. \nb the number of elements inputted here must
+      match the number of classes in the data set used in the training stage.
+
+    \item \xmlNode{fit\_prior}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      Whether to learn class prior probabilities or not. If false, a uniform
+      prior will be used.
+  \end{itemize}
+
+
+\subsubsection{CategoricalNB}
+  The \\textit{CategoricalNB} classifier (Naive Bayes classifier for categorical features)
+  is suitable for classification with discrete features that are categorically distributed.
+  The categories of each feature are drawn from a categorical distribution.
+  \zNormalizationPerformed{CategoricalNB}
+
+  The \xmlNode{CategoricalNB} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{CategoricalNB} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{alpha}: \xmlDesc{float}, 
+      Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).
 
     \item \xmlNode{class\_prior}: \xmlDesc{comma-separated floats}, 
       Prior probabilities of the classes. If specified the priors are
@@ -5141,12 +5189,6 @@
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
 
-    \item \xmlNode{epsilon}: \xmlDesc{float}, 
-      Epsilon in the epsilon-SVR model. It specifies the epsilon-tube
-      within which no penalty is associated in the training loss function
-      with points predicted within a distance epsilon from the actual
-      value.
-
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
 
@@ -5160,13 +5202,6 @@
       shape $(n\_samples, n\_classes * (n\_classes - 1) / 2)$. However, one-vs-one (``ovo'') is always
       used as                                                            multi-class strategy. The
       parameter is ignored for binary classification.
-
-    \item \xmlNode{break\_ties}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      if true, decision\_function\_shape='ovr', and number of $classes > 2$, predict will
-      break ties according to the confidence values of decision\_function; otherwise the first class
-      among                                                  the tied classes is returned. Please
-      note that breaking ties comes at a relatively high computational
-      cost compared to a simple predict.
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Enable verbose output. Note that this setting takes advantage
@@ -5365,12 +5400,6 @@
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
 
-    \item \xmlNode{epsilon}: \xmlDesc{float}, 
-      Epsilon in the epsilon-SVR model. It specifies the epsilon-tube
-      within which no penalty is associated in the training loss function
-      with points predicted within a distance epsilon from the actual
-      value.
-
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
 
@@ -5384,13 +5413,6 @@
       shape $(n\_samples, n\_classes * (n\_classes - 1) / 2)$. However, one-vs-one (``ovo'') is always
       used as                                                            multi-class strategy. The
       parameter is ignored for binary classification.
-
-    \item \xmlNode{break\_ties}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      if true, decision\_function\_shape='ovr', and number of $classes > 2$, predict will
-      break ties according to the confidence values of decision\_function; otherwise the first class
-      among                                                  the tied classes is returned. Please
-      note that breaking ties comes at a relatively high computational
-      cost compared to a simple predict.
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Enable verbose output. Note that this setting takes advantage
@@ -5620,11 +5642,6 @@
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
 
-    \item \xmlNode{ccp\_alpha}: \xmlDesc{float}, 
-      Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest
-      cost                                                  complexity that is smaller than
-      ccp\_alpha will be chosen. By default, no pruning is performed.
-
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the randomness of the estimator. The features are
       always randomly permuted at each split, even if splitter is set to
@@ -5751,11 +5768,6 @@
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
 
-    \item \xmlNode{ccp\_alpha}: \xmlDesc{float}, 
-      Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest
-      cost                                                  complexity that is smaller than
-      ccp\_alpha will be chosen. By default, no pruning is performed.
-
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the randomness of the estimator. The features are
       always randomly permuted at each split, even if splitter is set to
@@ -5880,11 +5892,6 @@
       left child, and $N\_t\_R$ is the number of samples in the right child.
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
-
-    \item \xmlNode{ccp\_alpha}: \xmlDesc{float}, 
-      Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest
-      cost                                                  complexity that is smaller than
-      ccp\_alpha will be chosen. By default, no pruning is performed.
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to pick randomly the max\_features used at each split.
@@ -6013,4 +6020,338 @@
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to pick randomly the max\_features used at each split.
+  \end{itemize}
+
+
+\subsubsection{VotingRegressor}
+  The \xmlNode{VotingRegressor} is an ensemble meta-estimator that fits several base
+  regressors, each on the whole dataset. Then it averages the individual predictions to form
+  a final prediction.
+
+  The \xmlNode{VotingRegressor} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{VotingRegressor} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{estimator}: \xmlDesc{string}, 
+      name of a ROM that can be used as an estimator
+      The \xmlNode{estimator} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{weights}: \xmlDesc{comma-separated floats}, 
+      Sequence of weights (float or int) to weight the occurrences of predicted
+      values before averaging. Uses uniform weights if None.
+  \end{itemize}
+
+
+\subsubsection{BaggingRegressor}
+  The \xmlNode{BaggingRegressor} is an ensemble meta-estimator that fits base regressors each on
+  random subsets of the original                             dataset and then aggregate their
+  individual predictions (either by voting or by averaging) to form a final
+  prediction. Such a meta-estimator can typically be used as a way to reduce the variance of a
+  black-box estimator                             (e.g., a decision tree), by introducing
+  randomization into its construction procedure and then making an ensemble
+  out of it.
+
+  The \xmlNode{BaggingRegressor} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{BaggingRegressor} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{estimator}: \xmlDesc{string}, 
+      name of a ROM that can be used as an estimator
+      The \xmlNode{estimator} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{n\_estimators}: \xmlDesc{integer}, 
+      The number of base estimators in the ensemble.
+
+    \item \xmlNode{max\_samples}: \xmlDesc{float}, 
+      The number of samples to draw from X to train each base estimator
+
+    \item \xmlNode{max\_features}: \xmlDesc{float}, 
+      The number of features to draw from X to train each base estimator
+
+    \item \xmlNode{bootstrap}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      Whether samples are drawn with replacement. If False, sampling without
+      replacement is performed.
+
+    \item \xmlNode{bootstrap\_features}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      Whether features are drawn with replacement.
+
+    \item \xmlNode{oob\_score}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      Whether to use out-of-bag samples to estimate the generalization error.
+      Only available if bootstrap=True.
+
+    \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      When set to True, reuse the solution of the previous call to fit and add more
+      estimators to the ensemble, otherwise, just fit a whole new ensemble.
+
+    \item \xmlNode{random\_state}: \xmlDesc{integer}, 
+      Controls the random resampling of the original dataset (sample wise and feature wise).
+  \end{itemize}
+
+
+\subsubsection{AdaBoostRegressor}
+  The \xmlNode{AdaBoostRegressor} is a meta-estimator that begins by fitting a regressor on
+  the original dataset and then fits additional copies of the regressor on the same dataset
+  but where the weights of instances are adjusted according to the error of the current
+  prediction. As such, subsequent regressors focus more on difficult cases.
+
+  The \xmlNode{AdaBoostRegressor} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{AdaBoostRegressor} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{estimator}: \xmlDesc{string}, 
+      name of a ROM that can be used as an estimator
+      The \xmlNode{estimator} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{n\_estimators}: \xmlDesc{integer}, 
+      The maximum number of estimators at which boosting is
+      terminated. In case of perfect fit, the learning procedure is
+      stopped early.
+
+    \item \xmlNode{learning\_rate}: \xmlDesc{float}, 
+      Weight applied to each regressor at each boosting iteration.
+      A higher learning rate increases the contribution of each regressor.
+      There is a trade-off between the learning\_rate and n\_estimators
+      parameters.
+
+    \item \xmlNode{loss}: \xmlDesc{[linear, square, exponential]}, 
+      The loss function to use when updating the weights after each
+      boosting iteration.
+
+    \item \xmlNode{random\_state}: \xmlDesc{integer}, 
+      Controls the random seed given at each estimator at each
+      boosting iteration.
+  \end{itemize}
+
+
+\subsubsection{StackingRegressor}
+  The \xmlNode{StackingRegressor} consists in stacking the output of individual estimator and
+  use a regressor to compute the final prediction. Stacking allows to use the strength of each
+  individual estimator by using their output as input of a final estimator.
+
+  The \xmlNode{StackingRegressor} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
+      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+        specify the type of ROM that will be used
+  \end{itemize}
+
+  The \xmlNode{StackingRegressor} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
+      specifies the names of the features of this ROM.         \nb These parameters are going to be
+      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
+
+    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
+      contains a comma separated list of the targets of this ROM. These parameters         are the
+      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
+      going to be requested for the training of this         object (see Section
+      \ref{subsec:stepRomTrainer}).
+
+    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
+      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
+      etc) used in the input HistorySet.
+
+    \item \xmlNode{CV}: \xmlDesc{string}, 
+      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
+      \xmlAttr{subType}         ``CrossValidation``.
+      The \xmlNode{CV} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{Model}
+          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+            should be set to \xmlString{PostProcessor}
+      \end{itemize}
+
+    \item \xmlNode{alias}: \xmlDesc{string}, 
+      specifies alias for         any variable of interest in the input or output space. These
+      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
+      of this node the user specifies the name of the variable that the model is going to use
+      (during its execution).
+      The \xmlNode{alias} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
+            define the actual alias, usable throughout the RAVEN input
+          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
+            either ``input'' or ``output''.
+      \end{itemize}
+
+    \item \xmlNode{estimator}: \xmlDesc{string}, 
+      name of a ROM that can be used as an estimator
+      The \xmlNode{estimator} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{final\_estimator}: \xmlDesc{string}, 
+      The name of estimator which will be used to combine the base estimators.
+
+    \item \xmlNode{cv}: \xmlDesc{integer}, 
+      specify the number of folds in a (Stratified) KFold,
+
+    \item \xmlNode{passthrough}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      When False, only the predictions of estimators will be used as training
+      data for final\_estimator. When True, the final\_estimator is trained on the predictions
+      as well as the original training data.
   \end{itemize}
