@@ -296,7 +296,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       for q, ma in enumerate(info['arma']['ma']):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
-  
+
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
     """

@@ -227,7 +227,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         base.append(periodNode)
         for stat, value in sorted(list(info['coeffs'][period].items()), key=lambda x:x[0]):
           periodNode.append(xmlUtils.newNode(stat, text=f'{value:1.9e}'))
-  
+
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
     """

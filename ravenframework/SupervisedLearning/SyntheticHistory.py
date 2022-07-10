@@ -125,7 +125,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     # clustering methods have been added
     return True
-  
+
   def checkRequestedClusterFeatures(self, request):
     """
       Takes the user-requested features (sometimes "all") and interprets them for this ROM.
