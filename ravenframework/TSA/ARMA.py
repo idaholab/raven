@@ -181,7 +181,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
       initDist = {'mean': initMean, 'cov': initCov}
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': -res.polynomial_ar[1:],     # AR  # TODO (j-bryan) breaks if P=0
+                                'ar': -res.polynomial_ar[1:],     # AR
                                 'ma': res.polynomial_ma[1:],     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
