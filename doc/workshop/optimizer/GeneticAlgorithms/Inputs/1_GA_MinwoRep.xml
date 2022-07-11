@@ -10,7 +10,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm"></Optimizer>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm"></Optimizer><!--Fill this in-->
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -40,7 +40,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>10</limit>
+        <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type></type><!--Fill this in-->
@@ -128,7 +128,14 @@
     </Print>
     <Plot name="opt_path" subType="OptPath">
       <source>opt_export</source>
-      <vars>x1,x2,x3,ans</vars>
+      <vars></vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source>opt_export</source>
+      <vars></vars><!--Fill this in-->
+      <logVars></logVars><!--Fill this in-->
+      <index>batchId</index>
+      <how>png</how>
     </Plot>
   </OutStreams>
 </Simulation>
