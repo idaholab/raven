@@ -19,16 +19,17 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="OutStreams" type="Print">outMC</Output>
     </MultiRun>
     <PostProcess name="mySPpp">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
       <Model class="Models" type="PostProcessor">mySPSL</Model>
-      <Output class="DataObjects" type="PointSet">outPP</Output>
+      <Output class="DataObjects" type="HistorySet">outPP</Output>
     </PostProcess>
     <IOStep name="plot">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Input class="DataObjects" type="PointSet">outPP</Input>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outPP</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">plotMC</Output>
     </IOStep>
@@ -36,11 +37,13 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/projectileModelandCode" name="projectile" subType="">
-      <variables>x0,v0,y0,angle,x,y,r,t,v</variables>
+      <variables>x0,v0,y0,angle,x,y,r,t,v,timeOption</variables>
     </ExternalModel>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="classification">
         <TrainingData>myDO</TrainingData>
+        <features>x,y</features>
+        <target>v</target>
         <basis>svd</basis> <!--Ddefault: svd-->
         <nModes>5</nModes> <!--default: opt, allows the algorithm to pick nModes-->
         <nSensors>5</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
@@ -62,7 +65,7 @@
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>100</limit>
+        <limit>3</limit>
         <initialSeed>080118</initialSeed>
       </samplerInit>
       <variable name="angle">
@@ -71,6 +74,7 @@
       <constant name="v0">10.0</constant>
       <constant name="x0">0</constant>
       <constant name="y0">0</constant>
+      <constant name="timeOption">3</constant>
     </MonteCarlo>
     <MonteCarlo name="sampleRom">
       <samplerInit>
@@ -91,21 +95,31 @@
       <Input>x0,v0,y0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="outMC">
-      <Input>v0,angle</Input>
+    <HistorySet name="outMC">
+      <!-- <Input>v0,angle</Input> -->
       <Output>x,y,v,t</Output>
-    </PointSet>
-    <!-- <PointSet name="romIn">
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <!-- <HistorySet name="romIn">
       <Input>angle</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet> -->
-    <PointSet name="outPP">
-      <Input>v0,angle</Input>
+    </HistorySet> -->
+    <HistorySet name="outPP">
+      <!-- <Input>v0,angle</Input> -->
       <Output>x,y,v,t</Output>
-    </PointSet>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
+    <Print name="outMC">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
     <Print name="outPP">
       <type>csv</type>
       <source>outPP</source>

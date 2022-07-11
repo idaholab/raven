@@ -50,6 +50,14 @@ class SparseSensing(PostProcessorReadyInterface):
                                                   descr=r"""The goal of the sparse sensor optimization (i.e., reconstruction or classification)""")
     goal.addParam("subType", InputTypes.StringType, True)
     inputSpecification.addSub(goal)
+    features = InputData.parameterInputFactory("features", contentType=InputTypes.StringListType,
+                                                printPriority=108,
+                                                descr=r"""Features/inputs of the data model""")
+    goal.addSub(features)
+    target = InputData.parameterInputFactory("target", contentType=InputTypes.StringType,
+                                                printPriority=108,
+                                                descr=r"""target of data model""")
+    goal.addSub(target)
     trainingDO = InputData.parameterInputFactory("TrainingData", contentType=InputTypes.StringType,
                                                 printPriority=108,
                                                 descr=r"""The Dataobject containing the training data""")
@@ -118,6 +126,8 @@ class SparseSensing(PostProcessorReadyInterface):
       self.nSensors = child.findFirst('nSensors').value
       self.nModes = child.findFirst('nModes').value
       self.basis = child.findFirst('basis').value
+      self.sensingFeatures = child.findFirst('features').value
+      self.sensingTarget = child.findFirst('target').value
       self.optimizer = child.findFirst('optimizer').value
       if child.parameterValues['subType'] == 'classification':
         self.threshold = child.findFirst('threshold').value
@@ -138,8 +148,8 @@ class SparseSensing(PostProcessorReadyInterface):
     # inputDict = inputDic['data']
 
     # #identify features
-    self.features = inpVars
-    self.targets = outVars
+    self.features = self.sensingFeatures
+    self.targets = self.sensingTarget
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
@@ -154,6 +164,7 @@ class SparseSensing(PostProcessorReadyInterface):
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
 
+    # X = inputDS['x'].data
     data = inputDS['v'].data
     model.fit(data)
 
