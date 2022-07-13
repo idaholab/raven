@@ -27,6 +27,7 @@ from .EnsembleModel import EnsembleModel
 from .HybridModels  import HybridModel
 from .HybridModels  import LogicalModel
 from .PostProcessor import PostProcessor
+from ..BaseClasses import MessageUser
 
 factory = EntityFactory('Model', needsRunInfo=True)
 factory.registerAllSubtypes(Model)
@@ -48,4 +49,5 @@ def validate(className, role, what):
   if className in factory.knownTypes():
     return factory.returnClass(className).localValidateMethod(role, what)
   else:
+    caller = MessageUser()
     caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, factory.name))

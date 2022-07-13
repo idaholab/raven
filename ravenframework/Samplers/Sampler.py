@@ -89,19 +89,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     variableInput.addSub(functionInput)
     inputSpecification.addSub(variableInput)
 
-    # DEPRECATED; remove once tests are checked
-    # outerDistributionInput = InputData.parameterInputFactory("Distribution", descr=r"""As an alternative to providing
-    #     a \xmlNode{variable}, this node may be provided to generate a distribution from which samples can be taken.
-    #     This should not be confused with the \xmlNode{distribution} node within the \xmlNode{variable} node.""")
-    # outerDistributionInput.addParam("name", InputTypes.StringType, descr=r"""identifying name for this distribution in RAVEN.""")
-    # outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
-    #     descr=r"""name of the distribution that is associated to this Distribution.
-    #           Its name needs to be contained in the \xmlNode{Distributions} block explained
-    #           in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
-    #           the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
-    #           if the \xmlNode{function} node is supplied.}"""))
-    # inputSpecification.addSub(outerDistributionInput)
-
     constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType,
         printPriority=110,
         descr=r"""allows variables that do not change value to be part of the input space.""")
@@ -186,6 +173,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType,
         descr=r"""the method that is used for the variables transformation. The currently available method is \xmlString{pca}. """))
     inputSpecification.addSub(variablesTransformationInput)
+
     return inputSpecification
 
   def __init__(self):
@@ -212,7 +200,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
-    #self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
     self.constants                     = {}                        # In this dictionary
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
@@ -228,6 +215,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.constantSources               = {}                        # storage for the way to obtain constant information
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    self.distributions2variablesIndexList = {}
 
     ######
     self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
@@ -242,29 +230,29 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
     self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
 
-  def _generateDistributions(self,availableDist,availableFunc):
+  def _generateDistributions(self, availableDist, availableFunc):
     """
       Generates the distributions and functions.
       @ In, availableDist, dict, dict of distributions
       @ In, availableFunc, dict, dict of functions
       @ Out, None
     """
-    if self.initSeed != None:
+    if self.initSeed is not None:
       randomUtils.randomSeed(self.initSeed)
-    for key in self.toBeSampled.keys():
-      if self.toBeSampled[key] not in availableDist.keys():
-        self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
+    for key in self.toBeSampled:
+      if self.toBeSampled[key] not in availableDist:
+        self.raiseAnError(IOError, f'Distribution {self.toBeSampled[key]} not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
     for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
-        self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
+        self.raiseAnError('Function', val, 'was not found among the available functions:', availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+        self.raiseAnError(IOError, f'Function {self.funcDict[key].name} does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
 
-  def _localGenerateAssembler(self,initDict):
+  def _localGenerateAssembler(self, initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
@@ -273,7 +261,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
-    self._generateDistributions(availableDist,availableFunc)
+    self._generateDistributions(availableDist, availableFunc)
 
   def _localWhatDoINeed(self):
     """
@@ -289,9 +277,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       needDict['Distributions'].append((None,dist))
     for func in self.dependentSample.values():
       needDict['Functions'].append((None,func))
+
     return needDict
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -306,10 +295,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.localInputAndChecks(xmlNode, paramInput)
     if self.type not in ['MonteCarlo', 'Metropolis']:
       if not self.toBeSampled:
-        self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
-                                   .format(n=self.name, t=self.type))
+        self.raiseAnError(IOError, f'<{self.type}> sampler named "{self.name}" requires at least one sampled <variable>!')
 
-  def _readMoreXMLbase(self,xmlNode):
+  def _readMoreXMLbase(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base sampler only
       and initialize some stuff based on the inputs got
@@ -347,7 +335,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
             listIndex = list(int(inp) - 1  for inp in childChild.value)
           elif childChild.getName() == "method":
             self.transformationMethod[child.parameterValues['distribution']] = childChild.value
-        if listIndex == None:
+        if listIndex is None:
           self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
@@ -364,37 +352,37 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       # check if constant variables are also part of the sampled space. In case, error out
       if not set(self.toBeSampled.keys()).isdisjoint(self.constants.keys()):
         self.raiseAnError(IOError,"Some constant variables are also in the sampling space:" +
-                                  ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()])  )
+                                  ' '.join([i if i in self.toBeSampled else "" for i in self.constants])  )
 
-    if self.initSeed == None:
-      self.initSeed = randomUtils.randomIntegers(0,2**31,self)
+    if self.initSeed is None:
+      self.initSeed = randomUtils.randomIntegers(0, 2**31, self)
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
-    for variable in self.variables2distributionsMapping.keys():
+    for variable in self.variables2distributionsMapping:
       distName = self.variables2distributionsMapping[variable]['name']
       dim      = self.variables2distributionsMapping[variable]['dim']
-      listElement={}
+      listElement = {}
       listElement[variable] = dim
-      if (distName in self.distributions2variablesMapping.keys()):
+      if distName in self.distributions2variablesMapping:
         self.distributions2variablesMapping[distName].append(listElement)
       else:
-        self.distributions2variablesMapping[distName]=[listElement]
+        self.distributions2variablesMapping[distName] = [listElement]
 
     # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
     self.distributions2variablesIndexList = {}
-    for distName in self.distributions2variablesMapping.keys():
+    for distName in self.distributions2variablesMapping:
       positionList = []
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
       if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
         dups = set(str(var) for var in positionList if positionList.count(var) > 1)
-        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
+        self.raiseAnError(IOError, f'Each of the following dimensions are assigned to multiple variables in Samplers: "{", ".join(dups)}"',
                 ' associated to ND distribution ', distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
 
-    for key in self.variables2distributionsMapping.keys():
+    for key in self.variables2distributionsMapping:
       distName = self.variables2distributionsMapping[key]['name']
       dim      = self.variables2distributionsMapping[key]['dim']
       reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
@@ -404,20 +392,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
           self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
 
-    #Checking the variables transformation
+    # Checking the variables transformation
     if self.variablesTransformationDict:
       for dist, varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
           dups = set(var for var in listLatentElement if listLatentElement.count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables listed in the latentVariables: ' + str(dups))
+          self.raiseAnError(IOError, f'The following are duplicated variables listed in the latentVariables: {dups}')
         if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
           dups = set(var for var in varsDict['manifestVariables'] if varsDict['manifestVariables'].count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables listed in the manifestVariables: ' + str(dups))
+          self.raiseAnError(IOError, f'The following are duplicated variables listed in the manifestVariables: {dups}')
         if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
           dups = set(var+1 for var in varsDict['manifestVariablesIndex'] if varsDict['manifestVariablesIndex'].count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables indices listed in the manifestVariablesIndex: ' + str(dups))
+          self.raiseAnError(IOError, f'The following are duplicated variables indices listed in the manifestVariablesIndex: {dups}')
         listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
           self.variables2distributionsMapping[utils.first(var.keys())]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
@@ -425,15 +413,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         listIndex = []
         for var in listLatentElement:
           if var not in set(tempListElement.keys()):
-            self.raiseAnError(IOError, 'The variable listed in latentVariables ' + var + ' is not listed in the given distribution: ' + dist)
+            self.raiseAnError(IOError, f'The variable listed in latentVariables {var} is not listed in the given distribution: {dist}')
           listIndex.append(tempListElement[var]-1)
         if max(listIndex) > maxDim:
-          self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
+          self.raiseAnError(IOError, f'The maximum dim = {max(listIndex)} defined for latent variables has exceeded the dimension of the problem {maxDim}')
         if len(set(listIndex)) != len(listIndex):
           dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
-          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
+          self.raiseAnError(IOError, f'Each of the following dimensions are assigned to multiple latent variables in Samplers: {dups}')
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
+
     return paramInput
 
   def _readInVariable(self, child, prefix):
@@ -511,15 +500,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           value = value.reshape(shape)
         except ValueError:
           self.raiseAnError(IOError,
-              ('Requested shape "{}" ({} entries) for constant "{}"' +\
-              ' is not consistent with the provided values ({} entries)!')
-              .format(shape,np.prod(shape),name,len(value)))
+              (f'Requested shape "{shape}" ({np.prod(shape)} entries) for constant "{name}"' +\
+              f' is not consistent with the provided values ({len(value)} entries)!'))
     # else if constant's value is provided from a DataObject ...
     else:
       self.constantSources[name] = {'shape'    : shape,
-                                      'source'   : source,
-                                      'index'    : inp.parameterValues.get('index',-1),
-                                      'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
+                                    'source'   : source,
+                                    'index'    : inp.parameterValues.get('index', -1),
+                                    'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
+
     return name, value
 
   def getInitParams(self):
@@ -537,55 +526,56 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     paramDict['limit' ]        = self.limit
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
+
     return paramDict
 
-  def initialize(self,externalSeeding=None,solutionExport=None):
+  def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
       @ In, externalSeeding, int, optional, external seed
       @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
       @ Out, None
     """
-    if self.initSeed == None:
+    if self.initSeed is None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
     self.counter = 0
     if not externalSeeding:
-      randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
+      randomUtils.randomSeed(self.initSeed) # use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
-      pass        #in this case the random sequence needs to be preserved
+      pass # in this case the random sequence needs to be preserved
     else:
-      randomUtils.randomSeed(externalSeeding)     #the external seeding is used
+      randomUtils.randomSeed(externalSeeding) # the external seeding is used
       self.auxcnt = externalSeeding
-    #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
-    if 'Restart' in self.assemblerDict.keys():
+    # grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
+    if 'Restart' in self.assemblerDict:
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       # check the right variables are in the restart
-      need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
+      need = set(itertools.chain(self.toBeSampled.keys(), self.dependentSample.keys()))
       if not need.issubset(set(self.restartData.getVars())):
         missing = need - set(self.restartData.getVars())
-        #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
-        self.raiseAnError(KeyError,'Restart data object "{}" is missing the following variables: "{}". No restart can be performed.'.format(self.restartData.name,', '.join(missing)))
+        # TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
+        self.raiseAnError(KeyError, f'Restart data object "{self.restartData.name}" is missing the following variables: "{", ".join(missing)}". No restart can be performed.')
       else:
-        self.raiseAMessage('Restarting from '+self.restartData.name)
+        self.raiseAMessage(f'Restarting from {self.restartData.name}')
       # we used to check distribution consistency here, but we want to give more flexibility to using
-      #   restart data, so do NOT check distributions of restart data.
+      # restart data, so do NOT check distributions of restart data.
     else:
-      self.raiseAMessage('No restart for '+self.printTag)
+      self.raiseAMessage(f'No restart for {self.printTag}')
 
-    if 'ConstantSource' in self.assemblerDict.keys():
+    if 'ConstantSource' in self.assemblerDict:
       # find all the sources requested in the sampler, map data objects to their requested names
       self.constantSourceData = dict((a[2],a[3]) for a in self.assemblerDict['ConstantSource'])
       for var,data in self.constantSources.items():
         source = self.constantSourceData[data['source']]
         rlz = source.realization(index=data['index'])
         if data['sourceVar'] not in rlz:
-          self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
-                                    ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
+          self.raiseAnError(IOError, f'Requested variable "{data["sourceVar"]}" from DataObject "{source.name}" to set constant "{var}",'+\
+                                    f' but "{data["sourceVar"]}" is not a variable in "{source.name}"!')
         self.constants[var] = rlz[data['sourceVar']]
 
-    #specializing the self.localInitialize() to account for adaptive sampling
+    # specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport is not None:
       self.localInitialize(solutionExport=solutionExport)
     else:
@@ -595,14 +585,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
         temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
-        self.distDict[temp].updateRNGParam(params)
+        try:
+          self.distDict[temp].updateRNGParam(params)
+        except AttributeError as err:
+          msg =f'Distribution with name {distrib} is not a valid N-Dimensional probability distribution!'
+          err.msg = msg
+          raise err
       else:
-        self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
+        self.raiseAnError(IOError, f'Distribution "{distrib}" specified in distInit block of sampler "{self.name}" does not exist!')
 
     # Store the transformation matrix in the metadata
     if self.variablesTransformationDict:
       self.entitiesToRemove = []
-      for variable in self.variables2distributionsMapping.keys():
+      for variable in self.variables2distributionsMapping:
         distName = self.variables2distributionsMapping[variable]['name']
         dim      = self.variables2distributionsMapping[variable]['dim']
         totDim   = self.variables2distributionsMapping[variable]['totDim']
@@ -610,12 +605,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           transformDict = {}
           transformDict['type'] = self.distDict[variable.strip()].type
           transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
-          self.inputInfo['transformation-'+distName] = transformDict
-          self.entitiesToRemove.append('transformation-'+distName)
+          self.inputInfo[f'transformation-{distName}'] = transformDict
+          self.entitiesToRemove.append(f'transformation-{distName}')
 
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix','PointProbability']
-    for var in self.toBeSampled.keys():
+    for var in self.toBeSampled:
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(meta)
 
@@ -635,16 +630,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
-    pass
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    pass
 
   def readSamplerInit(self,xmlNode):
     """
@@ -653,7 +646,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    #TODO, this is redundant and paramInput should be directly passed in.
+    # TODO, this is redundant and paramInput should be directly passed in.
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
 
@@ -665,12 +658,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
             try:
               self.limit = int(childChild.value)
             except ValueError:
-              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value ' + str(childChild.value))
+              self.raiseAnError(IOError, f'reading the attribute for the sampler {self.name} it was not possible to perform the conversion to integer for the attribute limit with value {childChild.value}')
           if childChild.getName() == "initialSeed":
             try:
               self.initSeed = int(childChild.value)
             except ValueError:
-              self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.value))
+              self.raiseAnError(IOError, f'reading the attribute for the sampler {self.name} it was not possible to perform the conversion to integer for the attribute initialSeed with value {childChild.value}')
           elif childChild.getName() == "reseedEachIteration":
             if utils.stringIsTrue(childChild.value):
               self.reseedAtEachIteration = True
@@ -683,9 +676,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
                 elif childChildChildChild.getName() == 'tolerance':
                   NDdistData[childChildChildChild.getName()] = float(childChildChildChild.value)
                 else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.getName()+' .Available are: initialGridDisc and tolerance!')
+                  self.raiseAnError(IOError, f'Unknown tag {childChildChildChild.getName()}. Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.parameterValues['name']] = NDdistData
-
 
   #### GETTERS AND SETTERS ####
   def endJobRunnable(self):
@@ -716,6 +708,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         for var in self.inputInfo['SampledVars'].keys():
           paramDict['Variable: '+var+' has value'] = paramDict[key][var]
     paramDict.update(self.localGetCurrentSetting())
+
     return paramDict
 
   def getJobsToEnd(self, clear=False):
@@ -727,6 +720,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     ret = set(self._jobsToEnd[:])
     if clear:
       self._jobsToEnd = []
+
     return ret
 
   def localGetCurrentSetting(self):
@@ -739,9 +733,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     return {}
 
-
   #### SAMPLING METHODS ####
-  def amIreadyToProvideAnInput(self): #inLastOutput=None):
+  def amIreadyToProvideAnInput(self):
     """
       This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
       This method act as a "traffic light" for generating a new input.
@@ -755,9 +748,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       ready = False
       self.raiseADebug('Sampling limit reached! No new samples ...')
     ready = self.localStillReady(ready)
+
     return ready
 
-  def localStillReady(self,ready):
+  def localStillReady(self, ready):
     """
       Determines if sampler is prepared to provide another input.  If not, and
       if jobHandler is finished, this will end sampling.
@@ -767,6 +761,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # TODO is this an okay check for ALL samplers?
     if self.counter > self.limit:
       ready = False
+
     return ready
 
   def _checkRestartForEvaluation(self):
@@ -778,11 +773,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     #check if point already exists
     if self.restartData is not None:
-      index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
+      index,inExisting = self.restartData.realization(matchDict=self.values, tol=self.restartTolerance, unpackXArray=True)
     else:
       index = None
       inExisting = None
-    return index,inExisting
+
+    return index, inExisting
 
   def _constantVariables(self):
     """
@@ -795,17 +791,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       self.inputInfo['SampledVars'  ].update(self.constants)
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
-      pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
+      pbKey = ['ProbabilityWeight-'+key for key in self.constants]
       self.addMetaKeys(pbKey)
-      self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
+      self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants], 1.0))
       # update in batch mode
       if self.inputInfo.get('batchMode',False):
         for b in range(self.inputInfo['batchInfo']['nRuns']):
           self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'].update(self.constants)
           self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVarsPb'].update(dict.fromkeys(
-            self.constants.keys(),1.0))
+            self.constants.keys(), 1.0))
           self.inputInfo['batchInfo']['batchRealizations'][b].update(
-            dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
+            dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants], 1.0))
 
   def _expandVectorVariables(self):
     """
@@ -830,7 +826,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     # generate the function variable values
-    for var in self.dependentSample.keys():
+    for var in self.dependentSample:
       if self.inputInfo.get('batchMode',False):
         for b in range(self.inputInfo['batchInfo']['nRuns']):
           values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
@@ -838,7 +834,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           for corrVar in var.split(","):
             self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][corrVar.strip()] = test
       else:
-        test=self.funcDict[var].evaluate("evaluate",self.values)
+        test=self.funcDict[var].evaluate("evaluate", self.values)
         for corrVar in var.split(","):
           self.values[corrVar.strip()] = test
 
@@ -855,7 +851,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     if self.counter >= self.limit:
       self.raiseADebug('Sampling limit reached!')
       # TODO this is disjointed from readiness check!
-    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+    # FIXME, the following condition check is make sure that the require info is only printed once
+    # when dump metadata to xml, this should be removed in the future when we have a better way to
+    # dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
         self.inputInfo.pop(key,None)
@@ -875,7 +873,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         if self.transformationMethod[dist] == 'pca':
           self.pcaTransform(var,dist)
         else:
-          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
+          self.raiseAnError(NotImplementedError, f'transformation method is not yet implemented for {self.transformationMethod[dist]} method')
 
   def _reassignSampledVarsPbToFullyCorrVars(self):
     """
@@ -889,7 +887,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # assign the SampledVarsPb to the fully correlated vars
     for key in fullyCorrVars:
       for kkey in key.split(","):
-        if not self.inputInfo.get('batchMode',False):
+        if not self.inputInfo.get('batchMode', False):
           self.inputInfo['SampledVarsPb'][kkey] = fullyCorrVars[key]
         else:
           for b in range(self.inputInfo['nRuns']):
@@ -907,10 +905,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       # Handle ND Case
       if varInfo['totDim'] > 1:
         distName = self.variables2distributionsMapping[varName]['name']
-        pbWeights['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-' + distName]
+        pbWeights[f'ProbabilityWeight-{varName}'] = self.inputInfo[f'ProbabilityWeight-{distName}']
       if "," in varName:
         for subVarName in varName.split(","):
-          pbWeights['ProbabilityWeight-' + subVarName.strip()] = pbWeights['ProbabilityWeight-' + varName]
+          pbWeights[f'ProbabilityWeight-{subVarName.strip()}'] = pbWeights[f'ProbabilityWeight-{varName}']
     # update pbWeights
     self.inputInfo.update(pbWeights)
     # if batchmode, update batch
@@ -951,7 +949,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       if self.distDict[key].getMemory():
         self.distDict[key].reset()
     ##### RESTART #####
-    index, inExisting = self._checkRestartForEvaluation()
+    _, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
     # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
@@ -960,15 +958,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     if inExisting is None:
       # we have a new evaluation, so check its contents for consistency
       self._checkSample()
-      self.raiseADebug(' ... Sample point {}: {}'.format(self.inputInfo['prefix'], self.values))
-      ## The new info for the perturbed run will be stored in the sampler's
-      ## inputInfo (I don't particularly like this, I think it should be
-      ## returned here, but let's get this working and then we can decide how
-      ## to best pass this information around. My reasoning is that returning
-      ## it here means the sampler does not need to store it, and we can return
-      ## a copy of the information, otherwise we have to be careful to create a
-      ## deep copy of this information when we submit it to a job).
-      ## -- DPM 4/18/17
+      self.raiseADebug(f' ... Sample point {self.inputInfo["prefix"]}: {self.values}')
+      # The new info for the perturbed run will be stored in the sampler's
+      # inputInfo (I don't particularly like this, I think it should be
+      # returned here, but let's get this working and then we can decide how
+      # to best pass this information around. My reasoning is that returning
+      # it here means the sampler does not need to store it, and we can return
+      # a copy of the information, otherwise we have to be careful to create a
+      # deep copy of this information when we submit it to a job).
+      # -- DPM 4/18/17
       return 0, oldInput
     #otherwise, return the restart point
     else:
@@ -980,9 +978,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
+
       return 1, rlz
 
-  def generateInputBatch(self,myInput,model,batchSize,projector=None):
+  def generateInputBatch(self, myInput, model, batchSize, projector=None):
     """
       this function provide a mask to create several inputs at the same time
       It call the generateInput function as many time as needed
@@ -994,14 +993,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
-      if projector==None:
-        newInputs.append(self.generateInput(model,myInput))
+      if projector is None:
+        newInputs.append(self.generateInput(model, myInput))
       else:
-        newInputs.append(self.generateInput(model,myInput,projector))
+        newInputs.append(self.generateInput(model ,myInput, projector))
+
     return newInputs
 
   @abc.abstractmethod
-  def localGenerateInput(self,model,oldInput):
+  def localGenerateInput(self, model, oldInput):
     """
       This class need to be overwritten since it is here that the magic of the sampler happens.
       After this method call the self.inputInfo should be ready to be sent to the model
@@ -1009,9 +1009,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
     """
-    pass
 
-  def pcaTransform(self,varsDict,dist):
+  def pcaTransform(self, varsDict, dist):
     """
       This method is used to map latent variables with respect to the model input variables
       both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
@@ -1040,6 +1039,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         manifestVariablesValues[index2] = varsValues[index1]
       manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
       values.update(manifestVariablesDict)
+
       return values
 
     if self.inputInfo.get('batchMode',False):
@@ -1055,10 +1055,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
-    pass # nothing to do by default
 
   ### FINALIZING METHODS ####
-  def finalizeActualSampling(self,jobObject,model,myInput):
+  def finalizeActualSampling(self, jobObject, model, myInput):
     """
       This function is used by samplers that need to collect information from a
       finished run.
@@ -1071,9 +1070,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """
-    self.localFinalizeActualSampling(jobObject,model,myInput)
+    self.localFinalizeActualSampling(jobObject, model, myInput)
 
-  def localFinalizeActualSampling(self,jobObject,model,myInput):
+  def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
       Overwrite only if you need something special at the end of each run....
       This function is used by samplers that need to collect information from the just ended run
@@ -1085,9 +1084,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """
-    pass
 
-  def finalizeSampler(self,failedRuns):
+  def finalizeSampler(self, failedRuns):
     """
       Method called at the end of the Step when no more samples will be taken.  Closes out sampler for step.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
@@ -1095,7 +1093,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     self.handleFailedRuns(failedRuns)
 
-  def handleFailedRuns(self,failedRuns):
+  def handleFailedRuns(self, failedRuns):
     """
       Collects the failed runs from the Step and allows samples to handle them individually if need be.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
@@ -1104,20 +1102,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.raiseADebug('===============')
     self.raiseADebug('| RUN SUMMARY |')
     self.raiseADebug('===============')
-    if len(failedRuns)>0:
-      self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
+    if len(failedRuns) > 0:
+      self.raiseAWarning(f'There were {len(failedRuns)} failed runs!  Run with verbosity = debug for more details.')
       for run in failedRuns:
-        ## FIXME: run.command no longer exists, so I am removing the printing
-        ## of it and the metadata for the time being, please let me know if this
-        ## information is critical, as it is debug info, I cannot imagine it is
-        ## important to keep.
-        self.raiseADebug('  Run number %s FAILED:' %run.identifier)
-        self.raiseADebug('      return code :',run.getReturnCode())
-        # metadata = run.getMetadata()
-        # if metadata is not None:
-        #   self.raiseADebug('      sampled vars:')
-        #   for v,k in metadata['SampledVars'].items():
-        #     self.raiseADebug('         ',v,':',k)
+        # FIXME: run.command no longer exists, so I am removing the printing
+        # of it and the metadata for the time being, please let me know if this
+        # information is critical, as it is debug info, I cannot imagine it is
+        # important to keep.
+        self.raiseADebug(f'  Run number {run.identifier} FAILED:')
+        self.raiseADebug('      return code : ', run.getReturnCode())
     else:
       self.raiseADebug('All runs completed without returning errors.')
     self._localHandleFailedRuns(failedRuns)
@@ -1125,11 +1118,24 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.raiseADebug('  END SUMMARY  ')
     self.raiseADebug('===============')
 
-  def _localHandleFailedRuns(self,failedRuns):
+  def _localHandleFailedRuns(self, failedRuns):
     """
       Specialized method for samplers to handle failed runs.  Defaults to failing runs.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    if len(failedRuns)>0:
-      self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+    if len(failedRuns) > 0:
+      self.raiseAnError(IOError, 'There were failed runs; aborting RAVEN.')
+
+  def flush(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self.metadataKeys = set()
+    self.assemblerDict = {}
+    self.counter = 0
+    self.auxcnt = 0
+    self.distDict = {}
+    self.funcDict = {}

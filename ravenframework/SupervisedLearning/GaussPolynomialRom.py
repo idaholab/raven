@@ -465,9 +465,7 @@ class GaussPolynomialRom(SupervisedLearning):
         missing.append(pt)
     if len(missing)>0:
       msg='\n'
-      msg+='DEBUG missing feature vals:\n'
-      for i in missing:
-        msg+='  '+str(i)+'\n'
+      msg+='DEBUG missing feature vals:\n' + '\n'.join(map(lambda x:'  '+str(x),missing))+ '\n'
       self.raiseADebug(msg)
       self.raiseADebug('sparse:',sgs)
       self.raiseADebug('solns :',fvs)
