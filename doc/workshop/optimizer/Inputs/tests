@@ -1,0 +1,9 @@
+[Tests]
+  [./GradDesc]
+    type = 'RavenFramework'
+    input = '1_grad_desc.xml'
+    csv = 'GradDesc/opt_search_0.csv'
+    output = 'GradDesc/path.png'
+    rel_err = 1e-2
+  [../]
+[]
