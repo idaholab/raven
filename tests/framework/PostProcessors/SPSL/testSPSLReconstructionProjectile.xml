@@ -16,7 +16,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="HistorySet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="HistorySet">outMC</Output>
@@ -36,11 +36,11 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectileModelandCode" name="projectile" subType="">
-      <variables>x0,v0,y0,angle,x,y,r,t,v,timeOption</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t,v</variables>
     </ExternalModel>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
-      <Goal subType="classification">
+      <Goal subType="reconstruction">
         <TrainingData>myDO</TrainingData>
         <features>x,y</features>
         <target>v</target>
@@ -65,7 +65,7 @@
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>3</limit>
+        <limit>100</limit>
         <initialSeed>080118</initialSeed>
       </samplerInit>
       <variable name="angle">
@@ -74,19 +74,7 @@
       <constant name="v0">10.0</constant>
       <constant name="x0">0</constant>
       <constant name="y0">0</constant>
-      <constant name="timeOption">3</constant>
-    </MonteCarlo>
-    <MonteCarlo name="sampleRom">
-      <samplerInit>
-        <limit>100</limit>
-        <initialSeed>1312</initialSeed>
-      </samplerInit>
-      <variable name="angle">
-        <distribution>angle_d</distribution>
-      </variable>
-      <constant name="v0">1.0</constant>
-      <constant name="x0">0</constant>
-      <constant name="y0">0</constant>
+      <!-- <constant name="timeOption">0</constant> -->
     </MonteCarlo>
   </Samplers>
 
@@ -94,6 +82,9 @@
     <PointSet name="inputPlaceHolder">
       <Input>x0,v0,y0,angle</Input>
       <Output>OutputPlaceHolder</Output>
+      <!-- <options>
+        <pivotParameter>t</pivotParameter>
+      </options> -->
     </PointSet>
     <HistorySet name="outMC">
       <!-- <Input>v0,angle</Input> -->
@@ -106,13 +97,10 @@
       <Input>angle</Input>
       <Output>OutputPlaceHolder</Output>
     </HistorySet> -->
-    <HistorySet name="outPP">
-      <!-- <Input>v0,angle</Input> -->
-      <Output>x,y,v,t</Output>
-      <options>
-        <pivotParameter>t</pivotParameter>
-      </options>
-    </HistorySet>
+    <PointSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <Output>sensor0,sensor1,sensor2,sensor3,sensor4</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>

@@ -94,7 +94,7 @@ class SparseSensing(PostProcessorReadyInterface):
     super().__init__()
     self.setInputDataType('xrDataset')
     self.keepInputMeta(True)
-    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.outputMultipleRealizations = False # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
     # self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
     # self.pivotParameter = 'time' #FIXME this assumes the ARMA model!  Dangerous assumption.
@@ -142,31 +142,37 @@ class SparseSensing(PostProcessorReadyInterface):
       @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
-    inpVars, outVars, inputDS = inputIn['Data'][0]
-    numSamples = len(inputDS.coords['RAVEN_sample_ID'])
-    # numSamples = inputDic['numberRealizations']
-    # inputDict = inputDic['data']
+    _, _, inputDS = inputIn['Data'][0]
 
     # #identify features
     self.features = self.sensingFeatures
-    self.targets = self.sensingTarget
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
     if self.basis == 'svd':
-      model = ps.SSPOR(basis=ps.basis.SVD(n_basis_modes=self.nModes),n_sensors = self.nSensors,optimizer = self.optimizer)
+      basis=ps.basis.SVD(n_basis_modes=self.nModes)
     elif self.basis == 'identity':
-      model = ps.SSPOR(basis=ps.basis.Identity(n_basis_modes=self.nModes),n_sensors = self.nSensors,optimizer = self.optimizer)
+      basis=ps.basis.Identity(n_basis_modes=self.nModes)
     elif self.basis == 'RandomProjection':
-      model = ps.SSPOR(basis=ps.basis.RandomProjection(n_basis_modes=self.nModes),n_sensors = self.nSensors,optimizer = self.optimizer)
+      basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
     elif self.basis == 'Custom':
-      model = ps.SSPOR(basis=ps.basis.Custom(n_basis_modes=self.nModes),n_sensors = self.nSensors,U=self.basis,optimizer = self.optimizer)
+      basis=ps.basis.Custom(n_basis_modes=self.nModes)
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
 
-    # X = inputDS['x'].data
+    if self.optimizer == 'QR':
+      optimizer = ps.optimizers.QR()
+
+    model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
+
+
+    # x = inputDS['x'].data
+    # y = inputDS['y'].data
     data = inputDS['v'].data
     model.fit(data)
-
-    print(model)
-    return
+    selectedSensors = model.get_selected_sensors()
+    optimalSensors = {}
+    for i in range(len(selectedSensors)):
+      optimalSensors['sensor'+str(i)] = selectedSensors[i]
+    ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
+    return optimalSensors
