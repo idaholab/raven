@@ -259,10 +259,19 @@ class DMDC(DMD):
         #Y1 = (oo[:-1,smp,:]   - oo[0,smp,:]).T   if self.dmdParams['centerUXY'] else oo[:-1,smp,:].T
         Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
         _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
-        CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:]
-        scaler = preprocessing.MinMaxScaler()
-        scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
-        CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
+        
+        avgY1 = np.average(Y1,axis=1).flatten()
+        Xavg = np.average(X2,axis=1).flatten()
+        CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
+        for i in range(len(avgY1)):
+          CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
+        for j in range(len(Xavg)):
+          CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
+        #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:] 
+        #CtildeNormalizedNormalized[smp,:,:] = np.multiply(CtildeNormalized[smp,:,:],Xavg)
+        #scaler = preprocessing.MinMaxScaler()
+        #scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
+        #CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
         #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=1, norm='l1' )
         #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=0, norm='l1' )
 

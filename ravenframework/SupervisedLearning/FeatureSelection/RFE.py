@@ -291,13 +291,24 @@ class RFE(BaseInterface):
         importances = estimator.featureImportances_
          # since we get the importance, highest importance must be kept => we get the inverse of coefs
         coefs = 1./np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
         if coefs.shape[0] == raminingFeatures:
           coefs = coefs.T
 
       if coefs is None:
         coefs = np.ones(raminingFeatures)
-
+      a = np.sqrt(coefs)
+      b = a.sum(axis=0)
+      c = np.argsort(b)
+      d = np.ravel(c)
+      if False:
+        pp = np.asarray(self.parametersToInclude)
+        sh = pp.shape
+        orderedFeatures = pp[featuresForRanking[d.flatten()]]  
+        for c, feat in enumerate(orderedFeatures):
+          sqrtScore = np.ravel(b.flatten())[d.flatten()]
+          self.raiseAMessage("rank: {} | {} | {}".format(c,feat,sqrtScore) )        
+      
       # Get ranks (for sparse case ranks is matrix)
       ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
 
@@ -322,7 +333,7 @@ class RFE(BaseInterface):
       f = None
       if f is None:
         f = np.asarray(self.parametersToInclude)
-      self.raiseAMessage("Starting Features are {}".format( " ".join(f[np.asarray(featuresForRanking)]) ))
+      self.raiseAMessage("Starting Features are {}".format( " ".join(f[support_]) ))
       threshold = len(featuresForRanking) - 1
       coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
       initialRanks = copy.deepcopy(ranks)
