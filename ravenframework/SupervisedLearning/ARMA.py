@@ -917,13 +917,13 @@ class ARMA(SupervisedLearning):
       randEngine=self.randomEng
     import statsmodels.tsa
     hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polynomial_ar,
-                                                    ma=model.polynomial_ma,
-                                                    nsample=numSamples,
-                                                    distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
-                                       # functool.partial provide the random number generator as a function
-                                       # with normal distribution and take engine as the positional arguments keywords.
-                                                    scale=np.sqrt(model.params[model.param_names.index('sigma2')]),
-                                                    burnin=2*max(self.P,self.Q)) # @alfoa, 2020
+                                                              ma=model.polynomial_ma,
+                                                              nsample=numSamples,
+                                                              distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                                              # functool.partial provide the random number generator as a function
+                                                              # with normal distribution and take engine as the positional arguments keywords.
+                                                              scale=np.sqrt(model.params[model.param_names.index('sigma2')]),
+                                                              burnin=2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
   def _generateFourierSignal(self, pivots, periods):
@@ -1566,11 +1566,11 @@ class ARMA(SupervisedLearning):
       feature = featureTemplate.format(target=target, metric='arma', id='std')
       features[feature] = np.sqrt(arma.params[arma.param_names.index('sigma2')])
       # autoregression
-      for p, val in enumerate(-arma.polynomial_ar[1:]):
+      for p, val in enumerate(-arma.polynomial_ar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
         feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
         features[feature] = val
       # moving average
-      for q, val in enumerate(arma.polynomial_ma[1:]):
+      for q, val in enumerate(arma.polynomial_ma[1:]):  # keep only the terms for lag>0
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
