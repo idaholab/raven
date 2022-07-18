@@ -916,14 +916,14 @@ class ARMA(SupervisedLearning):
     if randEngine is None:
       randEngine=self.randomEng
     import statsmodels.tsa
-    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
-                                                    ma = np.append(1., model.maparams),
-                                                    nsample = numSamples,
-                                                    distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polynomial_ar,
+                                                    ma=model.polynomial_ma,
+                                                    nsample=numSamples,
+                                                    distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
                                        # functool.partial provide the random number generator as a function
                                        # with normal distribution and take engine as the positional arguments keywords.
-                                                    scale = np.sqrt(model.sigma2),
-                                                    burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
+                                                    scale=np.sqrt(model.params[model.param_names.index('sigma2')]),
+                                                    burnin=2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
   def _generateFourierSignal(self, pivots, periods):
@@ -1094,7 +1094,7 @@ class ARMA(SupervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima.model.ARIMA(data, order=(self.P, 0, self.Q), trend='c').fit()
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1382,7 +1382,7 @@ class ARMA(SupervisedLearning):
         root.append(targetNode)
       armaNode = xmlUtils.newNode('ARMA_params')
       targetNode.append(armaNode)
-      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
+      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.params[arma.param_names.index('sigma2')])))
       # TODO covariances, P and Q, etc
     for target,peakInfo in self.peaks.items():
       targetNode = root.find(target)
@@ -1564,13 +1564,13 @@ class ARMA(SupervisedLearning):
     for target, arma in self.armaResult.items():
       # sigma
       feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
+      features[feature] = np.sqrt(arma.params[arma.param_names.index('sigma2')])
       # autoregression
-      for p, val in enumerate(arma.arparams):
+      for p, val in enumerate(-arma.polynomial_ar[1:]):
         feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
         features[feature] = val
       # moving average
-      for q, val in enumerate(arma.maparams):
+      for q, val in enumerate(arma.polynomial_ma[1:]):
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
@@ -2163,6 +2163,7 @@ class ARMA(SupervisedLearning):
       Call this before training the subspace segment ROMs
       Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
       @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
+      @ In, picker, slice, slice object for selecting the desired segment
       @ Out, None
     """
     if self.zeroFilterTarget:
@@ -2545,6 +2546,7 @@ class armaResultsProxy:
       @ In, sigma, float, standard deviation of ARMA residual noise
       @ Out, None
     """
-    self.arparams = np.atleast_1d(arparams)
-    self.maparams = np.atleast_1d(maparams)
-    self.sigma2 = sigma**2
+    self.polynomial_ar = np.append(1, -np.atleast_1d(arparams))
+    self.polynomial_ma = np.append(1, np.atleast_1d(maparams))
+    self.param_names = ['sigma2']
+    self.params = [sigma ** 2]
