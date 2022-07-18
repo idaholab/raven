@@ -24,19 +24,17 @@ from ...utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..SupervisedLearning import SupervisedLearning
-from ...utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ScikitLearnBase(SupervisedLearning):
   """
     Base Class for Scikitlearn-based surrogate models (classifiers and regressors)
   """
-  info = {'problemtype':None, 'normalize':None}
+  info = {'problemtype':None, 'normalize':None, 'normalizeTargets':None}
 
   def __init__(self):
     """
@@ -50,7 +48,6 @@ class ScikitLearnBase(SupervisedLearning):
     self.model = None # Scikitlearn estimator/model
     self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
                                    # the self.model can handle multioutput/multi-targets prediction
-
   def updateSettings(self, settings):
     """
       Update the parameters of the self.model if the model is wrapper by sklearn.multioutput class
@@ -195,5 +192,6 @@ class ScikitLearnBase(SupervisedLearning):
     """
     if not self.info['normalize']:
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
+      self.muAndSigmaTargets[self.target[0]] = (0.0,1.0)
     else:
       super()._localNormalizeData(values,names,feat)

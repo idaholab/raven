@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.SVR</name>
+    <author>Mohammad Abdo (@Jimmy.INL)</author>
+    <created>2022-04-22</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example exercising supervised sklearn methods, specifically
+       the svm|SVR model is tested here.
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+       Classifiers will use this same function to determine if a point is
+       above 0.25, and multitask methods will additionally fit an additive
+       model (x+y).
+    </description>
+    <revisions>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample,
+      plot
+    </Sequence>
+  </RunInfo>
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ExternalModel">projectile</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ROM">svrROM</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">outData</Output>
+    <Output class="OutStreams" type="Print">outData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Output class="Models" type="ROM">svrROM</Output>
+    </RomTrainer>
+    <IOStep name="plot">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Input class="DataObjects" type="PointSet">outData</Input>
+    <Output class="OutStreams" type="Plot">plotSVRProjectile</Output>
+    </IOStep>
+    </Steps>
+
+    <Models>
+      <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile" name="projectile" subType="">
+        <variables>angle,r</variables>
+      </ExternalModel>
+      <ROM name="svrROM" subType="SVR">
+        <Features>angle</Features>
+        <Target>r</Target>
+        <kernel>poly</kernel>
+        <degree>2</degree>
+        <normalizeTargets>True</normalizeTargets>
+      </ROM>
+    </Models>
+
+    <Samplers>
+      <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="angle">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      </MonteCarlo>
+      <Grid name="gridSampler">
+      <variable name="angle">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">0 90</grid>
+      </variable>
+      </Grid>
+    </Samplers>
+
+    <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>90</upperBound>
+    </Uniform>
+    </Distributions>
+
+    <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outSVRProjectile</filename>
+      <what>input,output, metadata</what>
+    </Print>
+
+    <Plot name="plotSVRProjectile" pauseAtEnd="True">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>trainingData|Input|angle</x>
+          <y>trainingData|Output|r</y>
+          <c>blue</c>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <marker>+</marker>
+          <x>outData|Input|angle</x>
+          <y>outData|Output|r</y>
+          <c>red</c>
+        </plot>
+        <!-- <plot>
+          <type>scatter</type>
+          <marker>v</marker>
+          <x>romPOut|Input|angle</x>
+          <y>romPOut|Output|r</y>
+          <c>black</c>
+        </plot> -->
+        <xlabel>angle</xlabel>
+        <ylabel>r</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    </OutStreams>
+
+    <DataObjects>
+      <!-- The input PointSet object -->
+      <PointSet name="dummyIN">
+        <Input>angle</Input>
+        <Output>OutputPlaceHolder</Output>
+      </PointSet>
+      <PointSet name="trainingData">
+        <Input>angle</Input>
+        <Output>r</Output>
+      </PointSet>
+      <!-- The output PointSet objects -->
+      <PointSet name="outData">
+        <Input>angle</Input>
+        <Output>r</Output>
+      </PointSet>
+    </DataObjects>
+</Simulation>

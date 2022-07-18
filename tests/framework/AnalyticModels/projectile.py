@@ -86,7 +86,7 @@ def run(raven, inputs):
   vars = {'x0': get_from_raven(raven,'x0', 0),
           'y0': get_from_raven(raven,'y0', 0),
           'v0': get_from_raven(raven,'v0', 1),
-          'ang': get_from_raven(raven,'v0', 45),
+          'angle': get_from_raven(raven,'angle', 45),
           'timeOption': get_from_raven(raven,'timeOption', 0)}
   res = main(vars)
   raven.x = res['x']

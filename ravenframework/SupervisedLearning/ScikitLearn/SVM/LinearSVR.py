@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa, wangc
-  Linear Support Vector Classifier
+  Linear Support Vector Regressor
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -33,7 +33,7 @@ class LinearSVR(ScikitLearnBase):
   """
     Linear Support Vector Regressor
   """
-  info = {'problemtype':'regression', 'normalize':True}
+  info = {'problemtype':'regression', 'normalize':True, 'normalizeTargets':False}
 
   def __init__(self):
     """
@@ -97,6 +97,10 @@ class LinearSVR(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['epsilon', 'dual', 'loss', 'tol', 'fit_intercept',
                                                                'intercept_scaling',  'max_iter'])
+
+    setting,_ = paramInput.findNodesAndExtractValues(['normalizeTargets'])
+    self.info['normalizeTargets'] = setting['normalizeTargets']
+
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
