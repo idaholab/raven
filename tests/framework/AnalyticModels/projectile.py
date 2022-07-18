@@ -128,9 +128,7 @@ def main(Input):
     # due to numpy library update, the return shape of np.linspace
     # is changed when an array-like input is provided, i.e. return from time_to_ground
     endTime = time_to_ground(v0, ang, y0)
-    print('time to ground:', endTime)
     ts = np.linspace(0, endTime, 10)
-    print('ts:', ts)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
