@@ -47,7 +47,7 @@ class GenericParser():
       Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
       @ In, inputFiles, list, string list of input filenames that might need parsing.
       @ In, prefix, string, optional, the string prefix to find input variables within the input files
-      @ In, postfix, string, optional, the string postfix signifying hte end of an input variable within an input file
+      @ In, postfix, string, optional, the string postfix signifying the end of an input variable within an input file
       @ In, defaultDelim, string, optional, the string used between prefix and postfix to set default values
       @ In, formatDelim, string, optional, the string used between prefix and postfix to set the format of the value
       @ Out, None
@@ -127,7 +127,7 @@ class GenericParser():
 
   def modifyInternalDictionary(self,**Kwargs):
     """
-      Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
+      Edits the parsed file stored in self.segments to enter new variable values preparatory to a new run.
       @ In, **Kwargs, dict, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
       @ Out, None
     """
