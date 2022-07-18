@@ -40,7 +40,7 @@ def _reprIfFloat(value):
 
 class GenericParser():
   """
-    import the user-edited input file, build list of strings with replacable parts
+    import the user-edited input file, build list of strings with replaceable parts
   """
   def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
     """
