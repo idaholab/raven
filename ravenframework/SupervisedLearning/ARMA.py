@@ -2528,7 +2528,6 @@ class ARMA(SupervisedLearning):
       randomUtils.forwardSeed(count, engine=eng)
     self.randomEng = eng
 
-git
 #
 #
 #

@@ -903,7 +903,6 @@ class Clusters(Segments):
         result, weights = self._createNDEvaluation(edict)
       clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
       globalLocalPicker = []
-      nRoms = len(self._roms)
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
