@@ -467,8 +467,8 @@ eng = randomUtils.newRNG()
 arma.setEngine(eng, seed=901017)
 signal7 = arma._generateARMASignal(testVal)
 
-sig7 = [0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
-        0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
+sig7=[0.39974990, -0.14531400,  0.1313880, -0.565649598,  0.06020223,
+      0.60752023, -0.29076037, -1.1758401,   0.41108399, -0.05735358]
 for n in range(10):
   checkFloat('signal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
 
