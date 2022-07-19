@@ -606,7 +606,6 @@ class RavenSampled(Optimizer):
       @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
-    ccc
     # make a holder for the realization that will go to the solutionExport
     toExport = {}
     # add some meta information
