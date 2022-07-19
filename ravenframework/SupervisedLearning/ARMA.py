@@ -22,6 +22,7 @@
 import copy
 import collections
 from ..utils import importerUtils
+from ..utils.utils import findCrowModule
 statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 import numpy as np
 import functools
@@ -321,7 +322,7 @@ class ARMA(SupervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
+    self.setEngine(randomUtils.newRNG(), seed=self.seed)
 
     # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
@@ -446,9 +447,6 @@ class ARMA(SupervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = super().__getstate__()
-    eng=d.pop("randomEng")
-    randCounts = eng.get_rng_state()
-    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self, d):
@@ -457,9 +455,14 @@ class ARMA(SupervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    rngCounts = d.pop('crow_rng_counts')
+    rngCounts = d.pop('crow_rng_counts', None)
     super().__setstate__(d)
-    self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
+
+    try:
+      self.randomEng
+    except AttributeError:  # catches where ARMA was pickled without saving the RNG
+      self.setEngine(randomUtils.newRNG(), seed=self.seed, count=rngCounts)
+
     if self.reseedCopies:
       randd = np.random.randint(1, 2e9)
       self.reseed(randd)
@@ -2517,15 +2520,12 @@ class ARMA(SupervisedLearning):
      @ Out, None
     """
     if seed is None:
-      seed=self.seed
-    seed=abs(seed)
-    eng.seed(seed)
-    if count is None:
-      count=self.randomEng.get_rng_state()
-    eng.forward_seed(count)
-    self.randomEng=eng
-
-
+      seed = self.seed
+    seed = abs(seed)
+    randomUtils.randomSeed(seed, engine=eng)
+    if count is not None:
+      randomUtils.forwardSeed(count, engine=eng)
+    self.randomEng = eng
 
 #
 #

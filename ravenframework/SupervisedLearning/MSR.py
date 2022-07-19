@@ -552,9 +552,7 @@ class MSR(NDinterpolatorRom):
           #############
           ## OR
           #############
-          weights[key] = 0
-          for idx in indices:
-            weights[key] += self.__kernel(dists[:,idx]/h)
+          weights[key] = np.sum([self.__kernel(dists[:,idx]/h) for idx in indices], axis=0)
           weights[key]
           #############
 

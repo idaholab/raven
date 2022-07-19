@@ -17,21 +17,21 @@
   Created on May 21, 2016
   @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
+# External Modules----------------------------------------------------------------------------------
 import copy
-#External Modules End--------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+# Internal Modules----------------------------------------------------------------------------------
+from .Sampler import Sampler
 from ..utils import InputData, InputTypes, utils, mathUtils
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
-class CustomSampler(ForwardSampler):
+class CustomSampler(Sampler):
   """
     Custom Sampler
   """
@@ -76,16 +76,17 @@ class CustomSampler(ForwardSampler):
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
+    self.sourceIndexMap = {}
     self.batch = 1    # number of samples in each batch
     self.batchId = 0  # ID for each batch
 
-  def _readMoreXMLbase(self,xmlNode):
+  def _readMoreXMLbase(self, xmlNode):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
-    #TODO remove using xmlNode
+    # TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
@@ -113,15 +114,14 @@ class CustomSampler(ForwardSampler):
         okaySourceClasses = ['Files', 'DataObjects']
         sourceClass = child.parameterValues.get('class')
         if sourceClass not in okaySourceClasses:
-          self.raiseAnError(IOError, ('For CustomSampler "{name}" node "<Source>" with attribute ' +
-                                      '"class", received "{got}" but must be one of {okay}!')
-                                      .format(name=self.name, got=sourceClass, okay=okaySourceClasses))
+          self.raiseAnError(IOError, (f'For CustomSampler "{self.name}" node "<Source>" with attribute ' +
+                                      f'"class", received "{sourceClass}" but must be one of {okaySourceClasses}!'))
       elif child.getName() == 'index':
         self.indexes = child.value
       elif child.getName() == 'batch':
-        self.batch = max(child.value,1)
+        self.batch = max(child.value, 1)
     if len(self.toBeSampled.keys()) == 0:
-      self.raiseAnError(IOError, 'CustomSampler "{}" has no variables to sample!'.format(self.name))
+      self.raiseAnError(IOError, f'CustomSampler "{self.name}" has no variables to sample!')
 
   def _localWhatDoINeed(self):
     """
@@ -131,9 +131,10 @@ class CustomSampler(ForwardSampler):
       @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
     """
     needDict = {}
-    needDict['Functions']     = [] # In case functions have been inputted
+    needDict['Functions'] = [] # In case functions have been inputted
     for func in self.dependentSample.values():
-      needDict['Functions'].append((None,func))
+      needDict['Functions'].append((None, func))
+
     return needDict
 
   def _localGenerateAssembler(self,initDict):
@@ -147,18 +148,18 @@ class CustomSampler(ForwardSampler):
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
         self.assemblerDict[key] =  []
-        for entity,etype,name in value:
-          self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
-    for key,val in self.dependentSample.items():
+        for entity, etype, name in value:
+          self.assemblerDict[key].append([entity, etype, name, initDict[entity][name]])
+    for key, val in self.dependentSample.items():
       if val not in initDict['Functions'].keys():
-        self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())
+        self.raiseAnError(f'Function {val} was not found among the available functions: {initDict["Functions"].keys()}')
       self.funcDict[key] = initDict['Functions'][val]
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+        self.raiseAnError(IOError, f'Function {self.funcDict[key].name} does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
 
     if 'Source' not in self.assemblerDict:
-      self.raiseAnError(IOError,"No Source object has been found!")
+      self.raiseAnError(IOError, "No Source object has been found!")
 
   def localInitialize(self):
     """
@@ -175,13 +176,12 @@ class CustomSampler(ForwardSampler):
       data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
       lenRlz = len(data)
       csvFile.close()
-      for var in self.toBeSampled.keys():
+      for var in self.toBeSampled:
         for subVar in var.split(','):
           subVar = subVar.strip()
           sourceName = self.nameInSource[subVar]
           if sourceName not in headers:
-            self.raiseAnError(IOError, "variable "+ sourceName + " not found in the file "
-                    + csvFile.getFilename())
+            self.raiseAnError(IOError, f"variable {sourceName} not found in the file {csvFile.getFilename()}")
           self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
           subVarPb = 'ProbabilityWeight-'
           if subVarPb+sourceName in headers:
@@ -189,11 +189,11 @@ class CustomSampler(ForwardSampler):
           else:
             self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
       if 'PointProbability' in headers:
-        self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+        self.infoFromCustom['PointProbability'] = data[:, headers.index('PointProbability')]
       else:
         self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
       if 'ProbabilityWeight' in headers:
-        self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+        self.infoFromCustom['ProbabilityWeight'] = data[:, headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
 
@@ -202,28 +202,28 @@ class CustomSampler(ForwardSampler):
       self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]
       lenRlz = len(dataObj)
-      dataSet = dataObj.asDataset()
       self.pointsToSample = dataObj.sliceByIndex(dataObj.sampleTag)
-      for var in self.toBeSampled.keys():
+      for var in self.toBeSampled:
         for subVar in var.split(','):
           subVar = subVar.strip()
           sourceName = self.nameInSource[subVar]
           if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
-            self.raiseAnError(IOError,"the variable "+ sourceName + " not found in "+ dataObj.type + " " + dataObj.name)
+            self.raiseAnError(IOError, f"the variable {sourceName} not found in {dataObj.type} {dataObj.name}")
       self.limit = len(self.pointsToSample)
+      self.sourceIndexMap = dataObj.getDimensions()
     # if "index" provided, limit sampling to those points
     if self.indexes is not None:
       self.limit = len(self.indexes)
       maxIndex = max(self.indexes)
-      if maxIndex > len(self.pointsToSample) -1:
-        self.raiseAnError(IndexError,'Requested index "{}" from custom sampler, but highest index sample is "{}"!'.format(maxIndex,len(self.pointsToSample)-1))
-    #TODO: add restart capability here!
+      if maxIndex > len(self.pointsToSample) - 1:
+        self.raiseAnError(IndexError, f'Requested index "{maxIndex}" from custom sampler, but highest index sample is "{len(self.pointsToSample) - 1}"!')
+    # TODO: add restart capability here!
     if self.restartData:
-      self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+      self.raiseAnError(IOError, "restart capability not implemented for CustomSampler yet!")
     if self.batch > 1:
       self.addMetaKeys(["batchId"])
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
@@ -249,31 +249,36 @@ class CustomSampler(ForwardSampler):
       if self.readingFrom == 'DataObject':
         # data is stored as slices of a data object, so take from that
         rlz = self.pointsToSample[index]
-        for var in self.toBeSampled.keys():
+        for var in self.toBeSampled:
           for subVar in var.split(','):
             subVar = subVar.strip()
             sourceName = self.nameInSource[subVar]
             # get the value(s) for the variable for this realization
             self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
+            # get supporting indices (e.g. 'time')
+            for dim in rlz.dims:
+              if dim not in self.values:
+                self.values[dim] = rlz[self.nameInSource.get(dim, dim)]
             # set the probability weight due to this variable (default to 1)
             pbWtName = 'ProbabilityWeight-'
             self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
         # get realization-level required meta information, or default to 1
-        for meta in ['PointProbability','ProbabilityWeight']:
-          self.inputInfo[meta] = rlz.get(meta,1.0)
+        for meta in ['PointProbability', 'ProbabilityWeight']:
+          self.inputInfo[meta] = rlz.get(meta, 1.0)
       elif self.readingFrom == 'File':
         # data is stored in file, so we already parsed the values
         # create values dictionary
-        for var in self.toBeSampled.keys():
+        for var in self.toBeSampled:
           for subVar in var.split(','):
             subVar = subVar.strip()
             # assign the custom sampled variables values to the sampled variables
             self.values[subVar] = self.pointsToSample[subVar][index]
             # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-            self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
+            self.inputInfo[f'ProbabilityWeight-{subVar}'] = self.infoFromCustom[f'ProbabilityWeight-{subVar}'][index]
         # Construct probabilities based on the user provided information
         self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
         self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
+      self.values['_indexMap'] = self.sourceIndexMap
       self.inputInfo['SamplerType'] = 'Custom'
       if self.inputInfo['batchMode']:
         self.inputInfo['SampledVars'] = self.values
@@ -282,3 +287,14 @@ class CustomSampler(ForwardSampler):
         self._incrementCounter()
     if self.inputInfo['batchMode']:
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
+
+  def flush(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.infoFromCustom = {}
+    self.pointsToSample = {}
+    self.readingFrom = None
