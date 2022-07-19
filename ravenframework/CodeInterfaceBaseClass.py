@@ -174,7 +174,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
       This method returns a list of extension the code interface accepts for the input file (the main one)
       @ In, None
-      @ Out, tuple, tuple of strings containing accepted input extension (e.g.(".i",".inp"]) )
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) )
     """
     return tuple(self.inputExtensions)
 
@@ -217,7 +217,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
-      this method is called by the RAVEN code at the end of each run (if the method is present).
+      This method is called by the RAVEN code at the end of each run (if the method is present).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
@@ -233,7 +233,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by RAVEN at the end of each run if the return code is == 0.
-      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+      This method needs to be implemented for the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
       This method can be used, for example, to parse the output file looking for a special keyword that testifies that a particular job got failed
       (e.g. in RELAP5 would be the keyword "********")
