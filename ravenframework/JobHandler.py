@@ -975,7 +975,7 @@ class JobHandler(BaseType):
       @ In, ids, list(str), job prefixes to terminate
       @ Out, None
     """
-    #XXX terminateJobs modifies the running queue, which
+    #WARNING: terminateJobs modifies the running queue, which
     # fillJobQueue assumes can't happen
     queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
     with self.__queueLock:
