@@ -35,8 +35,8 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">outer_samples</Input>
-      <Output class="OutStreams" type="Print">outer_out</Output>
       <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">outer_out</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
   </Steps>
