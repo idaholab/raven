@@ -66,3 +66,7 @@ framework/states.txt
 
 # plugin installation paths
 plugins/plugin_directory.xml
+
+# vscode
+.vscode
+*.code-workspace

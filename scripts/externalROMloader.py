@@ -120,6 +120,21 @@ class ravenROMexternal(object):
     self._frameworkLoc = d['whereFrameworkIs']
     self._load(self._binaryLoc, self._frameworkLoc)
 
+  def setAdditionalParams(self, nodes):
+    """
+      Set ROM parameters for external evaluation
+      @ In, nodes, list, list of xml nodes for setting parameters of pickleROM
+      @ Out, None
+    """
+    from ravenframework.SupervisedLearning.pickledROM import pickledROM
+    spec = pickledROM.getInputSpecification()()
+    # Changing parameters for the ROM
+    for node in nodes:
+      spec.parseNode(node)
+    # Matching the index name of the defaul params object
+    params = {'paramInput':spec}
+    self.rom.setAdditionalParams(params)
+
   def evaluate(self,request):
     """
       Evaluate the ROM
