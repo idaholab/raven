@@ -122,7 +122,7 @@ class SupervisedLearning(BaseInterface):
     self.printTag = 'SupervisedLearning'
     self.features = None           # "inputs" to this model
     self.target = None             # "outputs" of this model
-    self.amITrained = False        # "True" if the ROM is alread trained
+    self.amITrained = False        # "True" if the ROM is already trained
     self._dynamicHandling = False  # time-like dependence in the model?
     self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
@@ -425,7 +425,7 @@ class SupervisedLearning(BaseInterface):
   def isDynamic(self):
     """
       This method is a utility function that tells if the relative ROM is able to
-      treat dynamic data (e.g. time-series) on its own or not (Primarly called by LearningGate)
+      treat dynamic data (e.g. time-series) on its own or not (Primarily called by LearningGate)
       @ In, None
       @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
     """
