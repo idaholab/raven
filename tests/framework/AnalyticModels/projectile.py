@@ -98,7 +98,7 @@ def run(raven, inputs):
   raven.r = res['r'] * np.ones(len(raven.x))
   raven.v = res['v']
   raven.a = res['a']
-  raven.ymax = res['ymax']
+  raven.ymax = res['ymax'] * np.ones(len(raven.x))
   raven.timeOption = vars['timeOption']
   raven.ymax = res['ymax']
 

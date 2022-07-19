@@ -639,7 +639,7 @@ class RavenSampled(Optimizer):
     if self._minMax == 'max':
       objValue *= -1
     toExport[self._objectiveVar] = objValue
-    toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
+    toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in )))
     # constants and functions
     toExport.update(self.constants)
     # toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
