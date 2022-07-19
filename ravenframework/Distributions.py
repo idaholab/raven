@@ -26,6 +26,7 @@ from scipy.interpolate import UnivariateSpline
 from numpy import linalg as LA
 import copy
 import math as math
+import bisect
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
@@ -1643,6 +1644,7 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
+    self.isFloat        = False
 
   def _handleInput(self, paramInput):
     """
@@ -1656,13 +1658,20 @@ class Categorical(Distribution):
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        if float(outcome) in self.values:
+        try:
+          float(outcome)
+          self.isFloat = True
+        except:
+          self.isFloat = False
+        if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome))
+          self.values.add(float(outcome) if self.isFloat else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
+    self.upperBoundUsed = True
+    self.lowerBoundUsed = True
 
   def getInitParams(self):
     """
@@ -1740,7 +1749,11 @@ class Categorical(Distribution):
     if x in self.values:
       pdfValue = self.mapping[x]
     else:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+      if self.isFloat:
+        idx = bisect.bisect(list(self.values), x)
+        pdfValue = self.mapping[list(self.values)[idx]]
+      else:
+        self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
   def cdf(self,x):
