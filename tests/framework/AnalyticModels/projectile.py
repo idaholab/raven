@@ -28,7 +28,7 @@
 import numpy as np
 
 in_vars = ['x0', 'y0', 'v0', 'ang', 'timeOption']
-out_vars = ['x', 'y', 'r', 't', 'v', 'a']
+out_vars = ['x', 'y', 'r', 't', 'v', 'a','ymax']
 
 def prange(v,th,y0=0,g=9.8):
   """
@@ -82,6 +82,9 @@ def calc_vel(y0, y, v0, ang, g=9.8):
 def current_angle(v0, ang, vel):
   return np.arccos(v0 * np.cos(ang) / vel)
 
+def max_height(v0,ang,y0=0,g=9.8):
+  return np.atleast_1d(v0**2 * (np.sin(ang))**2/2/g +y0)
+
 def run(raven, inputs):
   vars = {'x0': get_from_raven(raven,'x0', 0),
           'y0': get_from_raven(raven,'y0', 0),
@@ -96,6 +99,7 @@ def run(raven, inputs):
   raven.v = res['v']
   raven.a = res['a']
   raven.timeOption = vars['timeOption']
+  raven.ymax = res['ymax']
 
 def get_from_raven(raven, attr, default=None):
   return np.squeeze(getattr(raven, attr, default))
@@ -118,6 +122,7 @@ def main(Input):
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
   r = prange(v0,ang,y0)
+  ymax = max_height(v0,ang,y0,g)
 
   x = np.zeros(len(ts))
   y = np.zeros(len(ts))
@@ -130,7 +135,7 @@ def main(Input):
     v[i] = vm
     a[i] = current_angle(v0, ang, vm)
   t = ts
-  return {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,
+  return {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,'ymax':ymax,
     'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
 
 #can be used as a code as well

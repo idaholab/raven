@@ -606,6 +606,7 @@ class RavenSampled(Optimizer):
       @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
+    ccc
     # make a holder for the realization that will go to the solutionExport
     toExport = {}
     # add some meta information
@@ -622,7 +623,7 @@ class RavenSampled(Optimizer):
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
-    toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
+    # toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
     # additional from from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
     # check for anything else that solution export wants that rlz might provide
