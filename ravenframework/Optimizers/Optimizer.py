@@ -358,7 +358,7 @@ class Optimizer(AdaptiveSampler):
 
   def _addTrackingInfo(self, info, **kwargs):
     """
-      Creates realization identifiers to identifiy particular realizations as they return from the JobHandler.
+      Creates realization identifiers to identify particular realizations as they return from the JobHandler.
       Expandable by inheritors.
       @ In, info, dict, dictionary of potentially-existing added identifiers
       @ In, kwargs, dict, dictionary of keyword arguments
