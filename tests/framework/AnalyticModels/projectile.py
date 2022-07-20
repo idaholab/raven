@@ -133,7 +133,7 @@ def main(Input):
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
   r = prange(v0, ang, y0=y0, g=g)
-  ymax = pMaxHeight(v0, ang, g=g)
+  ymax = pMaxHeight(v0, ang, y0=y0, g=g)
 
   x = np.zeros(len(ts))
   y = np.zeros(len(ts))
