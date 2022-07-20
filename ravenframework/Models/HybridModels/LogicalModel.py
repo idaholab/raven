@@ -20,7 +20,6 @@ Created on May 6, 2020
 #External Modules------------------------------------------------------------------------------------
 import copy
 import time
-import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -50,6 +49,7 @@ class LogicalModel(HybridModelBase):
     cfInput.addParam("class", InputTypes.StringType)
     cfInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(cfInput)
+
     return inputSpecification
 
   @classmethod
@@ -69,8 +69,8 @@ class LogicalModel(HybridModelBase):
     """
     super().__init__()
     self.printTag = 'LogicalModel MODEL' # print tag
-    # Function object that is used to control the execution of models
-    self.controlFunction = None
+    self.controlFunction = None          # Function object that is used to control the execution of models
+    self.controlFunctionName = None      # name (str) of function controlling execution of models
     # assembler objects to be requested
     self.addAssemblerObject('ControlFunction', InputData.Quantity.one)
 
@@ -84,9 +84,9 @@ class LogicalModel(HybridModelBase):
     HybridModelBase.localInputAndChecks(self, xmlNode)
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-    self.controlFunction = paramInput.findFirst('ControlFunction').value
-    if self.controlFunction is None:
-      self.raiseAnError(IOError, '"ControlFunction" is required for "{}", but it is not provided!'.format(self.name))
+    self.controlFunctionName = paramInput.findFirst('ControlFunction').value
+    if self.controlFunctionName is None:
+      self.raiseAnError(IOError, f'"ControlFunction" is required for "{self.name}", but it is not provided!')
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -96,11 +96,11 @@ class LogicalModel(HybridModelBase):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    HybridModelBase.initialize(self,runInfo,inputs,initDict)
-    self.controlFunction = self.retrieveObjectFromAssemblerDict('ControlFunction', self.controlFunction)
+    HybridModelBase.initialize(self, runInfo, inputs, initDict)
+    self.controlFunction = self.retrieveObjectFromAssemblerDict('ControlFunction', self.controlFunctionName)
     if "evaluate" not in self.controlFunction.availableMethods():
-      self.raiseAnError(IOError,'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
-                        'It must be present if this needs to be used in a {}!'.format(self.name))
+      self.raiseAnError(IOError, 'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
+                        f'It must be present if this needs to be used in a {self.name}!')
     # check models inputs and outputs, we require all models under LogicalModel should have
     # exactly the same inputs and outputs from RAVEN piont of view.
     # TODO: currently, the above statement could not fully verified by the following checks.
@@ -108,16 +108,14 @@ class LogicalModel(HybridModelBase):
     # a standardize treatment of variables in ExternalModels and ROMs
     # if DataObjects among the inputs, check input consistency with ExternalModels and ROMs
     inpVars = None
-    inpObjName = None
     for inpObj in inputs:
       if inpObj.type in ['PointSet', 'HistorySet']:
         if not inpVars:
           inputVars = inpObj.getVars('input')
-          inpObjName = inpObj.name
         else:
-          self.raiseAnError(IOError, 'Only one input DataObject can be accepted for {}!'.format(self.name))
+          self.raiseAnError(IOError, f'Only one input DataObject can be accepted for {self.name}!')
       elif inpObj.type in ['DataSet']:
-        self.raiseAnError(IOError, 'DataSet "{}" is not allowed as input for {}!'.format(inpObj.name, self.name))
+        self.raiseAnError(IOError, f'DataSet "{inpObj.name}" is not allowed as input for {self.name}!')
 
     extModelVars = None
     extModelName = None
@@ -126,12 +124,12 @@ class LogicalModel(HybridModelBase):
     romName = None
     for modelName, modelInst in self.modelInstances.items():
       if modelInst.type == 'ExternalModel':
-        vars = list(modelInst.modelVariableType.keys())
+        tmpVars = list(modelInst.modelVariableType.keys())
         if not extModelVars:
-          extModelVars = vars
+          extModelVars = tmpVars
           extModelName = modelName
-        elif set(extModelVars) != set(vars):
-          self.raiseAnError(IOError,'"Variables" provided to model "{}" are not the same as model "{}"!'.format(modelName, extModelName))
+        elif set(extModelVars) != set(tmpVars):
+          self.raiseAnError(IOError, f'"Variables" provided to model "{modelName}" are not the same as model "{extModelName}"!')
       elif modelInst.type == 'ROM':
         inpVars = modelInst._interfaceROM.features
         outVars = modelInst._interfaceROM.target
@@ -140,21 +138,21 @@ class LogicalModel(HybridModelBase):
           romOutVars = outVars
           romName = modelName
         elif set(romInpVars) != set(inpVars) or set(romOutVars) != set(outVars):
-          self.raiseAnError(IOError,'ROM "{}" does not have the same Features and Targets as ROM "{}"!'.format(modelName, romName))
+          self.raiseAnError(IOError, f'ROM "{modelName}" does not have the same Features and Targets as ROM "{romName}"!')
       elif modelInst.type == 'Code':
-        self.raiseAWarning('The input/output consistency check is not performed for Model "{}" among {}!'.format(modelName, self.name))
+        self.raiseAWarning(f'The input/output consistency check is not performed for Model "{modelName}" among {self.name}!')
       else:
-        self.raiseAnError(IOError, 'Model "{}" with type "{}" can not be accepted by {}!'.format(modelName, modelInst.type, self.name))
+        self.raiseAnError(IOError, f'Model "{modelName}" with type "{modelInst.type}" can not be accepted by {self.name}!')
     if extModelVars is not None and romInpVars is not None:
       romVars = romInpVars + romOutVars
       if set(romVars) != set(extModelVars):
-        self.raiseAnError(IOError,'"Variables" provided to model "{}" are not the same as ROM "{}"!'.format(extModelName, romName),
+        self.raiseAnError(IOError, f'"Variables" provided to model "{extModelName}" are not the same as ROM "{romName}"!',
                           'The variables listed in "Target" and "Features" of ROM should be also listed for ExternalModel under "Variables" node!')
     if extModelVars is not None or romInpVars is not None:
       if not inputVars:
         modelName = romName if romInpVars else extModelName
-        self.raiseAnError(IOError, 'An input DataObject is required for {}!'.format(self.name),
-                          'This is because model "{}" expects a DataObject as input.'.format(modelName))
+        self.raiseAnError(IOError, f'An input DataObject is required for {self.name}!',
+                          f'This is because model "{modelName}" expects a DataObject as input.')
       else:
         error = set(inputVars) - set(romInpVars) if romInpVars else set(inputVars) - set(extModelVars)
         modelName = romName if romInpVars else extModelName
@@ -170,11 +168,11 @@ class LogicalModel(HybridModelBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
-    self.raiseADebug("{}: Create new input.".format(self.name))
+    self.raiseADebug(f"{self.name}: Create new input.")
     # TODO: standardize the way to handle code/external model/rom inputs
     modelToRun = self.controlFunction.evaluate("evaluate", kwargs)
     if modelToRun not in self.modelInstances:
-      self.raiseAnError(IOError, 'Model (i.e. {}) returned from "ControlFunction" is not valid!'.format(modelToRun),
+      self.raiseAnError(IOError, f'Model (i.e. {modelToRun}) returned from "ControlFunction" is not valid!',
                         'Available models are: {}'.format(','.join(self.modelInstances.keys())))
     kwargs['modelToRun'] = modelToRun
     if self.modelInstances[modelToRun].type == 'Code':
@@ -183,6 +181,7 @@ class LogicalModel(HybridModelBase):
         if isinstance(elem, Files.File):
           codeInput.append(copy.deepcopy(elem))
       return (codeInput, samplerType, kwargs)
+
     return (myInput, samplerType, kwargs)
 
   def _externalRun(self, inRun, jobHandler):
@@ -193,7 +192,7 @@ class LogicalModel(HybridModelBase):
       @ In, jobHandler, instance, instance of jobHandler
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
-    self.raiseADebug("{}: External Run".format(self.name))
+    self.raiseADebug(f"{self.name}: External Run")
     originalInput = inRun[0]
     samplerType = inRun[1]
     inputKwargs = inRun[2]
@@ -220,7 +219,8 @@ class LogicalModel(HybridModelBase):
       self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedRun[0].identifier, "failed!")
     # collect output in temporary data object
     exportDict = evaluation
-    self.raiseADebug("{}: Create exportDict".format(self.name))
+    self.raiseADebug(f"{self.name}: Create exportDict")
+
     return exportDict
 
   def collectOutput(self, finishedJob, output):

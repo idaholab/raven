@@ -330,7 +330,16 @@ def readExternalXML(extFile, extNode, cwd):
   if not os.path.exists(extFile):
     raise IOError('XML UTILS ERROR: External XML file not found: "{}"'.format(os.path.abspath(extFile)))
   # find the element to read
-  root = ET.parse(open(extFile, 'r')).getroot()
+  try:
+    root = ET.parse(extFile).getroot()
+  except ET.ParseError as err:
+    lineNo, col = err.position
+    with open(extFile, 'r') as inFile:
+      content = inFile.readlines()
+    line = content[lineNo-1].strip('\n')
+    caret = '{:=>{}}'.format('^', col)
+    err.msg = '{}\n{}\n{}\n in input file: {}'.format(err, line, caret, extFile)
+    raise err
   if root.tag != extNode.strip():
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode, extFile))
   return root

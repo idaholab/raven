@@ -268,8 +268,9 @@ class RAVEN(CodeInterfaceBase):
           raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
         else:
           nodeFileToUse = os.environ["PBS_NODEFILE"]
-      modifDict['RunInfo|mode'           ] = 'mpi'
-      modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
+      if len(parser.tree.findall('./RunInfo/mode')) == 1:
+        #If there is a mode node, give it a nodefile.
+        modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize

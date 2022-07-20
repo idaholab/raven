@@ -125,10 +125,10 @@ if args.config_file is not None:
 
   if 'rook' in config:
     for key in config['rook']:
-      if key in args and args.__getattribute__(key) is None:
+      if key in args and getattr(args, key) is None:
         value = config['rook'][key]
         print('rook: ... loaded setting "{} = {}"'.format(key, value))
-        args.__setattr__(key, value)
+        setattr(args, key, value)
   else:
     print("No section [rook] in config file ", args.config_file)
 

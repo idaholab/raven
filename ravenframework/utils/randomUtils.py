@@ -24,6 +24,7 @@ import math
 import threading
 from collections import deque, defaultdict
 import numpy as np
+import copy
 
 from .utils import findCrowModule
 from . import mathUtils
@@ -85,11 +86,92 @@ class BoxMullerGenerator:
     stdev = np.std(samples)
     return mean,stdev
 
+class CrowRNG:
+  """ Wraps crow RandomClass to make it serializable """
+  def __init__(self, engine=None):
+    """
+      Constructor
+      @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
+      @ Out, None
+    """
+    if engine is None:
+      self._engine = findCrowModule('randomENG').RandomClass()
+    elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+      self._engine = engine
+    else:
+      raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by CrowRNG class!')
+
+  def __getstate__(self):
+    """
+      Get state for serialization
+      @ In, None
+      @ Out, d, dict, object instance state
+    """
+    d = copy.copy(self.__dict__)
+    eng = d.pop('_engine')  # remove RNG engine from class instance
+    d['count'] = eng.get_rng_state()
+    return d
+
+  def __setstate__(self, d):
+    """
+      Set object instance state
+      @ In, d, dict, object state
+      @ Out, None
+    """
+    count = d.pop('count')
+    self.__dict__.update(d)
+    self._engine = findCrowModule('randomENG').RandomClass()  # reinstantiate RNG engine
+    self._engine.seed(self._seed)
+    self._engine.forward_seed(count)
+
+  def seed(self, value):
+    """
+      Wrapper for RandomClass.seed()
+      @ In, value, int, RNG seed
+      @ Out, None
+    """
+    self._seed = abs(int(value))
+    self._engine.seed(self._seed)  # takes unsigned long
+
+  def random(self):
+    """
+      Wrapper for RandomClass.random()
+      @ In, None
+      @ Out, float, random number from RNG engine
+    """
+    return self._engine.random()  # returns double
+
+  def getRNGState(self):
+    """
+      Wrapper for RandomClass.get_rng_state()
+      @ In, None
+      @ Out, int, RNG state
+    """
+    return self._engine.get_rng_state()  # returns int
+
+  def forwardSeed(self, counts):
+    """
+      Wrapper for RandomClass.forward_seed()
+      @ In, counts, int, number of random states to progress
+      @ Out, None
+    """
+    self._engine.forward_seed(counts)  # takes unsigned int
+
+  def getRNGSeed(self):
+    """
+      Wrapper for RandomClass.get_rng_seed()
+      @ In, None
+      @ Out, int, RNG seed value
+    """
+    val = self._engine.get_rng_seed()  # returns int
+    self._seed = abs(int(val))
+    return self._seed
+
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   setupCpp()
-  crowStochEnv = findCrowModule('randomENG').RandomClass()
+  crowStochEnv = CrowRNG()
   # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
@@ -112,9 +194,9 @@ def randomSeed(value, seedBoth=False, engine=None):
   if engine is None:
     if stochasticEnv == 'crow':
       distStochEnv.seedRandom(value)
-      engine=crowStochEnv
+      engine = crowStochEnv
     elif stochasticEnv == 'numpy':
-      replaceGlobalEnv=True
+      replaceGlobalEnv = True
       global npStochEnv
       # global npStochEvn is needed in numpy environment here
       # to prevent referenced before assignment in local loop
@@ -122,14 +204,26 @@ def randomSeed(value, seedBoth=False, engine=None):
 
   if isinstance(engine, np.random.RandomState):
     engine = np.random.RandomState(value)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     engine.seed(value)
     if seedBoth:
       np.random.seed(value+1) # +1 just to prevent identical seed sets
-  if stochasticEnv== 'numpy' and replaceGlobalEnv:
-    npStochEnv= engine
+  if stochasticEnv == 'numpy' and replaceGlobalEnv:
+    npStochEnv = engine
   if replaceGlobalEnv:
     print('randomUtils: Global random number seed has been changed to',value)
+
+def forwardSeed(count, engine):
+  """
+    Function to advance the state of a random number generator engine
+    @ In, count, int, number of steps to advance the RNG
+    @ In, engine, np.random.RandomState or CrowRNG, RNG engine to modify
+    @ Out, None
+  """
+  if isinstance(engine, np.random.RandomState):
+    engine.rand(count)
+  elif isinstance(engine, CrowRNG):
+    engine.forwardSeed(count)
 
 def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
@@ -145,7 +239,7 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
     vals = engine.rand(samples,dim)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
@@ -170,7 +264,7 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
     size = (size, )
   if isinstance(engine, np.random.RandomState):
     vals = engine.randn(*size)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     vals = np.zeros(np.prod(size))
     for i in range(len(vals)):
       vals[i] = boxMullerGen.generate(engine=engine)
@@ -210,7 +304,7 @@ def randomIntegers(low, high, caller=None, engine=None):
   engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
     rawInt = math.floor(rawNum)
@@ -235,7 +329,7 @@ def randomChoice(array, size = 1, replace = True, engine = None):
   assert(hasattr(array,"shape") or isinstance(array,list))
 
   if not replace:
-    if hasattr(array,"shape"):
+    if hasattr(array,"shape"):  # TODO: not a problem actually. Should be able to use numpy.random.RandomState.choice(a, replace=False)
       raise RuntimeError("Option with replace False not available for ndarrays")
     if len(array) < size:
       raise RuntimeError("array size < of number of requested samples (size)")
@@ -264,7 +358,7 @@ def randomPermutation(l,caller,engine=None):
   engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
-  elif isinstance(engine, findCrowModule('randomENG').RandomClass):
+  elif isinstance(engine, CrowRNG):
     newList = []
     oldList = l[:]
     while len(oldList) > 0:
@@ -327,7 +421,7 @@ def newRNG(env=None):
   if env is None:
     env = stochasticEnv
   if env == 'crow':
-    engine = findCrowModule('randomENG').RandomClass()
+    engine = CrowRNG()
   elif env == 'numpy':
     engine = np.random.RandomState()
   return engine
@@ -363,7 +457,7 @@ def getEngine(eng):
       eng = npStochEnv
     elif stochasticEnv == 'crow':
       eng = crowStochEnv
-  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
+  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, CrowRNG):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
 

@@ -575,6 +575,8 @@ class Code(Model):
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
     self.raiseADebug(f'shell execution command: "{command}"')
+    self.raiseADebug('shell cwd: "'+localenv['PWD']+'"')
+    self.raiseADebug('self pid:' + str(os.getpid())+' ppid: '+str(os.getppid()))
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -586,7 +588,7 @@ class Code(Model):
         time.sleep(0.5)
         process.poll()
         if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
           process.kill()
           process.returncode = -1
         if process.returncode is not None or time.time() > timeout:
@@ -595,6 +597,8 @@ class Code(Model):
       process.wait()
 
     returnCode = process.returncode
+    self.raiseADebug(" Process "+str(process.pid)+" finished "+time.ctime()+
+                     " with returncode "+str(process.returncode))
     # procOutput = process.communicate()[0]
 
     ## If the returnCode is already non-zero, we should maintain our current

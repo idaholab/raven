@@ -112,13 +112,16 @@ RedundantInputs/sim_py_grid/
 RedundantInputs/sim_py_MC/
 RedundantInputs/sim_py_SC/
 RedundantInputs/sobol_redundant/
+ROM/pickleTests/ARMA/arma.pk
 ROM/pickleTests/StochasticPolyPickleTest/ROMpk
 ROM/scgpc/
 ROM/Sobol/AdaptSobol/
 ROM/Sobol/SobolTime/
 ROM/Sobol/states.txt
+ROM/tensorflow_keras/data/cnn1d.pk
 ROM/TimeSeries/ARMA/ARMAparallel/
 ROM/TimeSeries/ARMA/ARMAreseed/
+ROM/TimeSeries/ARMA/Interpolated/interpolated.pk
 ROM/TimeSeries/ARMA/Multicycle/arma.pk
 ROM/TimeSeries/ARMA/Segmented/arma.pk
 ROM/TimeSeries/ARMA/ZeroFilterCluster/arma.pk
@@ -129,6 +132,7 @@ ROM/TimeSeries/DMD/TraditionalDMD/
 ROM/TimeSeries/PolyExponential/PolyExpNearest/
 ROM/TimeSeries/PolyExponential/PolyExpPoly/
 ROM/TimeSeries/PolyExponential/PolyExpSpline/
+ROM/TimeSeries/SyntheticHistory/ARMA/
 RunFailures/csample/
 SingleRuns/run/sample/
 TestXSD/test_more.xsd

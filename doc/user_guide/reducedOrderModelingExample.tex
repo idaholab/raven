@@ -74,7 +74,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{RunInfo}
-   As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
+   As in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
    needs to be performed. The number of steps specified in (\xmlNode{Sequence}) are sequentially run, eight steps in this specific case, using the number of processors assigned in (\xmlNode{batchSize}).
    \\In the first step, the model is going to be sampled. The obtained results are going to be used to  train three different ROMs.These ROMs are sampled by the same strategy used in the first step in order to compare the ROMs' responses with the ones coming from the original model.
    \item \textbf{\textit{Models}}:
@@ -101,7 +101,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   To obtain the data-set on which the data mining algorithms are going to be applied, a \textit{MonteCarlo} sampling approach is employed here.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{DataObjects}
-  Int this block, six \textit{DataObjects} are defined: 1) PointSet
+  In this block, six \textit{DataObjects} are defined: 1) PointSet
   named ``samples'' used to collect the final outcomes of the code, 2)
   HistorySet named ``histories'' in which the full time responses of the
   variables are going to be stored, 3) PointSet named
