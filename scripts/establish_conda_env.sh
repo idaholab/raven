@@ -122,7 +122,7 @@ function install_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
     if [[ ${COMMAND} == *"pyomo-extensions"* ]];
     then
-      pyomo download-extensions
+      pyomo download-extensions || echo "Pyomo download failed"
       pyomo build-extensions || echo "Pyomo build failed"
     fi
   else
@@ -161,7 +161,7 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
     if [[ ${COMMAND} == *"pyomo-extensions"* ]];
     then
-      pyomo download-extensions
+      pyomo download-extensions || echo "Pyomo download failed"
       pyomo build-extensions || echo "Pyomo build failed"
     fi
   else
