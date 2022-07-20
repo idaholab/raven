@@ -214,8 +214,8 @@ class IOStep(Step):
         romModel.writePointwiseData(outputs[i])
 
       elif self.actionType[i] == 'MODEL-FILES':
-        #inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        ## pickle the ROM
+        # inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        # pickle the ROM
         # check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{inDictionary["Input"][i].name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
