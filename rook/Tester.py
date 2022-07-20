@@ -173,7 +173,10 @@ class Differ:
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
     params.add_required_param('output', 'Output files to check')
-    params.add_param('gold_files', '', 'Gold filenames')
+    params.add_param('windows_gold', '', 'Paths to Windows specific gold files, relative to test directory or "gold" directory')
+    params.add_param('mac_gold', '', 'Paths to Mac specific gold files, relative to test directory or "gold" directory')
+    params.add_param('linux_gold', '', 'Paths to Linux specific gold files, relative to test directory or "gold" directory')
+    params.add_param('gold_files', '', 'Paths to gold files, relative to test directory or "gold" directory')
     return params
 
   def __init__(self, _name, params, test_dir):
@@ -221,13 +224,28 @@ class Differ:
     """
       returns a list of the full path to the gold files
       @ In, None
-      @ Out, _get_gold_files, List(Strings), the path of the gold files.
+      @ Out, paths, List(Strings), the paths of the gold files.
     """
-    if len(self.specs['gold_files']) > 0:
+    this_OS = platform.system().lower()
+    available_OS = ['windows', 'mac', 'linux']
+
+    # replace "darwin" with "mac"
+    if this_OS == 'darwin':
+      this_OS = 'mac'
+
+    # check if OS specific gold files should be used
+    if (this_OS in available_OS) and (len(self.specs[f'{this_OS}_gold']) > 0):
+      gold_files = self.specs[f'{this_OS}_gold'].split()
+    # if OS specific gold files are not given, are specific gold files given?
+    elif len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
-      gold_path = self._get_gold_path_list(gold_files)
-      return gold_path
-    return [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+    # otherwise, use output files
+    else:
+      gold_files = self.__output_files
+
+    paths = self._get_gold_path_list(gold_files)
+
+    return paths
 
   def _get_gold_path_list(self, file_list):
     """
@@ -238,12 +256,12 @@ class Differ:
     """
     path_list = []
     for file in file_list:
-      # check if path is relative to test directory
-      if os.path.exists(os.path.join(self.__test_dir, file)):
-        path_list.append(os.path.join(self.__test_dir, file))
       # is the path relative to the "gold" directory?
-      elif os.path.exists(os.path.join(self.__test_dir, "gold", file)):
+      if os.path.exists(os.path.join(self.__test_dir, "gold", file)):
         path_list.append(os.path.join(self.__test_dir, "gold", file))
+      # check if path is relative to test directory
+      elif os.path.exists(os.path.join(self.__test_dir, file)):
+        path_list.append(os.path.join(self.__test_dir, file))
       # if it doesn't exist, check happens later to warn user
       else:
         path_list.append(os.path.join(self.__test_dir, file))
