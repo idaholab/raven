@@ -1,0 +1,142 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RAVEN.Optimizer</name>
+    <author>cogljj</author>
+    <created>2022-07-18</created>
+    <classesTested>Runners.DistributedMemoryRunner</classesTested>
+    <description>
+      Tests RAVEN Running RAVEN with an optimizer to test
+      DistributedMemoryRunner running in that threading environment.
+      This will cause JobHandler to call terminateJobs
+
+      Outer raven runs an optimizer by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
+      Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Optimizer</WorkingDir>
+    <Sequence>sample,print</Sequence>
+    <internalParallel>True</internalParallel>
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">inner_input</Input>
+      <Model class="Models" type="Code">raven</Model>
+      <!-- <Sampler class="Samplers" type="Grid">grid</Sampler> -->
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outer_samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">outer_samples</Input>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">outer_out</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="raven" subType="RAVEN">
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <outputExportOutStreams>inner_out</outputExportOutStreams>
+        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
+        <alias variable="innerUpperBound" type="input">
+          Distributions|Uniform@name:dist|upperBound,
+          Samplers|Grid|constant@name:testSecondAlias
+        </alias>
+    </Code>
+  </Models>
+
+
+  <Distributions>
+    <Uniform name="dist_lower">
+      <lowerBound>0</lowerBound>
+      <upperBound>0.49999</upperBound>
+    </Uniform>
+    <Uniform name="dist_upper">
+      <lowerBound>0.50001</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GradientDescent name="opter">
+      <objective>mean_ans</objective>
+      <variable name="innerLowerBound">
+        <distribution>dist_lower</distribution>
+        <initial>0.25</initial>
+      </variable>
+      <variable name="innerUpperBound">
+        <distribution>dist_upper</distribution>
+        <initial>0.75</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outer_samples</TargetEvaluation>
+      <samplerInit>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <FiniteDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.5</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <gradient>1e0</gradient>
+        <persistence>5</persistence>
+      </convergence>
+    </GradientDescent>
+  </Optimizers>
+
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="innerLowerBound">
+        <distribution>dist_lower</distribution>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+      </variable>
+      <variable name="innerUpperBound">
+        <distribution>dist_upper</distribution>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="outer_out">
+      <type>csv</type>
+      <source>outer_samples</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outer_samples">
+      <Input>innerLowerBound,innerUpperBound</Input>
+      <Output>mean_y1,mean_y2,mean_ans,mean_testSecondAlias</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>innerLowerBound,innerUpperBound,mean_ans,stepSize,iteration,accepted,conv_gradient</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
