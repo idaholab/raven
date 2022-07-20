@@ -225,8 +225,30 @@ class Differ:
     """
     if len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
-      return [os.path.join(self.__test_dir, f) for f in gold_files]
+      gold_path = self._get_gold_path_list(gold_files)
+      return gold_path
     return [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+
+  def _get_gold_path_list(self, file_list):
+    """
+      Checks if the path given is relative to the test directory or gold and
+      returns a list of the absolute path to gold files
+      @ In, file_list, list, relative path of gold files
+      @ Out, path_list, list, absolute path of gold files
+    """
+    path_list = []
+    for file in file_list:
+      # check if path is relative to test directory
+      if os.path.exists(os.path.join(self.__test_dir, file)):
+        path_list.append(os.path.join(self.__test_dir, file))
+      # is the path relative to the "gold" directory?
+      elif os.path.exists(os.path.join(self.__test_dir, "gold", file)):
+        path_list.append(os.path.join(self.__test_dir, "gold", file))
+      # if it doesn't exist, check happens later to warn user
+      else:
+        path_list.append(os.path.join(self.__test_dir, file))
+
+    return path_list
 
   def check_output(self):
     """
