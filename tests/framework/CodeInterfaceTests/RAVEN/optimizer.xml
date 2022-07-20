@@ -1,27 +1,24 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Optimizer</name>
-    <author>talbpaul</author>
-    <created>2018-01-18</created>
-    <classesTested>Models.Code.RAVEN</classesTested>
+    <author>cogljj</author>
+    <created>2022-07-18</created>
+    <classesTested>Runners.DistributedMemoryRunner</classesTested>
     <description>
-      Basic test of the raven-runs-raven interface.
-      Outer raven runs a grid sampling by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
+      Tests RAVEN Running RAVEN with an optimizer to test
+      DistributedMemoryRunner running in that threading environment.
+      This will cause JobHandler to call terminateJobs
+
+      Outer raven runs an optimizer by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
       Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
     </description>
-    <analytic>
-      Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
-      the "attenuate" analytic model documentation.
-    </analytic>
-    <revisions>
-      <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
-      <revision author="talbpaul" date="2018-11-06">modified inner run to use grid for speed, consistent results</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Optimizer</WorkingDir>
     <Sequence>sample,print</Sequence>
+    <internalParallel>True</internalParallel>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Steps>

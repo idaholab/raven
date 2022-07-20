@@ -12,7 +12,6 @@
      type = OrderedCSV
      output = 'Optimizer/opt_export_0.csv'
    [../]
-   max_time = 500
  [../]
  [./Code]
    type = 'RavenFramework'
