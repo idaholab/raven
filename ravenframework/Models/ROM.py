@@ -601,7 +601,7 @@ class ROM(Dummy):
 
   def writePyomoGreyModel(self):
     """
-      Called by the OutStreamPrint object to cause the ROM to print itself
+      @ In, None, called by the OutStreamPrint object to cause the ROM to print itself
       @ Out, xml, xmlUtils.StaticXmlElement, written meta
     """
     template = r"""
@@ -612,6 +612,7 @@ from pyomo.contrib.pynumero.dependencies import (numpy as np)
 from pyomo.contrib.pynumero.asl import AmplInterface
 from pyomo.contrib.pynumero.algorithms.solvers.cyipopt_solver import CyIpoptSolver, CyIpoptNLP
 import os, sys, pickle
+from contextlib import redirect_stdout
 # RAVEN ROM PYOMO GREY MODEL CLASS
 
 class ravenROM(ExternalGreyBoxModel):
@@ -709,10 +710,13 @@ if __name__ == '__main__':
   print(results)
   count = 0
   lines = str(results).split("\n")
-  textfile = open("GrayModelOutput.txt", "w")
-  for element in lines:
-    textfile.write(element + "\n")
-  textfile.close()
+  with open ("GreyModelOutput_cyipopt.txt", "w") as textfile:
+    with redirect_stdout(textfile):
+      print("---------------------< Output Summary >---------------------" + "\n")
+      for element in lines:
+        textfile.write(element + "\n")
+      print("---------------------< Optimization Results >---------------------" + "\n")
+      concreteModel.pprint()
 """
 
     return template
