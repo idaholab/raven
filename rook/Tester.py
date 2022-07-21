@@ -227,7 +227,7 @@ class Differ:
       @ Out, paths, List(Strings), the paths of the gold files.
     """
     this_OS = platform.system().lower()
-    available_OS = ['windows', 'mac', 'linux']
+    available_OS = ['windows', 'mac', 'linux'] # list of OS specific gold file options
 
     # replace "darwin" with "mac"
     if this_OS == 'darwin':
@@ -243,30 +243,20 @@ class Differ:
     else:
       gold_files = self.__output_files
 
-    paths = self._get_gold_path_list(gold_files)
-
-    return paths
-
-  def _get_gold_path_list(self, file_list):
-    """
-      Checks if the path given is relative to the test directory or gold and
-      returns a list of the absolute path to gold files
-      @ In, file_list, list, relative path of gold files
-      @ Out, path_list, list, absolute path of gold files
-    """
-    path_list = []
-    for file in file_list:
+    # get absolute paths to gold files
+    paths = []
+    for file in gold_files:
       # is the path relative to the "gold" directory?
       if os.path.exists(os.path.join(self.__test_dir, "gold", file)):
-        path_list.append(os.path.join(self.__test_dir, "gold", file))
+        paths.append(os.path.join(self.__test_dir, "gold", file))
       # check if path is relative to test directory
       elif os.path.exists(os.path.join(self.__test_dir, file)):
-        path_list.append(os.path.join(self.__test_dir, file))
-      # if it doesn't exist, check happens later to warn user
+        paths.append(os.path.join(self.__test_dir, file))
+      # if it doesn't exist, check happens later to warn user when test fails
       else:
-        path_list.append(os.path.join(self.__test_dir, file))
+        paths.append(os.path.join(self.__test_dir, file))
 
-    return path_list
+    return paths
 
   def check_output(self):
     """
