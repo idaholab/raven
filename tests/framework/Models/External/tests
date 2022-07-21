@@ -20,6 +20,7 @@
   output = 'GreyModelOutput_cyipopt.txt'
   python3_only = True
   minimum_library_versions = 'pyomo 6.4'
+  required_libraries = 'cyipopt'
  [../]
  [./fmu_ext_model]
   type = 'RavenFramework'
