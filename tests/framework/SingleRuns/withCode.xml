@@ -1,9 +1,4 @@
 <Simulation color="True" verbosity="debug">
-  <RunInfo>
-    <WorkingDir>run</WorkingDir>
-    <Sequence>sample</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/SingleRuns/codeModel</name>
     <author>talbpw</author>
@@ -13,6 +8,12 @@
        This test assures the SingleRun works in conjunction with the Code model.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Files>
     <Input name="inp" type="">projectile_input.i</Input>
@@ -38,20 +39,16 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIn">
-      <Input>y0,ang</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <PointSet name="sample">
-      <Input>y0,ang</Input>
+      <Input>y0,angle</Input>
       <Output>r</Output>
     </PointSet>
   </DataObjects>
-  
+
   <Databases>
       <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
   </Databases>
-  
+
   <OutStreams>
     <Print name="sample">
       <type>csv</type>
