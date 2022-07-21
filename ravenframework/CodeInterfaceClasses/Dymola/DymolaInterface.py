@@ -317,6 +317,25 @@ class Dymola(CodeInterfaceBase):
         raise AssertionError(
           "Parameter %s does not exist or is not formatted as expected "
           "in %s." % (name, originalPath))
+    
+    #set fileName parameter which points Dymola to vector table
+    if bool(vectorsToPass):
+      initVarIndex = 0
+      fileNameInitIndex = 0
+      initDescripIndex = 0
+      splitLines = text.splitlines()
+      for i, line in enumerate(splitLines):  #find location of path
+        if "char initialName" in line:
+          initVarIndex = i
+        if line == 'fileName' and initVarIndex > 0 and fileNameInitIndex == 0:
+          fileNameInitIndex = i
+        if "char initialDescription" in line:
+          initDescripIndex = i
+      if fileNameInitIndex > 0:
+        filePathIndex = initDescripIndex + fileNameInitIndex - initVarIndex #index of path
+        text = text.replace(splitLines[filePathIndex], currentInputFiles[indexVect].getAbsFile().replace(os.sep, '/'))
+      else:
+        raise AssertionError("Parameter fileName does not exist or is not formatted as expected "  "in %s." % originalPath)
 
     # Re-write the file.
     with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
