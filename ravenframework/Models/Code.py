@@ -588,7 +588,7 @@ class Code(Model):
         time.sleep(0.5)
         process.poll()
         if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
           process.kill()
           process.returncode = -1
         if process.returncode is not None or time.time() > timeout:

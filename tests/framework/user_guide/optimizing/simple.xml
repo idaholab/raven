@@ -72,7 +72,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
-      <variables>x,y,ans</variables>
+      <inputs>x,y</inputs>
+      <outputs>ans</outputs>
     </ExternalModel>
   </Models>
 

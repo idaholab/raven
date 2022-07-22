@@ -1,9 +1,9 @@
 [Tests]
-  [./optimizer]
+  [./GradDesc]
     type = 'RavenFramework'
-    input = '1_optimize.xml'
-    csv = 'results/to_file_1.csv'
-    output = 'results/to_file.csv'
-    skip = "needs to be converted to exercise test"
+    input = '1_grad_desc.xml'
+    csv = 'GradDesc/opt_search_0.csv'
+    output = 'GradDesc/path.png'
+    rel_err = 1e-2
   [../]
 []

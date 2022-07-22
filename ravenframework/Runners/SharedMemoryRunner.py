@@ -56,6 +56,7 @@ class SharedMemoryRunner(InternalRunner):
     #self.subque = queue.Queue()
 
     self.skipOnCopy.append('subque')
+    self.thread = None
 
   def isDone(self):
     """
