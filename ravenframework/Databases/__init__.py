@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 from ..utils import InputData
 
-from .Database import DateBase as Database
+from .Database import DataBase as Database
 from .HDF5 import HDF5
 from .NetCDF import NetCDF
 

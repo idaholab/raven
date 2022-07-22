@@ -566,7 +566,7 @@ class Uniform(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     if not self.upperBoundUsed or not self.lowerBoundUsed:
       self.raiseAnError(IOError,'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '+ str(self.upperBoundUsed) + '. Got lowerBound? '+str(self.lowerBoundUsed))
     self.range = self.upperBound - self.lowerBound
@@ -686,7 +686,7 @@ class Normal(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     meanFind = paramInput.findFirst('mean' )
     if meanFind is not None:
       self.mean  = meanFind.value
@@ -844,7 +844,7 @@ class Gamma(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     lowFind = paramInput.findFirst('low')
     if lowFind != None:
       self.low = lowFind.value
@@ -1003,7 +1003,7 @@ class Beta(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     lowFind = paramInput.findFirst('low')
     if lowFind != None:
       self.low = lowFind.value
@@ -1173,7 +1173,7 @@ class Triangular(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     apexFind = paramInput.findFirst('apex')
     if apexFind != None:
       self.apex = apexFind.value
@@ -1284,7 +1284,7 @@ class Poisson(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     muFind = paramInput.findFirst('mu')
     if muFind != None:
       self.mu = muFind.value
@@ -1382,7 +1382,7 @@ class Binomial(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     nFind = paramInput.findFirst('n')
     if nFind != None:
       self.n = nFind.value
@@ -1481,7 +1481,7 @@ class Bernoulli(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     pFind = paramInput.findFirst('p')
     if pFind != None:
       self.p = pFind.value
@@ -1574,7 +1574,7 @@ class Geometric(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     pFind = paramInput.findFirst('p')
     if pFind != None:
       self.p = pFind.value
@@ -1650,6 +1650,7 @@ class Categorical(Distribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
@@ -1675,6 +1676,15 @@ class Categorical(Distribution):
     paramDict['mapping'] = self.mapping
     paramDict['values'] = self.values
     return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.mapping = pdict.pop('mapping')
+    self.values = pdict.pop('values')
 
   def initializeFromDict(self, inputDict):
     """
@@ -1833,7 +1843,7 @@ class UniformDiscrete(Distribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    Distribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     if self.lowerBound is None:
       self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
 
@@ -2067,12 +2077,20 @@ class MarkovCategorical(Categorical):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = Distribution.getInitParams(self)
-    paramDict['mapping'] = self.mapping
-    paramDict['values'] = self.values
+    paramDict = super().getInitParams()
     paramDict['transition'] = self.transition
     paramDict['steadyStatePb'] = self.steadyStatePb
     return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    super()._localSetState(pdict)
+    self.transition = pdict.pop('transition')
+    self.steadyStatePb = pdict.pop('steadyStatePb')
 
   def initializeDistribution(self):
     """
@@ -2086,7 +2104,7 @@ class MarkovCategorical(Categorical):
         self.mapping[key] = self.steadyStatePb[value - 1]
       except IndexError:
         self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
-    Categorical.initializeDistribution(self)
+    super().initializeDistribution()
 
   def computeSteadyStatePb(self, transition):
     """
@@ -2168,7 +2186,7 @@ class Logistic(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     locationFind = paramInput.findFirst('location')
     if locationFind != None:
       self.location = locationFind.value
@@ -2278,7 +2296,7 @@ class Laplace(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     locationFind = paramInput.findFirst('location')
     if locationFind != None:
       self.location = locationFind.value
@@ -2381,7 +2399,7 @@ class Exponential(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     lambdaFind = paramInput.findFirst('lambda')
     if lambdaFind != None:
       self.lambdaVar = lambdaFind.value
@@ -2522,7 +2540,7 @@ class LogNormal(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     meanFind = paramInput.findFirst('mean')
     if meanFind != None:
       self.mean = meanFind.value
@@ -2639,7 +2657,7 @@ class Weibull(BoostDistribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     lambdaFind = paramInput.findFirst('lambda')
     if lambdaFind != None:
       self.lambdaVar = lambdaFind.value
@@ -2799,6 +2817,39 @@ class Custom1D(Distribution):
     # Note that self.invCDF is creating a new spline where I switch its term.
     # Instead of doing spline(x,f(x)) I am creating its inverse spline(f(x),x)
     # This can be done if f(x) is monothonic increasing with x (which is true for cdf)
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = super().getInitParams()
+    paramDict['workingDir'] = self.workingDir
+    paramDict['dataFilename'] = self.dataFilename
+    paramDict['functionID'] = self.functionID
+    paramDict['functionType'] = self.functionType
+    paramDict['variableID'] = self.variableID
+    paramDict['k'] = self.k
+    paramDict['s'] = self.s
+    return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.workingDir = pdict.pop('workingDir')
+    self.dataFilename = pdict.pop('dataFilename')
+    self.functionID = pdict.pop('functionID')
+    self.functionType = pdict.pop('functionType')
+    self.variableID = pdict.pop('variableID')
+    self.k = pdict.pop('k')
+    self.s = pdict.pop('s')
+
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
@@ -2885,20 +2936,30 @@ class LogUniform(Distribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.lowerBound = paramInput.findFirst('lowerBound').value
-    if self.lowerBound is None:
-      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
-
-    self.upperBound = paramInput.findFirst('upperBound').value
-    if self.upperBound is None:
-      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
-
-    if self.upperBound < self.lowerBound:
-      self.raiseAnError(IOError,' LogUniform distribution: the upperBound parameter is lower than the lowerBound parameter')
-
+    super()._handleInput(paramInput)
     self.base = paramInput.findFirst('base').value
     if self.base not in ['natural','decimal']:
       self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = super().getInitParams()
+    paramDict['base'] = self.base
+    return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.base = pdict.pop('base')
 
   def pdf(self,x):
     """
@@ -2987,11 +3048,12 @@ class NDimensionalDistributions(Distribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    Distribution._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     workingDir = paramInput.findFirst('workingDir')
     if workingDir != None:
       self.workingDir = workingDir.value
-
+    else:
+      self.workingDir = os.getcwd()
 
   def getInitParams(self):
     """
@@ -3001,10 +3063,21 @@ class NDimensionalDistributions(Distribution):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = Distribution.getInitParams(self)
+    paramDict = super().getInitParams()
     paramDict['functionType'] = self.functionType
     paramDict['dataFilename'] = self.dataFilename
+    paramDict['workingDir'] = self.workingDir
     return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.functionType = pdict.pop('functionType')
+    self.dataFilename = pdict.pop('dataFilename')
+    self.workingDir = pdict.pop('workingDir')
 
   #######
   def updateRNGParam(self, dictParam):
@@ -3100,7 +3173,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    NDimensionalDistributions._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     pFind = paramInput.findFirst('p')
     if pFind != None:
       self.p = pFind.value
@@ -3129,9 +3202,18 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = NDimensionalDistributions.getInitParams(self)
+    paramDict = super().getInitParams()
     paramDict['p'] = self.p
     return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    super()._localSetState(pdict)
+    self.p = pdict.pop('p')
 
   def initializeDistribution(self):
     """
@@ -3298,7 +3380,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    NDimensionalDistributions._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     dataFilename = paramInput.findFirst('dataFilename')
     if dataFilename != None:
       self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
@@ -3312,17 +3394,6 @@ class NDCartesianSpline(NDimensionalDistributions):
       self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
-
-  def getInitParams(self):
-    """
-      Function to get the initial values of the input parameters that belong to
-      this class
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = NDimensionalDistributions.getInitParams(self)
-    return paramDict
 
   def initializeDistribution(self):
     """
@@ -3510,6 +3581,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    super()._handleInput(paramInput)
     if paramInput.parameterValues['method'] == 'pca':
       self.method = 'pca'
     elif paramInput.parameterValues['method'] == 'spline':
@@ -3564,7 +3636,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = NDimensionalDistributions.getInitParams(self)
+    paramDict = super().getInitParams()
     paramDict['method'] = self.method
     paramDict['dimension'] = self.dimension
     paramDict['rank'] = self.rank
