@@ -31,11 +31,14 @@
   type = 'RavenFramework'
   input = 'test_LimitSurface_with_err_bounds.xml'
   output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.xml'
-  csv = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
   max_time = 300
   rel_err = 0.001
   # replace skip_if_OS = windows with Windows specific gold file
-  windows_gold = 'gold/limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
+  [./csv]
+   type = OrderedCSV
+   output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
+   windows_gold = 'gold/limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
+   [../]
  [../]
 
 
