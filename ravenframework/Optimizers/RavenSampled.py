@@ -96,7 +96,7 @@ class RavenSampled(Optimizer):
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
                'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
-               'rejectReason':'discription of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
+               'rejectReason':'description of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
 
@@ -384,7 +384,7 @@ class RavenSampled(Optimizer):
     """
       Increments the "generation" or "iteration" of an optimization algorithm.
       The definition of generation is algorithm-specific; this is a utility for tracking only.
-      @ In, traj, int, identifer for trajectory
+      @ In, traj, int, identifier for trajectory
       @ Out, None
     """
     self.__stepCounter[traj] += 1
@@ -393,7 +393,7 @@ class RavenSampled(Optimizer):
     """
       Provides the "generation" or "iteration" of an optimization algorithm.
       The definition of generation is algorithm-specific; this is a utility for tracking only.
-      @ In, traj, int, identifer for trajectory
+      @ In, traj, int, identifier for trajectory
       @ Out, counter, int, iteration of the trajectory
     """
     return self.__stepCounter[traj]
@@ -406,7 +406,7 @@ class RavenSampled(Optimizer):
       @ In, proposed, dict, NORMALIZED sample opt point
       @ In, previous, dict, NORMALIZED previous opt point
       @ In, pointType, string, type of point to handle constraints for
-      @ Out, normed, dict, suggested NORMALIZED contraint-handled point
+      @ Out, normed, dict, suggested NORMALIZED constraint-handled point
       @ Out, modded, bool, whether point was modified or not
     """
     denormed = self.denormalizeData(proposed)
@@ -543,7 +543,7 @@ class RavenSampled(Optimizer):
     # FIXME check implicit constraints? Function call, - Jia
     acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
-    # we only want to update persistance if we've accepted a new point.
+    # we only want to update persistence if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
     if acceptable in ['accepted']:
       self._updatePersistence(traj, converged, optVal)
