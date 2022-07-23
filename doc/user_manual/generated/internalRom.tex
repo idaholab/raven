@@ -387,7 +387,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
             delineates the importance weighting of this dimension.  A larger importance weight will
             result in increased resolution for this dimension at the cost of resolution in lower-
-            weighted                   dimensions.  The algorithm normalizes weights at run-time. default=1
+            weighted                   dimensions.  The algorithm normalizes weights at run-time. \default{1}
       \end{itemize}
   \end{itemize}
 
@@ -555,7 +555,7 @@ Example:
           \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
             delineates the importance weighting of this dimension.  A larger importance weight will
             result in increased resolution for this dimension at the cost of resolution in lower-
-            weighted                   dimensions.  The algorithm normalizes weights at run-time. default=1
+            weighted                   dimensions.  The algorithm normalizes weights at run-time. \default{1}
       \end{itemize}
 
     \item \xmlNode{SobolOrder}: \xmlDesc{integer}, 
@@ -1008,7 +1008,7 @@ Example:
             example, in one 1000-length history test, low memory reduced memory usage by 2.3
             MiB, but increased training time by 0.4 seconds. No change in results has been
             observed switching between modes. Note that the ARMA must be
-            retrained to change this property; it cannot be applied to serialized ARMAs. default=False
+            retrained to change this property; it cannot be applied to serialized ARMAs. \default{False}
       \end{itemize}
 
       The \xmlNode{arma} node recognizes the following subnodes:

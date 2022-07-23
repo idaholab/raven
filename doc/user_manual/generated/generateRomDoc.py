@@ -784,12 +784,10 @@ for name in orderedValidRom:
     continue
   obj = SupervisedLearning.factory.returnClass(name)
   specs = obj.getInputSpecification()
-  romDescr = wrapText(specs.description, ' ')
   tex = specs.generateLatex(sectionLevel=2)
   exampleTex = exampleFactory[name] if name in exampleFactory else ''
   try:
     if isinstance(obj(), ScikitLearnBase):
-      sklROM += romDescr
       sklROM += tex
       sklROM += exampleTex
     else:
