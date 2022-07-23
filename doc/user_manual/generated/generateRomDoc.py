@@ -648,6 +648,7 @@ exampleFactory = {
 #------------#
 # ROM #
 #------------#
+
 segmentTex = r"""
 In addition, \xmlNode{Segment} can be used to divided the ROM. In order to enable the segmentation, the
 user need to specify following information for \xmlNode{Segment}:
@@ -775,6 +776,7 @@ for rom in validInternalRom + validRom:
 internalRom = ''
 sklROM = ''
 dnnRom = ''
+# base classes first
 for name in orderedValidRom:
   if name in excludeObj:
     continue
