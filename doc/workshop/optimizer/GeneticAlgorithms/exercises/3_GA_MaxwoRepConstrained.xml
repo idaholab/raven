@@ -9,7 +9,7 @@
   <Steps>
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Model class="Models" type="ExternalModel">LocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -26,12 +26,12 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../Models/myLocalSum.py" name="myLocalSum" subType="">
+    <ExternalModel ModuleToLoad="../../Models/LocalSum.py" name="LocalSum" subType="">
       <variables>x1,x2,x3,x4,x5,x6,obj</variables>
     </ExternalModel>
   </Models>
 
-  <Functions><!--Complete this-->
+  <Functions>
     <External file="../../Models/myConstraints.py" name="expConstr1">
       <variables>x1,x2,x3,x4,x5,x6</variables>
     </External>
