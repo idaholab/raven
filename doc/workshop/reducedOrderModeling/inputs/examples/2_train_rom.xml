@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs/examples.train</name>
+    <name>doc/workshop/reducedOrderModeling/inputs.train</name>
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested>Models.ROM</classesTested>
@@ -10,85 +10,44 @@
 
   <RunInfo>
     <WorkingDir>r2</WorkingDir>
-    <Sequence>createTrainingData,trainRom,createTestingData,validateROM,plot</Sequence>
-    <batchSize>4</batchSize>
+    <Sequence>FirstMRun,plot,trainRom</Sequence><!-- Complete this-->
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="createTrainingData" pauseAtEnd="True">
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers" type="MonteCarlo">TrainSampler</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
       <Output class="OutStreams" type="Print">outMC</Output>
     </MultiRun>
-
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="OutStreams" type="Plot">ModelExploration</Output>
+    </IOStep>
     <RomTrainer name="trainRom">
       <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Output class="Models" type="ROM">myROM</Output>
+      <Output class="Models" type="ROM">IDW</Output>
     </RomTrainer>
-
-    <MultiRun name="createTestingData" pauseAtEnd="True" re-seeding="0">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers" type="MonteCarlo">TestSamplerHF</Sampler>
-      <Output class="DataObjects" type="PointSet">HFTestingData</Output>
-      <Output class="OutStreams" type="Print">HFTestingData</Output>
-    </MultiRun>
-
-    <MultiRun name="validateROM" pauseAtEnd="True" re-seeding="0">
-      <Input class="DataObjects" type="PointSet">HFTestingData</Input>
-      <Model class="Models" type="ROM">myROM</Model>
-      <Sampler class="Samplers" type="MonteCarlo">TestSamplerROM</Sampler>
-      <Output class="DataObjects" type="PointSet">ROMTestingData</Output>
-      <Output class="OutStreams" type="Print">ROMTestingData</Output>
-    </MultiRun>
-
-    <IOStep name="plot">
-      <Input class="DataObjects" type="PointSet">HFTestingData</Input>
-      <Input class="DataObjects" type="PointSet">ROMTestingData</Input>
-      <Output class="OutStreams" type="Plot">plotMC</Output>
-    </IOStep>
   </Steps>
 
-  <Distributions>
-    <Normal name="angle_d">
-      <mean>45</mean>
-      <sigma>5</sigma>
-      <lowerBound>5</lowerBound>
-      <upperBound>85</upperBound>
-    </Normal>
-  </Distributions>
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t</variables>
+    </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
 
   <Samplers>
-    <MonteCarlo name="TrainSampler">
-      <samplerInit>
-        <limit>1000</limit>
-        <initialSeed>120504</initialSeed>
-      </samplerInit>
-      <variable name="angle">
-        <distribution>angle_d</distribution>
-      </variable>
-      <constant name="v0">1.0</constant>
-      <constant name="x0">0</constant>
-      <constant name="y0">0</constant>
-    </MonteCarlo>
-    <MonteCarlo name="TestSamplerHF">
+    <MonteCarlo name="mcSampler">
       <samplerInit>
         <limit>100</limit>
-        <initialSeed>080510</initialSeed>
-      </samplerInit>
-      <variable name="angle">
-        <distribution>angle_d</distribution>
-      </variable>
-      <constant name="v0">1.0</constant>
-      <constant name="x0">0</constant>
-      <constant name="y0">0</constant>
-    </MonteCarlo>
-    <MonteCarlo name="TestSamplerROM">
-      <samplerInit>
-        <limit>100</limit>
-        <initialSeed>080510</initialSeed>
+        <initialSeed>080118</initialSeed>
       </samplerInit>
       <variable name="angle">
         <distribution>angle_d</distribution>
@@ -99,126 +58,46 @@
     </MonteCarlo>
   </Samplers>
 
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>x0,v0,y0,angle</Input>
+      <Input>x0,y0,v0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outMC">
       <Input>angle</Input>
-      <Output>r,t</Output>
-    </PointSet>
-    <PointSet name="HFTestingData">
-      <Input>angle</Input>
       <Output>r</Output>
     </PointSet>
-    <PointSet name="ROMTestingData">
-      <Input>angle</Input>
-      <Output>r</Output>
-    </PointSet>
-
   </DataObjects>
-
-  <Models>
-    <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile" name="projectile" subType="">
-      <variables>x0,v0,y0,angle,x,y,r,t</variables>
-    </ExternalModel>
-
-    <!-- <ROM name="myROM" subType="LinearRegression">
-      <Features>angle</Features>
-      <Target>r</Target>
-    </ROM> -->
-    <!-- <ROM name="myROM" subType="NDinvDistWeight">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <p>3</p>
-    </ROM> -->
-    <!-- <ROM name="myROM" subType="GaussianProcessRegressor">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <kernel>RBF</kernel>
-      <optimizer>fmin_l_bfgs_b</optimizer>
-    </ROM> -->
-    <!-- <ROM name="myROM" subType="SVR">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <kernel>rbf</kernel>
-      <degree>2</degree>
-      <epsilon>0.0001</epsilon>
-    </ROM> -->
-    <!-- <ROM name="myROM" subType="MLPRegressor">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <hidden_layer_sizes>300,100,50,1</hidden_layer_sizes>
-      <activation>logistic</activation>
-    </ROM> -->
-    <ROM name="myROM" subType="KerasMLPRegression">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <loss>mean_squared_error</loss>
-      <validation_split>0.0</validation_split>
-      <random_seed>050877</random_seed>
-      <Dense name="layer1">
-        <dim_out>500</dim_out>
-        <activation>relu</activation>
-      </Dense>
-      <Dense name="layer2">
-        <dim_out>300</dim_out>
-        <activation>relu</activation>
-      </Dense>
-      <Dense name="layer3">
-        <dim_out>200</dim_out>
-        <activation>relu</activation>
-      </Dense>
-      <Dense name="layer4">
-        <dim_out>100</dim_out>
-        <activation>relu</activation>
-      </Dense>
-      <Dense name="outLayer">
-        <activation>linear</activation>
-      </Dense>
-      <layer_layout>layer1, layer2, layer3, layer4, outLayer</layer_layout>
-    </ROM>
-  </Models>
 
   <OutStreams>
     <Print name="outMC">
       <type>csv</type>
       <source>outMC</source>
     </Print>
-    <Print name="HFTestingData">
-      <type>csv</type>
-      <source>HFTestingData</source>
-    </Print>
-    <Print name="ROMTestingData">
-      <type>csv</type>
-      <source>ROMTestingData</source>
-    </Print>
-    <Plot name="plotMC">
+    <Plot name="ModelExploration">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>HFTestingData|Input|angle</x>
-          <y>HFTestingData|Output|r</y>
-          <c>red</c>
+          <x>outMC|Input|angle</x>
+          <y>outMC|Output|r</y>
+          <c>blue</c>
           <kwargs>
             <label>ground truth</label>
           </kwargs>
         </plot>
-        <plot>
-          <type>scatter</type>
-          <x>ROMTestingData|Input|angle</x>
-          <y>ROMTestingData|Output|r</y>
-          <c>blue</c>
-          <marker>+</marker>
-          <kwargs>
-            <label>SVR ROM</label>
-          </kwargs>
-        </plot>
-        <xlabel>angle</xlabel>
-        <ylabel>r</ylabel>
+        <xlabel>angle (deg)</xlabel>
+        <ylabel>r (m)</ylabel>
         <legend>
-          <ncol>2</ncol>
+          <ncol>1</ncol>
         </legend>
       </plotSettings>
       <actions>

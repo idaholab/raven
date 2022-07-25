@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs/examples.srom</name>
+    <name>doc/workshop/reducedOrderModeling/inputs/examples.romWF</name>
     <author>Mohammad Abdo @(Jimmy-INL)</author>
     <created>2022-07-23</created>
     <classesTested>Models.ROM</classesTested>
@@ -55,7 +55,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
       <variables>x0,v0,y0,angle,x,y,r,t</variables>
     </ExternalModel>
     <ROM name="myROMIDW" subType="NDinvDistWeight">
@@ -209,7 +209,7 @@
       <type>csv</type>
       <source>testRomOut</source>
     </Print>
-    <Plot name="model vs. IDW ROM">
+    <Plot name="model_vs_IDW_ROM">
       <plotSettings>
         <plot>
           <type>scatter</type>

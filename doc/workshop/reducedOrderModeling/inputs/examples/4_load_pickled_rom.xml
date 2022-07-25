@@ -1,16 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs.sample</name>
+    <name>doc/workshop/reducedOrderModeling/inputs.load</name>
     <author>wangc</author>
     <created>2018-09-21</created>
-    <classesTested/>
-    <description>Workshop test: simple sampler test</description>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: load a pickled ROM</description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>r1</WorkingDir>
-    <Sequence>FirstMRun,plot</Sequence>
+    <WorkingDir>r4</WorkingDir>
+    <Sequence>FirstMRun,plot,trainRom,dumpRom,loadRom</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -20,11 +20,22 @@
       <Model class="Models" type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="OutStreams" type="Print">outMC</Output>
     </MultiRun>
     <IOStep name="plot">
       <Input class="DataObjects" type="PointSet">outMC</Input>
       <Output class="OutStreams" type="Plot">plotMC</Output>
+    </IOStep>
+    <RomTrainer name="trainRom">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="Models" type="ROM">IDW</Output>
+    </RomTrainer>
+    <IOStep name="dumpRom">
+      <Input class="Models" type="ROM">IDW</Input>
+      <Output class="Files" type="">pkIDW</Output>
+    </IOStep>
+    <IOStep name="loadRom">
+      <Input class="Files" type="">pkIDW</Input>
+      <Output class="Models" type="ROM">loadIDW</Output>
     </IOStep>
   </Steps>
 
@@ -32,6 +43,16 @@
     <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
       <variables>x0,v0,y0,angle,x,y,r,t</variables>
     </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
+    <ROM name="loadIDW" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
   </Models>
 
   <Samplers>
@@ -58,6 +79,10 @@
     </Normal>
   </Distributions>
 
+  <Files>
+    <Input name="pkIDW" type="">IDW.pk</Input>
+  </Files>
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>x0,v0,y0,angle</Input>
@@ -65,15 +90,11 @@
     </PointSet>
     <PointSet name="outMC">
       <Input>angle</Input>
-      <Output>r</Output>
+      <Output>r,t</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="outMC">
-      <type>csv</type>
-      <source>outMC</source>
-    </Print>
     <Plot name="plotMC">
       <plotSettings>
         <plot>

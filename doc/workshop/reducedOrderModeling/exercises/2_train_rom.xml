@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs/examples.train</name>
+    <name>doc/workshop/reducedOrderModeling/inputs.train</name>
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested>Models.ROM</classesTested>
@@ -10,7 +10,7 @@
 
   <RunInfo>
     <WorkingDir>r2</WorkingDir>
-    <Sequence>FirstMRun,plot,</Sequence><!-- Complete this-->
+    <Sequence>FirstMRun,plot</Sequence><!-- Complete this-->
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -28,17 +28,17 @@
     </IOStep>
     <RomTrainer name="trainRom">
       <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Output class="Models" type="ROM">IDW</Output>
+      <Output class="??" type="??">IDW</Output><!--Complete this-->
     </RomTrainer>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
       <variables>x0,v0,y0,angle,x,y,r,t</variables>
     </ExternalModel>
-    <ROM name="" subType="pwd"><!-- Complete this-->
-      <Features></Features><!-- Complete this-->
-      <!-- Complete this-->
+    <ROM name="??" subType="NDinvDistWeight"><!--Complete this-->
+      <Features></Features><!--Complete this-->
+      <Target></Target><!--Complete this-->
       <p>3</p>
     </ROM>
   </Models>
@@ -69,12 +69,12 @@
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input></Input><!-- Complete this-->
+      <Input>x0,y0,v0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outMC">
-      <Input></Input><!-- Complete this-->
-      <Output></Output><!-- Complete this-->
+      <Input></Input><!--Complete this-->
+      <Output></Output><!--Complete this-->
     </PointSet>
   </DataObjects>
 
@@ -87,14 +87,14 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>outMC|??|??</x><!-- Complete this-->
-          <y>outMC|??|r</y><!-- Complete this-->
+          <x>outMC|??|??</x><!--Complete this-->
+          <y>??|??|?</y><!--Complete this-->
           <c>blue</c>
           <kwargs>
             <label>ground truth</label>
           </kwargs>
         </plot>
-        <xlabel>??</xlabel>
+        <xlabel>angle (deg)</xlabel>
         <ylabel>r (m)</ylabel>
         <legend>
           <ncol>1</ncol>
