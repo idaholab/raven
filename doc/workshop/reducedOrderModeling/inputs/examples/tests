@@ -4,11 +4,11 @@
     input = '1_sample_Function.xml'
     output = 'r1/plotMC_scatter.png'
   [../]
-  [./train]
-    type = 'RavenFramework'
-    input = '2_train_rom.xml'
-    output = 'r2/plotMC_scatter.png'
-  [../]
+  # [./train]
+  #   type = 'RavenFramework'
+  #   input = '2_train_rom.xml'
+  #   output = 'r2/plotMC_scatter.png'
+  # [../]
   [./pickle]
     type = 'RavenFramework'
     input = '3_pickle_rom.xml'
