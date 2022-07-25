@@ -88,7 +88,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          """
     # create kernel node
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'Exponentiation',
-                                                                                                                   'Matern', 'Pairwise', 'RBF', 'RationalQuadratic']),
+                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
@@ -129,26 +129,25 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                    \item RationalQuadratic, it can be seen as a scale mixture (an infinite sum) of RBF kernels with different characteristic length scales. It is parameterized by a length scale parameter
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
-                                                 \end{itemize}""", default=None))
+                                                 \end{itemize}.""",default=None))
 
 
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Value added to the diagonal of the kernel matrix during fitting. This can prevent a potential numerical issue during fitting, by ensuring that the calculated
-                                                           values form a positive definite matrix. It can also be interpreted as the variance of additional Gaussian measurement noise on the training observations.""",
-                                                 default=1e-10))
+                                                           values form a positive definite matrix. It can also be interpreted as the variance of additional Gaussian measurement noise on the training observations.""",default=1e-10))
     specs.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputTypes.IntegerType,
                                                  descr=r"""The number of restarts of the optimizer for finding the kernel's parameters which maximize the log-marginal likelihood. The first run of the optimizer is performed
                                                            from the kernel's initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of allowed theta-values. If greater than
-                                                           0, all bounds must be finite. """, default=0))
+                                                           0, all bounds must be finite.""", default=0))
     specs.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the target values y are normalized, the mean and variance of the target values are set equal to 0 and 1 respectively. This is recommended for cases where zero-mean,
-                                                           unit-variance priors are used.""", default=False))
+                                                           unit-variance priors are used.""",default=False ))
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
-                                              descr=r"""Seed for the internal random number generator""", default=None))
+                                              descr=r"""Seed for the internal random number generator.""",default=None))
     specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
-                                                 descr=r"""Per default, the 'L-BGFS-B' algorithm from
+                                                 descr=r"""Per default, the 'L-BFGS-B' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
-                                                 parameters are kept fixed. """, default='L-BGFS-B'))
+                                                 parameters are kept fixed.""",default='fmin_l_bfgs_b'))
     return specs
 
   def pickKernel(self, name):

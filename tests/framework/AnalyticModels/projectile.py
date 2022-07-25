@@ -27,10 +27,10 @@
 #
 import numpy as np
 
-in_vars = ['x0', 'y0', 'v0', 'ang', 'timeOption']
-out_vars = ['x', 'y', 'r', 't', 'v', 'a','ymax']
+in_vars = ['x0', 'y0', 'v0', 'angle', 'timeOption']
+out_vars = ['x', 'y', 'r', 't', 'v', 'a', 'ymax']
 
-def prange(v,th,y0=0,g=9.8):
+def prange(v, th, y0=0, g=9.8):
   """
     Calculates the analytic range.
     @ In, v, float, velocity of the projectile
@@ -39,7 +39,20 @@ def prange(v,th,y0=0,g=9.8):
     @ In, g, float, optional, gravitational constant (m/s/s)
     @ Out, prange, float, range
   """
-  return v*np.cos(th)/g * (v*np.sin(th) + np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
+  return v * np.cos(th) / g * \
+         (v * np.sin(th) + np.sqrt(v * v * np.sin(th)**2 + 2. * g * y0))
+
+def pMaxHeight(v, th, y0=0, g=9.8):
+  """
+    Calculates the analytic max height the projectile achieves.
+    @ In, v, float, initial velocity of the projectile
+    @ In, th, float, angle to the ground for initial projectile motion
+    @ In, y0, float, optional, initial launch height
+    @ In, g, float, optional, gravitational constant (m/s/s)
+    @ Out, pMaxHeight, float, max height achieved
+  """
+  vY = v * np.sin(th)
+  return vY**2 / (2.0 * g) + y0
 
 def time_to_ground(v,th,y0=0,g=9.8):
   """
@@ -118,12 +131,13 @@ def main(Input):
   else:
     # due to numpy library update, the return shape of np.linspace
     # is changed when an array-like input is provided, i.e. return from time_to_ground
-    ts = np.linspace(0,time_to_ground(v0,ang,y0),10)
+    endTime = time_to_ground(v0, ang, y0)
+    ts = np.linspace(0, endTime, 10)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
-  r = prange(v0,ang,y0)
-  ymax = max_height(v0, ang, y0)
+  r = prange(v0, ang, y0=y0, g=g)
+  ymax = pMaxHeight(v0, ang, y0=y0, g=g)
 
   x = np.zeros(len(ts))
   y = np.zeros(len(ts))
@@ -136,8 +150,18 @@ def main(Input):
     v[i] = vm
     a[i] = current_angle(v0, ang, vm)
   t = ts
-  return {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,'ymax':ymax,
-    'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
+  return {'x': x,
+          'y': y,
+          'r': r,
+          'ymax': ymax,
+          't': ts,
+          'v': v,
+          'a': a,
+          'x0': x0,
+          'y0': y0,
+          'v0': v0,
+          'angle': ang,
+          'timeOption': timeOption}
 
 #can be used as a code as well
 if __name__=="__main__":
@@ -147,6 +171,8 @@ if __name__=="__main__":
   #construct the input
   Input = {}
   for line in open(inFile,'r'):
+    if line.startswith('#') or line.strip()=='':
+      continue
     arg, val = (a.strip() for a in line.split('='))
     Input[arg] = float(val)
   #run the code
@@ -155,8 +181,9 @@ if __name__=="__main__":
   outFile = open(outFile+'.csv','w')
   outFile.writelines(','.join(in_vars) + ',' + ','.join(out_vars) + '\n')
   template = ','.join('{{}}'.format(v) for v in in_vars + out_vars) + '\n'
-  print('template:', template)
   for i in range(len(res['t'])):
     this = [(res[v][i] if len(np.shape(res[v])) else res[v]) for v in in_vars + out_vars]
     outFile.writelines(template.format(*this))
   outFile.close()
+  print('range:', res['r'])
+  print('max height:', res['ymax'])
