@@ -239,7 +239,9 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
                   This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+
                                  b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+
                                  c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
@@ -638,7 +640,6 @@ class GeneticAlgorithm(RavenSampled):
         rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
         for ind, consName in enumerate(g['Constraint'].values):
-          print("ind and name",ind,consName )
           rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
     # decide what to do next

@@ -95,9 +95,6 @@ def calc_vel(y0, y, v0, ang, g=9.8):
 def current_angle(v0, ang, vel):
   return np.arccos(v0 * np.cos(ang) / vel)
 
-def max_height(v0, ang, y0=0, g=9.8):
-  return np.atleast_1d(v0**2 * (np.sin(ang)) **2 /2/g + y0)
-
 def run(raven, inputs):
   vars = {'x0': get_from_raven(raven,'x0', 0),
           'y0': get_from_raven(raven,'y0', 0),
@@ -113,7 +110,6 @@ def run(raven, inputs):
   raven.a = res['a']
   raven.ymax = res['ymax'] * np.ones(len(raven.x))
   raven.timeOption = vars['timeOption']
-  raven.ymax = res['ymax']
 
 def get_from_raven(raven, attr, default=None):
   return np.squeeze(getattr(raven, attr, default))
