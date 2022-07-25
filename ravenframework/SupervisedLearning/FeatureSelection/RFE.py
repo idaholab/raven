@@ -290,7 +290,20 @@ class RFE(BaseInterface):
       if hasattr(estimator, 'featureImportances_'):
         importances = estimator.featureImportances_
          # since we get the importance, highest importance must be kept => we get the inverse of coefs
-        coefs = 1./np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+        coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+        ####Test
+        #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
+        ####test
+        coefs = 1./coefs
+        for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2","BOP.steamTurbine.h_is","SES.CS.W_totalSetpoint_SES.y","SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
+          if fff in importances:
+            print(ccc,fff,importances[fff])
+        with open ("importances.csv","w+") as fobj:
+          for imp in importances:
+            fobj.write(imp)
+            for v in importances[imp]:
+              fobj.write(","+str(v))
+            fobj.write("\n")
         #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
         if coefs.shape[0] == raminingFeatures:
           coefs = coefs.T

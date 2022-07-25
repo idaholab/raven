@@ -283,8 +283,6 @@ class DMDC(DMD):
         #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/abs(np.average(self.stateVals[:,:,stateCnt]))
         #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
         self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
-
-
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
           minIdx = stateCnt
