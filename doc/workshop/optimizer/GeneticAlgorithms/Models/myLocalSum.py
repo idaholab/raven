@@ -28,46 +28,10 @@ def evaluate(inputs):
     @ Out, summ, value at inputs
   """
   Sum = 0
-  #for ind,var in enumerate(inputs.keys()):
+  for ind,var in enumerate(inputs.keys()):
     # write the objective function here
-    #Sum +=
-  #return Sum[:]
-
-def constraint(self):
-  """
-    Evaluates the constraint function @ a given point ($\vec(x)$)
-    @ In, self, object, RAVEN container
-    @ Out, g(x1,x2), float, $g(\vec(x)) = 8.5 - 0.5 * x_1 - x_2$
-    because the original constraint was x2 < 8.5 - 0.5 * x1
-            the way the constraint is designed is that
-            the constraint function has to be >= 0,
-            so if:
-            1) f(x,y) >= 0 then g = f
-            2) f(x,y) >= a then g = f - a
-            3) f(x,y) <= b then g = b - f
-            4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
-  """
-  # Populate this
-  # g =
-  #return g
-
-def implicitConstraint(self):
-  """
-    Evaluates the constraint function @ a given point ($\vec(x)$)
-    @ In, self, object, RAVEN container
-    @ Out, g(x1,x2), float, $g(\vec(x)) = x1 + x2 + objective - 9$
-    because the original constraint was x1 + x2 + objective > 9
-            the way the constraint is designed is that
-            the constraint function has to be >= 0,
-            so if:
-            1) f(x,y) >= 0 then g = f
-            2) f(x,y) >= a then g = f - a
-            3) f(x,y) <= b then g = b - f
-            4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
-  """
-  # Populate this
-  # g =
-  #return g
+    Sum += (ind + 1) * inputs[var]
+  return Sum[:]
 
 def run(self,Inputs):
   """
@@ -76,4 +40,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.ans = evaluate(Inputs)
+  self.obj = evaluate(Inputs) # make sure the name of the objective is consistent obj
