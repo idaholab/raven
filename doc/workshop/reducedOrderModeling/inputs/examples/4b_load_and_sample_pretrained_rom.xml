@@ -2,10 +2,10 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>doc/workshop/reducedOrderModeling/inputs.loadAndSamplePretrained</name>
-    <author>wangc</author>
-    <created>2018-09-21</created>
+    <author>Mohammad Abdo @(Jimmy-INL)</author>
+    <created>2022-07-21</created>
     <classesTested>Models.ROM</classesTested>
-    <description>Workshop test: load a pickled ROM</description>
+    <description>Workshop test: load a ROM from a previously pretrained pickle</description>
   </TestInfo>
 
   <RunInfo>

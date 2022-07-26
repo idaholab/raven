@@ -5,7 +5,7 @@
     <author>Mohammad ABdo (@Jimmy-INL)</author>
     <created>2022-06-21</created>
     <classesTested>Models.ROM</classesTested>
-    <description>Workshop test: train and validate a ROM</description>
+    <description>Workshop test: train and validate a ROM using the cross validation Postprocessor</description>
   </TestInfo>
 
   <RunInfo>
