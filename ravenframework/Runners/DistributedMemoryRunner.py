@@ -87,6 +87,7 @@ class DistributedMemoryRunner(InternalRunner):
               self.returnCode = -1
             return True
           except ray.exceptions.GetTimeoutError:
+            #Timeout, so still running.
             return False
           except ray.exceptions.RayTaskError:
             #The code gets this undocumented error, and
