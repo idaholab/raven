@@ -14,7 +14,7 @@
 
 # @author: Mohammad Abdo (@Jimmy-INL)
 
-def evaluate(inputs):
+def evaluate(Inputs):
   """
     Evaluates a weighted sum function.
     $summ = \Sigma_{i=0} (i+1)*x_{i}$
@@ -24,14 +24,14 @@ def evaluate(inputs):
     min w/o replacement  = $\Sigma_{i=0}^{n-1} (lb+i)(i+1)$ occurs at x_{i} = lb+i
     max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
 
-    @ In, inputs, dictionary of variables
-    @ Out, summ, value at inputs
+    @ In, Inputs, dictionary, dictionary of inputs passed to the external model
+    @ Out, Sum, float, objective function
   """
-  # Sum = 0
-  # for ind,var in enumerate(inputs.keys()):
-  #   # write the objective function here
-  #   Sum +=
-  # return Sum[:]
+  Sum = 0
+  for ind,var in enumerate(Inputs.keys()):
+    # write the objective function here
+    Sum +=
+  return Sum[:]
 
 def run(self,Inputs):
   """
@@ -40,4 +40,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.?? = evaluate(Inputs) # Complete This
+  self.?? = evaluate(Inputs) # Complete This # make sure the name of the objective is consistent obj

@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MaxwRep</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-07-21</created>
+    <classesTested/>
+    <description>Workshop test: GA maximization with replacement</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>MaxwReplacement</WorkingDir>
     <Sequence>optimize,print</Sequence>

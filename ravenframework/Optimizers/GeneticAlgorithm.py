@@ -620,6 +620,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, rlz, dict, realized realization
       @ In, objectiveVal, list, objective values at each chromosome of the realization
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
     self.raiseADebug('*'*80)

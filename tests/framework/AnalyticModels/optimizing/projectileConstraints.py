@@ -13,29 +13,59 @@
 # limitations under the License.
 # @ author: Mohammad Abdo (@Jimmy-INL)
 
+def constrain(Input):
+  """
+    This fuction calls the explicit constraint whose name is passed through Input.name
+    the evaluation function g is negative if the explicit constraint is violated and positive otherwise.
+    This suits the constraint handling in the Genetic Algorithms,
+    but not the Gradient Descent as the latter expects True if the soltution passes the constraint and False if it violates it.
+    @ In, Input, object, RAVEN container
+    @ Out, g, float, expilicit constraint evaluation (negative if violated and positive otherwise)
+  """
+  g = eval(Input.name)(Input)
+  return g
+
 def implicitConstraint(Input):
   """
-    Evaluates the constraint function @ a given point ($\vec(x)$)
-    @ In, self, object, RAVEN container
-    @ Out, g(x1,x2,..), float, $g(\vec(x)) = f(\vec(x)) - a$
-    because the original constraint was f(\vec(x)) > a
+    Evaluates the implicit constraint function at a given point/solution ($\vec(x)$)
+    @ In, Input, object, RAVEN container
+    @ Out, g(inputs x1,x2,..,output or dependent variable), float, implicit constraint evaluation function
             the way the constraint is designed is that
             the constraint function has to be >= 0,
             so if:
             1) f(x,y) >= 0 then g = f
             2) f(x,y) >= a then g = f - a
             3) f(x,y) <= b then g = b - f
-            4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
+            4) f(x,y)  = c then g = 1e-6 - abs((f(x,y) - c)) (equality constraint)
+  """
+  g = eval(Input.name)(Input)
+  return g
+
+def expConstr1(Input):
+  """
+    first explicit constraint called by the constrain function.
+    @ Out, g, float, explicit constraint 1 evaluation function (positive if the constraint is satisfied
+           and negative if violated).
+  """
+  # explicit constraint: solution is in a standard circle (centered at the origin of the x1-x3 plan) whose raduis is 5 units
+  g = 25 - (Input.x1**2 + Input.x3)**2
+  return g
+
+def impConstr1(Input):
+  """
+    first implicit constraint called by the implicitConstraint function:
+    Evaluates the implicit constraint function @ a given point ($\vec(x)$)
+    @ In, self, object, RAVEN container
+    @ Out, g(inputs,outputs), float, $g(\vec(x,y)) = f(\vec(x,y)) - a$
+    because the original constraint was f(\vec(x,y)) > a
+            the way the constraint is designed is that
+            the constraint function has to be >= 0,
+            so if:
+            1) f(x,y) >= 0 then g = f
+            2) f(x,y) >= a then g = f - a
+            3) f(x,y) <= b then g = b - f
+            4) f(x,y)  = c then g = 1e-12 - abs(f(x,y) - c)
   """
   g = 250 - Input.ymax
   return g
 
-def constrain(self,Input):
-  """
-    Constrain calls the constraint function.
-    @ In, self, object, RAVEN container
-    @ Out, explicitConstrain, float, positive if the constraint is satisfied
-           and negative if violated.
-  """
-  implicitConstraint = implicitConstraint(Input)
-  return implicitConstraint

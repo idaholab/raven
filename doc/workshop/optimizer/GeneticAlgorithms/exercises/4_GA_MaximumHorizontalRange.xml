@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MaxContinuousHRangeConstrained</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-07-21</created>
+    <classesTested/>
+    <description>Workshop test: GA maximization Horizontal Range Constrained</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>MaxHRange</WorkingDir>
     <Sequence>optimize,print</Sequence>
@@ -32,7 +40,7 @@
   </Models>
 
   <Functions>
-    <External file="../../../../../../tests/framework/AnalyticModels/optimizing/projectileConstraints.py" name="constraint1"><!--Take a look at the projectileConstraints.py-->
+    <External file="../../../../../../tests/framework/AnalyticModels/optimizing/projectileConstraints.py" name="impConstr1"><!--Take a look at the projectileConstraints.py-->
       <variables></variables><!--Complete this-->
     </External>
   </Functions>
@@ -119,7 +127,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>angle,v0,r,age,batchId,fitness,iteration,accepted,conv_objective, ConstraintEvaluation_constraint1</Output><!--Modify if necessary-->
+      <Output>angle,v0,r,age,batchId,fitness,iteration,accepted,conv_objective, ConstraintEvaluation_impConstr1</Output><!--Modify if necessary-->
     </PointSet>
   </DataObjects>
 
