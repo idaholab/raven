@@ -7,32 +7,32 @@
   [./train]
     type = 'RavenFramework'
     input = '2_train_rom.xml'
-    output = 'r2/plotMC_scatter.png'
+    output = 'r2/ModelExploration_scatter.png'
+  [../]
+  [./trainAndValidate]
+    type = 'RavenFramework'
+    input = '2b_train_and_validate_rom.xml'
+    output = 'r2_b/outPP.csv'
   [../]
   [./pickle]
     type = 'RavenFramework'
     input = '3_pickle_rom.xml'
-    output = 'r3/plotMC_scatter.png r3/pkIDW'
+    output = 'r3/IDW.pk'
   [../]
   [./load]
     type = 'RavenFramework'
-    input = '4_load_rom.xml'
-    output = 'r4/plotMC_scatter.png r4/pkIDW'
+    input = '4_load_pickled_rom.xml'
+    output = 'r4/plotMC_scatter.png r4/IDW.pk'
   [../]
-  [./srom]
+  [./loadAndSamplePretrained]
     type = 'RavenFramework'
-    input = '5_sample_rom.xml'
-    output = 'r5/plotMC_scatter-scatter.png r5/pkIDW'
+    input = '4b_load_and_sample_pretrained_rom.xml'
+    output = 'r4_b/plotROM_scatter.png r4_b/romOut.csv'
   [../]
-  [./sprom]
+  [./romWF]
     type = 'RavenFramework'
-    input = '6_sample_prom.xml'
-    output = 'r6/plotMC_scatter-scatter-scatter.png r6/pkIDW'
-  [../]
-  [./eval]
-    type = 'RavenFramework'
-    input = '7_evaluate_rom.xml'
-    output = 'r7/plotMC_line-scatter.png'
+    input = '5_complete_rom_workflow.xml'
+    output = 'r5/model_vs_IDW_ROM_scatter-scatter.png r5/IDW.pk r5/testModelOut.csv r5/testRomIDWOut.csv'
   [../]
   [./sc]
     type = 'RavenFramework'
