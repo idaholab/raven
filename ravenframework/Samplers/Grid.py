@@ -114,7 +114,7 @@ class Grid(Sampler):
       if grdInfo[key][0] == 'CDF':
         valueArrays = grdInfo[key][2]
         if min(valueArrays)<0.0 or max(valueArrays)>1.0:
-          self.raiseAnError(IOError, ("Grid associated with distribution " + str(key) + " is outside the [0,1] interval"))        
+          self.raiseAnError(IOError, ("Grid associated with distribution " + str(key) + " is outside the [0,1] interval"))
 
   def localGetInitParams(self):
     """
@@ -192,7 +192,7 @@ class Grid(Sampler):
                                       f'of the given distribution "{self.distDict[varName].type}" ({distLB}, {distUB})'))
       else:
         self.raiseAnError(IOError, f'{self.gridInfo[varName]} is not known as value keyword for type. Sampler: {self.name}')
-    
+
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
       coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
