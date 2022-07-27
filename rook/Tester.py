@@ -173,9 +173,11 @@ class Differ:
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
     params.add_required_param('output', 'Output files to check')
-    params.add_param('windows_gold', '', 'Paths to Windows specific gold files, relative to test directory')
+    params.add_param('windows_gold', '', 'Paths to Windows specific gold files,'+
+                     ' relative to test directory')
     params.add_param('mac_gold', '', 'Paths to Mac specific gold files, relative to test directory')
-    params.add_param('linux_gold', '', 'Paths to Linux specific gold files, relative to test directory')
+    params.add_param('linux_gold', '', 'Paths to Linux specific gold files,'+
+                     ' relative to test directory')
     params.add_param('gold_files', '', 'Paths to gold files, relative to test directory')
     return params
 
@@ -226,16 +228,16 @@ class Differ:
       @ In, None
       @ Out, paths, List(Strings), the paths of the gold files.
     """
-    this_OS = platform.system().lower()
-    available_OS = ['windows', 'mac', 'linux'] # list of OS with specific gold file options
+    this_os = platform.system().lower()
+    available_os = ['windows', 'mac', 'linux'] # list of OS with specific gold file options
 
     # replace "darwin" with "mac"
-    if this_OS == 'darwin':
-      this_OS = 'mac'
+    if this_os == 'darwin':
+      this_os = 'mac'
 
     # check if OS specific gold files should be used
-    if (this_OS in available_OS) and (len(self.specs[f'{this_OS}_gold']) > 0):
-      gold_files = self.specs[f'{this_OS}_gold'].split()
+    if (this_os in available_os) and (len(self.specs[f'{this_os}_gold']) > 0):
+      gold_files = self.specs[f'{this_os}_gold'].split()
       paths = [os.path.join(self.__test_dir, f) for f in gold_files]
     # if OS specific gold files are not given, are specific gold files given?
     elif len(self.specs['gold_files']) > 0:
