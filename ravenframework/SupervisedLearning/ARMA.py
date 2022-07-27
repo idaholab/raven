@@ -915,14 +915,14 @@ class ARMA(SupervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    import statsmodels.tsa
-    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polynomial_ar,
-                                                              ma=model.polynomial_ma,
+    import statsmodels.api
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polyar,
+                                                              ma=model.polyma,
                                                               nsample=numSamples,
                                                               distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
                                                               # functool.partial provide the random number generator as a function
                                                               # with normal distribution and take engine as the positional arguments keywords.
-                                                              scale=np.sqrt(model.params[model.param_names.index('sigma2')]),
+                                                              scale=model.sigma,
                                                               burnin=2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
@@ -1095,6 +1095,12 @@ class ARMA(SupervisedLearning):
       data = data[masks]
     import statsmodels.api
     results = statsmodels.tsa.arima.model.ARIMA(data, order=(self.P, 0, self.Q), trend='c').fit()
+    # The ARIMAResults object here can cause problems with ray when running in parallel. Dropping it
+    # in exchange for the armaResultsProxy class avoids the issue while preserving what we really
+    # care out from the ARIMAResults object.
+    results = armaResultsProxy(results.polynomial_ar,
+                               results.polynomial_ma,
+                               np.sqrt(results.params[results.param_names.index('sigma2')]))
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1382,7 +1388,7 @@ class ARMA(SupervisedLearning):
         root.append(targetNode)
       armaNode = xmlUtils.newNode('ARMA_params')
       targetNode.append(armaNode)
-      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.params[arma.param_names.index('sigma2')])))
+      armaNode.append(xmlUtils.newNode('std', text=arma.sigma))
       # TODO covariances, P and Q, etc
     for target,peakInfo in self.peaks.items():
       targetNode = root.find(target)
@@ -1564,13 +1570,13 @@ class ARMA(SupervisedLearning):
     for target, arma in self.armaResult.items():
       # sigma
       feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.params[arma.param_names.index('sigma2')])
+      features[feature] = arma.sigma
       # autoregression
-      for p, val in enumerate(-arma.polynomial_ar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
+      for p, val in enumerate(-arma.polyar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
         feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
         features[feature] = val
       # moving average
-      for q, val in enumerate(arma.polynomial_ma[1:]):  # keep only the terms for lag>0
+      for q, val in enumerate(arma.polyma[1:]):  # keep only the terms for lag>0
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
@@ -2538,15 +2544,14 @@ class armaResultsProxy:
     Class that can be used to artifically construct ARMA information
     from pre-determined values
   """
-  def __init__(self, arparams, maparams, sigma):
+  def __init__(self, polyar, polyma, sigma):
     """
       Constructor.
-      @ In, arparams, np.array(float), autoregressive coefficients
-      @ In, maparams, np.array(float), moving average coefficients
+      @ In, polyar, np.array(float), autoregressive coefficients
+      @ In, polyma, np.array(float), moving average coefficients
       @ In, sigma, float, standard deviation of ARMA residual noise
       @ Out, None
     """
-    self.polynomial_ar = np.append(1, -np.atleast_1d(arparams))
-    self.polynomial_ma = np.append(1, np.atleast_1d(maparams))
-    self.param_names = ['sigma2']
-    self.params = [sigma ** 2]
+    self.polyar = polyar
+    self.polyma = polyma
+    self.sigma = sigma
