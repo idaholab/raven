@@ -1870,15 +1870,15 @@ class ARMA(SupervisedLearning):
       if 'AR' in info:
         AR_keys, AR_vals = zip(*list(info['AR'].items()))
         AR_keys, AR_vals = zip(*sorted(zip(AR_keys, AR_vals), key=lambda x:x[0]))
-        AR_vals = np.asarray(AR_vals)
+        AR_vals = np.concatenate(([1], -np.asarray(AR_vals)))  # convert the AR params into polynomial form
       else:
-        AR_vals = np.array([])
+        AR_vals = np.array([1])  # must include a 1 for the zero lag term
       if 'MA' in info:
         MA_keys, MA_vals = zip(*list(info['MA'].items()))
         MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
-        MA_vals = np.asarray(MA_vals)
+        MA_vals = np.concatenate(([1], np.asarray(MA_vals)))  # converts the MA params into polynomial form
       else:
-        MA_vals = np.array([])
+        MA_vals = np.array([1])
       if 'bin' in info:
         bin_keys, bin_vals = zip(*list(info['bin'].items()))
         bin_keys, bin_vals = zip(*sorted(zip(bin_keys, bin_vals), key=lambda x:x[0]))
