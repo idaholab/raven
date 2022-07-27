@@ -916,8 +916,8 @@ class ARMA(SupervisedLearning):
     if randEngine is None:
       randEngine=self.randomEng
     import statsmodels.api
-    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polynomial_ar,
-                                                              ma=model.polynomial_ma,
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polyar,
+                                                              ma=model.polyma,
                                                               nsample=numSamples,
                                                               distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
                                                               # functool.partial provide the random number generator as a function
@@ -1572,11 +1572,11 @@ class ARMA(SupervisedLearning):
       feature = featureTemplate.format(target=target, metric='arma', id='std')
       features[feature] = arma.sigma
       # autoregression
-      for p, val in enumerate(-arma.polynomial_ar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
+      for p, val in enumerate(-arma.polyar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
         feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
         features[feature] = val
       # moving average
-      for q, val in enumerate(arma.polynomial_ma[1:]):  # keep only the terms for lag>0
+      for q, val in enumerate(arma.polyma[1:]):  # keep only the terms for lag>0
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
@@ -2544,14 +2544,14 @@ class armaResultsProxy:
     Class that can be used to artifically construct ARMA information
     from pre-determined values
   """
-  def __init__(self, polynomial_ar, polynomial_ma, sigma):
+  def __init__(self, polyar, polyma, sigma):
     """
       Constructor.
-      @ In, polynomial_ar, np.array(float), autoregressive coefficients
-      @ In, polynomial_ma, np.array(float), moving average coefficients
+      @ In, polyar, np.array(float), autoregressive coefficients
+      @ In, polyma, np.array(float), moving average coefficients
       @ In, sigma, float, standard deviation of ARMA residual noise
       @ Out, None
     """
-    self.polynomial_ar = polynomial_ar
-    self.polynomial_ma = polynomial_ma
+    self.polyar = polyar
+    self.polyma = polyma
     self.sigma = sigma
