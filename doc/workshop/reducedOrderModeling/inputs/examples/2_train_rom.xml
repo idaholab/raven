@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs/examples.train</name>
+    <name>doc/workshop/reducedOrderModeling/inputs.train</name>
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested>Models.ROM</classesTested>
@@ -10,23 +10,43 @@
 
   <RunInfo>
     <WorkingDir>r2</WorkingDir>
-    <Sequence>FirstMRun,trainRom,plot</Sequence>
+    <Sequence>FirstMRun,plot,trainRom</Sequence><!-- Complete this-->
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Distributions>
-    <Normal name="angle_d">
-      <mean>45</mean>
-      <sigma>5</sigma>
-      <lowerBound>5</lowerBound>
-      <upperBound>85</upperBound>
-    </Normal>
-  </Distributions>
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">outMC</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="OutStreams" type="Plot">ModelExploration</Output>
+    </IOStep>
+    <RomTrainer name="trainRom">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="Models" type="ROM">IDW</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t</variables>
+    </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>20</limit>
+        <limit>100</limit>
         <initialSeed>080118</initialSeed>
       </samplerInit>
       <variable name="angle">
@@ -38,56 +58,47 @@
     </MonteCarlo>
   </Samplers>
 
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>x0,v0,y0,angle</Input>
+      <Input>x0,y0,v0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outMC">
       <Input>angle</Input>
-      <Output>r,t</Output>
+      <Output>r</Output>
     </PointSet>
   </DataObjects>
 
-  <Models>
-    <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile" name="projectile" subType="">
-      <variables>x0,v0,y0,angle,x,y,r,t</variables>
-    </ExternalModel>
-    <ROM name="IDW" subType="NDinvDistWeight">
-      <Features>angle</Features>
-      <Target>r</Target>
-      <p>3</p>
-    </ROM>
-  </Models>
-
-  <Steps>
-    <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
-    </MultiRun>
-    <RomTrainer name="trainRom">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Output class="Models" type="ROM">IDW</Output>
-    </RomTrainer>
-    <IOStep name="plot">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plotMC</Output>
-    </IOStep>
-  </Steps>
-
   <OutStreams>
-    <Plot name="plotMC">
+    <Print name="outMC">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Plot name="ModelExploration">
       <plotSettings>
         <plot>
           <type>scatter</type>
           <x>outMC|Input|angle</x>
           <y>outMC|Output|r</y>
           <c>blue</c>
+          <kwargs>
+            <label>ground truth</label>
+          </kwargs>
         </plot>
-        <xlabel>angle</xlabel>
-        <ylabel>r</ylabel>
+        <xlabel>angle (deg)</xlabel>
+        <ylabel>r (m)</ylabel>
+        <legend>
+          <ncol>1</ncol>
+        </legend>
       </plotSettings>
       <actions>
         <how>png</how>
