@@ -108,13 +108,12 @@ class Grid(Sampler):
       self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
-    print(grdInfo)
     # check that grid in CDF contains values in the [0,1] interval
     for key in grdInfo:
       if grdInfo[key][0] == 'CDF':
         valueArrays = grdInfo[key][2]
         if min(valueArrays)<0.0 or max(valueArrays)>1.0:
-          self.raiseAnError(IOError, ("Grid associated with distribution " + str(key) + " is outside the [0,1] interval"))
+          self.raiseAnError(IOError, ("Grid sampler " + str(self.name) + ": Grid associated with variable " + str(key) + " is outside the [0,1] interval"))
 
   def localGetInitParams(self):
     """
