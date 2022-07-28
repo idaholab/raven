@@ -18,5 +18,6 @@
     type = 'RavenFramework'
     input = '4_GA_MaximumHorizontalRange.xml'
     output = 'MaxHRange/opt_export_0.csv'
+    #skip_if_OS = 'windows'
   [../]
 []
