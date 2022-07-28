@@ -59,7 +59,7 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
+    <ray source="pip" pip_extra="[default]">1.9</ray>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
