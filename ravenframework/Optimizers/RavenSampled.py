@@ -642,7 +642,7 @@ class RavenSampled(Optimizer):
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
-    toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
+    toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
     # additional from from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
     # check for anything else that solution export wants that rlz might provide
