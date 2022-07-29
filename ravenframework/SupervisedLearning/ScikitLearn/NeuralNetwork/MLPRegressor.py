@@ -64,7 +64,7 @@ class MLPRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType,
                                                  descr=r"""The ith element represents the number of neurons in the ith hidden layer.
                                                  lenght = n\_layers - 2""", default=(100,)))
-    specs.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.makeEnumType("activation", "activationType",['identity', 'logistic', 'tanh','tanh']),
+    specs.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.makeEnumType("activation", "activationType",['identity', 'logistic', 'tanh','relu']),
                                                  descr=r"""Activation function for the hidden layer:
                                                  \begin{itemize}
                                                    \item identity:  no-op activation, useful to implement linear bottleneck, returns $f(x) = x$

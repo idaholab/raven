@@ -290,13 +290,13 @@ class Optimizer(AdaptiveSampler):
     if solutionExport is None:
       self.raiseAnError(IOError, 'Optimizers require a SolutionExport DataObject. Please add a <SolutionExport> node in the Step!')
 
-    AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # functional constraints
     for entry in self.assemblerDict.get('Constraint', []):
       self._constraintFunctions.append(entry[3])
 
     for entry in self.assemblerDict.get('ImplicitConstraint', []):
       self._impConstraintFunctions.append(entry[3])
+    AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed
@@ -358,7 +358,7 @@ class Optimizer(AdaptiveSampler):
 
   def _addTrackingInfo(self, info, **kwargs):
     """
-      Creates realization identifiers to identifiy particular realizations as they return from the JobHandler.
+      Creates realization identifiers to identify particular realizations as they return from the JobHandler.
       Expandable by inheritors.
       @ In, info, dict, dictionary of potentially-existing added identifiers
       @ In, kwargs, dict, dictionary of keyword arguments
