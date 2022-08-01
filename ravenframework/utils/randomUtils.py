@@ -100,6 +100,7 @@ class CrowRNG:
       self._engine = engine
     else:
       raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by CrowRNG class!')
+    self._seed = abs(int(self._engine.get_rng_seed()))
 
   def __getstate__(self):
     """

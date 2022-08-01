@@ -2163,6 +2163,7 @@ class ARMA(SupervisedLearning):
       Call this before training the subspace segment ROMs
       Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
       @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
+      @ In, picker, slice, slice object for selecting the desired segment
       @ Out, None
     """
     if self.zeroFilterTarget:
