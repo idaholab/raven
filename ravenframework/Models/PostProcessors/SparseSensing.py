@@ -16,7 +16,7 @@
   @ Authors: Mohammad Abdo (@Jimmy-INL), Niharika Karnik (@nkarnik), Krithika Manohar (@kmanohar)
 '''
 import pysensors as ps
-# import numpy as np
+import numpy as np
 # import copy
 # from collections import defaultdict
 # from functools import partial
@@ -167,11 +167,11 @@ class SparseSensing(PostProcessorReadyInterface):
 
     # x = inputDS['x'].data
     # y = inputDS['y'].data
-    data = inputDS['v'].data
+    data = inputDS['Temperature (K)'].data
     model.fit(data)
     selectedSensors = model.get_selected_sensors()
     optimalSensors = {}
     for i in range(len(selectedSensors)):
-      optimalSensors['sensor'+str(i)] = selectedSensors[i]
+      optimalSensors['sensor'+str(i)] = np.atleast_1d(selectedSensors[i])
     ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
     return optimalSensors
