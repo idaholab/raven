@@ -17,7 +17,7 @@
 
 '''
 import pysensors as ps
-# import numpy as np
+import numpy as np
 # import copy
 # from collections import defaultdict
 # from functools import partial
@@ -93,7 +93,7 @@ class SparseSensing(PostProcessorReadyInterface):
     """
     super().__init__()
     self.setInputDataType('xrDataset')
-    self.keepInputMeta(True)
+    self.keepInputMeta(False)
     self.outputMultipleRealizations = False # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
     # self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
@@ -173,6 +173,6 @@ class SparseSensing(PostProcessorReadyInterface):
     selectedSensors = model.get_selected_sensors()
     optimalSensors = {}
     for i in range(len(selectedSensors)):
-      optimalSensors['sensor'+str(i)] = selectedSensors[i]
+      optimalSensors['sensor'+str(i)] = np.atleast_1d(selectedSensors[i])
     ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
     return optimalSensors
