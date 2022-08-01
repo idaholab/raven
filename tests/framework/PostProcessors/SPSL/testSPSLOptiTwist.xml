@@ -15,7 +15,7 @@
   </RunInfo>
 
   <Files>
-    <Input name= 'twistFile' type= ''> /Users/karnn/projects/Sparse_Sensing_in_NDTs_LDRD/data/0_raw/004_BB_7Power_7BC/350_240.csv </Input> 
+    <Input name= 'twistFile' type= ''> /Users/karnn/projects/Sparse_Sensing_in_NDTs_LDRD/data/0_raw/004_BB_7Power_7BC/350_240_.csv </Input> 
   </Files>
 
 
@@ -54,7 +54,7 @@
 
   <DataObjects>
     <PointSet name="TwistDO">
-      <Input>"X (m)","Temperature (K)","Y (m)","Velocity[j] (m/s)","Z (m)","Velocity[i] (m/s)"</Input>
+      <Input>X (m),Temperature (K),Y (m),Velocity[j] (m/s),Z (m),Velocity[i] (m/s)</Input>
       <!-- <Output>OutputPlaceHolder</Output> -->
       <!-- <options>
         <pivotParameter>t</pivotParameter>
