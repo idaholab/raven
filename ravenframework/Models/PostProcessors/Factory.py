@@ -39,6 +39,7 @@ from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
 from .Validations import PPDSS
 from .TSACharacterizer import TSACharacterizer
+from .SparseSensing import SparseSensing
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay
