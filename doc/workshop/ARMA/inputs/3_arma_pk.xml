@@ -10,13 +10,13 @@
 
   <RunInfo>
     <WorkingDir>r3</WorkingDir>
-    <Sequence>read,train,print,...,sample,write</Sequence><!-- TODO: create your pickle IOstep name  -->
+    <Sequence>read,train,print,createPickle,sample,write</Sequence><!-- TODO: create your pickle IOstep name  -->
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="rawDataFile">dataSet.csv</Input>
-    <Input name="...">...</Input> <!-- TODO: create your file entity and file name -->
+    <Input name="pkARMA">ARMA.pk</Input> <!-- TODO: create your file entity and file name -->
   </Files>
 
   <Models>
@@ -28,7 +28,7 @@
       <Fourier>604800, 302400, 86400, 43200</Fourier>
       <P>2</P>
       <Q>1</Q>
-      <seed>...</seed><!-- TODO: set your own random number generator seed  -->
+      <seed>050877</seed><!-- TODO: set your own random number generator seed  -->
       </ROM>
   </Models>
 
@@ -46,9 +46,9 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-    <IOStep name="..."> <!-- TODO: create your pickle IOstep name  -->
-      <Input class="..." type="...">...</Input> <!-- TODO: Specify the arma model  -->
-      <Output class="..." type="...">...</Output> <!-- TODO: Dump into a file  -->
+    <IOStep name="createPickle"> <!-- TODO: create your pickle IOstep name  -->
+      <Input class="Models" type="ROM">arma</Input> <!-- TODO: Specify the arma model  -->
+      <Output class="Files" type="">pkARMA</Output> <!-- TODO: Dump into a file  -->
     </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dataIn</Input>

@@ -60,7 +60,7 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <P>...</P> <!-- TODO: change the value of this node into 1 -->
+      <P>5</P> <!-- TODO: change the value of this node into 1 -->
       <Q>1</Q>
     </ROM>
   </Models>
