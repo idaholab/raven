@@ -225,7 +225,7 @@ class JobHandler(BaseType):
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
-        self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
+        self.raiseADebug("Head node IP address: ", self.rayServer.address_info['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
         self.raiseADebug("Object store address: ", self.rayServer['object_store_address'])
         self.raiseADebug("Raylet socket name  : ", self.rayServer['raylet_socket_name'])
