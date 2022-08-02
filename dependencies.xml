@@ -60,6 +60,7 @@ Note all install methods after "main" take
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <ray source="pip" pip_extra="[default]">1.12</ray>
+    <redis source="pip" os='windows'/>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
