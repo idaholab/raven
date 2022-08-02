@@ -24,7 +24,6 @@ import sys
 import threading
 from random import randint
 import socket
-import time
 import re
 
 from .utils import importerUtils as im
@@ -315,34 +314,12 @@ class JobHandler(BaseType):
       if rayStart.returncode != 0:
         self.raiseAnError(RuntimeError, f"RAY failed to start on the --head node! Return code is {rayStart.returncode}")
       else:
-        #address, redisPassword = self.__getRayInfoFromStart("ray_head.ip")
-        address = self.__getRayInfoFromStartNew("ray_head.ip")
+        address = self.__getRayInfoFromStart("ray_head.ip")
     return address, redisPassword
 
   def __getRayInfoFromStart(self, rayLog):
     """
-      Read Ray info from shell return script
-      @ In, rayLog, str, the ray output log
-      @ Out, address, str, the retrieved address (ip:port)
-      @ Out, redisPassword, str, the redis password
-    """
-    address, redisPassword = None, None
-    with open(rayLog, 'r') as rayLogObj:
-      for line in rayLogObj.readlines():
-        if " ray start" in line.strip():
-          ix = line.strip().find("ray start")
-          address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
-          redisPassword = redisPassword.split("=")[-1].replace("'","")
-          address_arg, address = address.replace("'","").split("=")
-          if address_arg.strip() != "--address":
-            self.raiseAWarning("Unexpected ray start:" + line)
-          break
-
-    return address, redisPassword
-
-  def __getRayInfoFromStartNew(self, rayLog):
-    """
-      Read Ray info from shell return script for newer ray versions
+      Read Ray info from shell return script for ray
       @ In, rayLog, str, the ray output log
       @ Out, address, str, the retrieved address (ip:port)
     """
