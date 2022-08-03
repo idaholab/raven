@@ -75,12 +75,19 @@ class DistributedMemoryRunner(InternalRunner):
     with self.__funcLock:
       if self.__func is None:
         return True
+      elif self.hasBeenAdded:
+        return True
       else:
         if im.isLibAvail("ray"):
           try:
-            ray.get(self.__func, timeout=waitTimeOut)
+            runReturn = ray.get(self.__func, timeout=waitTimeOut)
+            self.runReturn = runReturn
+            self.hasBeenAdded = True
+            if self.runReturn is None:
+              self.returnCode = -1
             return True
           except ray.exceptions.GetTimeoutError:
+            #Timeout, so still running.
             return False
           except ray.exceptions.RayTaskError:
             #The code gets this undocumented error, and
@@ -101,12 +108,13 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    if not self.hasBeenAdded:
-      if self.__func is not None:
-        self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
-      else:
-        self.runReturn = None
-      self.hasBeenAdded = True
+    with self.__funcLock:
+      if not self.hasBeenAdded:
+        if self.__func is not None:
+          self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
+        else:
+          self.runReturn = None
+        self.hasBeenAdded = True
 
   def start(self):
     """

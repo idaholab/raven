@@ -32,7 +32,9 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
   # class attribute
   ## define the clusterable features for this trainer.
-  _features = [] # TODO
+  _features = ['sin',       # amplitude of sine coefficients
+               'cos',       # amplitude of cosine coefficients
+               'intercept'] # mean of signal
 
   @classmethod
   def getInputSpecification(cls):
@@ -225,6 +227,74 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         base.append(periodNode)
         for stat, value in sorted(list(info['coeffs'][period].items()), key=lambda x:x[0]):
           periodNode.append(xmlUtils.newNode(stat, text=f'{value:1.9e}'))
+
+  # clustering
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    # nameTemplate convention:
+    # -> target is the trained variable (e.g. Signal, Temperature)
+    # -> metric is the algorithm used (e.g. Fourier, ARMA)
+    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
+    features = {}
+    for target, info in params.items():
+      if 'intercept' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='intercept')
+        features[key] = info['intercept']
+      if 'sin' in requests or 'cos' in requests:
+        for period, data in info['coeffs'].items():
+          C = data['amplitude']
+          p = data['phase']
+          if 'sin' in requests:
+            sin = C * np.cos(p)
+            key = nameTemplate.format(target=target, metric=self.name, id=f'{period}_sin')
+            features[key] = sin
+          if 'cos' in requests:
+            cos = C * np.sin(p)
+            key = nameTemplate.format(target=target, metric=self.name, id=f'{period}_cos')
+            features[key] = cos
+    return features
+
+  def setClusteringValues(self, fromCluster, params):
+    """
+      Interpret returned clustering settings as settings for this algorithm.
+      Acts somewhat as the inverse of getClusteringValues.
+      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
+      @ In, params, dict, trained parameter settings
+      @ Out, params, dict, updated parameter settings
+    """
+    # TODO this needs to be fast, as it's done a lot.
+    # Consider restructering the "period", "sin", "cos" for faster manipulation.
+    # need both sin and cos before we can set the params for amp, phase, so store here
+    sincos = collections.defaultdict(dict)
+    for target, identifier, value in fromCluster:
+      value = float(value)
+      if identifier == 'intercept':
+        params[target]['intercept'] = value
+      elif identifier.endswith('_sin'):
+        period = float(identifier.split('_')[0])
+        if period not in sincos[target]:
+          sincos[target][period] = {}
+        sincos[target][period]['sin'] = value
+      elif identifier.endswith('_cos'):
+        period = float(identifier.split('_')[0])
+        if period not in sincos[target]:
+          sincos[target][period] = {}
+        sincos[target][period]['cos'] = value
+    for target, tdata in sincos.items():
+      for period, pdata in tdata.items():
+        A = pdata['sin']
+        B = pdata['cos']
+        C, p = mathUtils.convertSinCosToSinPhase(A, B)
+        if period not in params[target]['coeffs']:
+          raise RuntimeError()
+        params[target]['coeffs'][period] = {'amplitude': C, 'phase': p}
+    return params
 
   #
   # Utility Methods
