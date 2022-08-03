@@ -261,12 +261,13 @@ class DMDC(DMD):
         _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
         
         avgY1 = np.average(Y1,axis=1).flatten()
-        Xavg = np.average(X2,axis=1).flatten()
+        Xavg = np.average(ss,axis=0).flatten()
         CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
         for i in range(len(avgY1)):
           CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
         for j in range(len(Xavg)):
           CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
+          print(CtildeNormalizedNormalized[smp,:,j])
         #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:] 
         #CtildeNormalizedNormalized[smp,:,:] = np.multiply(CtildeNormalized[smp,:,:],Xavg)
         #scaler = preprocessing.MinMaxScaler()

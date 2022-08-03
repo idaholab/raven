@@ -206,7 +206,7 @@ class RFE(BaseInterface):
     
     # clustering appraoch here
     if self.applyClusteringFiltering:
-      from scipy.stats import spearmanr, pearsonr
+      from scipy.stats import spearmanr
       from scipy.cluster import hierarchy
       from scipy.spatial.distance import squareform
       from collections import defaultdict
@@ -289,12 +289,6 @@ class RFE(BaseInterface):
       coefs = None
       if hasattr(estimator, 'featureImportances_'):
         importances = estimator.featureImportances_
-         # since we get the importance, highest importance must be kept => we get the inverse of coefs
-        coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        ####Test
-        #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
-        ####test
-        coefs = 1./coefs
         for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2","BOP.steamTurbine.h_is","SES.CS.W_totalSetpoint_SES.y","SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
           if fff in importances:
             print(ccc,fff,importances[fff])
@@ -304,6 +298,23 @@ class RFE(BaseInterface):
             for v in importances[imp]:
               fobj.write(","+str(v))
             fobj.write("\n")
+        for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2",
+                                   "BOP.steamTurbine.h_is",
+                                   "SES.CS.W_totalSetpoint_SES.y",
+                                   "SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
+          if fff in importances:
+            importances[fff][:] = 100.0
+        # since we get the importance, highest importance must be kept => we get the inverse of coefs
+        indexMap = {v: i for i, v in enumerate(self.parametersToInclude)}    
+        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+        sortedList = sorted(importances.items(), key=lambda pair: indexMap[pair[0]])
+        coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
+        ####Test
+        #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
+        ####test
+        coefs = 1./coefs
+
+
         #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
         if coefs.shape[0] == raminingFeatures:
           coefs = coefs.T
