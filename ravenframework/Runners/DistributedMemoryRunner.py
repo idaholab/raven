@@ -85,6 +85,8 @@ class DistributedMemoryRunner(InternalRunner):
             self.hasBeenAdded = True
             if self.runReturn is None:
               self.returnCode = -1
+            del self.__func
+            self.__func = None
             return True
           except ray.exceptions.GetTimeoutError:
             #Timeout, so still running.
