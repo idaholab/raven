@@ -239,7 +239,9 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
                   This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+
                                  b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+
                                  c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
@@ -292,6 +294,7 @@ class GeneticAlgorithm(RavenSampled):
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     new['AHD'] = 'Hausdorff Distance between populations'
+    new['ConstraintEvaluation_{CONSTRAINT}'] = 'Constraint function evaluation (negative if violating and positive otherwise)'
     ok.update(new)
 
     return ok
@@ -470,7 +473,6 @@ class GeneticAlgorithm(RavenSampled):
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
-
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar=self._objectiveVar,
                                              a=self._objCoeff,
@@ -479,8 +481,8 @@ class GeneticAlgorithm(RavenSampled):
                                              constraintFunction=g,
                                              type=self._minMax)
 
-    self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
+    self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
@@ -611,13 +613,14 @@ class GeneticAlgorithm(RavenSampled):
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
-  def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, info):
+  def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
     """
       Store a new Generation after checking convergence
       @ In, traj, int, trajectory for this new point
       @ In, rlz, dict, realized realization
       @ In, objectiveVal, list, objective values at each chromosome of the realization
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
     self.raiseADebug('*'*80)
@@ -633,9 +636,12 @@ class GeneticAlgorithm(RavenSampled):
     #       point history.
     if self._writeSteps == 'every':
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled)
+        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+        for ind, consName in enumerate(g['Constraint'].values):
+          rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
@@ -650,7 +656,7 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def _collectOptPoint(self, population, fitness, objectiveVal):
+  def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -658,9 +664,16 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-    optPoints,fit,obj = zip(*[[x,y,z] for x, y, z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
-    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(self.toBeSampled.keys()))
+
+    varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
+    varList = set(varList)
+    selVars = [var for var in varList if var in rlz.data_vars]
+    population = datasetToDataArray(rlz, selVars)
+    optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+      point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]
       self.bestObjective = obj[0]
@@ -982,6 +995,8 @@ class GeneticAlgorithm(RavenSampled):
         new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
       elif '{VAR}' in template:
         new.extend([template.format(VAR=var) for var in self.toBeSampled])
+      elif '{CONSTRAINT}' in template:
+        new.extend([template.format(CONSTRAINT=constraint.name) for constraint in self._constraintFunctions + self._impConstraintFunctions])
       else:
         new.append(template)
 

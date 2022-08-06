@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/reducedOrderModeling/inputs.trainAndValidate</name>
+    <author>Mohammad ABdo (@Jimmy-INL)</author>
+    <created>2022-06-21</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: train and validate a ROM using the cross validation Postprocessor</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>r2_b</WorkingDir>
+    <Sequence>FirstMRun,trainAndValidateStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <!-- Create Date Cloud -->
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">outMC</Output>
+    </MultiRun>
+    <!-- Split Data, Train, and Validate -->
+    <PostProcess name="trainAndValidateStep">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Input class="Models" type="ROM">surrogate</Input>
+      <Model class="Models" type="PostProcessor">trainAndValidatePP</Model>
+      <Output class="DataObjects" type="PointSet">outPP</Output>
+      <Output class="OutStreams" type="Print">outPP</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t</variables>
+    </ExternalModel>
+    <ROM name="surrogate" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
+    <PostProcessor name="trainAndValidatePP" subType="CrossValidation">
+      <SciKitLearn>
+        <SKLtype>KFold</SKLtype>
+        <n_splits>3</n_splits>
+      </SciKitLearn>
+      <Metric class="Metrics" type="Metric">MAE</Metric>
+      <Metric class="Metrics" type="Metric">MSE</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <Metric name="MAE" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
+    <Metric name="MSE" subType="SKL">
+      <metricType>regression|mean_squared_error</metricType>
+    </Metric>
+  </Metrics>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>080118</initialSeed>
+      </samplerInit>
+      <variable name="angle">
+        <distribution>angle_d</distribution>
+      </variable>
+      <constant name="v0">1.0</constant>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,v0,y0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outMC">
+      <Input>angle</Input>
+      <Output>r</Output>
+    </PointSet>
+    <PointSet name="outPP">
+      <Output>cv_MAE_r,cv_MSE_r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outMC">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
