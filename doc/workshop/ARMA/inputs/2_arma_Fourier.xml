@@ -60,7 +60,7 @@
       <Target>Load,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Fourier>3600,86400, 6400800</Fourier> <!-- TODO: change the value of this node into the base periods  -->
+      <Fourier>...</Fourier> <!-- TODO: change the value of this node into the base periods  -->
       <P>1</P>
       <Q>3</Q>
     </ROM>

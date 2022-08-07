@@ -55,15 +55,6 @@
     </ROM>
   </Models>
 
-  <Distributions>
-    <Normal name="angle_d">
-      <mean>45</mean>
-      <sigma>5</sigma>
-      <lowerBound>5</lowerBound>
-      <upperBound>85</upperBound>
-    </Normal>
-  </Distributions>
-
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
