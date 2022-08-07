@@ -10,14 +10,23 @@
 
   <RunInfo>
     <WorkingDir>r4_b</WorkingDir>
+<<<<<<< HEAD
     <Sequence>pkLoad,evaluateRom,plotROM</Sequence><!-- Complete this-->
+=======
+    <Sequence></Sequence><!-- Complete this-->
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
     <IOStep name="pkLoad">
+<<<<<<< HEAD
       <Input class="Files" type="">ROMpk</Input><!-- Complete this-->
       <Output class="Models" type="ROM">pROM</Output><!-- Complete this-->
+=======
+      <Input class="" type=""></Input><!-- Complete this-->
+      <Output class="" type=""></Output><!-- Complete this-->
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     </IOStep>
     <MultiRun name="evaluateRom">
       <Input class="DataObjects" type="PointSet">romIn</Input>
@@ -36,11 +45,19 @@
     <ExternalModel ModuleToLoad="../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
       <variables>x0,v0,y0,angle,x,y,r,t</variables>
     </ExternalModel>
+<<<<<<< HEAD
     <ROM name="pROM" subType="pickledROM"/><!-- Complete this-->
   </Models>
 
   <Files>
     <Input name="ROMpk" type="">r3/IDW.pk</Input><!-- Complete this-->
+=======
+    <ROM name="pROM" subType=""/><!-- Complete this-->
+  </Models>
+
+  <Files>
+    <Input name="ROMpk" type="">??</Input><!-- Complete this-->
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
   </Files>
 
   <Samplers>

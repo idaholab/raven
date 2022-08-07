@@ -588,7 +588,7 @@ class Code(Model):
         time.sleep(0.5)
         process.poll()
         if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
           process.kill()
           process.returncode = -1
         if process.returncode is not None or time.time() > timeout:
@@ -770,6 +770,9 @@ class Code(Model):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
+    if not hasattr(evaluation, 'pop'):
+      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}

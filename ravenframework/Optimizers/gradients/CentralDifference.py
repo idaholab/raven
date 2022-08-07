@@ -3,12 +3,11 @@
   Author:--gairabhi
 """
 import copy
-from ...utils import mathUtils, InputData
+from ...utils import mathUtils
+from .GradientApproximator import GradientApproximator
 
-from .GradientApproximater import GradientApproximater
 
-
-class CentralDifference(GradientApproximater):
+class CentralDifference(GradientApproximator):
   """
     Enables gradient estimation via central differencing
   """
@@ -37,6 +36,7 @@ class CentralDifference(GradientApproximater):
         \end{equation*}
         and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$.
           """
+
     return specs
 
   def chooseEvaluationPoints(self, opt, stepSize, constraints=None):
@@ -71,6 +71,7 @@ class CentralDifference(GradientApproximater):
                       'optVar': optVar,
                       'delta': delta,
                       'side': 'positive'})
+
     return evalPoints, evalInfo
 
   def evaluate(self, opt, grads, infos, objVar):
@@ -85,7 +86,7 @@ class CentralDifference(GradientApproximater):
       @ Out, foundInf, bool, if True then infinity calculations were used
     """
     gradient = {}
-    for v, var in enumerate(self._optVars):
+    for _, var in enumerate(self._optVars):
       # get the positive and negative sides for this var
       neg = None
       pos = None
@@ -108,6 +109,7 @@ class CentralDifference(GradientApproximater):
 
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
     direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
+
     return magnitude, direction, foundInf
 
   def numGradPoints(self):

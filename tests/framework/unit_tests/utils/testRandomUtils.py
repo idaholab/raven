@@ -348,8 +348,8 @@ for i in range(samps.shape[1]):
   checkTrue('Entry {}, simultaneous random 5D hypersphere for local engine provided'.format(i),np.sum(s*s)<=1.0,True)
 ## check if it is possible to instanciate multiple random number generators (isolated)
 ## this is more a test for the crow_modules.randomENGpy[2,3]
-firstRNG = randomENG.RandomClass()
-secondRNG = randomENG.RandomClass()
+firstRNG = randomUtils.newRNG()
+secondRNG = randomUtils.newRNG()
 # seed with different seeds
 firstRNG.seed(200286)
 secondRNG.seed(20021986)
@@ -396,7 +396,6 @@ engine = randomUtils.newRNG()
 engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
-
 
 print(results)
 

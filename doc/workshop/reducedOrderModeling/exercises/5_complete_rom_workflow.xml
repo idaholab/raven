@@ -24,6 +24,7 @@
     </MultiRun>
     <PostProcess name="trainAndValidateStep">
       <Input class="DataObjects" type="PointSet">outMC</Input>
+<<<<<<< HEAD
       <Input class="Models" type="ROM">myROMGP</Input>
       <Model class="Models" type="PostProcessor">trainAndValidatePP</Model>
       <Output class="DataObjects" type="PointSet">outPP</Output>
@@ -32,6 +33,16 @@
     <IOStep name="dumpRom">
       <Input class="Models" type="ROM">myROMGP</Input>
       <Output class="Files" type="">pkGP</Output>
+=======
+      <Input class="Models" type="ROM">myROMIDW</Input>
+      <Model class="Models" type="PostProcessor">trainAndValidatePP</Model>
+      <Output class="DataObjects" type="PointSet">outPP</Output>
+      <Output class="OutStreams" type="Print">IDWoutPP</Output>
+    </PostProcess>
+    <IOStep name="dumpRom">
+      <Input class="Models" type="ROM">myROMIDW</Input>
+      <Output class="Files" type="">pkIDW</Output>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     </IOStep>
     <MultiRun name="sampleModel">
       <Input class="DataObjects" type="PointSet">testingSet</Input>
@@ -42,15 +53,26 @@
     </MultiRun>
     <MultiRun name="sampleRom">
       <Input class="DataObjects" type="PointSet">testingSet</Input>
+<<<<<<< HEAD
       <Model class="Models" type="ROM">myROMGP</Model>
       <Sampler class="Samplers" type="MonteCarlo">testSetMCSampler</Sampler>
       <Output class="DataObjects" type="PointSet">testRomOut</Output>
       <Output class="OutStreams" type="Print">testRomGPOut</Output>
+=======
+      <Model class="Models" type="ROM">myROMIDW</Model>
+      <Sampler class="Samplers" type="MonteCarlo">testSetMCSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">testRomOut</Output>
+      <Output class="OutStreams" type="Print">testRomIDWOut</Output>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     </MultiRun>
     <IOStep name="plot">
       <Input class="DataObjects" type="PointSet">testModelOut</Input>
       <Input class="DataObjects" type="PointSet">testRomOut</Input>
+<<<<<<< HEAD
       <Output class="OutStreams" type="Plot">model_vs_GP_ROM</Output>
+=======
+      <Output class="OutStreams" type="Plot">model_vs_IDW_ROM</Output>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     </IOStep>
   </Steps>
 
@@ -77,7 +99,11 @@
       <Features>angle</Features>
       <Target>r</Target>
       <kernel>rbf</kernel>
+<<<<<<< HEAD
       <!-- <epsilon>0.0001</epsilon> -->
+=======
+      <epsilon>0.0001</epsilon>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     </ROM>
     <ROM name="myROMKMLP" subType="KerasMLPRegression">
       <Features>angle</Features>
@@ -126,7 +152,11 @@
   </Metrics>
 
   <Files>
+<<<<<<< HEAD
     <Input name="pkGP" type="">GP.pk</Input>
+=======
+    <Input name="pkIDW" type="">IDW.pk</Input>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
   </Files>
 
   <Samplers>
@@ -197,7 +227,11 @@
       <type>csv</type>
       <source>outMC</source>
     </Print>
+<<<<<<< HEAD
     <Print name="GPoutPP">
+=======
+    <Print name="IDWoutPP">
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
       <type>csv</type>
       <source>outPP</source>
     </Print>
@@ -205,11 +239,19 @@
       <type>csv</type>
       <source>testModelOut</source>
     </Print>
+<<<<<<< HEAD
     <Print name="testRomGPOut">
       <type>csv</type>
       <source>testRomOut</source>
     </Print>
     <Plot name="model_vs_GP_ROM">
+=======
+    <Print name="testRomIDWOut">
+      <type>csv</type>
+      <source>testRomOut</source>
+    </Print>
+    <Plot name="model vs. IDW ROM">
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -228,7 +270,11 @@
           <c>blue</c>
           <marker>+</marker>
           <kwargs>
+<<<<<<< HEAD
             <label>GP ROM</label>
+=======
+            <label>IDW ROM</label>
+>>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
           </kwargs>
         </plot>
         <xlabel>angle (deg)</xlabel>
