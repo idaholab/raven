@@ -38,11 +38,7 @@ def main():
     ax.set_ylabel('Value')
     ax.legend()
 
-<<<<<<< HEAD
     outputFilepath = os.path.join(os.path.dirname(realFilepath), "results.png")
-=======
-    outputFilepath = os.path.join(os.path.dirname(real_fp), "results.png")
->>>>>>> 7e525d45e11f172fff412603b281ff8deae7c872
     plt.savefig(outputFilepath)
 
 
