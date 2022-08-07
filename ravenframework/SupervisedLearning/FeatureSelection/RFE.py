@@ -292,12 +292,23 @@ class RFE(BaseInterface):
         for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2","BOP.steamTurbine.h_is","SES.CS.W_totalSetpoint_SES.y","SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
           if fff in importances:
             print(ccc,fff,importances[fff])
+        immppp, keeeysss = [] ,[]
         with open ("importances.csv","w+") as fobj:
           for imp in importances:
             fobj.write(imp)
             for v in importances[imp]:
               fobj.write(","+str(v))
             fobj.write("\n")
+            immppp.append(np.average(importances[imp]))
+            keeeysss.append(imp)
+        immppp = np.atleast_1d(immppp)
+        keeeysss = np.atleast_1d(keeeysss)
+        ssss = np.argsort(immppp)
+        orderedKeys = keeeysss[ssss]
+        print(orderedKeys[0:3])
+        print(immppp[ssss][0:3])
+        print(orderedKeys[-3:])
+        print(immppp[ssss][-3:])        
         for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2",
                                    "BOP.steamTurbine.h_is",
                                    "SES.CS.W_totalSetpoint_SES.y",
@@ -305,9 +316,11 @@ class RFE(BaseInterface):
           if fff in importances:
             importances[fff][:] = 100.0
         # since we get the importance, highest importance must be kept => we get the inverse of coefs
-        indexMap = {v: i for i, v in enumerate(self.parametersToInclude)}    
+        parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+        indexMap = {v: i for i, v in enumerate(parametersRemained)}    
         #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        sortedList = sorted(importances.items(), key=lambda pair: indexMap[pair[0]])
+        subSetImportances = {k: importances[k] for k in parametersRemained}
+        sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
         coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
         ####Test
         #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])

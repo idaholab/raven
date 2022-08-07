@@ -245,29 +245,31 @@ class DMDC(DMD):
     if self._importances is None:
       from sklearn import preprocessing
       # the importances are evaluated in the transformed space
-      CtildeNormalized =  np.zeros(self.__Ctilde.shape)
+      #CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       CtildeNormalizedNormalized = np.zeros(self.__Ctilde.shape)
       #oo = self.outputVals
       #for out in range(self.outputVals.shape[-1]):
       #  oo = self.outputVals[:,:,out]/np.average(self.outputVals[:,:,out])
       for smp in range(self.__Ctilde.shape[0]):
         #ss = preprocessing.normalize(self.stateVals[:,smp,:])
-        ss = self.stateVals[:,smp,:]
-        X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
-        X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
-        U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
+        ##ss = self.stateVals[:,smp,:]
+        ##X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
+        ##X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
+        ##U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
         #Y1 = (oo[:-1,smp,:]   - oo[0,smp,:]).T   if self.dmdParams['centerUXY'] else oo[:-1,smp,:].T
-        Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
-        _,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+        ##Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
+        ##_,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
         
-        avgY1 = np.average(Y1,axis=1).flatten()
-        Xavg = np.average(ss,axis=0).flatten()
-        CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
+        ##avgY1 = np.average(Y1,axis=1).flatten()
+        avgY1 = np.average(self.outputVals[:-1,smp,:].T,axis=1).flatten()
+        Xavg = np.average(self.stateVals[:,smp,:],axis=0).flatten()
+        ##CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
+        CtildeNormalizedNormalized[smp,:,:] = self.__Ctilde[smp,:,:]
         for i in range(len(avgY1)):
           CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
         for j in range(len(Xavg)):
           CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
-          print(CtildeNormalizedNormalized[smp,:,j])
+           
         #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:] 
         #CtildeNormalizedNormalized[smp,:,:] = np.multiply(CtildeNormalized[smp,:,:],Xavg)
         #scaler = preprocessing.MinMaxScaler()
