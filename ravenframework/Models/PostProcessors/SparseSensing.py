@@ -18,6 +18,7 @@
 '''
 import pysensors as ps
 import numpy as np
+import xarray as xr
 # import copy
 # from collections import defaultdict
 # from functools import partial
@@ -94,7 +95,7 @@ class SparseSensing(PostProcessorReadyInterface):
     super().__init__()
     self.setInputDataType('xrDataset')
     self.keepInputMeta(False)
-    self.outputMultipleRealizations = False # True indicate multiple realizations are returned
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
     # self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
     # self.pivotParameter = 'time' #FIXME this assumes the ARMA model!  Dangerous assumption.
@@ -164,15 +165,38 @@ class SparseSensing(PostProcessorReadyInterface):
       optimizer = ps.optimizers.QR()
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
+    features = {}
+    for var in self.sensingFeatures:
+      features[var] = np.atleast_2d(inputDS[var].data)
+    # indexes = inputDS[self.sensingFeatures].indexes
+    data = inputDS[self.sensingTarget].data
 
-
-    # x = inputDS['x'].data
-    # y = inputDS['y'].data
-    data = inputDS['v'].data
     model.fit(data)
     selectedSensors = model.get_selected_sensors()
-    optimalSensors = {}
-    for i in range(len(selectedSensors)):
-      optimalSensors['sensor'+str(i)] = np.atleast_1d(selectedSensors[i])
+
+    # coords = {key: data[original][key] for key in data[original].dims}
+    # orig_data = data[original].values
+    # new_data = copy.copy(orig_data)
+    # if steps < 0:
+    #   new_data[:, :-steps] = default
+    #   new_data[:, -steps:] = orig_data[:,:steps]
+    # elif steps > 0:
+    #   new_data[:, -steps:] = default
+    #   new_data[:, :-steps] = orig_data[:,steps:]
+    #   # else:
+    #   # steps is 0, so just keep the copy
+    # data[new] = xr.DataArray(data=new_data, coords=coords, dims=coords.keys())
+    # return data
+
+
+    # realizations = []
+    # for i in range(len(selectedSensors)):
+    #   sensorLocRlz = {}
+    #   for j,var in enumerate(self.sensingFeatures):
+    #     sensorLoc = features[var][0,selectedSensors[i]]
+    #     sensorLocRlz['sensor'+'_'+str(var.strip()[0])] = np.atleast_1d(sensorLoc)
+    #   realizations.append(sensorLocRlz)
+    # #collect data
+
     ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
-    return optimalSensors
+    return realizations
