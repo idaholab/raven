@@ -20,12 +20,9 @@
   Dynamic Mode Decomposition with Control (The class is based on the DynamicModeDecomposition class)
 """
 #External Modules------------------------------------------------------------------------------------
-import sys
 import numpy as np
 import scipy
 from sklearn import neighbors
-from scipy import spatial
-import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -136,13 +133,19 @@ class DMDC(DMD):
     super().__init__()
     self.printTag = 'DMDC'
     self.dynamicFeatures = True
+    self.actuatorsID = None     # Actuator Variable Names
+    self.stateID = None         # State Variable Names
+    self.initStateID = None     # Initialization State Variable Names
+    self.outputID = None        # Output Names
+    self.parametersIDs = None   # Parameter Names
+    self.neigh = None           # neighbors
     # variables filled up in the training stages
-    self.__Btilde = {} # B matrix
-    self.__Ctilde = {} # C matrix
-    self.actuatorVals = None # Actuator values (e.g. U), the variable names are in self.ActuatorID
-    self.stateVals = None # state values (e.g. X)
-    self.outputVals = None # output values (e.g. Y)
-    self.parameterValues = None #  parameter values
+    self.__Btilde = {}          # B matrix
+    self.__Ctilde = {}          # C matrix
+    self.actuatorVals = None    # Actuator values (e.g. U), the variable names are in self.ActuatorID
+    self.stateVals = None       # state values (e.g. X)
+    self.outputVals = None      # output values (e.g. Y)
+    self.parameterValues = None # parameter values
 
   def _handleInput(self, paramInput):
     """
@@ -159,7 +162,7 @@ class DMDC(DMD):
     self.actuatorsID = settings.get('actuators')
     ### Extract the State Variable Names (x)
     self.stateID = settings.get('stateVariables')
-    ### Extract the Initilalization State Variable Names (x). Optional. If not
+    ### Extract the Initialization State Variable Names (x). Optional. If not
     ### found, the state is initialized with the initial values in the state field
     self.initStateID = settings.get('initStateVariables')
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
@@ -176,6 +179,14 @@ class DMDC(DMD):
     self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
+
+  def __setstate__(self,state):
+    """
+      Initializes the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -404,13 +415,13 @@ class DMDC(DMD):
     # Find the truncation rank triggered by "s>=SminValue"
     rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
-        uTruc = uTrucSVD[:, :rankTruc]
-        vTruc = vTrucSVD[:, :rankTruc]
-        sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
+      uTruc = uTrucSVD[:, :rankTruc]
+      vTruc = vTrucSVD[:, :rankTruc]
+      sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
     else:
-        uTruc = uTrucSVD
-        vTruc = vTrucSVD
-        sTruc = np.diag(sTrucSVD)
+      uTruc = uTrucSVD
+      vTruc = vTrucSVD
+      sTruc = np.diag(sTrucSVD)
 
     # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
     qsTruc, rsTruc = np.linalg.qr(sTruc)
@@ -423,5 +434,3 @@ class DMDC(DMD):
     C = Y1.dot(scipy.linalg.pinv2(X1))
 
     return A, B, C
-
-
