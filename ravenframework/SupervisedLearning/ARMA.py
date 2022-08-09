@@ -617,6 +617,9 @@ class ARMA(SupervisedLearning):
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
     # Applied Energy, 87(2010) 843-855
+    #
+    # Kernel density estimation has also been tried for estimating the CDF of the data but with little practical
+    # benefit over using the empirical CDF. See RAVEN Theory Manual for more discussion.
     for t,target in enumerate(self.target):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
