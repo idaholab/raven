@@ -37,7 +37,7 @@
   [./csv]
    type = OrderedCSV
    output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
-   windows_gold = 'gold/limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
+   windows_gold = 'limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
    [../]
  [../]
 

@@ -41,7 +41,7 @@
     [../]
     [./signalexist]
       type = Exists
-      output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
+      output = 'gold/ARMAreseed/signals_0.csv gold/ARMAreseed/signals_1.csv gold/ARMAreseed/signals_2.csv gold/ARMAreseed/signals_3.csv gold/ARMAreseed/signals.csv '
     [../]
   [../]
 
