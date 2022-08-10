@@ -57,8 +57,10 @@ mvnDistribution = distribution1D.BasicMultivariateNormal(covCpp,muCpp,str(covTyp
 COVn = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 Un,Sn,Vn = LA.svd(COVn,full_matrices=False)
 uNp = Un[:,:rank]
+print("uNp", uNp)
 altuNp = np.array(uNp)
-altuNp[:,2:4] = -uNp[:,2:4]
+altuNp[:,1] = -uNp[:,1]
+altuNp[:,3] = -uNp[:,3]
 sNp = Sn[:rank]
 coordinateInOriginalSpace = np.dot(uNp,np.dot(np.diag(np.sqrt(sNp)),coordinateInTransformedSpace))
 altCoordinateInOriginalSpace = np.dot(altuNp,np.dot(np.diag(np.sqrt(sNp)),coordinateInTransformedSpace))
