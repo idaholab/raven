@@ -15,7 +15,7 @@
    input = 'basic.xml'
    output = 'Basic/romMeta.csv'
    UnorderedXml = 'Basic/romMeta.xml'
-   rel_err = 1e-6
+   rel_err = 7e-6
   [../]
 
   [./ARMAparallel]

@@ -918,13 +918,11 @@ class JobHandler(BaseType):
     # liberty of condensing these loops into one and removing some of the
     # redundant checks to make this code a bit simpler.
     for runList in [self.__running, self.__clientRunning]:
-      for i,run in enumerate(runList):
-        if run is not None and run.isDone():
-          # We should only need the lock if we are touching the finished queue
-          # which is cleared by the main thread. Again, the running queues
-          # should not be modified by the main thread, however they may inquire
-          # it by calling numRunning.
-          with self.__queueLock:
+      with self.__queueLock:
+        # We need the queueLock, because if terminateJobs runs kill on it,
+        #  kill changes variables that can cause run.isDone to error out.
+        for i,run in enumerate(runList):
+          if run is not None and run.isDone():
             self.__finished.append(run)
             self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
@@ -977,6 +975,8 @@ class JobHandler(BaseType):
       @ In, ids, list(str), job prefixes to terminate
       @ Out, None
     """
+    #WARNING: terminateJobs modifies the running queue, which
+    # fillJobQueue assumes can't happen
     queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
     with self.__queueLock:
       for _, queue in enumerate(queues):
