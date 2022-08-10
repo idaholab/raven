@@ -195,18 +195,17 @@ class JobHandler(BaseType):
 
         if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
           if self.rayInstanciatedOutside:
-            address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword'])
+            address = self.runInfoDict['headNode']
           else:
             # create head node cluster
             # port 0 lets ray choose an available port
-            address, redisPassword = self.__runHeadNode(nProcsHead, 0)
+            address = self.__runHeadNode(nProcsHead, 0)
           # add names in runInfo
-          self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
+          self.runInfoDict['headNode'] = address
           if _rayAvail:
             self.raiseADebug("Head host IP      :", address)
-            self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
             # update head node paths
@@ -295,9 +294,8 @@ class JobHandler(BaseType):
       @ In, nProcs, int, the number of processors
       @ In, port, int, desired port (None: ray default, 0: ray finds available)
       @ Out, address, str, the retrieved address (ip:port)
-      @ Out, redisPassword, str, the redis password
     """
-    address, redisPassword = None, None
+    address = None
     # get local enviroment
     localEnv = os.environ.copy()
     localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
@@ -315,7 +313,7 @@ class JobHandler(BaseType):
         self.raiseAnError(RuntimeError, f"RAY failed to start on the --head node! Return code is {rayStart.returncode}")
       else:
         address = self.__getRayInfoFromStart("ray_head.ip")
-    return address, redisPassword
+    return address
 
   def __getRayInfoFromStart(self, rayLog):
     """
@@ -323,12 +321,12 @@ class JobHandler(BaseType):
       @ In, rayLog, str, the ray output log
       @ Out, address, str, the retrieved address (ip:port)
     """
-    address, redisPassword = None, None
     with open(rayLog, 'r') as rayLogObj:
       for line in rayLogObj.readlines():
         match = re.search("ray start --address='([^']*)'", line)
         if match:
-          return match.groups()[0]
+          address = match.groups()[0]
+          return address
     self.raiseAWarning("ray start address not found in "+str(rayLog))
     return None
 
@@ -369,12 +367,11 @@ class JobHandler(BaseType):
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
 
-  def __runRemoteListeningSockets(self, address, localHostName, redisPassword):
+  def __runRemoteListeningSockets(self, address, localHostName):
     """
       Method to activate the remote sockets for parallel python
       @ In, address, string, the head node redis address
       @ In, localHostName, string, the local host name
-      @ In, redisPassword, string, the head node redis password
       @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
@@ -859,7 +856,6 @@ class JobHandler(BaseType):
               kwargs = {}
               if self.rayServer is not None and 'headNode' in self.runInfoDict:
                 kwargs['headNode'] = self.runInfoDict['headNode']
-                kwargs['redisPassword'] = self.runInfoDict['redisPassword']
               if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
                 kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
               kwargs['INDEX'] = str(i)
