@@ -35,7 +35,7 @@ Note all install methods after "main" take
 -->
 <dependencies>
   <main>
-    <h5py>2.10</h5py>
+    <h5py/>
     <numpy>1.18</numpy>
     <scipy>1.5</scipy>
     <scikit-learn>0.24</scikit-learn>
@@ -59,7 +59,9 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
+    <ray source="pip" pip_extra="[default]">1.12</ray>
+    <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
+    <redis source="pip" os='windows'/>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->

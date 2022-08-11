@@ -277,7 +277,6 @@ class RAVEN(CodeInterfaceBase):
 
     if 'headNode' in Kwargs:
       modifDict['RunInfo|headNode'] = Kwargs['headNode']
-      modifDict['RunInfo|redisPassword'] = Kwargs['redisPassword']
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
