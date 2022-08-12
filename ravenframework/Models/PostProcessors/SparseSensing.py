@@ -97,7 +97,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.keepInputMeta(False)
     self.outputMultipleRealizations = True # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
-    # self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
+    self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
     # self.pivotParameter = 'time' #FIXME this assumes the ARMA model!  Dangerous assumption.
     # self.outputLen = None
 
@@ -167,25 +167,14 @@ class SparseSensing(PostProcessorReadyInterface):
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
     features = {}
     for var in self.sensingFeatures:
-      features[var] = np.atleast_2d(inputDS[var].data)
+      features[var] = np.atleast_1d(inputDS[var].data)
     # indexes = inputDS[self.sensingFeatures].indexes
     data = inputDS[self.sensingTarget].data
 
     model.fit(data)
     selectedSensors = model.get_selected_sensors()
 
-    # coords = {key: data[original][key] for key in data[original].dims}
-    # orig_data = data[original].values
-    # new_data = copy.copy(orig_data)
-    # if steps < 0:
-    #   new_data[:, :-steps] = default
-    #   new_data[:, -steps:] = orig_data[:,:steps]
-    # elif steps > 0:
-    #   new_data[:, -steps:] = default
-    #   new_data[:, :-steps] = orig_data[:,steps:]
-    #   # else:
-    #   # steps is 0, so just keep the copy
-    # data[new] = xr.DataArray(data=new_data, coords=coords, dims=coords.keys())
+
     # return data
 
 
@@ -198,5 +187,30 @@ class SparseSensing(PostProcessorReadyInterface):
     #   realizations.append(sensorLocRlz)
     # #collect data
 
+    dims = ['loc','sensor']
+    coords = {'loc':['X','Y'],
+              'sensor':np.arange(1,len(selectedSensors)+1)}
+
+    # dims = ['sensor','loc']
+    # coords = {
+    #           'sensor':np.arange(len(selectedSensors)),
+    #           'locX':np.arange(len(selectedSensors)),
+    #           'locY':np.arange(len(selectedSensors))
+    #           }#'sensor':np.arange(len(selectedSensors))
+    # coords = {key: inputDS[key] for key in inputDS.dims if key == 'RAVEN_sample_ID'}
+
+    data = np.vstack([inputDS['X (m)'][0,selectedSensors], inputDS['Y (m)'][0,selectedSensors]])#inputDS[self.sensingFeatures]
+    dataDA = xr.DataArray(data = data, coords=coords, dims=dims)
+    dataDict={}
+    # dataDict['Ind'] = np.atleast_1d(selectedSensors)
+    # dataDict['X'] = inputDS['X (m)'][0][selectedSensors]
+    # dataDict['Y'] = inputDS['Y (m)'][0][selectedSensors]
+    dataDict['sensorLocs'] = dataDA
+    # data_vars = {'locX': data[0], 'locY': data[1]}
+    # dataDict['RAVEN_sample_ID'] = np.arange(1)
+    # outDA = xr.DataArray(data=data, coords=coords, dims=coords.keys())#
+    outDS = xr.Dataset(data_vars=dataDict)#, coords=coords, dims=coords.keys()
+    outDS = outDS.expand_dims('RAVEN_sample_ID')
+    outDS['RAVEN_sample_ID'] = [0] #np.arange(1)
     ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
-    return realizations
+    return outDS
