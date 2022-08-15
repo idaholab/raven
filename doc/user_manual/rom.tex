@@ -194,35 +194,62 @@ Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 
 \subsubsection{SerializePyomo}
 \label{subsubsec:serializepyomo}
-For the purpose of exporting RAVEN trained ROMs in Pyomo format, the platform to print the Pyomo python file is established.
-The capabilities implemented enable to retrieve sampled and trained ROMs, pickle (serialize), and output python files as
-defined in the \xmlNode{IOStep}.
+For the purpose of exporting RAVEN trained ROMs in an universal-accessible format for Pyomo to solve, the platform to prepare
+the python syntax including the process to setup concrete models and constraints is created. The python syntax allows to
+to retrieve pickled (serialized) ROMs and solve the defined concrete model via Pynumero's GreyBoxModel, an extension of Pyomo.
 
-The trained file is copied and processed separately to output two files required to run
-Pyomo. The python output file contains the infrastructure inheriting the External Grey Box Model and others included in
-the Pyomo contributions package Pynumero to print a file with Pyomo syntax. The `.pk' output file is the pickled version of the
-trained ROM and can be ran with the python output file.
-
-Since the code developed in ROMs is not a subtype, the code activation is triggered by file type. To ensure developed Pyomo code
-generator is utilized in ROMs, one of the file extensions in the output of the \xmlNode{IOStep} must be `.py'. The subtype of the
-ROM model can be of any kind and is the user's decision to choose the training method.
-
-When loading ROMs from file, the user is expected to know the I/O of a ROM and loading of the ROM file must use \xmlNode{IOStep}.
-
-To verify the output files in the given example below are runnable with GrayBoxModel, several optional RAVEN dependencies are required.
-The following are the required optional libraries: pyomo 6.4 or over, cmake, glpk, ipopt, cyipopt, and pyomo-extensions. The syntax to run
-trained ROMs and GayBoxModel is the following:
+Two files are required to run the optimization: the pickled rom and the generated python file. The workflow to create both files is
+provided in the example below located at the end of this subsection. The following command line is the defined format to interface both files:
 
 \begin{lstlisting}
-  python3 python_output_file.py -r rom_pickle_file.pk -f location_of_raven_framework
+  python3 printed_python_file.py -r rom_pickled_file.pk -f location_of_raven_framework
 \end{lstlisting}
 
-If the user does not have a setup pyomo and pynumero environment, it is recommended to activate RAVEN libraries using the following command
+The file names `printed_python_file' and `rom_pickled_file' are arbitrary names, and are not requirements.
+The `location_of_raven_framework' is the relative path to where `raven_framework' is located. The created python file includes modules from
+RAVEN and is required dealing with derivatives for GreyBoxModel to solve. The rest of the command line syntax `-r' and `-f' are place holders for
+the python file to locate where the pickled ROMs and the python file itself are.
+When running the command a text file named `GreyModelOutput_cyipopt.txt' will be created showing the results of the optimization.
+
+Since the code developed in ROMs is not a subtype, the code activation for python interface file print is triggered by adding the input subnode with type `Pyomo':
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
+\end{lstlisting}
+
+To verify the output files in the given test file in 'raven/tests/framework/Models/External/serialize_pyomo.xml' and the associated example optimization case
+`python3 rom_out.py -r rom_pickle.pk -f ../../../..' are runnable with GreyBoxModel, several optional RAVEN dependencies are required.
+The following are the required optional libraries: `pyomo 6.4' or over, `cmake', `glpk', `ipopt', `cyipopt', and `pyomo-extensions'. Although almost all required
+libraries are standard packages (available on conda or pipy install), the `pyomo-extensions' is a custom library created by RAVEN developers to install `Pynumero'.
+It functions to run the following commands if `pyomo-extensions' is part of the RAVEN library installation:
+
+\begin{lstlisting}
+  pyomo download-extensions
+  pyomo build-extensions
+\end{lstlisting}
+
+For this reason, libraries `Pyomo' and `cmake' are required for successful `Pynumero' installation. Note, although all RAVEN dependency installs will
+be placed in the RAVEN library directory, the current `Pyomo' version saves extensions on the local python local directory.
+Other libraries are optimization solvers for `Pyomo' and `Pynumero'. Make sure the RAVEN conda library is activated when testing the example cases.
+The method to include optional RAVEN libraries is by adding the `optional' flag to the RAVEN library installation command:
+
+\begin{lstlisting}
+  cd raven
+  ./scripts/establish_conda_env.sh --install --optional='pyomo cmake ipopt cyipopt pyomo-extensions'
+\end{lstlisting}
+
+If the user plans to run the optimization case outside of RAVEN libraries and the pickled ROM has already been generated, instead install `pyomo', `cmake',
+`glpk', `ipopt', and `cyipopt' to your system. After this is done, on a terminal, run the `Pyomo' download and extension command introduced earlier.
+This will install `Pynumero' to your system.
+
+If the user plans to use the RAVEN library, it is recommended to activate RAVEN libraries using the following command
 on the terminal:
 
 \begin{lstlisting}
   source scripts/establish_conda_env.sh --load
 \end{lstlisting}
+
+Make sure that the optional libraries are installed before running the pickled ROM and printed python file.
 
 \textbf{Example:} For this example the external model is trained and further loaded as `out\_rom'. The loaded trained model is separately
 processed to `rom\_out.py' and `rom\_pickle.pk'.
@@ -230,7 +257,7 @@ processed to `rom\_out.py' and `rom\_pickle.pk'.
   <Simulation>
     ...
     <Files>
-      <Input name="rom_out.py" type="">rom_out.py</Input>
+      <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
       <Input name="rom_pickle.pk" type="">rom_pickle.pk</Input>
     </Files>
     ...
