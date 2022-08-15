@@ -217,9 +217,20 @@ Since the code developed in ROMs is not a subtype, the code activation for pytho
   <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
 \end{lstlisting}
 
-To verify the output files in the given test file in 'raven/tests/framework/Models/External/serialize_pyomo.xml' and the associated example optimization case
-`python3 rom_out.py -r rom_pickle.pk -f ../../../..' are runnable with GreyBoxModel, several optional RAVEN dependencies are required.
-The following are the required optional libraries: `pyomo 6.4' or over, `cmake', `glpk', `ipopt', `cyipopt', and `pyomo-extensions'. Although almost all required
+To verify the output files in the given test file in:
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  raven/tests/framework/Models/External/serialize_pyomo.xml
+\end{lstlisting}
+
+and the associated example optimization case:
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  python3 rom_out.py -r rom_pickle.pk -f ../../../..
+\end{lstlisting}
+
+are runnable with GreyBoxModel, several optional RAVEN dependencies are required. The following are the required
+optional libraries: `pyomo 6.4' or over, `cmake', `glpk', `ipopt', `cyipopt', and `pyomo-extensions'. Although almost all required
 libraries are standard packages (available on conda or pipy install), the `pyomo-extensions' is a custom library created by RAVEN developers to install `Pynumero'.
 It functions to run the following commands if `pyomo-extensions' is part of the RAVEN library installation:
 
