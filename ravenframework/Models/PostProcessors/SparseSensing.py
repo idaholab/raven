@@ -168,49 +168,27 @@ class SparseSensing(PostProcessorReadyInterface):
     features = {}
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
-    # indexes = inputDS[self.sensingFeatures].indexes
+
     data = inputDS[self.sensingTarget].data
+    ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
 
     model.fit(data)
     selectedSensors = model.get_selected_sensors()
 
-
-    # return data
-
-
-    # realizations = []
-    # for i in range(len(selectedSensors)):
-    #   sensorLocRlz = {}
-    #   for j,var in enumerate(self.sensingFeatures):
-    #     sensorLoc = features[var][0,selectedSensors[i]]
-    #     sensorLocRlz['sensor'+'_'+str(var.strip()[0])] = np.atleast_1d(sensorLoc)
-    #   realizations.append(sensorLocRlz)
-    # #collect data
-
     dims = ['loc','sensor']
-    coords = {'loc':['X','Y'],
+    coords = {'loc':self.sensingFeatures,
               'sensor':np.arange(1,len(selectedSensors)+1)}
 
-    # dims = ['sensor','loc']
-    # coords = {
-    #           'sensor':np.arange(len(selectedSensors)),
-    #           'locX':np.arange(len(selectedSensors)),
-    #           'locY':np.arange(len(selectedSensors))
-    #           }#'sensor':np.arange(len(selectedSensors))
-    # coords = {key: inputDS[key] for key in inputDS.dims if key == 'RAVEN_sample_ID'}
-
-    data = np.vstack([inputDS['X (m)'][0,selectedSensors], inputDS['Y (m)'][0,selectedSensors]])#inputDS[self.sensingFeatures]
-    dataDA = xr.DataArray(data = data, coords=coords, dims=dims)
+    sesnorData = []
+    for var in self.sensingFeatures:
+      sesnorData .append(inputDS[var][0,selectedSensors])#inputDS[self.sensingFeatures]
+    sesnorData = np.array(sesnorData)
+    dataDA = xr.DataArray(data = sesnorData, coords=coords, dims=dims)
     dataDict={}
-    # dataDict['Ind'] = np.atleast_1d(selectedSensors)
-    # dataDict['X'] = inputDS['X (m)'][0][selectedSensors]
-    # dataDict['Y'] = inputDS['Y (m)'][0][selectedSensors]
     dataDict['sensorLocs'] = dataDA
-    # data_vars = {'locX': data[0], 'locY': data[1]}
-    # dataDict['RAVEN_sample_ID'] = np.arange(1)
-    # outDA = xr.DataArray(data=data, coords=coords, dims=coords.keys())#
-    outDS = xr.Dataset(data_vars=dataDict)#, coords=coords, dims=coords.keys()
+    outDS = xr.Dataset(data_vars=dataDict)
+    ## PLEASE READ: For developers: this is really imporatant, currently,
+    # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
-    outDS['RAVEN_sample_ID'] = [0] #np.arange(1)
-    ## TODO: Check the output API from the postprocessor and how does it look to be read by the DataObject and hence outStreams
+    outDS['RAVEN_sample_ID'] = [0]
     return outDS
