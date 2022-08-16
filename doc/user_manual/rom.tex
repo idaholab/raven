@@ -205,7 +205,7 @@ provided in the example below located at the end of this subsection. The followi
   python3 printed_python_file.py -r rom_pickled_file.pk -f location_of_raven_framework
 \end{lstlisting}
 
-The file names `printed\_python\_file' and `rom\_pickled_file' are arbitrary names, and are not requirements.
+The file names `printed\_python\_file' and `rom\_pickled\_file' are arbitrary names, and are not requirements.
 The `location\_of\_raven\_framework' is the relative path to where `raven\_framework' is located. The created python file includes modules from
 RAVEN and is required dealing with derivatives for GreyBoxModel to solve. The rest of the command line syntax `-r' and `-f' are place holders for
 the python file to locate where the pickled ROMs and the python file itself are.
@@ -260,7 +260,14 @@ on the terminal:
   source scripts/establish_conda_env.sh --load
 \end{lstlisting}
 
-Make sure that the optional libraries are installed before running the pickled ROM and printed python file.
+Make sure that the optional libraries are installed before running the pickled ROM and printed python file. Regardless of whether `Pynumero' is
+installed inside or outside RAVEN libraries, depending on the OS, C++ libraries may be outdated for `Pynumero' to run. It has been reported that
+the following OS has failed to run `Pynumero':
+
+\begin{itemize}
+  \item CentOS 7, 8
+  \item Ubuntu 16, 18
+\end{itemize}
 
 \textbf{Example:} For this example the external model is trained and further loaded as `out\_rom'. The loaded trained model is separately
 processed to `rom\_out.py' and `rom\_pickle.pk'.
