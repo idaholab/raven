@@ -234,13 +234,13 @@ class DMDC(DMD):
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    indeces = [0]
+    indices = [0]
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
-      indeces = self.neigh.predict(feats).astype(int)
-    nreqs = len(indeces)
+      indices = self.neigh.predict(feats).astype(int)
+    nreqs = len(indices)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
@@ -256,19 +256,21 @@ class DMDC(DMD):
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
-    evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
-    evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
+    evalX = np.zeros((len(indices), tsEval, len(self.initStateID)))
+    evalY = np.zeros((len(indices), tsEval, len(self.outputID)))
 
-    for cnt, index in enumerate(indeces):
+    for cnt, index in enumerate(indices):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        uVector = uVector - self.actuatorVals[0, index, :]
+        # use np.expand_dims to ensure this works with multiple actuators
+        uVector = uVector - np.expand_dims(self.actuatorVals[0, index, :], axis=tuple(range(1,len(uVector.shape))))
         initStates = initStates - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[cnt,:,i]),(-1,1)).T
+        # make sure that Btilde dot uVector works correctly for multiple inputs and has the same shape as aTilde dot evalX
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + (self.__Btilde[index,:,:].dot(uVector[:,:,i])).reshape(-1,), (-1,1)).T
         evalX[cnt, i+1, :] = xPred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
