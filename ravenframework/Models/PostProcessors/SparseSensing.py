@@ -14,7 +14,6 @@
 '''
   Created on May 24, 2022
   @ Authors: Mohammad Abdo (@Jimmy-INL), Niharika Karnik (@nkarnik), Krithika Manohar (@kmanohar)
-
 '''
 import pysensors as ps
 import numpy as np
@@ -165,6 +164,7 @@ class SparseSensing(PostProcessorReadyInterface):
       optimizer = ps.optimizers.QR()
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
+
     features = {}
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
