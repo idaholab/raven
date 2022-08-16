@@ -41,7 +41,7 @@ class SensorsPlot(PlotInterface):
     """
     spec = super().getInputSpecification()
     spec.setStrictMode(False)
-    spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringListType,
         descr=r"""The name of the RAVEN DataObject from which the data should be taken for this plotter.
               This should be the SolutionExport for a MultiRun with an Optimizer."""))
     spec.addSub(InputData.parameterInputFactory('vars', contentType=InputTypes.StringListType,
@@ -54,6 +54,20 @@ class SensorsPlot(PlotInterface):
         descr=r"""Digital format of the generated picture"""))
     spec.addSub(InputData.parameterInputFactory('marker', contentType=InputTypes.StringType,
         descr=r"""Marker of the scatter plot"""))
+    spec.addSub(InputData.parameterInputFactory('xlabel', contentType=InputTypes.StringType,
+        descr=r"""X-axis label of the scatter plot"""))
+    spec.addSub(InputData.parameterInputFactory('ylabel', contentType=InputTypes.StringType,
+        descr=r"""Y-axis label of the scatter plot"""))
+    spec.addSub(InputData.parameterInputFactory('c', contentType=InputTypes.StringType,
+        descr=r"""Colour of points on the scatter plot"""))
+    spec.addSub(InputData.parameterInputFactory('s', contentType=InputTypes.FloatType,
+        descr=r"""The marker size in points**2"""))
+    spec.addSub(InputData.parameterInputFactory('alpha', contentType=InputTypes.FloatType,
+        descr=r"""The alpha blending value, between 0 (transparent) and 1 (opaque)"""))
+    spec.addSub(InputData.parameterInputFactory('linewidths', contentType=InputTypes.FloatType,
+        descr=r"""The linewidth of the marker edges"""))
+    spec.addSub(InputData.parameterInputFactory('cmap', contentType=InputTypes.StringType,
+        descr=r"""A Colormap instance or registered colormap name"""))
     return spec
 
   def __init__(self):
@@ -71,6 +85,13 @@ class SensorsPlot(PlotInterface):
     self.index      = None      # index ID for each batch
     self.how        = None      # format of the generated picture
     self.marker     = None      # marker of the scatter plot
+    self.xlabel     = None      # X-axis label of the scatter plot
+    self.ylabel     = None      # Y-axis label of the scatter plot 
+    self.c          = None      # Colour of the points on the scatter plot
+    self.s          = None      # The marker size in points**2
+    self.alpha      = None      # The alpha blending value, between 0 (transparent) and 1 (opaque)
+    self.linewidths = None      # The linewidth of the marker edges
+    self.cmap       = None      # A Colormap instance or registered colormap name
 
   def handleInput(self, spec):
     """
@@ -79,8 +100,24 @@ class SensorsPlot(PlotInterface):
       @ Out, None
     """
     super().handleInput(spec)
-    params, notFound = spec.findNodesAndExtractValues(['source','vars','index','how','marker'])
-
+    params, notFound = spec.findNodesAndExtractValues(['source','vars','index','how','marker','xlabel','ylabel','c','s','alpha','linewidths','cmap'])
+    
+    listNotFound = notFound.copy() 
+    for req in listNotFound:
+      if req == 's':
+        params['s'] = 20
+      elif req == 'cmap':
+        params['cmap'] = None
+      elif req == 'alpha':
+        params['alpha'] = None
+      elif req == 'linewidths':
+        params['linewidths'] = None  
+      elif req == 'marker':
+        params['marker'] = 'o'
+      elif req == 'c':
+        params['c'] = 'b'
+      notFound.remove(req)
+    
     for node in notFound:
       self.raiseAnError(IOError, "Missing " +str(node) +" node in the SensorsPlot " + str(self.name))
     else:
@@ -89,7 +126,13 @@ class SensorsPlot(PlotInterface):
       self.index      = params['index']
       self.how        = params['how']
       self.marker     = params['marker']
-
+      self.xlabel     = params['xlabel']
+      self.ylabel     = params['ylabel']
+      self.c          = params['c']
+      self.s          = params['s']
+      self.alpha      = params['alpha']
+      self.linewidths = params['linewidths']
+      self.cmap       = params['cmap']
     # params, notFound = spec.findNodesAndExtractValues(['logVars'])
     # if notFound:
     #   self.logVars = None
@@ -126,12 +169,17 @@ class SensorsPlot(PlotInterface):
     """
     data = self.source.asDataset()
     outVars = self.source.getVars(subset='output')
-
+    inpVars = self.source._data['loc']
     nFigures = len(self.vars)
     fig, axs = plt.subplots(nFigures,1)
     fig.suptitle('Sensors Plot')
-    plt.scatter(data.sel(loc = 'X (m)').sensorLocs.values,data.sel(loc = 'Y (m)').sensorLocs.values,marker = self.marker)
+    plt.scatter(data.sel(loc = inpVars[0]).sensorLocs.values,data.sel(loc = inpVars[1]).sensorLocs.values,marker = self.marker, c = self.c, s = self.s, alpha = self.alpha, linewidths = self.linewidths, cmap=self.cmap)
+    plt.xlabel(self.xlabel)
+    plt.ylabel(self.ylabel)
     plt.grid()
+
+    # fig = plt.figure(figsize = (10, 7))
+    # ax = plt.axes(projection ="3d")
 
     if self.how in ['png','pdf','svg','jpeg']:
       fileName = self.name +'.%s'  % self.how

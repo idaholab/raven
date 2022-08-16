@@ -32,6 +32,7 @@
     </PostProcess>
     <IOStep name="print">
       <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot</Output>
     </IOStep>
@@ -84,14 +85,14 @@
       <what>output</what>
     </Print>
     <Plot name="mySensorPlot" subType="SensorsPlot">
-      <source>outPP</source>
+      <source>outPP,TwistDO</source>
       <vars>sensorLocs</vars>
       <index>sensor</index>
       <how>png</how>
       <marker>x</marker>
-      <!-- <xlabel>X (m)</xlabel> -->
-      <!-- <ylabel>Y (m)</ylabel> -->
-      <!-- <c>red</c> -->
+      <xlabel>X (m)</xlabel> 
+      <ylabel>Y (m)</ylabel>
+      <c>red</c>
     </Plot>
     <!-- <Plot name="plotMC">
       <plotSettings>
