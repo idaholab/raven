@@ -151,11 +151,10 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
 \end{lstlisting}
 
 \paragraph{PCM}
-\textbf{PCM} evaluates the uncertainty reduction fraction when using Feature to validate Target. 
-PCM requires sub-nodes in \textit{Validation} PP including:
+\textbf{PCM} evaluates the uncertainty reduction fraction when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method.
 
 %
-\ppType{PPDSS}{PPDSS}
+\ppType{PCM}{PhysicsGuidedCoverageMapping}
 %
 
 \begin{itemize}
@@ -168,7 +167,7 @@ PCM requires sub-nodes in \textit{Validation} PP including:
     number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
 \end{itemize}
 
-The output of PCM is comma separated list of strings in the format of ``pri_post_stdReduct_[targetName]", 
+The output of PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'', 
 where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Targets}.
 
 
