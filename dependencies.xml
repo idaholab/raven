@@ -46,7 +46,7 @@ Note all install methods after "main" take
     <statsmodels>0.12</statsmodels>
     <cloudpickle>1.6</cloudpickle>
     <tensorflow os='windows,linux'>2.3</tensorflow>
-    <tensorflow os='mac'>2.4</tensorflow>
+    <tensorflow os='mac'>2.7</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
