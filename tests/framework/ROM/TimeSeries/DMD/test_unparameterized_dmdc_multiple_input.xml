@@ -50,7 +50,7 @@
   <Files>
     <!-- We load synthetic data with 1 time, 2 actuators (u), 3 states (x) and 2 outputs (y) -->
     <!-- Note: Adjacent rows should have constant time interval for DMDC -->
-    <Input name="TrainDataFile">../TrainingData/BOP_Data_index_unPara_multiple_U.csv</Input>
+    <Input name="TrainDataFile">../trainingData/BOP_Data_index_unPara_multiple_U.csv</Input>
     <Input name="rom_pickle" type="">DMDrom.pk</Input>
   </Files>
 
