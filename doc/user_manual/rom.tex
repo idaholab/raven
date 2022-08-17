@@ -197,19 +197,24 @@ Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 For the purpose of exporting RAVEN trained ROMs in an universal-accessible format for Pyomo to solve, the platform to prepare
 the python syntax including the process to setup concrete models and constraints is created. The python syntax allows to
 to retrieve pickled (serialized) ROMs and solve the defined concrete model via Pynumero's GreyBoxModel, an extension of Pyomo.
+Details on how GreyBoxModel works can be found in the following site:
+
+\begin{lstlisting}
+  https://pyomo.readthedocs.io/en/stable/contributed_packages/pynumero/index.html
+\end{lstlisting}
 
 Two files are required to run the optimization: the pickled rom and the generated python file. The workflow to create both files is
 provided in the example below located at the end of this subsection. The following command line is the defined format to interface both files:
 
 \begin{lstlisting}
-  python3 printed_python_file.py -r rom_pickled_file.pk -f location_of_raven_framework
+  python3 printed_python_file.py -r rom_pickled_file.pk -f location_of_raven_framework -order order_of_derivative
 \end{lstlisting}
 
-The file names `printed\_python\_file' and `rom\_pickled\_file' are arbitrary names, and are not requirements.
+The file names `printed\_python\_file', `rom\_pickled\_file', and `order\_of\_derivative' are arbitrary names, and are not requirements.
 The `location\_of\_raven\_framework' is the relative path to where `raven\_framework' is located. The created python file includes modules from
-RAVEN and is required dealing with derivatives for GreyBoxModel to solve. The rest of the command line syntax `-r' and `-f' are place holders for
-the python file to locate where the pickled ROMs and the python file itself are.
-When running the command a text file named `GreyModelOutput\_cyipopt.txt' will be created showing the results of the optimization.
+RAVEN and is required dealing with derivatives for GreyBoxModel to solve. The rest of the command line syntax `-r', `-f', `-order' are place holders for
+the python file to locate where the pickled ROMs and the python file itself are. Caution, make sure the `order\_of\_derivative' is an integer. If not provided,
+the default value is 1. When running the command a text file named `GreyModelOutput\_cyipopt.txt' will be created showing the results of the optimization.
 
 Since the code developed in ROMs is not a subtype, the code activation for python interface file print is triggered by adding the input subnode with type `Pyomo':
 

@@ -14,6 +14,7 @@ class ravenROM(ExternalGreyBoxModel):
   def __init__(self, **kwargs):
     self._rom_file = kwargs.get("rom_file")
     self._raven_framework = kwargs.get("raven_framework")
+    self._order = kwargs.get("order")
     self._raven_framework = os.path.abspath(self._raven_framework)
     if not os.path.exists(self._raven_framework):
       raise IOError('The RAVEN framework directory does not exist in location "' + str(self._raven_framework)+'" !')
@@ -65,7 +66,7 @@ class ravenROM(ExternalGreyBoxModel):
 
   def evaluate_jacobian_outputs(self):
     request = {k:np.asarray(v) for k,v in zip(self._input_names,self._input_values)}
-    derivatives = self.rom.derivatives(request)
+    derivatives = self.rom.derivatives(request, order=self._order)
     jac = np.zeros((self._n_outputs, self._n_inputs))
     for tc, target in enumerate(self._output_names):
       for fc, feature in enumerate(self._input_names):
@@ -94,7 +95,11 @@ if __name__ == '__main__':
       rom_file = sys.argv[cnt+1]
     if item.lower() == "-f":
       raven_framework = sys.argv[cnt+1]
-  ext_model = ravenROM(**{'rom_file':rom_file,'raven_framework':raven_framework})
+    if item.lower() == "-order":
+      order = int(sys.argv[cnt+1])
+    else:
+      order = 1
+  ext_model = ravenROM(**{'rom_file':rom_file,'raven_framework':raven_framework,'order':order})
   concreteModel = pyomoModel(ext_model)
   ### here you should implement the optimization problem
   ###

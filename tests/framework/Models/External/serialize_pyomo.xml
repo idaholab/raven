@@ -38,7 +38,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
+    <Input name="rom_out.py" type="PYOMO">rom_out.py</Input>
     <Input name="rom_pickle.pk" type="">rom_pickle.pk</Input>
   </Files>
 

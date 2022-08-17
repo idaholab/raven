@@ -395,7 +395,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     if isinstance(fileObjIn,str):
       fileObj = open(filename, mode='wb+')
     else:
-      fileObj = fileObjIn
+      fileObj = fileObjIn # if issues occur add 'isintance(fileObjIn,Files)'.
       fileObj.open(mode='wb+')
     cloudpickle.dump(self,fileObj, protocol=pickle.HIGHEST_PROTOCOL)
     fileObj.flush()
