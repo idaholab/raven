@@ -21,14 +21,14 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>gold/ARMAreseed</WorkingDir>
+    <WorkingDir>ARMAreseed</WorkingDir>
     <Sequence>readIn,ARMATrain,rommeta,dump,run,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../../Basic/dataSet.csv</Input>
-    <Input name="pk">../../ARMAreseed/arma.pk</Input>
+    <Input name="rawDataFile">../Basic/dataSet.csv</Input>
+    <Input name="pk">../ARMAreseed/arma.pk</Input>
   </Files>
 
   <Models>
@@ -108,7 +108,7 @@
   </DataObjects>
 
 <OutStreams>
-    <Print name="rommeta" dir="../../ARMAreseed">
+    <Print name="rommeta">
       <type>csv</type>
       <source>rommeta</source>
     </Print>
