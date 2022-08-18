@@ -235,15 +235,19 @@ class DMDC(DMD):
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
   @property
-  def featureImportances_(self):
+  def featureImportances_(self, group = None):
     """
       Method to return the features' importances
       @ In, None
       @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
+ 
+    
     if self._importances is None:
       from sklearn import preprocessing
+      from sklearn.ensemble import RandomForestRegressor
+      import shap
       # the importances are evaluated in the transformed space
       #CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       CtildeNormalizedNormalized = np.zeros(self.__Ctilde.shape)
@@ -252,7 +256,29 @@ class DMDC(DMD):
       #  oo = self.outputVals[:,:,out]/np.average(self.outputVals[:,:,out])
       for smp in range(self.__Ctilde.shape[0]):
         #ss = preprocessing.normalize(self.stateVals[:,smp,:])
-        ##ss = self.stateVals[:,smp,:]
+        ss = self.stateVals[:,smp,:]
+        print(ss.shape)
+        print(self.outputVals[:,smp,:].shape)
+        #model = RandomForestRegressor()
+        
+        #model.fit(ss,self.outputVals[:,smp,:] )
+        #explainer = shap.TreeExplainer(model)
+        
+        
+        #shap_values = explainer(ss).values
+        #print(shap_values.shape)
+        #avg = shap_values.mean(axis=0)
+        #print(avg.shape)
+        #avgavg = np.asarray(avg.mean(axis=1)).flatten()
+        #print(avgavg.shape)
+        
+        #print(model.n_outputs_)
+        #print(model.n_features_in_)
+        
+        #importances = model.feature_importances_.flatten()
+        #for stateCnt, stateID in enumerate(self.stateID):
+        #  #print(stateID, importances[stateCnt])
+        #  print(stateID, avgavg[stateCnt])
         ##X1 = (ss[:-1,:] - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[:-1,:].T
         ##X2 = (ss[1:,:]  - ss[0,:]).T    if self.dmdParams['centerUXY'] else ss[1:,:].T
         ##U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
@@ -260,31 +286,33 @@ class DMDC(DMD):
         ##Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
         ##_,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
         
+        
+        
         ##avgY1 = np.average(Y1,axis=1).flatten()
         avgY1 = np.average(self.outputVals[:-1,smp,:].T,axis=1).flatten()
         Xavg = np.average(self.stateVals[:,smp,:],axis=0).flatten()
         ##CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
         CtildeNormalizedNormalized[smp,:,:] = self.__Ctilde[smp,:,:]
-        for i in range(len(avgY1)):
-          CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
-        for j in range(len(Xavg)):
-          CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
+        #for i in range(len(avgY1)):
+        #  CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
+        #for j in range(len(Xavg)):
+        #  CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
            
         #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:] 
         #CtildeNormalizedNormalized[smp,:,:] = np.multiply(CtildeNormalized[smp,:,:],Xavg)
-        #scaler = preprocessing.MinMaxScaler()
-        #scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
-        #CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
+        scaler = preprocessing.MinMaxScaler()
+        scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
+        CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
         #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=1, norm='l1' )
         #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=0, norm='l1' )
 
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
+      
       # the importances for the state variables are inferred from the C matrix/operator since
       # directely linked to the output variables
       minVal, minIdx = np.finfo(float).max, -1
       for stateCnt, stateID in enumerate(self.stateID):
-        #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])/abs(np.average(self.stateVals[:,:,stateCnt]))
-        #self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        # for all outputs
         self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
@@ -295,14 +323,23 @@ class DMDC(DMD):
       for featCnt, feat in enumerate(self.parametersIDs):
         permutations = set(self.parameterValues[:,featCnt])
         indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx])/abs(np.average(self.stateVals[:,:,minIdx])))) for outcnt in range(len(self.outputID))])
-        #self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
         self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
 
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
       if True:
         for stateID, val in self._importances.items():
           self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
+    if group is not None:
+      groupMask = np.zeros(len(self.outputID),dtype=bool)
+      for cnt, oid in enumerate(self.outputID):
+        if oid in group:
+          groupMask[cnt] = True
+        else:
+          groupMask[cnt] = False      
+      newImportances  = {}
+      for key in self._importances:
+        newImportances[key] =  newImportances[key][groupMask]
+      return newImportances
     return self._importances
 
   #######

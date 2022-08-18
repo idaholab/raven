@@ -88,6 +88,11 @@ class RFE(BaseInterface):
                   of features to remove at each iteration. If within (0.0, 1.0), then step
                   corresponds to the percentage (rounded down) of features to remove at
                   each iteration.""", default=1))
+
+    subgroup = InputData.parameterInputFactory("subGroup", contentType=InputTypes.InterpretedListType,
+        descr=r"""Subgroup of output variables on which to perform the search""")
+    spec.addSub(subgroup)  
+    
     return spec
 
   def __init__(self):
@@ -102,6 +107,7 @@ class RFE(BaseInterface):
     self.whichSpace = "feature"
     self.onlyOutputScore = False
     self.step = 1
+    self.subGroups = []
 
   def setEstimator(self, estimator):
     """
@@ -129,6 +135,10 @@ class RFE(BaseInterface):
     self.whichSpace = nodes['whichSpace'].lower()
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
+    # check if subgroups present
+    for child in paramInput.subparts:
+      if child.getName() == 'subGroup':
+        self.subGroups.append(child.value)
     # checks
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
@@ -252,114 +262,167 @@ class RFE(BaseInterface):
     diff = nSteps - lowerStep
     firstStep = int(setStep * (1+diff))
     step = firstStep
-    # Elimination
-    while np.sum(support_) > nFeaturesToSelect:
-      # Remaining features
-      supportIndex = 0
-      raminingFeatures = int(np.sum(support_))
-      featuresForRanking = np.arange(nParams)[support_]
-      for idx in range(len(supportOfSupport_)):
-        if mask[idx]:
-          supportOfSupport_[idx] = support_[supportIndex]
-          supportIndex=supportIndex+1
-      if self.whichSpace == 'feature':
-        features = np.arange(nFeatures)[supportOfSupport_]
-        targets = np.arange(nTargets)
-      else:
-        features = np.arange(nFeatures)
-        targets = np.arange(nTargets)[supportOfSupport_]
-      # Rank the remaining features
-      estimator = copy.deepcopy(self.estimator)
-      self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
-      toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
-      vals = {}
-      if toRemove:
-        for child in originalParams.subparts:
-          if isinstance(child.value,list):
-            newValues = copy.copy(child.value)
-            for el in toRemove:
-              if el in child.value:
-                newValues.pop(newValues.index(el))
-            vals[child.getName()] = newValues
-        estimator.paramInput.findNodesAndSetValues(vals)
-        estimator._handleInput(estimator.paramInput)
-      estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+    coefs = None
+    doAtLeastOnce = True
+    # we check the number of subgroups
+    nGroups = max(len(self.subGroups), 1)
+    outputspace = None
+    supportCandidates = []
+    if nGroups > 1:
+      # re initialize support containers
+      Groupsupport_ = copy.deepcopy(support_)
+      GroupfeaturesForRanking = copy.deepcopy(featuresForRanking)
+      Groupranking_ = copy.deepcopy(ranking_)
+      GroupsupportOfSupport_ = copy.deepcopy(supportOfSupport_)
+    for g in range(nGroups):
+      # loop over groups
+      if nGroups > 1:
+        
+        support_ = copy.deepcopy(Groupsupport_)
+        featuresForRanking = copy.deepcopy(GroupfeaturesForRanking)
+        ranking_ = copy.deepcopy(Groupranking_)
+        supportOfSupport_ = copy.deepcopy(GroupsupportOfSupport_)        
+        outputspace = self.subGroups[g]
+        self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
+        
+      # Elimination
+      while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
+        # Remaining features
+        supportIndex = 0
+        raminingFeatures = int(np.sum(support_))
+        featuresForRanking = np.arange(nParams)[support_]
+        # subgrouping
+        outputToRemove = None
+        if outputspace != None:
+          sg = copy.deepcopy(self.subGroups)
+          outputToKeep = sg.pop(g)
+          indexToRemove = []
+          outputToRemove = []
+          indexToKeep = []
+          for grouptoremove in sg:
+            outputToRemove += grouptoremove
+          for t in outputToRemove:
+            indexToRemove.append(targetsIds.index(t))
+          for t in outputToKeep:
+            indexToKeep.append(targetsIds.index(t))
+          #targets = np.delete(targets, indexToRemove)
+          if self.whichSpace != 'feature':
+            supportOfSupport_[np.asarray(indexToRemove)] = False
+            supportOfSupport_[np.asarray(indexToKeep)] = True
+            
+        for idx in range(len(supportOfSupport_)):
+          if mask[idx]:
+            supportOfSupport_[idx] = support_[supportIndex]
+            supportIndex=supportIndex+1
+        if self.whichSpace == 'feature':
+          features = np.arange(nFeatures)[supportOfSupport_]
+          targets = np.arange(nTargets)
+        else:
+          features = np.arange(nFeatures)
+          targets = np.arange(nTargets)[supportOfSupport_]
+        # Rank the remaining features
+        estimator = copy.deepcopy(self.estimator)
+        self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
+        toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+        if outputToRemove is not None:
+          toRemove += outputToRemove
+        vals = {}
+  
+        if toRemove:
+          for child in originalParams.subparts:
+            if isinstance(child.value,list):
+              print(child.getName())
+              newValues = copy.copy(child.value)
+              for el in toRemove:
+                if el in child.value:
+                  newValues.pop(newValues.index(el))
+              
+              vals[child.getName()] = newValues
+          estimator.paramInput.findNodesAndSetValues(vals)
+          estimator._handleInput(estimator.paramInput)
+        estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+  
+        # Get coefs
+        coefs = None
+        if hasattr(estimator, 'featureImportances_'):
+          importances = estimator.featureImportances_
+          for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2","BOP.steamTurbine.h_is","SES.CS.W_totalSetpoint_SES.y","SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
+            if fff in importances:
+              print(ccc,fff,importances[fff])
+          immppp, keeeysss = [] ,[]
+          with open ("importances.csv","w+") as fobj:
+            for imp in importances:
+              fobj.write(imp)
+              for v in importances[imp]:
+                fobj.write(","+str(v))
+              fobj.write("\n")
+              immppp.append(np.average(importances[imp]))
+              keeeysss.append(imp)
+          immppp = np.atleast_1d(immppp)
+          keeeysss = np.atleast_1d(keeeysss)
+          ssss = np.argsort(immppp)
+          orderedKeys = keeeysss[ssss]
+          
+   
+          # since we get the importance, highest importance must be kept => we get the inverse of coefs
+          parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+          indexMap = {v: i for i, v in enumerate(parametersRemained)}    
+          #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+          subSetImportances = {k: importances[k] for k in parametersRemained}
+          sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
+          coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
+          ####Test
+          #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
+          ####test
+          coefs = 1./coefs
+  
+  
+          #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+          if coefs.shape[0] == raminingFeatures:
+            coefs = coefs.T
+  
+        if coefs is None:
+          coefs = np.ones(raminingFeatures)
+        a = np.sqrt(coefs)
+        b = a.sum(axis=0)
+        c = np.argsort(b)
+        d = np.ravel(c)
+        if False:
+          pp = np.asarray(self.parametersToInclude)
+          sh = pp.shape
+          orderedFeatures = pp[featuresForRanking[d.flatten()]]  
+          for c, feat in enumerate(orderedFeatures):
+            sqrtScore = np.ravel(b.flatten())[d.flatten()]
+            self.raiseAMessage("rank: {} | {} | {}".format(c,feat,sqrtScore) )        
+        
+        # Get ranks (for sparse case ranks is matrix)
+        ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
+  
+        # Eliminate the worse features
+        threshold = min(step, np.sum(support_) - nFeaturesToSelect)
+        step = setStep
+  
+        # Compute step score on the previous selection iteration
+        # because 'estimator' must use features
+        # that have not been eliminated yet
+        support_[featuresForRanking[ranks][:threshold]] = False
+        ranking_[np.logical_not(support_)] += 1
+        del estimator
+        gc.collect()
+        doAtLeastOnce = False
 
-      # Get coefs
-      coefs = None
-      if hasattr(estimator, 'featureImportances_'):
-        importances = estimator.featureImportances_
-        for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2","BOP.steamTurbine.h_is","SES.CS.W_totalSetpoint_SES.y","SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
-          if fff in importances:
-            print(ccc,fff,importances[fff])
-        immppp, keeeysss = [] ,[]
-        with open ("importances.csv","w+") as fobj:
-          for imp in importances:
-            fobj.write(imp)
-            for v in importances[imp]:
-              fobj.write(","+str(v))
-            fobj.write("\n")
-            immppp.append(np.average(importances[imp]))
-            keeeysss.append(imp)
-        immppp = np.atleast_1d(immppp)
-        keeeysss = np.atleast_1d(keeeysss)
-        ssss = np.argsort(immppp)
-        orderedKeys = keeeysss[ssss]
-        print(orderedKeys[0:3])
-        print(immppp[ssss][0:3])
-        print(orderedKeys[-3:])
-        print(immppp[ssss][-3:])        
-        for ccc, fff in enumerate(["BOP.CS.PID_TCV_opening.addP.u2",
-                                   "BOP.steamTurbine.h_is",
-                                   "SES.CS.W_totalSetpoint_SES.y",
-                                   "SES.GTunit.combChamber.fluegas.h","SES.GTunit.combChamber.E","SES.GTunit.turbine.gas_iso.u"]):
-          if fff in importances:
-            importances[fff][:] = 100.0
-        # since we get the importance, highest importance must be kept => we get the inverse of coefs
-        parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-        indexMap = {v: i for i, v in enumerate(parametersRemained)}    
-        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        subSetImportances = {k: importances[k] for k in parametersRemained}
-        sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
-        coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
-        ####Test
-        #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
-        ####test
-        coefs = 1./coefs
-
-
-        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        if coefs.shape[0] == raminingFeatures:
-          coefs = coefs.T
-
-      if coefs is None:
-        coefs = np.ones(raminingFeatures)
-      a = np.sqrt(coefs)
-      b = a.sum(axis=0)
-      c = np.argsort(b)
-      d = np.ravel(c)
-      if False:
-        pp = np.asarray(self.parametersToInclude)
-        sh = pp.shape
-        orderedFeatures = pp[featuresForRanking[d.flatten()]]  
-        for c, feat in enumerate(orderedFeatures):
-          sqrtScore = np.ravel(b.flatten())[d.flatten()]
-          self.raiseAMessage("rank: {} | {} | {}".format(c,feat,sqrtScore) )        
-      
-      # Get ranks (for sparse case ranks is matrix)
-      ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
-
-      # Eliminate the worse features
-      threshold = min(step, np.sum(support_) - nFeaturesToSelect)
-      step = setStep
-
-      # Compute step score on the previous selection iteration
-      # because 'estimator' must use features
-      # that have not been eliminated yet
-      support_[featuresForRanking[ranks][:threshold]] = False
-      ranking_[np.logical_not(support_)] += 1
-      del estimator
-      gc.collect()
+      # loop over groups
+      if nGroups > 1:
+        supportCandidates.append(copy.deepcopy(support_))
+    if nGroups > 1:
+      support_[:] = False
+      featuresForRanking = copy.deepcopy(GroupfeaturesForRanking)
+      ranking_ = copy.deepcopy(Groupranking_)
+      supportOfSupport_ = copy.deepcopy(GroupsupportOfSupport_)
+      for g in range(nGroups):
+        subGroupMask = np.where(supportCandidates[g] == True)
+        support_[subGroupMask] = True
+      print("Number of candidate features are {}".format(np.sum(support_)))
 
     # now we check if maxNumberFeatures is set and in case perform an
     # additional reduction based on score
@@ -411,7 +474,7 @@ class RFE(BaseInterface):
 
 
           estimator = copy.deepcopy(self.estimator)
-          self.raiseAMessage("Iteration {}. Fitting estimator with {} features.".format(iteration,np.sum(support_)))
+          #self.raiseAMessage("Iteration {}. Fitting estimator with {} features.".format(iteration,np.sum(support_)))
           toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
           survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
           vals = {}
@@ -454,8 +517,9 @@ class RFE(BaseInterface):
                 s = np.sum(np.square(ref-ev))
                 scores[target] = s*w
                 score +=  s*w
-          self.raiseAMessage("Score for iteration {} is {}".format(iteration,score))
-          self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
+          self.raiseAMessage("Score for iteration {} is {} and variables are {}".format(iteration,score," ".join(survivors)))
+          #self.raiseAMessage("Variables are: {}".format(" ".join(survivors)))
+          
           self.raiseADebug("MEMORY (Mb): {}".format(process.memory_info().rss/1e6))
           del estimator
           gc.collect()
