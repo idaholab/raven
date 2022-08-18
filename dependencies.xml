@@ -78,4 +78,12 @@ Note all install methods after "main" take
     <nomkl>remove</nomkl>
     <numexpr>remove</numexpr>
   </alternate>
+  <alternate name="none">
+    <hdf5>remove</hdf5>
+    <swig>remove</swig>
+    <pip>remove</pip>
+    <python>remove</python>
+    <nomkl>remove</nomkl>
+    <numexpr>remove</numexpr>
+  </alternate>
 </dependencies>
