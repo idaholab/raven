@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
+    <Sequence>mcRunExp,mcRunApp,mcRunMsr,PCM</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm</name>
+    <author>dhuang</author>
+    <created>2022-03-21</created>
+    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
+    <description>
+        This test is aimed to show how PCM works.
+        For simplicity, this test is using a linear model 
+        as experiment (Feature) and application (Target) models.
+        The linear model has two input variables and four responses,
+        all of which (F2, F3, F4) serve as three Targets and (F1, F2) as two Features.
+        Coordinates of F2 are twice of F1, of F4 are orthorgnal to F1, and of F3 are in between.
+        The output is a fraction value reflecting the uncertainty reduction fraction 
+        using Feature to validate Target comparing to the Target prior.
+        The output name convention is 'pri_post_stdReduct_'+"Target name".
+    </description>
+    <revisions>
+      <revision author="dhuang" date="2021-08-26">...</revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="exp" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3,F4</outputs>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="app" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3,F4</outputs>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/linModel.py" name="msr" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>F1,F2,F3,F4</outputs>
+    </ExternalModel>
+    <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
+      <Features>outputDataMC1|F1,outputDataMC1|F2</Features>
+      <Targets>outputDataMC2|F2,outputDataMC2|F3,outputDataMC2|F4</Targets>
+      <Measurements>msrData|F1,msrData|F2</Measurements>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x1_dist">
+      <mean>5.5</mean>
+      <sigma>0.55</sigma>
+    </Normal>
+    <Normal name="x2_dist">
+      <mean>8</mean>
+      <sigma>0.8</sigma>
+    </Normal>
+    <Normal name="x1_msr_dist">
+      <mean>5.5</mean>
+      <sigma>0.055</sigma>
+    </Normal>
+    <Normal name="x2_msr_dist">
+      <mean>8</mean>
+      <sigma>0.08</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>x1_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dist</distribution>
+      </variable>   
+    </MonteCarlo>    
+    <MonteCarlo name="MC_msr">
+      <samplerInit>
+        <limit>20</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>x1_msr_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_msr_dist</distribution>
+      </variable>        
+    </MonteCarlo>     
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRunExp" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
+      <Model class="Models" type="ExternalModel">exp</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+    </MultiRun>
+    <MultiRun name="mcRunApp" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder1</Input>
+      <Model class="Models" type="ExternalModel">app</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <MultiRun name="mcRunMsr" re-seeding="19862002">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">msr</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_msr</Sampler>
+      <Output class="DataObjects" type="PointSet">msrData</Output>
+    </MultiRun>    
+    <PostProcess name="PCM">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Input class="DataObjects" type="PointSet">msrData</Input>
+      <Model class="Models" type="PostProcessor">pcm</Model>
+      <Output class="DataObjects" type="PointSet">pcm_metric</Output>
+      <Output class="OutStreams" type="Print">pcm_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder1">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>    
+    <PointSet name="outputDataMC1">
+      <Input>x1,x2</Input>
+      <Output>F1,F2</Output>   
+    </PointSet>
+    <PointSet name="outputDataMC2">
+      <Input>x1,x2</Input>
+      <Output>F2,F3,F4</Output>
+    </PointSet>   
+    <PointSet name="msrData">
+      <Input>x1,x2</Input>
+      <Output>F1,F2</Output>     
+    </PointSet>    
+    <PointSet name="pcm_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>pri_post_stdReduct_F2,pri_post_stdReduct_F3,pri_post_stdReduct_F4</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>       
+    <Print name="pcm_metric_dump">
+      <type>csv</type>
+      <source>pcm_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
