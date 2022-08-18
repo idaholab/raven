@@ -231,7 +231,6 @@ class RFE(BaseInterface):
       corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
       corr = (corr + corr.T) / 2.
       np.fill_diagonal(corr, 1)
-      print(corr.shape)
       with open("corr.csv","w") as fo:
         towrite = ""
         for i in range(corr.shape[0]):
@@ -331,7 +330,6 @@ class RFE(BaseInterface):
         if toRemove:
           for child in originalParams.subparts:
             if isinstance(child.value,list):
-              print(child.getName())
               newValues = copy.copy(child.value)
               for el in toRemove:
                 if el in child.value:
@@ -374,7 +372,7 @@ class RFE(BaseInterface):
           ####Test
           #coefs = np.asarray([np.asarray(np.max(importances[imp])) for imp in importances if imp in self.parametersToInclude])
           ####test
-          coefs = 1./coefs
+          #coefs = 1./coefs
   
   
           #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
@@ -396,7 +394,7 @@ class RFE(BaseInterface):
             self.raiseAMessage("rank: {} | {} | {}".format(c,feat,sqrtScore) )        
         
         # Get ranks (for sparse case ranks is matrix)
-        ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
+        ranks = np.ravel(np.argsort(np.sqrt(-1*coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(-1*coefs)))
   
         # Eliminate the worse features
         threshold = min(step, np.sum(support_) - nFeaturesToSelect)

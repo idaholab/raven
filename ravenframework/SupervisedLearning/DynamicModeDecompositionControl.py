@@ -257,8 +257,6 @@ class DMDC(DMD):
       for smp in range(self.__Ctilde.shape[0]):
         #ss = preprocessing.normalize(self.stateVals[:,smp,:])
         ss = self.stateVals[:,smp,:]
-        print(ss.shape)
-        print(self.outputVals[:,smp,:].shape)
         #model = RandomForestRegressor()
         
         #model.fit(ss,self.outputVals[:,smp,:] )
