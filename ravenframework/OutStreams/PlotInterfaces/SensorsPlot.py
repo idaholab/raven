@@ -41,7 +41,7 @@ class SensorsPlot(PlotInterface):
     """
     spec = super().getInputSpecification()
     spec.setStrictMode(False)
-    spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringListType,
+    spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
         descr=r"""The name of the RAVEN DataObject from which the data should be taken for this plotter.
               This should be the SolutionExport for a MultiRun with an Optimizer."""))
     spec.addSub(InputData.parameterInputFactory('vars', contentType=InputTypes.StringListType,
@@ -86,7 +86,7 @@ class SensorsPlot(PlotInterface):
     self.how        = None      # format of the generated picture
     self.marker     = None      # marker of the scatter plot
     self.xlabel     = None      # X-axis label of the scatter plot
-    self.ylabel     = None      # Y-axis label of the scatter plot 
+    self.ylabel     = None      # Y-axis label of the scatter plot
     self.c          = None      # Colour of the points on the scatter plot
     self.s          = None      # The marker size in points**2
     self.alpha      = None      # The alpha blending value, between 0 (transparent) and 1 (opaque)
@@ -101,8 +101,8 @@ class SensorsPlot(PlotInterface):
     """
     super().handleInput(spec)
     params, notFound = spec.findNodesAndExtractValues(['source','vars','index','how','marker','xlabel','ylabel','c','s','alpha','linewidths','cmap'])
-    
-    listNotFound = notFound.copy() 
+
+    listNotFound = notFound.copy()
     for req in listNotFound:
       if req == 's':
         params['s'] = 20
@@ -111,13 +111,13 @@ class SensorsPlot(PlotInterface):
       elif req == 'alpha':
         params['alpha'] = None
       elif req == 'linewidths':
-        params['linewidths'] = None  
+        params['linewidths'] = None
       elif req == 'marker':
         params['marker'] = 'o'
       elif req == 'c':
         params['c'] = 'b'
       notFound.remove(req)
-    
+
     for node in notFound:
       self.raiseAnError(IOError, "Missing " +str(node) +" node in the SensorsPlot " + str(self.name))
     else:

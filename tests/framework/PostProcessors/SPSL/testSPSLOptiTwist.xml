@@ -65,9 +65,10 @@
       <Index var="Y (m)">Temperature (K)</Index> -->
     </HistorySet>
     <DataSet name="outPP">
-      <Output>sensorLocs</Output>
+      <Output>sensorLocs, Temperature (K)</Output>
       <Index var="loc">sensorLocs</Index>
       <Index var="sensor">sensorLocs</Index>
+      <Index var="Z (m)">Temperature (K)</Index>
     </DataSet>
     <!-- <PointSet name="outPP">
       <Output>X,Y</Output>
@@ -85,12 +86,12 @@
       <what>output</what>
     </Print>
     <Plot name="mySensorPlot" subType="SensorsPlot">
-      <source>outPP,TwistDO</source>
+      <source>outPP</source>
       <vars>sensorLocs</vars>
       <index>sensor</index>
       <how>png</how>
       <marker>x</marker>
-      <xlabel>X (m)</xlabel> 
+      <xlabel>X (m)</xlabel>
       <ylabel>Y (m)</ylabel>
       <c>red</c>
     </Plot>

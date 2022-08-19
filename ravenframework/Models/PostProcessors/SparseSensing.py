@@ -191,4 +191,5 @@ class SparseSensing(PostProcessorReadyInterface):
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
     outDS['RAVEN_sample_ID'] = [0]
-    return outDS
+    mergedDS = xr.merge([outDS,inputDS])
+    return mergedDS
