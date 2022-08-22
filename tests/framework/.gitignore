@@ -127,6 +127,7 @@ ROM/TimeSeries/ARMA/Segmented/arma.pk
 ROM/TimeSeries/ARMA/ZeroFilterCluster/arma.pk
 ROM/TimeSeries/ARMAparallel/
 ROM/TimeSeries/DMD/DMDC/ParameterizedDMDC
+ROM/TimeSeries/DMD/DMDC/UnparameterizedDMDCMultipleInput
 ROM/TimeSeries/DMD/HighOrderDMD/
 ROM/TimeSeries/DMD/TraditionalDMD/
 ROM/TimeSeries/PolyExponential/PolyExpNearest/
