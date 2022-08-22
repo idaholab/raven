@@ -470,9 +470,9 @@ class EnsembleModel(Dummy):
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
     if joinedIndexMap:
-      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)   
-      
-        
+      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
+
+
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         if isinstance(evaluation,dict):
@@ -480,18 +480,18 @@ class EnsembleModel(Dummy):
             output.addRealization(rlz)
         else:
           output.addRealization(joinedResponse)
-      else:       
+      else:
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
     else:
       # collect optional output if present and not already collected
-      output.addRealization(optionalOutputs[optionalOutputNames[output.name]])    
-        
+      output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
+
     '''
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         if 'batchMode' not in joinedResponse.keys():
           output.addRealization(joinedResponse)
-        else:         
+        else:
           inputVarValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]['SampledVars']
           for key in inputVarValues.keys():
             inputVarValues[key] = np.array([inputVarValues[key]])
@@ -593,7 +593,7 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    
+
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
     if batchMode:
@@ -608,9 +608,9 @@ class EnsembleModel(Dummy):
       prefix = kw.get("prefix")
       uniqueHandler = kw.get("uniqueHandler",'any')
       forceThreads = kw.get("forceThreads",False)
-      
+
       metadata = kw
-      
+
       if self.parallelStrategy == 1:
         jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
                   uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
@@ -857,5 +857,3 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
-
-
