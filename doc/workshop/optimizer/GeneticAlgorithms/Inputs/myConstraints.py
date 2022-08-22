@@ -17,12 +17,12 @@ import numpy as np
 
 def constrain(Input):#Complete this: give the function the correct name#
   """
-    This fuction calls the explicit constraint whose name is passed through Input.name
+    This function calls the explicit constraint whose name is passed through Input.name
     the evaluation function g is negative if the explicit constraint is violated and positive otherwise.
     This suits the constraint handling in the Genetic Algorithms,
-    but not the Gradient Descent as the latter expects True if the soltution passes the constraint and False if it violates it.
+    but not the Gradient Descent as the latter expects True if the solution passes the constraint and False if it violates it.
     @ In, Input, object, RAVEN container
-    @ Out, g, float, expilicit constraint evaluation (negative if violated and positive otherwise)
+    @ Out, g, float, explicit constraint evaluation (negative if violated and positive otherwise)
   """
   g = eval(Input.name)(Input)
   return g
@@ -61,7 +61,7 @@ def expConstr2(Input):
   """
     Explicit Equality Constraint:
     let's consider the constraint x1**2 + x2**2 = 25
-    The way to write g is to use a very small number for imnstance, epsilon = 1e-12
+    The way to write g is to use a very small number for instance, epsilon = 1e-12
     and then g = epsilon - abs(constraint)
     @ In, Input, object, RAVEN container
     @ out, g, float, explicit constraint 2 evaluation function

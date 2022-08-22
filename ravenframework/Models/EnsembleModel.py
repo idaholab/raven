@@ -110,7 +110,7 @@ class EnsembleModel(Dummy):
         # mirror the structure of medolsDictionary and modelsInputDictionary
         self.modelsInputDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
-        # number of allower entries
+        # number of allowed entries
         allowedEntriesLen = len(self.modelsInputDictionary[modelName].keys())
         for childChild in child:
           if childChild.tag.strip() == 'metadataToTransfer':
@@ -473,7 +473,18 @@ class EnsembleModel(Dummy):
       joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
-        output.addRealization(joinedResponse)
+        if 'batchMode' not in joinedResponse.keys():
+          output.addRealization(joinedResponse)
+        else:         
+          inputVarValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]['SampledVars']
+          for key in inputVarValues.keys():
+            inputVarValues[key] = np.array([inputVarValues[key]])
+          metaValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]
+          for key in metaValues.keys():
+            metaValues[key] = np.array([metaValues[key]])
+          outputData = joinedResponse
+          batchData = {**inputVarValues, **metaValues, **outputData}
+          output.addRealization(batchData)
       else:
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
     else:
