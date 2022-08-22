@@ -66,8 +66,14 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <numdifftools source="pip">0.9.39</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
+    <pyomo optional='True'>6.4</pyomo>
+    <glpk skip_check='True' optional='True'/>
+    <ipopt skip_check='True' optional='True'/>
+    <cyipopt optional='True'/>
+    <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
   </main>
   <alternate name="pip">
