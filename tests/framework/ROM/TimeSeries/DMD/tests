@@ -40,4 +40,12 @@
     rel_err = 0.001
    [../]
 
+  [./UnparameterizedDMDCMultipleInput]
+    type = 'RavenFramework'
+    input = 'test_unparameterized_dmdc_multiple_input.xml'
+    output = 'DMDC/UnparameterizedDMDCMultipleInput/DMDcCxCoeff.xml'
+    csv = 'DMDC/UnparameterizedDMDCMultipleInput/outputData_0.csv'
+    rel_err = 0.001
+   [../]
+
 []
