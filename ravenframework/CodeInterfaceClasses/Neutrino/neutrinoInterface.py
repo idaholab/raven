@@ -203,23 +203,20 @@ class Neutrino(CodeInterfaceBase):
       return newOutputPath'''
 
     # open original output file (the working directory is provided)
-    outputFile = open(outputPath,"r+")
+    with open(outputPath,"r+") as outputFile:
+      #Open the new output file so the results can be written to it and put in the form for RAVEN to read
+      with open(newOutputPath + ".csv", 'w') as resultsFile:
 
-    #Open the new output file so the results can be written to it and put in the form for RAVEN to read
-    resultsFile = open(newOutputPath + ".csv", 'w')
+        lines = outputFile.readlines()
 
-    lines = outputFile.readlines()
+        #Needed for RAVEN to read output
+        #These need to match RAVEN input file output names
+        resultsFile.write('time,result\n')
 
-    #Needed for RAVEN to read output
-    #These need to match RAVEN input file output names
-    resultsFile.write('time,result\n')
+        #Write Neutrino results to a new file for RAVEN
+        for line in lines:
+          resultsFile.write(line)
 
-    #Write Neutrino results to a new file for RAVEN
-    for line in lines:
-      resultsFile.write(line)
 
-    resultsFile.close()
-
-    outputFile.close()
 
     return newOutputPath
