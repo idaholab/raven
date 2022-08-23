@@ -594,11 +594,31 @@ class EconomicRatio(BasicStatistics):
                                                                    pbWeight=relWeight,
                                                                    dim=self.sampleTag)
         lpsDS = self._computePower(0.5, lowerPartialVarianceDS)
-        incapableThresholdTarget = [x for x in thresholdTarget if not lpsDS[x].values != 0]
+        incapableThresholdTarget = []
+        tmp = []
+        for x in thresholdTarget:
+          checkNonzero = lpsDS[x].values != 0
+          checkZero = lpsDS[x].values == 0
+          try:
+            if not all(checkNonzero):
+              incapableThresholdTarget.append(x)
+          except TypeError:
+            # checkNonzero was not iterable
+            if not checkNonzero:
+              incapableThresholdTarget.append(x)
+          try:
+            if not all(checkZero):
+              tmp.append(x)
+          except TypeError:
+            # checkZero was not iterable
+            if not checkZero:
+              tmp.append(x)
+        thresholdTarget = tmp
+
         if entry['threshold'] == 'zero':
           for target in incapableThresholdTarget:
             needed[metric]['threshold'][target].remove('zero')
-        thresholdTarget = [x for x in thresholdTarget if not lpsDS[x].values == 0]
+
         if incapableThresholdTarget:
           self.raiseAWarning((f"For metric {metric} target {incapableThresholdTarget}, no lower part "
                               f"data can be found for threshold {entry['threshold']}! Skipping target"))
