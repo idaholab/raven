@@ -235,30 +235,30 @@ class EconomicRatio(BasicStatistics):
           targets = set(child.value)
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
-            if "threshold" not in child.parameterValues:
-              threshold = 0.05
-            else:
-              threshold = child.parameterValues["threshold"]
-              if threshold > 1 or threshold < 0:
-                self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
-            # cast threshold to set
-            try:
-              thresholdSet = set(threshold)
-            except TypeError:
-              # not iterable, must be float or int
-              thresholdSet = set([threshold])
-            strThreshold = set()
-            for val in thresholdSet:
-              strThreshold.add(str(val))
-            if 'interpolation' not in child.parameterValues:
-              interpolation = 'linear'
-            else:
-              interpolation = child.parameterValues['interpolation']
-            self.toDo[tag].append({"targets": set(targets),
-                                   "prefix": prefix,
-                                   "threshold": thresholdSet,
-                                   "strThreshold": strThreshold,
-                                   "interpolation": interpolation})
+          if "threshold" not in child.parameterValues:
+            threshold = 0.05
+          else:
+            threshold = child.parameterValues["threshold"]
+            if threshold > 1 or threshold < 0:
+              self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
+          # cast threshold to set
+          try:
+            thresholdSet = set(threshold)
+          except TypeError:
+            # not iterable, must be float or int
+            thresholdSet = set([threshold])
+          strThreshold = set()
+          for val in thresholdSet:
+            strThreshold.add(str(val))
+          if 'interpolation' not in child.parameterValues:
+            interpolation = 'linear'
+          else:
+            interpolation = child.parameterValues['interpolation']
+          self.toDo[tag].append({"targets": set(targets),
+                                  "prefix": prefix,
+                                  "threshold": thresholdSet,
+                                  "strThreshold": strThreshold,
+                                  "interpolation": interpolation})
         else:
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
