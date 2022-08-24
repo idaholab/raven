@@ -672,11 +672,10 @@ class EconomicRatio(BasicStatistics):
               tmp.append(x)
         thresholdTarget = tmp
 
-        # incapableTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values != 0]
         if entry['threshold'] == 'zero':
           for target in incapableTarget:
             needed[metric]['threshold'][target].remove('zero')
-        # thresholdTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values == 0]
+
         if incapableTarget:
           self.raiseAWarning((f"For metric {metric} target {incapableTarget}, lower part mean is "
                               f"zero for threshold {entry['threshold']}! Skipping target"))
