@@ -651,11 +651,32 @@ class EconomicRatio(BasicStatistics):
         higherMeanSet = (higherSet * relWeight).sum(dim=self.sampleTag)
         lowerMeanSet = (lowerSet * relWeight).sum(dim=self.sampleTag)
 
-        incapableTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values != 0]
+        incapableTarget = []
+        tmp = []
+        for x in thresholdTarget:
+          checkNonzero = lowerMeanSet[x].values != 0
+          checkZero = lowerMeanSet[x].values == 0
+          try:
+            if not all(checkNonzero):
+              incapableTarget.append(x)
+          except TypeError:
+            # checkNonzero was not iterable
+            if not checkNonzero:
+              incapableTarget.append(x)
+          try:
+            if not all(checkZero):
+              tmp.append(x)
+          except TypeError:
+            # checkZero was not iterable
+            if not checkZero:
+              tmp.append(x)
+        thresholdTarget = tmp
+
+        # incapableTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values != 0]
         if entry['threshold'] == 'zero':
           for target in incapableTarget:
             needed[metric]['threshold'][target].remove('zero')
-        thresholdTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values == 0]
+        # thresholdTarget = [x for x in thresholdTarget if not lowerMeanSet[x].values == 0]
         if incapableTarget:
           self.raiseAWarning((f"For metric {metric} target {incapableTarget}, lower part mean is "
                               f"zero for threshold {entry['threshold']}! Skipping target"))
