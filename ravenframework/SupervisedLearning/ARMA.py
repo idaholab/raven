@@ -617,6 +617,9 @@ class ARMA(SupervisedLearning):
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
     # Applied Energy, 87(2010) 843-855
+    #
+    # Kernel density estimation has also been tried for estimating the CDF of the data but with little practical
+    # benefit over using the empirical CDF. See RAVEN Theory Manual for more discussion.
     for t,target in enumerate(self.target):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
@@ -915,15 +918,15 @@ class ARMA(SupervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    import statsmodels.tsa
-    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
-                                                    ma = np.append(1., model.maparams),
-                                                    nsample = numSamples,
-                                                    distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
-                                       # functool.partial provide the random number generator as a function
-                                       # with normal distribution and take engine as the positional arguments keywords.
-                                                    scale = np.sqrt(model.sigma2),
-                                                    burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
+    import statsmodels.api
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar=model.polyar,
+                                                              ma=model.polyma,
+                                                              nsample=numSamples,
+                                                              distrvs=functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                                              # functool.partial provide the random number generator as a function
+                                                              # with normal distribution and take engine as the positional arguments keywords.
+                                                              scale=model.sigma,
+                                                              burnin=2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
   def _generateFourierSignal(self, pivots, periods):
@@ -1094,7 +1097,13 @@ class ARMA(SupervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima.model.ARIMA(data, order=(self.P, 0, self.Q), trend='c').fit()
+    # The ARIMAResults object here can cause problems with ray when running in parallel. Dropping it
+    # in exchange for the armaResultsProxy class avoids the issue while preserving what we really
+    # care out from the ARIMAResults object.
+    results = armaResultsProxy(results.polynomial_ar,
+                               results.polynomial_ma,
+                               np.sqrt(results.params[results.param_names.index('sigma2')]))
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1382,7 +1391,7 @@ class ARMA(SupervisedLearning):
         root.append(targetNode)
       armaNode = xmlUtils.newNode('ARMA_params')
       targetNode.append(armaNode)
-      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
+      armaNode.append(xmlUtils.newNode('std', text=arma.sigma))
       # TODO covariances, P and Q, etc
     for target,peakInfo in self.peaks.items():
       targetNode = root.find(target)
@@ -1564,13 +1573,13 @@ class ARMA(SupervisedLearning):
     for target, arma in self.armaResult.items():
       # sigma
       feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
+      features[feature] = arma.sigma
       # autoregression
-      for p, val in enumerate(arma.arparams):
+      for p, val in enumerate(-arma.polyar[1:]):  # The AR coefficients are stored in polynomial form here (flipped sign and with a term in the zero position of the array for lag=0)
         feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
         features[feature] = val
       # moving average
-      for q, val in enumerate(arma.maparams):
+      for q, val in enumerate(arma.polyma[1:]):  # keep only the terms for lag>0
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
@@ -1864,15 +1873,15 @@ class ARMA(SupervisedLearning):
       if 'AR' in info:
         AR_keys, AR_vals = zip(*list(info['AR'].items()))
         AR_keys, AR_vals = zip(*sorted(zip(AR_keys, AR_vals), key=lambda x:x[0]))
-        AR_vals = np.asarray(AR_vals)
+        AR_vals = np.concatenate(([1], -np.asarray(AR_vals)))  # convert the AR params into polynomial form
       else:
-        AR_vals = np.array([])
+        AR_vals = np.array([1])  # must include a 1 for the zero lag term
       if 'MA' in info:
         MA_keys, MA_vals = zip(*list(info['MA'].items()))
         MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
-        MA_vals = np.asarray(MA_vals)
+        MA_vals = np.concatenate(([1], np.asarray(MA_vals)))  # converts the MA params into polynomial form
       else:
-        MA_vals = np.array([])
+        MA_vals = np.array([1])
       if 'bin' in info:
         bin_keys, bin_vals = zip(*list(info['bin'].items()))
         bin_keys, bin_vals = zip(*sorted(zip(bin_keys, bin_vals), key=lambda x:x[0]))
@@ -2538,14 +2547,14 @@ class armaResultsProxy:
     Class that can be used to artifically construct ARMA information
     from pre-determined values
   """
-  def __init__(self, arparams, maparams, sigma):
+  def __init__(self, polyar, polyma, sigma):
     """
       Constructor.
-      @ In, arparams, np.array(float), autoregressive coefficients
-      @ In, maparams, np.array(float), moving average coefficients
+      @ In, polyar, np.array(float), autoregressive coefficients
+      @ In, polyma, np.array(float), moving average coefficients
       @ In, sigma, float, standard deviation of ARMA residual noise
       @ Out, None
     """
-    self.arparams = np.atleast_1d(arparams)
-    self.maparams = np.atleast_1d(maparams)
-    self.sigma2 = sigma**2
+    self.polyar = polyar
+    self.polyma = polyma
+    self.sigma = sigma

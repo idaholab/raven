@@ -111,6 +111,8 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
         if isinstance(outputs[i],Files.File):
+          if 'PYOMO' == outputs[i].getType().upper():
+            self.actionType.append('MODEL-PYOMO')
           if 'FMU' == outputs[i].getType().upper():
             self.actionType.append('MODEL-FMU')
           else:
@@ -206,6 +208,12 @@ class IOStep(Step):
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
+
+      elif self.actionType[i] == 'MODEL-PYOMO':
+        outfile = open(outputs[i].getAbsFile(),"w")
+        outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
+        outfile.close()
+
       elif self.actionType[i] == 'MODEL-FMU':
         #check the ROM is trained first (if ExternalModel no check it is performed)
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:

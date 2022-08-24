@@ -30,9 +30,8 @@ class DecayParser():
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
     # open the unperturbed file
-    openInputFile = open(self.inputFiles, "r")
-    lines = openInputFile.readlines()
-    openInputFile.close()
+    with open(self.inputFiles, "r") as openInputFile:
+      lines = openInputFile.readlines()
 
     self.characterizeLibrary(lines)
     self.fileReconstruction()

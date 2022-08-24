@@ -93,10 +93,9 @@ class Prescient(CodeInterfaceBase):
           elif line.lstrip().startswith("--output-directory="):
             self._outputDirectory = line.split("=",1)[1].rstrip()
           newLines.append(line)
-        newFile = open(singleInput.getAbsFile(),"w")
-        for line in newLines:
-          newFile.write(line)
-        newFile.close()
+        with open(singleInput.getAbsFile(),"w") as newFile:
+          for line in newLines:
+            newFile.write(line)
       elif singleInput.getType() == 'PrescientInput':
         #print("SampledVars", Kwargs["SampledVars"])
         #print("Modifying", singleInput)

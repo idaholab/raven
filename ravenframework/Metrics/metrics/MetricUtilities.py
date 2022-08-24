@@ -226,4 +226,3 @@ def _getPDFCommonArea(data1, data2):
   stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
   return scipy.integrate.quad(lambda x:min(pdf1(x),pdf2(x)),low,high,limit=1000)[0]
-
