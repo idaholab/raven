@@ -111,7 +111,7 @@ fi
 # confusion over which of the two copies to use.
 #(cd $RAVEN_BUILD_DIR && rm -Rf install/ravenframework)
 pip3 --verbose install --editable . --upgrade --target ./install
-cp -a src/crow_modules src/contrib/AMSC install/
+#cp -a src/crow_modules src/contrib/AMSC install/
 
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
