@@ -75,6 +75,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
+    <protobuf source="pip">3</protobuf> <!-- needed because protobuf 4 incompatible with current ray -->
     <setuptools/>
   </main>
   <alternate name="pip">
