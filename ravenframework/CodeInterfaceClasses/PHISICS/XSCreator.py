@@ -95,9 +95,8 @@ class XSCreator():
                 for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
                   reactionChild = SubElement(libraryChild, self.formatXS(reaction), {'g':group})
                   reactionChild.text = value
-    fileObj = open(inputFiles, 'w')
-    fileObj.write(self.prettify(top))
-    fileObj.close()
+    with open(inputFiles, 'w') as fileObj:
+      fileObj.write(self.prettify(top))
 
   def formatXS(self,reaction):
     """
