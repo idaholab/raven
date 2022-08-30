@@ -18,20 +18,20 @@
   Reworked 2020-01
   @author: talbpaul
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
 import copy
 import abc
 import numpy as np
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+# Internal Modules----------------------------------------------------------------------------------
 from ..utils import randomUtils, InputData, InputTypes
-from ..Samplers import AdaptiveSampler, ForwardSampler
-#Internal Modules End--------------------------------------------------------------------------------
+from ..Samplers import AdaptiveSampler, Sampler
+# Internal Modules End------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):
   """
@@ -64,6 +64,7 @@ class Optimizer(AdaptiveSampler):
     Optimizer can be used almost anywhere a Sampler can be used, and is only distinguished from other
     AdaptiveSampler strategies for clarity.
     """
+
     return descr
 
   @classmethod
@@ -94,7 +95,7 @@ class Optimizer(AdaptiveSampler):
               (3, 7), and (4, 8)."""))
 
     # initialization
-    ## TODO similar to MonteCarlo and other samplers, maybe overlap?
+    # TODO similar to MonteCarlo and other samplers, maybe overlap?
     init = InputData.parameterInputFactory('samplerInit', strictMode=True,
         printPriority=105, # more important than <variable>
         descr=r"""collection of nodes that describe the initialization of the optimization algorithm.""")
@@ -138,7 +139,6 @@ class Optimizer(AdaptiveSampler):
 
 
     # assembled objects
-
     specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True,
         printPriority=175,
         descr=r"""name of a Sampler that can be used to initialize the starting points for the trajectories
@@ -147,6 +147,7 @@ class Optimizer(AdaptiveSampler):
               The Sampler will be used to initialize the trajectories' initial points for some or all
               of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
+
     return specs
 
   def __init__(self):
@@ -156,23 +157,24 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
-    ## Instance Variable Initialization
+    # Instance Variable Initialization
     # public
     # _protected
-    self._seed = None           # random seed to apply
-    self._minMax = 'min'        # maximization or minimization?
-    self._activeTraj = []       # tracks live trajectories
-    self._cancelledTraj = {}    # tracks cancelled trajectories, and reasons
-    self._convergedTraj = {}    # tracks converged trajectories, and values obtained
-    self._numRepeatSamples = 1  # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = None   # objective variable for optimization
-    self._initialValues = None  # initial variable values (trajectory starting locations), list of dicts
-    self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
-    self._trajCounter = 0       # tracks numbers to assign to trajectories
-    self._initSampler = None    # sampler to use for picking initial seeds
-    self._constraintFunctions = [] # list of constraint functions
-    self._impConstraintFunctions = [] # list of implicit constraint functions
-    self._requireSolnExport = True # optimizers only produce result in solution export
+    self._seed = None                   # random seed to apply
+    self._minMax = 'min'                # maximization or minimization?
+    self._activeTraj = []               # tracks live trajectories
+    self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
+    self._convergedTraj = {}            # tracks converged trajectories, and values obtained
+    self._numRepeatSamples = 1          # number of times to repeat sampling (e.g. denoising)
+    self._objectiveVar = None           # objective variable for optimization
+    self._initialValuesFromInput = None # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
+    self._initialValues = None          # initial variable values (trajectory starting locations), list of dicts
+    self._variableBounds = None         # dictionary of upper/lower bounds for each variable (may be inf?)
+    self._trajCounter = 0               # tracks numbers to assign to trajectories
+    self._initSampler = None            # sampler to use for picking initial seeds
+    self._constraintFunctions = []      # list of constraint functions
+    self._impConstraintFunctions = []   # list of implicit constraint functions
+    self._requireSolnExport = True      # optimizers only produce result in solution export
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
@@ -189,8 +191,9 @@ class Optimizer(AdaptiveSampler):
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
-    needDict = AdaptiveSampler._localWhatDoINeed()
+    needDict = AdaptiveSampler._localWhatDoINeed(self)
     needDict['Functions'] = [(None, 'all')]
+
     return needDict
 
   def _localGenerateAssembler(self, initDict):
@@ -234,6 +237,7 @@ class Optimizer(AdaptiveSampler):
     needDict['Distributions'] = [(None,'all')]
     needDict['Functions'    ] = [(None,'all')]
     needDict['DataObjects'  ] = [(None,'all')]
+
     return needDict
 
   def handleInput(self, paramInput):
@@ -245,7 +249,7 @@ class Optimizer(AdaptiveSampler):
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
     # objective var
     self._objectiveVar = paramInput.findFirst('objective').value
-    #
+
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
     init = paramInput.findFirst('samplerInit')
@@ -258,7 +262,7 @@ class Optimizer(AdaptiveSampler):
       minMax = init.findFirst('type')
       if minMax is not None:
         self._minMax = minMax.value
-    #
+
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
       if varNode.findFirst('function') is not None:
@@ -269,11 +273,12 @@ class Optimizer(AdaptiveSampler):
       if initsNode:
         inits = initsNode.value
         # initialize list of dictionaries if needed
-        if not self._initialValues:
-          self._initialValues = [{} for _ in inits]
+        if not self._initialValuesFromInput:
+          self._initialValuesFromInput = [{} for _ in inits]
         # store initial values
         for i, init in enumerate(inits):
-          self._initialValues[i][var] = init
+          self._initialValuesFromInput[i][var] = init
+    self._initialValues = copy.copy(self._initialValuesFromInput)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -304,7 +309,7 @@ class Optimizer(AdaptiveSampler):
       lower = dist.lowerBound if dist.lowerBound is not None else -np.inf
       upper = dist.upperBound if dist.upperBound is not None else np.inf
       self._variableBounds[var] = [lower, upper]
-      self.raiseADebug('Set bounds for opt var "{}" to {}'.format(var, self._variableBounds[var]))
+      self.raiseADebug(f'Set bounds for opt var "{var}" to {self._variableBounds[var]}')
     # trajectory initialization
     for i, init in enumerate(self._initialValues):
       self._initialValues[i] = self.normalizeData(init)
@@ -332,11 +337,12 @@ class Optimizer(AdaptiveSampler):
   # Utility Methods #
   ###################
   @abc.abstractmethod
-  def checkConvergence(self, traj):
+  def checkConvergence(self, traj, new, old):
     """
       Method to check whether the convergence criteria has been met.
       @ In, traj, int, trajectory identifier
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+      @ In, new, dict, new opt point
+      @ In, old, dict, previous opt point
     """
 
   @abc.abstractmethod
@@ -368,6 +374,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, optVal, float, sign-adjust objective value
     """
     optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
+
     return optVal
 
   def _collectOptPoint(self, rlz):
@@ -376,7 +383,8 @@ class Optimizer(AdaptiveSampler):
       @ In, rlz, dict, realization particularly including objective variable
       @ Out, point, dict, point used in this realization
     """
-    point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
+    point = dict((var, float(rlz[var])) for var in self.toBeSampled)
+
     return point
 
   def _initializeInitSampler(self, externalSeeding):
@@ -388,32 +396,30 @@ class Optimizer(AdaptiveSampler):
     if not self.assemblerDict.get('Sampler', False):
       return
     sampler = self.assemblerDict['Sampler'][0][3]
-    if not isinstance(sampler, ForwardSampler):
+    if not isinstance(sampler, Sampler):
       self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')
     self._initSampler = sampler
-    ## initialize sampler
+    # initialize sampler
     samplerInit = {}
     for entity in ['Distributions', 'Functions', 'DataObjects']:
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
-    ## assure sampler provides useful info
+    # assure sampler provides useful info
     for sampled in self._initSampler.toBeSampled:
       # all sampled variables should be used in the optimizer TODO is this really required? Or should this be a warning?
       if sampled not in self.toBeSampled:
-        self.raiseAnError(IOError, 'Variable "{v}" initialized by Sampler "{i}" is not an optimization variable for "{s}"!'
-                                   .format(v=sampled, i=self._initSampler.name, s=self.name))
+        self.raiseAnError(IOError, f'Variable "{sampled}" initialized by Sampler "{self._initSampler.name}" is not an optimization variable for "{self.name}"!')
     self._initSampler.initialize(externalSeeding)
     # initialize points
     numTraj = len(self._initialValues) if self._initialValues else None
-    ## if there are already-initialized variables (i.e. not sampled, but given), then check num samples
+    # if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
       if numTraj != self._initSampler.limit:
-        self.raiseAnError(IOError, '{n} initial points have been given, but Initialization Sampler "{s}" provides {m} samples!'
-                                   .format(n=numTraj, s=self._initSampler.name, m=self._initSampler.limit))
+        self.raiseAnError(IOError, f'{numTraj} initial points have been given, but Initialization Sampler "{self._initSampler.name}" provides {self._initSampler.limit} samples!')
     else:
       numTraj = self._initSampler.limit
       self._initialValues = [{} for _ in range(numTraj)]
-    for n, info in enumerate(self._initialValues):
+    for n, _ in enumerate(self._initialValues):
       # prep the sampler, in case it needs it #TODO can we get rid of this for forward sampler?
       self._initSampler.amIreadyToProvideAnInput()
       # get the sample
@@ -435,6 +441,7 @@ class Optimizer(AdaptiveSampler):
       self._trajCounter += 1
     if traj not in self._activeTraj:
       self._activeTraj.append(traj)
+
     return traj
 
   def _closeTrajectory(self, traj, action, reason, value):
@@ -462,7 +469,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, normalized, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
     # some algorithms should not be normalizing and denormalizing!
-    ## in that case, we allow this method to turn off normalization
+    # in that case, we allow this method to turn off normalization
     if self.needDenormalized():
       return denormed
     normalized = copy.deepcopy(denormed)
@@ -470,6 +477,7 @@ class Optimizer(AdaptiveSampler):
       val = denormed[var]
       lower, upper = self._variableBounds[var]
       normalized[var] = (val - lower) / (upper - lower)
+
     return normalized
 
   def denormalizeData(self, normalized):
@@ -479,7 +487,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
     # some algorithms should not be normalizing and denormalizing!
-    ## in that case, we allow this method to turn off normalization
+    # in that case, we allow this method to turn off normalization
     if self.needDenormalized():
       return normalized
     denormed = copy.deepcopy(normalized)
@@ -487,6 +495,7 @@ class Optimizer(AdaptiveSampler):
       val = normalized[var]
       lower, upper = self._variableBounds[var]
       denormed[var] = val * (upper - lower) + lower
+
     return denormed
 
   def needDenormalized(self):
@@ -497,3 +506,22 @@ class Optimizer(AdaptiveSampler):
     """
     # overload as needed in inheritors
     return False
+
+  def flush(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    # Sampler also has a flush method
+    super().flush()
+    self.metadataKeys = set()
+    self.assemblerDict = {}
+    self._cancelledTraj = {}
+    self._convergedTraj = {}
+    self._initialValues = copy.copy(self._initialValuesFromInput)
+    self._variableBounds = None
+    self._trajCounter = 0
+    self._constraintFunctions = []
+    self._impConstraintFunctions = []
+    self._initSampler = None

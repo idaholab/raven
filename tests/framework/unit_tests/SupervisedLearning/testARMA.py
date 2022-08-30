@@ -433,42 +433,42 @@ if plotting:
 #            RESEEDCOPIES, ENGINE           #
 #############################################
 
-testVal=arma._trainARMA(data)
-arma.amITrained=True
-signal1=arma._generateARMASignal(testVal)
-signal2=arma._generateARMASignal(testVal)
+testVal = arma._trainARMA(data)
+arma.amITrained = True
+signal1 = arma._generateARMASignal(testVal)
+signal2 = arma._generateARMASignal(testVal)
 
 #Test the reseed = False
 
-armaReF=arma
-armaReF.reseedCopies=False
-pklReF=pk.dumps(armaReF)
-unpkReF=pk.loads(pklReF)
+armaReF = arma
+armaReF.reseedCopies = False
+pklReF = pk.dumps(armaReF)
+unpkReF = pk.loads(pklReF)
 #signal 3 and 4 should be the same
-signal3=armaReF._generateARMASignal(testVal)
-signal4=unpkReF._generateARMASignal(testVal)
+signal3 = armaReF._generateARMASignal(testVal)
+signal4 = unpkReF._generateARMASignal(testVal)
 for n in range(len(data)):
   checkFloat('signal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
 
 #Test the reseed = True
 
-arma.reseedCopies=True
-pklReT=pk.dumps(arma)
-unpkReT=pk.loads(pklReT)
+arma.reseedCopies = True
+pklReT = pk.dumps(arma)
+unpkReT = pk.loads(pklReT)
 #signal 5 and 6 should not be the same
-signal5=arma._generateARMASignal(testVal)
-signal6=unpkReT._generateARMASignal(testVal)
+signal5 = arma._generateARMASignal(testVal)
+signal6 = unpkReT._generateARMASignal(testVal)
 for n in range(len(data)):
   checkTrue('signal 5, signal 6 ind{}'.format(n),signal5[n]!=signal6[n])
 
 # Test the engine with seed
 
-eng=randomUtils.newRNG()
-arma.setEngine(eng,seed=901017,count=0)
-signal7=arma._generateARMASignal(testVal)
+eng = randomUtils.newRNG()
+arma.setEngine(eng, seed=901017)
+signal7 = arma._generateARMASignal(testVal)
 
-sig7=[0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
-      0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
+sig7 = [0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
+        0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
 for n in range(10):
   checkFloat('signal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
 
