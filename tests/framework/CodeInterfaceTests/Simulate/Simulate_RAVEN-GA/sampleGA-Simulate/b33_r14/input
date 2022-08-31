@@ -1,0 +1,560 @@
+Input  File : input.inp
+Output File : input.out
+Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulate3/simulate3-u1.00.02/simulate3.exe
+ == Read Restart File: ../../cycle1.res at Exp= 0.000 GWd/MT
+ ** Note    -   ITESRC   - ITE.SRC - EOLEXP Search requested with KEF as target
+ ** Caution -   NO3PIN   - BAT.EDT - Batch edit request for 3PIN ignored --only Q or N prefix is valid for this quantity
+ ** Caution -   NO3XPO   - BAT.EDT - Batch edit request for 3XPO ignored --only Q or N prefix is valid for this quantity
+ ** Caution -   NO2PIN   - BAT.EDT - Batch edit request for 2PIN ignored --only Q or N prefix is valid for this quantity
+ ** Caution -   NO2XPO   - BAT.EDT - Batch edit request for 2XPO ignored --only Q or N prefix is valid for this quantity
+ == Read Library XS File: ../../cms.pwr-all.lib
+ ** Warning -   OLDGRD   - FUE.GRD - OLD grid model is turned on - consider upgrading to NEW grid model
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     0.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     0.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  1.0002520    -0.00025201     1.0000E+00     8.9100E-01     2.46171    -0.014    1264.57    
+     2  2  1.0006732    -0.00067316     1.4469E-01     9.2966E-03     2.15055    -0.072    1356.51    
+     3  3  0.9994997     0.00050029     3.6307E-02     7.3825E-03     2.07521    -0.039    1328.71    
+     4  4  1.0000350    -0.00003504 *   3.3725E-03     1.8564E-03     2.08223    -0.049    1332.00    
+     5  5  0.9999651     0.00003486 *   8.7579E-03     3.0695E-03     2.06415    -0.046    1333.95    
+     6  6  1.0000088 *  -0.00000884 *   1.4971E-03     3.1205E-04 *   2.06725    -0.047    1333.39 *  
+     7  7  0.9999911 *   0.00000892 *   1.4308E-03     1.5344E-04 *   2.06429    -0.046    1334.09 *  
+     8  8  1.0000030 *  -0.00000303 *   1.8949E-04 *   4.3191E-05 *   2.06468    -0.046    1333.83 *  
+
+    Nodal Solution Time = 0.31 Sec
+
+ Boron (ppm)  = 1333.830
+ Axial Offset =   -0.046
+ Max. Node-Averaged  Peaking Factor = 2.065 in Node ( 8,14, 5)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 2.188 in Node ( 8,14, 5)
+
+    Pin Power Reconstruction Time = 0.10 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     0.500 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     0.500 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9995231     0.00047693     2.2467E-02     6.8422E-03     2.11214    -0.045    1304.04    
+     2  2  1.0001180    -0.00011804     1.9931E-03     5.4548E-04     2.11636    -0.049    1311.31    
+     3  3  0.9999871     0.00001294 *   3.0149E-03     2.7644E-04 *   2.12276    -0.048    1311.25    
+     4  4  1.0000054 *  -0.00000543 *   6.4792E-04     2.4401E-05 *   2.12138    -0.048    1310.65 *  
+     5  5  0.9999967 *   0.00000326 *   1.7198E-04 *   6.7897E-05 *   2.12102    -0.048    1310.94 *  
+
+    Nodal Solution Time = 0.24 Sec
+
+ Boron (ppm)  = 1310.935
+ Axial Offset =   -0.048
+ Max. Node-Averaged  Peaking Factor = 2.121 in Node (14, 8, 5)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 2.261 in Node (14, 8, 5)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     1.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     1.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  1.0019078    -0.00190775     3.7910E-02     1.5621E-02     2.20459    -0.054    1403.03    
+     2  2  0.9998280     0.00017197     6.8137E-03     2.6418E-03     2.18967    -0.041    1393.51    
+     3  3  0.9999771     0.00002290 *   2.6717E-03     5.0515E-05 *   2.19554    -0.045    1386.56    
+     4  4  0.9999874 *   0.00001264 *   4.5695E-04 *   9.0554E-05 *   2.19454    -0.045    1388.38    
+     5  5  1.0000159 *  -0.00001590 *   1.2603E-05 *   1.9155E-05 *   2.19451    -0.046    1386.48 *  
+
+    Nodal Solution Time = 0.23 Sec
+
+ Boron (ppm)  = 1386.477
+ Axial Offset =   -0.046
+ Max. Node-Averaged  Peaking Factor = 2.195 in Node ( 8,14, 5)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 2.355 in Node ( 8,14, 5)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     2.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     2.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  1.0006323    -0.00063234     1.4883E-01     7.0430E-03     1.91021    -0.021    1421.76    
+     2  2  0.9999682     0.00003183 *   2.1890E-02     2.3641E-04 *   1.95296    -0.014    1425.67    
+     3  3  0.9999532 *   0.00004685 *   1.5679E-02     1.1559E-03     1.92281    -0.015    1415.83    
+     4  4  0.9999902 *   0.00000982 *   1.6971E-03     1.7406E-04 *   1.92608    -0.016    1417.68    
+     5  5  1.0000193 *  -0.00001927 *   2.0434E-03     1.3546E-04 *   1.92215    -0.016    1415.18 *  
+     6  6  0.9999922 *   0.00000784 *   2.3400E-04 *   2.1555E-05 *   1.92260    -0.016    1416.12 *  
+
+    Nodal Solution Time = 0.28 Sec
+
+ Boron (ppm)  = 1416.115
+ Axial Offset =   -0.016
+ Max. Node-Averaged  Peaking Factor = 1.923 in Node (13, 9, 5)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 2.044 in Node (13, 9, 5)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     3.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     3.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9987620     0.00123801     1.7011E-01     1.9681E-02     1.64310     0.004    1338.49    
+     2  2  1.0002472    -0.00024724     3.2639E-02     1.4019E-03     1.69854    -0.007    1352.28    
+     3  3  1.0000084    -0.00000840 *   1.0419E-02     6.2890E-04     1.68102    -0.005    1347.50    
+     4  4  0.9999994 *   0.00000065 *   1.9051E-03     5.6162E-05 *   1.68423    -0.006    1347.56    
+     5  5  1.0000136 *  -0.00001355 *   1.2702E-03     2.1634E-04 *   1.68209    -0.006    1345.77 *  
+     6  6  0.9999954 *   0.00000459 *   1.8812E-04 *   2.7835E-05 *   1.68241    -0.006    1346.32 *  
+
+    Nodal Solution Time = 0.27 Sec
+
+ Boron (ppm)  = 1346.316
+ Axial Offset =   -0.006
+ Max. Node-Averaged  Peaking Factor = 1.682 in Node (13, 9, 5)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.771 in Node (13, 9, 5)
+
+    Pin Power Reconstruction Time = 0.10 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     4.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     4.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9983589     0.00164114     7.9519E-02     2.1464E-02     1.55848     0.004    1239.25    
+     2  2  1.0002694    -0.00026944     4.6909E-03     1.1651E-03     1.56583    -0.012    1253.14    
+     3  3  1.0000112    -0.00001125 *   3.8920E-03     5.2936E-04     1.55976    -0.009    1250.34    
+     4  4  1.0000029 *  -0.00000295 *   1.3429E-03     1.5984E-04 *   1.56185    -0.010    1249.79    
+     5  5  1.0000101 *  -0.00001007 *   3.8543E-05 *   5.4806E-05 *   1.56191    -0.010    1248.48 *  
+
+    Nodal Solution Time = 0.23 Sec
+
+ Boron (ppm)  = 1248.477
+ Axial Offset =   -0.010
+ Max. Node-Averaged  Peaking Factor = 1.562 in Node ( 9,13, 3)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.677 in Node ( 9,13, 3)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     5.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     5.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982336     0.00176636     3.1306E-02     2.0320E-02     1.51450     0.000    1132.07    
+     2  2  1.0002120    -0.00021195     1.9656E-02     3.5886E-03     1.54487    -0.020    1144.95    
+     3  3  1.0000099    -0.00000993 *   6.2315E-03     1.8114E-04 *   1.53530    -0.015    1142.88    
+     4  4  1.0000029 *  -0.00000286 *   2.1295E-03     1.4421E-04 *   1.53858    -0.017    1142.32 *  
+     5  5  1.0000086 *  -0.00000864 *   3.0064E-04 *   1.7837E-05 *   1.53811    -0.017    1141.20 *  
+
+    Nodal Solution Time = 0.22 Sec
+
+ Boron (ppm)  = 1141.197
+ Axial Offset =   -0.017
+ Max. Node-Averaged  Peaking Factor = 1.538 in Node ( 9,13, 3)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.654 in Node ( 9,13, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     6.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     6.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981794     0.00182055     3.6039E-02     2.0444E-02     1.48461    -0.003    1021.26    
+     2  2  1.0002125    -0.00021250     2.9891E-02     5.9154E-03     1.53035    -0.026    1033.33    
+     3  3  1.0000056    -0.00000561 *   1.2399E-02     8.4445E-05 *   1.51161    -0.020    1031.90    
+     4  4  1.0000038 *  -0.00000383 *   3.2149E-03     1.6497E-04 *   1.51649    -0.022    1031.21 *  
+     5  5  1.0000073 *  -0.00000727 *   9.5522E-04     1.2740E-05 *   1.51504    -0.022    1030.27 *  
+     6  6  0.9999981 *   0.00000187 *   4.0364E-04 *   1.4350E-05 *   1.51565    -0.022    1030.47 *  
+
+    Nodal Solution Time = 0.29 Sec
+
+ Boron (ppm)  = 1030.471
+ Axial Offset =   -0.022
+ Max. Node-Averaged  Peaking Factor = 1.516 in Node (10, 8, 3)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.647 in Node (13, 9, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     7.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     7.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981547     0.00184529     2.8017E-02     2.0872E-02     1.47434    -0.004     909.55    
+     2  2  1.0002106    -0.00021062     3.3032E-02     7.9240E-03     1.52471    -0.030     921.15    
+     3  3  1.0000023    -0.00000230 *   1.3611E-02     1.9822E-04 *   1.50423    -0.023     920.19    
+     4  4  1.0000041 *  -0.00000415 *   3.5704E-03     2.0964E-04 *   1.50962    -0.025     919.48 *  
+     5  5  1.0000063 *  -0.00000627 *   1.1670E-03     3.5986E-05 *   1.50786    -0.025     918.66 *  
+     6  6  0.9999984 *   0.00000164 *   4.3637E-04 *   2.3559E-05 *   1.50852    -0.025     918.84 *  
+
+    Nodal Solution Time = 0.27 Sec
+
+ Boron (ppm)  =  918.838
+ Axial Offset =   -0.025
+ Max. Node-Averaged  Peaking Factor = 1.509 in Node (10, 8, 3)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.632 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     8.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     8.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981499     0.00185014     3.2525E-02     2.0671E-02     1.46100    -0.005     798.61    
+     2  2  1.0002069    -0.00020691     3.9090E-02     8.7715E-03     1.52044    -0.033     809.76    
+     3  3  0.9999953     0.00000472 *   2.0337E-02     2.8083E-04 *   1.49013    -0.025     809.20    
+     4  4  1.0000049 *  -0.00000486 *   3.7600E-03     2.6558E-04 *   1.49576    -0.027     808.44 *  
+     5  5  1.0000052 *  -0.00000519 *   1.2555E-03     5.8979E-05 *   1.49388    -0.027     807.75 *  
+     6  6  0.9999986 *   0.00000136 *   4.3902E-04 *   3.2261E-05 *   1.49454    -0.027     807.90 *  
+
+    Nodal Solution Time = 0.27 Sec
+
+ Boron (ppm)  =  807.901
+ Axial Offset =   -0.027
+ Max. Node-Averaged  Peaking Factor = 1.495 in Node (10, 8, 3)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.627 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =     9.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     9.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981557     0.00184428     3.2395E-02     2.0624E-02     1.44764    -0.006     689.31    
+     2  2  1.0002024    -0.00020239     4.7494E-02     9.5780E-03     1.51982    -0.034     700.05    
+     3  3  0.9999934     0.00000657 *   2.2844E-02     3.3891E-04 *   1.48588    -0.027     699.79    
+     4  4  1.0000045 *  -0.00000448 *   5.5349E-03     3.2239E-04 *   1.49415    -0.029     699.09 *  
+     5  5  1.0000046 *  -0.00000460 *   2.6006E-03     8.6457E-05 *   1.49027    -0.028     698.48 *  
+     6  6  0.9999987 *   0.00000129 *   6.3833E-04     4.3526E-05 *   1.49122    -0.029     698.62 *  
+     7  7  1.0000022 *  -0.00000222 *   4.5027E-04 *   7.1436E-05 *   1.49055    -0.028     698.32 *  
+
+    Nodal Solution Time = 0.33 Sec
+
+ Boron (ppm)  =  698.324
+ Axial Offset =   -0.028
+ Max. Node-Averaged  Peaking Factor = 1.491 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.614 in Node ( 8,10, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    10.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    10.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981715     0.00182845     3.6177E-02     2.0910E-02     1.43851    -0.006     582.17    
+     2  2  1.0001970    -0.00019702     4.8761E-02     1.0325E-02     1.51225    -0.036     592.50    
+     3  3  0.9999921     0.00000791 *   2.2742E-02     3.9676E-04 *   1.47863    -0.028     592.54    
+     4  4  1.0000044 *  -0.00000439 *   5.4833E-03     3.7590E-04 *   1.48678    -0.030     591.87 *  
+     5  5  1.0000038 *  -0.00000381 *   2.5734E-03     1.0392E-04 *   1.48296    -0.029     591.35 *  
+     6  6  0.9999989 *   0.00000114 *   6.2068E-04     5.2392E-05 *   1.48388    -0.029     591.49 *  
+     7  7  1.0000020 *  -0.00000195 *   4.1406E-04 *   7.7665E-05 *   1.48327    -0.029     591.22 *  
+
+    Nodal Solution Time = 0.34 Sec
+
+ Boron (ppm)  =  591.220
+ Axial Offset =   -0.029
+ Max. Node-Averaged  Peaking Factor = 1.483 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.597 in Node ( 8,10, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    11.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    11.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981838     0.00181621     3.8224E-02     2.1463E-02     1.42866    -0.007     477.30    
+     2  2  1.0001928    -0.00019280     4.9252E-02     1.1048E-02     1.50267    -0.036     487.29    
+     3  3  0.9999917     0.00000834 *   2.1976E-02     6.0908E-04     1.47036    -0.029     487.38    
+     4  4  1.0000038 *  -0.00000376 *   5.3602E-03     4.2853E-04 *   1.47828    -0.031     486.80 *  
+     5  5  1.0000036 *  -0.00000358 *   2.4543E-03     1.1471E-04 *   1.47466    -0.030     486.32 *  
+     6  6  0.9999988 *   0.00000119 *   6.1052E-04     6.3583E-05 *   1.47556    -0.030     486.46 *  
+     7  7  1.0000018 *  -0.00000184 *   3.7662E-04 *   8.4773E-05 *   1.47501    -0.030     486.21 *  
+
+    Nodal Solution Time = 0.33 Sec
+
+ Boron (ppm)  =  486.210
+ Axial Offset =   -0.030
+ Max. Node-Averaged  Peaking Factor = 1.475 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.581 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    12.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    12.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9981948     0.00180521     3.9318E-02     2.2229E-02     1.41921    -0.007     374.51    
+     2  2  1.0001888    -0.00018883     4.9669E-02     1.1816E-02     1.49338    -0.037     384.30    
+     3  3  0.9999891     0.00001085 *   2.1667E-02     5.6551E-04     1.46171    -0.029     384.54    
+     4  4  1.0000034 *  -0.00000345 *   5.2748E-03     4.9701E-04 *   1.46946    -0.031     384.02 *  
+     5  5  1.0000032 *  -0.00000317 *   2.4272E-03     1.4947E-04 *   1.46590    -0.030     383.59 *  
+     6  6  0.9999988 *   0.00000118 *   5.8996E-04     7.4446E-05 *   1.46677    -0.031     383.74 *  
+     7  7  1.0000017 *  -0.00000168 *   3.5952E-04 *   9.4473E-05 *   1.46624    -0.031     383.51 *  
+
+    Nodal Solution Time = 0.34 Sec
+
+ Boron (ppm)  =  383.508
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.466 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.566 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    13.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    13.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982012     0.00179877     4.1077E-02     2.3288E-02     1.40839    -0.006     273.75    
+     2  2  1.0001857    -0.00018569     5.0304E-02     1.2666E-02     1.48299    -0.037     283.41    
+     3  3  0.9999938     0.00000625 *   2.1327E-02     4.7818E-04 *   1.45202    -0.029     283.76    
+     4  4  1.0000026 *  -0.00000265 *   5.1645E-03     5.7271E-04     1.45956    -0.031     283.33 *  
+     5  5  1.0000031 *  -0.00000313 *   2.3630E-03     1.9300E-04 *   1.45612    -0.031     282.91 *  
+     6  6  0.9999987 *   0.00000128 *   5.8011E-04     8.8513E-05 *   1.45696    -0.031     283.07 *  
+     7  7  1.0000016 *  -0.00000162 *   3.3500E-04 *   1.0803E-04 *   1.45648    -0.031     282.85 *  
+
+    Nodal Solution Time = 0.33 Sec
+
+ Boron (ppm)  =  282.845
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.456 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.549 in Node ( 8,10, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    14.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    14.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982096     0.00179045     4.3073E-02     2.4149E-02     1.39633    -0.006     175.16    
+     2  2  1.0001824    -0.00018236     5.1018E-02     1.3425E-02     1.47140    -0.037     184.72    
+     3  3  0.9999933     0.00000669 *   2.1177E-02     4.2579E-04 *   1.44089    -0.029     185.14    
+     4  4  1.0000022 *  -0.00000218 *   5.1272E-03     6.5193E-04     1.44831    -0.032     184.79 *  
+     5  5  1.0000029 *  -0.00000295 *   2.3713E-03     2.2575E-04 *   1.44489    -0.031     184.38 *  
+     6  6  0.9999987 *   0.00000135 *   5.7596E-04     1.0163E-04 *   1.44572    -0.031     184.55 *  
+     7  7  1.0000016 *  -0.00000156 *   3.3134E-04 *   1.1745E-04 *   1.44524    -0.031     184.34 *  
+
+    Nodal Solution Time = 0.33 Sec
+
+ Boron (ppm)  =  184.343
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.445 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.530 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.12 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    15.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    15.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982196     0.00178038     4.4250E-02     2.5021E-02     1.38400    -0.006      78.84    
+     2  2  1.0001790    -0.00017901     5.1456E-02     1.4171E-02     1.45908    -0.038      88.35    
+     3  3  0.9999931     0.00000694 *   2.0773E-02     3.4139E-04 *   1.42938    -0.030      88.81    
+     4  4  1.0000017 *  -0.00000165 *   5.0159E-03     7.3379E-04     1.43659    -0.032      88.53 *  
+     5  5  1.0000028 *  -0.00000280 *   2.3268E-03     2.6524E-04 *   1.43326    -0.031      88.15 *  
+     6  6  0.9999986 *   0.00000140 *   5.6144E-04     1.1456E-04 *   1.43406    -0.031      88.33 *  
+     7  7  1.0000015 *  -0.00000149 *   3.2081E-04 *   1.2904E-04 *   1.43360    -0.031      88.13 *  
+
+    Nodal Solution Time = 0.32 Sec
+
+ Boron (ppm)  =   88.128
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.434 in Node ( 8,10, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.512 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.11 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    16.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    16.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982292     0.00177075     4.4866E-02     2.5945E-02     1.37204    -0.006     -15.24    
+     2  2  1.0022404     7.1526E-02     2.3080E-02      1.47774    -0.046
+     3  3  1.0028461     1.5982E-02     4.4665E-04 *    1.45449    -0.041
+     4  4  1.0030160     5.5030E-04     8.7023E-05 *    1.45529    -0.041
+ 
+           *********************************************************************************************
+           Search Started on        EOLEXP Triggered by            MINBOR Trigger Value =       10.00000
+           Target Variable          KEF    Target Value           1.00000 Target Epsilon         0.00005
+           Init Search Value       0.50000 Init Search Delta      0.50000 Search Epsilon         0.02000
+           Max Search Delta        2.00000 Search Bound;lower    -2.00000 Search Bound;upper    25.00000
+           Max. #Iter Before Search      4 Max. #Iter Between Searches  4 Damping Factor =       1.00000
+           *********************************************************************************************
+
+           Present Target Value  =   1.003016    Next Search Value  =      1.00 GWd/MT
+
+     5  5  0.9994711     3.9619E-02     1.5146E-02      1.39984    -0.021
+     6  6  0.9987767     9.7040E-03     4.4423E-03      1.41355    -0.027
+     7  7  0.9985324     3.0559E-03     1.6957E-03      1.40925    -0.027
+     8  8  0.9984709     2.1074E-03     1.6913E-04 *    1.41222    -0.028
+
+           Present Target Value  =   0.998471    Next Search Value  =      0.83 GWd/MT
+
+     9  9  0.9996131     1.1083E-02     4.9690E-03      1.42805    -0.034
+    10 10  0.9998568     2.7365E-03     1.3366E-03      1.42415    -0.032
+    11 11  0.9999367     6.0658E-04     6.6867E-04      1.42502    -0.032
+    12 12  0.9999577     6.5787E-04     5.0843E-05 *    1.42408    -0.032
+
+           Present Target Value  =   0.999958    Next Search Value  =      0.83 GWd/MT
+
+    13 13  1.0000037     4.4924E-04 *   2.7478E-05 *    1.42472    -0.032
+    14 14  1.0000144     2.2412E-04 *   4.4256E-05 *    1.42440    -0.032
+
+           Present Target Value  =   1.000014    Next Search Value  =      0.83 GWd/MT
+
+           ***************************************************************
+           Search Terminated at 0.83 by Satisfying Search Variable Epsilon                                     
+           ***************************************************************
+ 
+    15 15  1.0000089 *   7.4993E-05 *   9.2715E-05 *    1.42429    -0.032
+
+    Nodal Solution Time = 0.74 Sec
+
+ K-effective  = 1.000009
+ Axial Offset =   -0.032
+ Max. Node-Averaged  Peaking Factor = 1.424 in Node (10, 8, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.497 in Node (10, 8, 2)
+
+    Pin Power Reconstruction Time = 0.12 Sec
+
+ == Dependent Case: 1 of Independent Case 1 Complete                                                 
+
+ == Writing of CMS-View File: s3plot.cms Complete
+ _____________________________________________________________________________________________________________________________
+
+ S u m m a r y   o f   E r r o r s / W a r n i n g s / C a u t i o n s   a n d   N o t e s          
+
+ Label   Times   Degree     Where      Info  
+ -----   -----   ------     -----      ----  
+
+ OLDGRD      1   WARNING    FUE.GRD    OLD grid model is turned on - consider upgrading to NEW grid model
+ NO3XPO      1   CAUTION    BAT.EDT    Batch edit request for 3XPO ignored --only Q or N prefix is valid for this quantity
+ NO3PIN      1   CAUTION    BAT.EDT    Batch edit request for 3PIN ignored --only Q or N prefix is valid for this quantity
+ NO2XPO      1   CAUTION    BAT.EDT    Batch edit request for 2XPO ignored --only Q or N prefix is valid for this quantity
+ NO2PIN      1   CAUTION    BAT.EDT    Batch edit request for 2PIN ignored --only Q or N prefix is valid for this quantity
+ PINAXIS    18   CAUTION    PIN.EDT    Pin locations for axis-spanning assemblies may not be correct
+ PINSUMM    18   NOTE       PIN.EDT    For 2x2 cases peak node edit has been radially averaged in each assembly
+ ITESRC      1   NOTE       ITE.SRC    EOLEXP Search requested with KEF as target
+
+
+ S u m m a r y   o f   F i l e   A c t i v i t y
+
+ == Read Restart File: ../../cycle1.res at Exp= 0.000 GWd/MT
+ ==      Created by S-3 Version: 1.00.02  at 17:35:39 on 17/10/07
+ == Read Library XS File: ../../cms.pwr-all.lib
+ ==      Created by CMS-Link version: 1.00.02 at 17:55:25 on 2017/10/07
+ == Title: PWR CYCLE 1 U02 CORE - NOMINAL CYCLE
+ == Dependent Case: 1 of Independent Case 1 Complete
+ 
+ == Writing of CMS-View File: s3plot.cms Complete
+
+
+ P W R  S u m m a r y   o f   S t e a d y - S t a t e   S I M U L A T E - 3   V e r s i o n  1 . 0 0 . 0 2                        
+
+ Summary File Name = SUMMARY
+
+  Case     Step             Bor  - - - - - Peak Powers - - - - -    Dens  Power  Flow  CRD   Pres  Inlet  Core     Title 
+    Step   Exp    K-eff  NQ ppm   AX / K   A-O    Rad  Node  3PIN   g/cc    %     %    Pos   psia  T (F)  Exp     Exp   Set
+
+   1  0   0.000  1.00000  8 1334 1.36/ 5 -0.046  1.45  2.06  2.16  0.710  100.0 100.0     0  2250  550.0  0.000   0.00    0 
+   1  1   0.500  1.00000  5 1311 1.40/ 6 -0.048  1.44  2.12  2.22  0.710  100.0 100.0     0  2250  550.0  0.500   0.00    0 
+   1  2   1.000  1.00002  5 1386 1.47/ 6 -0.046  1.42  2.19  2.30  0.710  100.0 100.0     0  2250  550.0  1.000   0.00    0 
+   1  3   2.000  0.99999  6 1416 1.36/ 7 -0.016  1.40  1.92  2.01  0.711  100.0 100.0     0  2250  550.0  2.000   0.00    0 
+   1  4   3.000  1.00000  6 1346 1.23/ 7 -0.006  1.37  1.68  1.76  0.711  100.0 100.0     0  2250  550.0  3.000   0.00    0 
+   1  5   4.000  1.00001  5 1248 1.15/ 9 -0.010  1.34  1.56  1.64  0.711  100.0 100.0     0  2250  550.0  4.000   0.00    0 
+   1  6   5.000  1.00001  5 1141 1.14/ 3 -0.017  1.32  1.54  1.61  0.711  100.0 100.0     0  2250  550.0  5.000   0.00    0 
+   1  7   6.000  1.00000  6 1030 1.14/ 3 -0.022  1.30  1.52  1.58  0.711  100.0 100.0     0  2250  550.0  6.000   0.00    0 
+   1  8   7.000  1.00000  6  919 1.14/ 3 -0.025  1.29  1.51  1.57  0.711  100.0 100.0     0  2250  550.0  7.000   0.00    0 
+   1  9   8.000  1.00000  6  808 1.14/ 3 -0.027  1.29  1.49  1.55  0.711  100.0 100.0     0  2250  550.0  8.000   0.00    0 
+   1 10   9.000  1.00000  7  698 1.14/ 2 -0.028  1.28  1.49  1.55  0.711  100.0 100.0     0  2250  550.0  9.000   0.00    0 
+   1 11  10.000  1.00000  7  591 1.14/ 2 -0.029  1.28  1.48  1.54  0.711  100.0 100.0     0  2250  550.0 10.000   0.00    0 
+   1 12  11.000  1.00000  7  486 1.14/ 2 -0.030  1.27  1.48  1.53  0.711  100.0 100.0     0  2250  550.0 11.000   0.00    0 
+   1 13  12.000  1.00000  7  384 1.14/ 2 -0.031  1.27  1.47  1.53  0.711  100.0 100.0     0  2250  550.0 12.000   0.00    0 
+   1 14  13.000  1.00000  7  283 1.14/ 2 -0.031  1.26  1.46  1.51  0.711  100.0 100.0     0  2250  550.0 13.000   0.00    0 
+   1 15  14.000  1.00000  7  184 1.14/ 2 -0.031  1.25  1.45  1.50  0.711  100.0 100.0     0  2250  550.0 14.000   0.00    0 
+   1 16  15.000  1.00000  7   88 1.14/ 2 -0.031  1.25  1.43  1.49  0.711  100.0 100.0     0  2250  550.0 15.000   0.00    0 
+   1 17  15.829  1.00001 15   10 1.14/ 2 -0.032  1.24  1.42  1.48  0.711  100.0 100.0     0  2250  550.0 15.829   0.00    0 
+
+    Total Execution Time = 8.5 SEC
+SIMULATE Run Completed - Normal Termination
+Tue Aug 30 19:31:11 EDT 2022

@@ -1,0 +1,21 @@
+'RES' '../../cycle1.res' 0.000/
+
+'FUE.TYP'  1, 3 4 2 3 2 3 2 3 1/
+'FUE.TYP'  2, 4 5 5 6 6 4 5 3 1/
+'FUE.TYP'  3, 2 5 6 4 2 4 5 1 1/
+'FUE.TYP'  4, 3 6 4 2 4 4 3 1 0/
+'FUE.TYP'  5, 2 6 2 4 6 3 1 1 0/
+'FUE.TYP'  6, 3 4 4 4 3 1 1 0 0/
+'FUE.TYP'  7, 2 5 5 3 1 1 0 0 0/
+'FUE.TYP'  8, 3 3 1 1 1 0 0 0 0/
+'FUE.TYP'  9, 1 1 1 0 0 0 0 0 0/
+
+
+'LIB' '../../cms.pwr-all.lib' 
+'COR.OPE' 100.0, 100.0, 2250.0/
+'COR.TIN' 550.0/ 
+
+'DEP.STA' 'AVE' 0.0 0.5 1 2 -1 20 /
+'ITE.SRC' 'SET' 'EOLEXP' , , 0.02, , , , , , 'MINBOR' 10., , , , , 4, 4, , , /
+'STA'/
+'END'/
