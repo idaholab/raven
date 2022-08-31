@@ -147,13 +147,12 @@ class BISONMESHSCRIPTparser():
     """
     if outfile==None:
       outfile = self.inputfile
-    IOfile = open(outfile,'w')
-    for e, entry in enumerate(self.fileOrderStorage):
-      if type(entry) == unicode:
-        IOfile.writelines(entry)
-      elif type(entry) == list:
-        DictBlockName = self.fileOrderStorage[e][0]
-        DictBlock = self.AllVarDict[DictBlockName]
-        for key, value in DictBlock.items():
-          IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')
-    IOfile.close()
+    with open(outfile,'w') as IOfile:
+      for e, entry in enumerate(self.fileOrderStorage):
+        if type(entry) == unicode:
+          IOfile.writelines(entry)
+        elif type(entry) == list:
+          DictBlockName = self.fileOrderStorage[e][0]
+          DictBlock = self.AllVarDict[DictBlockName]
+          for key, value in DictBlock.items():
+            IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')

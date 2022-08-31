@@ -670,8 +670,6 @@ class Simulation(MessageUser):
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
       elif element.tag == 'headNode':
         self.runInfoDict['headNode'] = element.text.strip()
-      elif element.tag == 'redisPassword':
-        self.runInfoDict['redisPassword'] = element.text.strip()
       elif element.tag == 'remoteNodes':
         self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
       elif element.tag == 'PYTHONPATH':

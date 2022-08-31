@@ -173,7 +173,12 @@ class Differ:
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
     params.add_required_param('output', 'Output files to check')
-    params.add_param('gold_files', '', 'Gold filenames')
+    params.add_param('windows_gold', '', 'Paths to Windows specific gold files,'+
+                     ' relative to gold directory')
+    params.add_param('mac_gold', '', 'Paths to Mac specific gold files, relative to gold directory')
+    params.add_param('linux_gold', '', 'Paths to Linux specific gold files,'+
+                     ' relative to gold directory')
+    params.add_param('gold_files', '', 'Paths to gold files, relative to gold directory')
     return params
 
   def __init__(self, _name, params, test_dir):
@@ -221,12 +226,28 @@ class Differ:
     """
       returns a list of the full path to the gold files
       @ In, None
-      @ Out, _get_gold_files, List(Strings), the path of the gold files.
+      @ Out, paths, List(Strings), the paths of the gold files.
     """
-    if len(self.specs['gold_files']) > 0:
+    this_os = platform.system().lower()
+    available_os = ['windows', 'mac', 'linux'] # list of OS with specific gold file options
+
+    # replace "darwin" with "mac"
+    if this_os == 'darwin':
+      this_os = 'mac'
+
+    # check if OS specific gold files should be used
+    if (this_os in available_os) and (len(self.specs[f'{this_os}_gold']) > 0):
+      gold_files = self.specs[f'{this_os}_gold'].split()
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in gold_files]
+    # if OS specific gold files are not given, are specific gold files given?
+    elif len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
-      return [os.path.join(self.__test_dir, f) for f in gold_files]
-    return [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in gold_files]
+    # otherwise, use output files
+    else:
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+
+    return paths
 
   def check_output(self):
     """

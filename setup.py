@@ -15,6 +15,7 @@ from distutils.core import setup, Extension
 from distutils.command.build import build
 import os
 import sys
+import setuptools
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
 # If the Makefile changes to be more robust, so should this
@@ -47,9 +48,10 @@ except:
 if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
 setup(name='raven_framework',
-      version='2.1',
+      version='2.2pre1',
       description='RAVEN and RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
       package_dir={'AMSC': 'src/contrib/AMSC', 'crow_modules': 'src/crow_modules', 'ravenframework': 'ravenframework'},
+      classifiers=['Programming Language :: Python :: 3'],
       entry_points={
           'console_scripts': [
               'raven_framework = ravenframework.Driver:wheelMain'

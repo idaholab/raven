@@ -191,3 +191,121 @@ Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 %%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{kerasROM.tex}
+
+\subsubsection{SerializePyomo}
+\label{subsubsec:serializepyomo}
+For the purpose of exporting RAVEN trained ROMs in an universal-accessible format for Pyomo to solve, the platform to prepare
+the python syntax including the process to setup concrete models and constraints is created. The python syntax allows to
+to retrieve pickled (serialized) ROMs and solve the defined concrete model via Pynumero's GreyBoxModel, an extension of Pyomo.
+Details on how GreyBoxModel works can be found in the following site:
+
+\begin{lstlisting}
+  https://pyomo.readthedocs.io/en/stable/contributed_packages/pynumero/index.html
+\end{lstlisting}
+
+Two files are required to run the optimization: the pickled rom and the generated python file. The workflow to create both files is
+provided in the example below located at the end of this subsection. The following command line is the defined format to interface both files:
+
+\begin{lstlisting}
+  python3 printed_python_file.py -r rom_pickled_file.pk -f location_of_raven_framework -order order_of_derivative
+\end{lstlisting}
+
+The file names `printed\_python\_file', `rom\_pickled\_file', and `order\_of\_derivative' are arbitrary names, and are not requirements.
+The `location\_of\_raven\_framework' is the relative path to where `raven\_framework' is located. The created python file includes modules from
+RAVEN and is required dealing with derivatives for GreyBoxModel to solve. The rest of the command line syntax `-r', `-f', `-order' are place holders for
+the python file to locate where the pickled ROMs and the python file itself are. Caution, make sure the `order\_of\_derivative' is an integer. If not provided,
+the default value is 1. When running the command a text file named `GreyModelOutput\_cyipopt.txt' will be created showing the results of the optimization.
+
+Since the code developed in ROMs is not a subtype, the code activation for python interface file print is triggered by adding the input subnode with type `Pyomo':
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
+\end{lstlisting}
+
+To verify the output files in the given test file in:
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  raven/tests/framework/Models/External/serialize_pyomo.xml
+\end{lstlisting}
+
+and the associated example optimization case:
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  python3 rom_out.py -r rom_pickle.pk -f ../../../..
+\end{lstlisting}
+
+are runnable with GreyBoxModel, several optional RAVEN dependencies are required. The following are the required
+optional libraries: `pyomo 6.4' or over, `cmake', `glpk', `ipopt', `cyipopt', and `pyomo-extensions'. Although almost all required
+libraries are standard packages (available on conda or pipy install), the `pyomo-extensions' is a custom library created by RAVEN developers to install `Pynumero'.
+It functions to run the following commands if `pyomo-extensions' is part of the RAVEN library installation:
+
+\begin{lstlisting}
+  pyomo download-extensions
+  pyomo build-extensions
+\end{lstlisting}
+
+For this reason, libraries `Pyomo' and `cmake' are required for successful `Pynumero' installation. Note, although all RAVEN dependency installs will
+be placed in the RAVEN library directory, the current `Pyomo' version saves extensions on the local python local directory.
+Other libraries are optimization solvers for `Pyomo' and `Pynumero'. Make sure the RAVEN conda library is activated when testing the example cases.
+The method to include optional RAVEN libraries is by adding the `optional' flag to the RAVEN library installation command:
+
+\begin{lstlisting}
+  cd raven
+  ./scripts/establish_conda_env.sh --install --optional='pyomo cmake ipopt cyipopt pyomo-extensions'
+\end{lstlisting}
+
+If the user plans to run the optimization case outside of RAVEN libraries and the pickled ROM has already been generated, instead install `pyomo', `cmake',
+`glpk', `ipopt', and `cyipopt' to your system. After this is done, on a terminal, run the `Pyomo' download and extension command introduced earlier.
+This will install `Pynumero' to your system.
+
+If the user plans to use the RAVEN library, it is recommended to activate RAVEN libraries using the following command
+on the terminal:
+
+\begin{lstlisting}
+  source scripts/establish_conda_env.sh --load
+\end{lstlisting}
+
+Make sure that the optional libraries are installed before running the pickled ROM and printed python file. Regardless of whether `Pynumero' is
+installed inside or outside RAVEN libraries, depending on the OS, C++ libraries may be outdated for `Pynumero' to run. It has been reported that
+the following OS has failed to run `Pynumero':
+
+\begin{itemize}
+  \item CentOS 7, 8
+  \item Ubuntu 16, 18
+\end{itemize}
+
+\textbf{Example:} For this example the external model is trained and further loaded as `out\_rom'. The loaded trained model is separately
+processed to `rom\_out.py' and `rom\_pickle.pk'.
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Simulation>
+    ...
+    <Files>
+      <Input name="rom_out.py" type="Pyomo">rom_out.py</Input>
+      <Input name="rom_pickle.pk" type="">rom_pickle.pk</Input>
+    </Files>
+    ...
+    <Steps>
+      ...
+      <MultiRun name="sample">
+        ...
+        <Model class="Models" type="ExternalModel">attenuate</Model>
+        ...
+        <Output class="DataObjects" type="PointSet">samples</Output>
+      </MultiRun>
+      <RomTrainer name="train">
+        <Input class="DataObjects" type="PointSet">samples</Input>
+        <Output class="Models" type="ROM">out_rom</Output>
+      </RomTrainer>
+      <IOStep name="serialize">
+        <Input class="Models" type="ROM">out_rom</Input>
+        <Output class="Files" type="">out_rom.py</Output>
+      </IOStep>
+      <IOStep name="pickle">
+        <Input class="Models" type="ROM">out_rom</Input>
+        <Output class="Files" type="">out_pickle.pk</Output>
+      </IOStep>
+      ...
+    </Steps>
+    ...
+  </Simulation>
+\end{lstlisting}
