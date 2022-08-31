@@ -94,6 +94,7 @@ class SparseSensing(PostProcessorReadyInterface):
     super().__init__()
     self.setInputDataType('xrDataset')
     self.keepInputMeta(False)
+    # self.supressErrors = True
     self.outputMultipleRealizations = True # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
@@ -173,7 +174,7 @@ class SparseSensing(PostProcessorReadyInterface):
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
 
     model.fit(data)
-    selectedSensors = model.get_selected_sensors()
+    selectedSensors = model.get_all_sensors() #get_selected_sensors()
 
     dims = ['loc','sensor']
     coords = {'loc':self.sensingFeatures,
@@ -191,5 +192,6 @@ class SparseSensing(PostProcessorReadyInterface):
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
     outDS['RAVEN_sample_ID'] = [0]
-    mergedDS = xr.merge([outDS,inputDS])
+    # mergedDS = xr.merge([outDS,inputDS])
+    mergedDS = outDS.combine_first(inputDS)
     return mergedDS

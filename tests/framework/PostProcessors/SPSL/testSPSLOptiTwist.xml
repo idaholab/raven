@@ -58,17 +58,19 @@
       <Input> Power (W), BCTemperature (K)</Input>
       <Output>X (m),Temperature (K),Y (m)</Output><!-- ,Velocity[j] (m/s),Z (m),Velocity[i] (m/s) -->
       <options>
-        <pivotParameter>Z (m)</pivotParameter>
+        <pivotParameter>index</pivotParameter>
       </options>
       <!-- <Index var="Ind">X (m),Temperature (K),Y (m)</Index> -->
-      <!-- <Index var="X (m)">Temperature (K)</Index>
-      <Index var="Y (m)">Temperature (K)</Index> -->
+      <!-- <Index var="X (m)">Temperature (K)</Index> -->
+      <!-- <Index var="Y (m)">Temperature (K)</Index> -->
     </HistorySet>
     <DataSet name="outPP">
-      <Output>sensorLocs, Temperature (K)</Output>
+      <Output>sensorLocs, Temperature (K), X (m), Y (m)</Output>
       <Index var="loc">sensorLocs</Index>
       <Index var="sensor">sensorLocs</Index>
-      <Index var="Z (m)">Temperature (K)</Index>
+      <Index var="index">Temperature (K)</Index>
+      <Index var="index">X (m)</Index>
+      <Index var="index">Y (m)</Index>
     </DataSet>
     <!-- <PointSet name="outPP">
       <Output>X,Y</Output>
@@ -87,7 +89,7 @@
     </Print>
     <Plot name="mySensorPlot" subType="SensorsPlot">
       <source>outPP</source>
-      <vars>sensorLocs</vars>
+      <vars>sensorLocs,Temperature (m), X (m), Y (m)</vars>
       <index>sensor</index>
       <how>png</how>
       <marker>x</marker>
