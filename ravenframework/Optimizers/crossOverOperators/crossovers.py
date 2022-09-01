@@ -103,7 +103,7 @@ def uniformCrossover(parents,**kwargs):
     children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
     children[index]   = children1
     children[index+1] = children2
-    index = index + 1
+    index +=  2
   return children
 
 
