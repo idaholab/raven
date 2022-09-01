@@ -45,7 +45,8 @@ Note all install methods after "main" take
     <matplotlib>3.2</matplotlib>
     <statsmodels>0.12</statsmodels>
     <cloudpickle>1.6</cloudpickle>
-    <tensorflow>2.0</tensorflow>
+    <tensorflow os='windows,linux'>2.3</tensorflow>
+    <tensorflow os='mac'>2.7</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -74,6 +75,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
+    <protobuf source="pip">3</protobuf> <!-- needed because protobuf 4 incompatible with current ray -->
     <setuptools/>
   </main>
   <alternate name="pip">
