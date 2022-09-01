@@ -385,6 +385,9 @@ class Tester:
                      'if true, then the test should fails, and if it passes, it fails.')
     params.add_param('run_types', 'normal', 'The run types that this test is')
     params.add_param('output_wait_time', '-1', 'Number of seconds to wait for output')
+    params.add_param('min_python_version', 'none',
+                     'The Minimum python version required for this test.'+
+                     ' Example 3.8 (note, format is major.minor)')
     return params
 
   def __init__(self, _name, params):
@@ -530,6 +533,15 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
+    if self.specs['min_python_version'].strip().lower() != 'none':
+      major, minor = self.specs['min_python_version'].strip().split(".")
+      #check to see if current version of python too old.
+      if int(major) > sys.version_info.major or \
+         (int(major) == sys.version_info.major and int(minor) > sys.version_info.minor):
+        self.results.group = self.group_skip
+        self.results.message = "skipped because need python version "\
+          +self.specs['min_python_version'].strip()+" but have "+sys.version
+        return self.results
     if not self.__test_run_type.issubset(self.__base_current_run_type):
       self.results.group = self.group_skip
       self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
