@@ -50,7 +50,7 @@ def expConstr1(Input):#You are free to pick this name but it has to be similar t
     $ x3+x4 < 8 $
     then g the constraint evaluation function (which has to be > 0) is taken to be:
     g = 8 - (x3+x4)
-    in this case if g(\vec(x)) < 0 then this x violates the constraint and vise versa
+    in this case if g(\vec(x)) < 0 then this x violates the constraint and vice versa
     @ In, Input, object, RAVEN container
     @ out, g, float, explicit constraint 1 evaluation function
   """
