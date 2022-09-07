@@ -258,11 +258,15 @@ The available options, for the \xmlNode{what} sub-block, are listed below:
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
-  \item \textbf{Output}, the output space will be dumped out (see
+  \item \textbf{Output}, the output space will be saved to user defined output file (see
   ``second-example'')
-  \item \textbf{Input}, the input space will be dumped out (see
+  \item \textbf{Input}, the input space will be saved to user defined output file (see
   ``third-example'')
-  \item \textbf{Input|var-name-in/Output|var-name-out}, only the particular
+  \item \textbf{metadata}, the metadata will be saved to user defined output file. This information
+  depends on analysis workflow. If the data stored in the DataObject comes from Sampler,
+  the metadata will include ``ProbabilityWeight, PointProbability''. If the data comes from
+  clustering PostProcessor, the metadata will include ``labels''.
+  \item \textbf{Input$|$var-name-in/Output$|$var-name-out/metadata$|$meta-var-name}, only the particular
   variables ``var-name-in'' and ``var-name-out'' will be reported in the output
   file (see ``fourth-example'')
 \end{itemize}
@@ -1772,8 +1776,8 @@ The \xmlString{PopulationPlot} \xmlAttr{subType} shows the path taken during a \
 an \xmlNode{Optimizer} as the sampling strategy. This is in particular useful to monitor the evolution of multiple
 trajectories or a population of points.
 The evolution step should be indicated in the dataObject as a variable specified in the \xmlNode{index} node.
-This plotter constructs a series of plots whose x-axis is the variable specified in the \xmlNode{index} node 
-and y-axis is a particular variable's values evaluated during that iteration. 
+This plotter constructs a series of plots whose x-axis is the variable specified in the \xmlNode{index} node
+and y-axis is a particular variable's values evaluated during that iteration.
 
 The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
 \begin{itemize}
@@ -1813,7 +1817,7 @@ The \xmlString{OptParallelCoordinatePlot} \xmlAttr{subType} shows the path taken
 an \xmlNode{Optimizer} as the sampling strategy. This is in particular usefull to monitor the evolution of multiple
 trajectories or a population of points.
 The evolution step should be indicated in the dataObject as a variable specified in the \xmlNode{index} node.
-This plotter constructs a gif which plots the parallel coordinate plots of particular variable's values evaluated 
+This plotter constructs a gif which plots the parallel coordinate plots of particular variable's values evaluated
 during that iteration for each iteration indicated by the variable specified in the \xmlNode{index} node.
 
 The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
@@ -1841,4 +1845,3 @@ For example,
   </OutStreams>
 </Simulations>
 \end{lstlisting}
-

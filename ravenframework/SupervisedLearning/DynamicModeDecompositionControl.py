@@ -20,12 +20,9 @@
   Dynamic Mode Decomposition with Control (The class is based on the DynamicModeDecomposition class)
 """
 #External Modules------------------------------------------------------------------------------------
-import sys
 import numpy as np
 import scipy
 from sklearn import neighbors
-from scipy import spatial
-import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -136,13 +133,19 @@ class DMDC(DMD):
     super().__init__()
     self.printTag = 'DMDC'
     self.dynamicFeatures = True
+    self.actuatorsID = None     # Actuator Variable Names
+    self.stateID = None         # State Variable Names
+    self.initStateID = None     # Initialization State Variable Names
+    self.outputID = None        # Output Names
+    self.parametersIDs = None   # Parameter Names
+    self.neigh = None           # neighbors
     # variables filled up in the training stages
-    self.__Btilde = {} # B matrix
-    self.__Ctilde = {} # C matrix
-    self.actuatorVals = None # Actuator values (e.g. U), the variable names are in self.ActuatorID
-    self.stateVals = None # state values (e.g. X)
-    self.outputVals = None # output values (e.g. Y)
-    self.parameterValues = None #  parameter values
+    self.__Btilde = {}          # B matrix
+    self.__Ctilde = {}          # C matrix
+    self.actuatorVals = None    # Actuator values (e.g. U), the variable names are in self.ActuatorID
+    self.stateVals = None       # state values (e.g. X)
+    self.outputVals = None      # output values (e.g. Y)
+    self.parameterValues = None # parameter values
 
   def _handleInput(self, paramInput):
     """
@@ -159,7 +162,7 @@ class DMDC(DMD):
     self.actuatorsID = settings.get('actuators')
     ### Extract the State Variable Names (x)
     self.stateID = settings.get('stateVariables')
-    ### Extract the Initilalization State Variable Names (x). Optional. If not
+    ### Extract the Initialization State Variable Names (x). Optional. If not
     ### found, the state is initialized with the initial values in the state field
     self.initStateID = settings.get('initStateVariables')
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
@@ -176,6 +179,14 @@ class DMDC(DMD):
     self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
+
+  def __setstate__(self,state):
+    """
+      Initializes the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -223,13 +234,13 @@ class DMDC(DMD):
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    indeces = [0]
+    indices = [0]
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
-      indeces = self.neigh.predict(feats).astype(int)
-    nreqs = len(indeces)
+      indices = self.neigh.predict(feats).astype(int)
+    nreqs = len(indices)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
@@ -245,19 +256,21 @@ class DMDC(DMD):
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
-    evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
-    evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
+    evalX = np.zeros((len(indices), tsEval, len(self.initStateID)))
+    evalY = np.zeros((len(indices), tsEval, len(self.outputID)))
 
-    for cnt, index in enumerate(indeces):
+    for cnt, index in enumerate(indices):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        uVector = uVector - self.actuatorVals[0, index, :]
+        # use np.expand_dims to ensure this works with multiple actuators
+        uVector = uVector - np.expand_dims(self.actuatorVals[0, index, :], axis=tuple(range(1,len(uVector.shape))))
         initStates = initStates - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[cnt,:,i]),(-1,1)).T
+        # make sure that Btilde dot uVector works correctly for multiple inputs and has the same shape as aTilde dot evalX
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + (self.__Btilde[index,:,:].dot(uVector[:,:,i])).reshape(-1,), (-1,1)).T
         evalX[cnt, i+1, :] = xPred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
@@ -404,13 +417,13 @@ class DMDC(DMD):
     # Find the truncation rank triggered by "s>=SminValue"
     rankTruc = sum(map(lambda x : x>=1e-6, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
-        uTruc = uTrucSVD[:, :rankTruc]
-        vTruc = vTrucSVD[:, :rankTruc]
-        sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
+      uTruc = uTrucSVD[:, :rankTruc]
+      vTruc = vTrucSVD[:, :rankTruc]
+      sTruc = np.diag(sTrucSVD)[:rankTruc, :rankTruc]
     else:
-        uTruc = uTrucSVD
-        vTruc = vTrucSVD
-        sTruc = np.diag(sTrucSVD)
+      uTruc = uTrucSVD
+      vTruc = vTrucSVD
+      sTruc = np.diag(sTrucSVD)
 
     # QR decomp. sTruc=qsTruc*rsTruc, qsTruc unitary, rsTruc upper triangular
     qsTruc, rsTruc = np.linalg.qr(sTruc)
@@ -423,5 +436,3 @@ class DMDC(DMD):
     C = Y1.dot(scipy.linalg.pinv2(X1))
 
     return A, B, C
-
-

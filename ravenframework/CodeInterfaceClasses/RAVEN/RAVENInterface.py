@@ -169,9 +169,13 @@ class RAVEN(CodeInterfaceBase):
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
+    # executable command will either be the direct raven_framework, or
     # executable command will be: "python <path>/raven_framework.py"
-    # make sure executable ends with .py
-    if not executable.endswith(".py"):
+    # in which case make sure executable ends with .py
+    # Note that for raven_framework to work, it needs to be in the path.
+    if executable == 'raven_framework':
+      self.preCommand = ''
+    elif not executable.endswith(".py"):
       executable += ".py"
     executeCommand = [('serial', self.preCommand + executable+ ' ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
@@ -277,7 +281,6 @@ class RAVEN(CodeInterfaceBase):
 
     if 'headNode' in Kwargs:
       modifDict['RunInfo|headNode'] = Kwargs['headNode']
-      modifDict['RunInfo|redisPassword'] = Kwargs['redisPassword']
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])

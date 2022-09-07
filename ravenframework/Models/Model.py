@@ -13,6 +13,9 @@
 # limitations under the License.
 """
 Module where the base class and the specialization of different type of Model are
+
+@author crisrab, alfoa
+
 """
 #External Modules------------------------------------------------------------------------------------
 import copy
@@ -20,6 +23,7 @@ import numpy as np
 import abc
 import sys
 import importlib
+import pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -42,7 +46,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ Out, None
     """
     cls.plugins = importlib.import_module(".ModelPlugInFactory","ravenframework.Models")
-
 
   @classmethod
   def getInputSpecification(cls):
@@ -380,6 +383,23 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     pass
+
+  def serialize(self,fileObjIn,**kwargs):
+    """
+      This method is the base class method that is aimed to serialize the model (and derived) instances.
+      @ In, fileObjIn, str or File object, the filename of the output serialized binary file or the RAVEN File instance
+      @ In, kwargs, dict, dictionary of options that the derived class might require
+      @ Out, None
+    """
+    import cloudpickle
+    if isinstance(fileObjIn,str):
+      fileObj = open(filename, mode='wb+')
+    else:
+      fileObj = fileObjIn # if issues occur add 'isintance(fileObjIn,Files)'.
+      fileObj.open(mode='wb+')
+    cloudpickle.dump(self,fileObj, protocol=pickle.HIGHEST_PROTOCOL)
+    fileObj.flush()
+    fileObj.close()
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):
