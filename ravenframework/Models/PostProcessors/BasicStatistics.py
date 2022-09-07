@@ -224,9 +224,6 @@ class BasicStatistics(PostProcessorReadyInterface):
     """
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one DataObject')
-    if self.pivotParameter is not None:
-      if not inputs[-1].checkIndexAlignment(indexesToCheck=self.pivotParameter):
-        self.raiseAnError(IOError, "The data provided by the input data object is not synchronized!")
     self.inputDataObjectName = inputs[-1].name
     #construct a list of all the parameters that have requested values into self.allUsedParams
     self.allUsedParams = set()
@@ -245,6 +242,8 @@ class BasicStatistics(PostProcessorReadyInterface):
     inputObj = inputs[-1] if type(inputs) == list else inputs
     if inputObj.type == 'HistorySet':
       self.dynamic = True
+      if not inputObj.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+        self.raiseAnError(IOError, "The data provided by the input data object is not synchronized!")
     inputMetaKeys = []
     outputMetaKeys = []
     for metric, infos in self.toDo.items():
