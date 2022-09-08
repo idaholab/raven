@@ -16,7 +16,7 @@ echo Making RAVEN ...
 # defaults
 MAKE_ARGS=" "
 LIBS_MODE=0 # 0 is "create", 1 is "load"
-EDITABLE=0 # 0 is install regular, 1 is install editable
+EDITABLE=1 # 0 is install regular, 1 is install editable
 #### FUTURE WORK:
 ####   combine "make" and "establish_conda_env.sh" into one installation command
 ECE_ARGS=" "
