@@ -30,6 +30,8 @@
       <valueAtRisk prefix="VaR" threshold="0.05" interpolation="midpoint">x0,y0,z0,x,y,z</valueAtRisk>
       <expectedShortfall prefix="es" threshold="0.05" interpolation="midpoint">x0,y0,z0,x,y,z</expectedShortfall>
       <sharpeRatio prefix="sharpe">x0,y0,z0,x,y,z</sharpeRatio>
+      <sortinoRatio prefix="sort" threshold="median">x0,y0,z0,x,y,z</sortinoRatio>
+      <gainLossRatio prefix="glr" threshold="median">x0,y0,z0,x,y,z</gainLossRatio>
       <variance prefix="var">x0,y0,z0,x,y,z</variance>
       <covariance prefix="cov">
         <targets>x0,y0,z0,x,y,z</targets>
@@ -91,6 +93,8 @@
             valueAtRisk,
             expectedShortfall,
             sharpeRatio,
+            sortinoRatio,
+            gainLossRatio,
             variance,
             covariance,
             percentile,
@@ -107,6 +111,8 @@
             valueAtRisk,
             expectedShortfall,
             sharpeRatio,
+            sortinoRatio,
+            gainLossRatio,
             variance,
             covariance,
             percentile,
@@ -123,6 +129,8 @@
             valueAtRisk,
             expectedShortfall,
             sharpeRatio,
+            sortinoRatio,
+            gainLossRatio,
             variance,
             covariance,
             percentile,
@@ -140,7 +148,7 @@
             pearson
         </Index>
         <Index var='percent'>percentile</Index>
-        <Index var='threshold'>valueAtRisk,expectedShortfall</Index>
+        <Index var='threshold'>valueAtRisk,expectedShortfall,sortinoRatio,gainLossRatio</Index>
     </DataSet>
   </DataObjects>
 
