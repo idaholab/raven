@@ -242,8 +242,8 @@ class DMDC(DMD):
       @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
- 
-    
+
+
     if self._importances is None:
       from sklearn import preprocessing
       from sklearn.ensemble import RandomForestRegressor
@@ -258,21 +258,21 @@ class DMDC(DMD):
         #ss = preprocessing.normalize(self.stateVals[:,smp,:])
         ss = self.stateVals[:,smp,:]
         #model = RandomForestRegressor()
-        
+
         #model.fit(ss,self.outputVals[:,smp,:] )
         #explainer = shap.TreeExplainer(model)
-        
-        
+
+
         #shap_values = explainer(ss).values
         #print(shap_values.shape)
         #avg = shap_values.mean(axis=0)
         #print(avg.shape)
         #avgavg = np.asarray(avg.mean(axis=1)).flatten()
         #print(avgavg.shape)
-        
+
         #print(model.n_outputs_)
         #print(model.n_features_in_)
-        
+
         #importances = model.feature_importances_.flatten()
         #for stateCnt, stateID in enumerate(self.stateID):
         #  #print(stateID, importances[stateCnt])
@@ -283,20 +283,20 @@ class DMDC(DMD):
         #Y1 = (oo[:-1,smp,:]   - oo[0,smp,:]).T   if self.dmdParams['centerUXY'] else oo[:-1,smp,:].T
         ##Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
         ##_,_, CtildeNormalized[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
-        
-        
-        
+
+
+
         ##avgY1 = np.average(Y1,axis=1).flatten()
         avgY1 = np.average(self.outputVals[:-1,smp,:].T,axis=1).flatten()
         Xavg = np.average(self.stateVals[:,smp,:],axis=0).flatten()
-        ##CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:] 
+        ##CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:]
         CtildeNormalizedNormalized[smp,:,:] = self.__Ctilde[smp,:,:]
         #for i in range(len(avgY1)):
         #  CtildeNormalizedNormalized[smp,i,:] = CtildeNormalizedNormalized[smp,i,:]/avgY1[i]
         #for j in range(len(Xavg)):
         #  CtildeNormalizedNormalized[smp,:,j] = CtildeNormalizedNormalized[smp,:,j]*Xavg[j]
-           
-        #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:] 
+
+        #CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:],avgY1  # np.divide(CtildeNormalized[smp,:,:],avgY1) # CtildeNormalized[smp,:,:]
         #CtildeNormalizedNormalized[smp,:,:] = np.multiply(CtildeNormalized[smp,:,:],Xavg)
         scaler = preprocessing.MinMaxScaler()
         scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
@@ -305,7 +305,7 @@ class DMDC(DMD):
         #CtildeNormalizedNormalized[smp,:,:] = preprocessing.normalize(CtildeNormalizedNormalized[smp,:,:], axis=0, norm='l1' )
 
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
-      
+
       # the importances for the state variables are inferred from the C matrix/operator since
       # directely linked to the output variables
       minVal, minIdx = np.finfo(float).max, -1
@@ -333,7 +333,7 @@ class DMDC(DMD):
         if oid in group:
           groupMask[cnt] = True
         else:
-          groupMask[cnt] = False      
+          groupMask[cnt] = False
       newImportances  = {}
       for key in self._importances:
         newImportances[key] =  newImportances[key][groupMask]

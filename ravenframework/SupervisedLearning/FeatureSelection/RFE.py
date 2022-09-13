@@ -73,11 +73,11 @@ class RFE(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
         descr=r"""Exact Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
-                                                      descr=r"""Maximum Number of features to select, the algorithm will """ 
-                                                      """automatically determine the feature list to minimize a total score.""", 
+                                                      descr=r"""Maximum Number of features to select, the algorithm will """
+                                                      """automatically determine the feature list to minimize a total score.""",
                                                       default=None))
     spec.addSub(InputData.parameterInputFactory('onlyOutputScore',contentType=InputTypes.BoolType,
-                                                      descr=r"""If maxNumberFeatures is on, only output score should be considered?.""", 
+                                                      descr=r"""If maxNumberFeatures is on, only output score should be considered?.""",
                                                       default=False))
     spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
                                                       descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
@@ -89,7 +89,7 @@ class RFE(BaseInterface):
                                                       descr=r"""Applying cross correlation in case of subgroupping at the end of the RFE""",
                                                       default=False))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
+        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
                   of features to remove at each iteration. If within (0.0, 1.0), then step
@@ -98,8 +98,8 @@ class RFE(BaseInterface):
 
     subgroup = InputData.parameterInputFactory("subGroup", contentType=InputTypes.InterpretedListType,
         descr=r"""Subgroup of output variables on which to perform the search""")
-    spec.addSub(subgroup)  
-    
+    spec.addSub(subgroup)
+
     return spec
 
   def __init__(self):
@@ -143,7 +143,7 @@ class RFE(BaseInterface):
     self.whichSpace = nodes['whichSpace'].lower()
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
-    self.applyCrossCorrelation = nodes['applyCrossCorrelation'] 
+    self.applyCrossCorrelation = nodes['applyCrossCorrelation']
     # check if subgroups present
     for child in paramInput.subparts:
       if child.getName() == 'subGroup':
@@ -163,7 +163,7 @@ class RFE(BaseInterface):
     if self.applyCrossCorrelation and not len(self.subGroups):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
-    
+
 
   def run(self, features, targets, X, y):
     """
@@ -205,7 +205,7 @@ class RFE(BaseInterface):
       @ In, targetsIds, list, list of targets
       @ In, maskF, optional, np.array, indeces of features to search within (parameters to include None if search is whitin targets)
       @ In, maskT, optional, np.array, indeces of targets to search within (parameters to include None if search is whitin features)
-      
+
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
       @ Out, whichSpace, str, which space?
@@ -245,15 +245,15 @@ class RFE(BaseInterface):
 
     # get estimator parameter
     originalParams = self.estimator.paramInput
-    
+
     # clustering appraoch here
-    if self.applyClusteringFiltering:   
+    if self.applyClusteringFiltering:
       if self.whichSpace == 'feature':
         space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
       else:
         space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
- 
-      # compute spearman     
+
+      # compute spearman
       # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
       corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
       corr = (corr + corr.T) / 2.
@@ -280,7 +280,7 @@ class RFE(BaseInterface):
     diff = nSteps - int(nSteps)
     firstStep = int(setStep * (1+diff))
     step = firstStep
-    
+
     doAtLeastOnce = True
     # we check the number of subgroups
     outputspace = None
@@ -298,10 +298,10 @@ class RFE(BaseInterface):
         support_ = copy.deepcopy(groupSupport_)
         featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
         ranking_ = copy.deepcopy(groupRanking_)
-        supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)        
+        supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)
         outputspace = self.subGroups[g]
         self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
-        
+
       # Elimination
       while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
         # Remaining features
@@ -326,7 +326,7 @@ class RFE(BaseInterface):
           if self.whichSpace != 'feature':
             supportOfSupport_[np.asarray(indexToRemove)] = False
             supportOfSupport_[np.asarray(indexToKeep)] = True
-            
+
         for idx in range(len(supportOfSupport_)):
           if mask[idx]:
             supportOfSupport_[idx] = support_[supportIndex]
@@ -344,7 +344,7 @@ class RFE(BaseInterface):
         if outputToRemove is not None:
           toRemove += outputToRemove
         vals = {}
-  
+
         if toRemove:
           for child in originalParams.subparts:
             if isinstance(child.value,list):
@@ -356,15 +356,15 @@ class RFE(BaseInterface):
           estimator.paramInput.findNodesAndSetValues(vals)
           estimator._handleInput(estimator.paramInput)
         estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
-  
+
         # Get coefs
         coefs = None
         if hasattr(estimator, 'featureImportances_'):
           importances = estimator.featureImportances_
-   
+
           # since we get the importance, highest importance must be kept => we get the inverse of coefs
           parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-          indexMap = {v: i for i, v in enumerate(parametersRemained)}    
+          indexMap = {v: i for i, v in enumerate(parametersRemained)}
           #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
           subSetImportances = {k: importances[k] for k in parametersRemained}
           sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
@@ -373,7 +373,7 @@ class RFE(BaseInterface):
             coefs = coefs.T
         if coefs is None:
           coefs = np.ones(raminingFeatures)
-        
+
         # Get ranks (for sparse case ranks is matrix)
         ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
         # Eliminate the worse features
@@ -394,7 +394,7 @@ class RFE(BaseInterface):
         # store candidates in case of sugroupping
         supportCandidates.append(copy.deepcopy(support_))
         outputSpaceToKeep.append(indexToKeep)
-        
+
     if nGroups > 1:
       support_[:] = False
       featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
@@ -417,12 +417,12 @@ class RFE(BaseInterface):
         else:
           features = np.arange(nFeatures)
           targets = np.arange(nTargets)[supportOfSupport_]
-        
+
         if self.whichSpace == 'feature':
           space = X[:, features] if len(X.shape) < 3 else np.average(X[:, :,features],axis=0)
         else:
           space = y[:, targets] if len(y.shape) < 3 else  np.average(y[:, :,targets],axis=0)
-        
+
         from sklearn.feature_selection import mutual_info_regression
         ti = None
         ranksss = []
@@ -435,22 +435,22 @@ class RFE(BaseInterface):
             ti = ti - mi
           ranksss.append(np.ravel(np.argsort(-1*mi)))
           print(mi[ranksss[-1]])
-        
-        # compute spearman     
+
+        # compute spearman
         # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
         corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
         corr = (corr + corr.T) / 2.
         np.fill_diagonal(corr, 1)
         # We convert the correlation matrix to a distance matrix before performing
         # hierarchical clustering using Ward's linkage.
-    
+
         distance_matrix = 1. - np.abs(corr)
         dist_linkage = hierarchy.ward(squareform(distance_matrix))
-        
+
         numberToSelect = int(nFeaturesToSelect/2)
-   
+
         t = float('{:.3e}'.format(0.000001*np.max(dist_linkage)))
-        
+
         self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
         self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
         cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
@@ -458,18 +458,15 @@ class RFE(BaseInterface):
         for idx, cluster_id in enumerate(cluster_ids):
           cluster_id_to_feature_ids[cluster_id].append(idx)
         selected_features = [v[0] for v in cluster_id_to_feature_ids.values()]
-        
-        
+
+
         self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selected_features)}!")
         support_[:] = False
         support_[np.asarray(selected_features)] = True
 
-      
-      
     # now we check if maxNumberFeatures is set and in case perform an
     # additional reduction based on score
     # removing the variables one by one
-
     if self.maxNumberFeatures is not None:
       featuresForRanking = np.arange(nParams)[support_]
       f = np.asarray(self.parametersToInclude)
@@ -536,7 +533,7 @@ class RFE(BaseInterface):
             # stateW = 1/float(len(combo))
             for target in evaluated:
               if target in targetsIds:
-                if target not in self.parametersToInclude: 
+                if target not in self.parametersToInclude:
                   # if not state variable, then this target is output variable
                   w = 1/float(len(targets)-1-len(combo))
                 else:
@@ -546,9 +543,9 @@ class RFE(BaseInterface):
                 tidx = targetsIds.index(target)
                 avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
                 std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
-                if compareFloats (avg, 0.): 
+                if compareFloats (avg, 0.):
                   avg = 1
-                if compareFloats (std, 0.): 
+                if compareFloats (std, 0.):
                   std = 1.
                 ev = (evaluated[target] - avg)/std
                 ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
@@ -559,7 +556,7 @@ class RFE(BaseInterface):
           # free memory and call garbace collector
           del estimator
           gc.collect()
-          # get best features 
+          # get best features
           if k in bestForNumberOfFeatures.keys():
             if bestForNumberOfFeatures[k][0] > score:
               bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
@@ -604,7 +601,7 @@ class RFE(BaseInterface):
       self.estimator_._handleInput(self.estimator_.paramInput)
     self.estimator_._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
 
- 
+
     self.nFeatures_ = support_.sum()
     self.support_ = support_
     self.ranking_ = ranking_

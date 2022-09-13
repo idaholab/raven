@@ -89,7 +89,7 @@ class SupervisedLearning(BaseInterface):
     pca.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to exclude from the search.""", default=None))
     pca.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
+        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
     pca.addSub(InputData.parameterInputFactory('whiten',contentType=InputTypes.BoolType,
         descr=r"""Whiten the signal?""", default=False))
     pca.addSub(InputData.parameterInputFactory('tol',contentType=InputTypes.BoolType,

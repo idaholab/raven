@@ -52,7 +52,7 @@ class VarianceThreshold(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the search.""", default=None))
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR #1718)""", default="Feature"))
+        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
     spec.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
         descr=r"""Features with a training-set variance lower than this threshold
                   will be removed. The default is to keep all features with non-zero

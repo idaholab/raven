@@ -61,28 +61,46 @@
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -99,15 +117,18 @@
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -123,15 +144,19 @@
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -238,28 +263,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -276,15 +319,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -300,15 +346,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -520,28 +570,46 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -558,15 +626,18 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -582,15 +653,19 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -781,28 +856,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -819,15 +912,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -843,15 +939,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1029,28 +1129,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -1067,15 +1185,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1091,15 +1212,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1307,28 +1432,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -1345,15 +1488,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1369,15 +1515,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1492,28 +1642,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -1530,15 +1698,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1554,15 +1725,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1859,28 +2034,46 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -1897,15 +2090,18 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -1921,15 +2117,19 @@ Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2363,28 +2563,46 @@ General ARMA Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -2401,15 +2619,18 @@ General ARMA Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2425,15 +2646,19 @@ General ARMA Example:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2607,28 +2832,46 @@ Example to export the coefficients of trained PolyExponential ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -2645,15 +2888,18 @@ Example to export the coefficients of trained PolyExponential ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2669,15 +2915,19 @@ Example to export the coefficients of trained PolyExponential ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2881,28 +3131,46 @@ Example to export the coefficients of trained DMD ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select
+  \default{None}
 
             \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
               Maximum Number of features to select, the algorithm will automatically determine the
               feature list to minimize a total score.
+  \default{None}
+
+            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              If maxNumberFeatures is on, only output score should be considered?.
+  \default{False}
 
             \item \xmlNode{searchTol}: \xmlDesc{float}, 
               Relative tolerance for serarch! Only if maxNumberFeatures is set
+  \default{0.0001}
 
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Applying clustering before RFE search?
+  \default{False}
+
+            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+              Applying cross correlation in case of subgroupping at the end of the RFE
+  \default{False}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
               If greater than or equal to 1, then step corresponds to the (integer) number
               of features to remove at each iteration. If within (0.0, 1.0), then step
               corresponds to the percentage (rounded down) of features to remove at
               each iteration.
+  \default{1}
+
+            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
+              Subgroup of output variables on which to perform the search
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
@@ -2919,15 +3187,18 @@ Example to export the coefficients of trained DMD ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to include in the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
               be removed. The default is to keep all features with non-zero
               variance, i.e. remove the features that have the same value in all
               samples.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
@@ -2943,15 +3214,19 @@ Example to export the coefficients of trained DMD ROM:
           \begin{itemize}
             \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
               List of IDs of features/variables to exclude from the search.
+  \default{None}
 
             \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR #1718)
+              Which space to search? Target or Feature (this is temporary till MR 1718)
+  \default{Feature}
 
             \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Whiten the signal?
+  \default{False}
 
             \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
               Tolerance for singular values.
+  \default{0.0}
           \end{itemize}
       \end{itemize}
 
