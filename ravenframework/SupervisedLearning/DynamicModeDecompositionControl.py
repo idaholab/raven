@@ -326,7 +326,7 @@ class DMDC(DMD):
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
       if True:
         for stateID, val in self._importances.items():
-          self.raiseAMessage("state var {} | {}".format(stateID, np.average(self._importances[stateID])))
+          self.raiseAMessage("state var {} | {}".format(stateID, np.sqrt(np.sum(self._importances[stateID]))))
     if group is not None:
       groupMask = np.zeros(len(self.outputID),dtype=bool)
       for cnt, oid in enumerate(self.outputID):
