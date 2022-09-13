@@ -247,7 +247,6 @@ class DMDC(DMD):
     if self._importances is None:
       from sklearn import preprocessing
       from sklearn.ensemble import RandomForestRegressor
-      import shap
       # the importances are evaluated in the transformed space
       #CtildeNormalized =  np.zeros(self.__Ctilde.shape)
       CtildeNormalizedNormalized = np.zeros(self.__Ctilde.shape)
