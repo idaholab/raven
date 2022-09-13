@@ -15,6 +15,9 @@ import sys, os
 
 raven_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.join(raven_dir,"crow","install"))
+#Check for editable install
+if os.path.exists(os.path.join(raven_dir, "src", "crow_modules", "randomENG.py")):
+    sys.path.append(os.path.join(raven_dir, "src"))
 
 import crow_modules.distribution1D
 import crow_modules.interpolationND
