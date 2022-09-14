@@ -52,6 +52,11 @@ then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
 else
     echo No installation: $INSTALLATION_MANAGER
+    if [ -z $PYTHON_COMMAND ];
+    then
+        # check the RC file
+        PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+    fi
 fi
 
 # pick tests to run
