@@ -61,6 +61,7 @@
   csv = 'circle/thick_samples.csv circle/thick_ls.csv'
   required_libraries = 'AMSC'
   remove_unicode_identifier = true
+  min_python_version = '3.8'
  [../]
  [./InvalidPreRankingSimplification]
   type = 'RavenFramework'

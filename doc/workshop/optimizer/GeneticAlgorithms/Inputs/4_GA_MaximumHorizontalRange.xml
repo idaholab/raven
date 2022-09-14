@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug" profile="jobs">
+<Simulation verbosity="quiet">
   <TestInfo>
     <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MaxContinuousHRangeConstrained</name>
     <author>Mohammad Abdo (@Jimmy-INL)</author>
@@ -21,7 +21,6 @@
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>

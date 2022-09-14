@@ -26,6 +26,7 @@ from __future__ import division, print_function, absolute_import
 import bisect
 import sys
 import os
+import glob
 import errno
 import shutil
 import inspect
@@ -655,6 +656,10 @@ def find_crow(framework_dir):
                 ravenDir]
     if "CROW_DIR" in os.environ:
       crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
+    #Check for editable install
+    if len(glob.glob(os.path.join(ravenDir, "src", "crow_modules", "_randomENG*"))) > 0:
+      sys.path.append(os.path.join(ravenDir, "src"))
+      return
     for crowDir in crowDirs:
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):

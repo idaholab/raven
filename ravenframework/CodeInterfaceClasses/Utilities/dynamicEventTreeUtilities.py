@@ -52,6 +52,5 @@ def writeXmlForDET(filename,trigger,listDict,stopInfo):
     var.set('actual_value',str(varInfo['new_value']))
     if 'associated_pb' in varInfo.keys():
       var.set('probability',str(varInfo['associated_pb']))
-  fileObject = open(filename,'w')
-  fileObject.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
-  fileObject.close()
+  with open(filename,'w') as fileObject:
+    fileObject.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
