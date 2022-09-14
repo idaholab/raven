@@ -107,7 +107,7 @@ def scrambleMutator(offSprings, distDict, **kwargs):
 
   return children
 
-def bitFlipMutator(offSprings,**kwargs):
+def bitFlipMutator(offSprings, distDict, **kwargs):
   """
     This method is designed to flip a single gene in each chromosome with probability = mutationProb.
     E.g. gene at location loc is flipped from current value to newValue
@@ -124,19 +124,33 @@ def bitFlipMutator(offSprings,**kwargs):
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
       loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
-      ##############
-      # sample value: i.e., determine newValue
-      if kwargs['sampleRange']=='local':
-        rangeValues = list(set(offSprings[:,loc].values))
-      else: #kwargs['sampleRange']=='global'
-        rangeValues = offSprings.values.ravel().tolist()
-      rangeValues.pop(child.values[loc])
-      newValuePos = randomUtils.randomIntegers(0, len(rangeValues), caller=None, engine=None)
-      newValue = rangeValues[newValuePos]
-      ##############
       # gene at location loc is flipped from current value to newValue
-      child.values[loc] = newValue
+      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
+      oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc-1])
+      newCDFValue = 1.0 - oldCDFvalue
+      newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
+      child.values[loc-1] = newValue
+  return offSprings
 
+def randomMutator(offSprings, distDict, **kwargs):
+  """
+    This method is designed to randomly mutate a single gene in each chromosome with probability = mutationProb.
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+    @ Out, offSprings, xr.DataArray, children resulting from the crossover process
+  """
+  for child in offSprings:
+    # the mutation is performed for each child independently
+    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
+      # sample gene location to be flipped: i.e., determine loc
+      chromosomeSize = child.values.shape[0]
+      loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
+      # gene at location loc is flipped from current value to newValue
+      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
+      newCDFValue = randomUtils.random()
+      newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
+      child.values[loc-1] = newValue
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
