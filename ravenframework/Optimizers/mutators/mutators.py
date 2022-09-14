@@ -200,6 +200,7 @@ __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
+__mutators['randomMutator']     = randomMutator
 
 
 def returnInstance(cls, name):
