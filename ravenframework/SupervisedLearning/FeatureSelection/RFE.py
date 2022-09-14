@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on May 8, 2018
+  Created on May 8, 2021
 
-  @author: alfoa
+  @author: Andrea Alfonsi
 """
 
 #External Modules--------------------------------------------------------------------------------
@@ -34,10 +34,10 @@ from scipy.spatial.distance import squareform
 #Internal Modules--------------------------------------------------------------------------------
 from ...utils.mathUtils import compareFloats
 from ...utils import InputData, InputTypes
-from ...BaseClasses import BaseInterface
+from .FeatureSelectionBase import FeatureSelectionBase
 #Internal Modules End----------------------------------------------------------------------------
 
-class RFE(BaseInterface):
+class RFE(FeatureSelectionBase):
   """
     Feature ranking with recursive feature elimination.
     Given an external estimator that assigns weights to features (e.g., the
@@ -68,8 +68,24 @@ class RFE(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
-        descr=r"""List of IDs of features/variables to exclude from the search.""", default=None))
+    spec.description = r"""The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm. 
+        Feature selection refers to techniques that select a subset of the most relevant features for a model (ROM). 
+        Fewer features can allow ROMs to run more efficiently (less space or time complexity) and be more effective. 
+        Indeed, some ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting in worse predictive performance.
+        RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the method, 
+        is wrapped by RFE, and used to help select features.
+        \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully removing 
+        features until the desired number remains.
+        This is achieved by fitting the given ROME used in the core of the model, ranking features by importance, 
+        discarding the least important features, and re-fitting the model. This process is repeated until a specified number of features remains.
+        When the full model is created, a measure of variable importance is computed that ranks the predictors from most important to least. 
+        At each stage of the search, the least important predictors are iteratively eliminated prior to rebuilding the model.
+        Features are scored either using the ROM model (if the model provides a mean to compute feature importances) or by using a statistical method.
+        \\In RAVEN the \xmlString{RFE} module/algorithm represents an augmentation of the basic algorithm, since it allows, optionally, to perform
+        the search on multiple groups of targets (separately) and then combine the results of the search. In addition, when the
+        RFE search is concluded, the user can request to identify the set of features that bring to a minimization of the score (i.e. maximimization
+        of the accuracy).
+        """
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
         descr=r"""Exact Number of features to select""", default=None))
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
@@ -88,8 +104,6 @@ class RFE(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
                                                       descr=r"""Applying cross correlation in case of subgroupping at the end of the RFE""",
                                                       default=False))
-    spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
                   of features to remove at each iteration. If within (0.0, 1.0), then step
@@ -110,8 +124,6 @@ class RFE(BaseInterface):
     self.maxNumberFeatures = None
     self.searchTol = None
     self.applyClusteringFiltering = False
-    self.parametersToInclude = None
-    self.whichSpace = "feature"
     self.onlyOutputScore = False
     self.applyCrossCorrelation = False
     self.step = 1
@@ -132,15 +144,13 @@ class RFE(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'step','nFeaturesToSelect','onlyOutputScore',
-                                                            'whichSpace','maxNumberFeatures','searchTol','applyClusteringFiltering','applyCrossCorrelation'])
+    nodes, notFound = paramInput.findNodesAndExtractValues([ 'step','nFeaturesToSelect','onlyOutputScore','maxNumberFeatures',
+                                                            'searchTol','applyClusteringFiltering','applyCrossCorrelation'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
     self.maxNumberFeatures = nodes['maxNumberFeatures']
     self.searchTol = nodes['searchTol']
-    self.parametersToInclude = nodes['parametersToInclude']
-    self.whichSpace = nodes['whichSpace'].lower()
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
     self.applyCrossCorrelation = nodes['applyCrossCorrelation']
@@ -149,52 +159,17 @@ class RFE(BaseInterface):
       if child.getName() == 'subGroup':
         self.subGroups.append(child.value)
     # checks
-    if self.parametersToInclude is None:
-      self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
     if self.nFeaturesToSelect is not None and self.maxNumberFeatures is not None:
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" and "maxNumberFeatures" have been both set. They are mutually exclusive!' )
     if self.nFeaturesToSelect and self.nFeaturesToSelect > len(self.parametersToInclude):
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" > number of parameters in "parametersToInclude"!' )
     if self.maxNumberFeatures and self.maxNumberFeatures > len(self.parametersToInclude):
       raise self.raiseAnError(ValueError, '"maxNumberFeatures" > number of parameters in "parametersToInclude"!' )
-    self.parametersToInclude = nodes['parametersToInclude']
     if self.step <= 0:
       raise self.raiseAnError(ValueError, '"step" parameter must be > 0' )
     if self.applyCrossCorrelation and not len(self.subGroups):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
-
-
-  def run(self, features, targets, X, y):
-    """
-      Run the RFE model and then the underlying estimator
-      on the selected features.
-      @ In, features, list, list of features
-      @ In, targets, list, list of targets
-      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
-      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
-      @ Out, newFeatures or newTargets, list, list of new features/targets
-      @ Out, supportOfSupport_, np.array, boolean mask of the selected features
-      @ Out, whichSpace, str, which space?
-      @ Out, vals, dict, dictionary of new values
-    """
-    maskFeatures = None
-    maskTargets = None
-    #if self.parametersToInclude is not None:
-    if self.whichSpace == 'feature':
-      maskFeatures = [False]*len(features)
-    else:
-      maskTargets = [False]*len(targets)
-    for param in self.parametersToInclude:
-      if maskFeatures is not None and param in features:
-        maskFeatures[features.index(param)] = True
-      if maskTargets is not None and param in targets:
-        maskTargets[targets.index(param)] = True
-    if maskTargets is not None and np.sum(maskTargets) != len(self.parametersToInclude):
-      self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
-    if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
-      self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
-    return self._train(X, y, features, targets, maskF=maskFeatures, maskT=maskTargets)
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """

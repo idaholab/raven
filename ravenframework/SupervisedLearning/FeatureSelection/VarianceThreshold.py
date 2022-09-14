@@ -27,10 +27,10 @@ from sklearn.feature_selection import VarianceThreshold as vt
 #Internal Modules------------------------------------------------------------------------------------
 from ...utils import mathUtils
 from ...utils import InputData, InputTypes
-from ...BaseClasses import BaseInterface
+from .FeatureSelectionBase import FeatureSelectionBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class VarianceThreshold(BaseInterface):
+class VarianceThreshold(FeatureSelectionBase):
   """
     Variance Threshold feature selection from sklearn
     Feature selector that removes all low-variance features.
@@ -49,10 +49,9 @@ class VarianceThreshold(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
-        descr=r"""List of IDs of features/variables to include in the search.""", default=None))
-    spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
+    spec.description = r"""The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance features.
+                           This feature selection algorithm looks only at the features and not the desired outputs. The 
+                           variance threshold can be set by the user."""
     spec.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
         descr=r"""Features with a training-set variance lower than this threshold
                   will be removed. The default is to keep all features with non-zero
@@ -62,8 +61,6 @@ class VarianceThreshold(BaseInterface):
 
   def __init__(self):
     super().__init__()
-    self.parametersToInclude = None
-    self.whichSpace = "feature"
     self.threshold = 0.0
 
   def _handleInput(self, paramInput):
@@ -73,44 +70,29 @@ class VarianceThreshold(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'threshold','whichSpace'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['threshold'])
     assert(not notFound)
     self.threshold = nodes['threshold']
-    self.parametersToInclude = nodes['parametersToInclude']
-    self.whichSpace = nodes['whichSpace'].lower()
-    if self.step <= 0:
+    if self.threshold <= 0:
       raise self.raiseAnError(ValueError, '"threshold" parameter must be > 0' )
-    if self.parametersToInclude is None:
-      self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
 
-  def run(self, features, targets, X, y):
-    """Fit the RFE model and then the underlying estimator on the selected
-           features.
-
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, nFeatures]
-            The training input samples.
-
-        y : array-like, shape = [n_samples]
-            The target values.
+  def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """
-    maskFeatures = None
-    maskTargets = None
-    #if self.parametersToInclude is not None:
-    if self.whichSpace == 'feature':
-      maskFeatures = [False]*len(features)
-    else:
-      maskTargets = [False]*len(targets)
-    for param in self.parametersToInclude:
-      if maskFeatures is not None and param in features:
-        maskFeatures[features.index(param)] = True
-      if maskTargets is not None and param in targets:
-        maskTargets[targets.index(param)] = True
-    if maskTargets is not None and np.sum(maskTargets) != len(self.parametersToInclude):
-      self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
-    if maskFeatures is not None and np.sum(maskFeatures) != len(self.parametersToInclude):
-      self.raiseAnError(ValueError, "parameters to include are both in feature and target spaces. Only one space is allowed!")
+      Train the feature selection model and perform search of best features
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ In, featuresIds, list, list of features
+      @ In, targetsIds, list, list of targets
+      @ In, maskF, optional, np.array, indeces of features to search within
+                                       (parameters to include None if search is whitin targets)
+      @ In, maskT, optional, np.array, indeces of targets to search within
+                                       (parameters to include None if search is whitin features)
+
+      @ Out, newFeatures or newTargets, list, list of new features/targets
+      @ Out, supportOfSupport_, np.array, boolean mask of the selected features
+      @ Out, whichSpace, str, which space?
+      @ Out, vals, dict, dictionary of new values
+    """
     # if time dependent, we work on the expected value of the features
     if self.whichSpace == 'feature':
       space = X if len(X.shape) < 3 else X.mean(axis=(1))
