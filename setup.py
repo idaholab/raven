@@ -48,7 +48,7 @@ except:
 if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
 setup(name='raven_framework',
-      version='2.2pre1',
+      version='2.2rc3',
       description='RAVEN and RAVEN c++ dependenciences including A library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
       package_dir={'AMSC': 'src/AMSC', 'crow_modules': 'src/crow_modules', 'ravenframework': 'ravenframework'},
       classifiers=['Programming Language :: Python :: 3'],
