@@ -8,10 +8,10 @@ CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
 source ${CONDA_DEFS}
 
 conda env remove --name python37_pip
-conda create -y --name python37_pip python=3.7
+conda create -y --name python37_pip python=3.7 swig
 
 conda env remove --name python38_pip
-conda create -y --name python38_pip python=3.8
+conda create -y --name python38_pip python=3.8 swig
 
 cd $RAVEN_DIR
 
