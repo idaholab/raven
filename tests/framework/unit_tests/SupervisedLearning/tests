@@ -3,4 +3,9 @@
     type = 'RavenPython'
     input = 'testARMA.py'
   [../]
+
+  [./test_script_ROM_inputs]
+    type = 'RavenPython'
+    input = 'testScriptROMInputs.py'
+  [../]
 []

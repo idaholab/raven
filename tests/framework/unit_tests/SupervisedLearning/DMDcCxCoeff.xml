@@ -1,0 +1,41 @@
+<DataObjectMetadata name="rom_meta">
+  <DMDcROM type="Static">
+    <ROM>
+      <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
+    </ROM>
+    <DMDcModel>
+      <dmdType>None</dmdType>
+      <rankSVD>-1</rankSVD>
+      <acturators>u1 u2</acturators>
+      <stateVariables>x1</stateVariables>
+      <initStateVariables>x1_init</initStateVariables>
+      <outputs>y1</outputs>
+      <dmdTimeScale>000 300 600 900 1200 1500 1800 2100 2400 2700 3000 3300 3600 3900 4200 4500 4800 5100 5400 5700 6000 6300 6600 6900 7200 7500 7800 8100 8400 8700 9000 9300 9600 9900 10200 10500 10800 11100 11400 11700 12000 12300 12600 12900 13200 13500 13800 14100 14400 14700 15000 15300 15600 15900 16200 16500 16800 17100 17400 17700 18000 18300 18600 18900 19200 19500 19800 20100 20400 20700 21000 21300 21600 21900 22200 22500 22800 23100 23400 23700 24000 24300 24600 24900 25200 25500 25800 26100 26400 26700 27000 27300 27600 27900 28200 28500 28800 29100 29400 29700 30000 30300 30600 30900 31200 31500 31800 32100 32400 32700 33000 33300 33600 33900 34200 34500 34800 35100 35400 35700 36000 36300 36600 36900 37200 37500 37800 38100 38400 38700 39000 39300 39600 39900 40200 40500 40800 41100 41400 41700 42000 42300 42600 42900 43200</dmdTimeScale>
+      <XLast>
+        <realization sample="0">1.87213719e+00</realization>
+      </XLast>
+      <Atilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00</imaginary>
+          <matrixShape>1,1</matrixShape>
+          <real>9.16696635e-01</real>
+        </realization>
+      </Atilde>
+      <Btilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>1,2</matrixShape>
+          <real>7.32861938e-02 -5.51136300e-02</real>
+        </realization>
+      </Btilde>
+      <Ctilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00</imaginary>
+          <matrixShape>1,1</matrixShape>
+          <real>3.60000002e+03</real>
+        </realization>
+      </Ctilde>
+    </DMDcModel>
+  </DMDcROM>
+  
+</DataObjectMetadata>
