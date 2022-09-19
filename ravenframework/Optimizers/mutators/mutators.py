@@ -157,6 +157,7 @@ def randomMutator(offSprings, distDict, **kwargs):
       newCDFValue = randomUtils.random()
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
       child.values[loc-1] = newValue
+      
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
