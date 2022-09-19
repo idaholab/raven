@@ -58,7 +58,7 @@ class Phisics(CodeInterfaceBase):
         'flux', 'repository'
     ]
     for xmlNodeNumber in range(0, len(xmlNodes)):
-      for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
+      for xmlNode in pathRoot.iter(xmlNodes[xmlNodeNumber]):
         self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
 
   def syncLibPathFileWithRavenInp(self, pathFile, currentInputFiles,
@@ -85,7 +85,7 @@ class Phisics(CodeInterfaceBase):
     ]
 
     for typeNumber in range(len(typeList)):
-      for libPathText in pathRoot.getiterator(libPathList[typeNumber]):
+      for libPathText in pathRoot.iter(libPathList[typeNumber]):
         libPathText.text = os.path.join(
             currentInputFiles[keyWordDict[typeList[typeNumber].lower()]]
             .subDirectory, currentInputFiles[keyWordDict[typeList[typeNumber]
