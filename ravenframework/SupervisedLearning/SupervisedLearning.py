@@ -335,9 +335,9 @@ class SupervisedLearning(BaseInterface):
     names, values  = list(edict.keys()), list(edict.values())
     stepInFeatures = 0
     for index in range(len(values)):
-      #If value is a float, convert to numpy array for evaluation
-      if type(values[index]).__name__ == 'float':
-        values[index] = np.array(values[index])
+      # If value is a float or int, convert to numpy array for evaluation
+      if isinstance(values[index], (float, int, np.number)):
+        values[index] = np.array([values[index]])
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
