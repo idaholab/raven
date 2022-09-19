@@ -2189,6 +2189,9 @@ class GeneralPlot(PlotInterface):
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltIndex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'ax.' + self.outStreamTypes[pltIndex])
 
     if 'legend' in self.options['plotSettings']:
+      if 'loc' in self.options['plotSettings']['legend'] and self.options['plotSettings']['legend']['loc'] == 'best':
+        #XXX This doesn't work in matplotlib 3.5
+        self.options['plotSettings']['legend'].pop('loc')
       self.fig.legend(**self.options['plotSettings']['legend'])
 
     # SHOW THE PICTURE
