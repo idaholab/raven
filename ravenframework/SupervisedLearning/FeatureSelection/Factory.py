@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Created on Feb 18, 2022
-  @author: aalfonsi
+  @author: Andrea Alfonsi
 """
 from ...EntityFactoryBase import EntityFactory
 

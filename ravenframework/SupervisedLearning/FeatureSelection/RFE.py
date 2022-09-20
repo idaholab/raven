@@ -49,8 +49,8 @@ class RFE(FeatureSelectionBase):
     Then, the least important features are pruned from current set of features.
     That procedure is recursively repeated on the pruned set until the desired
     number of features to select is eventually reached.
-    References
-    ----------
+
+    References:
     Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
     for cancer classification using support vector machines",
     Mach. Learn., 46(1-3), 389--422, 2002.
@@ -71,47 +71,59 @@ class RFE(FeatureSelectionBase):
     spec.description = r"""The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm. 
         Feature selection refers to techniques that select a subset of the most relevant features for a model (ROM). 
         Fewer features can allow ROMs to run more efficiently (less space or time complexity) and be more effective. 
-        Indeed, some ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting in worse predictive performance.
-        RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the method, 
+        Indeed, some ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting in worse
+        predictive performance.
+        RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the
+        method,
         is wrapped by RFE, and used to help select features.
-        \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully removing 
+        \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully
+        removing
         features until the desired number remains.
         This is achieved by fitting the given ROME used in the core of the model, ranking features by importance, 
-        discarding the least important features, and re-fitting the model. This process is repeated until a specified number of features remains.
-        When the full model is created, a measure of variable importance is computed that ranks the predictors from most important to least. 
+        discarding the least important features, and re-fitting the model. This process is repeated until a specified number of
+        features remains.
+        When the full model is created, a measure of variable importance is computed that ranks the predictors from most
+        important to least.
         At each stage of the search, the least important predictors are iteratively eliminated prior to rebuilding the model.
-        Features are scored either using the ROM model (if the model provides a mean to compute feature importances) or by using a statistical method.
-        \\In RAVEN the \xmlString{RFE} module/algorithm represents an augmentation of the basic algorithm, since it allows, optionally, to perform
-        the search on multiple groups of targets (separately) and then combine the results of the search. In addition, when the
-        RFE search is concluded, the user can request to identify the set of features that bring to a minimization of the score (i.e. maximimization
-        of the accuracy).
+        Features are scored either using the ROM model (if the model provides a mean to compute feature importances) or by
+        using a statistical method.
+        \\In RAVEN the \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows, optionally,
+        to perform the search on multiple groups of targets (separately) and then combine the results of the search in a
+        single set. In addition, when the RFE search is concluded, the user can request to identify the set of features
+        that bring to a minimization of the score (i.e. maximimization of the accuracy).
+        In addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering algorithm,
+        identify highly correlated features to speed up the subsequential search.
         """
     spec.addSub(InputData.parameterInputFactory('nFeaturesToSelect',contentType=InputTypes.IntegerType,
-        descr=r"""Exact Number of features to select""", default=None))
+        descr=r"""Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set to $1/2$ """
+        """of the features in the training dataset.""", default=None))
     spec.addSub(InputData.parameterInputFactory('maxNumberFeatures',contentType=InputTypes.IntegerType,
-                                                      descr=r"""Maximum Number of features to select, the algorithm will """
-                                                      """automatically determine the feature list to minimize a total score.""",
-                                                      default=None))
+        descr=r"""Maximum Number of features to select, the algorithm will """
+        """automatically determine the feature list to minimize a total score.""",
+        default=None))
     spec.addSub(InputData.parameterInputFactory('onlyOutputScore',contentType=InputTypes.BoolType,
-                                                      descr=r"""If maxNumberFeatures is on, only output score should be considered?.""",
-                                                      default=False))
+        descr=r"""If maxNumberFeatures is on, only output score should be"""
+        """considered?.""",
+        default=False))
     spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
-                                                      descr=r"""Relative tolerance for serarch! Only if maxNumberFeatures is set""",
-                                                      default=1e-4))
+        descr=r"""Relative tolerance for search! Only if maxNumberFeatures is set""",
+        default=1e-4))
     spec.addSub(InputData.parameterInputFactory('applyClusteringFiltering',contentType=InputTypes.BoolType,
-                                                      descr=r"""Applying clustering before RFE search?""",
-                                                      default=False))
+        descr=r"""Applying clustering correlation  before RFE search?""",
+        default=False))
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
-                                                      descr=r"""Applying cross correlation in case of subgroupping at the end of the RFE""",
-                                                      default=False))
+        descr=r"""Applying cross correlation in case of subgroupping at the """
+        """end of the RFE""",
+        default=False))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
-                  of features to remove at each iteration. If within (0.0, 1.0), then step
-                  corresponds to the percentage (rounded down) of features to remove at
-                  each iteration.""", default=1))
-
+        of features to remove at each iteration. If within (0.0, 1.0), then step
+        corresponds to the percentage (rounded down) of features to remove at
+        each iteration.""", default=1))
     subgroup = InputData.parameterInputFactory("subGroup", contentType=InputTypes.InterpretedListType,
-        descr=r"""Subgroup of output variables on which to perform the search""")
+        descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
+        """ can be inputted. The RFE search will be then performed on each ``subgroup'' separately and then the"""
+        """ the union of the different feature sets are used for the final ROM.""")
     spec.addSub(subgroup)
 
     return spec
@@ -170,6 +182,42 @@ class RFE(FeatureSelectionBase):
     if self.applyCrossCorrelation and not len(self.subGroups):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
+  
+  def __applyClusteringPrefiltering(self, X, y, mask, support_):
+    """
+      Apply clustering pre-filtering
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ In, mask, np.array, indeces of features to search within (parameters to include None if search is whitin targets)
+      @ In, support_, np.array, boolean array of selected features
+      @ Out, support_, np.array, boolean array of selected features
+    """
+    if self.whichSpace == 'feature':
+      space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
+    else:
+      space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
+
+    # compute spearman
+    # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
+    corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
+    corr = (corr + corr.T) / 2.
+    np.fill_diagonal(corr, 1)
+    # We convert the correlation matrix to a distance matrix before performing
+    # hierarchical clustering using Ward's linkage.
+    distanceMatrix = 1. - np.abs(corr)
+    distLinkage = hierarchy.ward(squareform(distanceMatrix))
+    t = float('{:.3e}'.format(1.e-6*np.max(distLinkage)))
+    self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
+    self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
+    clusterIds = hierarchy.fcluster(distLinkage, t, criterion="distance")
+    clusterIdToFeatureIds = defaultdict(list)
+    for idx, clusterId in enumerate(clusterIds):
+      clusterIdToFeatureIds[clusterId].append(idx)
+    selectedFeatures = [v[0] for v in clusterIdToFeatureIds.values()]
+    self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selectedFeatures)}!")
+    support_[:] = False
+    support_[np.asarray(selectedFeatures)] = True
+    return support_
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """
@@ -180,7 +228,6 @@ class RFE(FeatureSelectionBase):
       @ In, targetsIds, list, list of targets
       @ In, maskF, optional, np.array, indeces of features to search within (parameters to include None if search is whitin targets)
       @ In, maskT, optional, np.array, indeces of targets to search within (parameters to include None if search is whitin features)
-
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
       @ Out, whichSpace, str, which space?
@@ -205,7 +252,6 @@ class RFE(FeatureSelectionBase):
     coefs = None
     # number of subgroups
     nGroups = max(len(self.subGroups), 1)
-
     # features to select
     nFeaturesToSelect = self.nFeaturesToSelect if self.nFeaturesToSelect is not None else self.maxNumberFeatures
     # if both None ==> nFeatures/2
@@ -223,39 +269,17 @@ class RFE(FeatureSelectionBase):
 
     # clustering appraoch here
     if self.applyClusteringFiltering:
-      if self.whichSpace == 'feature':
-        space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
-      else:
-        space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
-
-      # compute spearman
-      # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
-      corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
-      corr = (corr + corr.T) / 2.
-      np.fill_diagonal(corr, 1)
-      # We convert the correlation matrix to a distance matrix before performing
-      # hierarchical clustering using Ward's linkage.
-      distance_matrix = 1. - np.abs(corr)
-      dist_linkage = hierarchy.ward(squareform(distance_matrix))
-      t = float('{:.3e}'.format(0.000001*np.max(dist_linkage)))
-      self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
-      self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
-      cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
-      cluster_id_to_feature_ids = defaultdict(list)
-      for idx, cluster_id in enumerate(cluster_ids):
-        cluster_id_to_feature_ids[cluster_id].append(idx)
-      selected_features = [v[0] for v in cluster_id_to_feature_ids.values()]
-      self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selected_features)}!")
-      support_[:] = False
-      support_[np.asarray(selected_features)] = True
+      support_ = self.__applyClusteringPrefiltering(X, y, mask, support_)
 
     # compute number of steps
     setStep = int(self.step) if self.step > 1 else int(max(1, self.step * nParams))
+    # number of steps
     nSteps = (int(np.sum(support_)) - nFeaturesToSelect)/setStep
+    # compute first step
     diff = nSteps - int(nSteps)
     firstStep = int(setStep * (1+diff))
     step = firstStep
-
+    # the search is done at least once
     doAtLeastOnce = True
     # we check the number of subgroups
     outputspace = None
@@ -280,28 +304,28 @@ class RFE(FeatureSelectionBase):
       # Elimination
       while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
         # Remaining features
-        supportIndex = 0
+
         raminingFeatures = int(np.sum(support_))
         featuresForRanking = np.arange(nParams)[support_]
         # subgrouping
         outputToRemove = None
         if outputspace != None:
-          sg = copy.deepcopy(self.subGroups)
-          outputToKeep = sg.pop(g)
           indexToRemove = []
           outputToRemove = []
           indexToKeep = []
+          sg = copy.deepcopy(self.subGroups)
+          outputToKeep = sg.pop(g)
           for grouptoremove in sg:
             outputToRemove += grouptoremove
           for t in outputToRemove:
             indexToRemove.append(targetsIds.index(t))
           for t in outputToKeep:
             indexToKeep.append(targetsIds.index(t))
-          #targets = np.delete(targets, indexToRemove)
           if self.whichSpace != 'feature':
             supportOfSupport_[np.asarray(indexToRemove)] = False
             supportOfSupport_[np.asarray(indexToKeep)] = True
 
+        supportIndex = 0
         for idx in range(len(supportOfSupport_)):
           if mask[idx]:
             supportOfSupport_[idx] = support_[supportIndex]
