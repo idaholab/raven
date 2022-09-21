@@ -44,7 +44,7 @@ Note all install methods after "main" take
     <netcdf4>1.5</netcdf4>
     <matplotlib>3.2</matplotlib>
     <statsmodels>0.13</statsmodels>
-    <cloudpickle>1.6</cloudpickle>
+    <cloudpickle>2.2</cloudpickle>
     <tensorflow os='windows,linux'>2.9</tensorflow>
     <tensorflow os='mac'>2.9</tensorflow>
     <python skip_check='True'>3</python>
@@ -63,11 +63,11 @@ Note all install methods after "main" take
     <ray source="pip" pip_extra="[default]">1.13</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
-    <imageio>2.9</imageio>
+    <imageio>2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
-    <numdifftools source="pip">0.9.39</numdifftools>
+    <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
     <pyomo optional='True'>6.4</pyomo>
