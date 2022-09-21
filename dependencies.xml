@@ -43,7 +43,7 @@ Note all install methods after "main" take
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
     <matplotlib>3.2</matplotlib>
-    <statsmodels>0.12</statsmodels>
+    <statsmodels>0.13</statsmodels>
     <cloudpickle>1.6</cloudpickle>
     <tensorflow os='windows,linux'>2.3</tensorflow>
     <tensorflow os='mac'>2.7</tensorflow>
@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray source="pip" pip_extra="[default]">1.12</ray>
+    <ray source="pip" pip_extra="[default]">1.13</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio>2.9</imageio>
