@@ -118,6 +118,9 @@ def bitFlipMutator(offSprings, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
+  if 'locs' in kwargs.keys():
+    raise ValueError('Locs arguments are not being used by bitFlipMutator')
+    
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
@@ -140,6 +143,9 @@ def randomMutator(offSprings, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
+  if 'locs' in kwargs.keys():
+    raise ValueError('Locs arguments are not being used by randomMutator')
+  
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
@@ -151,6 +157,7 @@ def randomMutator(offSprings, distDict, **kwargs):
       newCDFValue = randomUtils.random()
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
       child.values[loc-1] = newValue
+      
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
@@ -200,6 +207,7 @@ __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
+__mutators['randomMutator']     = randomMutator
 
 
 def returnInstance(cls, name):
