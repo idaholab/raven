@@ -143,8 +143,8 @@ def randomMutator(offSprings, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
-  if 'locs' in kwargs.keys():
-    raise ValueError('Locs arguments are not being used by randomMutator')
+  #if 'locs' in kwargs.keys():
+  #  raise ValueError('Locs arguments are not being used by randomMutator')
   
   for child in offSprings:
     # the mutation is performed for each child independently
