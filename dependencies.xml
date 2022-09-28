@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray source="pip" pip_extra="[default]">1.13</ray>
+    <ray source="pip" pip_extra="[default]">2.0</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio>2.9</imageio>
