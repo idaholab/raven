@@ -232,9 +232,11 @@ class Representativity(ValidationBase):
     # # 6. Compute Normalized Uncertainties
     # In mock experiment outputs (measurables)
     sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
+    # normalize sensitivities
     senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens, datasets[0])
     # In target outputs (FOMs)
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
+    # normalize sensitivities
     senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets[1])
     # # 7. Compute representativities
     r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UparVar, UMeasurablesVar)
@@ -348,6 +350,13 @@ class Representativity(ValidationBase):
     return data
 
   def _computeMoments(self, datasets, features, targets):
+    """
+      A utility function to compute moments, mean value, variance and covariance
+        @ In, datasets, xarray datasets, datasets containing prototype (mock) data and target data
+        @ In, features, names of feature variables: measurables
+        @ In, targets, names of target variables: figures of merit (FOMs)
+        @ out, datasets, xarray datasets, datasets after adding moments
+    """
     for var in [x.split("|")[-1] for x in features + targets]: #datasets.data_vars
       datasets[var].attrs['meanValue'] = np.mean(datasets[var].values)
       for var2 in [x.split("|")[-1] for x in features + targets]:
@@ -358,11 +367,23 @@ class Representativity(ValidationBase):
     return datasets
 
   def _computeErrors(self,datasets,features,targets):
+    """
+      A utility function to transform variables to the relative error of these variable
+      @ In, datasets, xarray datasets, datasets containing prototype (mock) data and target data
+      @ In, features, names of feature variables: measurables
+      @ In, targets, names of target variables: figures of merit (FOMs)
+      @ out, datasets, xarray datasets, datasets after computing errors in each variable
+    """
     for var in [x.split("|")[-1] for x in features + targets]:
       datasets['err_'+str(var)] = (datasets[var].values - datasets[var].attrs['meanValue'])/datasets[var].attrs['meanValue']
 
   def _computeUncertaintyMatrixInErrors(self, data, parameters):
-
+    """
+      A utility function to variance and covariance of variables in the error space
+      @ In, data, xarray dataset, data containing either prototype (mock) data or target data
+      @ In, parameters, names of parameters/inputs to each model
+      @ out, uncertMatr, np.array, The variance covariance matrix of errors
+    """
     uncertMatr = np.zeros((len(parameters), len(parameters)))
     for i, var1 in enumerate(parameters):
       for j, var2 in enumerate(parameters):
@@ -373,18 +394,44 @@ class Representativity(ValidationBase):
     return uncertMatr
 
   def _calculateBiasFactor(self, normalizedSenExp, normalizedSenTar, UparVar, UmesVar=None):
+    """
+      A utility function to compute the bias factor (i.e., representativity factor)
+      @ In, normalizedSenExp, np.array, the normalized sensitivities of the mock/prototype measurables
+      @ In, normalizedSenTar, np.array, the normalized sensitivities of the target variables/Figures of merit (FOMs) with respect to the parameters
+      @ In, UparVar, np.array, variance covariance matrix of the parameters error
+      @ In, UmesVar, np.array, variance covariance matrix of the measurables error, default is None
+      @ Out, r, np.array, the representativity (bias factor) matrix neglecting uncertainties in measurables
+      @ Out, rExact, np.array, the representativity (bias factor) matrix considering uncertainties in measurables
+    """
     # Compute representativity (#eq 79)
     r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T))).real
     rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
     return r, rExact
 
   def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
+    """
+      A utility function to compute variance covariance matrix of the taget errors from the bias factors
+      @ In, normalizedSenTar, np.array, the normalized sensitivities of the targets
+      @ In, UparVar, np.array, the variance covariance matrix of the parameters in the error space
+      @ In, r, np.array, the bias factor matrix
+      @ Out, UtarVarTilde, np.array, the variance convariance matrix of error in the corrected targets
+    """
     # re-compute Utar_var_tilde from r (#eq 80)
     chol = sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T).real
     UtarVarTilde =  chol @ (np.eye(np.shape(r)[0]) - r @ r.T) @ chol
     return UtarVarTilde
 
   def _parameterCorrection(self, par, UparVar, Umes, UmesVar, normalizedSen): #eq 48 and eq 67
+    """
+      A utility function that computes the correction in parameters
+      @ In, par, np.array, the parameters (inputs) of the mock experiment
+      @ In, UparVar, np.array, variance covariance matrix of the parameters in the error space
+      @ In, Umes, np.array, the error in measurements
+      @ In, UmesVar, np.array, variance covariance matrix of the measurables in the error space
+      @ In, normalizedSen, np.array, the normalized sensitivity matrix
+      @ Out, parTilde, np.array, the corrected parameters
+      @ Out, parTildeVar, np.array, the variance covariance matrix of the corrected parameters (uncertainty in the corrected parameters)
+    """
     # Compute adjusted par #eq 48
     UparTilde = UparVar @ normalizedSen.T @ np.linalg.pinv(normalizedSen @ UparVar @ normalizedSen.T + UmesVar) @ Umes
 
@@ -406,6 +453,20 @@ class Representativity(ValidationBase):
     return parTilde, parVarTilde
 
   def _targetCorrection(self, FOMs, UparVar, Umes, UmesVar, normalizedSenTar, normalizedSenExp):
+    """
+      A utility function to compute corrections in targets based on the representativity analysis
+      @ In, FOMs, np.array, target out puts (Figures of merit)
+      @ In, UparVar, np.array, np.array, variance covariance matrix of the parameters in the error space
+      @ In, Umes, np.array, the error in measurements
+      @ In, UmesVar, np.array, variance covariance matrix of the measurables in the error space
+      @ In, normalizedSenTar, np.array, normalized sensitivities of the target outputs w.r.t. parameterts
+      @ In, normalizedSenExp, np.array, normalized sensitivities of the mock prototype/experiment outputs (measurements) w.r.t. parameterts
+      @ Out, tarTilde, np.array, corrected targets (FOMs)
+      @ Out, tarVarTilde, np.array, variance covariance matrix for the corrected targets
+      @ Out, UtarVarTilde,  np.array, variance covariance matrix for the corrected targets in error space
+      @ Out, UtarVartilde_no_UmesVar, np.array, variance covariance matrix for the corrected targets in error space assuming no uncer
+      @ Out, propagetedExpUncert, np.array, propagated variance covariance matrix of experiments due to parameter uncertainties
+    """
     # Compute adjusted target #eq 71
     UtarTilde = normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenTar.T + UmesVar) @ Umes
     # back transform to parameters
@@ -426,9 +487,9 @@ class Representativity(ValidationBase):
 
     # Compute adjusted par_var neglecting UmesVar (to compare to representativity)
     # The representativity (#eq 79 negelcts UmesVar)
-    Inner1 = (normalizedSenExp @ UparVar) @ normalizedSenExp.T
+    propagetedExpUncert = (normalizedSenExp @ UparVar) @ normalizedSenExp.T
     UtarVarztilde_no_UmesVar = (normalizedSenTar @ UparVar @ normalizedSenTar.T)\
                                 - (normalizedSenTar @ UparVar @ normalizedSenExp.T)\
                                 @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenExp.T)\
                                 @ (normalizedSenExp @ UparVar @ normalizedSenTar.T)
-    return tarTilde, tarVarTilde, UtarVarTilde, UtarVarztilde_no_UmesVar, Inner1
+    return tarTilde, tarVarTilde, UtarVarTilde, UtarVarztilde_no_UmesVar, propagetedExpUncert

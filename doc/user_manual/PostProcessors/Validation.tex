@@ -9,7 +9,7 @@ Several post-processors are available for model validation:
 \begin{itemize}
   \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
   \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
-  % \item  \textbf{Representativity}
+  \item  \textbf{Representativity}, using represntativity (bias) factor for validation, currently, can be used for static data.
   % \item  \textbf{PCM}
 \end{itemize}
 %
@@ -173,23 +173,15 @@ So far several algorithms are implemented within this post-processor:
   \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
      targets. These are the Figures of merit (FOMs) in the target model against which the mock model is being validated.
 
-    \item \xmlNode{featureParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputrs to the mock model.
+    \item \xmlNode{featureParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputs to the mock model.
 
     \item \xmlNode{targetParameters}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
     target parameters/inputs.
 
-        \item \xmlNode{pivotParameter},  \xmlDesc{string, optional field}, ID of the temporal variable of the moch model. Default is ``time''.
+        \item \xmlNode{pivotParameter},  \xmlDesc{string, optional field}, ID of the temporal variable of the mock model. Default is ``time''.
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).
         \item \xmlNode{targetPivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable in the target model. Default is ``time''.
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).
-
-    \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
-    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
-    \begin{itemize}
-      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
-      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
-    \end{itemize}
-    The choice of the available metrics depends on the specific validation algorithm that is chosen (see table \ref{tab:ValidationAlgorithms})
 \end{itemize}
 
 
@@ -226,18 +218,12 @@ with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
 	<PostProcessor name="pp1" subType="Representativity">
 	  <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
 	  <Targets>outputDataMC2|F1, outputDataMC2|F2, outputDataMC2|F3</Targets>
-	  <Metric class="Metrics" type="Metric">simIndex</Metric>
 	  <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
 	  <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
 	  <pivotParameter>outputDataMC1|time</pivotParameter>
-	  <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
 	</PostProcessor>
 ...
 <Models>
-...
-<Metrics>
-	<Metric name="simIndex" subType="RepresentativityFactors"/>
-</Metrics>
 ...
 <Simulation>
 \end{lstlisting}
