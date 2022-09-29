@@ -48,11 +48,11 @@ class XSCreator():
     """
     mappingTree = ET.parse(tabMapFileName)
     mappingRoot = mappingTree.getroot()
-    for tabulationXML in mappingRoot.getiterator('tabulation'):
+    for tabulationXML in mappingRoot.iter('tabulation'):
       if tab == tabulationXML.attrib.get('set'):
         tabList = []
         valueList = []
-        for tabXML in tabulationXML.getiterator('tab'):
+        for tabXML in tabulationXML.iter('tab'):
           tabList.append(tabXML.attrib.get('name'))
           valueList.append(tabXML.text)
     return tabList, valueList
