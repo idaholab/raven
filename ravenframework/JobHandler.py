@@ -220,6 +220,7 @@ class JobHandler(BaseType):
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
+        self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
@@ -228,6 +229,7 @@ class JobHandler(BaseType):
         self.raiseADebug("Object store address: ", self.rayServer.address_info['object_store_address'])
         self.raiseADebug("Raylet socket name  : ", self.rayServer.address_info['raylet_socket_name'])
         self.raiseADebug("Session directory   : ", self.rayServer.address_info['session_dir'])
+        self.raiseADebug("GCS Address         : ", self.rayServer.address_info['gcs_address'])
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
