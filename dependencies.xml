@@ -45,8 +45,7 @@ Note all install methods after "main" take
     <matplotlib>3.2</matplotlib>
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
-    <tensorflow os='windows,linux'>2.9</tensorflow>
-    <tensorflow os='mac'>2.9</tensorflow>
+    <tensorflow>2.9</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
