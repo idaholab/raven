@@ -42,7 +42,7 @@ Note all install methods after "main" take
     <pandas>1.3</pandas>
     <xarray>0.20</xarray>
     <netcdf4>1.5</netcdf4>
-    <matplotlib>3.2</matplotlib>
+    <matplotlib>3.3</matplotlib>
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
     <tensorflow>2.9</tensorflow>
