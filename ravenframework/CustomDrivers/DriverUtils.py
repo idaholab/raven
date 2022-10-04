@@ -80,7 +80,8 @@ def setupFramework():
     @ In, None
     @ Out, None
   """
-  frameworkDir = findFramework()
+  #Get the directory above the ravenframework directory
+  frameworkDir = os.path.dirname(findFramework())
   if frameworkDir not in sys.path:
     sys.path.append(frameworkDir)
 
