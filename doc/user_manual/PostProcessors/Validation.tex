@@ -23,7 +23,7 @@ The choices of the available metrics and acceptable data objects are specified i
 \hline
 \textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
 Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
-Representativity              & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet \\DataSet\end{tabular} & \begin{tabular}[c]{@{}c@{}}BiasFactor\end{tabular} \\ \hline
+Representativity              & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet \\DataSet\end{tabular} & \begin{tabular}[c]{@{}c@{}}\end{tabular} \\ \hline
 PPDSS                         & HistorySet                                                     & DSS                                                           \\ \hline
 \end{tabular}
 \end{table}
@@ -156,13 +156,13 @@ The \textbf{Representativity} post-processor is one of three \textbf{Validation}
 post-processor interface that acts as a gate for applying these validation algorithms
 (i.e., representativity, Physics-guided Convergence Mapping (PCM), and Dynamic System Scaling (DSS)).
 The post-processor is in charge of deploying a common infrastructure for the user of  \textbf{Validation} problems.
-The usage of this post-processor is three fold. one, to quantitatively assess if a mock/prototype model/experiment
-form a good representation of a target model. Two, if  a set of experiments can represent a target model and can
-claim a full coverage of the design space and scenarios, and three, if the available set of experiments are not
-enough to declare coverage what are the remaining experiments required in order to achieve full coverage and
-increase the representativity/bias factor. The representativity theory was first founded in the
-Neutronics community \ref{} then shortly after, was transformed to the thermal hydraulics \ref{}.
-So far several algorithms are implemented within this post-processor:
+%The usage of this post-processor is three fold. one, to quantitatively assess if a mock/prototype model/experiment
+%form a good representation of a target model. Two, if  a set of experiments can represent a target model and can
+%claim a full coverage of the design space and scenarios, and three, if the available set of experiments are not
+%enough to declare coverage what are the remaining experiments required in order to achieve full coverage and
+%increase the representativity/bias factor.
+The representativity theory was first founded in the
+Neutronics community \cite{Gandini, palmiotti1, palmiotti2}, then lately, was transformed to the thermal hydraulics \cite{Epiney1, Epiney2}. So far, several algorithms are implemented within this post-processor:
 %
 \ppType{Representativity}{Representativity}
 %
