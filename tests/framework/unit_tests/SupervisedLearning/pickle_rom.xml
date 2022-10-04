@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<Simulation>
+
+  <TestInfo>
+    <name>framework/unit_tests/SupervisedLearning.pickle_rom</name>
+    <author>dgarrett622</author>
+    <created>2022-09-16</created>
+    <classesTested>ROM.SupervisedLearning.DynamicModeDecompositionControl</classesTested>
+    <description>
+       This test creates the DMDc ROM used for the testScriptROMInputs.py unit test.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./</WorkingDir>
+    <Sequence>load,DMDCTrain,pickleRom,
+              meta,
+              writeOut
+    </Sequence>
+  </RunInfo>
+
+  <Steps>
+	  <IOStep name="load">
+      <Input class="Files" type="">histories</Input>
+      <Output class="DataObjects" type="HistorySet">TrainData</Output>
+    </IOStep>
+
+    <RomTrainer name="DMDCTrain">
+      <Input class="DataObjects" type="HistorySet">TrainData</Input>
+      <Output class="Models" type="ROM">DMDcROM</Output>
+    </RomTrainer>
+
+    <IOStep name="pickleRom">
+      <Input class="Models" type="ROM">DMDcROM</Input>
+      <Output class="Files" type="">ROMpk</Output>
+    </IOStep>
+
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">DMDcROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_meta</Output>
+    </IOStep>
+
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="DataSet">rom_meta</Input>
+      <Output class="OutStreams" type="Print">DMDcCxCoeff </Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="ROMpk" type="">ROM.pk</Input>
+    <Input name="histories" type="">histories.csv</Input>
+  </Files>
+
+  <Models>
+    <ROM name="DMDcROM" subType="DMDC">
+      <Target>Time,x1,y1</Target>
+      <actuators>u1, u2</actuators>
+      <stateVariables>x1</stateVariables>
+      <pivotParameter>Time</pivotParameter>
+      <rankSVD>-1</rankSVD>        <!-- -1 = No truncation -->
+      <subtractNormUXY>False</subtractNormUXY> <!-- False = will not subtract the initial values from U,X,Y -->
+      <Features>u1,u2,x1_init</Features>
+      <initStateVariables>x1_init</initStateVariables>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="TrainData">
+      <Input>x1_init</Input>
+      <Output>u1,u2,y1,x1,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rom_meta"/>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="DMDcCxCoeff">
+      <type>csv</type>
+      <source>rom_meta</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
