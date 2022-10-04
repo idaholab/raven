@@ -17,22 +17,21 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     0.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  1.0004743    -0.00047425     1.0000E+00     9.4844E-01     2.17066    -0.004    1048.69    
-     2  2  1.0036051    -0.00360510     5.6209E-03     5.8355E-03     2.15852    -0.085    1201.82    
-     3  3  0.9992559     0.00074414     3.2999E-02     6.0742E-03     2.08957    -0.039    1162.28    
-     4  4  1.0000532    -0.00005325     1.1343E-02     1.2705E-03     2.11354    -0.055    1160.53    
-     5  5  0.9999707     0.00002934 *   6.2237E-03     1.8327E-04 *   2.10047    -0.049    1163.47    
-     6  6  1.0000121 *  -0.00001215 *   1.3594E-03     2.9448E-05 *   2.10333    -0.049    1162.21    
-     7  7  0.9999919 *   0.00000805 *   6.9942E-04     2.8953E-05 *   2.10186    -0.049    1163.02 *  
-     8  8  1.0000035 *  -0.00000346 *   1.5731E-04 *   4.8093E-06 *   2.10219    -0.049    1162.67 *  
+     1  1  1.0010891    -0.00108914     1.0000E+00     9.5686E-01     2.58194    -0.027    1620.88    
+     2  2  1.0003150    -0.00031500     1.4468E-02     1.4070E-03     2.54511    -0.039    1642.04    
+     3  3  0.9995266     0.00047343     4.7101E-02     4.7949E-03     2.43063    -0.030    1615.30    
+     4  4  1.0000303    -0.00003030 *   9.2986E-03     4.8676E-04 *   2.45344    -0.034    1622.13    
+     5  5  1.0000002 *  -0.00000023 *   4.5132E-03     4.0684E-04 *   2.44242    -0.030    1621.12    
+     6  6  0.9999973 *   0.00000275 *   1.3536E-03     2.8409E-05 *   2.44573    -0.031    1621.63 *  
+     7  7  1.0000003 *  -0.00000026 *   3.1848E-04 *   1.5096E-04 *   2.44495    -0.031    1621.52 *  
 
-    Nodal Solution Time = 0.31 Sec
+    Nodal Solution Time = 0.28 Sec
 
- Boron (ppm)  = 1162.665
- Axial Offset =   -0.049
- Max. Node-Averaged  Peaking Factor = 2.102 in Node (11,11, 5)
+ Boron (ppm)  = 1621.516
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 2.445 in Node (10,11, 5)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 2.297 in Node (12,12, 5)
+ Max. Intra-Assembly Peaking Factor = 2.606 in Node (10,11, 5)
 
     Pin Power Reconstruction Time = 0.10 Sec
 
@@ -44,22 +43,20 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     0.500 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  1.0006610    -0.00066103     2.9780E-04     6.3963E-03     2.10156    -0.048    1177.92    
-     2  2  1.0001667    -0.00016671     4.7601E-03     4.7855E-05 *   2.11162    -0.044    1188.05    
-     3  3  1.0000107    -0.00001075 *   1.8667E-03     1.4064E-04 *   2.10768    -0.043    1185.04    
-     4  4  0.9999959 *   0.00000405 *   1.9075E-04 *   2.0787E-05 *   2.10728    -0.044    1185.45    
-     5  5  1.0000021 *  -0.00000213 *   6.7545E-04     2.0843E-05 *   2.10586    -0.044    1185.16 *  
-     6  6  0.9999987 *   0.00000126 *   1.4039E-05 *   4.1761E-06 *   2.10589    -0.044    1185.30 *  
+     1  1  0.9999167     0.00008328     8.3367E-03     4.4141E-03     2.46551    -0.024    1613.38    
+     2  2  1.0000367    -0.00003674 *   1.4165E-03     1.6253E-04 *   2.46202    -0.023    1619.80    
+     3  3  1.0000020 *  -0.00000203 *   5.5187E-04     2.2117E-05 *   2.46338    -0.023    1618.88    
+     4  4  1.0000005 *  -0.00000048 *   4.3679E-04 *   4.6149E-05 *   2.46230    -0.024    1618.71 *  
 
-    Nodal Solution Time = 0.27 Sec
+    Nodal Solution Time = 0.18 Sec
 
- Boron (ppm)  = 1185.305
- Axial Offset =   -0.044
- Max. Node-Averaged  Peaking Factor = 2.106 in Node (11,11, 6)
+ Boron (ppm)  = 1618.706
+ Axial Offset =   -0.024
+ Max. Node-Averaged  Peaking Factor = 2.462 in Node (11,10, 6)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 2.272 in Node (10, 8, 6)
+ Max. Intra-Assembly Peaking Factor = 2.634 in Node (11,10, 6)
 
-    Pin Power Reconstruction Time = 0.10 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -69,20 +66,20 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     1.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  1.0041254    -0.00412539     2.4076E-01     1.1356E-02     2.77366    -0.053    1352.28    
-     2  2  0.9992921     0.00070786     4.7024E-02     9.2300E-04     2.64909    -0.026    1337.10    
-     3  3  0.9997874     0.00021257     1.4196E-03     2.7617E-04 *   2.65286    -0.030    1323.94    
-     4  4  0.9999849     0.00001508 *   6.9971E-04     1.4438E-04 *   2.65471    -0.032    1328.20    
-     5  5  1.0000185 *  -0.00001854 *   4.0362E-04 *   9.4797E-05 *   2.65579    -0.033    1326.02    
-     6  6  0.9999919 *   0.00000813 *   1.6878E-05 *   1.8429E-05 *   2.65574    -0.033    1326.95 *  
+     1  1  1.0023317    -0.00233167     1.2142E-03     7.0237E-03     2.45932    -0.022    1739.14    
+     2  2  0.9997770     0.00022300     2.4423E-03     8.5973E-04     2.46534    -0.001    1725.83    
+     3  3  0.9999793     0.00002075 *   9.2791E-04     3.6135E-04 *   2.46305    -0.005    1718.41    
+     4  4  0.9999877 *   0.00001231 *   8.0184E-04     1.1007E-04 *   2.46108    -0.006    1720.42    
+     5  5  1.0000154 *  -0.00001536 *   1.1875E-03     9.9197E-05 *   2.45816    -0.007    1718.29 *  
+     6  6  0.9999932 *   0.00000682 *   3.4724E-05 *   1.8068E-05 *   2.45807    -0.007    1719.16 *  
 
     Nodal Solution Time = 0.27 Sec
 
- Boron (ppm)  = 1326.947
- Axial Offset =   -0.033
- Max. Node-Averaged  Peaking Factor = 2.656 in Node (10, 8, 6)
+ Boron (ppm)  = 1719.156
+ Axial Offset =   -0.007
+ Max. Node-Averaged  Peaking Factor = 2.458 in Node (11,10, 7)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 2.827 in Node ( 8,10, 6)
+ Max. Intra-Assembly Peaking Factor = 2.626 in Node (11,10, 6)
 
     Pin Power Reconstruction Time = 0.11 Sec
 
@@ -94,22 +91,22 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     2.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  1.0007269    -0.00072687     1.6830E-01     5.7330E-03     2.27318    -0.007    1366.99    
-     2  2  0.9999907     0.00000926 *   2.6837E-02     1.0457E-03     2.33586    -0.003    1371.76    
-     3  3  0.9999429 *   0.00005710     1.6550E-02     6.2244E-04     2.29783    -0.004    1361.93    
-     4  4  0.9999932     0.00000681 *   1.6433E-03     1.0370E-04 *   2.30162    -0.006    1363.66    
-     5  5  1.0000178 *  -0.00001782 *   3.0888E-03     2.1628E-04 *   2.29453    -0.007    1361.09 *  
-     6  6  0.9999924 *   0.00000756 *   2.2860E-06 *   3.2317E-05 *   2.29453    -0.007    1362.03 *  
+     1  1  1.0001881    -0.00018807     2.1077E-01     5.2130E-03     2.03017     0.009    1735.21    
+     2  2  1.0000496    -0.00004956 *   3.8525E-02     1.3162E-03     2.11152     0.011    1744.46    
+     3  3  0.9999495     0.00005048     1.3062E-02     6.6695E-04     2.08429     0.010    1734.83    
+     4  4  0.9999957 *   0.00000428 *   1.7705E-03     7.1615E-05 *   2.08799     0.009    1736.19    
+     5  5  1.0000163 *  -0.00001634 *   3.0523E-03     1.8983E-04 *   2.08163     0.008    1733.58 *  
+     6  6  0.9999930 *   0.00000697 *   2.4848E-04 *   2.1599E-05 *   2.08215     0.008    1734.54 *  
 
-    Nodal Solution Time = 0.26 Sec
+    Nodal Solution Time = 0.27 Sec
 
- Boron (ppm)  = 1362.030
- Axial Offset =   -0.007
- Max. Node-Averaged  Peaking Factor = 2.295 in Node (10, 8, 7)
+ Boron (ppm)  = 1734.537
+ Axial Offset =    0.008
+ Max. Node-Averaged  Peaking Factor = 2.082 in Node (11,10, 7)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 2.407 in Node (10, 8, 6)
+ Max. Intra-Assembly Peaking Factor = 2.190 in Node (11,10, 6)
 
-    Pin Power Reconstruction Time = 0.10 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -119,20 +116,20 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     3.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9984225     0.00157754     1.9421E-01     1.4852E-02     1.92138     0.010    1268.56    
-     2  2  1.0003447    -0.00034472     1.0532E-02     3.5599E-05 *   1.94183    -0.008    1285.83    
-     3  3  0.9999969     0.00000312 *   1.4572E-02     2.9313E-04 *   1.91394    -0.004    1281.70    
-     4  4  1.0000064 *  -0.00000639 *   2.4108E-03     4.5598E-05 *   1.91856    -0.006    1280.85    
-     5  5  1.0000105 *  -0.00001048 *   6.5172E-04     1.9650E-04 *   1.91731    -0.006    1279.28 *  
-     6  6  0.9999967 *   0.00000334 *   1.7561E-04 *   3.2902E-05 *   1.91765    -0.006    1279.67 *  
+     1  1  0.9984882     0.00151177     1.7157E-01     1.2731E-02     1.77723     0.013    1633.41    
+     2  2  1.0003243    -0.00032431     2.3895E-02     4.0125E-05 *   1.82074    -0.003    1652.26    
+     3  3  0.9999995     0.00000055 *   1.1793E-02     2.4525E-04 *   1.79951     0.001    1647.91    
+     4  4  1.0000058 *  -0.00000578 *   2.9917E-03     5.4188E-05 *   1.80491    -0.001    1646.99    
+     5  5  1.0000099 *  -0.00000994 *   1.1850E-03     1.4305E-04 *   1.80278    -0.001    1645.43 *  
+     6  6  0.9999968 *   0.00000321 *   2.3297E-04 *   2.1771E-05 *   1.80320    -0.002    1645.84 *  
 
-    Nodal Solution Time = 0.26 Sec
+    Nodal Solution Time = 0.27 Sec
 
- Boron (ppm)  = 1279.671
- Axial Offset =   -0.006
- Max. Node-Averaged  Peaking Factor = 1.918 in Node (10, 8, 4)
+ Boron (ppm)  = 1645.838
+ Axial Offset =   -0.002
+ Max. Node-Averaged  Peaking Factor = 1.803 in Node (11,10, 5)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 2.045 in Node ( 8,10, 4)
+ Max. Intra-Assembly Peaking Factor = 1.901 in Node (12, 9, 5)
 
     Pin Power Reconstruction Time = 0.11 Sec
 
@@ -144,22 +141,21 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     4.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9981281     0.00187189     6.5080E-02     1.6854E-02     1.80048     0.004    1163.15    
-     2  2  1.0003250    -0.00032497     2.6182E-02     2.1426E-04 *   1.84888    -0.017    1178.58    
-     3  3  1.0000061    -0.00000612 *   9.8983E-03     2.5836E-04 *   1.83076    -0.012    1175.94    
-     4  4  1.0000046 *  -0.00000464 *   3.1588E-03     7.0095E-05 *   1.83656    -0.014    1175.15 *  
-     5  5  1.0000094 *  -0.00000941 *   5.8465E-04     6.9693E-05 *   1.83549    -0.014    1173.83 *  
-     6  6  0.9999974 *   0.00000261 *   2.7407E-04 *   2.4587E-07 *   1.83599    -0.014    1174.12 *  
+     1  1  0.9981940     0.00180597     7.7320E-02     1.4802E-02     1.67378     0.003    1519.46    
+     2  2  1.0003154    -0.00031540     1.8021E-02     9.7109E-04     1.70450    -0.018    1536.81    
+     3  3  1.0000059    -0.00000593 *   7.5198E-03     3.1792E-04 *   1.69178    -0.012    1534.18    
+     4  4  1.0000046 *  -0.00000462 *   2.4255E-03     1.3068E-04 *   1.69589    -0.014    1533.27 *  
+     5  5  1.0000087 *  -0.00000868 *   1.3779E-04 *   5.6714E-05 *   1.69566    -0.014    1531.98 *  
 
-    Nodal Solution Time = 0.28 Sec
+    Nodal Solution Time = 0.23 Sec
 
- Boron (ppm)  = 1174.122
+ Boron (ppm)  = 1531.984
  Axial Offset =   -0.014
- Max. Node-Averaged  Peaking Factor = 1.836 in Node (10, 8, 3)
+ Max. Node-Averaged  Peaking Factor = 1.696 in Node ( 9,12, 3)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.965 in Node ( 8,10, 3)
+ Max. Intra-Assembly Peaking Factor = 1.823 in Node ( 9,12, 3)
 
-    Pin Power Reconstruction Time = 0.10 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -169,22 +165,22 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     5.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980426     0.00195743     7.1466E-02     1.7019E-02     1.71353    -0.000    1050.56    
-     2  2  1.0002510    -0.00025101     3.7153E-02     2.6099E-03     1.77965    -0.026    1064.25    
-     3  3  1.0000072    -0.00000720 *   1.3014E-02     2.0217E-04 *   1.75679    -0.019    1062.24    
-     4  4  1.0000034 *  -0.00000336 *   4.1786E-03     8.3238E-05 *   1.76416    -0.021    1061.60 *  
-     5  5  1.0000088 *  -0.00000879 *   1.0780E-03     5.6408E-05 *   1.76226    -0.021    1060.40 *  
-     6  6  0.9999976 *   0.00000243 *   4.2842E-04 *   4.6119E-06 *   1.76302    -0.021    1060.68 *  
+     1  1  0.9981166     0.00188336     3.7474E-02     1.4963E-02     1.63441    -0.003    1398.77    
+     2  2  1.0002350    -0.00023502     2.7689E-02     7.7540E-04     1.68095    -0.028    1414.31    
+     3  3  1.0000068    -0.00000676 *   1.0637E-02     2.9955E-04 *   1.66326    -0.020    1412.45    
+     4  4  1.0000034 *  -0.00000343 *   3.2553E-03     1.0595E-05 *   1.66869    -0.023    1411.68 *  
+     5  5  1.0000079 *  -0.00000792 *   6.9193E-04     6.8434E-05 *   1.66754    -0.022    1410.54 *  
+     6  6  0.9999978 *   0.00000215 *   3.8917E-04 *   1.5646E-07 *   1.66819    -0.022    1410.80 *  
 
-    Nodal Solution Time = 0.26 Sec
+    Nodal Solution Time = 0.28 Sec
 
- Boron (ppm)  = 1060.677
- Axial Offset =   -0.021
- Max. Node-Averaged  Peaking Factor = 1.763 in Node (10, 8, 3)
+ Boron (ppm)  = 1410.797
+ Axial Offset =   -0.022
+ Max. Node-Averaged  Peaking Factor = 1.668 in Node (12, 9, 3)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.924 in Node ( 8,11, 2)
+ Max. Intra-Assembly Peaking Factor = 1.796 in Node (12, 9, 2)
 
-    Pin Power Reconstruction Time = 0.10 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -194,22 +190,20 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     6.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980196     0.00198038     5.6516E-02     1.7539E-02     1.66871    -0.003     935.50    
-     2  2  1.0002419    -0.00024190     3.7862E-02     4.1210E-03     1.73437    -0.031     948.08    
-     3  3  1.0000040    -0.00000396 *   2.2793E-02     1.5101E-04 *   1.69572    -0.023     946.71    
-     4  4  1.0000037 *  -0.00000368 *   6.2342E-03     1.2226E-04 *   1.70636    -0.025     946.03 *  
-     5  5  1.0000078 *  -0.00000779 *   2.6669E-03     6.6392E-05 *   1.70182    -0.025     944.98 *  
-     6  6  0.9999978 *   0.00000217 *   7.6301E-04     1.2293E-05 *   1.70312    -0.025     945.23 *  
-     7  7  1.0000034 *  -0.00000335 *   5.1017E-04     3.6336E-05 *   1.70226    -0.025     944.77 *  
-     8  8  0.9999988 *   0.00000116 *   1.5047E-04 *   6.3479E-06 *   1.70251    -0.025     944.92 *  
+     1  1  0.9980870     0.00191302     4.9127E-02     1.4436E-02     1.59007    -0.006    1275.59    
+     2  2  1.0002287    -0.00022871     3.3128E-02     1.3857E-03     1.64455    -0.033    1289.89    
+     3  3  1.0000028    -0.00000276 *   1.2111E-02     3.6945E-04 *   1.62487    -0.025    1288.79    
+     4  4  1.0000041 *  -0.00000414 *   3.7038E-03     1.0035E-04 *   1.63091    -0.027    1287.93 *  
+     5  5  1.0000067 *  -0.00000673 *   9.5222E-04     8.0861E-05 *   1.62936    -0.026    1286.97 *  
+     6  6  0.9999982 *   0.00000179 *   4.4039E-04 *   2.9057E-06 *   1.63008    -0.026    1287.18 *  
 
-    Nodal Solution Time = 0.38 Sec
+    Nodal Solution Time = 0.28 Sec
 
- Boron (ppm)  =  944.916
- Axial Offset =   -0.025
- Max. Node-Averaged  Peaking Factor = 1.703 in Node (11, 8, 2)
+ Boron (ppm)  = 1287.180
+ Axial Offset =   -0.026
+ Max. Node-Averaged  Peaking Factor = 1.630 in Node (12, 9, 3)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.870 in Node ( 8,11, 2)
+ Max. Intra-Assembly Peaking Factor = 1.777 in Node (12, 9, 2)
 
     Pin Power Reconstruction Time = 0.11 Sec
 
@@ -221,23 +215,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     7.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980244     0.00197564     4.5273E-02     1.7265E-02     1.62877    -0.004     820.69    
-     2  2  1.0002324    -0.00023236     4.0726E-02     4.9597E-03     1.69792    -0.034     832.42    
-     3  3  0.9999958     0.00000421 *   2.2692E-02     1.0064E-04 *   1.66025    -0.026     831.65    
-     4  4  1.0000047 *  -0.00000471 *   6.4704E-03     1.6565E-04 *   1.67106    -0.028     830.86 *  
-     5  5  1.0000064 *  -0.00000638 *   2.6938E-03     8.1562E-05 *   1.66657    -0.028     830.00 *  
-     6  6  0.9999982 *   0.00000175 *   7.7842E-04     1.9178E-05 *   1.66787    -0.028     830.21 *  
-     7  7  1.0000029 *  -0.00000292 *   4.6580E-04 *   4.4778E-05 *   1.66709    -0.028     829.81 *  
+     1  1  0.9980837     0.00191631     3.8678E-02     1.5955E-02     1.56938    -0.007    1152.59    
+     2  2  1.0002217    -0.00022166     3.0626E-02     3.3037E-03     1.61896    -0.035    1165.84    
+     3  3  0.9999954     0.00000460 *   2.0553E-02     2.8162E-04 *   1.58636    -0.027    1165.30    
+     4  4  1.0000050 *  -0.00000497 *   5.7929E-03     1.3242E-04 *   1.59560    -0.029    1164.35 *  
+     5  5  1.0000055 *  -0.00000553 *   2.4371E-03     9.1434E-05 *   1.59172    -0.028    1163.57 *  
+     6  6  0.9999986 *   0.00000144 *   6.9131E-04     7.8827E-06 *   1.59282    -0.029    1163.74 *  
+     7  7  1.0000026 *  -0.00000262 *   4.1097E-04 *   4.1090E-05 *   1.59217    -0.028    1163.36 *  
 
     Nodal Solution Time = 0.34 Sec
 
- Boron (ppm)  =  829.807
+ Boron (ppm)  = 1163.359
  Axial Offset =   -0.028
- Max. Node-Averaged  Peaking Factor = 1.667 in Node ( 8,11, 2)
+ Max. Node-Averaged  Peaking Factor = 1.592 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.814 in Node ( 8,11, 2)
+ Max. Intra-Assembly Peaking Factor = 1.745 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -247,21 +241,21 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     8.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980391     0.00196094     4.8094E-02     1.6951E-02     1.59059    -0.005     707.55    
-     2  2  1.0002232    -0.00022320     4.2362E-02     5.6260E-03     1.66095    -0.036     718.60    
-     3  3  0.9999944     0.00000558 *   2.2611E-02     3.2961E-05 *   1.62423    -0.028     718.18    
-     4  4  1.0000042 *  -0.00000416 *   6.3939E-03     2.0576E-04 *   1.63468    -0.030     717.48 *  
-     5  5  1.0000058 *  -0.00000580 *   2.6317E-03     8.5995E-05 *   1.63039    -0.029     716.70 *  
-     6  6  0.9999983 *   0.00000170 *   7.6546E-04     2.6263E-05 *   1.63164    -0.030     716.90 *  
-     7  7  1.0000027 *  -0.00000267 *   4.2978E-04 *   5.0932E-05 *   1.63094    -0.030     716.54 *  
+     1  1  0.9981023     0.00189775     3.0975E-02     1.7171E-02     1.54433    -0.007    1031.45    
+     2  2  1.0002134    -0.00021345     3.3538E-02     5.0053E-03     1.59792    -0.036    1043.68    
+     3  3  0.9999962     0.00000385 *   2.1072E-02     1.3550E-04 *   1.56495    -0.028    1043.56    
+     4  4  1.0000047 *  -0.00000468 *   5.9252E-03     1.6484E-04 *   1.57427    -0.030    1042.66 *  
+     5  5  1.0000048 *  -0.00000483 *   2.4605E-03     9.6075E-05 *   1.57041    -0.029    1041.98 *  
+     6  6  0.9999987 *   0.00000132 *   7.0000E-04     1.4938E-05 *   1.57151    -0.030    1042.13 *  
+     7  7  1.0000023 *  -0.00000233 *   3.9476E-04 *   4.6238E-05 *   1.57089    -0.029    1041.79 *  
 
-    Nodal Solution Time = 0.34 Sec
+    Nodal Solution Time = 0.35 Sec
 
- Boron (ppm)  =  716.540
- Axial Offset =   -0.030
- Max. Node-Averaged  Peaking Factor = 1.631 in Node ( 8,11, 2)
+ Boron (ppm)  = 1041.795
+ Axial Offset =   -0.029
+ Max. Node-Averaged  Peaking Factor = 1.571 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.763 in Node ( 8,11, 2)
+ Max. Intra-Assembly Peaking Factor = 1.708 in Node ( 9,12, 2)
 
     Pin Power Reconstruction Time = 0.11 Sec
 
@@ -273,23 +267,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =     9.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980579     0.00194211     4.8353E-02     1.6989E-02     1.55572    -0.006     596.78    
-     2  2  1.0002150    -0.00021497     4.3111E-02     6.3194E-03     1.62581    -0.038     607.27    
-     3  3  0.9999951     0.00000493 *   2.2074E-02     1.0718E-04 *   1.59069    -0.029     607.20    
-     4  4  1.0000038 *  -0.00000380 *   6.1692E-03     2.4633E-04 *   1.60057    -0.031     606.53 *  
-     5  5  1.0000052 *  -0.00000516 *   2.4858E-03     9.6872E-05 *   1.59660    -0.031     605.85 *  
-     6  6  0.9999984 *   0.00000161 *   7.3259E-04     3.2887E-05 *   1.59777    -0.031     606.04 *  
-     7  7  1.0000024 *  -0.00000242 *   3.8192E-04 *   5.9068E-05 *   1.59716    -0.031     605.71 *  
+     1  1  0.9981171     0.00188290     3.3328E-02     1.7425E-02     1.52022    -0.007     912.45    
+     2  2  1.0002066    -0.00020665     3.4944E-02     5.9140E-03     1.57527    -0.037     924.02    
+     3  3  0.9999920     0.00000797 *   2.0954E-02     3.1322E-05 *   1.54294    -0.028     924.19    
+     4  4  1.0000045 *  -0.00000454 *   5.8865E-03     2.0480E-04 *   1.55208    -0.031     923.35 *  
+     5  5  1.0000042 *  -0.00000421 *   2.3903E-03     1.0675E-04 *   1.54837    -0.030     922.76 *  
+     6  6  0.9999988 *   0.00000122 *   6.7967E-04     2.1413E-05 *   1.54943    -0.030     922.91 *  
+     7  7  1.0000021 *  -0.00000211 *   3.5604E-04 *   5.4508E-05 *   1.54888    -0.030     922.60 *  
 
     Nodal Solution Time = 0.34 Sec
 
- Boron (ppm)  =  605.711
- Axial Offset =   -0.031
- Max. Node-Averaged  Peaking Factor = 1.597 in Node ( 8,11, 2)
+ Boron (ppm)  =  922.601
+ Axial Offset =   -0.030
+ Max. Node-Averaged  Peaking Factor = 1.549 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.718 in Node (11, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.673 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -299,23 +293,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    10.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980772     0.00192281     4.7244E-02     1.7386E-02     1.52511    -0.006     488.60    
-     2  2  1.0002082    -0.00020817     4.3076E-02     6.9653E-03     1.59376    -0.038     498.57    
-     3  3  0.9999934     0.00000662 *   2.1152E-02     2.9904E-04 *   1.56075    -0.030     498.65    
-     4  4  1.0000033 *  -0.00000333 *   5.8927E-03     2.8661E-04 *   1.57000    -0.032     498.05 *  
-     5  5  1.0000047 *  -0.00000468 *   2.3725E-03     1.0034E-04 *   1.56628    -0.031     497.44 *  
-     6  6  0.9999984 *   0.00000157 *   6.8421E-04     3.9294E-05 *   1.56735    -0.032     497.62 *  
-     7  7  1.0000022 *  -0.00000223 *   3.4260E-04 *   6.3226E-05 *   1.56682    -0.031     497.33 *  
+     1  1  0.9981340     0.00186595     3.4996E-02     1.7707E-02     1.49650    -0.007     796.09    
+     2  2  1.0002004    -0.00020036     3.6041E-02     6.6598E-03     1.55246    -0.038     807.11    
+     3  3  0.9999945     0.00000546 *   2.0786E-02     5.0396E-05 *   1.52084    -0.029     807.55    
+     4  4  1.0000040 *  -0.00000398 *   5.8013E-03     2.4617E-04 *   1.52972    -0.031     806.77 *  
+     5  5  1.0000039 *  -0.00000386 *   2.3379E-03     1.1513E-04 *   1.52615    -0.030     806.24 *  
+     6  6  0.9999988 *   0.00000121 *   6.7099E-04     2.9355E-05 *   1.52718    -0.031     806.38 *  
+     7  7  1.0000019 *  -0.00000194 *   3.3951E-04 *   6.1274E-05 *   1.52666    -0.030     806.10 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.36 Sec
 
- Boron (ppm)  =  497.325
- Axial Offset =   -0.031
- Max. Node-Averaged  Peaking Factor = 1.567 in Node ( 8,11, 2)
+ Boron (ppm)  =  806.102
+ Axial Offset =   -0.030
+ Max. Node-Averaged  Peaking Factor = 1.527 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.677 in Node (11, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.641 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -325,21 +319,21 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    11.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9980924     0.00190757     4.6203E-02     1.7762E-02     1.49762    -0.006     382.72    
-     2  2  1.0002024    -0.00020239     4.3312E-02     7.6921E-03     1.56543    -0.039     392.35    
-     3  3  0.9999955     0.00000455 *   2.0489E-02     3.1058E-04 *   1.53400    -0.030     392.61    
-     4  4  1.0000027 *  -0.00000268 *   5.6725E-03     3.3712E-04 *   1.54275    -0.033     392.09 *  
-     5  5  1.0000044 *  -0.00000438 *   2.2422E-03     1.2089E-04 *   1.53929    -0.032     391.52 *  
-     6  6  0.9999984 *   0.00000158 *   6.5305E-04     4.7565E-05 *   1.54030    -0.032     391.72 *  
-     7  7  1.0000021 *  -0.00000208 *   3.0619E-04 *   7.1213E-05 *   1.53983    -0.032     391.44 *  
+     1  1  0.9981485     0.00185150     3.6212E-02     1.8416E-02     1.47331    -0.007     682.28    
+     2  2  1.0001950    -0.00019500     3.6704E-02     7.4370E-03     1.52944    -0.038     692.89    
+     3  3  0.9999934     0.00000662 *   2.0401E-02     6.4492E-05 *   1.49887    -0.029     693.53    
+     4  4  1.0000037 *  -0.00000372 *   5.6375E-03     2.9548E-04 *   1.50736    -0.031     692.81 *  
+     5  5  1.0000034 *  -0.00000345 *   2.2311E-03     1.3462E-04 *   1.50401    -0.030     692.34 *  
+     6  6  0.9999988 *   0.00000118 *   6.3155E-04     3.7059E-05 *   1.50496    -0.030     692.48 *  
+     7  7  1.0000018 *  -0.00000178 *   2.9681E-04 *   6.9842E-05 *   1.50451    -0.030     692.23 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.34 Sec
 
- Boron (ppm)  =  391.438
- Axial Offset =   -0.032
- Max. Node-Averaged  Peaking Factor = 1.540 in Node ( 8,11, 2)
+ Boron (ppm)  =  692.227
+ Axial Offset =   -0.030
+ Max. Node-Averaged  Peaking Factor = 1.505 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.640 in Node ( 8,11, 2)
+ Max. Intra-Assembly Peaking Factor = 1.609 in Node ( 9,12, 2)
 
     Pin Power Reconstruction Time = 0.11 Sec
 
@@ -351,23 +345,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    12.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9981048     0.00189524     4.6397E-02     1.8551E-02     1.47155    -0.006     279.17    
-     2  2  1.0001975    -0.00019753     4.3636E-02     8.4342E-03     1.53870    -0.039     288.59    
-     3  3  0.9999946     0.00000540 *   2.0040E-02     2.6233E-04 *   1.50847    -0.030     289.00    
-     4  4  1.0000023 *  -0.00000228 *   5.4690E-03     3.9566E-04 *   1.51676    -0.033     288.55 *  
-     5  5  1.0000040 *  -0.00000403 *   2.1693E-03     1.5101E-04 *   1.51348    -0.032     288.03 *  
-     6  6  0.9999984 *   0.00000158 *   6.2359E-04     5.6848E-05 *   1.51442    -0.032     288.22 *  
-     7  7  1.0000019 *  -0.00000194 *   2.8117E-04 *   8.0436E-05 *   1.51400    -0.032     287.96 *  
+     1  1  0.9981628     0.00183721     3.6860E-02     1.8730E-02     1.45103    -0.007     571.13    
+     2  2  1.0001901    -0.00019013     3.7434E-02     8.1850E-03     1.50746    -0.038     581.33    
+     3  3  0.9999925     0.00000750 *   2.0090E-02     1.2343E-04 *   1.47777    -0.029     582.13    
+     4  4  1.0000034 *  -0.00000342 *   5.5332E-03     3.4504E-04 *   1.48599    -0.031     581.46 *  
+     5  5  1.0000030 *  -0.00000304 *   2.1925E-03     1.4812E-04 *   1.48274    -0.031     581.05 *  
+     6  6  0.9999989 *   0.00000113 *   6.1539E-04     4.4823E-05 *   1.48365    -0.031     581.19 *  
+     7  7  1.0000016 *  -0.00000162 *   2.8283E-04 *   7.5161E-05 *   1.48323    -0.031     580.96 *  
 
     Nodal Solution Time = 0.34 Sec
 
- Boron (ppm)  =  287.962
- Axial Offset =   -0.032
- Max. Node-Averaged  Peaking Factor = 1.514 in Node ( 8,11, 2)
+ Boron (ppm)  =  580.958
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.483 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.605 in Node (11, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.579 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -377,23 +371,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    13.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9981178     0.00188221     3.9338E-02     1.9134E-02     1.45669    -0.006     178.12    
-     2  2  1.0001928    -0.00019275     3.7837E-02     9.1198E-03     1.51398    -0.039     187.33    
-     3  3  0.9999939     0.00000610 *   1.9631E-02     2.4898E-04 *   1.48483    -0.031     187.86    
-     4  4  1.0000019 *  -0.00000188 *   5.3227E-03     4.5453E-04 *   1.49277    -0.033     187.47 *  
-     5  5  1.0000037 *  -0.00000372 *   2.1202E-03     1.7385E-04 *   1.48962    -0.032     186.99 *  
-     6  6  0.9999984 *   0.00000159 *   6.0344E-04     6.5237E-05 *   1.49052    -0.032     187.19 *  
-     7  7  1.0000018 *  -0.00000182 *   2.6704E-04 *   8.8468E-05 *   1.49012    -0.032     186.95 *  
+     1  1  0.9981757     0.00182434     3.6923E-02     1.9448E-02     1.43042    -0.006     462.49    
+     2  2  1.0001860    -0.00018599     3.7723E-02     8.8825E-03     1.48649    -0.038     472.34    
+     3  3  0.9999926     0.00000737 *   1.9474E-02     2.9592E-04 *   1.45810    -0.029     473.17    
+     4  4  1.0000029 *  -0.00000288 *   5.4142E-03     3.9253E-04 *   1.46604    -0.031     472.59 *  
+     5  5  1.0000029 *  -0.00000289 *   2.0995E-03     1.5913E-04 *   1.46297    -0.031     472.20 *  
+     6  6  0.9999988 *   0.00000120 *   5.9107E-04     5.4002E-05 *   1.46383    -0.031     472.35 *  
+     7  7  1.0000015 *  -0.00000153 *   2.5292E-04 *   8.1301E-05 *   1.46346    -0.031     472.13 *  
 
-    Nodal Solution Time = 0.34 Sec
+    Nodal Solution Time = 0.36 Sec
 
- Boron (ppm)  =  186.948
- Axial Offset =   -0.032
- Max. Node-Averaged  Peaking Factor = 1.490 in Node ( 8,11, 2)
+ Boron (ppm)  =  472.130
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.463 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.575 in Node (13, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.551 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -403,23 +397,23 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    14.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9981304     0.00186956     3.2815E-02     2.0028E-02     1.44277    -0.006      79.49    
-     2  2  1.0001884    -0.00018839     3.7602E-02     9.7987E-03     1.49915    -0.040      88.59    
-     3  3  0.9999935     0.00000654 *   1.8296E-02     1.8808E-04 *   1.47221    -0.031      89.20    
-     4  4  1.0000014 *  -0.00000141 *   4.9017E-03     5.1562E-04     1.47946    -0.033      88.88 *  
-     5  5  1.0000035 *  -0.00000351 *   2.0284E-03     1.9947E-04 *   1.47647    -0.032      88.43 *  
-     6  6  0.9999984 *   0.00000163 *   5.3010E-04     7.2792E-05 *   1.47725    -0.033      88.63 *  
-     7  7  1.0000017 *  -0.00000172 *   2.6185E-04 *   9.5680E-05 *   1.47686    -0.032      88.41 *  
+     1  1  0.9981879     0.00181207     3.6047E-02     1.9993E-02     1.41254    -0.006     356.29    
+     2  2  1.0001820    -0.00018196     3.7197E-02     9.6126E-03     1.46711    -0.038     365.90    
+     3  3  0.9999920     0.00000798 *   1.9033E-02     2.9615E-04 *   1.43971    -0.030     366.82    
+     4  4  1.0000025 *  -0.00000253 *   5.1573E-03     4.5031E-04 *   1.44718    -0.032     366.31 *  
+     5  5  1.0000027 *  -0.00000266 *   2.0499E-03     1.7966E-04 *   1.44422    -0.031     365.95 *  
+     6  6  0.9999988 *   0.00000121 *   5.7169E-04     6.3270E-05 *   1.44504    -0.031     366.11 *  
+     7  7  1.0000014 *  -0.00000143 *   2.4210E-04 *   8.8334E-05 *   1.44469    -0.031     365.90 *  
 
-    Nodal Solution Time = 0.35 Sec
+    Nodal Solution Time = 0.34 Sec
 
- Boron (ppm)  =   88.408
- Axial Offset =   -0.032
- Max. Node-Averaged  Peaking Factor = 1.477 in Node ( 8,13, 2)
+ Boron (ppm)  =  365.902
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.445 in Node ( 9,12, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.556 in Node (13, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.525 in Node ( 9,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -429,10 +423,88 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    15.000 GWd/MT      Update SM/PM
 
     NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
-     1  1  0.9981463     0.00185372     3.3385E-02     2.0632E-02     1.42915    -0.006     -16.45    
-     2  2  1.0022264     5.5332E-02     1.7322E-02      1.51286    -0.047
-     3  3  1.0028226     1.4849E-02     1.5934E-04 *    1.49072    -0.042
-     4  4  1.0029913     5.6537E-04     4.8131E-05 *    1.49157    -0.042
+     1  1  0.9982010     0.00179901     3.5159E-02     2.0874E-02     1.39562    -0.006     252.72    
+     2  2  1.0001781    -0.00017810     3.7525E-02     1.0337E-02     1.45004    -0.039     262.16    
+     3  3  0.9999916     0.00000843 *   1.8492E-02     2.3805E-04 *   1.42371    -0.030     263.16    
+     4  4  1.0000021 *  -0.00000210 *   4.8179E-03     5.1390E-04     1.43060    -0.032     262.72 *  
+     5  5  1.0000025 *  -0.00000247 *   1.9353E-03     2.1195E-04 *   1.42784    -0.031     262.39 *  
+     6  6  0.9999988 *   0.00000124 *   5.4922E-04     7.1913E-05 *   1.42862    -0.032     262.56 *  
+     7  7  1.0000014 *  -0.00000135 *   2.5382E-04 *   9.9272E-05 *   1.42826    -0.031     262.36 *  
+
+    Nodal Solution Time = 0.34 Sec
+
+ Boron (ppm)  =  262.363
+ Axial Offset =   -0.031
+ Max. Node-Averaged  Peaking Factor = 1.428 in Node ( 8,12, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.501 in Node ( 9,12, 2)
+
+    Pin Power Reconstruction Time = 0.12 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    16.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    16.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982146     0.00178537     3.5732E-02     2.1559E-02     1.37899    -0.006     151.85    
+     2  2  1.0001743    -0.00017432     3.8099E-02     1.1014E-02     1.43361    -0.039     161.16    
+     3  3  0.9999913     0.00000866 *   1.8232E-02     2.1173E-04 *   1.40794    -0.030     162.20    
+     4  4  1.0000016 *  -0.00000161 *   4.7040E-03     5.7627E-04     1.41459    -0.033     161.84 *  
+     5  5  1.0000024 *  -0.00000235 *   1.9147E-03     2.3329E-04 *   1.41189    -0.032     161.53 *  
+     6  6  0.9999987 *   0.00000131 *   5.3190E-04     8.2061E-05 *   1.41264    -0.032     161.70 *  
+     7  7  1.0000013 *  -0.00000129 *   2.5213E-04 *   1.0605E-04 *   1.41228    -0.032     161.52 *  
+
+    Nodal Solution Time = 0.34 Sec
+
+ Boron (ppm)  =  161.521
+ Axial Offset =   -0.032
+ Max. Node-Averaged  Peaking Factor = 1.412 in Node ( 8,12, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.479 in Node ( 9,12, 2)
+
+    Pin Power Reconstruction Time = 0.13 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    17.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    17.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982279     0.00177208     3.6160E-02     2.2541E-02     1.36300    -0.006      53.62    
+     2  2  1.0001709    -0.00017085     3.8544E-02     1.1734E-02     1.41764    -0.039      62.88    
+     3  3  0.9999913     0.00000869 *   1.7844E-02     1.1960E-04 *   1.39278    -0.031      63.92    
+     4  4  1.0000011 *  -0.00000107 *   4.5849E-03     6.4643E-04     1.39920    -0.033      63.65 *  
+     5  5  1.0000023 *  -0.00000230 *   1.8803E-03     2.6853E-04 *   1.39657    -0.032      63.35 *  
+     6  6  0.9999986 *   0.00000139 *   5.1718E-04     9.4593E-05 *   1.39730    -0.032      63.54 *  
+     7  7  1.0000013 *  -0.00000127 *   2.4380E-04 *   1.1560E-04 *   1.39696    -0.032      63.36 *  
+
+    Nodal Solution Time = 0.34 Sec
+
+ Boron (ppm)  =   63.362
+ Axial Offset =   -0.032
+ Max. Node-Averaged  Peaking Factor = 1.397 in Node ( 8,12, 2)
+ ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
+ Max. Intra-Assembly Peaking Factor = 1.462 in Node ( 9,12, 1)
+
+    Pin Power Reconstruction Time = 0.12 Sec
+
+ _____________________________________________________________________________________________________________________________
+ PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
+
+ 1/4 Core Rot.      12 Fueled Axial Nodes       4 Nodes/Assembly               1 Radial Reflector Row
+ % Power= 100.00    Power= 2799.90 MW           Pressure= 2250.0 psia          Cycle Exp =    18.000 GWd/MT      Equil. XE/I
+ % Flow = 100.00    Inlet Temp= 550.00 F        Total Steps Inserted= 0        Core  Exp =    18.000 GWd/MT      Update SM/PM
+
+    NH NQ     K-eff         Diff          Eps Max        Eps Min    Peak Source    A-O    PPM Boron
+     1  1  0.9982421     0.00175793     3.6776E-02     2.3154E-02     1.34740    -0.007     -41.92    
+     2  2  1.0002599     3.9837E-02     1.7497E-02      1.40331    -0.036
+     3  3  1.0004444     9.0117E-03     8.4572E-04      1.39077    -0.034
+     4  4  1.0005013     1.7984E-03     1.8378E-04 *    1.39328    -0.034
  
            *********************************************************************************************
            Search Started on        EOLEXP Triggered by            MINBOR Trigger Value =       10.00000
@@ -442,42 +514,49 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
            Max. #Iter Before Search      4 Max. #Iter Between Searches  4 Damping Factor =       1.00000
            *********************************************************************************************
 
-           Present Target Value  =   1.002991    Next Search Value  =      1.00 GWd/MT
+           Present Target Value  =   1.000501    Next Search Value  =      1.00 GWd/MT
 
-     5  5  0.9993167     3.2418E-02     1.1761E-02      1.44473    -0.022
-     6  6  0.9986098     8.2346E-03     3.2924E-03      1.45673    -0.028
-     7  7  0.9983544     2.5243E-03     1.2109E-03      1.45306    -0.028
-     8  8  0.9982897     2.1480E-03     1.1142E-04 *    1.45619    -0.029
+     5  5  0.9969893     2.9533E-02     1.2418E-02      1.35331    -0.016
+     6  6  0.9963005     7.7185E-03     3.8048E-03      1.36384    -0.022
+     7  7  0.9960661     1.7555E-03     1.5807E-03      1.36145    -0.022
+     8  8  0.9960065     2.1536E-03     1.0400E-04 *    1.36439    -0.023
 
-           Present Target Value  =   0.998290    Next Search Value  =      0.82 GWd/MT
+           Present Target Value  =   0.996006    Next Search Value  =      0.76 GWd/MT
 
-     9  9  0.9995700     9.8455E-03     4.1909E-03      1.47067    -0.036
-    10 10  0.9998394     2.4990E-03     1.0813E-03      1.46700    -0.034
-    11 11  0.9999299     4.6232E-04 *   5.2746E-04      1.46768    -0.033
-    12 12  0.9999539     7.3154E-04     4.0531E-05 *    1.46661    -0.033
+     9  9  0.9975934     1.2682E-02     6.0417E-03      1.38191    -0.032
+    10 10  0.9979314     2.9524E-03     1.6369E-03      1.37785    -0.029
+    11 11  0.9980383     3.6558E-04 *   8.3034E-04      1.37835    -0.029
+    12 12  0.9980669     9.4152E-04     5.4315E-05 *    1.37705    -0.028
 
-           Present Target Value  =   0.999954    Next Search Value  =      0.81 GWd/MT
+           Present Target Value  =   0.998067    Next Search Value  =      0.54 GWd/MT
 
-    13 13  1.0000048     4.1851E-04 *   1.7464E-05 *    1.46722    -0.033
-    14 14  1.0000167     2.4356E-04 *   3.3349E-05 *    1.46686    -0.033
+    13 13  0.9996125     1.3020E-02     5.1250E-03      1.39522    -0.037
+    14 14  0.9999443     3.2235E-03     1.4475E-03      1.39074    -0.034
+    15 15  1.0000580     3.1722E-04 *   8.4177E-04      1.39118    -0.034
+    16 16  1.0000891     9.7266E-04     7.7128E-05 *    1.38982    -0.033
 
-           Present Target Value  =   1.000017    Next Search Value  =      0.81 GWd/MT
+           Present Target Value  =   1.000089    Next Search Value  =      0.55 GWd/MT
+
+    17 17  1.0000404     5.4693E-04     4.2336E-04 *    1.38906    -0.033
+    18 18  1.0000322     7.4840E-05 *   5.2392E-05 *    1.38896    -0.033
+
+           Present Target Value  =   1.000032    Next Search Value  =      0.56 GWd/MT
 
            ***************************************************************
-           Search Terminated at 0.81 by Satisfying Search Variable Epsilon                                     
+           Search Terminated at 0.56 by Satisfying Search Variable Epsilon                                     
            ***************************************************************
  
-    15 15  1.0000101 *   6.9083E-05 *   7.5281E-05 *    1.46676    -0.033
+    19 19  1.0000030 *   2.8099E-04 *   1.0431E-04 *    1.38857    -0.032
 
-    Nodal Solution Time = 0.73 Sec
+    Nodal Solution Time = 0.98 Sec
 
- K-effective  = 1.000010
- Axial Offset =   -0.033
- Max. Node-Averaged  Peaking Factor = 1.467 in Node (13, 8, 2)
+ K-effective  = 1.000003
+ Axial Offset =   -0.032
+ Max. Node-Averaged  Peaking Factor = 1.389 in Node (12, 8, 2)
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
- Max. Intra-Assembly Peaking Factor = 1.542 in Node (13, 8, 2)
+ Max. Intra-Assembly Peaking Factor = 1.462 in Node (12, 9, 1)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  == Dependent Case: 1 of Independent Case 1 Complete                                                 
 
@@ -494,8 +573,8 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  NO3PIN      1   CAUTION    BAT.EDT    Batch edit request for 3PIN ignored --only Q or N prefix is valid for this quantity
  NO2XPO      1   CAUTION    BAT.EDT    Batch edit request for 2XPO ignored --only Q or N prefix is valid for this quantity
  NO2PIN      1   CAUTION    BAT.EDT    Batch edit request for 2PIN ignored --only Q or N prefix is valid for this quantity
- PINAXIS    17   CAUTION    PIN.EDT    Pin locations for axis-spanning assemblies may not be correct
- PINSUMM    17   NOTE       PIN.EDT    For 2x2 cases peak node edit has been radially averaged in each assembly
+ PINAXIS    20   CAUTION    PIN.EDT    Pin locations for axis-spanning assemblies may not be correct
+ PINSUMM    20   NOTE       PIN.EDT    For 2x2 cases peak node edit has been radially averaged in each assembly
  ITESRC      1   NOTE       ITE.SRC    EOLEXP Search requested with KEF as target
 
 
@@ -518,24 +597,27 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
   Case     Step             Bor  - - - - - Peak Powers - - - - -    Dens  Power  Flow  CRD   Pres  Inlet  Core     Title 
     Step   Exp    K-eff  NQ ppm   AX / K   A-O    Rad  Node  3PIN   g/cc    %     %    Pos   psia  T (F)  Exp     Exp   Set
 
-   1  0   0.000  1.00000  8 1163 1.36/ 5 -0.049  1.49  2.10  2.26  0.710  100.0 100.0     0  2250  550.0  0.000   0.00    0 
-   1  1   0.500  1.00000  6 1185 1.46/ 6 -0.044  1.45  2.11  2.22  0.710  100.0 100.0     0  2250  550.0  0.500   0.00    0 
-   1  2   1.000  0.99999  6 1327 1.56/ 7 -0.033  1.62  2.66  2.75  0.710  100.0 100.0     0  2250  550.0  1.000   0.00    0 
-   1  3   2.000  0.99999  6 1362 1.36/ 7 -0.007  1.70  2.29  2.38  0.711  100.0 100.0     0  2250  550.0  2.000   0.00    0 
-   1  4   3.000  1.00000  6 1280 1.19/ 7 -0.006  1.63  1.92  2.00  0.711  100.0 100.0     0  2250  550.0  3.000   0.00    0 
-   1  5   4.000  1.00000  6 1174 1.15/ 3 -0.014  1.56  1.84  1.92  0.711  100.0 100.0     0  2250  550.0  4.000   0.00    0 
-   1  6   5.000  1.00000  6 1061 1.15/ 3 -0.021  1.50  1.76  1.84  0.711  100.0 100.0     0  2250  550.0  5.000   0.00    0 
-   1  7   6.000  1.00000  8  945 1.15/ 3 -0.025  1.46  1.70  1.78  0.710  100.0 100.0     0  2250  550.0  6.000   0.00    0 
-   1  8   7.000  1.00000  7  830 1.14/ 3 -0.028  1.42  1.67  1.74  0.710  100.0 100.0     0  2250  550.0  7.000   0.00    0 
-   1  9   8.000  1.00000  7  717 1.14/ 2 -0.030  1.39  1.63  1.70  0.710  100.0 100.0     0  2250  550.0  8.000   0.00    0 
-   1 10   9.000  1.00000  7  606 1.14/ 2 -0.031  1.37  1.60  1.67  0.710  100.0 100.0     0  2250  550.0  9.000   0.00    0 
-   1 11  10.000  1.00000  7  497 1.14/ 2 -0.031  1.35  1.57  1.63  0.710  100.0 100.0     0  2250  550.0 10.000   0.00    0 
-   1 12  11.000  1.00000  7  391 1.14/ 2 -0.032  1.33  1.54  1.60  0.710  100.0 100.0     0  2250  550.0 11.000   0.00    0 
-   1 13  12.000  1.00000  7  288 1.14/ 2 -0.032  1.32  1.51  1.58  0.710  100.0 100.0     0  2250  550.0 12.000   0.00    0 
-   1 14  13.000  1.00000  7  187 1.14/ 2 -0.032  1.30  1.49  1.55  0.710  100.0 100.0     0  2250  550.0 13.000   0.00    0 
-   1 15  14.000  1.00000  7   88 1.14/ 2 -0.032  1.29  1.48  1.53  0.710  100.0 100.0     0  2250  550.0 14.000   0.00    0 
-   1 16  14.815  1.00001 15   10 1.14/ 2 -0.033  1.28  1.47  1.52  0.710  100.0 100.0     0  2250  550.0 14.815   0.00    0 
+   1  0   0.000  1.00000  7 1622 1.36/ 7 -0.031  1.77  2.44  2.56  0.710  100.0 100.0     0  2250  550.0  0.000   0.00    0 
+   1  1   0.500  1.00000  4 1619 1.42/ 7 -0.024  1.73  2.46  2.58  0.710  100.0 100.0     0  2250  550.0  0.500   0.00    0 
+   1  2   1.000  0.99999  6 1719 1.49/ 7 -0.007  1.67  2.46  2.57  0.710  100.0 100.0     0  2250  550.0  1.000   0.00    0 
+   1  3   2.000  0.99999  6 1735 1.35/ 7  0.008  1.58  2.08  2.18  0.711  100.0 100.0     0  2250  550.0  2.000   0.00    0 
+   1  4   3.000  1.00000  6 1646 1.21/ 7 -0.002  1.51  1.80  1.89  0.711  100.0 100.0     0  2250  550.0  3.000   0.00    0 
+   1  5   4.000  1.00001  5 1532 1.14/ 5 -0.014  1.46  1.70  1.78  0.711  100.0 100.0     0  2250  550.0  4.000   0.00    0 
+   1  6   5.000  1.00000  6 1411 1.15/ 3 -0.022  1.42  1.67  1.75  0.710  100.0 100.0     0  2250  550.0  5.000   0.00    0 
+   1  7   6.000  1.00000  6 1287 1.15/ 3 -0.026  1.39  1.63  1.71  0.710  100.0 100.0     0  2250  550.0  6.000   0.00    0 
+   1  8   7.000  1.00000  7 1163 1.15/ 3 -0.028  1.37  1.59  1.67  0.710  100.0 100.0     0  2250  550.0  7.000   0.00    0 
+   1  9   8.000  1.00000  7 1042 1.14/ 3 -0.029  1.35  1.57  1.64  0.710  100.0 100.0     0  2250  550.0  8.000   0.00    0 
+   1 10   9.000  1.00000  7  923 1.13/ 2 -0.030  1.33  1.55  1.62  0.710  100.0 100.0     0  2250  550.0  9.000   0.00    0 
+   1 11  10.000  1.00000  7  806 1.14/ 2 -0.030  1.32  1.53  1.59  0.710  100.0 100.0     0  2250  550.0 10.000   0.00    0 
+   1 12  11.000  1.00000  7  692 1.14/ 2 -0.030  1.30  1.50  1.57  0.710  100.0 100.0     0  2250  550.0 11.000   0.00    0 
+   1 13  12.000  1.00000  7  581 1.14/ 2 -0.031  1.29  1.48  1.55  0.710  100.0 100.0     0  2250  550.0 12.000   0.00    0 
+   1 14  13.000  1.00000  7  472 1.14/ 2 -0.031  1.28  1.46  1.52  0.710  100.0 100.0     0  2250  550.0 13.000   0.00    0 
+   1 15  14.000  1.00000  7  366 1.14/ 2 -0.031  1.26  1.44  1.50  0.710  100.0 100.0     0  2250  550.0 14.000   0.00    0 
+   1 16  15.000  1.00000  7  262 1.14/ 2 -0.031  1.25  1.43  1.48  0.711  100.0 100.0     0  2250  550.0 15.000   0.00    0 
+   1 17  16.000  1.00000  7  162 1.13/ 2 -0.032  1.24  1.41  1.46  0.711  100.0 100.0     0  2250  550.0 16.000   0.00    0 
+   1 18  17.000  1.00000  7   63 1.13/ 2 -0.032  1.23  1.40  1.45  0.711  100.0 100.0     0  2250  550.0 17.000   0.00    0 
+   1 19  17.556  1.00000 19   10 1.13/ 2 -0.032  1.22  1.39  1.44  0.711  100.0 100.0     0  2250  550.0 17.556   0.00    0 
 
-    Total Execution Time = 8.4 SEC
+    Total Execution Time = 10.0 SEC
 SIMULATE Run Completed - Normal Termination
-Tue Aug 30 12:23:21 EDT 2022
+Tue Oct  4 16:34:47 EDT 2022

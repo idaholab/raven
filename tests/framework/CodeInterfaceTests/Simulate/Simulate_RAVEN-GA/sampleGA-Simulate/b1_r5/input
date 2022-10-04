@@ -50,7 +50,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      4  4  0.9999917 *   0.00000831 *   1.9523E-03     5.0282E-05 *   2.79688    -0.009    1493.03    
      5  5  1.0000049 *  -0.00000487 *   1.1652E-04 *   3.4336E-05 *   2.79721    -0.009    1492.26 *  
 
-    Nodal Solution Time = 0.24 Sec
+    Nodal Solution Time = 0.23 Sec
 
  Boron (ppm)  = 1492.260
  Axial Offset =   -0.009
@@ -75,7 +75,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      5  5  1.0000126 *  -0.00001263 *   9.9728E-04     5.7008E-05 *   3.20784    -0.002    1582.22 *  
      6  6  0.9999949 *   0.00000511 *   1.0872E-04 *   1.3798E-05 *   3.20819    -0.002    1582.84 *  
 
-    Nodal Solution Time = 0.31 Sec
+    Nodal Solution Time = 0.27 Sec
 
  Boron (ppm)  = 1582.836
  Axial Offset =   -0.002
@@ -83,7 +83,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 3.406 in Node ( 8, 8, 6)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -102,7 +102,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      7  7  1.0000060 *  -0.00000596 *   1.3895E-03     5.1606E-05 *   2.52153     0.001    1565.81 *  
      8  8  0.9999971 *   0.00000295 *   3.6834E-04 *   6.8042E-06 *   2.52246     0.001    1566.26 *  
 
-    Nodal Solution Time = 0.43 Sec
+    Nodal Solution Time = 0.38 Sec
 
  Boron (ppm)  = 1566.256
  Axial Offset =    0.001
@@ -110,7 +110,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 2.644 in Node ( 8, 8, 5)
 
-    Pin Power Reconstruction Time = 0.13 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -127,7 +127,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      5  5  1.0000087 *  -0.00000867 *   7.2572E-04     1.7228E-04 *   2.05330    -0.008    1471.65 *  
      6  6  0.9999969 *   0.00000311 *   4.6123E-04 *   2.2236E-05 *   2.05424    -0.008    1472.09 *  
 
-    Nodal Solution Time = 0.31 Sec
+    Nodal Solution Time = 0.28 Sec
 
  Boron (ppm)  = 1472.089
  Axial Offset =   -0.008
@@ -153,7 +153,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999974 *   0.00000261 *   6.2523E-04     2.7187E-05 *   1.88053    -0.019    1359.89 *  
      7  7  1.0000039 *  -0.00000394 *   3.2898E-04 *   4.1235E-05 *   1.87991    -0.019    1359.28 *  
 
-    Nodal Solution Time = 0.34 Sec
+    Nodal Solution Time = 0.33 Sec
 
  Boron (ppm)  = 1359.283
  Axial Offset =   -0.019
@@ -179,7 +179,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999977 *   0.00000235 *   6.7112E-04     1.7360E-06 *   1.74804    -0.026    1242.66 *  
      7  7  1.0000035 *  -0.00000350 *   3.6430E-04 *   3.4973E-05 *   1.74740    -0.026    1242.14 *  
 
-    Nodal Solution Time = 0.34 Sec
+    Nodal Solution Time = 0.33 Sec
 
  Boron (ppm)  = 1242.144
  Axial Offset =   -0.026
@@ -187,7 +187,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.894 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.13 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -259,7 +259,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999986 *   0.00000143 *   8.1484E-04     1.3441E-05 *   1.54286    -0.032     890.72 *  
      7  7  1.0000024 *  -0.00000244 *   4.7463E-04 *   3.7931E-05 *   1.54213    -0.032     890.38 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.34 Sec
 
  Boron (ppm)  =  890.375
  Axial Offset =   -0.032
@@ -285,7 +285,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999987 *   0.00000132 *   7.4628E-04     1.6995E-05 *   1.50121    -0.032     777.21 *  
      7  7  1.0000022 *  -0.00000221 *   4.1993E-04 *   4.1649E-05 *   1.50058    -0.032     776.90 *  
 
-    Nodal Solution Time = 0.35 Sec
+    Nodal Solution Time = 0.34 Sec
 
  Boron (ppm)  =  776.901
  Axial Offset =   -0.032
@@ -311,7 +311,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999987 *   0.00000125 *   5.7654E-04     2.1577E-05 *   1.48087    -0.032     666.10 *  
      7  7  1.0000020 *  -0.00000199 *   2.9045E-04 *   4.8533E-05 *   1.48044    -0.032     665.82 *  
 
-    Nodal Solution Time = 0.34 Sec
+    Nodal Solution Time = 0.35 Sec
 
  Boron (ppm)  =  665.821
  Axial Offset =   -0.032
@@ -319,7 +319,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.592 in Node (10,12, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -345,7 +345,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.572 in Node (11,12, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -371,7 +371,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.551 in Node (11,12, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -389,7 +389,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
      6  6  0.9999987 *   0.00000133 *   5.4114E-04     3.7968E-05 *   1.43984    -0.032     346.64 *  
      7  7  1.0000016 *  -0.00000164 *   2.5002E-04 *   6.0886E-05 *   1.43948    -0.032     346.42 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.34 Sec
 
  Boron (ppm)  =  346.419
  Axial Offset =   -0.032
@@ -397,7 +397,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.531 in Node (11,12, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -449,7 +449,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Max. Intra-Assembly Peaking Factor = 1.492 in Node (11,12, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
  PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            
@@ -530,7 +530,7 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
  
     18 18  0.9999967 *   3.1194E-04 *   7.4998E-05 *    1.39565    -0.033
 
-    Nodal Solution Time = 0.85 Sec
+    Nodal Solution Time = 0.88 Sec
 
  K-effective  = 0.999997
  Axial Offset =   -0.033
@@ -599,6 +599,6 @@ Using executable --> /cm/shared/apps/ncsu/CasmoSimulate/libexec/studsvik/simulat
    1 17  16.000  1.00000  6   49 1.14/ 2 -0.033  1.23  1.40  1.46  0.711  100.0 100.0     0  2250  550.0 16.000   0.00    0 
    1 18  16.413  1.00000 18   10 1.14/ 2 -0.033  1.22  1.40  1.45  0.711  100.0 100.0     0  2250  550.0 16.413   0.00    0 
 
-    Total Execution Time = 10.0 SEC
+    Total Execution Time = 9.7 SEC
 SIMULATE Run Completed - Normal Termination
-Tue Aug 30 11:18:09 EDT 2022
+Tue Oct  4 16:30:57 EDT 2022
