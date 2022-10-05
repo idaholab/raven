@@ -7,8 +7,6 @@
     [./data]
         type = OrderedCSV
         output = 'data/outCon1DClassifier.csv'
-        #note, mac uses tensorflow 2.7 but others use 2.3
-        mac_gold = 'mac/data/outCon1DClassifier.csv'
     [../]
   [../]
   [./tf_mlpc]
