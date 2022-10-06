@@ -35,7 +35,7 @@ Note all install methods after "main" take
 -->
 <dependencies>
   <main>
-    <h5py>2.10</h5py>
+    <h5py/>
     <numpy>1.18</numpy>
     <scipy>1.5</scipy>
     <scikit-learn>0.24</scikit-learn>
@@ -45,7 +45,8 @@ Note all install methods after "main" take
     <matplotlib>3.2</matplotlib>
     <statsmodels>0.12</statsmodels>
     <cloudpickle>1.6</cloudpickle>
-    <tensorflow>2.0</tensorflow>
+    <tensorflow os='windows,linux'>2.3</tensorflow>
+    <tensorflow os='mac'>2.7</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -59,16 +60,33 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray os="mac,linux" source="pip" pip_extra="[default]">1.9</ray>
+    <ray source="pip" pip_extra="[default]">1.12</ray>
+    <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
+    <redis source="pip" os='windows'/>
     <imageio>2.9</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <numdifftools source="pip">0.9.39</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
+    <pyomo optional='True'>6.4</pyomo>
+    <glpk skip_check='True' optional='True'/>
+    <ipopt skip_check='True' optional='True'/>
+    <cyipopt optional='True'/>
+    <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
+    <protobuf source="pip">3</protobuf> <!-- needed because protobuf 4 incompatible with current ray -->
     <setuptools/>
   </main>
   <alternate name="pip">
+    <hdf5>remove</hdf5>
+    <swig>remove</swig>
+    <pip>remove</pip>
+    <python>remove</python>
+    <nomkl>remove</nomkl>
+    <numexpr>remove</numexpr>
+  </alternate>
+  <alternate name="none">
     <hdf5>remove</hdf5>
     <swig>remove</swig>
     <pip>remove</pip>

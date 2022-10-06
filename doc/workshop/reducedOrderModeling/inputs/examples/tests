@@ -28,6 +28,7 @@
     type = 'RavenFramework'
     input = '4b_load_and_sample_pretrained_rom.xml'
     output = 'r4_b/plotROM_scatter.png r4_b/romOut.csv'
+    prereq = pickle
   [../]
   [./romWF]
     type = 'RavenFramework'
