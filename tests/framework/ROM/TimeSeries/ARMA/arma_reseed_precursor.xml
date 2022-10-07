@@ -28,7 +28,7 @@
 
   <Files>
     <Input name="rawDataFile">../Basic/dataSet.csv</Input>
-    <Input name="pk">arma.pk</Input>
+    <Input name="pk">../ARMAreseed/arma.pk</Input>
   </Files>
 
   <Models>

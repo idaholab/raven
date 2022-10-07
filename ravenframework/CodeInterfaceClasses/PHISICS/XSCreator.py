@@ -48,11 +48,11 @@ class XSCreator():
     """
     mappingTree = ET.parse(tabMapFileName)
     mappingRoot = mappingTree.getroot()
-    for tabulationXML in mappingRoot.getiterator('tabulation'):
+    for tabulationXML in mappingRoot.iter('tabulation'):
       if tab == tabulationXML.attrib.get('set'):
         tabList = []
         valueList = []
-        for tabXML in tabulationXML.getiterator('tab'):
+        for tabXML in tabulationXML.iter('tab'):
           tabList.append(tabXML.attrib.get('name'))
           valueList.append(tabXML.text)
     return tabList, valueList
@@ -95,9 +95,8 @@ class XSCreator():
                 for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
                   reactionChild = SubElement(libraryChild, self.formatXS(reaction), {'g':group})
                   reactionChild.text = value
-    fileObj = open(inputFiles, 'w')
-    fileObj.write(self.prettify(top))
-    fileObj.close()
+    with open(inputFiles, 'w') as fileObj:
+      fileObj.write(self.prettify(top))
 
   def formatXS(self,reaction):
     """

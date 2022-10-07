@@ -105,19 +105,18 @@ class testDescription(object):
     for testInfoFile in __testInfoList:
       if 'moose' in testInfoFile.split(os.sep) or not os.path.isfile(testInfoFile):
         continue
-      fileObject = open(testInfoFile,"r+")
-      fileLines = fileObject.readlines()
-      dirName = os.path.dirname(testInfoFile)
-      # I do not want to use getpot!
-      for line in fileLines:
-        if line.strip().startswith("input"):
-          fileName = line.split("=")[-1].replace("'", "").replace('"', '').rstrip().strip()
-          fileName = os.path.join(dirName,fileName)
-          if os.path.split(fileName)[-1].lower().endswith('xml'):
-            __testList.append(os.path.abspath(fileName))
-          if os.path.split(fileName)[-1].lower().endswith('py'):
-            __testList.append(os.path.abspath(fileName))
-      fileObject.close()
+      with open(testInfoFile,"r+") as fileObject:
+        fileLines = fileObject.readlines()
+        dirName = os.path.dirname(testInfoFile)
+        # I do not want to use getpot!
+        for line in fileLines:
+          if line.strip().startswith("input"):
+            fileName = line.split("=")[-1].replace("'", "").replace('"', '').rstrip().strip()
+            fileName = os.path.join(dirName,fileName)
+            if os.path.split(fileName)[-1].lower().endswith('xml'):
+              __testList.append(os.path.abspath(fileName))
+            if os.path.split(fileName)[-1].lower().endswith('py'):
+              __testList.append(os.path.abspath(fileName))
     for testFile in __testList:
       if testFile.endswith('xml'):
         try: root = ET.parse(testFile).getroot()

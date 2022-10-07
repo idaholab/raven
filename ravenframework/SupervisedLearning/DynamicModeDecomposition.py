@@ -118,17 +118,19 @@ class DMD(SupervisedLearning):
       @ Out, None
     """
     super().__init__()
-    self.dmdParams                   = {}                                   # dmd settings container
-    self.printTag                    = 'DMD'                                # print tag
-    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.dmdParams = {}          # dmd settings container
+    self.printTag = 'DMD'        # print tag
+    self._dynamicHandling = True # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.pivotParameterID = None # pivot parameter
     # variables filled up in the training stages
-    self._amplitudes                 = {}                                   # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
-    self._eigs                       = {}                                   # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
-    self._modes                      = {}                                   # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
-    self.__Atilde                    = {}                                   # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
-    self.pivotValues                 = None                                 # pivot values (e.g. time)
-    self.KDTreeFinder                = None                                 # kdtree weighting model
-    self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
+    self._amplitudes = {}        # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
+    self._eigs = {}              # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
+    self._modes = {}             # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
+    self.__Atilde = {}           # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
+    self.pivotValues = None      # pivot values (e.g. time)
+    self.KDTreeFinder = None     # kdtree weighting model
+    self.timeScales = {}         # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
+    self.featureVals = None      # feature values
 
   def _handleInput(self, paramInput):
     """

@@ -20,7 +20,6 @@
   Dynamic Mode Decomposition with Control (The class is based on the DynamicModeDecomposition class)
 """
 #External Modules------------------------------------------------------------------------------------
-import sys
 import numpy as np
 import scipy
 from sklearn import neighbors
@@ -134,22 +133,20 @@ class DMDC(DMD):
     super().__init__()
     self.printTag = 'DMDC'
     self.dynamicFeatures = True
+    self.actuatorsID = None     # Actuator Variable Names
+    self.stateID = None         # State Variable Names
+    self.initStateID = None     # Initialization State Variable Names
+    self.outputID = None        # Output Names
+    self.parametersIDs = None   # Parameter Names
+    self.neigh = None           # neighbors
     # variables filled up in the training stages
-    self.__Btilde = {} # B matrix
-    self.__Ctilde = {} # C matrix
-    self.actuatorVals = None # Actuator values (e.g. U), the variable names are in self.ActuatorID
-    self.stateVals = None # state values (e.g. X)
-    self.outputVals = None # output values (e.g. Y)
-    self.parameterValues = None #  parameter values
+    self.__Btilde = {}          # B matrix
+    self.__Ctilde = {}          # C matrix
+    self.actuatorVals = None    # Actuator values (e.g. U), the variable names are in self.ActuatorID
+    self.stateVals = None       # state values (e.g. X)
+    self.outputVals = None      # output values (e.g. Y)
+    self.parameterValues = None # parameter values
     self._importances = None # importances
-
-  def __setstate__(self,state):
-    """
-      Initializes the DMD with the data contained in state
-      @ In, state, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(state)
 
   def _handleInput(self, paramInput):
     """
@@ -166,7 +163,7 @@ class DMDC(DMD):
     self.actuatorsID = settings.get('actuators')
     ### Extract the State Variable Names (x)
     self.stateID = settings.get('stateVariables')
-    ### Extract the Initilalization State Variable Names (x). Optional. If not
+    ### Extract the Initialization State Variable Names (x). Optional. If not
     ### found, the state is initialized with the initial values in the state field
     self.initStateID = settings.get('initStateVariables')
     # FIXME 1718
@@ -195,6 +192,14 @@ class DMDC(DMD):
     for i in range(len(self.parametersIDs)-1,-1,-1):
       if str(self.parametersIDs[i]).endswith('_init'):
         self.parametersIDs.remove(self.parametersIDs[i])
+
+  def __setstate__(self,state):
+    """
+      Initializes the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
 
   def _train(self,featureVals,targetVals):
     """
@@ -242,8 +247,6 @@ class DMDC(DMD):
       @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
                                                               feature2:(importanceTarget1,importqnceTarget2,...),...}
     """
-
-
     if self._importances is None:
       from sklearn import preprocessing
       from sklearn.ensemble import RandomForestRegressor
@@ -319,8 +322,8 @@ class DMDC(DMD):
       # on the C matrix
       for featCnt, feat in enumerate(self.parametersIDs):
         permutations = set(self.parameterValues[:,featCnt])
-        indeces = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indeces,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
+        indices = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
+        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
 
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
       if True:
@@ -341,13 +344,13 @@ class DMDC(DMD):
 
   #######
   def __evaluate(self, featureVals):
-    indeces = [0]
+    indices = [0]
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
-      indeces = self.neigh.predict(feats).astype(int)
-    nreqs = len(indeces)
+      indices = self.neigh.predict(feats).astype(int)
+    nreqs = len(indices)
     ### Extract the Actuator signal U ###
     uVector = []
     for varID in self.actuatorsID:
@@ -360,19 +363,21 @@ class DMDC(DMD):
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
-    evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
-    evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
+    evalX = np.zeros((len(indices), tsEval, len(self.initStateID)))
+    evalY = np.zeros((len(indices), tsEval, len(self.outputID)))
 
-    for cnt, index in enumerate(indeces):
+    for cnt, index in enumerate(indices):
       # Centralize uVector and initState when required.
       if self.dmdParams['centerUXY']:
-        uVector[:,cnt,:] = (uVector[:,cnt,:].T - self.actuatorVals[0, index, :]).T
+        # use np.expand_dims to ensure this works with multiple actuators
+        uVector = uVector - np.expand_dims(self.actuatorVals[0, index, :], axis=tuple(range(1,len(uVector.shape))))
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uVector[:,cnt,i]),(-1,1)).T
+        # make sure that Btilde dot uVector works correctly for multiple inputs and has the same shape as aTilde dot evalX
+        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + (self.__Btilde[index,:,:].dot(uVector[:,:,i])).reshape(-1,), (-1,1)).T
         evalX[cnt, i+1, :] = xPred
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
       # De-Centralize evalX and evalY when required.
@@ -381,7 +386,8 @@ class DMDC(DMD):
         evalY = evalY + self.outputVals[0, index, :]
     return evalX, evalY
 
-  def _evaluateLocal(self,featureVals): return self.__evaluateLocal__(featureVals)
+  def _evaluateLocal(self,featureVals):
+    return self.__evaluateLocal__(featureVals)
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -392,13 +398,13 @@ class DMDC(DMD):
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     evalX, evalY = self.__evaluate(featureVals)
-    indeces = [0]
+    indices = [0]
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
-      indeces = self.neigh.predict(feats).astype(int)
-    nreqs = len(indeces)
+      indices = self.neigh.predict(feats).astype(int)
+    nreqs = len(indices)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
@@ -620,5 +626,3 @@ class DMDC(DMD):
     C = Y1.dot(scipy.linalg.pinv2(X1))
 
     return A, B, C
-
-

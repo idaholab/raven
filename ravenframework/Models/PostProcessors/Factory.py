@@ -38,6 +38,7 @@ from .EconomicRatio import EconomicRatio
 from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
 from .Validations import PPDSS
+from .Validations import PhysicsGuidedCoverageMapping
 from .TSACharacterizer import TSACharacterizer
 from .FeatureSelection import FeatureSelection
 from .DataObjectVariablesSelector import DataObjectVariablesSelector

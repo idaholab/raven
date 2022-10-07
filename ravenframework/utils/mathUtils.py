@@ -602,7 +602,7 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
   U, s, V = np.linalg.svd(X, full_matrices=full)
   V = V.conj().T if conj else V.T
 
-  if truncationRank is 0:
+  if truncationRank == 0:
     omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
     rank = np.sum(s > np.median(s) * omeg(np.divide(*sorted(X.shape))))
   elif truncationRank > 0 and truncationRank < 1:
@@ -975,6 +975,79 @@ def angleBetweenVectors(a, b):
   ang = np.rad2deg(ang)
 
   return ang
+
+def partialDerivative(f, x0, var, n = 1, h = None, target = None):
+  """
+    Compute the n-th partial derivative of function f
+    with respect variable var (numerical differentation).
+    The derivative is computed with a central difference
+    approximation.
+    @ In, f, instance, the function to differentiate (format f(d) where d is a dictionary)
+    @ In, x0, dict, the dictionary containing the x0 coordinate
+    @ In, var, str, the variable of the resulting partial derivative
+    @ In, n, int, optional, the order of the derivative. (max 10)
+    @ In, h, float, optional, the step size, default automatically computed
+    @ In, target, str, optional, the target output in case the "f" returns a dict of outputs. Default (takes the first)
+    @ Out, deriv, float, the partial derivative of function f
+  """
+  import numdifftools as nd
+  assert(n <= 10)
+  def func(x, var, target=None):
+    """
+      Simple function wrapper for using scipy
+      @ In, x, float, the point at which the nth derivative is found
+      @ In, var, str, the variable in the dictionary x0 corresponding
+                      to the part derivative to compute
+      @ In, target, str, optional, the target output in case the "f" returns a dict of outputs. Default (takes the first)
+      @ Out, func, float, the evaluated function
+    """
+    d = copy.copy(x0)
+    d[var] = x
+    out = f(d)
+    if isinstance(out, dict):
+      return list(out.values())[0] if target is None else out[target]
+    else:
+      return out
+
+  do = nd.Derivative(func, order=n)
+  deriv = do(x0[var],var,target)
+  return deriv
+
+def derivatives(f, x0, var = None, n = 1, h = None, target=None):
+  """
+    Compute the n-th partial derivative of function f
+    with respect variable var (numerical differentation).
+    The derivative is computed with a central difference
+    approximation.
+    @ In, f, instance, the function to differentiate (format f(d) where d is a dictionary)
+    @ In, x0, dict, the dictionary containing the x0 coordinate {key:scalar or array of len(1)}
+    @ In, var, list, optional, the list of variables of the resulting partial derivative (if None, compute all)
+    @ In, n, int, optional, the order of the derivative. (max 10)
+    @ In, h, float, optional, the step size, default automatically computed
+    @ In, target, str, optional, the target output in case the "f" returns a dict of outputs. Default (all targets)
+    @ Out, deriv, dict, the partial derivative of function f
+  """
+  assert(n <= 10)
+  assert(isinstance(var, list) or isinstance(var, type(None)))
+  #XXX Possibly this should only be done sometimes
+  for key in x0:
+    x0[key] = np.atleast_1d(x0[key])
+  assert(len(list(x0.values())[0]) == 1)
+  #assert(first(x0.values()).size == 1)
+  targets = [target]
+  if target is None:
+    checkWorking = f(x0)
+    if isinstance(checkWorking, dict):
+      targets = checkWorking.keys()
+  deriv = {}
+  for t in targets:
+    for variable in (x0.keys() if var is None else var):
+      name = variable if t is None else "d{}|d{}".format(t, variable)
+      deriv[name] = partialDerivative(f, x0, variable, n = n, h = h, target=t)
+  return deriv
+
+
+
 
 # utility function for defaultdict
 def giveZero():
