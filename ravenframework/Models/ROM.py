@@ -134,6 +134,23 @@ class ROM(Dummy):
     self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('estimator', InputData.Quantity.zero_to_infinity)
 
+
+  def _localWhatDoINeed(self):
+    """
+      Used to obtain necessary objects.
+      @ In, None
+      @ Out, _localWhatDoINeed, dict, the dict listing the needed objects
+    """
+    return {'internal':[(None,'jobHandler')]}
+
+  def _localGenerateAssembler(self, assemblerObjects):
+    """
+      Used to obtain necessary objects.
+      @ In, assemblerObjects, dict, the assembler objects
+      @ Out, None
+    """
+    self.assemblerDict['jobHandler'] = assemblerObjects['internal']['jobHandler']
+
   def __getstate__(self):
     """
       Method for choosing what gets serialized in this class

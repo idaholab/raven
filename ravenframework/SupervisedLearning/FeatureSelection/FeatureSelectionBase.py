@@ -67,7 +67,6 @@ class FeatureSelectionBase(BaseInterface):
     nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'threshold'])
     assert(not notFound)
     self.parametersToInclude = nodes['parametersToInclude']
-    self.whichSpace = nodes['whichSpace'].lower()
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
 

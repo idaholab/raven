@@ -68,9 +68,9 @@ class RFE(FeatureSelectionBase):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm. 
-        Feature selection refers to techniques that select a subset of the most relevant features for a model (ROM). 
-        Fewer features can allow ROMs to run more efficiently (less space or time complexity) and be more effective. 
+    spec.description = r"""The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+        Feature selection refers to techniques that select a subset of the most relevant features for a model (ROM).
+        Fewer features can allow ROMs to run more efficiently (less space or time complexity) and be more effective.
         Indeed, some ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting in worse
         predictive performance.
         RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the
@@ -79,7 +79,7 @@ class RFE(FeatureSelectionBase):
         \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully
         removing
         features until the desired number remains.
-        This is achieved by fitting the given ROME used in the core of the model, ranking features by importance, 
+        This is achieved by fitting the given ROME used in the core of the model, ranking features by importance,
         discarding the least important features, and re-fitting the model. This process is repeated until a specified number of
         features remains.
         When the full model is created, a measure of variable importance is computed that ranks the predictors from most
@@ -141,6 +141,17 @@ class RFE(FeatureSelectionBase):
     self.step = 1
     self.subGroups = []
 
+  def __getstate__(self):
+    """
+      Method for choosing what gets serialized in this class
+      @ In, None
+      @ Out, d, dict, things to serialize
+    """
+    d = copy.copy(self.__dict__)
+    # remove the estimator
+    del d['estimator']
+    return d
+
   def setEstimator(self, estimator):
     """
       Set estimator
@@ -156,8 +167,9 @@ class RFE(FeatureSelectionBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues([ 'step','nFeaturesToSelect','onlyOutputScore','maxNumberFeatures',
-                                                            'searchTol','applyClusteringFiltering','applyCrossCorrelation'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['whichSpace','step','nFeaturesToSelect','onlyOutputScore',
+                                                            'maxNumberFeatures', 'searchTol','applyClusteringFiltering',
+                                                            'applyCrossCorrelation'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
@@ -166,6 +178,7 @@ class RFE(FeatureSelectionBase):
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
     self.applyCrossCorrelation = nodes['applyCrossCorrelation']
+    self.whichSpace = nodes['whichSpace'].lower()
     # check if subgroups present
     for child in paramInput.subparts:
       if child.getName() == 'subGroup':
@@ -182,7 +195,7 @@ class RFE(FeatureSelectionBase):
     if self.applyCrossCorrelation and not len(self.subGroups):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
-  
+
   def __applyClusteringPrefiltering(self, X, y, mask, support_):
     """
       Apply clustering pre-filtering

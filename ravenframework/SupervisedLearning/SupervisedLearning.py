@@ -185,8 +185,6 @@ class SupervisedLearning(BaseInterface):
         self.raiseAnError(IOError, "Only one feature selection algorithm is allowed in the ROM")
       featAlgo = featSelection.subparts[0]
       self.featureSelectionAlgo = featureSelectionFactory.returnInstance(featAlgo.getName())
-      if featureSelectionFactory.returnClass(featAlgo.getName()).needROM:
-        self.featureSelectionAlgo.setEstimator(self)
       # handle input
       self.featureSelectionAlgo._handleInput(featAlgo)
     # dim reduction?
@@ -368,6 +366,8 @@ class SupervisedLearning(BaseInterface):
       #explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
       #singular_values_ = self.dimReductionEngine.singular_values_
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
+      if self.featureSelectionAlgo.needROM:
+        self.featureSelectionAlgo.setEstimator(self)
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):
         self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
