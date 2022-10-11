@@ -96,7 +96,6 @@ def scrambleMutator(offSprings, distDict, **kwargs):
       children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
 
   for i in range(np.shape(offSprings)[0]):
-    # children[i] = offSprings[i]
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i,locs[0]:locs[-1]+1]),None)
@@ -120,7 +119,7 @@ def bitFlipMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by bitFlipMutator')
-    
+
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
@@ -199,44 +198,6 @@ def inversionMutator(offSprings, distDict, **kwargs):
       ##############
       # insert mirrored sequence into child
       child.values[locL:locU+1]=mirrSeq
-  
-  # if kwargs['locs'] == None:
-  #   locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-  #   loc1 = locs[0]
-  #   loc2 = locs[1]
-  # else:
-  #   loc1 = kwargs['locs'][0]
-  #   loc2 = kwargs['locs'][1]
-
-  # for child in offSprings:
-  #   # the mutation is performed for each child independently
-  #   if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
-  #     # sample gene locations: i.e., determine loc1 and loc2
-  #     locRangeList = list(range(0,child.values.shape[0]))
-  #     index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-  #     loc1 = locRangeList[index1]
-  #     locRangeList.pop(loc1)
-  #     index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-  #     loc2 = locRangeList[index2]
-  #     if loc1>loc2:
-  #       locL=loc2
-  #       locU=loc1
-  #     elif loc1<loc2:
-  #       locL=loc1
-  #       locU=loc2
-  #     ##############
-  #     # select sequence to be mirrored and mirror it
-  #     seq=child.values[locL:locU+1]
-  #     for elem in seq:
-  #       index = np.asarray(np.where(child == elem))
-  #       elem = distDict[child.coords['Gene'].values[index]].cdf(float(child[index].values))
-               
-  #     mirrSeq = seq[::-1]
-  #     for elem in mirrSeq:
-  #       elem = distDict[child.coords['Gene'].values[elem]].ppf(elem)
-  #     ##############
-  #     # insert mirrored sequence into child
-  #     child.values[locL:locU+1]=mirrSeq
 
   return offSprings
 

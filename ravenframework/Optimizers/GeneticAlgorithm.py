@@ -524,25 +524,6 @@ class GeneticAlgorithm(RavenSampled):
                                                variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
-      # # Make sure no children are exactly similar to parents
-      # flag = True
-      # counter = 0
-      # while flag and counter < self._populationSize:
-      #   counter += 1
-      #   repeated = []
-      #   for i in range(np.shape(self.population.data)[0]):
-      #     for j in range(i,np.shape(children.data)[0]):
-      #       if all(self.population.data[i,:]==children.data[j,:]):
-      #         repeated.append(j)
-      #   repeated = list(set(repeated))
-      #   if repeated:
-      #     if len(repeated)> children.shape[0] - self._populationSize:
-      #       newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict=self.distDict, locs=self._mutationLocs, mutationProb=self._mutationProb, variables=list(self.toBeSampled))
-      #       children.data[repeated,:] = newChildren.data
-      #     else:
-      #       children = children.drop_sel(chromosome=repeated)
-      #   else:
-      #     flag = False
       # repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
