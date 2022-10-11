@@ -168,7 +168,7 @@
             </kwargs>
          </plot>
          <legend>
-            <loc>upper right</loc>
+            <loc>best</loc>
             <ncol>2</ncol>
          </legend>
       </plotSettings>

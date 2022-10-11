@@ -98,7 +98,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     libraryTree = ET.parse(inputXML)
     libraryRoot = libraryTree.getroot()
     for key in searchDict:
-      for child in libraryRoot.iter(searchDict[key]):
+      for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
     return timeDict
 

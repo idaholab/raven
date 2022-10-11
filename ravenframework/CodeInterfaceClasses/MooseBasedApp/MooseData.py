@@ -88,7 +88,7 @@ class mooseData:
       location[key] = {}
       timeStep[key] = {}
       for coordinate in writeDict[key].keys():
-        if coordinate == 'x' or coordinate == 'y' or coordinate == 'z':
+        if coordinate is 'x' or coordinate is 'y' or coordinate is 'z':
           location[key][coordinate] = writeDict[key][coordinate]
         else:
           timeStep[key][coordinate] = writeDict[key][coordinate]

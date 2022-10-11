@@ -1095,9 +1095,7 @@ class ARMA(SupervisedLearning):
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
     if masks is not None:
-      # Setting masked values to NaN instead of removing them preserves the correct lag between unmasked values, leading
-      # to a more accurate fit in the case that values not at the ends of the array are being masked.
-      data[~masks] = np.nan
+      data = data[masks]
     import statsmodels.api
     results = statsmodels.tsa.arima.model.ARIMA(data, order=(self.P, 0, self.Q), trend='c').fit()
     # The ARIMAResults object here can cause problems with ray when running in parallel. Dropping it
