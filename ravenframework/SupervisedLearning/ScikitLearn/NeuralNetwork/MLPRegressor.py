@@ -46,6 +46,8 @@ class MLPRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.neural_network
     self.model = sklearn.neural_network.MLPRegressor
+    #These lists are used by writeXML in ScikitLearnBase
+    self._vectorWriteList = ["coefs_", "intercepts_"]
 
   @classmethod
   def getInputSpecification(cls):
