@@ -1,0 +1,10 @@
+<DataObjectMetadata name="modelOut">
+  <modelUnderTest type="Static">
+    <ROM>
+      <type>SupervisedLearning</type>
+      <coef_Z>-0.0426499542795,-5.43142021766e-05</coef_Z>
+      <intercept_Z>0.275851025262</intercept_Z>
+    </ROM>
+  </modelUnderTest>
+  
+</DataObjectMetadata>

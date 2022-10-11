@@ -14,4 +14,9 @@
     <Input>X,Y</Input>
     <Output>Z</Output>
   </PointSet>
+  <!-- the model parameters -->
+  <PointSet name="modelOut">
+    <Input>InputPlaceHolder</Input>
+    <Output>OutputPlaceHolder</Output>
+  </PointSet>
 </DataObjects>
