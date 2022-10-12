@@ -42,7 +42,7 @@ def impConstr1(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   g1 = chrom.count(fuelID) - required
   g2 = required - chrom.count(fuelID)
   return min(g1,g2)
@@ -54,7 +54,7 @@ def impConstr2(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   g1 = chrom.count(fuelID) - required
   g2 = required - chrom.count(fuelID)
   return min(g1,g2)
@@ -66,11 +66,11 @@ def impConstr3(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   g1 = chrom.count(fuelID) - required
   g2 = required - chrom.count(fuelID)
   return min(g1,g2)
-  
+
 def impConstr4(Input):
   # fuelID type 0 repeated 11 times
   fuelID = 3
@@ -78,11 +78,11 @@ def impConstr4(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   g1 = chrom.count(fuelID) - required
   g2 = required - chrom.count(fuelID)
   return min(g1,g2)
-  
+
 def impConstr5(Input):
   # fuelID type 0 repeated 11 times
   fuelID = 4
@@ -90,11 +90,11 @@ def impConstr5(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   g1 = chrom.count(fuelID) - required
   g2 = required - chrom.count(fuelID)
   return min(g1,g2)
-  
+
 def impConstr2old(Input):
   # sum of times fuelID 1 and 3 are used should be 7
   fuelID = np.atleast_1d([1,3])
@@ -102,7 +102,7 @@ def impConstr2old(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   # sum = required (this is broken to two constraints)
   # g1: not > required (if < required g1 is negative and hence violated)
   # g2: not < required (if > required g2 is negative and hence violated)
@@ -111,7 +111,7 @@ def impConstr2old(Input):
   g1 = sum([chrom.count(fuel) for fuel in fuelID]) - required
   g2 = required - sum([chrom.count(fuel) for fuel in fuelID])
   return min(g1,g2)
-  
+
 def impConstr3old(Input):
   # sum of times fuelID 2 and 4 are used should be 8
   fuelID = np.atleast_1d([2,4])
@@ -119,7 +119,7 @@ def impConstr3old(Input):
   chrom = list([Input.loc1,Input.loc2,Input.loc3,Input.loc4,Input.loc5,Input.loc6,Input.loc7
                ,Input.loc8,Input.loc9,Input.loc10,Input.loc11,Input.loc12,Input.loc13,Input.loc14
                ,Input.loc15,Input.loc16,Input.loc17,Input.loc18,Input.loc19,Input.loc20,Input.loc22
-			   ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
+               ,Input.loc23,Input.loc24,Input.loc25,Input.loc28,Input.loc29])
   # sum = required (this is broken to two constraints)
   # g1: not > required (if < required g1 is negative and hence violated)
   # g2: not < required (if > required g2 is negative and hence violated)

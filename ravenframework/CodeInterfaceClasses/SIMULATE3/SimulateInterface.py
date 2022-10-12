@@ -17,7 +17,7 @@ Last modified  on August 25, 2022
 
 @author: khnguy22
 
-comments: Interface for Simulate3 Simulation 
+comments: Interface for Simulate3 Simulation
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -57,7 +57,7 @@ class Simulate(CodeInterfaceBase):
     CodeInterfaceBase._readMoreXML(self,xmlNode)
     sequence = xmlNode.find("sequence")
     if sequence is None:
-      self.sequence = ['simulate'] #may be no need 
+      self.sequence = ['simulate'] #may be no need
     else:
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
 
@@ -81,7 +81,7 @@ class Simulate(CodeInterfaceBase):
         SimulatePerturb.append(inputFile)
     if len(SimulatePerturb) > 1 or len(SimulateData) > 1 or len(SimulateInput) >1:
       raise IOError('multiple simulate data/perturbed input files have been found. Only one for each is allowed!')
-    # Check if the input is available 
+    # Check if the input is available
     if len(SimulatePerturb) <1 or len(SimulateData) <1:
       raise IOError('simulatedata/perturb input file has not been found. Please recheck!')
     # add inputs
@@ -129,14 +129,14 @@ class Simulate(CodeInterfaceBase):
     # may be no need ?
     currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
     originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
-    
+
     perturbInput = str(self.findInps(currentInputFiles)['SimulatePerturb'][0]).split()[1]
     sim3Input = str(self.findInps(currentInputFiles)['SimulateInput'][0]).split()[1]
     sim3DataInput = str(self.findInps(currentInputFiles)['SimulateData'][0]).split()[1]
     workingDir = os.path.dirname(perturbInput)
     sim3Input = sim3Input.replace(workingDir+'/','').strip()
     perturbedVal = Kwargs['SampledVars']
-    sim3Data = SpecificParser.DataParser(sim3DataInput) 
+    sim3Data = SpecificParser.DataParser(sim3DataInput)
     perturb = SpecificParser.PerturbedPaser(perturbInput, workingDir, sim3Input, perturbedVal)
     perturb.generateSim3Input(sim3Data)
     return currentInputFiles
@@ -180,7 +180,7 @@ class Simulate(CodeInterfaceBase):
         outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
 
 
-    
+
 
 
 
