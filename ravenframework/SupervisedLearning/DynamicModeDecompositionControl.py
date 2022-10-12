@@ -623,6 +623,6 @@ class DMDC(DMD):
     beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
     A = beta.dot(uTruc[0:n, :].T)
     B = beta.dot(uTruc[n:, :].T)
-    C = Y1.dot(scipy.linalg.pinv2(X1))
+    C = Y1.dot(scipy.linalg.pinv(X1))
 
     return A, B, C

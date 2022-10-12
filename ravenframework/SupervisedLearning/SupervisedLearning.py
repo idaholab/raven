@@ -224,6 +224,9 @@ class SupervisedLearning(BaseInterface):
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
+    if '_assembledObjects' in state:
+      if 'jobHandler' in state['_assembledObjects']:
+        state['_assembledObjects'].pop('jobHandler')
     return state
 
   def __setstate__(self, d):

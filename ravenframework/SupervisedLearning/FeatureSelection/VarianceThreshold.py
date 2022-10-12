@@ -50,7 +50,7 @@ class VarianceThreshold(FeatureSelectionBase):
     """
     spec = super().getInputSpecification()
     spec.description = r"""The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance features.
-                           This feature selection algorithm looks only at the features and not the desired outputs. The 
+                           This feature selection algorithm looks only at the features and not the desired outputs. The
                            variance threshold can be set by the user."""
     spec.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
         descr=r"""Features with a training-set variance lower than this threshold

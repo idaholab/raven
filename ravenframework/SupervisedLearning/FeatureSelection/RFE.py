@@ -23,6 +23,7 @@ import gc
 import os, psutil
 import numpy as np
 import itertools
+import time
 from scipy import spatial
 #from sklearn.decomposition import PCA
 from collections import OrderedDict, defaultdict
@@ -34,6 +35,7 @@ from scipy.spatial.distance import squareform
 #Internal Modules--------------------------------------------------------------------------------
 from ...utils.mathUtils import compareFloats
 from ...utils import InputData, InputTypes
+from ...Decorators.Parallelization import Parallel
 from .FeatureSelectionBase import FeatureSelectionBase
 #Internal Modules End----------------------------------------------------------------------------
 
@@ -148,8 +150,6 @@ class RFE(FeatureSelectionBase):
       @ Out, d, dict, things to serialize
     """
     d = copy.copy(self.__dict__)
-    # remove the estimator
-    del d['estimator']
     return d
 
   def setEstimator(self, estimator):
@@ -246,6 +246,11 @@ class RFE(FeatureSelectionBase):
       @ Out, whichSpace, str, which space?
       @ Out, vals, dict, dictionary of new values
     """
+    useParallel = False
+    jhandler = self.estimator._assembledObjects.get('jobHandler')
+    if jhandler is not None:
+      useParallel = jhandler.runInfoDict['batchSize'] > 1
+
     #FIXME: support and ranking for targets is only needed now because
     #       some features (e.g. DMDC state variables) are stored among the targets
     #       This will go away once (and if) MR #1718 (https://github.com/idaholab/raven/pull/1718) gets merged
@@ -489,8 +494,6 @@ class RFE(FeatureSelectionBase):
       #######
       # NEW SEARCH
       # in here we perform a best subset search
-      actualScore = 0.0
-      previousScore = self.searchTol*2
       initialNumbOfFeatures = int(np.sum(support_))
       featuresForRanking = np.arange(nParams)[support_]
       originalSupport = copy.copy(support_)
@@ -498,86 +501,60 @@ class RFE(FeatureSelectionBase):
       featureList = []
       numbFeatures = []
       bestForNumberOfFeatures = {}
-      # this can be time consuming
-      for k in range(1,initialNumbOfFeatures + 1):
-        #Looping over all possible combinations: from initialNumbOfFeatures choose k
-        iteration = 0
-        for combo in itertools.combinations(featuresForRanking,k):
-          iteration+=1
-          support_ = copy.copy(originalSupport)
-          support_[featuresForRanking] = False
-          support_[np.asarray(combo)] = True
-          supportIndex = 0
-          for idx in range(len(supportOfSupport_)):
-            if mask[idx]:
-              supportOfSupport_[idx] = support_[supportIndex]
-              supportIndex=supportIndex+1
-          if self.whichSpace == 'feature':
-            features = np.arange(nFeatures)[supportOfSupport_]
-            targets = np.arange(nTargets)
-          else:
-            features = np.arange(nFeatures)
-            targets = np.arange(nTargets)[supportOfSupport_]
+      supportData = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,
+                     'nTargets':nTargets,'nParams':nParams,'targetsIds':targetsIds,
+                     'originalParams':originalParams,'supportOfSupport_':supportOfSupport_,
+                     'originalSupport':originalSupport, 'parametersToInclude':self.parametersToInclude,
+                     'whichSpace':self.whichSpace,'onlyOutputScore':self.onlyOutputScore}
 
-          estimator = copy.deepcopy(self.estimator)
-          toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
-          survivors = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-          vals = {}
-          if toRemove:
-            for child in originalParams.subparts:
-              if isinstance(child.value,list):
-                newValues = copy.copy(child.value)
-                for el in toRemove:
-                  if el in child.value:
-                    newValues.pop(newValues.index(el))
-                vals[child.getName()] = newValues
-            estimator.paramInput.findNodesAndSetValues(vals)
-            estimator._handleInput(estimator.paramInput)
-          estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
-
-          # evaluate
-          score = 0.0
-          for samp in range(X.shape[0]):
-            evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
-            previousScore = actualScore
-            scores = {}
-            dividend = 0.
-            # stateW = 1/float(len(combo))
-            for target in evaluated:
-              if target in targetsIds:
-                if target not in self.parametersToInclude:
-                  # if not state variable, then this target is output variable
-                  w = 1/float(len(targets)-1-len(combo))
-                else:
-                  w = 1/float(len(combo))
-                  if self.onlyOutputScore:
-                    continue
-                tidx = targetsIds.index(target)
-                avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
-                std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
-                if compareFloats (avg, 0.):
-                  avg = 1
-                if compareFloats (std, 0.):
-                  std = 1.
-                ev = (evaluated[target] - avg)/std
-                ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
-                s = np.sum(np.square(ref-ev))
-                scores[target] = s*w
-                score +=  s*w
-          self.raiseAMessage("Score for iteration {} is {} and variables are {}".format(iteration,score," ".join(survivors)))
-          # free memory and call garbace collector
-          del estimator
-          gc.collect()
-          # get best features
-          if k in bestForNumberOfFeatures.keys():
-            if bestForNumberOfFeatures[k][0] > score:
-              bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
-          else:
+      def updateBestScore(it, k, score, combo, survivors):
+        """
+          Update score and combo containers
+          @ In, k, int, number of features
+          @ In, score, float, the score for this combination
+          @ In, combo, list(int), list of integers (combinations)
+          @ Out, None
+        """
+        if k in bestForNumberOfFeatures.keys():
+          if bestForNumberOfFeatures[k][0] > score:
             bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
-          scorelist.append(score)
-          featureList.append(combo)
-          numbFeatures.append(len(combo))
+        else:
+          bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
+        scorelist.append(score)
+        featureList.append(combo)
+        self.raiseAMessage("Iter. #: {}. Score: {:.6e}. Variables (# {}):  {}".format(it+1,score,len(survivors)," ".join(survivors)))
 
+      # this can be time consuming
+      # check if parallel is available
+      if useParallel:
+        # we use the parallelization
+        for k in range(1,initialNumbOfFeatures + 1):
+          #Looping over all possible combinations: from initialNumbOfFeatures choose k
+          collectedCnt = 0
+          for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
+            # train and get score
+            if jhandler.availability() > 0:
+              prefix = f'{k}_{it}'
+              jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self.trainAndScore,prefix, uniqueHandler='RFE')
+              # we keep adding jobs till we have availability
+              continue
+
+            finishedJobs = jhandler.getFinished(uniqueHandler='RFE')
+            if not finishedJobs:
+              while jhandler.availability() == 0:
+                time.sleep(0.0001)
+            for finished in finishedJobs:
+              score, survivors, combo = finished.getEvaluation()
+              collectedCnt+=1
+              updateBestScore(collectedCnt, k, score, combo, survivors)
+
+      else:
+        for k in range(1,initialNumbOfFeatures + 1):
+          #Looping over all possible combinations: from initialNumbOfFeatures choose k
+          for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
+            # train and get score
+            score, survivors, _ = self.trainAndScore.original_function(copy.deepcopy(self.estimator), X, y, combo,supportData)
+            updateBestScore(it, k, score, combo, survivors)
       idxx = np.argmin(scorelist)
       support_ = copy.copy(originalSupport)
       support_[featuresForRanking] = False
@@ -619,3 +596,85 @@ class RFE(FeatureSelectionBase):
     self.ranking_ = ranking_
 
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_, self.whichSpace, vals
+
+
+  @Parallel()
+  def trainAndScore(estimator, X, y, featureCombination, supportData):
+    """
+    """
+
+    featuresForRanking = supportData['featuresForRanking']
+    mask = supportData['mask']
+    nFeatures = supportData['nFeatures']
+    nTargets = supportData['nTargets']
+    nParams = supportData['nParams']
+    targetsIds = supportData['targetsIds']
+    originalParams = supportData['originalParams']
+    supportOfSupport_ = supportData['supportOfSupport_']
+    parametersToInclude = supportData['parametersToInclude']
+    whichSpace = supportData['whichSpace']
+    onlyOutputScore = supportData['onlyOutputScore']
+    # intialize support and working vars
+    support_ = copy.copy(supportData['originalSupport'])
+    support_[featuresForRanking] = False
+    support_[np.asarray(featureCombination)] = True
+    supportIndex = 0
+    actualScore = 0.0
+    for idx in range(len(supportOfSupport_)):
+      if mask[idx]:
+        supportOfSupport_[idx] = support_[supportIndex]
+        supportIndex=supportIndex+1
+    if whichSpace == 'feature':
+      features = np.arange(nFeatures)[supportOfSupport_]
+      targets = np.arange(nTargets)
+    else:
+      features = np.arange(nFeatures)
+      targets = np.arange(nTargets)[supportOfSupport_]
+
+    #estimator = copy.deepcopy(self.estimator)
+    toRemove = [parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+    survivors = [parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+    vals = {}
+    if toRemove:
+      for child in originalParams.subparts:
+        if isinstance(child.value,list):
+          newValues = copy.copy(child.value)
+          for el in toRemove:
+            if el in child.value:
+              newValues.pop(newValues.index(el))
+          vals[child.getName()] = newValues
+      estimator.paramInput.findNodesAndSetValues(vals)
+      estimator._handleInput(estimator.paramInput)
+    estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+
+    # evaluate
+    score = 0.0
+    for samp in range(X.shape[0]):
+      evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
+      scores = {}
+      for target in evaluated:
+        if target in targetsIds:
+          if target not in parametersToInclude:
+            # if not state variable, then this target is output variable
+            w = 1/float(len(targets)-1-len(featureCombination))
+          else:
+            w = 1/float(len(featureCombination))
+            if onlyOutputScore:
+              continue
+          tidx = targetsIds.index(target)
+          avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
+          std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
+          if compareFloats (avg, 0.):
+            avg = 1
+          if compareFloats (std, 0.):
+            std = 1.
+          ev = (evaluated[target] - avg)/std
+          ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
+          s = np.sum(np.square(ref-ev))
+          scores[target] = s*w
+          score +=  s*w
+    # free memory and call garbage collector
+    del estimator
+    gc.collect()
+
+    return score, survivors, featureCombination
