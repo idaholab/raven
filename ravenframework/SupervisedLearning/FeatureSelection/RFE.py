@@ -610,7 +610,7 @@ class RFE(FeatureSelectionBase):
     nParams = supportData['nParams']
     targetsIds = supportData['targetsIds']
     originalParams = supportData['originalParams']
-    supportOfSupport_ = supportData['supportOfSupport_']
+    supportOfSupport_ = copy.copy(supportData['supportOfSupport_'])
     parametersToInclude = supportData['parametersToInclude']
     whichSpace = supportData['whichSpace']
     onlyOutputScore = supportData['onlyOutputScore']
