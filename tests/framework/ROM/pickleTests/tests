@@ -34,6 +34,11 @@
     input = 'script_rom_loader.py'
     prereq = stochPolyPickleTest
   [../]
+  [./inter_rom_loader]
+    type = 'RavenPython'
+    input = 'inter_rom_loader.py'
+    prereq = stochPolyPickleTest
+  [../]
   [./arma_gen]
     type = 'RavenFramework'
     input = 'arma.xml'
