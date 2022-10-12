@@ -144,6 +144,7 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
+
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
@@ -155,6 +156,7 @@ def randomMutator(offSprings, distDict, **kwargs):
       newCDFValue = randomUtils.random()
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
       child.values[loc-1] = newValue
+
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
