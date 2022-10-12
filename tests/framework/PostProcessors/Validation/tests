@@ -13,6 +13,13 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_gate_pcm]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_pcm.xml'
+    csv = 'PhysicsGuidedCoverageMapping/pcm_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
   [./test_validation_dss]
     type = 'RavenFramework'
     input = 'test_validation_dss.xml'

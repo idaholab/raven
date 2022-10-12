@@ -9,6 +9,7 @@
       This tests point set economic ratio quantities and passing basic statistics.
     </description>
     <revisions>
+      <revision author="dgarrett622" date="2022-08-23">add request for multiple value at risk and expected shortfall</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -50,9 +51,11 @@
     <Dummy name="MyDummy" subType=""/>
     <PostProcessor name="EconRatio" subType="EconomicRatio">
       <valueAtRisk prefix="VaR" threshold="0.05">NPV</valueAtRisk>
+      <valueAtRisk prefix="VaR" threshold="0.1">NPV</valueAtRisk>
       <sortinoRatio prefix="sort" threshold="median">NPV</sortinoRatio>
       <sharpeRatio prefix="sharpe">NPV</sharpeRatio>
       <expectedShortfall prefix="CVaR" threshold="0.05">NPV</expectedShortfall>
+      <expectedShortfall prefix="CVaR" threshold="0.1">NPV</expectedShortfall>
       <gainLossRatio prefix="glr" threshold="median">NPV</gainLossRatio>
       <expectedValue prefix="mean">NPV</expectedValue>
       <median prefix="med">NPV</median>
@@ -117,7 +120,9 @@
     <PointSet name="EconVaRResult">
       <Output>
         VaR_0.05_NPV,
+        VaR_0.1_NPV,
         CVaR_0.05_NPV,
+        CVaR_0.1_NPV,
         sort_median_NPV,
         sharpe_NPV,
         glr_median_NPV,

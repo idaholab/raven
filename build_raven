@@ -16,6 +16,7 @@ echo Making RAVEN ...
 # defaults
 MAKE_ARGS=" "
 LIBS_MODE=0 # 0 is "create", 1 is "load"
+EDITABLE=0 # 0 is install regular, 1 is install editable
 #### FUTURE WORK:
 ####   combine "make" and "establish_conda_env.sh" into one installation command
 ECE_ARGS=" "
@@ -39,7 +40,9 @@ do
        ;;
      --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"; ;;
      --skip-conda)
-      LIBS_MODE=2
+         LIBS_MODE=2 ;;
+     --editable)
+         EDITABLE=1
 #    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
 #    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
 #    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
@@ -105,11 +108,15 @@ if test `uname` = Darwin; then
 fi
 
 PIP_COMMAND=pip3
-(cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
-
-#pip install will add a duplicate ravenframework directory, so delete so there isn't
-# confusion over which of the two copies to use.
-(cd $RAVEN_BUILD_DIR && rm -Rf install/ravenframework)
+if [[ $EDITABLE == 0 ]]
+then # Don't install editable
+    (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
+    #pip install will add a duplicate ravenframework directory, so delete so there isn't
+    # confusion over which of the two copies to use.
+    (cd $RAVEN_BUILD_DIR && rm -Rf install/ravenframework)
+else #do install editable
+    $PIP_COMMAND --verbose install --editable . --upgrade --target ./install
+fi
 
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
