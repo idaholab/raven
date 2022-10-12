@@ -64,7 +64,7 @@ class Simulate(CodeInterfaceBase):
 
   def findInps(self,inputFiles):
     """
-      Locates the input files required by Scale Interface
+      Locates the input files required by SIMULATE3 Interface
       @ In, inputFiles, list, list of Files objects
       @ Out, inputDict, dict, dictionary containing xml and a dummy input for SIMULATE3
     """
@@ -146,13 +146,13 @@ class Simulate(CodeInterfaceBase):
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
-      In the case of SCALE, we look for the expression "terminated due to errors". If it is present, the run is considered to be failed.
+      Check for FATAL error in SIMULATE3 output
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
-    badWords  = ['terminated due to errors']
+    badWords  = ['FATAL']
     try:
       outputToRead = open(os.path.join(workingDir,output+'.out'),"r")
     except:

@@ -274,62 +274,6 @@
       <Output class="OutStreams" type="Print">optOut</Output>
     </IOStep>
   </Steps>
-  <Functions>
-    <External file="Simulate_RAVEN-GA/genmap.py" name="gen_pattern">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-	<External file="Simulate_RAVEN-GA/constraints/FuelReloadCaseConstraints.py" name="impConstr1">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-	<External file="Simulate_RAVEN-GA/constraints/FuelReloadCaseConstraints.py" name="impConstr2">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-	<External file="Simulate_RAVEN-GA/constraints/FuelReloadCaseConstraints.py" name="impConstr3">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-	<External file="Simulate_RAVEN-GA/constraints/FuelReloadCaseConstraints.py" name="impConstr4">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-	<External file="Simulate_RAVEN-GA/constraints/FuelReloadCaseConstraints.py" name="impConstr5">
-      <variables>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </variables>
-    </External>
-  </Functions>
   <DataObjects>
     <PointSet name="optOut">
       <Input>
@@ -341,7 +285,7 @@
 	  </Input>
       <Output>target, MaxEFPD, pin_peaking, max_boron, MaxFDH, batchId</Output>
     </PointSet>
-	<PointSet name="opt_export">
+    <PointSet name="opt_export">
     <Input>trajID</Input>
     <Output>
 		  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
@@ -349,8 +293,8 @@
 	    loc15, loc16, loc17, loc18, loc19, loc20,
 	    loc22, loc23, loc24, loc25, loc28,
 	    loc29, target,iteration,age, rejectReason,batchId,fitness,accepted
-		</Output>
-  </PointSet>
+    </Output>
+    </PointSet>
   </DataObjects>
   <OutStreams>
     <Print name="optOut">
