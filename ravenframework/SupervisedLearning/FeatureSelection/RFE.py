@@ -538,19 +538,19 @@ class RFE(FeatureSelectionBase):
         for k in range(1,initialNumbOfFeatures + 1):
           #Looping over all possible combinations: from initialNumbOfFeatures choose k
           collectedCnt = 0
-          for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
+          combinations = list(itertools.combinations(featuresForRanking,k))
+          it = 0
+          while it < len(combinations):
             # train and get score
             if jhandler.availability() > 0:
-              prefix = f'{k}_{it}'
+              prefix = f'{k}_{it+1}'
               #jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self.trainAndScore,prefix, uniqueHandler='RFE')
-              jhandler.addJob((estimatorRef, XRef, yRef, combo, supportDataRef,),self.trainAndScore, prefix, uniqueHandler='RFE')
-              # we keep adding jobs till we have availability
-              continue
-
+              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),self.trainAndScore, prefix, uniqueHandler='RFE')
+              it += 1
             finishedJobs = jhandler.getFinished(uniqueHandler='RFE')
             if not finishedJobs:
               while jhandler.availability() == 0:
-                time.sleep(0.0001)
+                time.sleep(jhandler.sleepTime)
             for finished in finishedJobs:
               score, survivors, combo = finished.getEvaluation()
               collectedCnt+=1
