@@ -41,11 +41,11 @@ def swapMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] == None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    loc1 = locs[0]
-    loc2 = locs[1]
+    loc1 = np.minimum(locs[0], locs[1])
+    loc2 = np.maximum(locs[0], locs[1])
   else:
-    loc1 = kwargs['locs'][0]
-    loc2 = kwargs['locs'][1]
+    loc1 = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    loc2 = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -76,14 +76,14 @@ def scrambleMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
-  locs = kwargs['locs']
-  if locs == None:
-    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
-    locs=[]
-    for i in range(nLocs):
-      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
-      locs.append(l)
-    locs = list(set(locs))
+  
+  # sample gene locations: i.e., determine locL and locU
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locs.sort()
+  else:
+    locs = [kwargs['locs'][0], kwargs['locs'][1]]
+    locs.sort()
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -150,6 +150,15 @@ def inversionMutator(offSprings, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
+  # sample gene locations: i.e., determine locL and locU
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locL = np.minimum(locs[0], locs[1])
+    locU = np.maximum(locs[0], locs[1])
+  else:
+    locL = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    locU = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
+
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:

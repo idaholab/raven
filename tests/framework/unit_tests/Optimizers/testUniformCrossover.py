@@ -51,10 +51,9 @@ def checkSameDataArrays(comment, resultedDA, expectedDA, update=True):
   return res
 
 results = {'pass': 0, 'fail': 0}
-#
-#
+
+
 # initialization
-#
 optVars = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8']
 population = [[11,12,13,14,15,16,17,18],
               [21,22,23,24,25,26,27,28],

@@ -5,7 +5,6 @@
     type = 'RavenPython'
     input = 'testFiniteDifference.py'
   [../]
-  
   # GAs
   [./testRouletteWheel]
     type = 'RavenPython'
