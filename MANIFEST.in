@@ -4,3 +4,4 @@ recursive-include crow/contrib/include/Eigen *
 recursive-include crow/contrib/include/boost *
 include include/contrib/AMSC/*.h
 include include/contrib/ngl/*.h*
+include ravenframework/ROMExternal.py
