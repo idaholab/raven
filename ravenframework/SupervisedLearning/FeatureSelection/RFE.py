@@ -527,6 +527,13 @@ class RFE(FeatureSelectionBase):
       # this can be time consuming
       # check if parallel is available
       if useParallel:
+        # send some data to workers
+        self.raiseADebug("Sending large data objects to Workers for parallel")
+        supportDataRef = jhandler.sendDataToWorkers(supportData)
+        yRef = jhandler.sendDataToWorkers(y)
+        XRef = jhandler.sendDataToWorkers(X)
+        estimatorRef = jhandler.sendDataToWorkers(self.estimator)
+        self.raiseADebug("Large data objects have been sent")
         # we use the parallelization
         for k in range(1,initialNumbOfFeatures + 1):
           #Looping over all possible combinations: from initialNumbOfFeatures choose k
@@ -535,7 +542,8 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it}'
-              jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self.trainAndScore,prefix, uniqueHandler='RFE')
+              #jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self.trainAndScore,prefix, uniqueHandler='RFE')
+              jhandler.addJob((estimatorRef, XRef, yRef, combo, supportDataRef,),self.trainAndScore, prefix, uniqueHandler='RFE')
               # we keep adding jobs till we have availability
               continue
 
@@ -543,6 +551,12 @@ class RFE(FeatureSelectionBase):
             if not finishedJobs:
               while jhandler.availability() == 0:
                 time.sleep(0.0001)
+            for finished in finishedJobs:
+              score, survivors, combo = finished.getEvaluation()
+              collectedCnt+=1
+              updateBestScore(collectedCnt, k, score, combo, survivors)
+          while not jhandler.isFinished(uniqueHandler="RFE"):
+            finishedJobs = jhandler.getFinished(uniqueHandler='RFE')
             for finished in finishedJobs:
               score, survivors, combo = finished.getEvaluation()
               collectedCnt+=1
@@ -601,8 +615,29 @@ class RFE(FeatureSelectionBase):
   @Parallel()
   def trainAndScore(estimator, X, y, featureCombination, supportData):
     """
-    """
+      Method to train and score an estimator based on a set of feature combination
+      @ In, estimator, object, surrogate model instance
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ In, featureCombination, numpy.ndarray(int), array of feature that should be tested (indeces of features)
+      @ In, supportData, dict, dictionary containing data for performing the training/score:
+                               featuresForRanking: intial feature set
+                               mask: mask for the X (or y) array (based on parameters to include)
+                               nFeatures: number of features
+                               nTargets: number of targets
+                               nParams: number of total parameters
+                               targetsIds: ids of targets
+                               originalParams: original parameter container (InputData) for ROM initialization
+                               originalSupport: boolean array of the initial support to mask features
+                               supportOfSupport_: boolean array of the initial support to mask X or y (parameters included and not)
+                               parametersToInclude: list of parameters to include
+                               whichSpace: which space? feature or target?
+                               onlyOutputScore: score on output only?
 
+      @ Out, score, float, the score for this combination
+      @ Out, survivors,list(str), the list of parameters for this combination
+      @ Out, featureCombination, numpy.ndarray(int), list of feature that should be tested (indeces of features)
+    """
     featuresForRanking = supportData['featuresForRanking']
     mask = supportData['mask']
     nFeatures = supportData['nFeatures']
@@ -619,7 +654,6 @@ class RFE(FeatureSelectionBase):
     support_[featuresForRanking] = False
     support_[np.asarray(featureCombination)] = True
     supportIndex = 0
-    actualScore = 0.0
     for idx in range(len(supportOfSupport_)):
       if mask[idx]:
         supportOfSupport_[idx] = support_[supportIndex]

@@ -423,6 +423,19 @@ class JobHandler(BaseType):
 
     return servers
 
+  def sendDataToWorkers(self, data):
+    """
+      Method to send data to workers (if ray activated) and return a reference
+      If ray is not used, the data is simply returned, otherwise an object reference id is returned
+      @ In, data, object, any data to send to workers
+      @ Out, ref, ray.ObjectRef or object, the reference or the object itself
+    """
+    if self.rayServer is not None:
+      ref = ray.put(data)
+    else:
+      ref = data
+    return ref
+
   def startLoop(self):
     """
     This function begins the polling loop for the JobHandler where it will
@@ -561,10 +574,15 @@ class JobHandler(BaseType):
     with self.__queueLock:
       self.__finished.append(run)
 
-  def isFinished(self):
+  def isFinished(self, jobIdentifier='', uniqueHandler="any"):
     """
-      Method to check if all the runs in the queue are finished
-      @ In, None
+      Method to check if all the runs in the queue are finished, or if a specific job(s) is done (jobIdentifier or uniqueHandler)
+      @ In, jobIdentifier, string, optional, if specified, only check
+        finished runs that start with this text. If not specified check all.
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be checked. By default uniqueHandler = 'any' => all the jobs for
+        which no uniqueIdentifier has been set up are going to be checked
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
 
@@ -583,8 +601,9 @@ class JobHandler(BaseType):
       # that is not done.
       for run in self.__running+self.__clientRunning:
         if run:
-          return False
-
+          if run.identifier.startswith(jobIdentifier) \
+                   or uniqueHandler == run.uniqueHandler:
+            return False
     # Are there runs that need to be claimed? If so, then I cannot say I am done.
     numFinished = len(self.getFinishedNoPop())
     if numFinished != 0:
