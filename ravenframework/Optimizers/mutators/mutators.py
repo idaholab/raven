@@ -94,7 +94,6 @@ def scrambleMutator(offSprings, distDict, **kwargs):
       children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
 
   for i in range(np.shape(offSprings)[0]):
-    # children[i] = offSprings[i]
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i,locs[0]:locs[-1]+1]),None)
