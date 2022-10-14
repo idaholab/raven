@@ -76,8 +76,6 @@ def scrambleMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
-  
-  # sample gene locations: i.e., determine locL and locU
   if kwargs['locs'] == None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
     locs.sort()
@@ -96,18 +94,18 @@ def scrambleMutator(offSprings, distDict, **kwargs):
       children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
 
   for i in range(np.shape(offSprings)[0]):
-    children[i] = offSprings[i]
+    # children[i] = offSprings[i]
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
-        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
+        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i,locs[0]:locs[-1]+1]),None)
 
   for i in range(np.shape(offSprings)[0]):
     for j in range(np.shape(offSprings)[1]):
-      children[i,j] = distDict[offSprings.coords['Gene'].values[j]].ppf(children[i,j])
+      children[i,j] = distDict[offSprings.coords['Gene'].values[j]].ppf(float(children[i,j].values))
 
   return children
 
-def bitFlipMutator(offSprings,**kwargs):
+def bitFlipMutator(offSprings, distDict, **kwargs):
   """
     This method is designed to flip a single gene in each chromosome with probability = mutationProb.
     E.g. gene at location loc is flipped from current value to newValue
@@ -118,25 +116,44 @@ def bitFlipMutator(offSprings,**kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
+  if kwargs['locs'] is not None and 'locs' in kwargs.keys():
+    raise ValueError('Locs arguments are not being used by bitFlipMutator')
+    
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
       loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
-      ##############
-      # sample value: i.e., determine newValue
-      if kwargs['sampleRange']=='local':
-        rangeValues = list(set(offSprings[:,loc].values))
-      else: #kwargs['sampleRange']=='global'
-        rangeValues = offSprings.values.ravel().tolist()
-      rangeValues.pop(child.values[loc])
-      newValuePos = randomUtils.randomIntegers(0, len(rangeValues), caller=None, engine=None)
-      newValue = rangeValues[newValuePos]
-      ##############
       # gene at location loc is flipped from current value to newValue
-      child.values[loc] = newValue
+      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
+      oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc-1])
+      newCDFValue = 1.0 - oldCDFvalue
+      newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
+      child.values[loc-1] = newValue
+  return offSprings
 
+def randomMutator(offSprings, distDict, **kwargs):
+  """
+    This method is designed to randomly mutate a single gene in each chromosome with probability = mutationProb.
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+    @ Out, offSprings, xr.DataArray, children resulting from the crossover process
+  """
+  if kwargs['locs'] is not None and 'locs' in kwargs.keys():
+    raise ValueError('Locs arguments are not being used by randomMutator')
+  for child in offSprings:
+    # the mutation is performed for each child independently
+    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
+      # sample gene location to be flipped: i.e., determine loc
+      chromosomeSize = child.values.shape[0]
+      loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
+      # gene at location loc is flipped from current value to newValue
+      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
+      newCDFValue = randomUtils.random()
+      newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
+      child.values[loc-1] = newValue
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
@@ -162,31 +179,18 @@ def inversionMutator(offSprings, distDict, **kwargs):
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
-      # sample gene locations: i.e., determine loc1 and loc2
-      locRangeList = list(range(0,child.values.shape[0]))
-      index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-      loc1 = locRangeList[index1]
-      locRangeList.pop(loc1)
-      index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-      loc2 = locRangeList[index2]
-      if loc1>loc2:
-        locL=loc2
-        locU=loc1
-      elif loc1<loc2:
-        locL=loc1
-        locU=loc2
-      ##############
       # select sequence to be mirrored and mirror it
-      seq=child.values[locL:locU+1]
-      for elem in seq:
-        elem = distDict[child.coords['Gene'].values[elem]].cdf(float(child[elem].values))
-
-      mirrSeq = seq[::-1]
+      seq = np.arange(locL,locU+1)
+      allElems = []
+      for i,elem in enumerate(seq):
+         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+      
+      mirrSeq = allElems[::-1]
+      mirrElems = []
       for elem in mirrSeq:
-        elem = distDict[child.coords['Gene'].values[elem]].ppf(elem)
-      ##############
+        mirrElems.append(distDict[child.coords['Gene'].values[i]].ppf(elem))
       # insert mirrored sequence into child
-      child.values[locL:locU+1]=mirrSeq
+      child.values[locL:locU+1]=mirrElems
 
   return offSprings
 
@@ -195,6 +199,7 @@ __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
+__mutators['randomMutator']     = randomMutator
 
 
 def returnInstance(cls, name):
