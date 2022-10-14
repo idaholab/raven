@@ -309,108 +309,60 @@ class RFE(FeatureSelectionBase):
       groupFeaturesForRanking = copy.deepcopy(featuresForRanking)
       groupRanking_ = copy.deepcopy(ranking_)
       groupSupportOfSupport_ = copy.deepcopy(supportOfSupport_)
-    for g in range(nGroups):
-      # loop over groups
-      if nGroups > 1:
-        support_ = copy.deepcopy(groupSupport_)
-        featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
-        ranking_ = copy.deepcopy(groupRanking_)
-        supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)
-        outputspace = self.subGroups[g]
-        self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
 
-      # Elimination
-      while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
-        # Remaining features
+    supportDataRFE = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,
+                   'nTargets':nTargets,'nParams':nParams,'targetsIds':targetsIds,
+                   'originalParams':originalParams,'supportOfSupport_':supportOfSupport_,
+                   'ranking_':ranking_,'nFeaturesToSelect':nFeaturesToSelect,'firstStep':step,
+                   'setStep':setStep,'subGroups':self.subGroups,
+                   'originalSupport':support_, 'parametersToInclude':self.parametersToInclude,
+                   'whichSpace':self.whichSpace}
 
-        raminingFeatures = int(np.sum(support_))
-        featuresForRanking = np.arange(nParams)[support_]
-        # subgrouping
-        outputToRemove = None
-        if outputspace != None:
-          indexToRemove = []
-          outputToRemove = []
-          indexToKeep = []
-          sg = copy.deepcopy(self.subGroups)
-          outputToKeep = sg.pop(g)
-          for grouptoremove in sg:
-            outputToRemove += grouptoremove
-          for t in outputToRemove:
-            indexToRemove.append(targetsIds.index(t))
-          for t in outputToKeep:
-            indexToKeep.append(targetsIds.index(t))
-          if self.whichSpace != 'feature':
-            supportOfSupport_[np.asarray(indexToRemove)] = False
-            supportOfSupport_[np.asarray(indexToKeep)] = True
+    if useParallel:
+      # send some data to workers
+      self.raiseADebug("Sending large data objects to Workers for parallel")
+      supportDataForRFERef = jhandler.sendDataToWorkers(supportDataRFE)
+      yRef = jhandler.sendDataToWorkers(y)
+      XRef = jhandler.sendDataToWorkers(X)
+      estimatorRef = jhandler.sendDataToWorkers(self.estimator)
+      self.raiseADebug("Large data objects have been sent to workers")
 
-        supportIndex = 0
-        for idx in range(len(supportOfSupport_)):
-          if mask[idx]:
-            supportOfSupport_[idx] = support_[supportIndex]
-            supportIndex=supportIndex+1
-        if self.whichSpace == 'feature':
-          features = np.arange(nFeatures)[supportOfSupport_]
-          targets = np.arange(nTargets)
-        else:
-          features = np.arange(nFeatures)
-          targets = np.arange(nTargets)[supportOfSupport_]
-        # Rank the remaining features
-        estimator = copy.deepcopy(self.estimator)
-        self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
-        toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
-        if outputToRemove is not None:
-          toRemove += outputToRemove
-        vals = {}
+      for g in range(nGroups):
+        if jhandler.availability() > 0:
+          prefix = f'subgroup_{g}'
+          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
 
-        if toRemove:
-          for child in originalParams.subparts:
-            if isinstance(child.value,list):
-              newValues = copy.copy(child.value)
-              for el in toRemove:
-                if el in child.value:
-                  newValues.pop(newValues.index(el))
-              vals[child.getName()] = newValues
-          estimator.paramInput.findNodesAndSetValues(vals)
-          estimator._handleInput(estimator.paramInput)
-        estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+        finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
+        if not finishedJobs:
+          while jhandler.availability() == 0:
+            time.sleep(jhandler.sleepTime)
+        for finished in finishedJobs:
+          support_, indexToKeep = finished.getEvaluation()
+          if nGroups > 1:
+            # store candidates in case of sugroupping
+            supportCandidates.append(copy.deepcopy(support_))
+            outputSpaceToKeep.append(indexToKeep)
+      while not jhandler.isFinished(uniqueHandler="RFE_subgroup"):
+        finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
+        for finished in finishedJobs:
+          support_, indexToKeep = finished.getEvaluation()
+          if nGroups > 1:
+            # store candidates in case of sugroupping
+            supportCandidates.append(copy.deepcopy(support_))
+            outputSpaceToKeep.append(indexToKeep)
+    else:
+      for g in range(nGroups):
+        # loop over groups
+        if nGroups > 1:
+          outputspace = self.subGroups[g]
+          self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
+        # apply RFE
+        support_, indexToKeep = self._rfe.original_function(self.estimator, X, y, g, outputspace, supportDataRFE)
 
-        # Get coefs
-        coefs = None
-        if hasattr(estimator, 'featureImportances_'):
-          importances = estimator.featureImportances_
-
-          # since we get the importance, highest importance must be kept => we get the inverse of coefs
-          parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-          indexMap = {v: i for i, v in enumerate(parametersRemained)}
-          #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-          subSetImportances = {k: importances[k] for k in parametersRemained}
-          sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
-          coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
-          if coefs.shape[0] == raminingFeatures:
-            coefs = coefs.T
-        if coefs is None:
-          coefs = np.ones(raminingFeatures)
-
-        # Get ranks (for sparse case ranks is matrix)
-        ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
-        # Eliminate the worse features
-        threshold = min(step, np.sum(support_) - nFeaturesToSelect)
-        step = setStep
-        # Compute step score on the previous selection iteration
-        # because 'estimator' must use features
-        # that have not been eliminated yet
-        support_[featuresForRanking[ranks][:threshold]] = False
-        ranking_[np.logical_not(support_)] += 1
-        # delete estimator to free memory
-        del estimator
-        gc.collect()
-        # we do the search at least once
-        doAtLeastOnce = False
-
-      if nGroups > 1:
-        # store candidates in case of sugroupping
-        supportCandidates.append(copy.deepcopy(support_))
-        outputSpaceToKeep.append(indexToKeep)
+        if nGroups > 1:
+          # store candidates in case of sugroupping
+          supportCandidates.append(copy.deepcopy(support_))
+          outputSpaceToKeep.append(indexToKeep)
 
     if nGroups > 1:
       support_[:] = False
@@ -530,9 +482,9 @@ class RFE(FeatureSelectionBase):
         # send some data to workers
         self.raiseADebug("Sending large data objects to Workers for parallel")
         supportDataRef = jhandler.sendDataToWorkers(supportData)
-        yRef = jhandler.sendDataToWorkers(y)
-        XRef = jhandler.sendDataToWorkers(X)
-        estimatorRef = jhandler.sendDataToWorkers(self.estimator)
+        #yRef = jhandler.sendDataToWorkers(y)
+        #XRef = jhandler.sendDataToWorkers(X)
+        #estimatorRef = jhandler.sendDataToWorkers(self.estimator)
         self.raiseADebug("Large data objects have been sent")
         # we use the parallelization
         for k in range(1,initialNumbOfFeatures + 1):
@@ -544,10 +496,10 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it+1}'
-              #jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self.trainAndScore,prefix, uniqueHandler='RFE')
-              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),self.trainAndScore, prefix, uniqueHandler='RFE')
+              #jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self._scoring,prefix, uniqueHandler='RFE')
+              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),self._scoring, prefix, uniqueHandler='RFE_scoring')
               it += 1
-            finishedJobs = jhandler.getFinished(uniqueHandler='RFE')
+            finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
             if not finishedJobs:
               while jhandler.availability() == 0:
                 time.sleep(jhandler.sleepTime)
@@ -555,8 +507,8 @@ class RFE(FeatureSelectionBase):
               score, survivors, combo = finished.getEvaluation()
               collectedCnt+=1
               updateBestScore(collectedCnt, k, score, combo, survivors)
-          while not jhandler.isFinished(uniqueHandler="RFE"):
-            finishedJobs = jhandler.getFinished(uniqueHandler='RFE')
+          while not jhandler.isFinished(uniqueHandler="RFE_scoring"):
+            finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
             for finished in finishedJobs:
               score, survivors, combo = finished.getEvaluation()
               collectedCnt+=1
@@ -567,7 +519,7 @@ class RFE(FeatureSelectionBase):
           #Looping over all possible combinations: from initialNumbOfFeatures choose k
           for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
             # train and get score
-            score, survivors, _ = self.trainAndScore.original_function(copy.deepcopy(self.estimator), X, y, combo,supportData)
+            score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator), X, y, combo,supportData)
             updateBestScore(it, k, score, combo, survivors)
       idxx = np.argmin(scorelist)
       support_ = copy.copy(originalSupport)
@@ -611,9 +563,150 @@ class RFE(FeatureSelectionBase):
 
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_, self.whichSpace, vals
 
+  @Parallel()
+  def _rfe(estimatorObj, X, y, groupId, outputspace, supportData):
+    """
+      Method to apply recursive feature elimination
+      @ In, estimatorObj, object, surrogate model instance
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ In, groupId, int, subGroupIndex
+      @ In, outputspace, list, list of output space variables (if None, not distinction is needed)
+      @ In, supportData, dict, dictionary containing data for performing the training/score:
+                               featuresForRanking: intial feature set
+                               nFeaturesToSelect: number of features to select
+                               firstStep: the intial step to use
+                               setStep: the subsequential step to use
+                               mask: mask for the X (or y) array (based on parameters to include)
+                               nFeatures: number of features
+                               nTargets: number of targets
+                               nParams: number of total parameters
+                               targetsIds: ids of targets
+                               originalParams: original parameter container (InputData) for ROM initialization
+                               originalSupport: boolean array of the initial support to mask features
+                               supportOfSupport_: boolean array of the initial support to mask X or y (parameters included and not)
+                               parametersToInclude: list of parameters to include
+                               whichSpace: which space? feature or target?
+                               onlyOutputScore: score on output only?
+
+      @ Out, score, float, the score for this combination
+      @ Out, survivors,list(str), the list of parameters for this combination
+      @ Out, featureCombination, numpy.ndarray(int), list of feature that should be tested (indeces of features)
+    """
+    # copy arrays that will be modified during the search
+    support_ = copy.copy(supportData['originalSupport'])
+    featuresForRanking = copy.copy(supportData['featuresForRanking'])
+    ranking_ = copy.copy(supportData['ranking_'])
+    supportOfSupport_ = copy.copy(supportData['supportOfSupport_'])
+    # get immutable settings
+    nFeaturesToSelect = supportData['nFeaturesToSelect']
+    subGroups = supportData['subGroups']
+    step = supportData['firstStep']
+    setStep = supportData['setStep']
+    mask = supportData['mask']
+    nFeatures = supportData['nFeatures']
+    nTargets = supportData['nTargets']
+    nParams = supportData['nParams']
+    targetsIds = supportData['targetsIds']
+    originalParams = supportData['originalParams']
+
+    parametersToInclude = supportData['parametersToInclude']
+    whichSpace = supportData['whichSpace']
+
+    # initialize working dir
+    indexToKeep = None
+    # the search is done at least once
+    doAtLeastOnce = True
+    while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
+      # Remaining features
+      estimator = copy.deepcopy(estimatorObj)
+      raminingFeatures = int(np.sum(support_))
+      featuresForRanking = np.arange(nParams)[support_]
+      # subgrouping
+      outputToRemove = None
+      if outputspace != None:
+        indexToRemove = []
+        outputToRemove = []
+        indexToKeep = []
+        sg = copy.deepcopy(subGroups)
+        outputToKeep = sg.pop(groupId)
+        for grouptoremove in sg:
+          outputToRemove += grouptoremove
+        for t in outputToRemove:
+          indexToRemove.append(targetsIds.index(t))
+        for t in outputToKeep:
+          indexToKeep.append(targetsIds.index(t))
+        if whichSpace != 'feature':
+          supportOfSupport_[np.asarray(indexToRemove)] = False
+          supportOfSupport_[np.asarray(indexToKeep)] = True
+
+      supportIndex = 0
+      for idx in range(len(supportOfSupport_)):
+        if mask[idx]:
+          supportOfSupport_[idx] = support_[supportIndex]
+          supportIndex=supportIndex+1
+      if whichSpace == 'feature':
+        features = np.arange(nFeatures)[supportOfSupport_]
+        targets = np.arange(nTargets)
+      else:
+        features = np.arange(nFeatures)
+        targets = np.arange(nTargets)[supportOfSupport_]
+      # Rank the remaining features
+      print("(            ) FEATURE SELECTION - RFE  : Message         -> Fitting estimator with %d features." % np.sum(support_))
+      toRemove = [parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+      if outputToRemove is not None:
+        toRemove += outputToRemove
+      vals = {}
+
+      if toRemove:
+        for child in originalParams.subparts:
+          if isinstance(child.value,list):
+            newValues = copy.copy(child.value)
+            for el in toRemove:
+              if el in child.value:
+                newValues.pop(newValues.index(el))
+            vals[child.getName()] = newValues
+        estimator.paramInput.findNodesAndSetValues(vals)
+        estimator._handleInput(estimator.paramInput)
+      estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+
+      # Get coefs
+      coefs = None
+      if hasattr(estimator, 'featureImportances_'):
+        importances = estimator.featureImportances_
+
+        # since we get the importance, highest importance must be kept => we get the inverse of coefs
+        parametersRemained = [parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+        indexMap = {v: i for i, v in enumerate(parametersRemained)}
+        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+        subSetImportances = {k: importances[k] for k in parametersRemained}
+        sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
+        coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
+        if coefs.shape[0] == raminingFeatures:
+          coefs = coefs.T
+      if coefs is None:
+        coefs = np.ones(raminingFeatures)
+
+      # Get ranks (for sparse case ranks is matrix)
+      ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
+      # Eliminate the worse features
+      threshold = min(step, np.sum(support_) - nFeaturesToSelect)
+      step = setStep
+      # Compute step score on the previous selection iteration
+      # because 'estimator' must use features
+      # that have not been eliminated yet
+      support_[featuresForRanking[ranks][:threshold]] = False
+      ranking_[np.logical_not(support_)] += 1
+      # delete estimator to free memory
+      del estimator
+      gc.collect()
+      # we do the search at least once
+      doAtLeastOnce = False
+
+    return support_, indexToKeep
 
   @Parallel()
-  def trainAndScore(estimator, X, y, featureCombination, supportData):
+  def _scoring(estimator, X, y, featureCombination, supportData):
     """
       Method to train and score an estimator based on a set of feature combination
       @ In, estimator, object, surrogate model instance

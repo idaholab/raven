@@ -290,10 +290,10 @@ def fixXmlTag(msg):
   if not bool(matched):
     pre = msg
     msg = re.sub(notTagChars, '.', msg)
-    print('XML UTILS: Replacing illegal tag characters in "{}": {}'.format(pre, msg))
+    print('( XML  UTILS ) Replacing illegal tag characters in "{}": {}'.format(pre, msg))
   #  2. Start with a letter or underscore
   if not bool(re.match(letters + u'|([_])', msg[0])) or bool(re.match(u'([xX][mM][lL])', msg[:3])):
-    print('XML UTILS: Prepending "_" to illegal tag "' + msg + '"')
+    print('( XML  UTILS ) Prepending "_" to illegal tag "' + msg + '"')
     msg = '_' + msg
   return msg
 
@@ -356,7 +356,7 @@ def replaceVariableGroups(node, variableGroups):
     for t,text in enumerate(textEntries):
       if text in variableGroups.keys():
         textEntries[t] = variableGroups[text].getVarsString()
-        print('xmlUtils: Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+        print('( XML  UTILS ) Replaced text in <%s> with variable group "%s"' %(node.tag,text))
     #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
     node.text = str(','.join(textEntries))
   for child in node:
