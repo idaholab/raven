@@ -337,19 +337,25 @@ class RFE(FeatureSelectionBase):
           while jhandler.availability() == 0:
             time.sleep(jhandler.sleepTime)
         for finished in finishedJobs:
-          support_, indexToKeep = finished.getEvaluation()
+          supportParallel_, indexToKeepParallel = finished.getEvaluation()
           if nGroups > 1:
             # store candidates in case of sugroupping
-            supportCandidates.append(copy.deepcopy(support_))
-            outputSpaceToKeep.append(indexToKeep)
+            supportCandidates.append(copy.deepcopy(supportParallel_))
+            outputSpaceToKeep.append(indexToKeepParallel)
+          else:
+            support_ = supportParallel_
+            indexToKeep = indexToKeepParallel
       while not jhandler.isFinished(uniqueHandler="RFE_subgroup"):
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
         for finished in finishedJobs:
-          support_, indexToKeep = finished.getEvaluation()
+          supportParallel_, indexToKeepParallel = finished.getEvaluation()
           if nGroups > 1:
             # store candidates in case of sugroupping
-            supportCandidates.append(copy.deepcopy(support_))
-            outputSpaceToKeep.append(indexToKeep)
+            supportCandidates.append(copy.deepcopy(supportParallel_))
+            outputSpaceToKeep.append(indexToKeepParallel)
+          else:
+            support_ = supportParallel_
+            indexToKeep = indexToKeepParallel          
     else:
       for g in range(nGroups):
         # loop over groups
@@ -357,12 +363,15 @@ class RFE(FeatureSelectionBase):
           outputspace = self.subGroups[g]
           self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
         # apply RFE
-        support_, indexToKeep = self._rfe.original_function(self.estimator, X, y, g, outputspace, supportDataRFE)
+        supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator, X, y, g, outputspace, supportDataRFE)
 
         if nGroups > 1:
           # store candidates in case of sugroupping
-          supportCandidates.append(copy.deepcopy(support_))
-          outputSpaceToKeep.append(indexToKeep)
+          supportCandidates.append(copy.deepcopy(supportParallel_))
+          outputSpaceToKeep.append(indexToKeepParallel)
+        else:
+          support_ = supportParallel_
+          indexToKeep = indexToKeepParallel         
 
     if nGroups > 1:
       support_[:] = False
