@@ -85,6 +85,6 @@ setup(name='raven_framework',
                              'src/AMSC/UnionFind.cpp',
                              'src/AMSC/AMSC.cpp'],
                     include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
-      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object']+['ravenframework.'+x for x in ['Application', 'ClassProperty', 'CodeInterfaceBaseClass', 'CodeInterfaces', 'CsvLoader', 'CustomCommandExecuter', 'Distributions', 'Driver', 'EntityFactoryBase', 'Files', 'Functions', 'GridEntities', 'IndexSets', 'Interaction', 'JobHandler', 'MessageHandler', 'MetricDistributor', 'OrthoPolynomials', 'PluginManager', 'Quadratures', 'Simulation', 'VariableGroups', 'h5py_interface_creator', 'raven_qsub_command', 'unSupervisedLearning']],
-      packages=['ravenframework.'+x for x in setuptools.find_packages('ravenframework')],
+      py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object'],
+      packages=['ravenframework.'+x for x in setuptools.find_packages('ravenframework')]+['ravenframework'],
       cmdclass={'build': CustomBuild})
