@@ -13,7 +13,8 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo D'Onorio (University of Rome La Sapienza)
+  @author: Matteo D'Onorio (Sapienza University of Rome)
+           matteo.donorio@uniroma1.it
 """
 import sys
 import os
@@ -21,7 +22,6 @@ from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 import GenericParser
 import pandas as pd
 import time
-
 
 class Melcor(CodeInterfaceBase):
   """
@@ -130,27 +130,18 @@ class Melcor(CodeInterfaceBase):
     parser = GenericParser.GenericParser(inFiles)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputFiles,origFiles)
-            
     return currentInputFiles,origInputFiles,samplerType
-    #return self.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
-  def writeCsv(self,filen,workDir):
+  def writeDict(self,filen,workDir):
     """
       Output the parsed results into a CSV file
       @ In, filen, str, the file name of the CSV file
       @ In, workDir, str, current working directory
       @ Out, None
     """
-   
     path = "./MELCOR_pyPlot"
-    
     if not os.path.exists(path):
       import subprocess
-      
-      # clone = "git clone https://github.com/mattdon/MELCOR_pyPlot.git"
-      # os.chdir(path) # Specifying the path where the cloned project needs to be copied
-      # os.system(clone) # Cloning
-      
       my_timeout = 20.0
       p = subprocess.Popen(["git", "clone", "https://github.com/mattdon/MELCOR_pyPlot.git"], cwd=os.path.dirname(os.path.realpath(__file__)))
       t = 0. 
@@ -165,20 +156,18 @@ class Melcor(CodeInterfaceBase):
           break
         time.sleep(5.0)
         t += 5.0
-
       if t>= my_timeout:
         raise ModuleNotFoundError("Cloning of Melcor parser failed")
         
     from MELCOR_pyPlot.melcorTools import MCRBin  
-    
     fileDir = os.path.join(workDir,self.MelcorPlotFile)
     Time,Data,VarUdm = MCRBin(fileDir,self.VarList)
     dfTime = pd.DataFrame(Time, columns= ["Time"])
     dfData = pd.DataFrame(Data, columns = self.VarList)
     df = pd.concat([dfTime, dfData], axis=1, join='inner')
     df.drop_duplicates(subset="Time",keep='first',inplace=True)
-    df.to_csv(filen+'.csv',index=False, header=True)
-    return filen
+    dictionary=df.to_dict()
+    return dictionary
   
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -193,7 +182,7 @@ class Melcor(CodeInterfaceBase):
     self.det = False
     outfile = os.path.join(workingDir,output+'.out')
     if failure == False:
-      response = self.writeCsv(os.path.join(workingDir,output),workingDir)
+      response = self.writeDict(os.path.join(workingDir,output),workingDir)
     if self.det:
       stopDET = self.stopDET ( workingDir )
       if stopDET == True:
