@@ -13,75 +13,99 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza),
-           Fabio Gianneti (University of Rome La Sapienza),
-           Andrea Alfonsi (INL)
+  @author: Matteo D'Onorio (University of Rome La Sapienza)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
+import sys
+import os
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from melcorInterface   import MelcorApp
-from melgenInterface import MelgenApp
+import GenericParser
+import pandas as pd
+import time
+
 
 class Melcor(CodeInterfaceBase):
   """
-    this class is used a part of a code dictionary to specialize Model.Code for MELCOR 2. Version
+    this class is used a part of a code dictionary to specialize Model.Code for different MELCOR versions
+    like MELCOR 2.2x, MELCOR 1.86, MELCOR for fusion applications
   """
 
-  def __init__(self):
+  def _readMoreXML(self,xmlNode):
     """
-      Constructor.
-      @ In, None
-      @ Out, None
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
     """
-    CodeInterfaceBase.__init__(self)
-    self.melcorInterface = MelcorApp()
-    self.melgenInterface = MelgenApp()
 
-  def findInps(self,inputFiles):
+    melNode = xmlNode.find('MelcorOutput')
+    varNode = xmlNode.find('variables')
+    plotNode = xmlNode.find('CodePlotFile')
+    if varNode is None:
+      raise IOError("Melcor variables not found, define variables to print")
+    if plotNode is None:
+      raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
+    if melNode is None:
+      raise IOError("Please enter MELCOR message file name")
+    self.VarList = [var.strip() for var in varNode.text.split("$,")]
+    self.MelcorPlotFile = [var.strip() for var in plotNode.text.split(",")][0]
+    self.melcorOutFile = [var.strip() for var in melNode.text.split(",")][0]
+    return self.VarList,self.MelcorPlotFile,self.melcorOutFile
+
+  def findInps(self,currentInputFiles):
     """
       Locates the input files for Melgen, Melcor
       @ In, inputFiles, list, list of Files objects
-      @ Out, (melgIn,melcIn), tuple, tuple containing Melgin and Melcor input files
+      @ Out, (melgIn,melcIn), tuple, tuple containing Melgen and Melcor input files
     """
     foundMelcorInp = False
-    for index, inputFile in enumerate(inputFiles):
+
+    for index, inputFile in enumerate(currentInputFiles[0]):
       if inputFile.getExt() in self.getInputExtension():
         foundMelcorInp = True
-        melgIn = inputFiles[index]
-        melcIn = inputFiles[index]
+        melgIn = currentInputFiles[index]
+        melcIn = currentInputFiles[index]          
     if not foundMelcorInp:
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn,melcIn
 
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
-      Generate a command to run MELCOR (combined MELGEN AND MELCOR)
-      Collects all the clargs and the executable to produce the command-line call.
+      This method is used to retrieve the command (in tuple format) needed to launch the Code.
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      This method is used to retrieve the command (in tuple format) needed to launch the Code.
-      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs that have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if preExec is None:
-      raise IOError('No preExec listed in input! Exiting...')
-    melcin,melgin = self.findInps(inputFiles)
-    #get the melgen part
-    melgCommand,melgOut = self.melcorInterface.generateCommand([melgin],preExec,clargs,fargs)
-    #get the melcor part
-    melcCommand,melcOut = self.melgenInterface.generateCommand([melcin],executable,clargs,fargs)
-    #combine them
-    returnCommand = melgCommand + melcCommand, melcOut
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile[index].getExt() in self.getInputExtension():
+        found = True
+        break
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))      
+    melcOut = 'OUTPUT_MELCOR'
+    melcin,melgin = self.findInps(inputFiles)    
+    if clargs:
+      precommand = executable + clargs['text']
+    else:
+      precommand = executable
+    melgCommand = str(preExec)+ ' '+melcin[index].getFilename()
+    melcCommand = precommand+ ' '+melcin[index].getFilename()
+    returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],melcOut
+    
     return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
-      This generates a new input file depending on which sampler has been chosen
+      this generate a new input file depending on which sampler is chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
@@ -89,19 +113,99 @@ class Melcor(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
+    
+    if "dynamicevent" in samplerType.lower():
+      raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet! But we are working on that.")
+    indexes  = []
+    inFiles  = []
+    origFiles= []
+    #FIXME possible danger here from reading binary files
+    for index,inputFile in enumerate(currentInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        indexes.append(index)
+        inFiles.append(inputFile)
+    for index,inputFile in enumerate(origInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        origFiles.append(inputFile)
+    parser = GenericParser.GenericParser(inFiles)
+    parser.modifyInternalDictionary(**Kwargs)
+    parser.writeNewInput(currentInputFiles,origFiles)
+            
+    return currentInputFiles,origInputFiles,samplerType
+    #return self.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
-  def finalizeCodeOutput(self, command, output, workingDir):
+  def writeCsv(self,filen,workDir):
+    """
+      Output the parsed results into a CSV file
+      @ In, filen, str, the file name of the CSV file
+      @ In, workDir, str, current working directory
+      @ Out, None
+    """
+   
+    path = "./MELCOR_pyPlot"
+    
+    if not os.path.exists(path):
+      import subprocess
+      
+      # clone = "git clone https://github.com/mattdon/MELCOR_pyPlot.git"
+      # os.chdir(path) # Specifying the path where the cloned project needs to be copied
+      # os.system(clone) # Cloning
+      
+      my_timeout = 20.0
+      p = subprocess.Popen(["git", "clone", "https://github.com/mattdon/MELCOR_pyPlot.git"], cwd=os.path.dirname(os.path.realpath(__file__)))
+      t = 0. 
+      found = False
+      while t < my_timeout:
+        try:
+          import MELCOR_pyPlot.melcorTools  
+          found = True
+        except ModuleNotFoundError:
+          pass
+        if found:
+          break
+        time.sleep(5.0)
+        t += 5.0
+
+      if t>= my_timeout:
+        raise ModuleNotFoundError("Cloning of Melcor parser failed")
+        
+    from MELCOR_pyPlot.melcorTools import MCRBin  
+    
+    fileDir = os.path.join(workDir,self.MelcorPlotFile)
+    Time,Data,VarUdm = MCRBin(fileDir,self.VarList)
+    dfTime = pd.DataFrame(Time, columns= ["Time"])
+    dfData = pd.DataFrame(Data, columns = self.VarList)
+    df = pd.concat([dfTime, dfData], axis=1, join='inner')
+    df.drop_duplicates(subset="Time",keep='first',inplace=True)
+    df.to_csv(filen+'.csv',index=False, header=True)
+    return filen
+  
+  def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
-      In this method the MELCOR outputfile is parsed and a CSV is created
+      It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, dictionary containing the data
     """
-    output = self.melcorInterface.finalizeCodeOutput(command,output, workingDir)
-    return output
+    failure = False	
+    self.det = False
+    outfile = os.path.join(workingDir,output+'.out')
+    if failure == False:
+      response = self.writeCsv(os.path.join(workingDir,output),workingDir)
+    if self.det:
+      stopDET = self.stopDET ( workingDir )
+      if stopDET == True:
+        print("RUN ended successfully!!!!!")
+      else:
+        tripVariable = self.messageReader(workingDir)[0]
+        endTime = self.messageReader(workingDir)[1][0]
+        endTimeStep = self.messageReader(workingDir)[1][1]
+        filename = os.path.join(workingDir,output+"_actual_branch_info.xml")
+        self._writeBranchInfo(filename, endTime, endTimeStep, tripVariable)
+    return response
+
 
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -109,12 +213,20 @@ class Melcor(CodeInterfaceBase):
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
       This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
-      (e.g. in MELCOR would be the expression "Normal termination")
+      (e.g. in RELAP5 would be the keyword "********")
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
-    """
-    failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
+    """   
+    failure = True
+#    goodWord  = "  Normal termination"   mel-fus
+    goodWord  = " Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
+    try:
+      outputToRead = open(os.path.join(workingDir,self.melcorOutFile),"r")
+    except:
+      return failure
+    readLines = outputToRead.readlines()
+    lastRow = readLines[-1]
+    if lastRow.startswith(goodWord):
+      failure = False
     return failure
-
-
