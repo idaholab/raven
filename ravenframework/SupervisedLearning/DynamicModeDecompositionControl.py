@@ -326,7 +326,7 @@ class DMDC(DMD):
         self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
 
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
-      if True:
+      if False:
         for stateID, val in self._importances.items():
           self.raiseAMessage("state var {} | {}".format(stateID, np.sqrt(np.sum(self._importances[stateID]))))
     if group is not None:

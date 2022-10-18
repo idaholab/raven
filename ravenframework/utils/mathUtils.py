@@ -599,7 +599,10 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
     @ In, conj, bool, optional, compute conjugate of right-singular vectors matrix)
     @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
   """
-  U, s, V = np.linalg.svd(X, full_matrices=full)
+  try:
+    U, s, V = np.linalg.svd(X, full_matrices=full)
+  except np.linalg.LinAlgError as ae:
+    print(str(ae))
   V = V.conj().T if conj else V.T
 
   if truncationRank == 0:

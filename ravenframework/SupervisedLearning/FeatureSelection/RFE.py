@@ -326,6 +326,7 @@ class RFE(FeatureSelectionBase):
       XRef = jhandler.sendDataToWorkers(X)
       estimatorRef = jhandler.sendDataToWorkers(self.estimator)
       self.raiseADebug("Large data objects have been sent to workers")
+      collectedOutput = 0
 
       for g in range(nGroups):
         if jhandler.availability() > 0:
@@ -338,21 +339,25 @@ class RFE(FeatureSelectionBase):
             time.sleep(jhandler.sleepTime)
         for finished in finishedJobs:
           supportParallel_, indexToKeepParallel = finished.getEvaluation()
+          self.raiseAMessage(f"Collecting results from subgroup {finished.identifier}")
+          collectedOutput+=1
           if nGroups > 1:
             # store candidates in case of sugroupping
             supportCandidates.append(copy.deepcopy(supportParallel_))
-            outputSpaceToKeep.append(indexToKeepParallel)
+            outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
           else:
             support_ = supportParallel_
             indexToKeep = indexToKeepParallel
-      while not jhandler.isFinished(uniqueHandler="RFE_subgroup"):
+      while collectedOutput < nGroups:
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
         for finished in finishedJobs:
+          self.raiseAMessage(f"Collecting results from subgroup {finished.identifier}")
           supportParallel_, indexToKeepParallel = finished.getEvaluation()
+          collectedOutput += 1
           if nGroups > 1:
             # store candidates in case of sugroupping
             supportCandidates.append(copy.deepcopy(supportParallel_))
-            outputSpaceToKeep.append(indexToKeepParallel)
+            outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
           else:
             support_ = supportParallel_
             indexToKeep = indexToKeepParallel          
@@ -368,12 +373,121 @@ class RFE(FeatureSelectionBase):
         if nGroups > 1:
           # store candidates in case of sugroupping
           supportCandidates.append(copy.deepcopy(supportParallel_))
-          outputSpaceToKeep.append(indexToKeepParallel)
+          outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
         else:
           support_ = supportParallel_
           indexToKeep = indexToKeepParallel         
 
+    ########## TO REMOVE
+    #for g in range(nGroups):
+      ## loop over groups
+      #if nGroups > 1:
+        #support_ = copy.deepcopy(groupSupport_)
+        #featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
+        #ranking_ = copy.deepcopy(groupRanking_)
+        #supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)
+        #outputspace = self.subGroups[g]
+        #self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
+   
+      ## Elimination
+      #while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
+        ## Remaining features
+   
+        #raminingFeatures = int(np.sum(support_))
+        #featuresForRanking = np.arange(nParams)[support_]
+        ## subgrouping
+        #outputToRemove = None
+        #if outputspace != None:
+          #indexToRemove = []
+          #outputToRemove = []
+          #indexToKeep = []
+          #sg = copy.deepcopy(self.subGroups)
+          #outputToKeep = sg.pop(g)
+          #for grouptoremove in sg:
+            #outputToRemove += grouptoremove
+          #for t in outputToRemove:
+            #indexToRemove.append(targetsIds.index(t))
+          #for t in outputToKeep:
+            #indexToKeep.append(targetsIds.index(t))
+          #if self.whichSpace != 'feature':
+            #supportOfSupport_[np.asarray(indexToRemove)] = False
+            #supportOfSupport_[np.asarray(indexToKeep)] = True
+   
+        #supportIndex = 0
+        #for idx in range(len(supportOfSupport_)):
+          #if mask[idx]:
+            #supportOfSupport_[idx] = support_[supportIndex]
+            #supportIndex=supportIndex+1
+        #if self.whichSpace == 'feature':
+          #features = np.arange(nFeatures)[supportOfSupport_]
+          #targets = np.arange(nTargets)
+        #else:
+          #features = np.arange(nFeatures)
+          #targets = np.arange(nTargets)[supportOfSupport_]
+        ## Rank the remaining features
+        #estimator = copy.deepcopy(self.estimator)
+        #self.raiseAMessage("Fitting estimator with %d features." % np.sum(support_))
+        #toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
+        #if outputToRemove is not None:
+          #toRemove += outputToRemove
+        #vals = {}
+   
+        #if toRemove:
+          #for child in originalParams.subparts:
+            #if isinstance(child.value,list):
+              #newValues = copy.copy(child.value)
+              #for el in toRemove:
+                #if el in child.value:
+                  #newValues.pop(newValues.index(el))
+              #vals[child.getName()] = newValues
+          #estimator.paramInput.findNodesAndSetValues(vals)
+          #estimator._handleInput(estimator.paramInput)
+        #estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+   
+        ## Get coefs
+        #coefs = None
+        #if hasattr(estimator, 'featureImportances_'):
+          #importances = estimator.featureImportances_
+   
+          ## since we get the importance, highest importance must be kept => we get the inverse of coefs
+          #parametersRemained = [self.parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+          #indexMap = {v: i for i, v in enumerate(parametersRemained)}
+          ##coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
+          #subSetImportances = {k: importances[k] for k in parametersRemained}
+          #sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
+          #coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
+          #if coefs.shape[0] == raminingFeatures:
+            #coefs = coefs.T
+        #if coefs is None:
+          #coefs = np.ones(raminingFeatures)
+   
+        ## Get ranks (for sparse case ranks is matrix)
+        #ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
+        ## Eliminate the worse features
+        #threshold = min(step, np.sum(support_) - nFeaturesToSelect)
+        #step = setStep
+        ## Compute step score on the previous selection iteration
+        ## because 'estimator' must use features
+        ## that have not been eliminated yet
+        #support_[featuresForRanking[ranks][:threshold]] = False
+        #ranking_[np.logical_not(support_)] += 1
+        ## delete estimator to free memory
+        #del estimator
+        #gc.collect()
+        ## we do the search at least once
+        #doAtLeastOnce = False
+   
+      #if nGroups > 1:
+        ## store candidates in case of sugroupping
+        #supportCandidates.append(copy.deepcopy(support_))
+        #outputSpaceToKeep.append(indexToKeep)
+    
+    ######### TO REMOVE
+
+
+
     if nGroups > 1:
+      print(len(supportCandidates))
       support_[:] = False
       featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
       ranking_ = copy.deepcopy(groupRanking_)
@@ -446,12 +560,12 @@ class RFE(FeatureSelectionBase):
     # additional reduction based on score
     # removing the variables one by one
     if self.maxNumberFeatures is not None:
-      featuresForRanking = np.arange(nParams)[support_]
+      #featuresForRanking = np.arange(nParams)[support_]
       f = np.asarray(self.parametersToInclude)
       self.raiseAMessage("Starting Features are {}".format( " ".join(f[support_]) ))
-      threshold = len(featuresForRanking) - 1
-      coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
-      initialRanks = copy.deepcopy(ranks)
+      #threshold = len(featuresForRanking) - 1
+      #coefs = coefs[:,:-1] if coefs.ndim > 1 else coefs[:-1]
+      #initialRanks = copy.deepcopy(ranks)
       #######
       # NEW SEARCH
       # in here we perform a best subset search
