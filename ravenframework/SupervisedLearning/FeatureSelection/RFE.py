@@ -599,7 +599,7 @@ class RFE(FeatureSelectionBase):
           bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
         scorelist.append(score)
         featureList.append(combo)
-        self.raiseAMessage("Iter. #: {}. Score: {:.6e}. Variables (# {}):  {}".format(it+1,score,len(survivors)," ".join(survivors)))
+        self.raiseAMessage("Iter. #: {}. Score: {:.6e}. Variables (# {}):  {}".format(it,score,len(survivors)," ".join(survivors)))
 
       # this can be time consuming
       # check if parallel is available
