@@ -235,30 +235,30 @@ class EconomicRatio(BasicStatistics):
           targets = set(child.value)
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str, "threshold": str}
-            if "threshold" not in child.parameterValues:
-              threshold = 0.05
-            else:
-              threshold = child.parameterValues["threshold"]
-              if threshold > 1 or threshold < 0:
-                self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
-            # cast threshold to set
-            try:
-              thresholdSet = set(threshold)
-            except TypeError:
-              # not iterable, must be float or int
-              thresholdSet = set([threshold])
-            strThreshold = set()
-            for val in thresholdSet:
-              strThreshold.add(str(val))
-            if 'interpolation' not in child.parameterValues:
-              interpolation = 'linear'
-            else:
-              interpolation = child.parameterValues['interpolation']
-            self.toDo[tag].append({"targets": set(targets),
-                                   "prefix": prefix,
-                                   "threshold": thresholdSet,
-                                   "strThreshold": strThreshold,
-                                   "interpolation": interpolation})
+          if "threshold" not in child.parameterValues:
+            threshold = 0.05
+          else:
+            threshold = child.parameterValues["threshold"]
+            if threshold > 1 or threshold < 0:
+              self.raiseAnError("Threshold in {}, prefix '{}' out of range, please use a float in range (0, 1)!".format(tag, prefix))
+          # cast threshold to set
+          try:
+            thresholdSet = set(threshold)
+          except TypeError:
+            # not iterable, must be float or int
+            thresholdSet = set([threshold])
+          strThreshold = set()
+          for val in thresholdSet:
+            strThreshold.add(str(val))
+          if 'interpolation' not in child.parameterValues:
+            interpolation = 'linear'
+          else:
+            interpolation = child.parameterValues['interpolation']
+          self.toDo[tag].append({"targets": set(targets),
+                                  "prefix": prefix,
+                                  "threshold": thresholdSet,
+                                  "strThreshold": strThreshold,
+                                  "interpolation": interpolation})
         else:
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {"targets": (), "prefix": str}
@@ -576,103 +576,114 @@ class EconomicRatio(BasicStatistics):
     # sortinoRatio
     #
     metric = 'sortinoRatio'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
+    if len(needed[metric]['targets']) > 0:
+      self.raiseADebug(f'Starting "{metric}"...')
       meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
       relWeight = pbWeights[list(needed[metric]['targets'])]
       orgZeroSet = xr.full_like(meanSet, 0)
       orgMedSet = calculations['median']
-      zeroTarget = []
-      daZero = xr.Dataset()
-      medTarget = []
-      daMed = xr.Dataset()
-      for entry in self.toDo[metric]:
-        if entry['threshold'] == 'zero':
-          zeroTarget = entry['targets']
-          zeroSet = orgZeroSet[list(zeroTarget)]
-          dataSet = inputDataset[list(zeroTarget)]
-          lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,zeroSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
-          incapableZeroTarget = [x for x in zeroTarget if not lpsDS[x].values != 0]
-          for target in incapableZeroTarget:
-            needed[metric]['threshold'][target].remove('zero')
-          zeroTarget = [x for x in zeroTarget if not lpsDS[x].values == 0]
-          if incapableZeroTarget:
-            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric, incapableZeroTarget))
-          daZero = meanSet[zeroTarget]/lpsDS[zeroTarget]
-          daZero = daZero.assign_coords(threshold ='zero')
-          daZero = daZero.expand_dims('threshold')
-        elif entry['threshold'] == 'median':
-          medTarget = entry['targets']
-          medSet = orgMedSet[list(medTarget)]
-          dataSet = inputDataset[list(medTarget)]
-          lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medSet,pbWeight=relWeight,dim=self.sampleTag)
-          lpsDS = self._computePower(0.5,lowerPartialVarianceDS)
-          incapableMedTarget = [x for x in medTarget if not lpsDS[x].values != 0]
-          medTarget = [x for x in medTarget if not lpsDS[x].values == 0]
-          if incapableMedTarget:
-            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold median!  Skipping target".format(metric, incapableMedTarget))
 
-          daMed = meanSet[medTarget]/lpsDS[medTarget]
-          daMed = daMed.assign_coords(threshold ='median')
-          daMed = daMed.expand_dims('threshold')
-      calculations[metric] = xr.merge([daMed, daZero])
+      for entry in self.toDo[metric]:
+        thresholdTarget = entry['targets']
+        if entry['threshold'] == 'zero':
+          thresholdSet = orgZeroSet[list(thresholdTarget)]
+        else:
+          thresholdSet = orgMedSet[list(thresholdTarget)]
+        dataSet = inputDataset[list(thresholdTarget)]
+        lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet, thresholdSet,
+                                                                   pbWeight=relWeight,
+                                                                   dim=self.sampleTag)
+        lpsDS = self._computePower(0.5, lowerPartialVarianceDS)
+        incapableThresholdTarget = []
+        tmp = []
+        for x in thresholdTarget:
+          checkNonzero = lpsDS[x].values != 0
+          checkZero = lpsDS[x].values == 0
+          try:
+            if not all(checkNonzero):
+              incapableThresholdTarget.append(x)
+          except TypeError:
+            # checkNonzero was not iterable
+            if not checkNonzero:
+              incapableThresholdTarget.append(x)
+          try:
+            if not all(checkZero):
+              tmp.append(x)
+          except TypeError:
+            # checkZero was not iterable
+            if not checkZero:
+              tmp.append(x)
+        thresholdTarget = tmp
+
+        if entry['threshold'] == 'zero':
+          for target in incapableThresholdTarget:
+            needed[metric]['threshold'][target].remove('zero')
+
+        if incapableThresholdTarget:
+          self.raiseAWarning((f"For metric {metric} target {incapableThresholdTarget}, no lower part "
+                              f"data can be found for threshold {entry['threshold']}! Skipping target"))
+        da = meanSet[thresholdTarget]/lpsDS[thresholdTarget]
+        da = da.assign_coords(threshold=entry['threshold'])
+        da = da.expand_dims('threshold')
+
+      calculations[metric] = da
     #
     # gainLossRatio
     #
     metric = 'gainLossRatio'
     if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
+      self.raiseADebug(f'Starting "{metric}"...')
       relWeight = pbWeights[list(needed[metric]['targets'])]
       orgMedSet = calculations['median']
       orgZeroSet = xr.full_like(orgMedSet, 0)
-      zeroTarget = []
-      daZero = xr.Dataset()
-      medTarget = []
-      daMed = xr.Dataset()
 
       for entry in self.toDo[metric]:
+        thresholdTarget = entry['targets']
         if entry['threshold'] == 'zero':
-          zeroTarget = entry['targets']
-          zeroSet = orgZeroSet[list(zeroTarget)]
-          dataSet = inputDataset[list(zeroTarget)]
+          thresholdSet = orgZeroSet[list(thresholdTarget)]
+        else:
+          thresholdSet = orgMedSet[list(thresholdTarget)]
+        dataSet = inputDataset[list(thresholdTarget)]
 
-          higherSet = (dataSet-zeroSet).clip(min=0)
-          lowerSet = (zeroSet-dataSet).clip(min=0)
-          relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-          higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
-          lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
+        higherSet = (dataSet - thresholdSet).clip(min=0)
+        lowerSet = (thresholdSet - dataSet).clip(min=0)
+        relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+        higherMeanSet = (higherSet * relWeight).sum(dim=self.sampleTag)
+        lowerMeanSet = (lowerSet * relWeight).sum(dim=self.sampleTag)
 
-          incapableZeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values != 0]
-          for target in incapableZeroTarget:
+        incapableTarget = []
+        tmp = []
+        for x in thresholdTarget:
+          checkNonzero = lowerMeanSet[x].values != 0
+          checkZero = lowerMeanSet[x].values == 0
+          try:
+            if not all(checkNonzero):
+              incapableTarget.append(x)
+          except TypeError:
+            # checkNonzero was not iterable
+            if not checkNonzero:
+              incapableTarget.append(x)
+          try:
+            if not all(checkZero):
+              tmp.append(x)
+          except TypeError:
+            # checkZero was not iterable
+            if not checkZero:
+              tmp.append(x)
+        thresholdTarget = tmp
+
+        if entry['threshold'] == 'zero':
+          for target in incapableTarget:
             needed[metric]['threshold'][target].remove('zero')
-          zeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values == 0]
-          if incapableZeroTarget:
-            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric,incapableZeroTarget))
-          daZero = higherMeanSet[zeroTarget]/lowerMeanSet[zeroTarget]
-          daZero = daZero.assign_coords(threshold ='zero')
-          daZero = daZero.expand_dims('threshold')
 
-        elif entry['threshold'] == 'median':
-          medTarget = entry['targets']
-          medSet = orgMedSet[list(medTarget)]
-          dataSet = inputDataset[list(medTarget)]
+        if incapableTarget:
+          self.raiseAWarning((f"For metric {metric} target {incapableTarget}, lower part mean is "
+                              f"zero for threshold {entry['threshold']}! Skipping target"))
+        da = higherMeanSet[thresholdTarget]/lowerMeanSet[thresholdTarget]
+        da = da.assign_coords(threshold=entry['threshold'])
+        da = da.expand_dims('threshold')
 
-          higherSet = (dataSet-medSet).clip(min=0)
-          lowerSet = (medSet-dataSet).clip(min=0)
-          relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-          higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
-          lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
-
-          incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
-          medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
-          if incapableMedTarget:
-            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(metric, incapableMedTarget))
-
-          daMed = higherMeanSet[medTarget]/lowerMeanSet[medTarget]
-          daMed = daMed.assign_coords(threshold ='median')
-          daMed = daMed.expand_dims('threshold')
-      calculations[metric] = xr.merge([daMed, daZero])
+      calculations[metric] = da
 
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals + self.econVals + ['equivalentSamples'] and metric !='samples':

@@ -86,8 +86,8 @@ class MaterialParser():
     matList = []
     isotopeList = []
     XMLdict['density'] = {}
-    for matXML in self.root.getiterator('mat'):
-      for isotopeXML in self.root.getiterator('isotope'):
+    for matXML in self.root.iter('mat'):
+      for isotopeXML in self.root.iter('isotope'):
         matList.append(matXML.attrib.get('id'))
         isotopeList.append(self.noDash(isotopeXML.attrib.get('id')))
     matList = self.unifyElements(matList)
@@ -96,7 +96,7 @@ class MaterialParser():
       XMLdict['density'][mat] = {}
       for isotope in isotopeList:
         XMLdict['density'][mat][isotope] = {}
-    for matXML in self.root.getiterator('mat'):
+    for matXML in self.root.iter('mat'):
       for isotopeXML in matXML.findall('isotope'):
         XMLdict['density'][matXML.attrib.get('id')][self.noDash(isotopeXML.attrib.get('id'))] = isotopeXML.attrib.get('density')
     return XMLdict
@@ -148,7 +148,7 @@ class MaterialParser():
     newXMLDict = self.replaceValues(genericXMLdict)
     templatedNewXMLdict = self.fileReconstruction(newXMLDict)
     open(self.inputFiles, 'w')
-    for matXML in self.root.getiterator('mat'):
+    for matXML in self.root.iter('mat'):
       for isotopeXML in matXML.findall('isotope'):
         isotopeXML.attrib['density'] = templatedNewXMLdict.get('DENSITY').get(matXML.attrib.get('id').upper()).get(self.noDash(isotopeXML.attrib.get('id')).upper())
         self.tree.write(self.inputFiles)

@@ -54,25 +54,25 @@
     [./romcsv0]
       type = OrderedCSV
       output = 'ARMAreseed/results_0.csv'
-      gold_files = 'ARMAreseed/signals_0.csv'
+      gold_files = '../ARMAreseed/signals_0.csv'
       rel_err = 1e-5
     [../]
     [./romcsv1]
       type = OrderedCSV
       output = 'ARMAreseed/results_1.csv'
-      gold_files = 'ARMAreseed/signals_1.csv'
+      gold_files = '../ARMAreseed/signals_1.csv'
       rel_err = 1e-5
     [../]
     [./romcsv2]
       type = OrderedCSV
       output = 'ARMAreseed/results_2.csv'
-      gold_files = 'ARMAreseed/signals_2.csv'
+      gold_files = '../ARMAreseed/signals_2.csv'
       rel_err = 1e-5
     [../]
     [./romcsv3]
       type = OrderedCSV
       output = 'ARMAreseed/results_3.csv'
-      gold_files = 'ARMAreseed/signals_3.csv'
+      gold_files = '../ARMAreseed/signals_3.csv'
       rel_err = 1e-5
     [../]
   [../]
@@ -132,6 +132,16 @@
     csv = 'ZeroFilter/stats.csv'
     rel_err = 2e-1
     max_time = 300
+  [../]
+
+  [./ZeroFilterDiscontinuous]
+    type = 'RavenFramework'
+    input = 'zero_filter_discontinuous.xml'
+    [./rom_meta]
+      type = XML
+      output = 'ZeroFilterDiscontinuous/romMeta.xml'
+      rel_err = 1e-5
+    [../]
   [../]
 
   [./Segmented]

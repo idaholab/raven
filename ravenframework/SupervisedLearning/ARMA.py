@@ -617,6 +617,9 @@ class ARMA(SupervisedLearning):
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
     # Applied Energy, 87(2010) 843-855
+    #
+    # Kernel density estimation has also been tried for estimating the CDF of the data but with little practical
+    # benefit over using the empirical CDF. See RAVEN Theory Manual for more discussion.
     for t,target in enumerate(self.target):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
@@ -1092,7 +1095,9 @@ class ARMA(SupervisedLearning):
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
     if masks is not None:
-      data = data[masks]
+      # Setting masked values to NaN instead of removing them preserves the correct lag between unmasked values, leading
+      # to a more accurate fit in the case that values not at the ends of the array are being masked.
+      data[~masks] = np.nan
     import statsmodels.api
     results = statsmodels.tsa.arima.model.ARIMA(data, order=(self.P, 0, self.Q), trend='c').fit()
     # The ARIMAResults object here can cause problems with ray when running in parallel. Dropping it
