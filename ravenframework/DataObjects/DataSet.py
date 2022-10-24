@@ -235,7 +235,7 @@ class DataSet(DataObject):
     #  a list of realizations, where each realization is effectively a list of xr.DataArray objects.
     #
     #  To mitigate this behavior, we forcibly add a [0.0] entry to each realization, then exclude
-    #  it once the realizations are constructed.  This seems like an innefficient option; others
+    #  it once the realizations are constructed.  This seems like an inefficient option; others
     #  should be explored.  - talbpaul, 12/2017
     #  newData is a numpy array of realizations,
     #  each of which is a numpy array of some combination of scalar values and/or xr.DataArrays.

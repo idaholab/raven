@@ -152,8 +152,8 @@ class Dummy(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    if len(myInput)>1:
-      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    #if len(myInput)>1:
+    #  self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
 
     inputDict   = self._inputToInternal(myInput[0])
     self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
