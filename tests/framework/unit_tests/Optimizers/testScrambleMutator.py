@@ -91,9 +91,9 @@ uniform = getDistribution(uniformDiscreteElement)
 
 distDict = {}
 distDict['x1'] = uniform
-distDict['x2'] = uniform 
-distDict['x3'] = uniform 
-distDict['x4'] = uniform 
+distDict['x2'] = uniform
+distDict['x3'] = uniform
+distDict['x4'] = uniform
 
 optVars = ['x1', 'x2', 'x3', 'x4']
 
@@ -101,7 +101,7 @@ population = [[1,4,5,2],
               [2,3,1,1],
               [5,4,2,3]]
 
-population = xr.DataArray(population, 
+population = xr.DataArray(population,
                           dims   = ['chromosome','Gene'],
                           coords = {'chromosome': np.arange(np.shape(population)[0]),
                                     'Gene':optVars})
