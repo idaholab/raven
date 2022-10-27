@@ -289,8 +289,8 @@ class DMDC(DMD):
 
 
         ##avgY1 = np.average(Y1,axis=1).flatten()
-        avgY1 = np.average(self.outputVals[:-1,smp,:].T,axis=1).flatten()
-        Xavg = np.average(self.stateVals[:,smp,:],axis=0).flatten()
+        #avgY1 = np.average(self.outputVals[:-1,smp,:].T,axis=1).flatten()
+        #Xavg = np.average(self.stateVals[:,smp,:],axis=0).flatten()
         ##CtildeNormalizedNormalized[smp,:,:] = CtildeNormalized[smp,:,:]
         CtildeNormalizedNormalized[smp,:,:] = self.__Ctilde[smp,:,:]
         #for i in range(len(avgY1)):

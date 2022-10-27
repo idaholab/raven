@@ -489,7 +489,6 @@ class RFE(FeatureSelectionBase):
 
 
     if nGroups > 1:
-      print(len(supportCandidates))
       support_[:] = False
       featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
       ranking_ = copy.deepcopy(groupRanking_)
@@ -737,6 +736,20 @@ class RFE(FeatureSelectionBase):
 
     parametersToInclude = supportData['parametersToInclude']
     whichSpace = supportData['whichSpace']
+    
+    fg = open(f"debug_parallel_{groupId}","w")
+    import sys
+    np.set_printoptions(threshold=sys.maxsize)
+    fg.write("INITIAL\n")
+    fg.write("support_\n")
+    fg.write(str(support_))
+    fg.write("\nfeaturesForRanking\n")
+    fg.write(str(featuresForRanking))
+    fg.write("\nranking_\n")
+    fg.write(str(ranking_))
+    fg.write("\noutputspace\n")
+    fg.write(str(outputspace))
+    fg.write("\n END INITIAL\n")
 
     # initialize working dir
     indexToKeep = None
@@ -817,6 +830,24 @@ class RFE(FeatureSelectionBase):
       # Eliminate the worse features
       threshold = min(step, np.sum(support_) - nFeaturesToSelect)
       step = setStep
+
+      fg.write("Remaining features \n")
+      fg.write("raminingFeatures\n")
+      fg.write(str(raminingFeatures))
+      fg.write("features\n")
+      fg.write(str(features))
+      fg.write("\ntargets\n")
+      fg.write(str(targets))
+      fg.write("\ntoRemove_\n")
+      fg.write(str(toRemove))
+      fg.write("\nsupportOfSupport_\n")
+      fg.write(str(supportOfSupport_))
+      fg.write("\nranks\n")
+      fg.write(str(ranks))
+      fg.write("\ncoefs\n")
+      fg.write(str(coefs))
+      fg.write("\n \n")
+
       # Compute step score on the previous selection iteration
       # because 'estimator' must use features
       # that have not been eliminated yet
@@ -827,7 +858,8 @@ class RFE(FeatureSelectionBase):
       gc.collect()
       # we do the search at least once
       doAtLeastOnce = False
-
+    
+    fg.close()
     return support_, indexToKeep
 
   @Parallel()
