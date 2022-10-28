@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Testing for the BitFlip Mutator method
+  Testing for the SwapMutator method
   @authors: Junyung Kim and Mohammad Abdo
 """
+
 
 import os
 import sys
@@ -27,7 +28,6 @@ sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
 
-from ravenframework.Optimizers.crossOverOperators.crossovers import returnInstance
 from ravenframework.Optimizers.mutators.mutators import returnInstance
 import xml.etree.ElementTree as ET
 from ravenframework import MessageHandler
@@ -91,9 +91,9 @@ uniform = getDistribution(uniformDiscreteElement)
 
 distDict = {}
 distDict['x1'] = uniform
-distDict['x2'] = uniform 
-distDict['x3'] = uniform 
-distDict['x4'] = uniform 
+distDict['x2'] = uniform
+distDict['x3'] = uniform
+distDict['x4'] = uniform
 
 optVars = ['x1', 'x2', 'x3', 'x4']
 
@@ -106,19 +106,20 @@ population = xr.DataArray(population,
                           coords = {'chromosome': np.arange(np.shape(population)[0]),
                                     'Gene':optVars})
 
-kwargs = {'locs': None, 'mutationProb': 1.0, 'variables': ['x1', 'x2', 'x3', 'x4']}
+# kwargs = {'locs': None, 'mutationProb': 1.0, 'variables': ['x1', 'x2', 'x3', 'x4']}
+kwargs = {'locs': [1,2], 'mutationProb': 1.0, 'variables': ['x1', 'x2', 'x3', 'x4']}
 
-bitFlipMutator = returnInstance('tester', 'bitFlipMutator')
+swapMutator = returnInstance('tester', 'swapMutator')
 
-children = bitFlipMutator(population, distDict, **kwargs)
+children = swapMutator(population, distDict, **kwargs)
 
 print('*'*79)
-print('BitFlip Mutator unit test')
+print('Swap Mutator unit test')
 print('*'*79)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 1,  1,  5,  2],
-                                 [ 2,  3,  1,  4],
-                                 [ 5,  5,  5,  1]],
+expectedChildren = xr.DataArray([[ 1,  5,  4,  2],
+                                 [ 2,  1,  3,  1],
+                                 [ 5,  5,  5,  5]],
                                  dims   = ['chromosome','Gene'],
                                  coords = {'chromosome': np.arange(np.shape(population)[0]),
                                            'Gene'      : optVars})

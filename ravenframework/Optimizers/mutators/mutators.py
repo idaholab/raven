@@ -41,11 +41,11 @@ def swapMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] == None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    loc1 = locs[0]
-    loc2 = locs[1]
+    loc1 = np.minimum(locs[0], locs[1])
+    loc2 = np.maximum(locs[0], locs[1])
   else:
-    loc1 = kwargs['locs'][0]
-    loc2 = kwargs['locs'][1]
+    loc1 = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    loc2 = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -76,14 +76,12 @@ def scrambleMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
-  locs = kwargs['locs']
-  if locs == None:
-    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
-    locs=[]
-    for i in range(nLocs):
-      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
-      locs.append(l)
-    locs = list(set(locs))
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locs.sort()
+  else:
+    locs = [kwargs['locs'][0], kwargs['locs'][1]]
+    locs.sort()
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -144,7 +142,6 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
-
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
@@ -156,7 +153,6 @@ def randomMutator(offSprings, distDict, **kwargs):
       newCDFValue = randomUtils.random()
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
       child.values[loc-1] = newValue
-
   return offSprings
 
 def inversionMutator(offSprings, distDict, **kwargs):
@@ -170,36 +166,30 @@ def inversionMutator(offSprings, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
+  # sample gene locations: i.e., determine locL and locU
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locL = np.minimum(locs[0], locs[1])
+    locU = np.maximum(locs[0], locs[1])
+  else:
+    locL = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    locU = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
+
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
-      # sample gene locations: i.e., determine loc1 and loc2
-      locRangeList = list(range(0,child.values.shape[0]))
-      index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-      loc1 = locRangeList[index1]
-      locRangeList.pop(loc1)
-      index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
-      loc2 = locRangeList[index2]
-      if loc1>loc2:
-        locL=loc2
-        locU=loc1
-      elif loc1<loc2:
-        locL=loc1
-        locU=loc2
-      ##############
       # select sequence to be mirrored and mirror it
-      # seq=child.values[locL:locU+1]
       seq = np.arange(locL,locU+1)
       allElems = []
       for i,elem in enumerate(seq):
-        allElems[i] = distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values))
+         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
 
-      mirrSeq = allElems[::-1]#seq[::-1]
+      mirrSeq = allElems[::-1]
+      mirrElems = []
       for elem in mirrSeq:
-        elem = distDict[child.coords['Gene'].values[elem]].ppf(float(child[elem].values))
-      ##############
+        mirrElems.append(distDict[child.coords['Gene'].values[i]].ppf(elem))
       # insert mirrored sequence into child
-      child.values[locL:locU+1]=mirrSeq
+      child.values[locL:locU+1]=mirrElems
 
   return offSprings
 

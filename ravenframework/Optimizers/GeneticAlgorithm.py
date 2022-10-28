@@ -538,6 +538,7 @@ class GeneticAlgorithm(RavenSampled):
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
         children = childrenMutated
+
       # keeping the population size constant by ignoring the excessive children
       children = children[:self._populationSize, :]
 
