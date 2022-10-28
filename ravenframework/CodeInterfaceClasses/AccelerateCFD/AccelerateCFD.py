@@ -25,9 +25,9 @@ import xml.etree.ElementTree as ET
 import glob
 import math
 from sklearn import neighbors
-from OpenFoamPP import fieldParser
+from .OpenFoamPP import fieldParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from GenericCodeInterface import GenericParser
+from ..Generic.GenericCodeInterface import GenericParser
 from ravenframework.utils import mathUtils
 
 class AcceleratedCFD(CodeInterfaceBase):

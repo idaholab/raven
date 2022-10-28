@@ -189,7 +189,7 @@ class RAVEN(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    import RAVENparser
+    from . import RAVENparser
     index = self.__findInputFile(oriInputFiles)
     parser = RAVENparser.RAVENparser(oriInputFiles[index].getAbsFile())
     # get the OutStreams names
@@ -236,7 +236,7 @@ class RAVEN(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import RAVENparser
+    from . import RAVENparser
     if 'dynamiceventtree' in str(samplerType).strip().lower():
       raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
     index = self.__findInputFile(currentInputFiles)

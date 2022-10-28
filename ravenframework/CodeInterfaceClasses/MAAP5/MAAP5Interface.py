@@ -17,12 +17,10 @@ Created on April 14, 2016
 @modified: picoco (The Ohio State University)
 '''
 
-from __future__ import division, print_function, absolute_import
-
-from GenericCodeInterface import GenericCode
+from ..Generic.GenericCodeInterface import GenericCode
 import numpy as np
-import csvUtilities as csvU
-import dynamicEventTreeUtilities as detU
+from  ..Utilities import csvUtilities as csvU
+from ..Utilities import dynamicEventTreeUtilities as detU
 import csv
 import glob
 import os

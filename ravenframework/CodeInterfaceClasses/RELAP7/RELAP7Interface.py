@@ -26,11 +26,11 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
-mooseParserPath = os.path.join(os.path.dirname(__file__), '..', 'MooseBasedApp')
-sys.path.append(mooseParserPath)
-import MOOSEparser
-import MooseInputParser
-sys.path.pop()
+# mooseParserPath = os.path.join(os.path.dirname(__file__), '..', 'MooseBasedApp')
+# sys.path.append(mooseParserPath)
+from ..MooseBasedApp import MOOSEparser
+from ..MooseBasedApp import MooseInputParser
+# sys.path.pop()
 # MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
 
 class RELAP7(CodeInterfaceBase):

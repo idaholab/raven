@@ -17,13 +17,11 @@ Created May 9th, 2019
 #External Modules--------------------begin
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 #External Modules--------------------end
 
 #Internal Modules--------------------begin
-from Generic import GenericCodeInterface
-from GenericCodeInterface import GenericCode
-import serpentOutputParser as op
+from ..Generic.GenericCodeInterface import GenericCode
+from . import serpentOutputParser as op
 #Internal Modules--------------------end
 
 class SERPENT(GenericCode):

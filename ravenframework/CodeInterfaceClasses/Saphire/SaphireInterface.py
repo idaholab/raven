@@ -18,13 +18,11 @@ Created on July 12, 2018
 
 comments: Interface for SAPHIRE Simulation
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
 
-from GenericCodeInterface import GenericCode
-from SaphireData import SaphireData
+from ..Generic.GenericCodeInterface import GenericCode
+from .SaphireData import SaphireData
 
 class Saphire(GenericCode):
   """

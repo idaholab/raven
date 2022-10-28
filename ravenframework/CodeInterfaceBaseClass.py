@@ -16,18 +16,19 @@ Created on Jan 28, 2015
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .utils import utils
 from . import CsvLoader
+from .BaseClasses import BaseInterface
+from .utils import InputTypes, InputData
+from .utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
+class CodeInterfaceBase(BaseInterface):
   """
   Code Interface base class. This class should be the base class for all the code interfaces.
   In this way some methods are forced to be implemented and some automatic checking features
@@ -42,6 +43,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, None
       @ Out, None
     """
+    super().__init__()
     self.inputExtensions = []    # list of input extensions
     self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
     self._ravenWorkingDir = None # location of RAVEN's main working directory
@@ -115,7 +117,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
-  def readMoreXML(self, xmlNode, ravenWorkingDir):
+  def readXML(self, xmlNode, **kwargs):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
@@ -123,12 +125,12 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, ravenWorkingDir, str, location of RAVEN's working directory
       @ Out, None
     """
-    self._ravenWorkingDir = ravenWorkingDir
-    self._readMoreXML(xmlNode)
+    self._ravenWorkingDir = kwargs.get('WorkingDir', None)
     # read global options
     # should we print CSV even if the data can be directly returned to RAVEN?
     csvLog = xmlNode.find("csv")
     self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
+    super().readXML(xmlNode, **kwargs)
 
   def _readMoreXML(self, xmlNode):
     """
@@ -138,6 +140,9 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    # Right now this method is overloaded so that we have minimal impacts on existing code Interfaces
+    # When the InputSpecs is forced to use in the code interface, we can just call the super method
+    # super()._readMoreXML(xmlNode)
     pass
 
   @abc.abstractmethod
@@ -243,3 +248,13 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     failure = False
     return failure
+
+  # Function is required by the base class but not used in this and its subclass
+  def run(self, *args, **kwargs):
+    """
+      Main method to "do what you do".
+      @ In, args, list, positional arguments
+      @ In, kwargs, dict, keyword arguments
+      @ Out, None
+    """
+    pass
