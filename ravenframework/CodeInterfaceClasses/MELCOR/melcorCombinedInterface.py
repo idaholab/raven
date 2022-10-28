@@ -14,7 +14,6 @@
 """
   Created on April 18, 2017
   @author: Matteo D'Onorio (Sapienza University of Rome)
-           matteo.donorio@uniroma1.it
 """
 import sys
 import os
@@ -22,6 +21,7 @@ from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 import GenericParser
 import pandas as pd
 import time
+
 
 class Melcor(CodeInterfaceBase):
   """
@@ -65,7 +65,7 @@ class Melcor(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         foundMelcorInp = True
         melgIn = currentInputFiles[index]
-        melcIn = currentInputFiles[index]          
+        melcIn = currentInputFiles[index]
     if not foundMelcorInp:
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn,melcIn
@@ -90,9 +90,9 @@ class Melcor(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))      
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     melcOut = 'OUTPUT_MELCOR'
-    melcin,melgin = self.findInps(inputFiles)    
+    melcin,melgin = self.findInps(inputFiles)
     if clargs:
       precommand = executable + clargs['text']
     else:
@@ -100,7 +100,7 @@ class Melcor(CodeInterfaceBase):
     melgCommand = str(preExec)+ ' '+melcin[index].getFilename()
     melcCommand = precommand+ ' '+melcin[index].getFilename()
     returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],melcOut
-    
+
     return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -113,7 +113,7 @@ class Melcor(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    
+
     if "dynamicevent" in samplerType.lower():
       raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet! But we are working on that.")
     indexes  = []
@@ -130,7 +130,9 @@ class Melcor(CodeInterfaceBase):
     parser = GenericParser.GenericParser(inFiles)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputFiles,origFiles)
+
     return currentInputFiles,origInputFiles,samplerType
+    #return self.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
   def writeDict(self,filen,workDir):
     """
@@ -144,11 +146,11 @@ class Melcor(CodeInterfaceBase):
       import subprocess
       my_timeout = 20.0
       p = subprocess.Popen(["git", "clone", "https://github.com/mattdon/MELCOR_pyPlot.git"], cwd=os.path.dirname(os.path.realpath(__file__)))
-      t = 0. 
+      t = 0.
       found = False
       while t < my_timeout:
         try:
-          import MELCOR_pyPlot.melcorTools  
+          import MELCOR_pyPlot.melcorTools
           found = True
         except ModuleNotFoundError:
           pass
@@ -158,8 +160,9 @@ class Melcor(CodeInterfaceBase):
         t += 5.0
       if t>= my_timeout:
         raise ModuleNotFoundError("Cloning of Melcor parser failed")
-        
-    from MELCOR_pyPlot.melcorTools import MCRBin  
+
+    from MELCOR_pyPlot.melcorTools import MCRBin
+
     fileDir = os.path.join(workDir,self.MelcorPlotFile)
     Time,Data,VarUdm = MCRBin(fileDir,self.VarList)
     dfTime = pd.DataFrame(Time, columns= ["Time"])
@@ -168,7 +171,7 @@ class Melcor(CodeInterfaceBase):
     df.drop_duplicates(subset="Time",keep='first',inplace=True)
     dictionary=df.to_dict()
     return dictionary
-  
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
@@ -178,7 +181,7 @@ class Melcor(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, response, dict, dictionary containing the data
     """
-    failure = False	
+    failure = False
     self.det = False
     outfile = os.path.join(workingDir,output+'.out')
     if failure == False:
@@ -206,7 +209,7 @@ class Melcor(CodeInterfaceBase):
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
-    """   
+    """
     failure = True
 #    goodWord  = "  Normal termination"   mel-fus
     goodWord  = " Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
