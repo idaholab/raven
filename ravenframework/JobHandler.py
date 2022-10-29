@@ -220,7 +220,7 @@ class JobHandler(BaseType):
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db,local_mode=True) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer.address_info['node_ip_address'])
