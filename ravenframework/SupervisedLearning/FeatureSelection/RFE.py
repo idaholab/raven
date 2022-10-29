@@ -332,7 +332,7 @@ class RFE(FeatureSelectionBase):
         if jhandler.availability() > 0:
           outputspace = self.subGroups[g]
           prefix = f'subgroup_{g}'
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
+          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataForRFERef,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
