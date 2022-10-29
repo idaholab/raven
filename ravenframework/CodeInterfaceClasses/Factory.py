@@ -44,9 +44,10 @@ from .Rattlesnake.RattlesnakeInterface import Rattlesnake
 from .SCALE.ScaleInterface import Scale
 from .SERPENT.SerpentInterface import SERPENT
 from .Saphire.SaphireInterface import Saphire
-from .WorkshopExamples.BatemanInterface import BatemanSimple
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
+# BatemanSimple was moved to raven/plugins/ExamplePlugin/src, and it is used as Code plugin example
+# from .WorkshopExamples.BatemanInterface import BatemanSimple
 
 factory = EntityFactory('Code', needsRunInfo=True)
 factory.registerAllSubtypes(CodeInterfaceBase)
