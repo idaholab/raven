@@ -10,7 +10,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>projectileCodePlugin</WorkingDir>
+    <WorkingDir>ProjectileCodePlugin</WorkingDir>
     <Sequence>runGrid</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -21,7 +21,7 @@
 
   <Models>
     <Code name="myWorkshopCode" subType="ExamplePlugin.ProjectileCodePlugin">
-      <executable>./projectileCodePlugin/projectile.py</executable>
+      <executable>./ProjectileCodePlugin/projectile.py</executable>
     </Code>
   </Models>
 
