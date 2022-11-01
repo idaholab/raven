@@ -16,16 +16,49 @@ read it correctly:
 \end{itemize}
 
 \subsection{Additional Libraries}
-If the plugin requires additional libraries, they can extend the \texttt{dependencies.ini} file in
+If the plugin requires additional libraries, they can extend the \texttt{dependencies.xml} file in
 the same manner as RAVEN's dependencies file. Libraries will be added like they are for RAVEN
 itself, and a check will be performed to assure no base RAVEN (or other plugin) dependencies are
 modified.
 
 \subsection{Installing in RAVEN}
-Use the installation script in \texttt{raven/install\_plugins.py}.
+Use the installation script in \texttt{raven/scripts/install\_plugins.py}.
+\begin{lstlisting}[morekeywords={examplePlugin, pluginInstallation}]
+  raven/scripts/install_plugins.py -s /abs/path/to/pluginName
+\end{lstlisting}
+Replacing \texttt{pluginName} with the path to your plugin and the name of the directory, such as
+\texttt{/user/projects/raven/plugins/pluginName}.
+Use the absolute path to your new plugin to avoid any navigation problems.
+If installing an officially-supported plugin that you do not plan on modifying, the following command
+can be run (using TEAL as the example plugin):
+\begin{lstlisting}[morekeywords={examplePlugin, TEALInstallation}]
+  raven/scripts/install_plugins.py -s TEAL
+\end{lstlisting}
+Note the path was eliminated. This will initialize (or update) the official plugin in
+\texttt{raven/plugins} with the official submoduled version.
+To install all officially-supported plugins, the shortcut option \texttt{-a} or \texttt{--all} can be used:
+\begin{lstlisting}[morekeywords={examplePlugin, installAllPlugin}]
+  raven/scripts/install_plugins.py -a
+\end{lstlisting}
+At this stage, RAVEN will import all the plugins within that directory and perform some error checking.
 
 This process automatically registers the plugin in the plugin directory, and informs the plugin
 about RAVEN %(TODO more notes on this!)
+
+\subsection{Using the Plugin in RAVEN}
+Once registered/installed, the new entity (i.e., ExternalModel, ROM, PostProcessor) can be used in RAVEN by
+using the entity subtype defined by your plugin name. For example, if your external model class is named "myPluginModel",
+you can access an external model in the RAVEN input as
+
+\begin{lstlisting}[morekeywords={usingPlugin}]
+<Models>
+  ...
+  <ExternalModel name='myName' subType='pluginName.myPluginModel'>
+    ...
+  </ExternalModel>
+  ...
+</Models>
+\end{lstlisting}
 
 \subsection{Adding Testers}
 RAVEN automatically provides a testing harness for automated regression testing. This includes a
