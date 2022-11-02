@@ -146,7 +146,7 @@ class RFE(FeatureSelectionBase):
       @ In, None
       @ Out, d, dict, things to serialize
     """
-    d = copy.copy(self.__dict__)
+    d = copy.deepcopy(self.__dict__)
     return d
 
   def setEstimator(self, estimator):

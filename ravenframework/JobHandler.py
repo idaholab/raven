@@ -431,9 +431,9 @@ class JobHandler(BaseType):
       @ Out, ref, ray.ObjectRef or object, the reference or the object itself
     """
     if self.rayServer is not None:
-      ref = ray.put(data)
+      ref = ray.put(copy.deepcopy(data))
     else:
-      ref = data
+      ref = copy.deepcopy(data)
     return ref
 
   def startLoop(self):
