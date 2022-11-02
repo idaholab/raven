@@ -7,17 +7,81 @@ establishing a basic structure, and installing in RAVEN for testing.
 %TODO
 
 \subsection{Plugin Structure}
-The following directories must be present in the main directory of the plugin in order for RAVEN to
-read it correctly:
+The following directories and \texttt{\_\_init\_\_.py} must be present in the main directory of the plugin in order for RAVEN to
+read it correctly as shown in figure~\ref{fig:pluginsLocation}:
 \begin{itemize}
   \item \texttt{src}, where the entities for RAVEN to load are located;
   \item \texttt{doc}, where the documentation for the plugin and its entities is located.
   \item \texttt{tests}, where continuous integration tests are located;
+  \item \texttt{\_\_init\_\_.py}, where the plugin entities need to be loaded.
 \end{itemize}
 
+Here is the example for \texttt{\_\_init\_\_.py} from the \texttt{raven/plugins/ExamplePlugin}:
+\begin{lstlisting}[language=python, breaklines=True, columns=fullflexible]
+### External Model
+from ExamplePlugin.src import SumOfExponential
+### ROM
+from ExamplePlugin.src import LinearROM
+### Outstreams
+from ExamplePlugin.src import CorrelationPlot
+### PostProcessors
+from ExamplePlugin.src import testInterfacedPP
+from ExamplePlugin.src import testInterfacedPP_PointSet
+\end{lstlisting}
+
+If the plugin developer wants to make his plugin
+an official supported plugin in RAVEN (by the submodule system), he needs to check
+the raven wiki under the ``contribution'' section), and this plugin needs to be placed in a folder (whatever name) located
+in (see figure~\ref{fig:pluginsLocation} for example):
+\begin{lstlisting}[language=bash]
+ path/to/raven/plugins/
+\end{lstlisting}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{pics/plugins_location.png}
+\caption{Plugins Location}
+\label{fig:pluginsLocation}
+\end{figure}
+
+\subsection{Plugin Entities}
+The procedure of adding a plugin entity for RAVEN is a straightforward process.
+The addition of the entity does not require modifying RAVEN itself.
+Instead, the developer creates a new Python module inherited from plugin base class that is going to be embedded
+in RAVEN at run-time (no need to introduce  hard-coded statements). These RAVEN plugin base
+classes are located at \texttt{raven/ravenframework/PluginBaseClasses}:
+\begin{lstlisting}[language=bash]
+ ExternalModelPluginBase in ExternalModelPluginBase.py
+ PlotPlugin in OutStreamPlotPlugin.py
+ PostProcessorPluginBase in PostProcessorPluginBase.py
+ SupervisedLearningPlugin in SupervisedLearningPlugin.py
+\end{lstlisting}
+These classes can be loaded as follows in the Python modules created by the plugin developers:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+ from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
+ from ravenframework.PluginBaseClasses.OutStreamPlotPlugin import PlotPlugin
+ from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+ from ravenframework.PluginBaseClasses.SupervisedLearningPlugin import SupervisedLearningPlugin
+
+ class NewExternalModelPluginEntity(ExternalModelPluginBase):
+   ...
+
+ class NewPlotPluginEntity(PlotPlugin):
+   ...
+
+ class NewPostProcessorPluginEntity(PostProcessorPluginBase):
+   ...
+
+ class NewROMPluginEntity(SupervisedLearningPlugin):
+   ...
+\end{lstlisting}
+The APIs for these classes can be either found in the following sections or directly in the modules themselves.
+
 \subsection{Additional Libraries}
-If the plugin requires additional libraries, they can extend the \texttt{dependencies.xml} file in
-the same manner as RAVEN's dependencies file. Libraries will be added like they are for RAVEN
+If the plugin requires additional libraries, they can create the \texttt{dependencies.xml} file in
+the same manner as RAVEN's dependencies file. Only the libraries that are required by
+the plugin but not listed in \texttt{raven/dependencies.xml} are required to be added in the \texttt{pluginName/dependencies.xml}
+In this case, libraries will be added like they are for RAVEN
 itself, and a check will be performed to assure no base RAVEN (or other plugin) dependencies are
 modified.
 
@@ -46,14 +110,16 @@ This process automatically registers the plugin in the plugin directory, and inf
 about RAVEN %(TODO more notes on this!)
 
 \subsection{Using the Plugin in RAVEN}
-Once registered/installed, the new entity (i.e., ExternalModel, ROM, PostProcessor) can be used in RAVEN by
-using the entity subtype defined by your plugin name. For example, if your external model class is named "myPluginModel",
+Once registered/installed, the new plugin entity (i.e., inherited from ExternalModel, ROM, PostProcessor) can be used in RAVEN input file by
+using corresponding RAVEN entity and its subtype to load the plugin entity. The subtype is defined by your plugin name and your
+plugin entity name separated by `.'.
+For example, if your plugin external model class is named "myPluginModel",
 you can access an external model in the RAVEN input as
 
 \begin{lstlisting}[morekeywords={usingPlugin}]
 <Models>
   ...
-  <ExternalModel name='myName' subType='pluginName.myPluginModel'>
+  <ExternalModel name='myName' subType='myPluginName.myPluginModel'>
     ...
   </ExternalModel>
   ...
@@ -87,38 +153,3 @@ regression test system; for example:
 
 For more information on inheriting from and creating new testers, see the RAVEN regression system
 documentation.
-
-\subsection{Adding A New Plugin}
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{pics/plugins_location.png}
-\caption{Plugins Location}
-\label{fig:pluginsLocation}
-\end{figure}
-The procedure of adding a plugin for RAVEN is a straightforward process.
-The addition of a plugin does not require modifying RAVEN itself.
-Instead, the developer creates a new Python module that is going to be embedded
-in RAVEN at run-time (no need to introduce  hard-coded statements), if this Python module
-inherits from one of the following RAVEN plugin base classes located at \texttt{raven/ravenframework/PluginBaseClasses}:
-\begin{lstlisting}[language=bash]
- ExternalModelPluginBase in ExternalModelPluginBase.py
- PlotPlugin in OutStreamPlotPlugin.py
- PostProcessorPluginBase in PostProcessorPluginBase.py
- SupervisedLearningPlugin in SupervisedLearningPlugin.py
-\end{lstlisting}
-These classes can be loaded as follows:
-\begin{lstlisting}[language=bash]
- from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
- from ravenframework.PluginBaseClasses.OutStreamPlotPlugin import OutStreamPlotPlugin
- from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
- from ravenframework.PluginBaseClasses.SupervisedLearningPlugin import PlotPlugin
-\end{lstlisting}
-The APIs for these classes can be either found in the following sections or directly in the modules themselves.
-
-If the plugin developer wants to make of his plugin
-an official supported plugin in RAVEN (by the submodule system), he needs to check
-the raven wiki under the ``contribution'' section), and this plugin needs to be placed in a folder (whatever name) located
-in (see figure~\ref{fig:pluginsLocation}):
-\begin{lstlisting}[language=bash]
- path/to/raven/plugins/
-\end{lstlisting}

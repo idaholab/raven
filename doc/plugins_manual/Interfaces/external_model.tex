@@ -2,10 +2,10 @@
 \label{sec:newExternalModelPlugin}
 
 The procedure of adding a plugin for the ExternalModel is a straightforward process.
-
 At the initialization stage, RAVEN imports all the Plugins that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Plugin module is the one the user needs to specify when the new plugin
-needs to be used. For example, if the Plugin module contains the class 	``NewPlugin'', the \textit{subType} in the \xmlNode{ExternalModel} block will be 	``NewPlugin'':
+needs to be used. For example, if the Plugin module contains the class 	``NewPlugin'', the \textit{subType}
+in the \xmlNode{ExternalModel} block will be 	``pluginName.NewPlugin'':
 \begin{lstlisting}[language=python]
   class NewPlugin(ExternalModelPluginBase):
     ...
@@ -13,7 +13,7 @@ needs to be used. For example, if the Plugin module contains the class 	``NewPlu
 \begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
   <Models>
     ...
-    <ExternalModel name='whatever' subType='NewPlugin'>
+    <ExternalModel name='whatever' subType='pluginName.NewPlugin'>
      ...
     </ExternalModel>
     ...
