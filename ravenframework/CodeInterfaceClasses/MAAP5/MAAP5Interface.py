@@ -32,6 +32,10 @@ import math
 import sys
 
 class MAAP5(GenericCode):
+  """
+  Class for MAAP5 interface with RAVEN
+  """
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
@@ -626,7 +630,8 @@ class MAAP5(GenericCode):
     lineStop = int(lines.index(str('C Stop Simulation condition\n')))+1
 ########################
     lineStopList=[lineStop]
-    while lines[lineStopList[-1]+1].split(' ')[0]=='OR': lineStopList.append(lineStopList[-1]+1)
+    while lines[lineStopList[-1]+1].split(' ')[0]=='OR':
+      lineStopList.append(lineStopList[-1]+1)
 ########################
     if Kwargs['RAVEN_parentID']== 'None':
       if self.stop!='mission_time':
@@ -672,7 +677,8 @@ class MAAP5(GenericCode):
           listTimer.append('OR')
 
         listTimer.pop(-1)
-        while len(lineStopList)-1 > (listTimer.count('\n')): listTimer.append('\n')
+        while len(lineStopList)-1 > (listTimer.count('\n')):
+          listTimer.append('\n')
         newLine=' '.join(listTimer)+'\n'
 #        lines[lineStop]=newLine
         lines[lineStopList[0]:lineStopList[-1]+1]=newLine
