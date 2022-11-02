@@ -134,7 +134,8 @@ class Saphire(GenericCode):
     index=None
     #inputs
     for flag,elems in clargs['input'].items():
-      if flag == 'noarg': continue
+      if flag == 'noarg':
+        continue
       todo += ' '+flag
       for elem in elems:
         ext, delimiter = elem[0], elem[1]
