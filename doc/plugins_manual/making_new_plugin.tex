@@ -99,13 +99,26 @@ The procedure of adding a plugin for RAVEN is a straightforward process.
 The addition of a plugin does not require modifying RAVEN itself.
 Instead, the developer creates a new Python module that is going to be embedded
 in RAVEN at run-time (no need to introduce  hard-coded statements), if this Python module
-inherits from one of the following RAVEN plugin base classes:
+inherits from one of the following RAVEN plugin base classes located at \texttt{raven/ravenframework/PluginBaseClasses}:
+\begin{lstlisting}[language=bash]
+ ExternalModelPluginBase in ExternalModelPluginBase.py
+ PlotPlugin in OutStreamPlotPlugin.py
+ PostProcessorPluginBase in PostProcessorPluginBase.py
+ SupervisedLearningPlugin in SupervisedLearningPlugin.py
+\end{lstlisting}
+These classes can be loaded as follows:
+\begin{lstlisting}[language=bash]
+ from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
+ from ravenframework.PluginBaseClasses.OutStreamPlotPlugin import OutStreamPlotPlugin
+ from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+ from ravenframework.PluginBaseClasses.SupervisedLearningPlugin import PlotPlugin
+\end{lstlisting}
+The APIs for these classes can be either found in the following sections or directly in the modules themselves.
 
-
-This plugin needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:pluginsLocation}):
+If the plugin developer wants to make of his plugin
+an official supported plugin in RAVEN (by the submodule system), he needs to check
+the raven wiki under the ``contribution'' section), and this plugin needs to be placed in a folder (whatever name) located
+in (see figure~\ref{fig:pluginsLocation}):
 \begin{lstlisting}[language=bash]
  path/to/raven/plugins/
 \end{lstlisting}
-If the plugin developer wants to make of his plugin
-an official supported plugin in RAVEN (by the submodule system), he needs to check
-the raven wiki under the ``contribution'' section).
