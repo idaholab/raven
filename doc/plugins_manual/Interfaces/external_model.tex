@@ -40,7 +40,7 @@ This XML node needs to contain the attributes:
   \nb As with the other objects, this is the name that can be used to refer to
   this specific entity from other input blocks in the XML.
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be equal to the
-  name of the new plugin the user wants to use (e.g. $NewPlugin$).
+  plugin type, e.g., \xmlAttr{PluginName.PluginModuleName}. For example, TEAL.CashFlow.
   \nb In case a plugin is requested (through the  \xmlAttr{subType} attribute) the
   attribute \xmlAttr{ModuleToLoad} must not be inputted.
   %
@@ -56,19 +56,64 @@ to be aware of (i.e. the variables are going to directly be used by the Plugin)
 and not the local variables that the ExternalModel Plugin developer does not want to,
 for example, store in a RAVEN internal object.
 %
-These variables are specified within a \xmlNode{variables} block:
+These variables are specified within a \xmlNode{inputs} and \xmlNode{outputs}  or
+\xmlNode{variables} blocks:
 \begin{itemize}
   \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
   %
   Comma-separated list of variable names.
   %
   Each variable name needs to match a variable used/defined in the external python
+  model. \nb this node is is deprecated and will be removed in future releas of RAVEN in
+  favor of the two following nodes \xmlNode{inputs} and \xmlNode{outputs}
+  %
+  \item \xmlNode{inputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of input variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
+  model.
+  %
+  \item \xmlNode{outputs}, \xmlDesc{string, required parameter}.
+  %
+  Comma-separated list of output variable names.
+  %
+  Each variable name needs to match a variable used/defined in the external python
   model.
   %
 \end{itemize}
 
-In addition, if the user wants to use the alias system, the following XML block can be used as
-described in the RAVEN user manual under Models.
+In addition, if the user wants to use the alias system, the following XML block can be used:
+
+\begin{lstlisting}[style=XML, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+<Models>
+  ...
+  <ExternalModel name='myName' subType='myPluginName.myPluginModel'>
+    ...
+    <inputs>ExternalModelInputVariableNameList</inputs>
+    <outputs>ExternalModelOutputVariableNameList</outputs>
+    <alias variable='RavenAliasForInput' type='input'>ExternalModelInputVariableName</alias>
+    <alias variable='RavenAliasForOutput' type='output'>ExternalModelOutputVariableName</alias>
+  </ExternalModel>
+  ...
+</Models>
+\end{lstlisting}
+
+The description of the alias is:
+\begin{itemize}
+\item \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
+any variable of interest in the input or output space for the model.
+%
+In the body of this node the user specifies the name of the variable that the model is going to use
+(during its execution).
+%
+The actual alias, usable throughout the RAVEN input, is instead defined in the
+\xmlAttr{variable} attribute of this tag.
+\\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
+requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''.
+%
+\nb The user can specify as many aliases as needed.
+\end{itemize}
 
 When the Plugin variables are defined, at run time, RAVEN initializes
 them and tracks their values during the simulation.
@@ -98,14 +143,14 @@ This base class is needed by RAVEN to identify in the plugins folder which class
 be considered an  ``ExternalModel Plugin''.
 \\ In addition, when loading an ``ExternalModel Plugin'', RAVEN expects to find, in the class representing the plugin,
  the following required methods:
-\begin{lstlisting}[language=python]
-from ExternalModelPluginBase import ExternalModelPluginBase
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 class NewPlugin(ExternalModelPluginBase):
   def run (self, container, Inputs)
 \end{lstlisting}
 In addition, the following optional methods can be specified:
-\begin{lstlisting}[language=python]
-from ExternalModelPluginBase import ExternalModelPluginBase
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+from ravenframework.PluginBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 class NewPlugin(ExternalModelPluginBase):
   ...
   def createNewInput(self, container, inputs, samplerType, **Kwargs)
@@ -139,7 +184,7 @@ interest need to be stored in the above mentioned ``container'' object.
 \xmlNode{ExternalModel} XML block.
 %
 In the following an example is reported:
-\begin{lstlisting}[language=python]
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
 def run(self, container, Input):
   # in here the actual run of the
   # model is implemented
@@ -163,7 +208,7 @@ construct a new input that is going to be transferred to the ``run'' method.
 The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
 \\This method expects that the new input is returned in a Python ``dictionary''.
 %
-RAVEN communicates, thorough a set of method attributes, all the information
+RAVEN communicates, through a set of method attributes, all the information
 that are generally needed to create a new input:
 
 \begin{itemize}
@@ -218,25 +263,22 @@ containing all the sub-nodes and attribute of the XML block \xmlNode{ExternalMod
 
 Example XML:
 \begin{lstlisting}[style=XML,morekeywords={subType,ModuleToLoad}]
-<Simulation>
+<Models>
   ...
-  <Models>
-     ...
-    <ExternalModel name='AnExtModule' subType=''NewPlugin">
-       <variables>sigma,rho,outcome</variables>
-       <!--
-          here we define other XML nodes RAVEN does not read automatically.
-          We need to implement, in the external model Plugin class the _readMoreXML
-          method
-        -->
-        <newNodeWeNeedToRead>
-         whatNeedsToBeRead
-        </newNodeWeNeedToRead>
-    </ExternalModel>
-     ...
-  </Models>
+  <ExternalModel name='AnExtModule' subType='NewPlugin'>
+    <inputs>sigma,rho</inputs>
+    <outputs>outcome</outputs>
+    <!--
+      here we define other XML nodes RAVEN does not read automatically.
+      We need to implement, in the external model Plugin class the _readMoreXML
+      method
+    -->
+    <newNodeWeNeedToRead>
+      whatNeedsToBeRead
+    </newNodeWeNeedToRead>
+  </ExternalModel>
   ...
-</Simulation>
+</Models>
 \end{lstlisting}
 
 Corresponding Python function:
@@ -267,7 +309,7 @@ before performing the actual calculation.
 If this method is implemented in the \textbf{ExternalModel} Plugin, RAVEN is going to
 call it at the initialization stage of each ``Step'' (see section \ref{sec:steps}).
 %
-RAVEN will communicate, thorough a set of method attributes, all the information
+RAVEN will communicate, through a set of method attributes, all the information
 that are generally needed to perform an initialization:
 \begin{itemize}
   \item runInfo, a dictionary containing information regarding how the

@@ -111,12 +111,12 @@ about RAVEN %(TODO more notes on this!)
 
 \subsection{Using the Plugin in RAVEN}
 Once registered/installed, the new plugin entity (i.e., inherited from ExternalModel, ROM, PostProcessor) can be used in RAVEN input file by
-using corresponding RAVEN entity and its subtype to load the plugin entity. The subtype is defined by your plugin name and your
+using corresponding RAVEN entity and its \xmlAttr{subType} to load the plugin entity. The \xmlAttr{subType} is defined by your plugin name and your
 plugin entity name separated by `.'.
 For example, if your plugin external model class is named "myPluginModel",
 you can access an external model in the RAVEN input as
 
-\begin{lstlisting}[morekeywords={usingPlugin}]
+\begin{lstlisting}[style=XML, morekeywords={usingPlugin}]
 <Models>
   ...
   <ExternalModel name='myName' subType='myPluginName.myPluginModel'>
