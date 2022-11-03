@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 Note: Exact duplicate of raven/doc/workshop/ExternalModels/projectile.py
-Used to demonstrate the Code Plugin system 
+Used to demonstrate the Code Plugin system
 """
 #***************************************
 #* Simple analytic test ExternalModule *
