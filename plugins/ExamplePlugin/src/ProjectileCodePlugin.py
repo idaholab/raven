@@ -30,6 +30,8 @@ from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
 class ProjectileCodePlugin(CodePluginBase):
   """
     Provides code to interface RAVEN to Projectile through plugin
+    Note: Based on raven/ravenframework/CodeInterfaceClasses/WorkshopExamples/ProjectileInterface.py
+    It is changed to inherit from CodePluginBase to demonstrate the Code Plugin system
   """
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """

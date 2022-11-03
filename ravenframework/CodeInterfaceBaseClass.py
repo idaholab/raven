@@ -37,6 +37,18 @@ class CodeInterfaceBase(BaseInterface):
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    return inputSpecification
+
   def __init__(self):
     """
       Constructor
@@ -50,6 +62,16 @@ class CodeInterfaceBase(BaseInterface):
     self._csvLoadUtil = 'pandas' # utility to use to load CSVs
     self.printFailedRuns = True  # whether to print failed runs to the screen
     self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    # This method is not used for now, once we convert all code interfaces to use InputData,
+    # this method will be used to process xml input.
+    super()._handleInput(paramInput)
 
   def setRunOnShell(self, shell=True):
     """
@@ -117,20 +139,20 @@ class CodeInterfaceBase(BaseInterface):
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
-  def readXML(self, xmlNode, **kwargs):
+  def readXML(self, xmlNode, workingDir=None):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ In, ravenWorkingDir, str, location of RAVEN's working directory
+      @ In, workingDir, str, location of RAVEN's working directory
       @ Out, None
     """
-    self._ravenWorkingDir = kwargs.get('WorkingDir', None)
+    self._ravenWorkingDir = workingDir
     # read global options
     # should we print CSV even if the data can be directly returned to RAVEN?
     csvLog = xmlNode.find("csv")
     self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
-    super().readXML(xmlNode, **kwargs)
+    super().readXML(xmlNode, workingDir=workingDir)
 
   def _readMoreXML(self, xmlNode):
     """

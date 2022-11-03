@@ -252,7 +252,7 @@ class Code(Model):
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = self.interfaceFactory.returnInstance(self.subType)
-    self.code.readXML(xmlNode, **{'WorkingDir':self._ravenWorkingDir}) #TODO figure out how to handle this with InputData
+    self.code.readXML(xmlNode, workingDir=self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
