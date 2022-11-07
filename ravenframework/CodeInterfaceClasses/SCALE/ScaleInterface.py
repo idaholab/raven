@@ -18,17 +18,15 @@ Created on April 04, 2018
 
 comments: Interface for Scale Simulation (current Origen and Triton)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
 import shutil
 from ravenframework.utils import utils
 import xml.etree.ElementTree as ET
 
-from GenericCodeInterface import GenericParser
+from ..Generic import GenericParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from tritonAndOrigenData import origenAndTritonData
+from .tritonAndOrigenData import origenAndTritonData
 
 class Scale(CodeInterfaceBase):
   """
@@ -180,7 +178,3 @@ class Scale(CodeInterfaceBase):
         filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
     outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
     outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
-
-
-
-
