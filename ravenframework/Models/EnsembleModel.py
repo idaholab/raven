@@ -472,7 +472,6 @@ class EnsembleModel(Dummy):
     if joinedIndexMap:
       joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
 
-
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         if isinstance(evaluation,dict):
@@ -485,28 +484,6 @@ class EnsembleModel(Dummy):
     else:
       # collect optional output if present and not already collected
       output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
-
-    '''
-    if output.name not in optionalOutputNames:
-      if output.name not in targetEvaluationNames.keys():
-        if 'batchMode' not in joinedResponse.keys():
-          output.addRealization(joinedResponse)
-        else:
-          inputVarValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]['SampledVars']
-          for key in inputVarValues.keys():
-            inputVarValues[key] = np.array([inputVarValues[key]])
-          metaValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]
-          for key in metaValues.keys():
-            metaValues[key] = np.array([metaValues[key]])
-          outputData = joinedResponse
-          batchData = {**inputVarValues, **metaValues, **outputData}
-          output.addRealization(batchData)
-      else:
-        output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
-    else:
-      # collect optional output if present and not already collected
-      output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
-    '''
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -536,37 +513,6 @@ class EnsembleModel(Dummy):
     ## Unpack the specifics for this class, namely just the jobHandler
     returnValue = (Input,self._externalRun(Input, jobHandler))
     return returnValue
-
-  def submitOLD(self,myInput,samplerType,jobHandler,**kwargs):
-    """
-      This will submit an individual sample to be evaluated by this model to a
-      specified jobHandler as a client job. Note, some parameters are needed
-      by createNewInput and thus descriptions are copied from there.
-      @ In, myInput, list, the inputs (list) to start from to generate the new
-        one
-      @ In, samplerType, string, is the type of sampler that is calling to
-        generate a new input
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ In, **kwargs, dict,  is a dictionary that contains the information
-        coming from the sampler, a mandatory key is the sampledVars' that
-        contains a dictionary {'name variable':value}
-      @ Out, None
-    """
-    prefix = kwargs['prefix']
-
-    ## Ensemble models need access to the job handler, so let's stuff it in our
-    ## catch all kwargs where evaluateSample can pick it up, not great, but
-    ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler if self.parallelStrategy == 2 else None
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    if self.parallelStrategy == 1:
-      jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-    else:
-      jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
