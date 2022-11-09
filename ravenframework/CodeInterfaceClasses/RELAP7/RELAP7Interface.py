@@ -16,8 +16,6 @@ Created on April 14, 2014
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import sys
 import copy
@@ -25,13 +23,8 @@ from ravenframework.utils import utils
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-
-mooseParserPath = os.path.join(os.path.dirname(__file__), '..', 'MooseBasedApp')
-sys.path.append(mooseParserPath)
-import MOOSEparser
-import MooseInputParser
-sys.path.pop()
-# MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
+from ..MooseBasedApp import MOOSEparser
+from ..MooseBasedApp import MooseInputParser
 
 class RELAP7(CodeInterfaceBase):
   """
@@ -252,7 +245,8 @@ class RELAP7(CodeInterfaceBase):
       distributionType = Kwargs['distributionType'][key]
       crowDistribution = json.loads(Kwargs['crowDist'][key])
       distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName, distributionType,crowDistribution]
-    mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
+    from ..MooseBasedApp import MooseBasedAppInterface as mooseInterface
+    # mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
     mooseApp = mooseInterface.MooseBasedApp()
     returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
     return returnTuple
