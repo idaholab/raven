@@ -62,6 +62,7 @@ These classes can be loaded as follows in the Python modules created by the plug
  from ravenframework.PluginBaseClasses.OutStreamPlotPlugin import PlotPlugin
  from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
  from ravenframework.PluginBaseClasses.SupervisedLearningPlugin import SupervisedLearningPlugin
+ from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
 
  class NewExternalModelPluginEntity(ExternalModelPluginBase):
    ...
@@ -74,6 +75,10 @@ These classes can be loaded as follows in the Python modules created by the plug
 
  class NewROMPluginEntity(SupervisedLearningPlugin):
    ...
+
+ class NewCodePluginEntity(CodePluginBase):
+   ...
+
 \end{lstlisting}
 The APIs for these classes can be either found in the following sections or directly in the modules themselves.
 
