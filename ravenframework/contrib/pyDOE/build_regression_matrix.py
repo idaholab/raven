@@ -16,6 +16,9 @@ Abraham Lee.
 import numpy as np
 
 def grep(haystack, needle):
+    """
+    search for needle in haystack
+    """
     start = 0
     while True:
         start = haystack.find(needle, start)
