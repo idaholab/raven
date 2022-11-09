@@ -140,7 +140,7 @@ $ExternalModelPluginBase$:
     ...
 \end{lstlisting}
 This base class is needed by RAVEN to identify in the plugins folder which class must
-be considered an  ``ExternalModel Plugin''.
+be considered as an ``ExternalModel Plugin''.
 \\ In addition, when loading an ``ExternalModel Plugin'', RAVEN expects to find, in the class representing the plugin,
  the following required methods:
 \begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
@@ -301,61 +301,15 @@ def initialize(self, container, runInfo, inputs)
 \end{lstlisting}
 
 The \textbf{initialize} method can be implemented in the \textbf{ExternalModel} Plugin
-in order to initialize some variables needed by it.
-%
-For example, it can be used to compute a quantity needed by the ``run'' method
-before performing the actual calculation.
+in order to initialize some variables needed by it. This function accepts similar inputs
+to \textbf{initialize} method in section \ref{subsubsec:initialize}, except the \texttt{container}
+input variable. As all the others method in the ExternalModel Plugin, the information \emph{must} be
+stored in the ``self-like'' object ``container''.
 %
 If this method is implemented in the \textbf{ExternalModel} Plugin, RAVEN is going to
-call it at the initialization stage of each ``Step'' (see section \ref{sec:steps}).
+call it at the initialization stage of each ``Step'' (see RAVEN User Manual Steps section).
 %
-RAVEN will communicate, through a set of method attributes, all the information
-that are generally needed to perform an initialization:
-\begin{itemize}
-  \item runInfo, a dictionary containing information regarding how the
-  calculation is set up (e.g. number of processors, etc.).
-  %
-  It contains the following attributes:
-  \begin{itemize}
-    \item \texttt{DefaultInputFile} -- default input file to use
-    \item \texttt{SimulationFiles} -- the xml input file
-    \item \texttt{ScriptDir} -- the location of the pbs script interfaces
-    \item \texttt{FrameworkDir} -- the directory where the framework is located
-    \item \texttt{WorkingDir} -- the directory where the framework should be
-    running
-    \item \texttt{TempWorkingDir} -- the temporary directory where a simulation
-    step is run
-    \item \texttt{NumMPI} -- the number of mpi process by run
-    \item \texttt{NumThreads} -- number of threads by run
-    \item \texttt{numProcByRun} -- total number of core used by one run (number
-    of threads by number of mpi)
-    \item \texttt{batchSize} -- number of contemporaneous runs
-    \item \texttt{ParallelCommand} -- the command that should be used to submit
-    jobs in parallel (mpi)
-    \item \texttt{numNode} -- number of nodes
-    \item \texttt{procByNode} -- number of processors by node
-    \item \texttt{totalNumCoresUsed} -- total number of cores used by driver
-    \item \texttt{queueingSoftware} -- queueing software name
-    \item \texttt{stepName} -- the name of the step currently running
-    \item \texttt{precommand} -- added to the front of the command that is run
-    \item \texttt{postcommand} -- added after the command that is run
-    \item \texttt{delSucLogFiles} -- if a simulation (code run) has not failed,
-    delete the relative log file (if True)
-    \item \texttt{deleteOutExtension} -- if a simulation (code run) has not
-    failed, delete the relative output files with the listed extension (comma
-    separated list, for example: `e,r,txt')
-    \item \texttt{mode} -- running mode, curently the only mode supported is
-      mpi (but custom modes can be created)
-    \item \textit{expectedTime} -- how long the complete input is expected to
-    run
-    \item \textit{logfileBuffer} -- logfile buffer size in bytes
-  \end{itemize}
-  \item inputs, a list of all the inputs that have been specified in the
-  ``Step'' using this model.
-  %
-\end{itemize}
-As all the others method in the ExternalModel Plugin, the information \emph{must} be
-stored in the ``self-like'' object ``container''.
+
 In the following an example is reported:
 \begin{lstlisting}[language=python]
 def initialize(self, container, runInfo, inputs):
