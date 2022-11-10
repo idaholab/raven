@@ -317,7 +317,7 @@ class RFE(FeatureSelectionBase):
     if useParallel:
       # send some data to workers
       self.raiseADebug("Sending large data objects to Workers for parallel")
-      supportDataForRFERef = jhandler.sendDataToWorkers(supportDataRFE)
+      #supportDataForRFERef = jhandler.sendDataToWorkers(supportDataRFE)
       yRef = jhandler.sendDataToWorkers(y)
       XRef = jhandler.sendDataToWorkers(X)
       estimatorRef = jhandler.sendDataToWorkers(self.estimator)
@@ -332,7 +332,8 @@ class RFE(FeatureSelectionBase):
           else:
             outputspace = None
           prefix = f'subgroup_{g}'
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataForRFERef,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
+          if g > 0: supportDataRFE['firstStep'] = setStep
+          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
@@ -594,7 +595,6 @@ class RFE(FeatureSelectionBase):
                                supportOfSupport_: boolean array of the initial support to mask X or y (parameters included and not)
                                parametersToInclude: list of parameters to include
                                whichSpace: which space? feature or target?
-                               onlyOutputScore: score on output only?
 
       @ Out, score, float, the score for this combination
       @ Out, survivors,list(str), the list of parameters for this combination
@@ -619,7 +619,7 @@ class RFE(FeatureSelectionBase):
 
     parametersToInclude = supportData['parametersToInclude']
     whichSpace = supportData['whichSpace']
-    
+
     fg = open(f"debug_parallel_{groupId}","w")
     import sys
     np.set_printoptions(threshold=sys.maxsize)
@@ -632,6 +632,12 @@ class RFE(FeatureSelectionBase):
     fg.write(str(ranking_))
     fg.write("\noutputspace\n")
     fg.write(str(outputspace))
+    fg.write("\nfirstStep\n")
+    fg.write(str(step))
+    fg.write("\nstep\n")
+    fg.write(str(step))
+    fg.write("\nsetStep\n")
+    fg.write(str(setStep))
     fg.write("\n END INITIAL\n")
 
     # initialize working dir
@@ -741,7 +747,7 @@ class RFE(FeatureSelectionBase):
       gc.collect()
       # we do the search at least once
       doAtLeastOnce = False
-    
+
     fg.close()
     return support_, indexToKeep
 
