@@ -152,6 +152,7 @@ class DynamicEventTree(Grid):
     self.standardDETvariables              = []
     # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
+    self.fullyCorrelatedEpistemicToVar     = {}
 
   def _localWhatDoINeed(self):
     """
@@ -923,6 +924,10 @@ class DynamicEventTree(Grid):
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
+        for epVar in self.epistemicVariables:
+          if len(epVar.split(",")) > 1:
+            for el in epVar.split(","):
+              self.fullyCorrelatedEpistemicToVar[el.strip()] = epVar
 
   def localGetInitParams(self):
     """
@@ -994,7 +999,10 @@ class DynamicEventTree(Grid):
         elm.add('hybridsamplerCoordinate', combinations[precSample])
         for point in combinations[precSample]:
           for epistVar, val in point['SampledVars'].items():
-            self.epistemicVariables[epistVar][elm.get('name')] = val
+            if epistVar in self.fullyCorrelatedEpistemicToVar:
+              self.epistemicVariables[self.fullyCorrelatedEpistemicToVar[epistVar]][elm.get('name')] = val
+            else:
+              self.epistemicVariables[epistVar][elm.get('name')] = val
       # The dictionary branchedLevel is stored in the xml tree too. That's because
       # the advancement of the thresholds must follow the tree structure
       elm.add('branchedLevel', self.branchedLevel[0])
