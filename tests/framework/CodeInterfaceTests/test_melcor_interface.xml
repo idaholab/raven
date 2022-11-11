@@ -31,6 +31,10 @@
 	<Code name="MELGEN" subType="Melcor">
 	  <executable>MELCOR_2.2/bin/melcor</executable>
 	  <preexec>MELCOR_2.2/bin/melgen</preexec>
+	  <clargs arg="" extension=".inp" type="input"/>
+	  <CodePlotFile>MELPTF.PTF</CodePlotFile>
+	  <variables>CVH-P_1</variables>
+	  <MelcorOutput>MELMES.TXT</MelcorOutput>
       <!--
         READ THIS CAREFULLY!
         The following flag indicates that we will write a CSV with
