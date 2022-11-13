@@ -195,11 +195,11 @@ class PARCSData:
           N = lines[i+1].split()
           N = int(N[-1])
           pinarray = []
-          for jj in range (i+2, N+3):
+          for jj in range (i+2, i+N+2):
             pinarray.append([float(val) for val in lines[jj].split()[1:]])
           Pinpower.append(pinarray)
-          FAinfo.append([temp[3],temp[4], float(lines[N+3].split()[-1])])
+          FAinfo.append([temp[3],temp[4], float(lines[i+N+2].split()[-1])])
     
-    outputDict = {'info_ids':[['FAInfor'], ['nodeInfor'], ['pinPowerMap']], 
-                  'values': [[FAinfo], [Nodeinfo], [Pinpower]]}
+    outputDict = {'info_ids':[['BUStep'], ['FAInfor'], ['nodeInfor'], ['pinPowerMap']], 
+                  'values': [[bu_step],[FAinfo], [Nodeinfo], [Pinpower]]}
     return outputDict
