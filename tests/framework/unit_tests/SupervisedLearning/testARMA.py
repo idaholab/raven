@@ -23,25 +23,26 @@ import numpy as np
 import pandas as pd
 
 # find location of crow, message handler
-frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 
-sys.path.append(frameworkDir)
+sys.path.append(ravenDir)
+frameworkDir = os.path.join(ravenDir, 'framework')
 
-from utils.utils import find_crow
+from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
-from utils import randomUtils
+from ravenframework.utils import randomUtils
 
-import MessageHandler
+from ravenframework import MessageHandler
 
 # message handler
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 # input specs come mostly from the Models.ROM
-from Models import ROM
+from ravenframework.Models import ROM
 
 # find location of ARMA
-from SupervisedLearning import ARMA
+from ravenframework.SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
 print(ARMA)
@@ -432,42 +433,42 @@ if plotting:
 #            RESEEDCOPIES, ENGINE           #
 #############################################
 
-testVal=arma._trainARMA(data)
-arma.amITrained=True
-signal1=arma._generateARMASignal(testVal)
-signal2=arma._generateARMASignal(testVal)
+testVal = arma._trainARMA(data)
+arma.amITrained = True
+signal1 = arma._generateARMASignal(testVal)
+signal2 = arma._generateARMASignal(testVal)
 
 #Test the reseed = False
 
-armaReF=arma
-armaReF.reseedCopies=False
-pklReF=pk.dumps(armaReF)
-unpkReF=pk.loads(pklReF)
+armaReF = arma
+armaReF.reseedCopies = False
+pklReF = pk.dumps(armaReF)
+unpkReF = pk.loads(pklReF)
 #signal 3 and 4 should be the same
-signal3=armaReF._generateARMASignal(testVal)
-signal4=unpkReF._generateARMASignal(testVal)
+signal3 = armaReF._generateARMASignal(testVal)
+signal4 = unpkReF._generateARMASignal(testVal)
 for n in range(len(data)):
   checkFloat('signal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
 
 #Test the reseed = True
 
-arma.reseedCopies=True
-pklReT=pk.dumps(arma)
-unpkReT=pk.loads(pklReT)
+arma.reseedCopies = True
+pklReT = pk.dumps(arma)
+unpkReT = pk.loads(pklReT)
 #signal 5 and 6 should not be the same
-signal5=arma._generateARMASignal(testVal)
-signal6=unpkReT._generateARMASignal(testVal)
+signal5 = arma._generateARMASignal(testVal)
+signal6 = unpkReT._generateARMASignal(testVal)
 for n in range(len(data)):
   checkTrue('signal 5, signal 6 ind{}'.format(n),signal5[n]!=signal6[n])
 
 # Test the engine with seed
 
-eng=randomUtils.newRNG()
-arma.setEngine(eng,seed=901017,count=0)
-signal7=arma._generateARMASignal(testVal)
+eng = randomUtils.newRNG()
+arma.setEngine(eng, seed=901017)
+signal7 = arma._generateARMASignal(testVal)
 
-sig7=[0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
-      0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
+sig7=[0.39974990, -0.14531400,  0.1313880, -0.565649598,  0.06020223,
+      0.60752023, -0.29076037, -1.1758401,   0.41108399, -0.05735358]
 for n in range(10):
   checkFloat('signal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
 

@@ -25,7 +25,7 @@ The accepted PHISICS \xmlAttr{type} attributes are given in Table \ref{TypeTable
 All the necessary RELAP5 input files need to have a \xmlAttr{type} attribute starting with the string 'relap'.
 The necessary RELAP5 files for use in the coupled PHISICS/RELAP mode within RAVEN are given in Table~\ref{PhisicsRelap5TypeTable}. The files associated
 with a  \xmlAttr{type} that does not start with the string 'relap' will be treated by the PHISICS interface.
-The  \xmlAttr{type} attributes are case-incensitive.
+The  \xmlAttr{type} attributes are case-insensitive.
 \begin{table}[]
   \centering
   \caption{Example of RELAP5 type attributes in coupled PHISICS/RELAP5 mode}\label{PhisicsRelap5TypeTable}
@@ -59,7 +59,7 @@ currently used for PHISICS/RELAP5 coupled calculations.
 The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS/RELAP5
 that RAVEN will use to run the code. The additional nodes in the \xmlNode{Models} applicable to PHISICS standalone and RELAP5 standalone
 are valid in coupled mode and can be consulted in section~\ref{subsubsection:PhisicsModel} and section~\ref{subsubsection:Relap5Models} respectively.
-Exception: the use of MrTau in standalone mode (i.e. \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled
+Exception: the use of MrTau in standalone mode (i.e., \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled
 calculations.
 
 An example of the \xmlNode{Models} block is given below:
@@ -141,7 +141,7 @@ The output printed from PHISICS and RELAP5 are synchronized in the RAVEN csv out
 
 At t = 0 seconds, the RELAP5 initialized output are printed in the csv output, while the output variables from PHISICS are taken equal to 0.
 Then, the RAVEN/PHISICS/RELAP5 post-processor finds the time step number at the end of each PHISICS
-burn step based on the \xmlNode{tab\_time\_step} values, and prints the RELAP minor edits according to the \xmlNode{TH\_between\_BURN} values.
+burn step based on the \xmlNode{tab\_time\_step} values, and prints the RELAP5 minor edits according to the \xmlNode{TH\_between\_BURN} values.
 
 Let's consider the following example:
 \begin{enumerate}

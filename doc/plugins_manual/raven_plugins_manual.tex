@@ -262,20 +262,10 @@ showstringspaces=false            %
 %\end{tabular} }
 
 
-\author{ TODO authors
-%\\Paul W. Talbot
-%\\Andrea Alfonsi
-%\\Cristian Rabiti
-%\\Diego Mandelli
-%\\Joshua Cogliati
-%\\Congjian Wang
-%\\Daniel P. Maljovec
-%\\Curtis Smith
+\author{
+\\Paul W. Talbot
+\\Congjian Wang
 }
-% \\James B. Tompkins}   Just people who actually ``developed'' a significant capability in the code should be placed here. Andrea
-%\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
-%\affil{Idaho National Laboratory, Idaho Falls, ID 83402}
-%\\\{cristian.rabiti, andrea.alfonsi, joshua.cogliati, diego.mandelli, robert.kinoshita, ramazan.sen\}@inl.gov}
 
 % There is a "Printed" date on the title page of a SAND report, so
 % the generic \date should [WorkingDir:]generally be empty.
@@ -287,7 +277,7 @@ showstringspaces=false            %
 %
 \SANDnum{INL/EXT-TODO}
 \SANDprintDate{\today}
-\SANDauthor{TODO authors} %Andrea Alfonsi, Cristian Rabiti, Diego Mandelli, Joshua Cogliati, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec, Curtis Smith}
+\SANDauthor{Paul W. Talbot, Congjian Wang}
 \SANDreleaseType{Revision 0}
 
 
@@ -318,7 +308,7 @@ showstringspaces=false            %
 %
 
 \begin{document}
-
+    \sloppy
     \maketitle
 
     % ------------------------------------------------------------------------ %
@@ -415,8 +405,8 @@ described in the following sections.
 
 \input{Interfaces/external_model.tex}
 \input{Interfaces/outstreams_plot.tex}
-
-
+\input{Interfaces/code_model.tex}
+\input{Interfaces/postprocessor_model.tex}
 
 
 \clearpage

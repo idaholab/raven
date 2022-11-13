@@ -15,9 +15,9 @@
 import os
 import sys
 import copy
-frameworkPath = os.path.join(os.path.dirname(__file__), *['..']*4, 'framework')
-sys.path.append(frameworkPath)
-from utils import xmlUtils
+ravenPath = os.path.join(os.path.dirname(__file__), *['..']*4,)
+sys.path.append(ravenPath)
+from ravenframework.utils import xmlUtils
 
 def write1():
   """

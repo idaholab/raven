@@ -24,9 +24,9 @@ from contextlib import redirect_stdout
 
 import numpy as np
 
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import Debugging
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+sys.path.append(ravenDir)
+from ravenframework.utils import Debugging
 
 print(Debugging)
 
@@ -75,7 +75,7 @@ checkAnswer('getSize str', Debugging.getSize('hello world!'), 61)
 checkAnswer('getSize bool', Debugging.getSize(True), 28)
 # list-like; tolerances determined mostly by windows test machine
 checkAnswer('getSize tuple', Debugging.getSize(tuple(range(10))), 404)
-checkAnswer('getSize list', Debugging.getSize(list(range(10))), 476)
+checkAnswer('getSize list', Debugging.getSize(list(range(10))), 476,tol=80)
 checkAnswer('getSize deque', Debugging.getSize(deque(range(10))), 908)
 checkAnswer('getSize set', Debugging.getSize(set(range(10))), 1012)
 checkAnswer('getSize np array int10', Debugging.getSize(np.arange(10, dtype=int)), 176, tol=40)

@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/EconomicRatio/general</name>
+    <author>dgarrett622</author>
+    <created>2022-02-08</created>
+    <classesTested>PostProcessors.EconomicRatio</classesTested>
+    <description>
+      This tests point set economic ratio quantities and passing basic statistics.
+    </description>
+    <revisions>
+      <revision author="dgarrett622" date="2022-08-23">add request for multiple value at risk and expected shortfall</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>economicRatioGeneral</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>MCSample,VaREcon</Sequence>
+  </RunInfo>
+  <Distributions>
+    <Normal name="NPV_dist">
+      <mean>5</mean>
+      <sigma>5</sigma>
+    </Normal>
+    <Normal name="x_dist">
+      <mean>3</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y_dist">
+      <mean>10</mean>
+      <sigma>2</sigma>
+    </Normal>
+  </Distributions>
+  <Samplers>
+    <MonteCarlo name="normalMC">
+      <samplerInit>
+        <limit>1000</limit>
+      </samplerInit>
+      <variable name="NPV">
+        <distribution>NPV_dist</distribution>
+      </variable>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>y_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <PostProcessor name="EconRatio" subType="EconomicRatio">
+      <valueAtRisk prefix="VaR" threshold="0.05">NPV</valueAtRisk>
+      <valueAtRisk prefix="VaR" threshold="0.1">NPV</valueAtRisk>
+      <sortinoRatio prefix="sort" threshold="median">NPV</sortinoRatio>
+      <sharpeRatio prefix="sharpe">NPV</sharpeRatio>
+      <expectedShortfall prefix="CVaR" threshold="0.05">NPV</expectedShortfall>
+      <expectedShortfall prefix="CVaR" threshold="0.1">NPV</expectedShortfall>
+      <gainLossRatio prefix="glr" threshold="median">NPV</gainLossRatio>
+      <expectedValue prefix="mean">NPV</expectedValue>
+      <median prefix="med">NPV</median>
+      <sigma prefix="sig">NPV</sigma>
+      <samples prefix="samp">NPV</samples>
+      <minimum prefix="min">NPV</minimum>
+      <maximum prefix="max">NPV</maximum>
+      <variance prefix="var">NPV</variance>
+      <percentile percent="10" prefix="perc">NPV</percentile>
+      <variationCoefficient prefix="varcoeff">NPV</variationCoefficient>
+      <skewness prefix="skew">NPV</skewness>
+      <kurtosis prefix="kurt">NPV</kurtosis>
+      <sensitivity prefix="sen">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </sensitivity>
+      <covariance prefix="cov">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </covariance>
+      <pearson prefix="pear">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </pearson>
+      <spearman prefix="spear">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </spearman>
+      <NormalizedSensitivity prefix="normsen">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </NormalizedSensitivity>
+      <VarianceDependentSensitivity prefix="varsen">
+        <targets>NPV</targets>
+        <features>x,y</features>
+      </VarianceDependentSensitivity>
+    </PostProcessor>
+  </Models>
+  <Steps>
+    <MultiRun name="MCSample" re-seeding="42424242">
+      <Input class="DataObjects" type="PointSet">InputPlaceholder</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">normalMC</Sampler>
+      <Output class="DataObjects" type="PointSet">MCData</Output>
+    </MultiRun>
+    <PostProcess name="VaREcon">
+      <Input class="DataObjects" type="PointSet">MCData</Input>
+      <Model class="Models" type="PostProcessor">EconRatio</Model>
+      <Output class="DataObjects" type="PointSet">EconVaRResult</Output>
+      <Output class="OutStreams" type="Print">EconVaRResult_dump</Output>
+    </PostProcess>
+  </Steps>
+  <DataObjects>
+    <PointSet name="InputPlaceholder">
+      <Input>NPV,x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="MCData">
+      <Input>NPV,x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="EconVaRResult">
+      <Output>
+        VaR_0.05_NPV,
+        VaR_0.1_NPV,
+        CVaR_0.05_NPV,
+        CVaR_0.1_NPV,
+        sort_median_NPV,
+        sharpe_NPV,
+        glr_median_NPV,
+        mean_NPV,
+        med_NPV,
+        sig_NPV,
+        samp_NPV,
+        min_NPV,
+        max_NPV,
+        var_NPV,
+        perc_10_NPV,
+        varcoeff_NPV,
+        skew_NPV,
+        kurt_NPV,
+        sen_NPV_y,
+        sen_NPV_x,
+        cov_NPV_y,
+        cov_NPV_x,
+        pear_NPV_y,
+        pear_NPV_x,
+        spear_NPV_y,
+        spear_NPV_x,
+        normsen_NPV_y,
+        normsen_NPV_x,
+        varsen_NPV_y,
+        varsen_NPV_x</Output>
+    </PointSet>
+  </DataObjects>
+  <OutStreams>
+    <Print name="EconVaRResult_dump">
+      <type>csv</type>
+      <source>EconVaRResult</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

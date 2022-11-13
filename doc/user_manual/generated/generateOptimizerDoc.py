@@ -19,16 +19,16 @@
 # get driver and path and import it, to get RAVEN paths correct
 import os
 import sys
-ravenFramework = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'framework'))
-sys.path.append(ravenFramework)
+ravenDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(ravenDir)
 try:
-  import Driver
+  import ravenframework.Driver
 except Exception as e:
   print('\nWe did not find the modules needed for RAVEN; maybe the conda env is not activated?')
   raise e
 sys.path.pop()
 
-from utils.InputData import wrapText
+from ravenframework.utils.InputData import wrapText
 
 def insertSolnExport(tex, obj):
   """
@@ -154,7 +154,7 @@ Genetic Algorithm Example:
       <GAparams>
         <populationSize>20</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="4">
+        <reproduction>
           <crossover type="onePointCrossover">
             <points>3</points>
             <crossoverProb>0.8</crossoverProb>
@@ -219,7 +219,7 @@ exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':
 #------------#
 # OPTIMIZERS #
 #------------#
-import Optimizers
+from ravenframework import Optimizers
 msg = ''
 # base classes first
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')

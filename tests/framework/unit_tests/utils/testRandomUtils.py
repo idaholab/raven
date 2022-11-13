@@ -22,11 +22,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
-frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
-sys.path.append(frameworkDir)
-from utils import utils
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+frameworkDir = os.path.join(ravenDir, 'framework')
+sys.path.append(ravenDir)
+from ravenframework.utils import utils
 utils.find_crow(frameworkDir)
-from utils import randomUtils
+from ravenframework.utils import randomUtils
 randomENG = utils.findCrowModule("randomENG")
 
 print (randomUtils)
@@ -347,8 +348,8 @@ for i in range(samps.shape[1]):
   checkTrue('Entry {}, simultaneous random 5D hypersphere for local engine provided'.format(i),np.sum(s*s)<=1.0,True)
 ## check if it is possible to instanciate multiple random number generators (isolated)
 ## this is more a test for the crow_modules.randomENGpy[2,3]
-firstRNG = randomENG.RandomClass()
-secondRNG = randomENG.RandomClass()
+firstRNG = randomUtils.newRNG()
+secondRNG = randomUtils.newRNG()
 # seed with different seeds
 firstRNG.seed(200286)
 secondRNG.seed(20021986)
@@ -395,7 +396,6 @@ engine = randomUtils.newRNG()
 engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
-
 
 print(results)
 
