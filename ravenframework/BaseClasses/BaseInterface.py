@@ -136,7 +136,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
 
   ################################
   # API (legacy) - these should go away as we convert existing systems
-  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
+  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None, workingDir=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in
       the simulation than calls _readMoreXML that needs to be overloaded and used as API. Each type
@@ -145,6 +145,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       @ In, xmlNode, ET.Element, input xml
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
+      @ In, workingDir, str, optional, the path of the working directory
       @ Out, None
     """
     if 'name' in xmlNode.attrib.keys():

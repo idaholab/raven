@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on July 31, 2018
+Created on Oct. 28, 2022
 
-@author: Andrea Alfonsi
+@author: alfoa, wangc
 
-comments: Interface for Projectile Code
+comments: Interface for Projectile Code through code plugin
 """
 import os
 import math
@@ -25,12 +25,13 @@ import re
 import copy
 import numpy
 from collections import defaultdict
+from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
 
-from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-
-class Projectile(CodeInterfaceBase):
+class ProjectileCodePlugin(CodePluginBase):
   """
-    Provides code to interface RAVEN to Projectile
+    Provides code to interface RAVEN to Projectile through plugin
+    Note: Based on raven/ravenframework/CodeInterfaceClasses/WorkshopExamples/ProjectileInterface.py
+    It is changed to inherit from CodePluginBase to demonstrate the Code Plugin system
   """
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
