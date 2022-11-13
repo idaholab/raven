@@ -393,7 +393,7 @@ targetVals[0,:,0] = data
 # "t"
 t = np.arange(len(data))
 targetVals[0,:,1] = t
-arma.__trainLocal__(featureVals,targetVals)
+arma._train(featureVals,targetVals)
 nsamp = 10
 samples = np.zeros([nsamp,len(data)])
 for n in range(nsamp):

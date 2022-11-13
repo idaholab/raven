@@ -188,7 +188,8 @@ class SupervisedLearning(BaseInterface):
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    if state['_assembledObjects'] is not None and 'jobHandler' in state['_assembledObjects']:
+
+    if state.get('_assembledObjects') is not None and 'jobHandler' in state['_assembledObjects']:
       state['_assembledObjects'].pop('jobHandler')
     if  self.saveParams:
       state['saveParams'] = False
