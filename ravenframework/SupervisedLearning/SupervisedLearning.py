@@ -146,26 +146,62 @@ class SupervisedLearning(BaseInterface):
       @ In, None
       @ Out, None
     """
+    #Note: self.saveParam (BaseInterface class) is set at the _handleInput stage
     super().__init__()
     self.printTag = 'SupervisedLearning'
-    self.saveParams = True         # the input parameters are saved
-    self.features = None           # "inputs" to this model
-    self.target = None             # "outputs" of this model
-    self.amITrained = False        # "True" if the ROM is already trained
-    self._dynamicHandling = False  # time-like dependence in the model?
-    self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
+    # "inputs" to this model
+    self.features = None
+    # "outputs" of this model
+    self.target = None
+    # "True" if the ROM is already trained
+    self.amITrained = False
+    # time-like dependence in the model?
+    self._dynamicHandling = False
+    # time-like dependence in the feature space? FIXME: this is not the right design
+    self.dynamicFeatures = False
+    # feature selection algorithm container
     self.featureSelectionAlgo = None
+    # the feature selection has been performed already?
     self.doneSelectionFeatures = False
+    # should a dimensionality reduction filtering be done?
     self.performDimReduction = False
+    # container of the dimensionality reduction settings
     self.dimReductionSettings = {}
-    self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
+    # transformation matrix
+    self.pcaTransfMatrix = None
+    # objects assembled by the ROM Model, passed through.
+    self._assembledObjects = None
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
-    self.muAndSigmaFeatures = {}   # normalization parameters
-    self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
-    self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
-    self.pcaTransfMatrix = None
+    # normalization parameters
+    self.muAndSigmaFeatures = {}
+    # keys that can be passed to DataObject as meta information
+    self.metadataKeys = set()
+    # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.metadataParams = {}
+
+  def __getstate__(self):
+    """
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    if state['_assembledObjects'] is not None and 'jobHandler' in state['_assembledObjects']:
+      state['_assembledObjects'].pop('jobHandler')
+    if  self.saveParams:
+      state['saveParams'] = False
+      state.pop('paramInput')
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
 
   def _handleInput(self, paramInput):
     """
@@ -173,13 +209,21 @@ class SupervisedLearning(BaseInterface):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
+    # check if paramInput must be saved.
+    # currently they are saved if and only if a feature selection
+    # algorithm is activated
+    # Consequentially we check for the presence of feature selection
+    # as first thing before processing the input data
+    featSelection = paramInput.findFirst("featureSelection")
+    self.saveParams = featSelection is not None
+    # now we can proceed with the input handling
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
     self.pivotID = nodes['pivotParameter']
-    featSelection = paramInput.findFirst("featureSelection")
+
     if featSelection is not None:
       if len(featSelection.subparts) > 1:
         self.raiseAnError(IOError, "Only one feature selection algorithm is allowed in the ROM")
@@ -217,26 +261,6 @@ class SupervisedLearning(BaseInterface):
     self.featureSelectionAlgo = inputDict.get('featureSelectionAlgorithm', None)
     self.verbosity = inputDict.get('verbosity', None)
 
-  def __getstate__(self):
-    """
-      This function return the state of the ROM
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
-    """
-    state = copy.copy(self.__dict__)
-    if '_assembledObjects' in state:
-      if 'jobHandler' in state['_assembledObjects']:
-        state['_assembledObjects'].pop('jobHandler')
-    return state
-
-  def __setstate__(self, d):
-    """
-      Initialize the ROM with the data contained in newstate
-      @ In, d, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(d)
-
   def setEstimator(self, estimatorList):
     """
       Initialization method
@@ -272,6 +296,17 @@ class SupervisedLearning(BaseInterface):
       @ Out, featureImportances_, dict of dicts, dict of importances {'target1':{feature1:importance, feature1:importance,...},...}
     """
     return dict.fromkeys(self.target,dict.fromkeys(self.features,1.))
+
+  @property
+  def requireJobHandler(self):
+    """
+      Property setting the requirement for job handler (internal parallelization)
+      If JobHandler is required, it will be stored in the assembler object container
+      (i.e. self._assembledObjects['jobHandler'])
+      @ In, None
+      @ Out, requireJobHandler, bool, True if jobhandler is required
+    """
+    return self.featureSelectionAlgo is not None and not self.doneSelectionFeatures
 
   def train(self, tdict, indexMap=None):
     """
@@ -363,11 +398,7 @@ class SupervisedLearning(BaseInterface):
           featureValues[ :, indeces] = self.dimReductionEngine.fit_transform(featureValues[:, indeces])
         else:
           targetValues[:, indeces] = self.dimReductionEngine.fit_transform(targetValues[ :, indeces]).T
-      #cov = self.dimReductionEngine.get_covariance()
-      #components = self.dimReductionEngine.components_
-      #var = self.dimReductionEngine.explained_variance_
-      #explained_variance_ratio_ = self.dimReductionEngine.explained_variance_ratio_
-      #singular_values_ = self.dimReductionEngine.singular_values_
+
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       if self.featureSelectionAlgo.needROM:
         self.featureSelectionAlgo.setEstimator(self)

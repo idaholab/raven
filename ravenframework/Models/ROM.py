@@ -161,6 +161,12 @@ class ROM(Dummy):
     if not self.amITrained:
       supervisedEngineObj = d.pop("supervisedContainer")
       del supervisedEngineObj
+    else:
+      # remove JobHandler
+      for rom in d['supervisedContainer']:
+        if '_assembledObjects' in rom.__dict__:
+          if 'jobHandler' in rom.__dict__['_assembledObjects']:
+            rom.__dict__['_assembledObjects'].pop('jobHandler')
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
@@ -339,6 +345,8 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      if not self.supervisedContainer[0].requireJobHandler and 'jobHandler' in self.assemblerDict:
+        self.assemblerDict.pop("jobHandler")
 
       self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
       # if training using ROMCollection, special treatment
