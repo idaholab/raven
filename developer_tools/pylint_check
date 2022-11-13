@@ -12,7 +12,7 @@ cd $SCRIPT_DIR/..
 source $SCRIPT_DIR/../scripts/establish_conda_env.sh --load --quiet
 
 echo Framework
-pylint --disable=all --enable=missing-docstring --enable=multiple-statements framework/ scripts/TestHarness/testers/*.py
+pylint --disable=all --enable=missing-docstring --enable=multiple-statements ravenframework/ scripts/TestHarness/testers/*.py
 
 echo Rook
 pylint --disable=consider-iterating-dictionary,unspecified-encoding,consider-using-f-string,fixme,too-few-public-methods,len-as-condition,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements,too-many-instance-attributes,too-many-arguments,similarities,broad-except,consider-using-enumerate,no-member,import-error,not-an-iterable,unexpected-keyword-arg,too-many-public-methods,wrong-import-position,consider-using-with --const-rgx '(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$' --module-rgx '(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$' --indent-string "  " rook/*.py
