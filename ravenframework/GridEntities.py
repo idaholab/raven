@@ -225,7 +225,7 @@ class GridEntity(GridBase):
     """
       Size of the grid
       @ In, None
-      @ Out, len, np.int64, total number of nodes
+      @ Out, len, int, total number of nodes
     """
     return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer else 0
 
@@ -504,9 +504,9 @@ class GridEntity(GridBase):
       if self.gridContainer['transformationMethods'] is not None:
         if varName in self.gridContainer['transformationMethods']:
           self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
-      pointByVar[varId]                              = np.int(np.shape(self.gridContainer['gridVectors'][varName])[0])
+      pointByVar[varId]                              = int(np.shape(self.gridContainer['gridVectors'][varName])[0])
     self.gridContainer['gridShape']                  = tuple   (pointByVar)                             # tuple of the grid shape
-    self.gridContainer['gridLength']                 = np.int(np.prod (np.asarray(pointByVar, dtype=np.float64))) # total number of point on the grid
+    self.gridContainer['gridLength']                 = int(np.prod (np.asarray(pointByVar, dtype=np.float64))) # total number of point on the grid
     self.gridContainer['gridCoorShape']              = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
     if self.constructTensor:
       self.gridContainer['gridCoord'] = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid

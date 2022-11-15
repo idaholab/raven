@@ -190,7 +190,7 @@ class SupervisedLearning(BaseInterface):
     state = copy.copy(self.__dict__)
 
     if state.get('_assembledObjects') is not None and 'jobHandler' in state['_assembledObjects']:
-      state['_assembledObjects'].pop('jobHandler')
+      del state['_assembledObjects']['jobHandler']
     if self.saveParams:
       state['saveParams'] = False
       state.pop('paramInput')
