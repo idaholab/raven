@@ -19,10 +19,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os
@@ -44,7 +40,6 @@ from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from ..utils import TreeStructure as ETS
-from ..utils.graphStructure import graphObject as graph
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -150,8 +145,12 @@ class DynamicEventTree(Grid):
     self.hybridNumberSamplers              = 0
     # List of variables that represent the aleatory space
     self.standardDETvariables              = []
-    # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
+    # Dictionary of variables that represent the epistemic space (hybrid det).
+    # Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
+    # Dictionary (mapping) between the fully correlated variables and the "epistemic"
+    # variable representation (variable name) in the input file. For example,
+    # {'var1':'var1,var2','var2':'var1,var2'}
     self.fullyCorrelatedEpistemicToVar     = {}
 
   def _localWhatDoINeed(self):
