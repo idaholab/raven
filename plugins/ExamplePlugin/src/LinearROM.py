@@ -68,7 +68,7 @@ class LinearROM(SupervisedLearningPlugin):
     if len(self.features) > 1:
       self.raiseAnError(IOError, 'ExamplePlugin LinearROM expects only 1 feature and 1 target!')
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on samples in featureVals with responses y.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
