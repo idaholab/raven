@@ -105,6 +105,25 @@ class JobHandler(BaseType):
     self.rayInstanciatedOutside = None
     self.remoteServers = None
 
+  def __getstate__(self):
+    """
+      This function return the state of the JobHandler
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    state.pop('_JobHandler__queueLock')
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
+    self.__queueLock = threading.RLock()
+
   def applyRunInfo(self, runInfo):
     """
       Allows access to the RunInfo data
@@ -112,7 +131,6 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.runInfoDict = runInfo
-
 
   def initialize(self):
     """
@@ -329,7 +347,6 @@ class JobHandler(BaseType):
           return address
     self.raiseAWarning("ray start address not found in "+str(rayLog))
     return None
-
 
   def __updateListeningSockets(self, localHostName):
     """

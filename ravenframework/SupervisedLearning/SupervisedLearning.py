@@ -191,7 +191,7 @@ class SupervisedLearning(BaseInterface):
 
     if state.get('_assembledObjects') is not None and 'jobHandler' in state['_assembledObjects']:
       state['_assembledObjects'].pop('jobHandler')
-    if  self.saveParams:
+    if self.saveParams:
       state['saveParams'] = False
       state.pop('paramInput')
     return state
@@ -239,7 +239,6 @@ class SupervisedLearning(BaseInterface):
       pca = dimReduction.findFirst("PCA")
       if pca is None:
         self.raiseAnError(IOError, "Only available dimensionality algorithms are: {}".format(",".join(['PCA'])))
-      self.performDimReduction = True
       nodesPCA, notFound = pca.findNodesAndExtractValues(['parametersToInclude', 'whichSpace', 'nComponents','whiten','tol'])
       if nodesPCA['nComponents'] is not None: nodesPCA['nComponents'] = int(nodesPCA['nComponents'])
       if nodesPCA['parametersToInclude'] is None:

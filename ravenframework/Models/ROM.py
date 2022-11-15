@@ -161,12 +161,6 @@ class ROM(Dummy):
     if not self.amITrained:
       supervisedEngineObj = d.pop("supervisedContainer")
       del supervisedEngineObj
-    else:
-      # remove JobHandler
-      for rom in d['supervisedContainer']:
-        if rom.__dict__.get('_assembledObjects') is not None:
-          if rom.__dict__['_assembledObjects'].get('jobHandler') is not None:
-            rom.__dict__['_assembledObjects'].pop('jobHandler')
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
