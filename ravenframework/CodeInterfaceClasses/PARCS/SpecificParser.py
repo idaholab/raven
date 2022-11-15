@@ -3,19 +3,15 @@ Created on Aug. 10th, 2022
 @author: khnguy22
 comment: Specific parser for PRACS interface
 """
-
 from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 from xml.etree import ElementTree as ET
-
 class DataParser():
   """
     Parse the data in RAVEN input in to PARCS input
     and be saved for the perturbed input generator in Perturbed parser
     Note: this data parser is only called once
   """
-
   def __init__(self, inputFile):
     """
       Constructor.
@@ -25,7 +21,6 @@ class DataParser():
     """
     self.inputFile = inputFile
     self.getParameters()
-
   def getParameters(self):
     """
       Get required parameters from xml file for generating
@@ -33,7 +28,6 @@ class DataParser():
       @ In, None
       @ Out, None
     """
-
     fullFile = os.path.join(self.inputFile)
     dorm = ET.parse(fullFile)
     root = dorm.getroot()
@@ -61,13 +55,11 @@ class DataParser():
     self.XSdict =[]
     for xs in root.iter('XS'):
       self.XSdict.append(xs.attrib)
-    
 
 class PerturbedPaser():
   """
   Parse value in the perturbed xml file replaces the nominal values by the perturbed values.
   """
-
   def __init__(self, inputFile, workingDir, inputName, perturbDict):
     """
     Constructor.
@@ -77,15 +69,12 @@ class PerturbedPaser():
       @ In, perturbDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-
     self.inputFile = inputFile #original perturb input file
     self.perturbDict = perturbDict #get from RAVEN
     self.workingDir = workingDir
     self.inputName = inputName
-
     # get perturbed value and create new xml file
     self.replaceOldFile()
-
   def replaceOldFile(self):
     """
     Replace orignal xml file with perturbed variables
@@ -95,17 +84,17 @@ class PerturbedPaser():
     """
     perturbedID = []
     perturbedVal = []
-    
+
     for key, value in self.perturbDict.items():
       id_ = ''.join([n for n in key if n.isdigit()])
       try:
         id_ = int(id_)
       except:
         ValueError('There is no id indication in variable from RAVEN, please check!')
-      
+
       perturbedID.append(int(id_))
       perturbedVal.append(int(value))
-    #sorting 
+    #sorting
     perturbedVal_sorted =  [val for _,val in sorted(zip(perturbedID,perturbedVal))]
     perturbedVal =  perturbedVal_sorted
     perturbedID = sorted(perturbedID)
@@ -120,7 +109,6 @@ class PerturbedPaser():
     newfile = open(self.inputFile, "w")
     newfile.write(writedata.decode())
     newfile.close()
-
   def generatePARCSInput(self, parameter):
     """
     Generate new input for PARCS to run
@@ -128,7 +116,7 @@ class PerturbedPaser():
     @ Out, None
     """
     file_ = open(f"{self.workingDir}/{self.inputName}",'w')
-    ## write initial lines 
+    ## write initial lines
     file_.write(f"!****************************************************************************** \n")
     file_.write(f"CASEID {self.inputName}              OECD NEA MSLB  \n")
     file_.write(f"!****************************************************************************** \n")
@@ -158,9 +146,9 @@ class PerturbedPaser():
     file_.write(f"GEOM \n")
     file_.write(f"      geo_dim {parameter.NFA} {parameter.NFA} {parameter.NAxial} 1 1 \n") # full core geomerty
     file_.write(f"      Rad_Conf                        !! \n")
-    loadingPattern = getcoremap(parameter,[int(child.attrib['FAid']) for child in self.data], parameter.geometry) 
-    file_.write(loadingPattern) 
-    file_.write("\n") 
+    loadingPattern = getcoremap(parameter,[int(child.attrib['FAid']) for child in self.data], parameter.geometry)
+    file_.write(loadingPattern)
+    file_.write("\n")
     file_.write(f"      grid_x      {parameter.grid_x} \n")
     file_.write(f"      neutmesh_x  {parameter.neutmesh_x} \n")
     file_.write(f"      grid_y      {parameter.grid_y} \n")
@@ -172,7 +160,7 @@ class PerturbedPaser():
       if fa['name'].lower() != 'none' or float(fa['FAid'])>=0:
         file_.write(f"      assy_type   {fa['type']}   {fa['structure']} \n")
     file_.write("\n")
-    ##create pin calculation map 
+    ##create pin calculation map
     pinmap = loadingPattern
     for fa in parameter.FAdict:
       if fa['name'].lower() == 'none' :
@@ -190,7 +178,6 @@ class PerturbedPaser():
     file_.write(f"FDBK \n")
     file_.write(f"      fa_powpit       {parameter.FA_Power}   {parameter.FA_Pitch} \n")
     file_.write("\n")
-
     file_.write(f"DEPL \n")
     file_.write(f"      TIME_STP  {parameter.DepHistory}  \n")
     file_.write(f"      INP_HST   '../../{parameter.Depdir}/boc_exp_fc.dep' -2 1 \n")
@@ -198,7 +185,6 @@ class PerturbedPaser():
       file_.write(f"      PMAXS_F   {xs['id']} '../../{parameter.XSdir}/{xs['name']}'                 {xs['id']}   \n")
     file_.write(f".  \n")
     file_.close()
-
 # Outside functions
 def findType(FAid,FAdict):
   """
@@ -206,12 +192,11 @@ def findType(FAid,FAdict):
   """
   FAtype = [id['type'] for id in FAdict if id['FAid']==str(FAid)][0]
   return FAtype
-
 def getcoremap(parameter, FAID, geometrykey):
   """
   Genrate Loading Pattern
   @IN: DataParser class
-  @IN: FAID sorted list, geometry key for full or quater core 
+  @IN: FAID sorted list, geometry key for full or quater core
   @OUT: Loading Pattern
   """
   FAdict = parameter.FAdict
@@ -235,7 +220,7 @@ def getcoremap(parameter, FAID, geometrykey):
   val = FAID[idx_]
   val = findType(val,FAdict)
   for x in range(x_start,x_start+9): # 17x17 core
-    for y in range (y_start,x+1): 
+    for y in range (y_start,x+1):
       val = FAID[idx_]
       val = findType(val,FAdict)
       if geometrykey.lower()=='full':
@@ -254,18 +239,17 @@ def getcoremap(parameter, FAID, geometrykey):
       loadingPattern += "\n"
       loadingPattern += "      "
   return loadingPattern
-
 def get_index_full(x,y, x0, y0):
   """
   Get the index of symetric element in a 1/8 th symmetric core map
   to a full core map
   Input: x,y coordinate of the element
-        x0,y0 coordinate of the center element 
+        x0,y0 coordinate of the center element
   Output: list of indices [(x,y)]
   """
   deltaX = x-x0
   deltaY = y-y0
-  temparray = [] 
+  temparray = []
   temparray.append([x0+deltaX,y0+deltaY])
   temparray.append([x0+deltaX,y0-deltaY])
   temparray.append([x0-deltaX,y0+deltaY])
@@ -274,27 +258,24 @@ def get_index_full(x,y, x0, y0):
   temparray.append([x0+deltaY,y0-deltaX])
   temparray.append([x0-deltaY,y0+deltaX])
   temparray.append([x0-deltaY,y0-deltaX])
-  
+
   #remove duplicate
   outarray = []
   [outarray.append(i) for i in temparray if i not in outarray]
   return outarray
-
 def get_index_quater(x,y):
     """
     Get the index of symetric element in a 1/8 th symmetric core map
-    to quater core 
+    to quater core
     Input: x,y coordinate of the element
     Output: list of indices [(x,y)]
     """
-    temparray = [] 
+    temparray = []
     temparray.append([x,y])
     temparray.append([y,x])
 
-    
     #remove duplicate
     outarray = []
-    
-    [outarray.append(i) for i in temparray if i not in outarray]
 
+    [outarray.append(i) for i in temparray if i not in outarray]
     return outarray

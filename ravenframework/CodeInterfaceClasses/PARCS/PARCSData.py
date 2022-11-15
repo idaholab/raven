@@ -15,22 +15,19 @@
 Created on Oct 25, 2022
 Last modified on Oct 26, 2022
 @author: khnguy22 NCSU
-
 comments: Interface for PARCS loading pattern optimzation
           Originally, this was based on SIMULATE3 output structure
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os, gc, sys, copy, h5py, math
 import time
-import numpy 
+import numpy
 import pickle
 import random
 import os
 import copy
 import shutil
 #from ravenframework.utils import utils
-
 class PARCSData:
   """
   Class that parses output of PARCS for a multiple run
@@ -69,20 +66,18 @@ class PARCSData:
     @ In, None
     # Out, lineBeg, lineEnd
     """
-    lineBeg = 0 
-    lineEnd = 0 
+    lineBeg = 0
+    lineEnd = 0
     nlines =  len(self.lines)
     for i in range (nlines):
       if self.lines[i].find('summary:')>=0:
         lineBeg = i+4
         for j in range (lineBeg, nlines):
           if self.lines[j].find('========================')>=0:
-            lineEnd = j 
+            lineEnd = j
             break
         break
-
     return lineBeg, lineEnd
-
   def getParam(self):
     """
     Extract all the parameters value from output file lines
@@ -129,13 +124,12 @@ class PARCSData:
         break
     EOCboron = 10
     cycLengthEOC = cycLength[idx_-1] +(EOCboron-BoronCon[idx_-1])*(cycLength[idx_]-cycLength[idx_-1])\
-                  /(BoronCon[idx_]-BoronCon[idx_-1]) 
+                  /(BoronCon[idx_]-BoronCon[idx_-1])
     outDict = {'info_ids':[['eoc_keff'], ['PinPowerPeaking'], ['MaxEFPD'],['MaxFDH'],
-                              ['max_boron'], ['exposure']], 
+                              ['max_boron'], ['exposure']],
                'values': [[k_eff[-1]], [max(FQ)], [cycLengthEOC], [max(FdelH)],
                               [max(BoronCon)], [BU[-1]] ]}
     return outDict
-
   def getTarget(self):
     """
     This is a function to convert the fitness function to be output variable and make the
@@ -150,9 +144,7 @@ class PARCSData:
           -400*max(0,self.data['FDeltaH']["values"][0]-1.48)\
           +self.data["cycle_length"]["values"][0]
     outputDict = {'info_ids':['target'], 'values': [tmp]}
-
     return outputDict
-
   def writeCSV(self, fileout):
     """
       Print Data into CSV format
@@ -175,7 +167,6 @@ class PARCSData:
           index=index+1
     numpy.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
     fileObject.close()
-
   def getPinpower(self, depletionfile):
     lines = open(os.path.abspath(os.path.expanduser(depletionfile)),"r").readlines()
     n_line = len(lines)
@@ -187,7 +178,7 @@ class PARCSData:
     bu_step.append(0)
     for i in range(n_line):
       if lines[i].find("At Time:") >=0:
-        step = step+1 
+        step = step+1
         bu_step.append(step)
         if lines[i].find("Assembly Coordinate (i,j):")>=0:
           temp = lines[i].split()
@@ -199,7 +190,7 @@ class PARCSData:
             pinarray.append([float(val) for val in lines[jj].split()[1:]])
           Pinpower.append(pinarray)
           FAinfo.append([temp[3],temp[4], float(lines[i+N+2].split()[-1])])
-    
-    outputDict = {'info_ids':[['BUStep'], ['FAInfor'], ['nodeInfor'], ['pinPowerMap']], 
+
+    outputDict = {'info_ids':[['BUStep'], ['FAInfor'], ['nodeInfor'], ['pinPowerMap']],
                   'values': [[bu_step],[FAinfo], [Nodeinfo], [Pinpower]]}
     return outputDict
