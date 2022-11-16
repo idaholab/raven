@@ -49,7 +49,7 @@ if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
 long_description = open("README.md", "r").read()
 setup(name='raven_framework',
-      version='2.2rc4',
+      version='2.2',
       description='RAVEN (Risk Analysis Virtual Environment) is designed to perform parametric and probabilistic analysis based on the response of complex system codes. RAVEN C++ dependenciences including a library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
       long_description=long_description,
       url="https://raven.inl.gov/",
