@@ -48,4 +48,10 @@
     alt_root = './matching'
    [../]
  [../]
+ [./check_needed_executable]
+   #Checks that this is skipped
+   type = 'GenericExecutable'
+   executable = 'no_such_executable'
+   needed_executable = 'no_such_executable'
+ [../]
 []

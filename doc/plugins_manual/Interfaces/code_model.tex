@@ -1,0 +1,153 @@
+\section{Code Plugins}
+\label{sec:codePlugins}
+
+The procedure of creating a new code/application plugin with RAVEN is a straightforward process.
+The plugin is performed through a Python interface that interprets the information coming from RAVEN
+and translates them into the input of the driven code plugin. This procedure does not require
+modifying RAVEN itself. Instead, the developer creates a new Python Code Plugin entity that is
+going to be embedded in RAVEN at run-time (no need to introduce  hard-coded coupling statements).
+
+At the initialization stage, RAVEN imports all the code plugin entity that are contained in
+\texttt{plugin/src} directory and performs some preliminary cross-checks.
+\\It is important to notice that the name of class in the plugin entity module is the one
+the user needs to specify when the new code plugin needs to be used.
+For example, if the new plugin module contains the class ``NewCode'',
+the \textit{subType} in the \xmlNode{Code} block will be \xmlAttr{PluginName.NewCode}:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
+  class NewCode(CodePluginBase):
+    ...
+\end{lstlisting}
+\begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
+  <Models>
+    ...
+    <Code name='whatever' subType='PluginName.NewCode'>
+     ...
+    </Code>
+    ...
+  </Models>
+\end{lstlisting}
+
+When loading an ``Code Plugin'', RAVEN expects to find, in the class
+representing the plugin, the following required methods:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
+  class NewCode(CodePluginBase):
+    ...
+    def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
+      """
+        See base class.  Collects all the clargs and the executable to produce the command-line call.
+        Returns tuple of commands and base file name for run.
+        Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+        @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+        @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+        @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+        @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+        @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
+        @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      """
+    def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+      """
+        Generate a new Projectile input file (txt format) from the original, changing parameters
+        as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
+        passed to Dymola.
+        @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+        @ In, oriInputFiles, list, list of the original input files
+        @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+        @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+        @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+      """
+
+\end{lstlisting}
+In addition, the following optional methods can be specified:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
+  class NewCode(CodePluginBase):
+    ...
+    def __init__(self):
+      """
+        Constructor
+        @ In, None
+        @ Out, None
+      """
+    def initialize(self, runInfo, oriInputFiles):
+      """
+        Method to initialize the run of a new step
+        @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+        @ In, oriInputFiles, list, list of the original input files
+        @ Out, None
+      """
+    def _readMoreXML(self, xmlNode):
+      """
+        Function to read the portion of the xml input that belongs to this specialized class and
+        initialize some members based on inputs. This can be overloaded in specialized code interface in order
+        to read specific flags
+        @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+        @ Out, None
+      """
+    def getInputExtension(self):
+      """
+        Return a tuple of possible file extensions for a simulation initialization file (e.g., input.i).
+        @ In, None
+        @ Out, validExtensions, tuple, tuple of valid extensions
+      """
+    def finalizeCodeOutput(self, command, output, workingDir):
+      """
+        Called by RAVEN to modify output files (if needed) so that they are in a proper form.
+        In this case, the default .mat output needs to be converted to .csv output, which is the
+        format that RAVEN can communicate with.
+        @ In, command, string, the command used to run the just ended job
+        @ In, output, string, the Output name root
+        @ In, workingDir, string, current working dir
+        @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      """
+    def checkForOutputFailure(self, output, workingDir):
+      """
+        This method is called by RAVEN at the end of each run if the return code is == 0.
+        This method needs to be implemented for the codes that, if the run fails, return a return code that is 0
+        This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+        This method can be used, for example, to parse the output file looking for a special keyword that testifies that a particular job got failed
+        (e.g. in RELAP5 would be the keyword "********")
+        @ In, output, string, the Output name root
+        @ In, workingDir, string, current working dir
+        @ Out, failure, bool, True if the job is failed, False otherwise
+      """
+\end{lstlisting}
+
+The explanation for all above required and optional methods except the \texttt{\_readMoreXML} can be found in
+RAVEN user manual section \textbf{Advanced Users: How to couple a new code}. We recommand the plugin developers
+take a look at the RAVEN user manual for the detailed information and learn how to use these methods. In the
+following subsection, the \texttt{\_readMoreXML} method is explained.
+
+\subsubsection{Method: \texttt{\_readMoreXML}}
+\label{subsubsec:codePluginReadMoreXML}
+The \textbf{\_readMoreXML} method can be implemented by the
+Code plugin developer if the XML input that belongs to this Code
+plugin needs to be extended to contain other information.
+%
+If this method is implemented in the \textbf{NewCodePlugin}, RAVEN is going to
+call it when the node \xmlNode{Code} is found parsing the XML input
+file.
+%
+The method receives from RAVEN an attribute of type ``xml.etree.ElementTree'',
+containing all the sub-nodes and attribute of the XML block \xmlNode{Code}.
+%
+
+Example XML:
+\begin{lstlisting}[style=XML,morekeywords={subType,ModuleToLoad}]
+<Models>
+  ...
+  <Code name='newCode' subType='NewPluginName.NewCodePluginEntity'>
+    <!--
+      here we define other XML nodes RAVEN does not read automatically.
+      We need to implement, in the code Plugin class the _readMoreXML
+      method
+    -->
+    <newNodeWeNeedToRead>
+      whatNeedsToBeRead
+    </newNodeWeNeedToRead>
+  </ExternalModel>
+  ...
+</Models>
+\end{lstlisting}
