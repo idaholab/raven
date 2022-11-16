@@ -191,9 +191,6 @@ class SupervisedLearning(BaseInterface):
 
     if state.get('_assembledObjects') is not None and 'jobHandler' in state['_assembledObjects']:
       del state['_assembledObjects']['jobHandler']
-    if self.saveParams:
-      state['saveParams'] = False
-      state.pop('paramInput')
     return state
 
   def __setstate__(self, d):
