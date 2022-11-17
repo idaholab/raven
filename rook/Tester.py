@@ -20,6 +20,7 @@ import warnings
 import subprocess
 import sys
 import os
+import shutil
 import time
 import threading
 import platform
@@ -173,7 +174,12 @@ class Differ:
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
     params.add_required_param('output', 'Output files to check')
-    params.add_param('gold_files', '', 'Gold filenames')
+    params.add_param('windows_gold', '', 'Paths to Windows specific gold files,'+
+                     ' relative to gold directory')
+    params.add_param('mac_gold', '', 'Paths to Mac specific gold files, relative to gold directory')
+    params.add_param('linux_gold', '', 'Paths to Linux specific gold files,'+
+                     ' relative to gold directory')
+    params.add_param('gold_files', '', 'Paths to gold files, relative to gold directory')
     return params
 
   def __init__(self, _name, params, test_dir):
@@ -221,12 +227,28 @@ class Differ:
     """
       returns a list of the full path to the gold files
       @ In, None
-      @ Out, _get_gold_files, List(Strings), the path of the gold files.
+      @ Out, paths, List(Strings), the paths of the gold files.
     """
-    if len(self.specs['gold_files']) > 0:
+    this_os = platform.system().lower()
+    available_os = ['windows', 'mac', 'linux'] # list of OS with specific gold file options
+
+    # replace "darwin" with "mac"
+    if this_os == 'darwin':
+      this_os = 'mac'
+
+    # check if OS specific gold files should be used
+    if (this_os in available_os) and (len(self.specs[f'{this_os}_gold']) > 0):
+      gold_files = self.specs[f'{this_os}_gold'].split()
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in gold_files]
+    # if OS specific gold files are not given, are specific gold files given?
+    elif len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
-      return [os.path.join(self.__test_dir, f) for f in gold_files]
-    return [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in gold_files]
+    # otherwise, use output files
+    else:
+      paths = [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
+
+    return paths
 
   def check_output(self):
     """
@@ -364,6 +386,11 @@ class Tester:
                      'if true, then the test should fails, and if it passes, it fails.')
     params.add_param('run_types', 'normal', 'The run types that this test is')
     params.add_param('output_wait_time', '-1', 'Number of seconds to wait for output')
+    params.add_param('min_python_version', 'none',
+                     'The Minimum python version required for this test.'+
+                     ' Example 3.8 (note, format is major.minor)')
+    params.add_param('needed_executable', '',
+                     'Only run test if needed executable is on path.')
     return params
 
   def __init__(self, _name, params):
@@ -376,6 +403,7 @@ class Tester:
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self._needed_executable = self.specs['needed_executable']
     self.__command_prefix = ""
     self.__python_command = sys.executable
     if os.name == "nt":
@@ -509,10 +537,23 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
+    if self.specs['min_python_version'].strip().lower() != 'none':
+      major, minor = self.specs['min_python_version'].strip().split(".")
+      #check to see if current version of python too old.
+      if int(major) > sys.version_info.major or \
+         (int(major) == sys.version_info.major and int(minor) > sys.version_info.minor):
+        self.results.group = self.group_skip
+        self.results.message = "skipped because need python version "\
+          +self.specs['min_python_version'].strip()+" but have "+sys.version
+        return self.results
     if not self.__test_run_type.issubset(self.__base_current_run_type):
       self.results.group = self.group_skip
       self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
         " is not a subset of "+str(self.__base_current_run_type)+")"
+      return self.results
+    if len(self._needed_executable) > 0 and \
+       shutil.which(self._needed_executable) is None:
+      self.set_skip('skipped (Missing executable: "'+self._needed_executable+'")')
       return self.results
     if not self.check_runnable():
       return self.results

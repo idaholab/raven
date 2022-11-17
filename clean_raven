@@ -11,9 +11,18 @@ rm -f ${RAVEN_DIR}/ravenframework/contrib/AMSC/_amsc*.so \
     ${RAVEN_DIR}/src/contrib/amsc_wrap.cpp \
     ${RAVEN_DIR}/src/contrib/amsc.py \
     ${RAVEN_DIR}/src/contrib/amsc.pyc
+rm -f ${RAVEN_DIR}/src/AMSC/_amsc*.so \
+    ${RAVEN_DIR}/src/AMSC/amsc*egg-info \
+    ${RAVEN_DIR}/src/AMSC/amsc.py \
+    ${RAVEN_DIR}/src/AMSC/amsc.pyc \
+    ${RAVEN_DIR}/src/AMSC/amsc_wrap.cxx \
+    ${RAVEN_DIR}/src/AMSC/amsc_wrap.cpp
 rm -Rf ${RAVEN_DIR}/build  \
    ${RAVEN_DIR}/crow/install/ \
    ${RAVEN_DIR}/install/
+rm -f ${RAVEN_DIR}/src/crow_modules/*.so \
+   ${RAVEN_DIR}/src/crow_modules/[dir]*.py \
+   ${RAVEN_DIR}/src/crow_modules/*.cpp
 find ${RAVEN_DIR}/ravenframework  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/scripts  -name '*.pyc' -exec rm '{}' \;
 find ${RAVEN_DIR}/rook  -name '*.pyc' -exec rm '{}' \;
@@ -29,6 +38,7 @@ find ${RAVEN_DIR}/scripts  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/rook  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/tests  -name '__pycache__' -exec rm -Rf '{}' \;
 find ${RAVEN_DIR}/plugins  -name '__pycache__' -exec rm -Rf '{}' \;
+find ${RAVEN_DIR}/src  -name '__pycache__' -exec rm -Rf '{}' \;
 
 rm -f ${CROW_DIR}/control_modules/_distribution1D.so \
    ${CROW_DIR}/control_modules/_crowtools.so \
@@ -59,4 +69,5 @@ rm -Rf ${CROW_DIR}/src/distributions/*.lo \
 rm -Rf ${CROW_DIR}/src/distributions/*.d \
  ${CROW_DIR}/src/tools/*.d \
  ${CROW_DIR}/src/utilities/*.d
+rm -Rf raven_framework.egg-info/
 

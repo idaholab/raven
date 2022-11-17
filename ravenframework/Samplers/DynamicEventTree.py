@@ -19,10 +19,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os
@@ -44,7 +40,6 @@ from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from ..utils import TreeStructure as ETS
-from ..utils.graphStructure import graphObject as graph
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -150,8 +145,13 @@ class DynamicEventTree(Grid):
     self.hybridNumberSamplers              = 0
     # List of variables that represent the aleatory space
     self.standardDETvariables              = []
-    # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
+    # Dictionary of variables that represent the epistemic space (hybrid det).
+    # Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
+    # Dictionary (mapping) between the fully correlated variables and the "epistemic"
+    # variable representation (variable name) in the input file. For example,
+    # {'var1':'var1,var2','var2':'var1,var2'}
+    self.fullyCorrelatedEpistemicToVar     = {}
 
   def _localWhatDoINeed(self):
     """
@@ -923,6 +923,10 @@ class DynamicEventTree(Grid):
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
+        for epVar in self.epistemicVariables:
+          if len(epVar.split(",")) > 1:
+            for el in epVar.split(","):
+              self.fullyCorrelatedEpistemicToVar[el.strip()] = epVar
 
   def localGetInitParams(self):
     """
@@ -994,7 +998,10 @@ class DynamicEventTree(Grid):
         elm.add('hybridsamplerCoordinate', combinations[precSample])
         for point in combinations[precSample]:
           for epistVar, val in point['SampledVars'].items():
-            self.epistemicVariables[epistVar][elm.get('name')] = val
+            if epistVar in self.fullyCorrelatedEpistemicToVar:
+              self.epistemicVariables[self.fullyCorrelatedEpistemicToVar[epistVar]][elm.get('name')] = val
+            else:
+              self.epistemicVariables[epistVar][elm.get('name')] = val
       # The dictionary branchedLevel is stored in the xml tree too. That's because
       # the advancement of the thresholds must follow the tree structure
       elm.add('branchedLevel', self.branchedLevel[0])

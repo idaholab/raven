@@ -18,15 +18,14 @@ Created on July 20, 2016
 
 This is a code interface for the modified version of RELAP5 mantained by the INSS Japan
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import copy
-import relapdata
+from ..RELAP5 import relapdata
 import re
 import shutil
-from Relap5Interface import Relap5
-from GenericParser import GenericParser
+from ..RELAP5.Relap5Interface import Relap5
+from ..Generic.GenericParser import GenericParser
 
 class Relap5inssJp(Relap5):
   """
@@ -42,7 +41,7 @@ class Relap5inssJp(Relap5):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import RELAPparser
+    from ..RELAP5 import RELAPparser
     self.det = samplerType.endswith('EventTree')
     found = False
     foundModelPar = False

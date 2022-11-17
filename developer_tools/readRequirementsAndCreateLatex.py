@@ -30,18 +30,17 @@ def writeLatexFromDictionaryOfRequirements(applicationName,requirementGroups,out
   """
   sections = ["section","subsection","subsubsection","paragraph"]
   indexSec = 0
-  fileObject = open(outputFileName,"w+")
-  fileObject.write("\\"+sections[0].strip()+"{System Requirements: " +applicationName.strip()+"}\n")
-  for group, value in requirementGroups.items():
-    fileObject.write("\\"+sections[1].strip()+"{" +group.strip()+"}\n")
-    for reqSet, requirements in value.items():
-      # construct table
-      fileObject.write("\\"+sections[2].strip()+"{" +reqSet.strip()+"}\n")
-      # start write the requirements for this set
-      for req, content in requirements.items():
-        fileObject.write("\\"+sections[3].strip()+"{" +req.strip()+"} \n")
-        fileObject.write(content['description'].strip() + "\n")
-  fileObject.close()
+  with open(outputFileName,"w+") as fileObject:
+    fileObject.write("\\"+sections[0].strip()+"{System Requirements: " +applicationName.strip()+"}\n")
+    for group, value in requirementGroups.items():
+      fileObject.write("\\"+sections[1].strip()+"{" +group.strip()+"}\n")
+      for reqSet, requirements in value.items():
+        # construct table
+        fileObject.write("\\"+sections[2].strip()+"{" +reqSet.strip()+"}\n")
+        # start write the requirements for this set
+        for req, content in requirements.items():
+          fileObject.write("\\"+sections[3].strip()+"{" +req.strip()+"} \n")
+          fileObject.write(content['description'].strip() + "\n")
 
 
 def readRequirementsXml(fileName):

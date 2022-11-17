@@ -335,9 +335,9 @@ class SupervisedLearning(BaseInterface):
     names, values  = list(edict.keys()), list(edict.values())
     stepInFeatures = 0
     for index in range(len(values)):
-      #If value is a float, convert to numpy array for evaluation
-      if type(values[index]).__name__ == 'float':
-        values[index] = np.array(values[index])
+      # If value is a float or int, convert to numpy array for evaluation
+      if isinstance(values[index], (float, int, np.number)):
+        values[index] = np.array([values[index]])
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
@@ -494,12 +494,13 @@ class SupervisedLearning(BaseInterface):
     # by default, do nothing
     return None, trainingDict
 
-  def adjustLocalRomSegment(self, settings):
+  def adjustLocalRomSegment(self, settings, picker):
     """
       Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
       Call this before training the subspace segment ROMs
       Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
       @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, picker, slice, slice object for selecting the desired segment
       @ Out, None
     """
     # by default, do nothing
@@ -516,7 +517,7 @@ class SupervisedLearning(BaseInterface):
     """
     return evaluation
 
-  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!

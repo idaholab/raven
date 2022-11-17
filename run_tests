@@ -10,7 +10,6 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
 TEST_SET=2 # 0 for normal tests, 1 for plugin tests, 2 for both
 
 # source read ravenrc script
@@ -20,20 +19,13 @@ source $RAVEN_RC_SCRIPT
 
 # set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
-if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
-  then
-  SKIP_CONDA=0
-else
-  # conda
-  SKIP_CONDA=1
-fi
 
 # read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
-            SKIP_CONDA=0
+            INSTALLATION_MANAGER=PIP
             ;;
         --raven)
             TEST_SET=0
@@ -52,11 +44,19 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
-if [[ ! $SKIP_CONDA == 0 ]]; then
+if  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
+then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
-else
+elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
-    #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+else
+    echo No installation: $INSTALLATION_MANAGER
+    if [ -z $PYTHON_COMMAND ];
+    then
+        # check the RC file
+        PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+    fi
 fi
 
 # pick tests to run
@@ -84,8 +84,9 @@ for A in "$@"; do
     esac
 done
 
-#Note that this is from the perspective of python
-FRAMEWORK_DIR=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -z`
+#Note that this is from the perspective of python, otherwise would be
+# identical to $SCRIPT_DIR (which matters on windows, but not elsewhere)
+RAVEN_DIR=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -r`
 
 
 # run the tests
@@ -128,7 +129,7 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
   # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
   $ROOK_COMMAND
   rc=$?
@@ -156,7 +157,7 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo
     echo Starting tests for plugin "$P" ...
     # add RAVEN testers to plugin testers
-    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
     echo Running ROOK command: "$ROOK_COMMAND" ...
     {
       # try

@@ -16,17 +16,15 @@ Created on April 14, 2014
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
-import relapdata
+from . import relapdata
 import shutil
 import re
 from collections import defaultdict
 from math import *
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-import RELAPparser
+from . import RELAPparser
 
 
 class Relap5(CodeInterfaceBase):
@@ -174,7 +172,7 @@ class Relap5(CodeInterfaceBase):
       @ In, tripVariable, str, the variable that caused the stop of the simulation (trip)
       @ Out, None
     """
-    import dynamicEventTreeUtilities as detUtils
+    from ..Utilities import dynamicEventTreeUtilities as detUtils
     tripVar = self._returnAliasedVariable(tripVariable)
     detUtils.writeXmlForDET(filename,tripVar,[],{'end_time': endTime, 'end_ts': endTimeStep})
 

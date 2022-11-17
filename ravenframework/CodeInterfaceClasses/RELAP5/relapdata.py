@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
-import xml.etree.ElementTree as ET
 """
 Created on May 5, 2016
 
 @author: alfoa
 """
+import re
+import xml.etree.ElementTree as ET
 
 class relapdata:
   """
@@ -216,7 +216,8 @@ class relapdata:
             flagg=1
           else:
             splitted = self.lines[i].split()
-            if   'deckNum:' in splitted: deckNum = splitted[-1].strip()
+            if   'deckNum:' in splitted:
+              deckNum = splitted[-1].strip()
             elif 'card:'    in splitted:
               sampleVar = splitted[splitted.index('card:')+1].strip()+(":"+splitted[splitted.index('word:')+1].strip() if splitted[splitted.index('word:')+1].strip() != '0' else '')
               value     = splitted[splitted.index('value:')+1].strip()

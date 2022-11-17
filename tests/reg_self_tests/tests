@@ -37,4 +37,21 @@
      rel_err = 1.0e-4
    [../]
  [../]
+ [./xml_check]
+   type = 'GenericExecutable'
+   executable = 'python'
+   parameters = 'create_xml_file.py'
+   [./xml]
+    type = XML
+    unordered = true
+    output = a_xml_file.xml
+    alt_root = './matching'
+   [../]
+ [../]
+ [./check_needed_executable]
+   #Checks that this is skipped
+   type = 'GenericExecutable'
+   executable = 'no_such_executable'
+   needed_executable = 'no_such_executable'
+ [../]
 []

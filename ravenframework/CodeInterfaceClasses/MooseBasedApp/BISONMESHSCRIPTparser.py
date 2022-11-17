@@ -83,7 +83,8 @@ class BISONMESHSCRIPTparser():
         else:
           # Append string of non-varying parts of input file to file storage and reset the collection string
           if len(between_str) > 0:
-            self.fileOrderStorage.append(between_str); between_str = ''
+            self.fileOrderStorage.append(between_str)
+            between_str = ''
           dictname, varname, varvalue = re.split(r"\['|'] = |'] =|']= ", line)
           if dictname in self.AllVarDict.keys():
             self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -118,7 +119,8 @@ class BISONMESHSCRIPTparser():
           else:
             # Append string of non-varying parts of input file to file storage and reset the collection string
             if len(between_str) > 0:
-              self.fileOrderStorage.append(between_str); between_str = ''
+              self.fileOrderStorage.append(between_str)
+              between_str = ''
             dictname, varname, varvalue = re.split(r"\['|'] = |'] =|']= ", line)
             if dictname in self.AllVarDict.keys():
               self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -147,13 +149,12 @@ class BISONMESHSCRIPTparser():
     """
     if outfile==None:
       outfile = self.inputfile
-    IOfile = open(outfile,'w')
-    for e, entry in enumerate(self.fileOrderStorage):
-      if type(entry) == unicode:
-        IOfile.writelines(entry)
-      elif type(entry) == list:
-        DictBlockName = self.fileOrderStorage[e][0]
-        DictBlock = self.AllVarDict[DictBlockName]
-        for key, value in DictBlock.items():
-          IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')
-    IOfile.close()
+    with open(outfile,'w') as IOfile:
+      for e, entry in enumerate(self.fileOrderStorage):
+        if type(entry) == unicode:
+          IOfile.writelines(entry)
+        elif type(entry) == list:
+          DictBlockName = self.fileOrderStorage[e][0]
+          DictBlock = self.AllVarDict[DictBlockName]
+          for key, value in DictBlock.items():
+            IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')
