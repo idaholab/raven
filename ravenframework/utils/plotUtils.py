@@ -42,7 +42,7 @@ def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
   if logScale:
     ax.set_yscale('symlog')
 
-  
+
 def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   """
     Main run method to generate parallel coordinate plot
@@ -59,7 +59,7 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   dys = ymaxs - ymins
   zs[:, 0] = zs[:, 0]
   zs[:, 1:] = (zs[:, 1:] - ymins[1:]) / dys[1:] * dys[0] + ymins[1:]
-  
+
   fig, host = plt.subplots(figsize=(15, 8))
 
   axes = [host] + [host.twinx() for i in range(zs.shape[1] - 1)]
@@ -72,8 +72,8 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
     if ax != host:
       ax.spines['left'].set_visible(False)
       ax.yaxis.set_ticks_position('right')
-      ax.spines["right"].set_position(("axes", i / (zs.shape[1] - 1)))    
-      ax.tick_params(axis='y', which='major', pad=7) 
+      ax.spines["right"].set_position(("axes", i / (zs.shape[1] - 1)))
+      ax.tick_params(axis='y', which='major', pad=7)
 
   host.set_xlim(0, zs.shape[1] - 1)
   host.set_xticks(range(zs.shape[1]))
@@ -92,7 +92,7 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
     path = Path(verts, codes)
     patch = patches.PathPatch(path, facecolor='none', lw=1)
     host.add_patch(patch)'''
-  
+
   plt.tight_layout()
   plt.savefig(fileID)
   plt.close()
