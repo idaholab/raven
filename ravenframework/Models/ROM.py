@@ -180,7 +180,8 @@ class ROM(Dummy):
     """
     if len(dataIn)>1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    inRun = super()._manipulateInput(dataIn)
+    print(dataIn)
+    inRun = dataIn[0]
     return inRun
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -198,7 +199,7 @@ class ROM(Dummy):
     if len(myInput)>1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     [(inputDict)],kwargs = super().createNewInput(myInput,samplerType,**kwargs)
-    return [(inputDict)],copy.deepcopy(kwargs)
+    return ([(inputDict)],kwargs)
 
   def _readMoreXML(self,xmlNode):
     """
