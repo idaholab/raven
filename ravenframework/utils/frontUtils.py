@@ -44,6 +44,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
     Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
+
   if minMask is None:
     pass
   elif minMask is not None and minMask.shape[0] != data.shape[1]:
@@ -56,7 +57,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
   isEfficient = np.arange(data.shape[0])
   nPoints = data.shape[0]
   nextPointIndex = 0
-  while nextPointIndex<len(data):
+  while nextPointIndex < len(data):
     nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1)
     nondominatedPointMask[nextPointIndex] = True
     isEfficient = isEfficient[nondominatedPointMask]
@@ -71,7 +72,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
 def rankNonDominatedFrontiers(data):
   """
-    This method ranks the non dominated fronts by omitting thr first front from the data
+    This method ranks the non dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
     @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
                           evaluations of each point/individual, element (i,j)

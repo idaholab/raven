@@ -88,7 +88,7 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness']
+
   nParents= kwargs['nParents']
   pop = population
   popSize = population.values.shape[0]
@@ -96,13 +96,16 @@ def tournamentSelection(population,**kwargs):
   if 'rank' in kwargs:
     # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
     rank = kwargs['rank']
+    crowdDistance = kwargs['crowdDistance']
     multiObjectiveRanking = True
     matrixOperationRaw = np.zeros((popSize,3))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
-    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,1] = np.transpose(crowdDistance.data)
     matrixOperationRaw[:,2] = np.transpose(rank.data)
     matrixOperation = np.zeros((popSize,3))
   else:
+    fitness = kwargs['fitness']
+
     multiObjectiveRanking = False
     matrixOperationRaw = np.zeros((popSize,2))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
@@ -132,16 +135,16 @@ def tournamentSelection(population,**kwargs):
         index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
   else: # multi-objective implementation of tournamentSelection
-    for i in range(nParents-1):
+    for i in range(nParents):
       if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i,0])
+        index = int(matrixOperation[2*i+1,0])
       elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i+1,0])
+        index = int(matrixOperation[2*i,0])
       else: # same rank case
         if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-          index = int(matrixOperation[i,0])
+          index = int(matrixOperation[2*i,0])
         else:
-          index = int(matrixOperation[i+1,0])
+          index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
 
   return selectedParent
