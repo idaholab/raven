@@ -172,18 +172,6 @@ class ROM(Dummy):
     """
     self.numThreads = runInfo.get('NumThreads', 1)
 
-  def _manipulateInput(self,dataIn):
-    """
-      Method that is aimed to manipulate the input in order to return a common input understandable by this class
-      @ In, dataIn, object, the object that needs to be manipulated
-      @ Out, inRun, dict, the manipulated input
-    """
-    if len(dataIn)>1:
-      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    print(dataIn)
-    inRun = dataIn[0]
-    return inRun
-
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
