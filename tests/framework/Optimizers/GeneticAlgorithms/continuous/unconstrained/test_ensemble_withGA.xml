@@ -4,6 +4,7 @@
     <name>framework/Optimizers/GeneticAlgorithms/test_ensemble_withGA</name>
     <author>mandd</author>
     <created>2022-11-17</created>
+    <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
     <description>
        Example of usage of the Ensemble Model with GA optmization methods
     </description>
