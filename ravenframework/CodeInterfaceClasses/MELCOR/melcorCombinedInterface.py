@@ -1,4 +1,4 @@
-# Copyright 2017 University of Rome La Sapienza and Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 import sys
 import os
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-import GenericParser
+from ..Generic import GenericParser
 import pandas as pd
 import time
 
