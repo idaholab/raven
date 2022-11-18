@@ -398,7 +398,7 @@ class SupervisedLearning(BaseInterface):
 
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       if self.featureSelectionAlgo.needROM:
-        self.featureSelectionAlgo.setEstimator(self)
+        self.featureSelectionAlgo.setEstimator(copy.deepcopy(self))
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):
         self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
@@ -595,9 +595,12 @@ class SupervisedLearning(BaseInterface):
     """
     # different calls depending on if it's static or dynamic
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
-      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
+      writeTo.addScalar('ROM', "type", self.type, None, general = True)
     else:
-      writeTo.addScalar('ROM', "type", self.printTag)
+      writeTo.addScalar('ROM', "type", self.type)
+    # write some common parameters (e.g. features, targets, etc.)
+    writeTo.addScalar('ROM', "Features", " ".join(self.features))
+    writeTo.addScalar('ROM', "Targets", " ".join(self.target))
 
   def writePointwiseData(self, *args):
     """
@@ -618,7 +621,7 @@ class SupervisedLearning(BaseInterface):
       @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
-    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')
+    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options yet.')
 
   def isDynamic(self):
     """

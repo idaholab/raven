@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<Steps>
+  <MultiRun name="sample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ExternalModel">foo</Model>
+    <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">trainingData</Output>
+  </MultiRun>
+  <RomTrainer name="train">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Output class="Models" type="ROM">modelUnderTest</Output>
+  </RomTrainer>
+  <IOStep name="stats_rom">
+    <Input class="Models" type="ROM">modelUnderTest</Input>
+    <Output class="DataObjects" type="DataSet">rom_stats</Output>
+  </IOStep>
+  <IOStep name="export_rom_stats" pauseAtEnd="True">
+    <Input class="DataObjects" type="DataSet">rom_stats</Input>
+    <Output class="OutStreams" type="Print">rom_stats_out</Output>
+  </IOStep>
+</Steps>

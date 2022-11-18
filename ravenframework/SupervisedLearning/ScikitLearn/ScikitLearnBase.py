@@ -24,7 +24,7 @@ from ...utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import ast
+import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -48,8 +48,10 @@ class ScikitLearnBase(SupervisedLearning):
     self.uniqueVals = None # flag to indicate targets only have a single unique value
     self.settings = None # initial settings for the ROM
     self.model = None # Scikitlearn estimator/model
-    self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
-                                   # the self.model can handle multioutput/multi-targets prediction
+    # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
+    # the self.model can handle multioutput/multi-targets prediction
+    self.multioutputWrapper = True
+
   @property
   def featureImportances_(self):
     coefs = None
@@ -101,11 +103,16 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
       @ Out, None
     """
+    import sklearn.multioutput
     if self.settings is None:
       self.settings = settings
-    self.model = self.model(**settings)
-    if self.multioutputWrapper:
-      self.multioutput(self.info['problemtype'])
+    if inspect.isclass(self.model):
+      self.model = self.model(**settings)
+      if self.multioutputWrapper:
+        self.multioutput(self.info['problemtype'])
+    else:
+      setts = self.updateSettings(settings)
+      self.model.set_params(**setts)
 
   def multioutput(self, type='regression'):
     """
