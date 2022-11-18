@@ -1,0 +1,85 @@
+This project contains code from Idaho National Laboratory's Raven Project
+https://github.com/idaholab/Raven
+Licenced under the Apache 2.0 License
+
+Copyright 2017 Battelle Energy Alliance, LLC
+ALL RIGHTS RESERVED
+
+These data were produced by Office of Nuclear Energy of the U.S. Department of
+Energy under Contract No. DE-AC07-05ID14517 with the Department of Energy. The Government is granted for itself, and others acting on its behalf, a paid-up, a nonexclusive, irrevocable worldwide license in this data to reproduce, distribute copies to the public, prepare derivative works, perform publicly and display publicly, and to permit others to do so. NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY DATA, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Main Authors:
+Andrea Alfonsi (email: Andrea.Alfonsi@inl.gov; ORCID: 0000-0003-2866-4346)
+Cristian Rabiti (email: Cristian.Rabiti@inl.gov; ORCID: 0000-0002-0108-5291)
+Diego Mandelli (email: Diego.Mandelli@inl.gov; ORCID: 0000-0002-9354-2233)
+Joshua Cogliati (email: Joshua.Cogliati@inl.gov; ORCID: 0000-0003-2471-8095)
+Congjian Wang (email: Congjian.Wang@inl.gov; ORCID: 0000-0002-0778-9927)
+Daniel Maljovec (email: Daniel.Maljovec2@inl.gov; ORCID: 0000-0001-6762-9725)
+Paul Talbot (email: Paul.Talbot@inl.gov; ORCID: 0000-0002-9672-9044)
+Sonat Sen (email: Ramazan.Sen@inl.gov; ORCID: 0000-0002-6872-0683)
+Robert Kinoshita (email: Robert.Kinoshita@inl.gov; ORCID: 0000-0002-6093-7044)
+Jun Chen (email: Jun.Chen@inl.gov; ORCID: N/A)
+
+This project contains code from AMSC under the following license:
+
+Software License Agreement (BSD License)
+
+Copyright 2014 University of Utah
+Scientific Computing and Imaging Institute
+72 S Central Campus Drive, Room 3750
+Salt Lake City, UT 84112
+
+THE BSD LICENSE
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This project contains code from NGL under the following license:
+
+Software License Agreement (BSD License)
+
+Copyright 2012  Carlos D. Correa (info@ngraph.org) All rights reserved.
+
+THE BSD LICENSE
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

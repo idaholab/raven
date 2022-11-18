@@ -1,0 +1,4 @@
+CONDA_DEFS = /home/khnguy22/miniconda3/etc/profile.d/conda.sh
+RAVEN_LIBS_NAME = raven_libraries
+PYTHON_COMMAND = python
+INSTALLATION_MANAGER = CONDA
