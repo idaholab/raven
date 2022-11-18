@@ -179,7 +179,6 @@ class PARCSData:
     for i in range(n_line):
       if lines[i].find("At Time:") >=0:
         step = step+1
-        bu_step.append(step)
         if lines[i].find("Assembly Coordinate (i,j):")>=0:
           temp = lines[i].split()
           Nodeinfo.append([temp[10],temp[11],temp[15]])
@@ -190,6 +189,7 @@ class PARCSData:
             pinarray.append([float(val) for val in lines[jj].split()[1:]])
           Pinpower.append(pinarray)
           FAinfo.append([temp[3],temp[4], float(lines[i+N+2].split()[-1])])
+          bu_step.append(step)
 
     outputDict = {'info_ids':[['BUStep'], ['FAInfor'], ['nodeInfor'], ['pinPowerMap']],
                   'values': [[bu_step],[FAinfo], [Nodeinfo], [Pinpower]]}
