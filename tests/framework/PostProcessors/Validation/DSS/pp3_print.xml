@@ -1,0 +1,16 @@
+<DataObjectMetadata name="pp3_out">
+  <DataSet type="Static">
+    <dims>
+      <dss_y2_y1>pivot_parameter</dss_y2_y1>
+      <process_time_y2_y1>pivot_parameter</process_time_y2_y1>
+      <standard_error_y2_y1>pivot_parameter</standard_error_y2_y1>
+      <total_distance_y2_y1>pivot_parameter</total_distance_y2_y1>
+    </dims>
+    <general>
+      <datasetName>pp3_out</datasetName>
+      <outputs>dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_error_y2_y1</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

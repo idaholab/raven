@@ -1,0 +1,14 @@
+<DataObjectMetadata name="pp1_metric">
+  <DataSet type="Static">
+    <dims>
+      <ans_ans2_cdf_diff>time</ans_ans2_cdf_diff>
+      <ans_ans2_pdf_area>time</ans_ans2_pdf_area>
+    </dims>
+    <general>
+      <datasetName>pp1_metric</datasetName>
+      <outputs>ans_ans2_cdf_diff,ans_ans2_pdf_area</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
