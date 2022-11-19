@@ -472,10 +472,11 @@ class EnsembleModel(Dummy):
     if joinedIndexMap:
       joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
 
-
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
-        if isinstance(evaluation,dict):
+        # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+        if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
+
           for rlz in evaluation['realizations']:
             output.addRealization(rlz)
         else:
@@ -562,10 +563,30 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    if self.parallelStrategy == 1:
-      jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-    else:
-      jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
+
+    for index in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][index]
+      else:
+        kw = kwargs
+
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      forceThreads = kw.get("forceThreads",False)
+
+      metadata = kw
+
+      if self.parallelStrategy == 1:
+        jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                  uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
+                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      else:
+        jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -857,5 +878,3 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
-
-

@@ -238,11 +238,18 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+                  This includes: \begin{itemize}
+                                \item    invLinear:
+                                \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
 
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+                                 \item    logistic:
+                                 \[fitness = \frac{1}{1+e^{a\times(obj-b)}}\].
 
-                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
+                                                                    \item
+          feasibleFirst:                                  \[fitness =
+          -obj   \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \ \ g\\_j(x)\geq 0 \;  \forall j\]                                  and
+          \[fitness = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
+                                 \end{itemize}.""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
