@@ -189,8 +189,8 @@ class SupervisedLearning(BaseInterface):
     """
     state = copy.copy(self.__dict__)
 
-    if state.get('_assembledObjects') is not None and 'jobHandler' in state['_assembledObjects']:
-      del state['_assembledObjects']['jobHandler']
+    if state.get('featureSelectionAlgo') is not None:
+      del state['featureSelectionAlgo']
     return state
 
   def __setstate__(self, d):
@@ -200,6 +200,11 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     self.__dict__.update(d)
+    if self.saveParams:
+      fs = self.paramInput.findFirst("featureSelection")
+      if  fs is not None:
+        self.featureSelectionAlgo = featureSelectionFactory.returnInstance(fs.subparts[0].getName())
+        self.featureSelectionAlgo._handleInput(fs.subparts[0])
 
   def _handleInput(self, paramInput):
     """
@@ -398,7 +403,7 @@ class SupervisedLearning(BaseInterface):
 
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       if self.featureSelectionAlgo.needROM:
-        self.featureSelectionAlgo.setEstimator(copy.deepcopy(self))
+        self.featureSelectionAlgo.setEstimator(self)
       newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
       if space == 'feature' and np.sum(support) != len(self.features):
         self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())

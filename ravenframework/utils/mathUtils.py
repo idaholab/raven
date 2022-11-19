@@ -997,7 +997,7 @@ def partialDerivative(f, x0, var, n = 1, h = None, target = None):
   assert(n <= 10)
   def func(x, var, target=None):
     """
-      Simple function wrapper for using scipy
+      Simple function wrapper for using numdifftools
       @ In, x, float, the point at which the nth derivative is found
       @ In, var, str, the variable in the dictionary x0 corresponding
                       to the part derivative to compute
