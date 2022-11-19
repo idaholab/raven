@@ -1,7 +1,0 @@
-<plugins>
-  <plugin>
-    <name>ExamplePlugin</name>
-    <location>/home/khnguy22/RAVEN/raven-parcs/raven_latest/plugins/ExamplePlugin</location>
-    <exclude />
-  </plugin>
-</plugins>

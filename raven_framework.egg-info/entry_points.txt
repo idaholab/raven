@@ -1,3 +1,0 @@
-[console_scripts]
-raven_framework = ravenframework.Driver:wheelMain
-
