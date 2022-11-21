@@ -96,7 +96,7 @@ class PhysicsGuidedCoverageMapping_snapshot(ValidationBase):
 
     evaluation[pivotParameter] = inputIn['Data'][0][-1]['time']
     return evaluation
-    
+
 
   def _evaluate(self, datasets, **kwargs):
     """
@@ -135,8 +135,8 @@ class PhysicsGuidedCoverageMapping_snapshot(ValidationBase):
       msrPW.append(msrDataProb[1])
       # Probability Weights values in <x>PW, , <x>=targ, feat, msr
       targPW = targDataProb[1]
-      
-    
+
+
     # *Data of size (num_of_samples, num_of_features)
     num_of_features = np.asarray(datasets['exp'].get('time')).shape[0]
     num_of_samples = np.asarray(datasets['exp'].get('RAVEN_sample_ID')).shape[0]
@@ -146,7 +146,7 @@ class PhysicsGuidedCoverageMapping_snapshot(ValidationBase):
     featPW = np.array(featPW).T
     msrPW = np.array(msrPW).T
     targPW = np.array(targPW).T
-    
+
 
     for t in range(featData.shape[1]):
       # Probability Weights to be used in the future
@@ -232,12 +232,12 @@ class PhysicsGuidedCoverageMapping_snapshot(ValidationBase):
       priStd = np.std(yAppStd)
       # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
       outputArray.append(1.0-predStd/priStd)
-   
-    
+
+
     name = "pri_post_stdReduct"
     outputDict[name] = np.asarray(outputArray)
-    
-    
-      
+
+
+
 
     return outputDict
