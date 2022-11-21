@@ -24,6 +24,7 @@
 
 import numpy as np
 import xarray as xr
+from ravenframework.utils import frontUtils
 
 # @profile
 def ageBased(newRlz,**kwargs):
@@ -80,7 +81,7 @@ def fitnessBased(newRlz,**kwargs):
     It combines the parents and children/offsprings then keeps the fittest individuals
     to revert to the same population size.
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           age, list, ages of each chromosome in the population of the previous generation
           offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
           variables
@@ -116,9 +117,9 @@ def fitnessBased(newRlz,**kwargs):
   newAge = sortedAgeT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
-                               dims=['chromosome','Gene'],
-                               coords={'chromosome':np.arange(np.shape(newPopulationSorted)[0]),
-                                       'Gene': kwargs['variables']})
+                                    dims=['chromosome','Gene'],
+                                    coords={'chromosome':np.arange(np.shape(newPopulationSorted)[0]),
+                                            'Gene': kwargs['variables']})
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
@@ -126,9 +127,63 @@ def fitnessBased(newRlz,**kwargs):
   #return newPopulationArray,newFitness,newAge
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
 
+# @profile
+def rankNcrowdingBased(newRlz,**kwargs):
+  """
+    rankNcrowdingBased survivorSelection mechanism for new generation selection
+    It combines the parents and children/offsprings then calculates their rank and crowding distance.
+    After having ranks and crowding distance, it keeps the lowest ranks (and highest crowding distance if indivisuals have same rank.
+    @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
+    @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
+          variables
+          population
+    @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
+    @ Out, newRank, xr.DataArray, rank of each chromosome in the new population
+    @ Out, newCD, xr.DataArray, crowding distance of each chromosome in the new population.
+  """
+  population = np.atleast_2d(kwargs['population'].data)
+  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+
+  newPopulationMerged = np.concatenate([population,offSprings])
+
+  popRank = frontUtils.rankNonDominatedFrontiers(newPopulationMerged)
+
+  popRank = xr.DataArray(popRank,
+                         dims=['rank'],
+                         coords={'rank': np.arange(np.shape(popRank)[0])})
+
+  popCD = frontUtils.crowdingDistance(rank=popRank, popSize=len(popRank), objectives=newPopulationMerged)
+
+  popCD = xr.DataArray(popCD,
+                       dims=['CrowdingDistance'],
+                       coords={'CrowdingDistance': np.arange(np.shape(popCD)[0])})
+
+  sortedRank,sortedCD,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(popRank.data,popCD.data,newPopulationMerged),reverse=False,key=lambda x: (x[0], -x[1]))])
+  sortedRankT,sortedCDT,sortedPopulationT = np.atleast_1d(list(sortedRank)),list(sortedCD),np.atleast_1d(list(sortedPopulation))
+
+  newPopulation = sortedPopulationT[:-len(offSprings)]
+  newRank = sortedRankT[:-len(offSprings)]
+  newCD = sortedCDT[:-len(offSprings)]
+
+  newPopulationArray = xr.DataArray(newPopulation,
+                                    dims=['chromosome','Gene'],
+                                    coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
+                                            'Gene': kwargs['variables']})
+  newRank = xr.DataArray(newRank,
+                         dims=['rank'],
+                         coords={'rank':np.arange(np.shape(newRank)[0])})
+
+  newCD = xr.DataArray(newCD,
+                       dims=['CrowdingDistance'],
+                       coords={'CrowdingDistance':np.arange(np.shape(newCD)[0])})
+
+  #return newPopulationArray,newRank,newCD
+  return newPopulationArray,newRank,newCD
+
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased
 __survivorSelectors['fitnessBased'] = fitnessBased
+__survivorSelectors['rankNcrowdingBased'] = rankNcrowdingBased
 
 def returnInstance(cls, name):
   """

@@ -93,7 +93,7 @@ def tournamentSelection(population,**kwargs):
   pop = population
   popSize = population.values.shape[0]
 
-  if 'rank' in kwargs:
+  if 'rank' in kwargs.keys():
     # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
     rank = kwargs['rank']
     crowdDistance = kwargs['crowdDistance']
@@ -121,11 +121,10 @@ def tournamentSelection(population,**kwargs):
   for idx, val in enumerate(indexesShuffled):
     matrixOperation[idx,:] = matrixOperationRaw[val,:]
 
-  selectedParent = xr.DataArray(
-    np.zeros((nParents,np.shape(pop)[1])),
-    dims=['chromosome','Gene'],
-    coords={'chromosome':np.arange(nParents),
-            'Gene': kwargs['variables']})
+  selectedParent = xr.DataArray(np.zeros((nParents,np.shape(pop)[1])),
+                                dims=['chromosome','Gene'],
+                                coords={'chromosome':np.arange(nParents),
+                                        'Gene': kwargs['variables']})
 
   if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
     for i in range(nParents):

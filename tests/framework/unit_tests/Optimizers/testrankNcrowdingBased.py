@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Testing for fitnessBased survivor selection mechanism
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  Testing for rankNcrowdingBased survivor selection mechanism
+  @authors: Junyung Kim, Mohammad Abdo
 """
 import os
 import sys
@@ -26,8 +26,9 @@ sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
 from ravenframework.Optimizers.survivorSelectors.survivorSelectors import returnInstance
+from ravenframework.utils import frontUtils
 
-fitnessBased = returnInstance('tester', 'fitnessBased')
+rankNcrowdingBased = returnInstance('tester', 'rankNcrowdingBased')
 
 #
 #
@@ -81,26 +82,32 @@ def formatSample(vars):
 #
 #
 # initialization
-#
-optVars = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6']
-population =[[1,2,3,4,5,6],  # 7.2
-             [2,1,3,4,6,5],  # 1.3
-             [6,5,4,3,2,1],  # 9.5
-             [3,5,6,2,1,4]]  # 2.0
+
+optVars = ['x1', 'x2']
+
+population =[[0.913, 2.348],
+             [0.599, 3.092],
+             [0.139, 2.138],
+             [0.867, 1.753],
+             [0.885, 1.455],
+             [0.658, 2.607],
+             [0.788, 2.545],
+             [0.342, 1.639]]
+
 population = xr.DataArray(population,
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(np.shape(population)[0]),
                                   'Gene':optVars})
-popFitness = [7.2, 1.3, 9.5, 2.0]
-popFitness = xr.DataArray(popFitness,
-                          dims=['chromosome'],
-                          coords={'chromosome': np.arange(np.shape(popFitness)[0])})
-popAge = [3, 1, 7, 1]
 
-offSprings = [[2,3,4,5,6,1],  # 1.1
-              [1,3,5,2,4,6],  # 2.0
-              [1,2,4,3,6,5]]  # 3.2
-offSpringsFitness = [1.1, 2.0, 3.2]
+offSprings =[[0.620, 3.050],
+             [0.165, 1.379],
+             [0.885, 2.295],
+             [0.985, 2.380],
+             [0.826, 1.226],
+             [0.788, 2.545],
+             [0.343, 1.639],
+             [0.121, 1.946]]
+
 rlz =[]
 for i in range(np.shape(offSprings)[0]):
   d = {}
@@ -111,36 +118,38 @@ for i in range(np.shape(offSprings)[0]):
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
 
-newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz,
-                                                   age=popAge,
-                                                   variables=optVars,
-                                                   population=population,
-                                                   fitness=popFitness,
-                                                   offSpringsFitness=offSpringsFitness,
-                                                   popObjectiveVal=popFitness)
-print('Fitness Based Selection')
+newPop2,newRank2,newCD2 = rankNcrowdingBased(rlz,
+                                             variables=optVars,
+                                             population=population)
+
+
+print('Rank and Crowding Based Selection')
 print('*'*19)
-print('new population: {}, \n new Fitness {}, \n new age'.format(newPop2,newFit2,newAge2))
-print('Note that the second and forth chromosome had the same age, but for the age based mechanism it omitted the one with the lowest fitness')
-expectedPop = xr.DataArray([[6,5,4,3,2,1],
-                            [1,2,3,4,5,6],
-                            [1,2,4,3,6,5],
-                            [1,3,5,2,4,6]],
+print('new population: {}, \n new Rank {}, \n new Crowding Distance'.format(newPop2,newRank2,newCD2))
+
+expectedPop = xr.DataArray([[ 0.826,  1.226],
+                            [ 0.121,  1.946],
+                            [ 0.165,  1.379],
+                            [ 0.139,  2.138],
+                            [ 0.885,  1.455],
+                            [ 0.342,  1.639],
+                            [ 0.343,  1.639],
+                            [ 0.599,  3.092]],
                             dims=['chromosome','Gene'],
                             coords={'chromosome':np.arange(np.shape(population)[0]),
-                                   'Gene': optVars})
-expectedFit = xr.DataArray([9.5,7.2,3.2,2.0],
-                           dims=['chromosome'],
-                           coords={'chromosome':np.arange(np.shape(population)[0])})
-expectedAge = [8,4,0,0]
+                                    'Gene': optVars})
+expectedRank = xr.DataArray([1, 1, 1, 2, 2, 2, 3, 4],
+                           dims=['rank'],
+                           coords={'rank':np.arange(np.shape(population)[0])})
+expectedCD = [np.inf, np.inf, 2., np.inf, np.inf, 2., np.inf, np.inf,]
 
 ## TESTING
 # Test survivor population
 checkSameDataArrays('Check survived population data array',newPop2,expectedPop)
-# Test survivor fitnesses
-checkSameDataArrays('Check fitness for survived population data array',newFit2,expectedFit)
-# Test survivor Ages
-checkSameListOfInt('Check fitness for survived individuals',np.array(newAge2),np.array(expectedAge))
+# Test survivor rank
+checkSameDataArrays('Check rank for survived population data array',newRank2,expectedRank)
+# Test survivor Crowding Distance
+checkSameListOfInt('Check crowding distance for survived individuals',newCD2.data, np.array(expectedCD))  ## Question: Why it says they are different????
 #
 # end
 #
