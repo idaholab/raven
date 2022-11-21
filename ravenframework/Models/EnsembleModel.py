@@ -487,28 +487,6 @@ class EnsembleModel(Dummy):
       # collect optional output if present and not already collected
       output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
 
-    '''
-    if output.name not in optionalOutputNames:
-      if output.name not in targetEvaluationNames.keys():
-        if 'batchMode' not in joinedResponse.keys():
-          output.addRealization(joinedResponse)
-        else:
-          inputVarValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]['SampledVars']
-          for key in inputVarValues.keys():
-            inputVarValues[key] = np.array([inputVarValues[key]])
-          metaValues = joinedResponse['batchInfo'][0]['batchRealizations'][0]
-          for key in metaValues.keys():
-            metaValues[key] = np.array([metaValues[key]])
-          outputData = joinedResponse
-          batchData = {**inputVarValues, **metaValues, **outputData}
-          output.addRealization(batchData)
-      else:
-        output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
-    else:
-      # collect optional output if present and not already collected
-      output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
-    '''
-
   def getAdditionalInputEdits(self,inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
