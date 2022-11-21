@@ -600,9 +600,9 @@ class SupervisedLearning(BaseInterface):
     """
     # different calls depending on if it's static or dynamic
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
-      writeTo.addScalar('ROM', "type", self.type, None, general = True)
+      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
     else:
-      writeTo.addScalar('ROM', "type", self.type)
+      writeTo.addScalar('ROM', "type", self.printTag)
     # write some common parameters (e.g. features, targets, etc.)
     writeTo.addScalar('ROM', "Features", " ".join(self.features))
     writeTo.addScalar('ROM', "Targets", " ".join(self.target))
@@ -757,9 +757,18 @@ class SupervisedLearning(BaseInterface):
   @abc.abstractmethod
   def __evaluateLocal__(self,featureVals):
     """
+      Local evaluation method
       @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
       @ Out, targetVals , np.array, 1-D numpy array [n_samples]
     """
+
+  def _evaluateLocal(self,featureVals):
+    """
+      Method accessable outside ROM class to perform direct evaluation
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
+    return self.__evaluateLocal__(featureVals)
 
   @abc.abstractmethod
   def __resetLocal__(self):

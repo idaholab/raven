@@ -620,26 +620,6 @@ class RFE(FeatureSelectionBase):
     parametersToInclude = supportData['parametersToInclude']
     whichSpace = supportData['whichSpace']
 
-    fg = open(f"debug_parallel_{groupId}","w")
-    import sys
-    np.set_printoptions(threshold=sys.maxsize)
-    fg.write("INITIAL\n")
-    fg.write("support_\n")
-    fg.write(str(support_))
-    fg.write("\nfeaturesForRanking\n")
-    fg.write(str(featuresForRanking))
-    fg.write("\nranking_\n")
-    fg.write(str(ranking_))
-    fg.write("\noutputspace\n")
-    fg.write(str(outputspace))
-    fg.write("\nfirstStep\n")
-    fg.write(str(step))
-    fg.write("\nstep\n")
-    fg.write(str(step))
-    fg.write("\nsetStep\n")
-    fg.write(str(setStep))
-    fg.write("\n END INITIAL\n")
-
     # initialize working dir
     indexToKeep = None
     # the search is done at least once
@@ -720,23 +700,6 @@ class RFE(FeatureSelectionBase):
       threshold = min(step, np.sum(support_) - nFeaturesToSelect)
       step = setStep
 
-      fg.write("Remaining features \n")
-      fg.write("raminingFeatures\n")
-      fg.write(str(raminingFeatures))
-      fg.write("features\n")
-      fg.write(str(features))
-      fg.write("\ntargets\n")
-      fg.write(str(targets))
-      fg.write("\ntoRemove_\n")
-      fg.write(str(toRemove))
-      fg.write("\nsupportOfSupport_\n")
-      fg.write(str(supportOfSupport_))
-      fg.write("\nranks\n")
-      fg.write(str(ranks))
-      fg.write("\ncoefs\n")
-      fg.write(str(coefs))
-      fg.write("\n \n")
-
       # Compute step score on the previous selection iteration
       # because 'estimator' must use features
       # that have not been eliminated yet
@@ -748,7 +711,6 @@ class RFE(FeatureSelectionBase):
       # we do the search at least once
       doAtLeastOnce = False
 
-    fg.close()
     return support_, indexToKeep
 
   @Parallel()
@@ -828,7 +790,7 @@ class RFE(FeatureSelectionBase):
       for target in evaluated:
         if target in targetsIds:
           if target not in parametersToInclude:
-            # if not state variable, then this target is output variable
+            # if not feature variable, then this target is output variable
             w = 1/float(len(targets)-1-len(featureCombination))
           else:
             w = 1/float(len(featureCombination))

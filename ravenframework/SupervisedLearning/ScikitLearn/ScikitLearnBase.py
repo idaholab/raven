@@ -66,13 +66,14 @@ class ScikitLearnBase(SupervisedLearning):
           coefs = m.feature_importances_
         elif hasattr(m, 'coef_'):
           coefs = m.coef_
-        if cc is None:
+        if cc is None and coefs is not None:
           cc = np.zeros(coefs.shape)
-        cc[:]+=coefs[:]
-      cc/=float(len(model))
+        if coefs is not None:
+          cc[:]+=coefs[:]
+      if cc is not None:
+        cc/=float(len(model))
       coefs = cc
     else:
-
       if hasattr(model, 'feature_importances_'):
         coefs = model.feature_importances_
       elif hasattr(model, 'coef_'):
@@ -160,6 +161,7 @@ class ScikitLearnBase(SupervisedLearning):
       # the multi-target is handled by the internal wrapper
       self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
+
 
   def __confidenceLocal__(self,featureVals):
     """

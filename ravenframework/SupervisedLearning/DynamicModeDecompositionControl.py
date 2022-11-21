@@ -338,9 +338,6 @@ class DMDC(DMD):
         evalY = evalY + self.outputVals[0, index, :]
     return evalX, evalY
 
-  def _evaluateLocal(self,featureVals):
-    return self.__evaluateLocal__(featureVals)
-
   def __evaluateLocal__(self,featureVals):
     """
       This method is used to inquire the DMD to evaluate (after normalization that in
