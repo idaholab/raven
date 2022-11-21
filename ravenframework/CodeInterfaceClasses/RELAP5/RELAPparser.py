@@ -184,7 +184,8 @@ class RELAPparser():
           elif trip['variable'] == 'time' and "timeof" in edit['variable'] and tripID in edit['component']:
             found = True
         if not found and trip['variable']+"_"+trip['component'] not in addedVars:
-          if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
+          if len(availableMinorEditsCards) == 0:
+            raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
           if trip['variable'] != 'time':
             addedVars.append(trip['variable']+"_"+trip['component'])
             self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+trip['variable']+" "+trip['component'] +"\n")
@@ -231,7 +232,8 @@ class RELAPparser():
         splitted = _splitRecordAndRemoveComments(line)
         if len(splitted) > 0 and splitted[0].strip().isdigit():
           isMinor = self.storeMinorEdit(deckNum, splitted)
-          if isMinor: self.lastMinorEditLine[deckNum] = lineNum+1
+          if isMinor:
+            self.lastMinorEditLine[deckNum] = lineNum+1
 
   def storeControlVars(self,deckNum, splitted):
     """
@@ -397,7 +399,8 @@ class RELAPparser():
       if not all(foundAllCards[deck].values()):
         cardsNotFound = ""
         for card,found in foundAllCards[deck].items():
-          if not found: cardsNotFound+= card +" "
+          if not found:
+            cardsNotFound+= card +" "
         raise IOError("RELAP5 Interface: The following cards have not been found in the original input files: "+cardsNotFound)
     return cardValues
 

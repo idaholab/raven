@@ -20,14 +20,11 @@ comments: Interface for Projectile Code without the creation of
           a CSV but with the direct transfer of data to RAVEN in
           finalizeCodeOutput method
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import numpy
 
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from ProjectileInterface import Projectile
+from .ProjectileInterface import Projectile
 
 class ProjectileNoCSV(Projectile):
   """
@@ -49,5 +46,3 @@ class ProjectileNoCSV(Projectile):
     dat = numpy.asarray(data).T
     output = {var:dat[i,:] for (i, var) in enumerate(headers)}
     return output
-
-

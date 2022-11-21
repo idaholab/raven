@@ -148,7 +148,7 @@ def checkVersions():
       print(msg)
   if notQA:
     print('ERROR: Some required Python libraries have incorrect versions for running RAVEN as configured:')
-    for lib, found, need in notQA:
+    for lib, need, found in notQA:
       print(f'  -> WRONG VERSION: lib "{lib}" need "{need}" but found "{found}"')
   if missing or notQA:
     print('Try installing libraries using instructions on RAVEN repository wiki at ' +
