@@ -88,7 +88,7 @@ class PopulationPlot(PlotInterface):
 
     params, notFound = spec.findNodesAndExtractValues(['logVars'])
     if notFound:
-      self.logVars = None
+      self.logVars = []
     else:
       self.logVars = params['logVars']
 
@@ -124,8 +124,7 @@ class PopulationPlot(PlotInterface):
     inVars = self.source.getVars(subset='input')
 
     nFigures = len(self.vars)
-    fig, axs = plt.subplots(nFigures,1)
-    fig.suptitle('Population Plot')
+    fig, axs = plt.subplots(nFigures,1, figsize=(8, 15))
 
     minGen = int(min(data[self.index]))
     maxGen = int(max(data[self.index]))
@@ -154,6 +153,8 @@ class PopulationPlot(PlotInterface):
       axs[indexVar].set_ylabel(var)
       if var == self.vars[-1]:
         axs[indexVar].set_xlabel('Batch #')
+
+    fig.tight_layout()
 
     if self.how in ['png','pdf','svg','jpeg']:
       fileName = self.name +'.%s'  % self.how
