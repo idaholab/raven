@@ -476,7 +476,6 @@ class EnsembleModel(Dummy):
       if output.name not in targetEvaluationNames.keys():
         # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
         if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
-
           for rlz in evaluation['realizations']:
             output.addRealization(rlz)
         else:
