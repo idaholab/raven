@@ -53,6 +53,7 @@ Note all install methods after "main" take
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
     <tensorflow>2.9</tensorflow>
+    <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.9</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
