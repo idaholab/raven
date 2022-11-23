@@ -40,7 +40,7 @@
   </Models>
 
   <Distributions>
-    <UniformDiscrete name='woRep_dist'><!--Fill this in-->
+    <UniformDiscrete name='woRep_dist'>
       <lowerBound>2</lowerBound>
       <upperBound>7</upperBound>
       <strategy>withoutReplacement</strategy>
