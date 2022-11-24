@@ -283,8 +283,6 @@ class SupervisedLearning(BaseInterface):
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
           targetValues[:,cnt] = ( (targetValueToUse[:,0] if len(targetValueToUse.shape) > 1 else targetValueToUse[:]) - self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
-    # if 'normalizeTargets' in self.info.keys() and self.info['normalizeTargets']==True:
-    #   targetValues = (targetValues - self.muAndSigmaTargets[self.target[0]][0])/self.muAndSigmaTargets[self.target[0]][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -387,7 +385,6 @@ class SupervisedLearning(BaseInterface):
         else:
           featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     target = self.__evaluateLocal__(featureValues)
-    # if self.target[0] in self.muAndSigmaFeatures.keys():
     if ('normalizeTargets' in self.info.keys()) and self.info['normalizeTargets']:
       target.update((x, y * self.muAndSigmaTargets[x][1] + self.muAndSigmaTargets[x][0]) for x, y in target.items())
     return target
