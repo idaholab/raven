@@ -45,7 +45,7 @@ class SupervisedLearning(BaseInterface):
                            # 'boolean', 'integer', 'float'
   qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'.
                            # The values are returned by the self.__confidenceLocal__(Features)
-  info = {'normalize':None, 'normalizeTargets':None}
+  info = {'problemtype':'regression', 'normalize':None, 'normalizeTargets':None}
   @classmethod
   def getInputSpecification(cls):
     """
@@ -70,6 +70,10 @@ class SupervisedLearning(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
         descr=r"""If a time-dependent ROM is requested, please specifies the pivot
         variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
+
+    spec.addSub(InputData.parameterInputFactory("normalizeTargets", contentType=InputTypes.BoolType,
+                                                 descr=r"""enables target normalization by centering (subtracting the mean) and dividing by the standard deviation.
+                                                 This is known to make the ROM less sensitive to parameters such as epsilon, gamma, etc.""", default=False))
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
         ``CrossValidation``.""")
@@ -249,32 +253,42 @@ class SupervisedLearning(BaseInterface):
       featureValues = np.zeros(shape=(len(targetValues), featLen,len(self.features)))
     else:
       featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
-    for cnt, feat in enumerate(self.features):
+    for cnt, featTarg in enumerate(zip(self.features,self.target)):
+      feat = featTarg[0]
+      targ = featTarg[1]
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
+      elif targ not in names:
+        self.raiseAnError(IOError,'The target sought '+targ+' is not in the training set')
       else:
         valueToUse = values[names.index(feat)]
         resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
+        targetValueToUse = values[names.index(targ)]
+        tarResp = self.checkArrayConsistency(targetValueToUse, self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        if not tarResp[0]:
+          self.raiseAnError(IOError,'In training set for target '+targ+':'+tarResp[1])
         valueToUse = np.asarray(valueToUse)
+        targetValueToUse = np.asarray(targetValueToUse)
         if len(valueToUse) != featureValues.shape[0]:
           self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
           self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        self._localNormalizeData(values,names,feat)
+        self._localNormalizeData(values,names,feat,targ)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         if self.dynamicFeatures:
           featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-          # targetValues[:,cnt] = (targetValues[:]- self.muAndSigmaFeatures[self.target[0]][0])/self.muAndSigmaFeatures[self.target[0]][1]
+          targetValues[:,cnt] = (targetValues[:]- self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-    if 'normalizeTargets' in self.info.keys() and self.info['normalizeTargets']==True:
-      targetValues = (targetValues - self.muAndSigmaTargets[self.target[0]][0])/self.muAndSigmaTargets[self.target[0]][1]
+          targetValues[:,cnt] = ( (targetValueToUse[:,0] if len(targetValueToUse.shape) > 1 else targetValueToUse[:]) - self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
+    # if 'normalizeTargets' in self.info.keys() and self.info['normalizeTargets']==True:
+    #   targetValues = (targetValues - self.muAndSigmaTargets[self.target[0]][0])/self.muAndSigmaTargets[self.target[0]][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
-  def _localNormalizeData(self,values,names,feat):
+  def _localNormalizeData(self,values,names,feat,targ):
     """
       Method to normalize data based on the mean and standard deviation.  If undesired for a particular ROM,
       this method can be overloaded to simply pass (see, e.g., GaussPolynomialRom).
@@ -283,8 +297,14 @@ class SupervisedLearning(BaseInterface):
       @ In, feat, list, list of features (from ROM)
       @ Out, None
     """
-    self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
-    self.muAndSigmaTargets[self.target[0]] = mathUtils.normalizationFactors(values[names.index(self.target[0])])
+    if not self.info['normalize']:
+      self.muAndSigmaFeatures[feat] = (0.0,1.0)
+    else:
+      self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
+    if not self.info['normalizeTargets']:
+      self.muAndSigmaTargets[targ] = (0.0,1.0)
+    else:
+      self.muAndSigmaTargets[targ] = mathUtils.normalizationFactors(values[names.index(targ)])
 
   def confidence(self, edict):
     """
@@ -354,6 +374,8 @@ class SupervisedLearning(BaseInterface):
     else:
       featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
+      # feat = featTarg[0]
+      # targ = featTarg[1]
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
@@ -367,7 +389,7 @@ class SupervisedLearning(BaseInterface):
     target = self.__evaluateLocal__(featureValues)
     # if self.target[0] in self.muAndSigmaFeatures.keys():
     if ('normalizeTargets' in self.info.keys()) and self.info['normalizeTargets']:
-      target.update((x, y * self.muAndSigmaTargets[self.target[0]][1] + self.muAndSigmaTargets[self.target[0]][0]) for x, y in target.items())
+      target.update((x, y * self.muAndSigmaTargets[x][1] + self.muAndSigmaTargets[x][0]) for x, y in target.items())
     return target
 
   def reset(self):

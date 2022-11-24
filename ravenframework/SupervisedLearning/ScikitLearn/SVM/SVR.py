@@ -99,9 +99,6 @@ class SVR(ScikitLearnBase):
                                                  descr=r"""Enable verbose output. Note that this setting takes advantage
                                                  of a per-process runtime setting in libsvm that, if enabled, may not
                                                  work properly in a multithreaded context.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("normalizeTargets", contentType=InputTypes.BoolType,
-                                                 descr=r"""enables target normalization by centering (subtracting the mean) and dividing by the standard deviation.
-                                                 This is known to make the ROM less sensitive to parameters such as epsilon, gamma, etc.""", default=False))
 
     return specs
 

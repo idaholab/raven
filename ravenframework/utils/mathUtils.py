@@ -246,7 +246,7 @@ def normalizationFactors(values, mode='z'):
   elif mode == 'scale':
     offset = np.min(values)
     scale = np.max(values) - offset
-  else:
+  else: ##TODO this should be changed, currently if the user entered anything other than z or scale it will not normalize
     offset = 0.0
     scale = 1.0
 

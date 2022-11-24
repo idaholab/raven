@@ -33,13 +33,13 @@
     <MultiRun name="sample" sleepTime="1e-5">
     <Input class="DataObjects" type="PointSet">dummyIN</Input>
     <Model class="Models" type="ExternalModel">projectile</Model>
-    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
     <Output class="DataObjects" type="PointSet">trainingData</Output>
     </MultiRun>
     <MultiRun name="resample" sleepTime="1e-5">
     <Input class="DataObjects" type="PointSet">dummyIN</Input>
     <Model class="Models" type="ROM">svrROM</Model>
-    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
     <Output class="DataObjects" type="PointSet">outData</Output>
     <Output class="OutStreams" type="Print">outData</Output>
     </MultiRun>
@@ -56,11 +56,11 @@
 
     <Models>
       <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile" name="projectile" subType="">
-        <variables>angle,r</variables>
+        <variables>angle,v0,r,ymax</variables>
       </ExternalModel>
       <ROM name="svrROM" subType="SVR">
-        <Features>angle</Features>
-        <Target>r</Target>
+        <Features>v0,angle</Features>
+        <Target>r,ymax</Target>
         <kernel>poly</kernel>
         <degree>2</degree>
         <normalizeTargets>True</normalizeTargets>
@@ -73,24 +73,34 @@
         <limit>100</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
-      <variable name="angle">
-        <distribution>smallUniformDist</distribution>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
       </MonteCarlo>
-      <Grid name="gridSampler">
+      <!-- <Grid name="gridSampler">
       <variable name="angle">
         <distribution>smallUniformDist</distribution>
         <grid construction="equal" steps="10" type="value">0 90</grid>
       </variable>
-      </Grid>
+      </Grid> -->
     </Samplers>
 
-    <Distributions>
-    <Uniform name="smallUniformDist">
-      <lowerBound>0</lowerBound>
-      <upperBound>90</upperBound>
+  <Distributions>
+    <Uniform name="vel_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
     </Uniform>
-    </Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
 
     <OutStreams>
     <!-- A csv file containing the output of the example -->
@@ -135,17 +145,17 @@
     <DataObjects>
       <!-- The input PointSet object -->
       <PointSet name="dummyIN">
-        <Input>angle</Input>
+        <Input>angle,v0</Input>
         <Output>OutputPlaceHolder</Output>
       </PointSet>
       <PointSet name="trainingData">
-        <Input>angle</Input>
-        <Output>r</Output>
+        <Input>angle,v0</Input>
+        <Output>r,ymax</Output>
       </PointSet>
       <!-- The output PointSet objects -->
       <PointSet name="outData">
-        <Input>angle</Input>
-        <Output>r</Output>
+        <Input>angle,v0</Input>
+        <Output>r,ymax</Output>
       </PointSet>
     </DataObjects>
 </Simulation>

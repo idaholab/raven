@@ -182,16 +182,16 @@ class ScikitLearnBase(SupervisedLearning):
     """
     pass
 
-  def _localNormalizeData(self,values,names,feat):
-    """
-      Overwrites default normalization procedure.
-      @ In, values, list(float), unused
-      @ In, names, list(string), unused
-      @ In, feat, string, feature to (not) normalize
-      @ Out, None
-    """
-    if not self.info['normalize']:
-      self.muAndSigmaFeatures[feat] = (0.0,1.0)
-      self.muAndSigmaTargets[self.target[0]] = (0.0,1.0)
-    else:
-      super()._localNormalizeData(values,names,feat)
+  # def _localNormalizeData(self,values,names,feat):
+  #   """
+  #     Overwrites default normalization procedure.
+  #     @ In, values, list(float), unused
+  #     @ In, names, list(string), unused
+  #     @ In, feat, string, feature to (not) normalize
+  #     @ Out, None
+  #   """
+  #   if not self.info['normalize']:
+  #     self.muAndSigmaFeatures[feat] = (0.0,1.0)
+  #     self.muAndSigmaTargets[self.target[0]] = (0.0,1.0)
+  #   else:
+  #     super()._localNormalizeData(values,names,feat)
