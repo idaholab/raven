@@ -59,10 +59,9 @@
         <variables>angle,v0,r,ymax</variables>
       </ExternalModel>
       <ROM name="svrROM" subType="SVR">
-        <Features>v0,angle</Features>
+        <Features>angle,v0</Features>
         <Target>r,ymax</Target>
-        <kernel>poly</kernel>
-        <degree>2</degree>
+        <kernel>rbf</kernel>
         <normalizeTargets>True</normalizeTargets>
       </ROM>
     </Models>
@@ -83,12 +82,6 @@
       <constant name="y0">0</constant>
       <constant name="timeOption">1</constant>
       </MonteCarlo>
-      <!-- <Grid name="gridSampler">
-      <variable name="angle">
-        <distribution>smallUniformDist</distribution>
-        <grid construction="equal" steps="10" type="value">0 90</grid>
-      </variable>
-      </Grid> -->
     </Samplers>
 
   <Distributions>
@@ -126,13 +119,6 @@
           <y>outData|Output|r</y>
           <c>red</c>
         </plot>
-        <!-- <plot>
-          <type>scatter</type>
-          <marker>v</marker>
-          <x>romPOut|Input|angle</x>
-          <y>romPOut|Output|r</y>
-          <c>black</c>
-        </plot> -->
         <xlabel>angle</xlabel>
         <ylabel>r</ylabel>
       </plotSettings>

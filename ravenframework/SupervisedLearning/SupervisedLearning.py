@@ -253,36 +253,35 @@ class SupervisedLearning(BaseInterface):
       featureValues = np.zeros(shape=(len(targetValues), featLen,len(self.features)))
     else:
       featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
-    for cnt, featTarg in enumerate(zip(self.features,self.target)):
-      feat = featTarg[0]
-      targ = featTarg[1]
-      if feat not in names:
-        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
-      elif targ not in names:
-        self.raiseAnError(IOError,'The target sought '+targ+' is not in the training set')
-      else:
-        valueToUse = values[names.index(feat)]
-        resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
-        targetValueToUse = values[names.index(targ)]
-        tarResp = self.checkArrayConsistency(targetValueToUse, self.isDynamic())
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if not tarResp[0]:
-          self.raiseAnError(IOError,'In training set for target '+targ+':'+tarResp[1])
-        valueToUse = np.asarray(valueToUse)
-        targetValueToUse = np.asarray(targetValueToUse)
-        if len(valueToUse) != featureValues.shape[0]:
-          self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
-          self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
-          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        self._localNormalizeData(values,names,feat,targ)
-        # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
-        if self.dynamicFeatures:
-          featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-          targetValues[:,cnt] = (targetValues[:]- self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
+    for tgtCnt, targ in enumerate(self.target):
+      for cnt, feat in enumerate(self.features):
+        if feat not in names:
+          self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
+        elif targ not in names:
+          self.raiseAnError(IOError,'The target sought '+targ+' is not in the training set')
         else:
-          featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-          targetValues[:,cnt] = ( (targetValueToUse[:,0] if len(targetValueToUse.shape) > 1 else targetValueToUse[:]) - self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
+          valueToUse = values[names.index(feat)]
+          resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
+          targetValueToUse = values[names.index(targ)]
+          tarResp = self.checkArrayConsistency(targetValueToUse, self.isDynamic())
+          if not resp[0]:
+            self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+          if not tarResp[0]:
+            self.raiseAnError(IOError,'In training set for target '+targ+':'+tarResp[1])
+          valueToUse = np.asarray(valueToUse)
+          targetValueToUse = np.asarray(targetValueToUse)
+          if len(valueToUse) != featureValues.shape[0]:
+            self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
+            self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
+            self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+          self._localNormalizeData(values,names,feat,targ)
+          # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
+          if self.dynamicFeatures:
+            featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+            targetValues[:,tgtCnt] = (targetValueToUse[:]- self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
+          else:
+            featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+            targetValues[:,tgtCnt] = ( (targetValueToUse[:,0] if len(targetValueToUse.shape) > 1 else targetValueToUse[:]) - self.muAndSigmaTargets[targ][0])/self.muAndSigmaTargets[targ][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
