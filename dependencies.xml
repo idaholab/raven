@@ -53,6 +53,7 @@ Note all install methods after "main" take
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
     <tensorflow>2.9</tensorflow>
+    <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.7</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
@@ -67,7 +68,8 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray source="pip" pip_extra="[default]">1.13</ray>
+    <ray source="pip" pip_extra="[default]" os='mac,linux'>2.1</ray>
+    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio>2.22</imageio>
