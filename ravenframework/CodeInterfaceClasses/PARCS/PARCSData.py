@@ -50,9 +50,6 @@ class PARCSData:
     self.data["cycle_length"] = {'info_ids':extractedData['info_ids'][2], 'values':extractedData['values'][2]}
     self.data["PinPowerPeaking"] = {'info_ids':extractedData['info_ids'][1], 'values':extractedData['values'][1]}
     self.data["exposure"] = {'info_ids':extractedData['info_ids'][5], 'values':extractedData['values'][5]}
-    # this is a dummy variable for demonstration
-    # Multi-objective --> single objective
-    self.data["target"] = self.getTarget()
     # check if something has been found
     if all(v is None for v in self.data.values()):
       raise IOError("No readable outputs have been found!")
@@ -98,7 +95,7 @@ class PARCSData:
     for i in range (lineBeg, lineEnd):
       elem=self.lines[i].split()
       cycLength.append(float(elem[2]))
-      k_eff.append(float(elem[3]))
+      k_eff.append(float(elem[3][:6]))
       fq = float(elem[4].split('(')[0])
       if elem[4].find(')')>0:
         indx=4
@@ -119,7 +116,7 @@ class PARCSData:
       return ValueError("No values returned. Check output File executed correctly")
     ### get cycle length at 10ppm interpolated
     for i in range (len(BoronCon)):
-      if (BoronCon[i] - 0.1)<1e-3:
+      if (BoronCon[i] - 10.0)<1e-3:
         idx_ = i
         break
     EOCboron = 10
@@ -130,21 +127,6 @@ class PARCSData:
                'values': [[k_eff[-1]], [max(FQ)], [cycLengthEOC], [max(FdelH)],
                               [max(BoronCon)], [BU[-1]] ]}
     return outDict
-  def getTarget(self):
-    """
-    This is a function to convert the fitness function to be output variable and make the
-    problem to be single-objective rather than multi-objective optimzation
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
-    """
-    tmp = -1.0*max(0,self.data["boron"]['values'][0] - 1300)\
-          -400*max(0,self.data["PinPowerPeaking"]["values"][0]-2.1) \
-          -400*max(0,self.data['FDeltaH']["values"][0]-1.48)\
-          +self.data["cycle_length"]["values"][0]
-    outputDict = {'info_ids':['target'], 'values': [tmp]}
-    return outputDict
   def writeCSV(self, fileout):
     """
       Print Data into CSV format
