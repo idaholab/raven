@@ -238,11 +238,18 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+                  This includes: \begin{itemize}
+                                \item    invLinear:
+                                \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
 
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+                                 \item    logistic:
+                                 \[fitness = \frac{1}{1+e^{a\times(obj-b)}}\].
 
-                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
+                                                                    \item
+          feasibleFirst:                                  \[fitness =
+          -obj   \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \ \ g\\_j(x)\geq 0 \;  \forall j\]                                  and
+          \[fitness = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
+                                 \end{itemize}.""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
@@ -538,25 +545,7 @@ class GeneticAlgorithm(RavenSampled):
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
         children = childrenMutated
-      # Make sure no children are exactly similar to parents
-      flag = True
-      counter = 0
-      while flag and counter < self._populationSize:
-        counter += 1
-        repeated = []
-        for i in range(np.shape(self.population.data)[0]):
-          for j in range(i,np.shape(children.data)[0]):
-            if all(self.population.data[i,:]==children.data[j,:]):
-              repeated.append(j)
-        repeated = list(set(repeated))
-        if repeated:
-          if len(repeated)> children.shape[0] - self._populationSize:
-            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict=self.distDict, locs=self._mutationLocs, mutationProb=self._mutationProb, variables=list(self.toBeSampled))
-            children.data[repeated,:] = newChildren.data
-          else:
-            children = children.drop_sel(chromosome=repeated)
-        else:
-          flag = False
+
       # keeping the population size constant by ignoring the excessive children
       children = children[:self._populationSize, :]
 

@@ -141,6 +141,10 @@ def main(checkLibraries):
 
     # call the function to load the external xml files into the input tree
     cwd = os.path.dirname(os.path.abspath(inputFile))
+    # If a user chooses to run RAVEN outside of the directory containing the
+    # xml input file, then we should should change the python working directory
+    # to the directory containing the input file to avoid confusion.
+    os.chdir(cwd)
     simulation.XMLpreprocess(root,cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation

@@ -6,7 +6,8 @@
     <created>2020-12-02</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test is designed to find the optimal solution of a basic knapsack problem
+      This test is designed to find the optimal solution of a basic knapsack problem.
+      optimal solution of the knapsack problem is: elements 2 8 and 10 which gives the value set to 11.
     </description>
   </TestInfo>
 
@@ -56,7 +57,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>5</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>
@@ -68,7 +69,7 @@
             <crossoverProb>1.0</crossoverProb>
           </crossover>
           <mutation type="swapMutator">
-            <mutationProb>0.1</mutationProb>
+            <mutationProb>0.5</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="logistic">
@@ -89,7 +90,7 @@
       </variable>
       <variable name="proj2">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+        <initial>0,0,0,1,0,0,0,0,1,0,1,0,0,1</initial>
       </variable>
       <variable name="proj3">
         <distribution>unif_dist_wRepl</distribution>
@@ -101,7 +102,7 @@
       </variable>
       <variable name="proj5">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+        <initial>1,0,0,0,0,1,0,0,0,0,0,0,0,0</initial>
       </variable>
       <variable name="proj6">
         <distribution>unif_dist_wRepl</distribution>
@@ -113,7 +114,7 @@
       </variable>
       <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+        <initial>0,0,1,0,0,0,0,1,0,0,1,0,1,0</initial>
       </variable>
       <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
@@ -169,7 +170,7 @@
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
-        <limit>10000</limit>
+        <limit>15</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="proj1">
