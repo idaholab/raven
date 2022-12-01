@@ -48,14 +48,17 @@ class FeatureSelectionBase(BaseInterface):
     spec = super().getInputSpecification()
     spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the search.""", default=None))
-    spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
-        descr=r"""Which space to search? Target or Feature (this is temporary till MR 1718)""", default="Feature"))
+
+    whichSpaceType = InputTypes.makeEnumType("spaceType","spaceTypeType",["feature","target"])
+    spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=whichSpaceType,
+        descr=r"""Which space to search? Target or Feature (this is temporary till """
+        """DataSet training is implemented)""", default="feature"))
     return spec
 
   def __init__(self):
     super().__init__()
     self.parametersToInclude = None
-    self.whichSpace = "feature"
+    self.whichSpace =  None
 
   def _handleInput(self, paramInput):
     """
@@ -64,11 +67,12 @@ class FeatureSelectionBase(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'threshold'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'whichSpace'])
     assert(not notFound)
     self.parametersToInclude = nodes['parametersToInclude']
+    self.whichSpace = nodes['whichSpace']
     if self.parametersToInclude is None:
-      self.raiseAnError(ValueError, '"parametersToInclude" must be present (for now)!' )
+      self.raiseAnError(ValueError, '"parametersToInclude" must be inputted!' )
 
   def run(self, features, targets, X, y):
     """

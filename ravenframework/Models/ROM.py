@@ -605,9 +605,9 @@ class ROM(Dummy):
     pivotParameterId = self.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedContainer[0].target
+    romTargets = self.supervisedContainer[0].target
     ## establish requested targets
-    targets = ROMtargets if what=='all' else what.split(',')
+    targets = romTargets if what=='all' else what.split(',')
     ## establish sets of engines to work from
     engines = self.supervisedContainer
     # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
@@ -650,20 +650,14 @@ class ROM(Dummy):
     dynamic = self.isADynamicModel
     # determine if it can handle dynamic data
     handleDynamicData = self.canHandleDynamicData
-    # get pivot parameter
-    pivotParameterId = self.pivotParameterId
     # find some general settings needed for either dynamic or static handling
-    ## get all the targets the ROMs have
-    ROMtargets = self.supervisedContainer[0].target
-    ## establish requested targets
-    targets = ROMtargets if what=='all' else what.split(',')
     ## establish sets of engines to work from
     engines = self.supervisedContainer
     # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
     #    on whether the engine is naturally dynamic or whether we need to handle that part.
     if dynamic and handleDynamicData:
       ## pre-print printing
-      if hasattr(engines,"getSolutionMetadata"):
+      if hasattr(engines[0],"getSolutionMetadata"):
         solutionMetadata = engines[0].getSolutionMetadata()
     return solutionMetadata
 

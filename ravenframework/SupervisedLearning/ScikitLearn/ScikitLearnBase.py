@@ -73,6 +73,8 @@ class ScikitLearnBase(SupervisedLearning):
       if cc is not None:
         cc/=float(len(model))
       coefs = cc
+
+
     else:
       if hasattr(model, 'feature_importances_'):
         coefs = model.feature_importances_

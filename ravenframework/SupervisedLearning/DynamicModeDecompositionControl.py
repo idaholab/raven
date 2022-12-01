@@ -244,19 +244,19 @@ class DMDC(DMD):
     """
       Method to return the features' importances
       @ In, None
-      @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importqnceTarget2,...),
-                                                              feature2:(importanceTarget1,importqnceTarget2,...),...}
+      @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importanceTarget2,...),
+                                                              feature2:(importanceTarget1,importanceTarget2,...),...}
     """
     if self._importances is None:
       from sklearn import preprocessing
       from sklearn.ensemble import RandomForestRegressor
       # the importances are evaluated in the transformed space
-      CtildeNormalizedNormalized = np.zeros(self.__Ctilde.shape)
+      importanceMatrix = np.zeros(self.__Ctilde.shape)
       for smp in range(self.__Ctilde.shape[0]):
-        CtildeNormalizedNormalized[smp,:,:] = self.__Ctilde[smp,:,:]
+        importanceMatrix[smp,:,:] = self.__Ctilde[smp,:,:]
         scaler = preprocessing.MinMaxScaler()
-        scaler.fit(CtildeNormalizedNormalized[smp,:,:].T)
-        CtildeNormalizedNormalized[smp,:,:] = scaler.transform( CtildeNormalizedNormalized[smp,:,:].T).T
+        scaler.fit(importanceMatrix[smp,:,:].T)
+        importanceMatrix[smp,:,:] = scaler.transform(importanceMatrix[smp,:,:].T).T
 
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
 
@@ -265,7 +265,7 @@ class DMDC(DMD):
       minVal, minIdx = np.finfo(float).max, -1
       for stateCnt, stateID in enumerate(self.stateID):
         # for all outputs
-        self._importances[stateID] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+        self._importances[stateID] = np.asarray([abs(float(np.average(importanceMatrix[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
         if minVal > np.min(self._importances[stateID]):
           minVal = np.min(self._importances[stateID])
           minIdx = stateCnt
@@ -275,12 +275,9 @@ class DMDC(DMD):
       for featCnt, feat in enumerate(self.parametersIDs):
         permutations = set(self.parameterValues[:,featCnt])
         indices = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        self._importances[feat] = np.asarray([abs(float(np.average(CtildeNormalizedNormalized[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-
+        self._importances[feat] = np.asarray([abs(float(np.average(importanceMatrix[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
       self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
-      if False:
-        for stateID, val in self._importances.items():
-          self.raiseAMessage("state var {} | {}".format(stateID, np.sqrt(np.sum(self._importances[stateID]))))
+
     if group is not None:
       groupMask = np.zeros(len(self.outputID),dtype=bool)
       for cnt, oid in enumerate(self.outputID):
@@ -573,5 +570,4 @@ class DMDC(DMD):
     A = beta.dot(uTruc[0:n, :].T)
     B = beta.dot(uTruc[n:, :].T)
     C = Y1.dot(scipy.linalg.pinv(X1))
-
     return A, B, C

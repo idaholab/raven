@@ -62,7 +62,6 @@ class InternalRunner(Runner):
     newobj = cls.__new__(cls)
     memo[id(self)] = newobj
     for k,v in self.__dict__.items():
-      print(f"DEBUG DEEPCOPY: {k}")
       if k not in self.skipOnCopy:
         setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj

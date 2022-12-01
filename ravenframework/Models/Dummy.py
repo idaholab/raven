@@ -14,10 +14,6 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import copy
 import itertools
@@ -107,7 +103,7 @@ class Dummy(Model):
           for entries in dataIN.getVars('input')+dataIN.getVars('output'):
             localInput[entries] = copy.copy(dataSet[entries].values)
         elif dataIN.type == 'HistorySet':
-          # Andrea Explaination
+          # Andrea Explanation
           # This part of the code had to be speeded up
           # For large dataset ~1000 variables, 50 histories this was taking almost ~1 hr
           # I kept here "tolist" to keep compatibility but this

@@ -119,7 +119,7 @@ class RFE(FeatureSelectionBase):
         of features to remove at each iteration. If within (0.0, 1.0), then step
         corresponds to the percentage (rounded down) of features to remove at
         each iteration.""", default=1))
-    subgroup = InputData.parameterInputFactory("subGroup", contentType=InputTypes.InterpretedListType,
+    subgroup = InputData.parameterInputFactory('subGroup', contentType=InputTypes.InterpretedListType,
         descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
         """ can be inputted. The Augmented-RFE search will be then performed on each ``subgroup'' separately and then the"""
         """ the union of the different feature sets are used for the final ROM.""")
@@ -177,7 +177,7 @@ class RFE(FeatureSelectionBase):
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
     self.applyCrossCorrelation = nodes['applyCrossCorrelation']
-    self.whichSpace = nodes['whichSpace'].lower()
+
     # check if subgroups present
     for child in paramInput.subparts:
       if child.getName() == 'subGroup':
@@ -627,7 +627,7 @@ class RFE(FeatureSelectionBase):
     while np.sum(support_) > nFeaturesToSelect or doAtLeastOnce:
       # Remaining features
       estimator = copy.deepcopy(estimatorObj)
-      raminingFeatures = int(np.sum(support_))
+      remainingFeatures = int(np.sum(support_))
       featuresForRanking = np.arange(nParams)[support_]
       # subgrouping
       outputToRemove = None
@@ -681,18 +681,17 @@ class RFE(FeatureSelectionBase):
       coefs = None
       if hasattr(estimator, 'featureImportances_'):
         importances = estimator.featureImportances_
-
-        # since we get the importance, highest importance must be kept => we get the inverse of coefs
-        parametersRemained = [parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-        indexMap = {v: i for i, v in enumerate(parametersRemained)}
-        #coefs = np.asarray([importances[imp] for imp in importances if imp in self.parametersToInclude])
-        subSetImportances = {k: importances[k] for k in parametersRemained}
-        sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
-        coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
-        if coefs.shape[0] == raminingFeatures:
-          coefs = coefs.T
+        if importances is not None:
+          # since we get the importance, highest importance must be kept => we get the inverse of coefs
+          parametersRemained = [parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
+          indexMap = {v: i for i, v in enumerate(parametersRemained)}
+          subSetImportances = {k: importances[k] for k in parametersRemained}
+          sortedList = sorted(subSetImportances.items(), key=lambda pair: indexMap[pair[0]])
+          coefs = np.asarray([sortedList[s][1] for s in range(len(sortedList))])
+          if coefs.shape[0] == remainingFeatures:
+            coefs = coefs.T
       if coefs is None:
-        coefs = np.ones(raminingFeatures)
+        coefs = np.ones(remainingFeatures)
 
       # Get ranks (for sparse case ranks is matrix)
       ranks = np.ravel(np.argsort(np.sqrt(coefs).sum(axis=0)) if coefs.ndim > 1 else np.argsort(np.sqrt(coefs)))
