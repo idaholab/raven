@@ -76,7 +76,7 @@ def impConstr1(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 1 evaluation function
   """
-  g = 1300 - Input.max_boron # lower than 1300
+  g = (1.300 - Input.max_boron/1000) * 40000 # lower than 1300 4000 is weight factor for fitness function
   return g
 
 def impConstr2(Input):
@@ -86,7 +86,7 @@ def impConstr2(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 2 evaluation function
   """
-  g = (2.1 - Input.PinPowerPeaking) * 400 # lower than 2.1  400 is weight factor for fitness function
+  g = (2.1 - Input.PinPowerPeaking) * 40000 # lower than 2.1  4000 is weight factor for fitness function
   return g
 
 def impConstr3(Input):
@@ -96,5 +96,5 @@ def impConstr3(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 2 evaluation function
   """
-  g = (1.48 - Input.MaxFDH) * 400 # lower than 1.48, 400 is weight factor for fitness function
+  g = (1.48 - Input.MaxFDH) * 40000 # lower than 1.48, 4000 is weight factor for fitness function
   return g
