@@ -13,7 +13,6 @@
 # limitations under the License.
 """
   Created on May 8, 2018
-
   @author: alfoa
   Variance Threshold feature selection from sklearn
 """
@@ -29,6 +28,7 @@ from ...utils import mathUtils
 from ...utils import InputData, InputTypes
 from .FeatureSelectionBase import FeatureSelectionBase
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class VarianceThreshold(FeatureSelectionBase):
   """
@@ -46,17 +46,22 @@ class VarianceThreshold(FeatureSelectionBase):
       class cls.
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
+      specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance features.
-                           This feature selection algorithm looks only at the features and not the desired outputs. The
-                           variance threshold can be set by the user."""
-    spec.addSub(InputData.parameterInputFactory('threshold',contentType=InputTypes.FloatType,
-        descr=r"""Features with a training-set variance lower than this threshold
+    spec.description = r"""The \xmlString{VarianceThreshold} is a feature selector that removes
+    all low-variance features. This feature selection algorithm looks only at the features and not
+    the desired outputs. The variance threshold can be set by the user."""
+    spec.addSub(
+        InputData.parameterInputFactory(
+            'threshold',
+            contentType=InputTypes.FloatType,
+            descr=
+            r"""Features with a training-set variance lower than this threshold
                   will be removed. The default is to keep all features with non-zero
                   variance, i.e. remove the features that have the same value in all
-                  samples.""", default=0.0))
+                  samples.""",
+            default=0.0))
     return spec
 
   def __init__(self):
@@ -71,12 +76,12 @@ class VarianceThreshold(FeatureSelectionBase):
     """
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['threshold'])
-    assert(not notFound)
+    assert (not notFound)
     self.threshold = nodes['threshold']
     if self.threshold <= 0:
-      raise self.raiseAnError(ValueError, '"threshold" parameter must be > 0' )
+      raise self.raiseAnError(ValueError, '"threshold" parameter must be > 0')
 
-  def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
+  def _train(self, X, y, featuresIds, targetsIds, maskF=None, maskT=None):
     """
       Train the feature selection model and perform search of best features
       @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
@@ -84,10 +89,9 @@ class VarianceThreshold(FeatureSelectionBase):
       @ In, featuresIds, list, list of features
       @ In, targetsIds, list, list of targets
       @ In, maskF, optional, np.array, indeces of features to search within
-                                       (parameters to include None if search is whitin targets)
+      (parameters to include None if search is whitin targets)
       @ In, maskT, optional, np.array, indeces of targets to search within
-                                       (parameters to include None if search is whitin features)
-
+      (parameters to include None if search is whitin features)
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
       @ Out, whichSpace, str, which space?

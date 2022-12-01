@@ -24,5 +24,5 @@ from .VarianceThreshold import VarianceThreshold
 ################################################################################
 
 factory = EntityFactory('FeatureSelection')
-factory.registerType("RFE",RFE)
-factory.registerType("VarianceThreshold",VarianceThreshold)
+factory.registerType("RFE", RFE)
+factory.registerType("VarianceThreshold", VarianceThreshold)
