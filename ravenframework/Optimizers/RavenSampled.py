@@ -301,7 +301,8 @@ class RavenSampled(Optimizer):
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
-      rlz[self._objectiveVar] *= -1
+      for i in range(len(self._objectiveVar)):
+        rlz[self._objectiveVar[0]] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -345,7 +346,7 @@ class RavenSampled(Optimizer):
       self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                         'Perhaps the Model failed?')
     opt = self._optPointHistory[traj][-1][0]
-    val = opt[self._objectiveVar]
+    val = opt[self._objectiveVar[0]]
     self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
     if bestValue is None or val < bestValue:
       bestValue = val
@@ -356,7 +357,7 @@ class RavenSampled(Optimizer):
     self.raiseAMessage(' - Final Optimal Point:')
     finalTemplate = '    {name:^20s}  {value: 1.3e}'
     finalTemplateInt = '    {name:^20s}  {value: 3d}'
-    self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=s * bestValue))
+    self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s * bestValue))
     self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
     for var, val in bestPoint.items():
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
@@ -498,10 +499,10 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    oldVal = normed[self._objectiveVar]
-    normed.pop(self._objectiveVar, oldVal)
+    oldVal = normed[self._objectiveVar[0]]
+    normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
-    denormed[self._objectiveVar] = oldVal
+    denormed[self._objectiveVar[0]] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
 
     return accept
@@ -569,9 +570,9 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
+      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       newAvg = ((N-1)*oldVal + optVal) / N
-      self._optPointHistory[traj][-1][0][self._objectiveVar] = newAvg
+      self._optPointHistory[traj][-1][0][self._objectiveVar[0]] = newAvg
     else:
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 
@@ -635,10 +636,10 @@ class RavenSampled(Optimizer):
                      'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
-    objValue = rlz[self._objectiveVar]
+    objValue = rlz[self._objectiveVar[0]]
     if self._minMax == 'max':
       objValue *= -1
-    toExport[self._objectiveVar] = objValue
+    toExport[self._objectiveVar[0]] = objValue
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)

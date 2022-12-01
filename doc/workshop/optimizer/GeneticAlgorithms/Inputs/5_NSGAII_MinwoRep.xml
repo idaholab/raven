@@ -28,14 +28,14 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
-      <Output class="OutStreams" type="Plot">opt_path</Output>
-      <Output class="OutStreams" type="Plot">population</Output>
+      <!-- <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output> -->
     </IOStep>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../myLocalSum.py" name="myLocalSum" subType="">
-      <variables>x1,x2,x3,x4,x5,x6,obj</variables><!--Fill this in-->
+    <ExternalModel ModuleToLoad="../myLocalSum_multi.py" name="myLocalSum" subType="">
+      <variables>x1,x2,x3,x4,x5,x6,obj1,obj2</variables><!--Fill this in-->
     </ExternalModel>
   </Models>
 
@@ -53,7 +53,7 @@
         <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>max</type><!--Fill this in-->
+        <type>min</type><!--Fill this in-->
       </samplerInit>
 
       <GAparams>
@@ -71,7 +71,7 @@
           <a>1.0</a>
           <b>1.0</b>
         </fitness>
-        <survivorSelection>fitnessBased</survivorSelection>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
 
       <convergence>
@@ -102,7 +102,8 @@
         <distribution>woRep_dist</distribution><!--Fill this in-->
       </variable>
 
-      <objective>obj</objective><!--Fill this in-->
+      <objective>obj1, obj2</objective><!--Fill this in-->
+
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
@@ -145,11 +146,11 @@
     <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>x1,x2,x3,x4,x5,x6</Input><!--Fill this in-->
-      <Output>obj</Output><!--Fill this in-->
+      <Output>obj1,obj2</Output><!--Fill this in-->
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,x4,x5,x6,obj,age,batchId,fitness,iteration,accepted,conv_objective</Output><!--Modify if necessary-->
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,age,batchId,fitness,iteration,accepted,conv_objective</Output><!--Modify if necessary-->
     </PointSet>
   </DataObjects>
 
@@ -163,16 +164,16 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="opt_path" subType="OptPath">
+    <!-- <Plot name="opt_path" subType="OptPath">
       <source>opt_export</source>
-      <vars>x1,x2,x3,x4,x5,x6,obj</vars>
-    </Plot>
-    <Plot name="population" subType="PopulationPlot">
+      <vars>x1,x2,x3,x4,x5,x6,obj1,obj2</vars>
+    </Plot> -->
+    <!-- <Plot name="population" subType="PopulationPlot">
       <source>opt_export</source>
-      <vars>x1,x2,x3,x4,x5,x6,obj</vars>
-      <logVars>obj</logVars>
+      <vars>x1,x2,x3,x4,x5,x6,obj1,obj2</vars>
+      <logVars>obj1,obj2</logVars>
       <index>batchId</index>
       <how>png</how>
-    </Plot>
+    </Plot> -->
   </OutStreams>
 </Simulation>
