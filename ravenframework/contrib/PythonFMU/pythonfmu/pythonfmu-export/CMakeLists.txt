@@ -71,10 +71,15 @@ if (WIN32)
         PRIVATE
         ${Python3_LIBRARIES}
         )
-else ()
+elseif (APPLE)
   target_link_libraries(pythonfmu-export
         PRIVATE
         Python3::Module
+        )
+else ()
+  target_link_libraries(pythonfmu-export
+        PRIVATE
+        Python3::Python
         )
 endif ()
 
