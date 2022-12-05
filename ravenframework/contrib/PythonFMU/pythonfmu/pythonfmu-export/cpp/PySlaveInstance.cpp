@@ -99,6 +99,10 @@ void PySlaveInstance::clearLogBuffer() const
 {
     clearLogStrBuffer();
 
+    if (pMessages_ == NULL) {
+      return;
+    }
+
     PyObject* debugField = Py_BuildValue("s", "debug");
     PyObject* msgField = Py_BuildValue("s", "msg");
     PyObject* categoryField = Py_BuildValue("s", "category");
