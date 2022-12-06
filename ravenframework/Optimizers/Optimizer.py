@@ -248,16 +248,12 @@ class Optimizer(AdaptiveSampler):
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
 
-    ####  Original Code  ###################################################
-    # # objective var
-    # self._objectiveVar = paramInput.findFirst('objective').value
-    ########################################################################
+    if bool(paramInput.findAll('GAparams')):
+      rawObjectiveVar = paramInput.findFirst('objective').value
+      self._objectiveVar = [rawObjectiveVar.split(",")[i] for i in range(0,len(rawObjectiveVar.split(","))) ]
 
-    ####  Multi Objective Code  ##############################################
-    # objective var
-    rawObjectiveVar = paramInput.findFirst('objective').value
-    self._objectiveVar = [rawObjectiveVar.split(",")[i] for i in range(0,len(rawObjectiveVar.split(","))) ]
-    ##########################################################################
+    else:
+      self._objectiveVar = paramInput.findFirst('objective').value
 
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node

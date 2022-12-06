@@ -302,7 +302,7 @@ class RavenSampled(Optimizer):
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
       for i in range(len(self._objectiveVar)):
-        rlz[self._objectiveVar[0]] *= -1
+        rlz[self._objectiveVar[i]] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)

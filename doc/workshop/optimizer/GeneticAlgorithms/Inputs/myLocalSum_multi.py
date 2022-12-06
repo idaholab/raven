@@ -29,11 +29,17 @@ def evaluate(Inputs):
   """
   Sum = 0
   LocalSum = 0
+  # for ind,var in enumerate(Inputs.keys()):
+  #   # write the objective function here
+  #   Sum += (ind + 1) * Inputs[var]
+  #   if (ind == 1):
+  #       LocalSum = Sum
+  # return Sum[:], LocalSum[:]
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
     Sum += (ind + 1) * Inputs[var]
-    if (ind == 2):
-        LocalSum = Sum
+    if (ind == 0) or (ind == 1):
+        LocalSum += (ind + 1) * Inputs[var]
   return Sum[:], LocalSum[:]
 
 def run(self,Inputs):

@@ -141,6 +141,14 @@ def rankNcrowdingBased(newRlz,**kwargs):
     @ Out, newRank, xr.DataArray, rank of each chromosome in the new population
     @ Out, newCD, xr.DataArray, crowding distance of each chromosome in the new population.
   """
+  popSize = np.shape(kwargs['population'])[0]
+  if ('age' not in kwargs.keys() or kwargs['age'] == None):
+    popAge = [0]*popSize
+  else:
+    popAge = kwargs['age']
+  newAge = list(map(lambda x:x+1, popAge))
+  newAge.extend([0]*popSize)
+
   population = np.atleast_2d(kwargs['population'].data)
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
 
@@ -158,12 +166,13 @@ def rankNcrowdingBased(newRlz,**kwargs):
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance': np.arange(np.shape(popCD)[0])})
 
-  sortedRank,sortedCD,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(popRank.data,popCD.data,newPopulationMerged),reverse=False,key=lambda x: (x[0], -x[1]))])
-  sortedRankT,sortedCDT,sortedPopulationT = np.atleast_1d(list(sortedRank)),list(sortedCD),np.atleast_1d(list(sortedPopulation))
+  sortedRank,sortedCD,sortedAge,sortedPopulation = zip(*[(x,y,z,k) for x,y,z,k in sorted(zip(popRank.data,popCD.data,newAge,newPopulationMerged),reverse=False,key=lambda x: (x[0], -x[1]))])
+  sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT = np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation))
 
   newPopulation = sortedPopulationT[:-len(offSprings)]
   newRank = sortedRankT[:-len(offSprings)]
   newCD = sortedCDT[:-len(offSprings)]
+  newAge = sortedAgeT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulation,
                                     dims=['chromosome','Gene'],
@@ -177,8 +186,7 @@ def rankNcrowdingBased(newRlz,**kwargs):
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance':np.arange(np.shape(newCD)[0])})
 
-  #return newPopulationArray,newRank,newCD
-  return newPopulationArray,newRank,newCD
+  return newPopulationArray,newRank,newAge,newCD
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased
