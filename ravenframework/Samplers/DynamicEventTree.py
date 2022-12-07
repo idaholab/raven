@@ -686,6 +686,8 @@ class DynamicEventTree(Grid):
       self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+      ##### REDUNDANT FUNCTIONALS #####
+      self._functionalVariables()
       # Add some useful variable naming in the input
       self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
       # Add the new input path into the RunQueue system
