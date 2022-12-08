@@ -721,7 +721,7 @@ class DynamicEventTree(Grid):
 
   def __createVariablesInfoForKwargs(self, model):
     """
-      This utility method is to create a variable infor block
+      This utility method is to create a variable info block
       useful to couple with DET external codes
       @ In, model, Model instance, model instance that can be a Code type, ROM, etc.
       @ Out, varInfo, dict, the dictionary containing the variable names
@@ -976,6 +976,9 @@ class DynamicEventTree(Grid):
       while hybridsampler.amIreadyToProvideAnInput():
         hybridsampler.counter +=1
         hybridsampler.localGenerateInput(None,None)
+        hybridsampler._constantVariables()
+        ##### REDUNDANT FUNCTIONALS #####
+        hybridsampler._functionalVariables()
         hybridsampler.inputInfo['prefix'] = hybridsampler.counter
         hybridlistoflist[cnt].append(copy.deepcopy(hybridsampler.inputInfo))
     if self.hybridNumberSamplers > 0:
