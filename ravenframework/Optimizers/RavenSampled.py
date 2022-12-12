@@ -341,7 +341,7 @@ class RavenSampled(Optimizer):
     # further check active unfinished trajectories
     # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
     traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
-    # sanity check: if there's no history (we never got any answers) then report than rather than crash
+    # sanity check: if there's no history (we never got any answers) then report rather than crash
     if len(self._optPointHistory[traj]) == 0:
       self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                         'Perhaps the Model failed?')

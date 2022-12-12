@@ -291,6 +291,8 @@ class GeneticAlgorithm(RavenSampled):
     new = {}
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
+    new['rank'] = 'rank'
+    new['CD'] = 'crowding distance'
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
@@ -546,9 +548,11 @@ class GeneticAlgorithm(RavenSampled):
       # self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
       # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-    if self._activeTraj:
+
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
+
+    if self._activeTraj:
 
       ##################################################################################################################################
       # This is for a single-objective Optimization case
@@ -573,10 +577,12 @@ class GeneticAlgorithm(RavenSampled):
       ##################################################################################################################################
       else: # If the number of objectives is more than 1:
         if self.counter > 1:
-          self.population,self.rank,age,self.crowdingDistance = self._survivorSelectionInstance(age=self.popAge,
-                                                                                                newRlz=rlz,
-                                                                                                variables=list(self.toBeSampled),
-                                                                                                population=self.population)
+          self.population,self.rank,age,self.crowdingDistance,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
+                                                                                                                  newRlz=rlz,
+                                                                                                                  variables=list(self.toBeSampled),
+                                                                                                                  population=self.population,
+                                                                                                                  popObjectiveVal=self.objectiveVal
+                                                                                                                  )
           self.popAge = age
         else:
           self.population = offSprings
@@ -660,9 +666,9 @@ class GeneticAlgorithm(RavenSampled):
       children = children[:self._populationSize, :]
 
       daChildren = xr.DataArray(children,
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(np.shape(children)[0]),
-                                      'Gene':list(self.toBeSampled)})
+                                dims=['chromosome','Gene'],
+                                coords={'chromosome': np.arange(np.shape(children)[0]),
+                                        'Gene':list(self.toBeSampled)})
 
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates

@@ -154,8 +154,11 @@ def rankNcrowdingBased(newRlz,**kwargs):
 
   newPopulationMerged = np.concatenate([population,offSprings])
 
-  popRank = frontUtils.rankNonDominatedFrontiers(newPopulationMerged)
-
+  # Junyung!!!!!
+  # # TODO HERE, new PopulationMerged's object values should be calculated (newPopMerge_objValue) and then newPopMerge_objValue should be placed below.
+  # newPopMerge_objValue =
+  # popRank = frontUtils.rankNonDominatedFrontiers(newPopMerge_objValue)
+  popRank = frontUtils.rankNonDominatedFrontiers(offSprings)
   popRank = xr.DataArray(popRank,
                          dims=['rank'],
                          coords={'rank': np.arange(np.shape(popRank)[0])})
@@ -186,7 +189,7 @@ def rankNcrowdingBased(newRlz,**kwargs):
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance':np.arange(np.shape(newCD)[0])})
 
-  return newPopulationArray,newRank,newAge,newCD
+  return newPopulationArray,newRank,newAge,newCD,kwargs['popObjectiveVal']
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased
