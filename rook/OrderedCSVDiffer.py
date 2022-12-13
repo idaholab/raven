@@ -194,7 +194,6 @@ class OrderedCSVDiffer:
             diffs.append(diff)
             if not match:
               same = False
-              print(match_is_number)
               msg.append("Different values in "+gold_headers[column]+" for "
                          +str(gold_value)+" and "
                          +str(test_value))
