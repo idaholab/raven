@@ -67,9 +67,7 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="invLinear">
-          <a>1.0</a>
-          <b>1.0</b>
+        <fitness type="rank_crowding">
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>

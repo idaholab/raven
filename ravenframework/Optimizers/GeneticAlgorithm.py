@@ -448,7 +448,6 @@ class GeneticAlgorithm(RavenSampled):
 
       offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
       objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
-      # objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
 
       # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
       constraintData = {}
@@ -523,6 +522,7 @@ class GeneticAlgorithm(RavenSampled):
       #        _check, _handle, and _apply, for explicit and implicit constraints.
       #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
 
+
       ### START TODO This section need to be revisited with the optimization case with constraints ###################################
       for index,individual in enumerate(offSprings):
         newOpt = individual
@@ -537,13 +537,9 @@ class GeneticAlgorithm(RavenSampled):
             g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
       ##################################### END TODO This section need to be revisited with the optimization case with constraints ###
 
-      # offSpringFitness = self._fitnessInstance(rlz,
-      #                                          objVar=self._objectiveVar,
-      #                                          a=self._objCoeff,
-      #                                          b=self._penaltyCoeff,
-      #                                          penalty=None,
-      #                                          constraintFunction=g,
-      #                                          type=self._minMax)
+      offSpringRank, offSpringCD = self._fitnessInstance(rlz,
+                                                         objVals = self._objectiveVar
+                                                         )
 
       # self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
       # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
@@ -553,7 +549,6 @@ class GeneticAlgorithm(RavenSampled):
       # update population container given obtained children
 
     if self._activeTraj:
-
       ##################################################################################################################################
       # This is for a single-objective Optimization case
       ##################################################################################################################################
@@ -581,12 +576,19 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                                   newRlz=rlz,
                                                                                                                   variables=list(self.toBeSampled),
                                                                                                                   population=self.population,
-                                                                                                                  popObjectiveVal=self.objectiveVal
+                                                                                                                  rank=self.rank,
+                                                                                                                  crowdingDistance=self.crowdingDistance,
+                                                                                                                  offSpringsRank=offSpringRank,
+                                                                                                                  offSpringsCD=offSpringCD,
+                                                                                                                  popObjectiveVal=self.objectiveVal,
+                                                                                                                  offspringObjsVals=objectiveVal
                                                                                                                   )
           self.popAge = age
+          objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
         else:
           self.population = offSprings
-          # self.fitness = offSpringFitness
+          self.rank = offSpringRank
+          self.crowdingDistance = offSpringCD
           self.objectiveVal = []
           for i in range(len(self._objectiveVar)):
             self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
@@ -606,30 +608,28 @@ class GeneticAlgorithm(RavenSampled):
       else: # This is for a multi-objective Optimization case
       ##################################################################################################################################
 
-        objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
-        objs_vals = xr.DataArray(objs_vals,
-                                 dims=['chromosome','Obj'],
-                                 coords={'chromosome': np.arange(np.shape(np.array([np.array(xi) for xi in objs_vals]))[0]),
-                                         'Obj':self._objectiveVar})
+        # objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
+        # objs_vals = xr.DataArray(objs_vals,
+        #                          dims=['chromosome','Obj'],
+        #                          coords={'chromosome': np.arange(np.shape(np.array([np.array(xi) for xi in objs_vals]))[0]),
+        #                                  'Obj':self._objectiveVar})
 
-        popRank = frontUtils.rankNonDominatedFrontiers(objs_vals.data)
+        # popRank = frontUtils.rankNonDominatedFrontiers(objs_vals.data)
+        # popRank = xr.DataArray(popRank,
+        #                        dims=['chromosome'],
+        #                        coords={'chromosome': np.arange(np.shape(popRank)[0])})
 
-        popRank = xr.DataArray(popRank,
-                               dims=['chromosome'],
-                               coords={'chromosome': np.arange(np.shape(popRank)[0])})
-
-        popCD = frontUtils.crowdingDistance(rank=popRank, popSize=len(popRank), objectives=objs_vals.data)
-
-        popCD = xr.DataArray(popCD,
-                             dims=['CrowdingDistance'],
-                             coords={'CrowdingDistance': np.arange(np.shape(popCD)[0])})
+        # popCD = frontUtils.crowdingDistance(rank=popRank, popSize=len(popRank), objectives=objs_vals.data)
+        # popCD = xr.DataArray(popCD,
+        #                      dims=['CrowdingDistance'],
+        #                      coords={'CrowdingDistance': np.arange(np.shape(popCD)[0])})
 
         parents = self._parentSelectionInstance(self.population,
                                                 variables=list(self.toBeSampled),
-                                                # fitness=self.fitness,
                                                 nParents=self._nParents,
-                                                crowdDistance = popCD,
-                                                rank = popRank)
+                                                rank = self.rank,
+                                                crowdDistance = self.crowdingDistance
+                                                )
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)

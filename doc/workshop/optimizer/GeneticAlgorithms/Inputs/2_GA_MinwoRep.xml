@@ -53,7 +53,7 @@
         <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>max</type><!--Fill this in-->
+        <type>min</type><!--Fill this in-->
       </samplerInit>
 
       <GAparams>
