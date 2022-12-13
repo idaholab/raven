@@ -201,6 +201,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     if self.forceIteration:
       self.converged = False
     else:
+      checker = [output[metric][0] for metric in self.tolerance.keys()]
+      isNan = True if 'nan' in checker else np.isnan(checker).any()
+      if isNan:
+        self.converged = False
+        return
       converged = all(abs(tol) > abs(output[metric][0]) for metric, tol in self.tolerance.items())
       if converged:
         self.raiseAMessage('Checking target convergence for standard error and tolerance')
