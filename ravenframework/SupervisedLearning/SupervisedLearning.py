@@ -36,6 +36,7 @@ from ..utils import utils, mathUtils, xmlUtils
 from ..utils import InputTypes, InputData
 from ..BaseClasses import BaseInterface
 from .FeatureSelection import factory as featureSelectionFactory
+from . import utils as featSelectUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):
@@ -404,7 +405,10 @@ class SupervisedLearning(BaseInterface):
     if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
       if self.featureSelectionAlgo.needROM:
         self.featureSelectionAlgo.setEstimator(self)
-      newFeatures, support, space, vals = self.featureSelectionAlgo.run(self.features, self.target, featureValues,targetValues)
+      newFeatures, support = self.featureSelectionAlgo.run(self.features, self.target, featureValues, targetValues)
+      # identify parameters to remove
+      space =  self.featureSelectionAlgo.var("whichSpace")
+      vals = featSelectUtils.screenInputParams(support, self.paramInput, self.featureSelectionAlgo.var("parametersToInclude"))
       if space == 'feature' and np.sum(support) != len(self.features):
         self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
         self.raiseAMessage("Feature Selection removed the following features: {}".format(', '.join(self.removed)))

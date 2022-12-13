@@ -34,6 +34,7 @@ from ...utils.mathUtils import compareFloats
 from ...utils import InputData, InputTypes
 from ...Decorators.Parallelization import Parallel
 from .FeatureSelectionBase import FeatureSelectionBase
+from . import utils as featSelectUtils
 #Internal Modules End----------------------------------------------------------------------------
 
 class RFE(FeatureSelectionBase):
@@ -243,7 +244,6 @@ class RFE(FeatureSelectionBase):
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
       @ Out, whichSpace, str, which space?
-      @ Out, vals, dict, dictionary of new values
     """
     useParallel = False
     jhandler = self.estimator._assembledObjects.get('jobHandler')
@@ -550,26 +550,15 @@ class RFE(FeatureSelectionBase):
       targets = np.arange(nTargets)[supportOfSupport_]
 
     self.estimator_ = copy.deepcopy(self.estimator)
-    toRemove = [self.parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
-    vals = {}
-    if toRemove:
-      for child in originalParams.subparts:
-        if isinstance(child.value,list):
-          newValues = copy.copy(child.value)
-          for el in toRemove:
-            if el in child.value:
-              newValues.pop(newValues.index(el))
-          vals[child.getName()] = newValues
-      self.estimator_.paramInput.findNodesAndSetValues(vals)
-      self.estimator_._handleInput(self.estimator_.paramInput)
-    self.estimator_._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
-
-
+    #screen and retrain estimator
+    featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
+                                            y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
+                                            self.estimator, support_, originalParams)
     self.nFeatures_ = support_.sum()
     self.support_ = support_
     self.ranking_ = ranking_
 
-    return features if self.whichSpace == 'feature' else targets, supportOfSupport_, self.whichSpace, vals
+    return features if self.whichSpace == 'feature' else targets, supportOfSupport_
 
   @Parallel()
   def _rfe(estimatorObj, X, y, groupId, outputspace, supportData):
@@ -663,19 +652,10 @@ class RFE(FeatureSelectionBase):
       toRemove = [parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
       if outputToRemove is not None:
         toRemove += outputToRemove
-      vals = {}
-
-      if toRemove:
-        for child in originalParams.subparts:
-          if isinstance(child.value,list):
-            newValues = copy.copy(child.value)
-            for el in toRemove:
-              if el in child.value:
-                newValues.pop(newValues.index(el))
-            vals[child.getName()] = newValues
-        estimator.paramInput.findNodesAndSetValues(vals)
-        estimator._handleInput(estimator.paramInput)
-      estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+      #screen and retrain estimator
+      featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
+                                              y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
+                                              estimator, support_, originalParams, outputToRemove)
 
       # Get coefs
       coefs = None
@@ -765,21 +745,11 @@ class RFE(FeatureSelectionBase):
       features = np.arange(nFeatures)
       targets = np.arange(nTargets)[supportOfSupport_]
 
-    #estimator = copy.deepcopy(self.estimator)
-    toRemove = [parametersToInclude[idx] for idx in range(nParams) if not support_[idx]]
     survivors = [parametersToInclude[idx] for idx in range(nParams) if support_[idx]]
-    vals = {}
-    if toRemove:
-      for child in originalParams.subparts:
-        if isinstance(child.value,list):
-          newValues = copy.copy(child.value)
-          for el in toRemove:
-            if el in child.value:
-              newValues.pop(newValues.index(el))
-          vals[child.getName()] = newValues
-      estimator.paramInput.findNodesAndSetValues(vals)
-      estimator._handleInput(estimator.paramInput)
-    estimator._train(X[:, features] if len(X.shape) < 3 else X[:, :,features], y[:, targets] if len(y.shape) < 3 else y[:, :,targets])
+    #screen and retrain estimator
+    featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
+                                            y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
+                                            estimator, support_, originalParams)
 
     # evaluate
     score = 0.0

@@ -46,7 +46,8 @@ class FeatureSelectionBase(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
+    spec.addSub(InputData.parameterInputFactory('parametersToInclude',
+        contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the search.""", default=None))
 
     whichSpaceType = InputTypes.makeEnumType("spaceType","spaceTypeType",["feature","target"])
@@ -84,8 +85,6 @@ class FeatureSelectionBase(BaseInterface):
       @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
-      @ Out, whichSpace, str, which space?
-      @ Out, vals, dict, dictionary of new values
     """
     maskFeatures = None
     maskTargets = None
@@ -105,7 +104,6 @@ class FeatureSelectionBase(BaseInterface):
       self.raiseAnError(ValueError, "parametersToInclude are found in both feature and target spaces. Only one space is allowed!")
     return self._train(X, y, features, targets, maskF=maskFeatures, maskT=maskTargets)
 
-
   @abc.abstractmethod
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """
@@ -121,7 +119,13 @@ class FeatureSelectionBase(BaseInterface):
 
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
-      @ Out, whichSpace, str, which space?
-      @ Out, vals, dict, dictionary of new values
     """
     pass
+
+  def var(self, variable):
+    """
+      Method to get an internal parameter
+      @ In, variable, str, parameter that can be found in __dict__
+      @ Out, var, instance, the instance of the requested variable (if not found, return None)
+    """
+    return self.__dict__.get(variable)

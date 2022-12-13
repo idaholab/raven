@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on May 8, 2018
+  Created on June 04, 2022
   @author: alfoa
-  Variance Threshold feature selection from sklearn
+  Variance Threshold feature selection insperied by sklearn
 """
 
 #External Modules------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ class VarianceThreshold(FeatureSelectionBase):
     Feature selector that removes all low-variance features.
     This feature selection algorithm looks only at the features (X)
   """
-
   needROM = False
 
   @classmethod
@@ -65,7 +64,13 @@ class VarianceThreshold(FeatureSelectionBase):
     return spec
 
   def __init__(self):
+    """
+      Feature selection class based on variance reduction
+      @ In, None
+      @ Out, None
+    """
     super().__init__()
+    # variance threshold
     self.threshold = 0.0
 
   def _handleInput(self, paramInput):
@@ -94,13 +99,20 @@ class VarianceThreshold(FeatureSelectionBase):
       (parameters to include None if search is whitin features)
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
-      @ Out, whichSpace, str, which space?
-      @ Out, vals, dict, dictionary of new values
     """
     # if time dependent, we work on the expected value of the features
+    nFeatures = X.shape[-1]
+    nTargets = y.shape[-1]
+    
     if self.whichSpace == 'feature':
-      space = X if len(X.shape) < 3 else X.mean(axis=(1))
+      space = X[:, maskF] if len(X.shape) < 3 else np.average(X[:, :,maskF],axis=0)
+      supportOfSupport_, mask = np.ones(nFeatures,dtype=bool), maskF
     else:
-      space = y if len(y.shape) < 3 else y.mean(axis=(1))
+      space = y[:, maskT] if len(y.shape) < 3 else  np.average(y[:, :,maskT],axis=0)
+      supportOfSupport_, mask = np.ones(nTargets,dtype=bool), maskT
+    # fit estimator
     estimator = vt.fit(space)
-    estimator.get_support()
+    supportOfSupport_[mask] = estimator.get_support()
+    
+    return features if self.whichSpace == 'feature' else targets, supportOfSupport_
+    
