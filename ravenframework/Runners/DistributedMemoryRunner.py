@@ -96,6 +96,8 @@ class DistributedMemoryRunner(InternalRunner):
             # I assume it means the task has unfixably died,
             # and so is done, and set return code to failed.
             self.returnCode = -1
+            del self.__func
+            self.__func = None
             return True
           #Alternative that was tried:
           #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
