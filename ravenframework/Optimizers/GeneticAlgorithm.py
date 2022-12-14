@@ -576,10 +576,6 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                                   newRlz=rlz,
                                                                                                                   variables=list(self.toBeSampled),
                                                                                                                   population=self.population,
-                                                                                                                  rank=self.rank,
-                                                                                                                  crowdingDistance=self.crowdingDistance,
-                                                                                                                  offSpringsRank=offSpringRank,
-                                                                                                                  offSpringsCD=offSpringCD,
                                                                                                                   popObjectiveVal=self.objectiveVal,
                                                                                                                   offspringObjsVals=objectiveVal
                                                                                                                   )

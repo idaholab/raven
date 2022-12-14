@@ -147,28 +147,29 @@ def rankNcrowdingBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSpringRank = np.atleast_1d(kwargs['offSpringsRank'])
-  offSpringCD = np.atleast_1d(kwargs['offSpringsCD'])
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
-  popRank = np.atleast_1d(kwargs['rank'].data)
-  popCD = np.atleast_1d(kwargs['crowdingDistance'].data)
   popObjectiveVal = kwargs['popObjectiveVal']
   offspringObjsVals = kwargs['offspringObjsVals']
 
-  newPopulation = population
-  newRank = popRank
-  newCD = popCD
-  newObjsVals = popObjectiveVal
+  newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offspringObjsVals)])
+  newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
+
+  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newObjectivesMerged_pair))
+  newPopRank = xr.DataArray(newPopRank,
+                            dims=['rank'],
+                            coords={'rank': np.arange(np.shape(newPopRank)[0])})
+
+  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), objectives=np.array(newObjectivesMerged_pair))
+  newPopCD = xr.DataArray(newPopCD,
+                          dims=['CrowdingDistance'],
+                          coords={'CrowdingDistance': np.arange(np.shape(newPopCD)[0])})
 
   newAge = list(map(lambda x:x+1, popAge))
-  newPopulationMerged = np.concatenate([newPopulation,offSprings])
-  newObjectivesMerged = np.array([i + j for i, j in zip(newObjsVals, offspringObjsVals)])
-  newRank = np.concatenate([newRank,offSpringRank])
-  newCD = np.concatenate([newCD,offSpringCD])
-  newAge.extend([0]*len(offSpringRank))
+  newPopulationMerged = np.concatenate([population,offSprings])
+  newAge.extend([0]*len(offSprings))
 
-  sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives_0,sortedObjectives_1 = zip(*[(x,y,z,i,j,k) for x,y,z,i,j,k in sorted(zip(newRank,newCD,newAge,newPopulationMerged,newObjectivesMerged[0],newObjectivesMerged[1]),reverse=False,key=lambda x: (x[0], -x[1]))])
+  sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives_0,sortedObjectives_1 = zip(*[(x,y,z,i,j,k) for x,y,z,i,j,k in sorted(zip(newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged[0],newObjectivesMerged[1]),reverse=False,key=lambda x: (x[0], -x[1]))])
   sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectives_0T,sortedObjectives_1T = np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives_0)),np.atleast_1d(list(sortedObjectives_1))
 
   newPopulation = sortedPopulationT[:-len(offSprings)]
