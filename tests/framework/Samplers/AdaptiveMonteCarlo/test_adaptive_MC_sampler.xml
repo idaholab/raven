@@ -7,8 +7,14 @@
     <created>2020-02-06</created>
     <classesTested>Samplers.AdaptiveMonteCarlo, Models.ExternalModel</classesTested>
     <description>
-      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler. Converged on expectedValue of y1 and y2, as well as the sigma of y1 and y2.
+      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler.
+      Converged on expectedValue of y1 and y2, as well as the sigma of y1 and y2.
     </description>
+    <revisions>
+      <revision author="aalfonsi" date="2022-12-12">
+          Removed variables XML node and replaced with inputs and outputs
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -79,7 +85,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="adaptive_test_model" name="testFunction" subType="">
-      <variables>x1,x2,y1,y2</variables>
+        <inputs>x1,x2</inputs>
+        <outputs>y1,y2</outputs>
     </ExternalModel>
 
   </Models>

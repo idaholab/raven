@@ -103,7 +103,7 @@ def uniformCrossover(parents,**kwargs):
     children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
     children[index]   = children1
     children[index+1] = children2
-    index = index + 1
+    index +=  2
   return children
 
 
@@ -208,10 +208,10 @@ def uniformCrossoverMethod(parent1,parent2,crossoverProb):
 
   for pos in range(parent1.size):
     if randomUtils.random(dim=1,samples=1)<crossoverProb:
-      children1[pos] = parent1[pos]
-      children2[pos] = parent2[pos]
-    else:
       children1[pos] = parent2[pos]
       children2[pos] = parent1[pos]
+    else:
+      children1[pos] = parent1[pos]
+      children2[pos] = parent2[pos]
 
   return children1,children2

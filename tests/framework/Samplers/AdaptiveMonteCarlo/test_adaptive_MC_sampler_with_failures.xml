@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- TestInfo -->
+  <TestInfo>
+    <name>framework/Samplers.AdaptiveMonteCarloFailures</name>
+    <author>aalfonsi</author>
+    <created>2022-12-12</created>
+    <classesTested>Samplers.AdaptiveMonteCarlo, Models.ExternalModel</classesTested>
+    <description>
+      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler. Converged on expectedValue
+      of y1 and y2, as well as the sigma of y1 and y2. This is a modified version to test the possibility
+      to handle failures. The first run of the evaluation model is ``failed'' on demand.
+    </description>
+    <revisions>
+      <revision author="aalfonsi" date="2022-12-12">
+          Removed variables XML node and replaced with inputs and outputs
+      </revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AdaptFailure</WorkingDir>
+    <Sequence>adapt,adaptdump</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="adapt" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">dummy</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="AdaptiveMonteCarlo">adaptiveSearch</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">sol</SolutionExport>
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
+    </MultiRun>
+    <IOStep name="adaptdump" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">sol</Input>
+      <Output class="OutStreams" type="Print">solDump</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummy"/>
+    <PointSet name="sampledPoints">
+      <Input>x1,x2</Input>
+      <Output>y1,y2</Output>
+    </PointSet>
+    <PointSet name="sol">
+      <Input>solutionUpdate</Input>
+      <Output>mean_y1,mean_ste_y1,mean_y2,mean_ste_y2</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <mean>0.05</mean>
+      <sigma>0.01</sigma>
+    </Normal>
+    <Uniform name="x2_dst">
+        <lowerBound>-1</lowerBound>
+        <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <AdaptiveMonteCarlo name="adaptiveSearch">
+      <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
+      <Convergence>
+        <limit>30</limit>
+        <persistence>6</persistence>
+        <forceIteration>False</forceIteration>
+        <!--relative tolerance of standard error-->
+        <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
+        <sigma prefix="sigma" tol="6e-2">y1</sigma>
+        <sigma prefix="sigma" tol="5e-2">y2</sigma>
+      </Convergence>
+      <initialSeed>901017</initialSeed>
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dst</distribution>
+      </variable>
+    </AdaptiveMonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="adaptive_test_model_with_failures" name="testFunction" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>y1,y2</outputs>
+    </ExternalModel>
+
+  </Models>
+
+  <OutStreams>
+    <Print name="solDump">
+      <type>csv</type>
+      <source>sol</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
