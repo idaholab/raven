@@ -318,7 +318,7 @@ class Dymola(CodeInterfaceBase):
           "Parameter %s does not exist or is not formatted as expected "
           "in %s." % (name, originalPath))
 
-    # set fileName parameter which points Dymola to vector table
+    ## set fileName parameter which points Dymola to vector table
     if bool(vectorsToPass):
       initVarIndex = 0
       fileNameInitIndex = 0
@@ -335,7 +335,7 @@ class Dymola(CodeInterfaceBase):
         filePathIndex = initDescripIndex + fileNameInitIndex - initVarIndex #index of path
         text = text.replace(splitLines[filePathIndex], currentInputFiles[indexVect].getAbsFile().replace(os.sep, '/'))
       else:
-        raise AssertionError("Parameter fileName does not exist or is not formatted as expected "  "in %s." % originalPath)
+        self.raiseAWarning('Dymola INTERFACE WARNING -> Check subfolers containing the RAVEN samples to see whether they are correctly sampled!')
 
     # Re-write the file.
     with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
