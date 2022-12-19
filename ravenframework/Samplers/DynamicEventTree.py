@@ -152,6 +152,9 @@ class DynamicEventTree(Grid):
     # variable representation (variable name) in the input file. For example,
     # {'var1':'var1,var2','var2':'var1,var2'}
     self.fullyCorrelatedEpistemicToVar     = {}
+    #
+    self.hybridConstants = {}
+    self.hybridDependentSample = {}
 
   def _localWhatDoINeed(self):
     """
@@ -258,7 +261,7 @@ class DynamicEventTree(Grid):
     # get the branchedLevel dictionary
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-      if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys()):
+      if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys())+list(self.hybridConstants.keys()):
         branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
@@ -979,6 +982,8 @@ class DynamicEventTree(Grid):
         hybridsampler._constantVariables()
         ##### REDUNDANT FUNCTIONALS #####
         hybridsampler._functionalVariables()
+        self.hybridConstants.update(hybridsampler.constants)
+        self.hybridDependentSample.update(hybridsampler.dependentSample)
         hybridsampler.inputInfo['prefix'] = hybridsampler.counter
         hybridlistoflist[cnt].append(copy.deepcopy(hybridsampler.inputInfo))
     if self.hybridNumberSamplers > 0:
@@ -1003,6 +1008,8 @@ class DynamicEventTree(Grid):
         elm.add('hybridsamplerCoordinate', combinations[precSample])
         for point in combinations[precSample]:
           for epistVar, val in point['SampledVars'].items():
+            if epistVar in hybridsampler.constants or epistVar in hybridsampler.dependentSample:
+              continue
             if epistVar in self.fullyCorrelatedEpistemicToVar:
               self.epistemicVariables[self.fullyCorrelatedEpistemicToVar[epistVar]][elm.get('name')] = val
             else:
