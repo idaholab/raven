@@ -13,7 +13,7 @@ CNTL
       SEARCH     ppm 
       XS_EXTRAP  1.0 0.3 0.8 0.2 
       PIN_POWER  T   
-      PRINT_OPT T F T T F T F F F T  F  F  F  F  F   
+      PRINT_OPT T F T T F F F T F T  F  F  F  F  F   
 PARAM 
       LSOLVER  1 1 20 
       NODAL_KERN     NEMMG    ! FMFD    ! FDM 
@@ -65,13 +65,21 @@ GEOM
       
 
 TH 
-      unif_th         0.7  600.0  300.0 
-FDBK 
+      FLOW_COND    277.85  93.480	 
+      PIN_DIM      4.695 5.4641 0.5715 6.731 
+      thmesh_x       9*1 
+      thmesh_y       9*1 
+      thmesh_z       0 1 2 3 4 5 6 7 8 9 10 11 12 13 
       fa_powpit       16.3   21.50 
+      HGAP     11356.0 n      N_RING   6 
+      FLU_TYP       0 
+      HGAP     11356.0 n      N_RING   6 
+      N_PINGT    208 17 
 
 DEPL 
       TIME_STP  1 1 1 1 18*30  
       INP_HST   '../../PARCSDEP/boc_exp_fc.dep' -2 1 
+      OUT_OPT   T  T  T  F  F !POW,HST,THS,XESM, XS 
       PMAXS_F   1 '../../Xsdir/xs_g200_gd_0_bp_0'                 1   
       PMAXS_F   2 '../../Xsdir/xs_g250_gd_0_bp_0'                 2   
       PMAXS_F   3 '../../Xsdir/xs_g250_gd_16_bp_0'                 3   
