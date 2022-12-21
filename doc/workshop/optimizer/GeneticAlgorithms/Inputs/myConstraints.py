@@ -69,6 +69,14 @@ def expConstr2(Input):
   g = 1e-12 - abs(Input.x1**2 + Input.x2**2 - 25)
   return g
 
+def expConstr3(Input):
+  """
+    @ In, Input, object, RAVEN container
+    @ out, g, float, explicit constraint 3 evaluation function
+  """
+  g = 10 - Input.x3 - Input.x4
+  return g
+
 def impConstr1(Input):
   """
     The implicit constraint involves variables from the output space, for example the objective variable or
@@ -87,4 +95,14 @@ def impConstr2(Input):
     @ out, g, float, implicit constraint 2 evaluation function
   """
   g = Input.x1**2 + Input.obj - 10
+  return g
+
+def impConstr3(Input):
+  """
+    The implicit constraint involves variables from the output space, for example the objective variable or
+    a dependent variable that is not in the optimization search space
+    @ In, Input, object, RAVEN container
+    @ out, g, float, implicit constraint 3 evaluation function
+  """
+  g = 100 - Input.obj1
   return g

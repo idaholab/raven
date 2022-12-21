@@ -147,10 +147,14 @@ def rankNcrowdingBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  offSprings = np.atleast_2d(kwargs['offSpring'].data)
   population = np.atleast_2d(kwargs['population'].data)
   popObjectiveVal = kwargs['popObjectiveVal']
   offspringObjsVals = kwargs['offspringObjsVals']
+  popConst = kwargs['popConst'].data
+  offspringConst = kwargs['offspringConst'].data
+
+  newConstMerged = np.append(popConst, offspringConst)
 
   newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offspringObjsVals)])
   newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
@@ -169,8 +173,8 @@ def rankNcrowdingBased(newRlz,**kwargs):
   newPopulationMerged = np.concatenate([population,offSprings])
   newAge.extend([0]*len(offSprings))
 
-  sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives_0,sortedObjectives_1 = zip(*[(x,y,z,i,j,k) for x,y,z,i,j,k in sorted(zip(newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged[0],newObjectivesMerged[1]),reverse=False,key=lambda x: (x[0], -x[1]))])
-  sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectives_0T,sortedObjectives_1T = np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives_0)),np.atleast_1d(list(sortedObjectives_1))
+  sortedConst,sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives_0,sortedObjectives_1 = zip(*[(x,y,z,i,j,k,m) for x,y,z,i,j,k,m in sorted(zip(newConstMerged,newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged[0],newObjectivesMerged[1]),reverse=False,key=lambda x: (x[0], x[1], -x[2]))])
+  sortedConstT,sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectives_0T,sortedObjectives_1T = np.atleast_1d(list(sortedConst)),np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives_0)),np.atleast_1d(list(sortedObjectives_1))
 
   newPopulation = sortedPopulationT[:-len(offSprings)]
   newObjectives_0 = sortedObjectives_0T[:-len(offSprings)]
@@ -179,6 +183,7 @@ def rankNcrowdingBased(newRlz,**kwargs):
   newRank = sortedRankT[:-len(offSprings)]
   newCD = sortedCDT[:-len(offSprings)]
   newAge = sortedAgeT[:-len(offSprings)]
+  newConst = sortedConstT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulation,
                                     dims=['chromosome','Gene'],
@@ -192,7 +197,11 @@ def rankNcrowdingBased(newRlz,**kwargs):
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance':np.arange(np.shape(newCD)[0])})
 
-  return newPopulationArray,newRank,newAge,newCD,newObjectives
+  newConst = xr.DataArray(newConst,
+                          dims=['CrowdingDistance'],
+                          coords={'CrowdingDistance':np.arange(np.shape(newConst)[0])})
+
+  return newPopulationArray,newRank,newAge,newCD,newObjectives,newConst
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased

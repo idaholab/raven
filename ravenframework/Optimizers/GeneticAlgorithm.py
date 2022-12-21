@@ -36,6 +36,7 @@ from ..utils import mathUtils, InputData, InputTypes, frontUtils
 from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
+from .parentSelectors.parentSelectors import countConstViolation
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
@@ -72,6 +73,7 @@ class GeneticAlgorithm(RavenSampled):
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
     self.rank = None                                             # population rank (for Multi-objective optimization only)
+    self.constraints = None
     self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
     self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
@@ -352,7 +354,7 @@ class GeneticAlgorithm(RavenSampled):
     # Check if the fitness requested is among the constrained optimization fitnesses
     # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
     # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
-    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst']:
+    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','rank_crowding']:
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {self._fitnessType}')
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
@@ -435,17 +437,14 @@ class GeneticAlgorithm(RavenSampled):
     info['step'] = self.counter
 
     # Developer note: each algorithm step is indicated by a number followed by the generation number
-    # e.g., '5 @ n-1' refers to step 5 for generation n-1 (i.e., previous generation)
+    # e.g., '0 @ n-1' refers to step 0 for generation n-1 (i.e., previous generation)
     # for more details refer to GRP-Raven-development/Disceret_opt channel on MS Teams
 
-    # 5 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
-    # 5.1 @ n-1: fitnessCalculation(rlz)
+    # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
+    # 0.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
 
-    ####################################################################################
     if len(self._objectiveVar) == 1:  # This is a single-objective Optimization case
-    ####################################################################################
-
       offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
       objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
 
@@ -490,12 +489,10 @@ class GeneticAlgorithm(RavenSampled):
                                                constraintFunction=g,
                                                type=self._minMax)
 
-      self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
+      self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
       self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-    ####################################################################################
     else: # This is a multi-objective Optimization case
-    ####################################################################################
       objectiveVal = []
       offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
       for i in range(len(self._objectiveVar)):
@@ -507,7 +504,7 @@ class GeneticAlgorithm(RavenSampled):
         params = []
         for y in (self._constraintFunctions + self._impConstraintFunctions):
           params += y.parameterNames()
-        for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
+        for p in list(set(params) -set(self._objectiveVar) -set(list(self.toBeSampled.keys()))):
           constraintData[p] = list(np.atleast_1d(rlz[p].data))
       # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
       # and all x's (individuals) in the population
@@ -517,13 +514,7 @@ class GeneticAlgorithm(RavenSampled):
                       dims=['chromosome','Constraint'],
                       coords={'chromosome':np.arange(np.shape(offSprings)[0]),
                               'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
-      # FIXME The constraint handling is following the structure of the RavenSampled.py,
-      #        there are many utility functions that can be simplified and/or merged together
-      #        _check, _handle, and _apply, for explicit and implicit constraints.
-      #        This can be simplified in the near future in GradientDescent, SimulatedAnnealing, and here in GA
 
-
-      ### START TODO This section need to be revisited with the optimization case with constraints ###################################
       for index,individual in enumerate(offSprings):
         newOpt = individual
         opt = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
@@ -535,23 +526,26 @@ class GeneticAlgorithm(RavenSampled):
             g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
           else:
             g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
-      ##################################### END TODO This section need to be revisited with the optimization case with constraints ###
 
-      offSpringRank, offSpringCD = self._fitnessInstance(rlz,
-                                                         objVals = self._objectiveVar
-                                                         )
+      self.rank, self.crowdingDistance = self._fitnessInstance(rlz,
+                                                               objVals = self._objectiveVar
+                                                              )
+      constraintInfo     = np.zeros((len(offSprings), 1))
+      for i in range(len(constraintInfo)):
+        constraintInfo[i] = countConstViolation(g.data[i])
+      constraintInfo = [item for sublist in constraintInfo.tolist() for item in sublist]
 
-      # self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
+      constraintInfo = xr.DataArray(constraintInfo,
+                                    dims=['CrowdingDistance'],
+                                    coords={'CrowdingDistance':np.arange(np.shape(constraintInfo)[0])})
+
+      # self._collectOptPointMulti(rlz, self.rank, objectiveVal, g)
       # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-
-      # 5.2@ n-1: Survivor selection(rlz)
+      # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
 
     if self._activeTraj:
-      ##################################################################################################################################
-      # This is for a single-objective Optimization case
-      ##################################################################################################################################
       if len(self._objectiveVar) == 1: # If the number of objectives is just 1:
         if self.counter > 1:
           self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
@@ -567,64 +561,47 @@ class GeneticAlgorithm(RavenSampled):
           self.fitness = offSpringFitness
           self.objectiveVal = rlz[self._objectiveVar[0]].data
 
-      ##################################################################################################################################
-      # This is for a multi-objective Optimization case
-      ##################################################################################################################################
       else: # If the number of objectives is more than 1:
         if self.counter > 1:
-          self.population,self.rank,age,self.crowdingDistance,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                                                                  newRlz=rlz,
-                                                                                                                  variables=list(self.toBeSampled),
-                                                                                                                  population=self.population,
-                                                                                                                  popObjectiveVal=self.objectiveVal,
-                                                                                                                  offspringObjsVals=objectiveVal
-                                                                                                                  )
+          self.population,self.rank,age,self.crowdingDistance,self.objectiveVal,self.constraints = self._survivorSelectionInstance(age=self.popAge,
+                                                                                                                                   newRlz=rlz,
+                                                                                                                                   variables=list(self.toBeSampled),
+                                                                                                                                   population=self.population,
+                                                                                                                                   offSpring = offSprings,
+                                                                                                                                   popObjectiveVal=self.objectiveVal,
+                                                                                                                                   offspringObjsVals=objectiveVal,
+                                                                                                                                   popConst = self.constraints,
+                                                                                                                                   offspringConst = constraintInfo
+                                                                                                                                  )
           self.popAge = age
           objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
         else:
           self.population = offSprings
-          self.rank = offSpringRank
-          self.crowdingDistance = offSpringCD
+          self.constraints = constraintInfo
+          self.rank, self.crowdingDistance = self._fitnessInstance(rlz,
+                                                                   objVals = self._objectiveVar
+                                                                   )
           self.objectiveVal = []
           for i in range(len(self._objectiveVar)):
             self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
-
-      ##################################################################################################################################
-      # This is for a single-objective Optimization case
-      ##################################################################################################################################
+      # plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
       if len(self._objectiveVar) == 1: # If the number of objectives is just 1:
         parents = self._parentSelectionInstance(self.population,
                                                 variables=list(self.toBeSampled),
                                                 fitness=self.fitness,
                                                 nParents=self._nParents)
-      ##################################################################################################################################
+
       else: # This is for a multi-objective Optimization case
-      ##################################################################################################################################
-
-        # objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
-        # objs_vals = xr.DataArray(objs_vals,
-        #                          dims=['chromosome','Obj'],
-        #                          coords={'chromosome': np.arange(np.shape(np.array([np.array(xi) for xi in objs_vals]))[0]),
-        #                                  'Obj':self._objectiveVar})
-
-        # popRank = frontUtils.rankNonDominatedFrontiers(objs_vals.data)
-        # popRank = xr.DataArray(popRank,
-        #                        dims=['chromosome'],
-        #                        coords={'chromosome': np.arange(np.shape(popRank)[0])})
-
-        # popCD = frontUtils.crowdingDistance(rank=popRank, popSize=len(popRank), objectives=objs_vals.data)
-        # popCD = xr.DataArray(popCD,
-        #                      dims=['CrowdingDistance'],
-        #                      coords={'CrowdingDistance': np.arange(np.shape(popCD)[0])})
 
         parents = self._parentSelectionInstance(self.population,
                                                 variables=list(self.toBeSampled),
                                                 nParents=self._nParents,
                                                 rank = self.rank,
-                                                crowdDistance = self.crowdingDistance
+                                                crowdDistance = self.crowdingDistance,
+                                                constraint = self.constraints
                                                 )
 
       # 2 @ n: Crossover from set of parents
@@ -705,6 +682,8 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None
     self.popAge = None
     self.fitness = None
+    self.rank = None
+    self.crowdingDistance = None
     self.ahdp = np.NaN
     self.ahd = np.NaN
     self.bestPoint = None
@@ -780,6 +759,33 @@ class GeneticAlgorithm(RavenSampled):
       self.bestObjective = obj[0]
 
     return point
+
+  def _collectOptPointMulti(self, rlz, rank, objectiveVal, g):
+    """
+      Collects the point (dict) from a realization
+      @ In, population, Dataset, container containing the population
+      @ In, objectiveVal, list, objective values at each chromosome of the realization
+      @ In, rank, xr.DataArray, rank values at each chromosome of the realization
+      @ In, crowdingDistance, xr.DataArray, crowdingDistance values at each chromosome of the realization
+      @ Out, point, dict, point used in this realization
+    """
+
+    varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
+    varList = set(varList)
+    selVars = [var for var in varList if var in rlz.data_vars]
+    population = datasetToDataArray(rlz, selVars)
+    # The Code line below needs to be revisited.
+    optPoints,rank,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z, w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(rank.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[0]))])
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
+    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+      point.update(gOfBest)
+      self.bestPoint = point
+      self.bestFitness = fit[0]
+      self.bestObjective = obj[0]
+
+    return point
+
 
   def _checkAcceptability(self, traj):
     """

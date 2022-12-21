@@ -2,8 +2,8 @@
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MinwoRep</name>
-    <author>Mohammad Abdo (@Jimmy-INL)</author>
-    <created>2022-07-21</created>
+    <author>Junyung Kim </author>
+    <created>2022-12-21</created>
     <classesTested/>
     <description>Workshop test: GA minimization without replacement</description>
   </TestInfo>
@@ -39,6 +39,15 @@
     </ExternalModel>
   </Models>
 
+  <Functions>
+    <External file="../myConstraints.py" name="expConstr3">
+      <variables>x1,x2,x3,x4,x5,x6</variables>
+    </External>
+    <External file="../myConstraints.py" name="impConstr3">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External>
+  </Functions>
+
   <Distributions>
     <UniformDiscrete name='woRep_dist'><!--Fill this in-->
       <lowerBound>2</lowerBound>
@@ -57,7 +66,7 @@
       </samplerInit>
 
       <GAparams>
-        <populationSize>40</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -101,16 +110,17 @@
       </variable>
 
       <objective>obj1, obj2</objective><!--Fill this in-->
-
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Constraint class='Functions' type='External'>expConstr3</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
     </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>40</limit>
+        <limit>10</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
