@@ -80,6 +80,9 @@ class GeneticAlgorithm(RavenSampled):
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
+    self.multiBestPoint = None
+    self.multiBestFitness = None
+    self.multiBestObjective = None
     self.objectiveVal = None
     self._populationSize = None
     self._parentSelectionType = None
@@ -536,11 +539,8 @@ class GeneticAlgorithm(RavenSampled):
       constraintInfo = [item for sublist in constraintInfo.tolist() for item in sublist]
 
       constraintInfo = xr.DataArray(constraintInfo,
-                                    dims=['CrowdingDistance'],
-                                    coords={'CrowdingDistance':np.arange(np.shape(constraintInfo)[0])})
-
-      # self._collectOptPointMulti(rlz, self.rank, objectiveVal, g)
-      # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
+                                    dims=['NumOfConstraintViolated'],
+                                    coords={'NumOfConstraintViolated':np.arange(np.shape(constraintInfo)[0])})
 
       # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -575,6 +575,8 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                                                   )
           self.popAge = age
           objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
+          self._collectOptPointMulti(self.population, self.rank, objectiveVal, constraintInfo)
+          # self._collectOptPointMulti(rlz, self.rank, objectiveVal, constraintInfo)
         else:
           self.population = offSprings
           self.constraints = constraintInfo
@@ -587,6 +589,8 @@ class GeneticAlgorithm(RavenSampled):
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
+
+      # import matplotlib.pyplot as plt
       # plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
       if len(self._objectiveVar) == 1: # If the number of objectives is just 1:
         parents = self._parentSelectionInstance(self.population,
@@ -760,7 +764,7 @@ class GeneticAlgorithm(RavenSampled):
 
     return point
 
-  def _collectOptPointMulti(self, rlz, rank, objectiveVal, g):
+  def _collectOptPointMulti(self, population, rank, objectiveVal, constraintInfo):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -772,19 +776,28 @@ class GeneticAlgorithm(RavenSampled):
 
     varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
     varList = set(varList)
-    selVars = [var for var in varList if var in rlz.data_vars]
-    population = datasetToDataArray(rlz, selVars)
-    # The Code line below needs to be revisited.
-    optPoints,rank,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z, w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(rank.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[0]))])
-    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
-    gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
-    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
-      point.update(gOfBest)
-      self.bestPoint = point
-      self.bestFitness = fit[0]
-      self.bestObjective = obj[0]
+    # selVars = [var for var in varList if var in rlz.data_vars]
+    # population = datasetToDataArray(rlz, selVars)
 
-    return point
+    population = self.population
+    points,rankSorted,multiFit,obj1Sorted,obj2Sorted = zip(*[[a,b,c,d,e] for a, b, c, d, e in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(rank.data),np.atleast_1d(constraintInfo.data),objectiveVal[0], objectiveVal[1]),reverse=True,key=lambda x: (-x[1],-x[2]))])
+    objSorted = [list(obj1Sorted), list(obj2Sorted)]
+
+    optPoints = [points[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
+    optMultiFit = [multiFit[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
+    optObj = [[objSorted[0][i],objSorted[1][i]] for i, rank in enumerate(rankSorted) if rank == 1 ]
+
+    if (len(optMultiFit) != len([x for x in optMultiFit if x != 0]) ) :
+      optPoints = [optPoints[i] for i, nFit in enumerate(optMultiFit) if nFit == 0 ]
+      optMultiFit = [x for x in optMultiFit if x == 0]
+      optObj = [optObj[i] for i, nFit in enumerate(optMultiFit) if nFit == 0 ]
+
+    optPoints_dic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    self.multiBestPoint = optPoints
+    self.multiBestFitness = optMultiFit
+    self.multiBestObjective = optObj
+
+    return optPoints_dic
 
 
   def _checkAcceptability(self, traj):
