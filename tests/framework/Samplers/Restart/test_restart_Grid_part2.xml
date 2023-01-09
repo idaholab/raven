@@ -66,7 +66,8 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="../fine" name="coarsemod" subType="">
-      <variables>x1,x2,ans</variables>
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
     </ExternalModel>
   </Models>
 
