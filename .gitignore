@@ -34,6 +34,7 @@ src/crow_modules/interpolationND.py
 src/crow_modules/randomENG_wrap.cpp
 src/crow_modules/randomENG.py
 test_out*
+dist/
 
 # eclipse
 .project

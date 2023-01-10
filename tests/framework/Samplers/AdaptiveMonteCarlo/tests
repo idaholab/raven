@@ -1,7 +1,12 @@
 [Tests]
- [./test_adaptive_monte_carlo]
+ [./AdaptiveMonteCarlo]
   type = 'RavenFramework'
   input = 'test_adaptive_MC_sampler.xml'
   csv = 'Adapt/solDump.csv'
+ [../]
+ [./AdaptiveMonteCarloFailure]
+  type = 'RavenFramework'
+  input = 'test_adaptive_MC_sampler_with_failures.xml'
+  csv = 'AdaptFailure/solDump.csv'
  [../]
 []
