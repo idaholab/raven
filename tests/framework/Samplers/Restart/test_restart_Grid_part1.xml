@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>gridSplit</WorkingDir>
+    <Sequence>makeCoarse,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/Restart.Grid</name>
+    <author>cogljj</author>
+    <created>2023-01-06</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>
+      This is just a standard grid sampler, that generates incomplete data,
+      that will be loaded in the part2, and added to.
+    </description>
+  </TestInfo>
+
+  <Steps>
+    <MultiRun name="makeCoarse">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="Grid">coarse</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="coarse">
+      <variable name="x1">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 0.5</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="coarse">
+      <type>csv</type>
+      <source>solns</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
