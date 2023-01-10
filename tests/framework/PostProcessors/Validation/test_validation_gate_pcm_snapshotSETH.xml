@@ -1,38 +1,38 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>PhysicsGuidedCoverageMapping_snapshot</WorkingDir>
+    <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
     <Sequence>load,PCM</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <TestInfo>
-    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_SETH</name>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_snapshotSETH</name>
     <author>syin</author>
-    <created>2022-10-05</created>
-    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping_snapshot</classesTested>
+    <created>2022-12-05</created>
+    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
     <description>
-        This test is aimed to show how snapshot_PCM works.
-        This test is using SETH-C and SETH-D data 
-        as experiment (Feature) and application (Target) models.
-        Here, three timesteps' samples from SETH-C are used as experiemnt responses (Features),
-        one timestep's samples from SETH-D are used as application responses (Target)
+        This test is aimed to show how snapshot_PCM works.This test is using SETH-C and SETH-D data 
+        as experiment (Feature) and application (Target) models.It basically runs a loop of static_PCM.
+        In each iteration of the loop,one execution of static_PCM is applied. 
+        Here, temperatures from one timestep in SETH-C are used as experiemnt responses (Features);
+        temperatures from the corresponding timestep in SETH-D are used as application responses (Target)
         The output is a fraction value reflecting the uncertainty reduction fraction 
-        using Feature to validate Target comparing to the Target prior.
-        The output is an array of uncertainty reduction along timesteps 
-        which has two columns:'time' and 'pri_post_stdReduct'.
+        using Feature to validate Target comparing to the Target prior, 
+        which includes uncertainty reductions along timesteps 
+        and has two columns:'time' and 'pri_post_stdReduct'.
     </description>
     <revisions>
-      <revision author="syin" date="2022-10-06">...</revision>
+      <revision author="syin" date="2022-12-06">...</revision>
     </revisions>
   </TestInfo>
 
   <Files>
-    <Input name="allData">./data/Temp/TSimpleGap.csv</Input>
+    <Input name="allData">./data/SnapshotExample/TSimpleGap.csv</Input>
   </Files>
 
   <Models>
-    <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping_snapshot">
+    <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
       <pivotParameter>time</pivotParameter>
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
