@@ -152,8 +152,9 @@ class DynamicEventTree(Grid):
     # variable representation (variable name) in the input file. For example,
     # {'var1':'var1,var2','var2':'var1,var2'}
     self.fullyCorrelatedEpistemicToVar     = {}
-    #
+    # Dictionary to store constants, e.g., {constantName: constantValue} from hybrid sampler
     self.hybridConstants = {}
+    # Dictionary to store dependent variables, e.g., {dependentVariableName:value} from hybrid sampler
     self.hybridDependentSample = {}
 
   def _localWhatDoINeed(self):
