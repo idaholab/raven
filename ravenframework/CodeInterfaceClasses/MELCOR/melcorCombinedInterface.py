@@ -25,7 +25,7 @@ import time
 
 class Melcor(CodeInterfaceBase):
   """
-    this class is used a part of a code dictionary to specialize Model.Code for different MELCOR versions
+    This class is used a part of a code dictionary to specialize Model. Code for different MELCOR versions
     like MELCOR 2.2x, MELCOR 1.86, MELCOR for fusion applications
   """
 
@@ -60,8 +60,7 @@ class Melcor(CodeInterfaceBase):
       @ Out, (melgIn,melcIn), tuple, tuple containing Melgen and Melcor input files
     """
     foundMelcorInp = False
-
-    for index, inputFile in enumerate(currentInputFiles[0]):
+    for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
         foundMelcorInp = True
         melgIn = currentInputFiles[index]
@@ -85,8 +84,9 @@ class Melcor(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
+
     for index, inputFile in enumerate(inputFiles):
-      if inputFile[index].getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found:
@@ -97,15 +97,15 @@ class Melcor(CodeInterfaceBase):
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    melgCommand = str(preExec)+ ' '+melcin[index].getFilename()
-    melcCommand = precommand+ ' '+melcin[index].getFilename()
+    melgCommand = str(preExec)+ ' '+melcin.getFilename()
+    melcCommand = precommand+ ' '+melcin.getFilename()
     returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],melcOut
 
     return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
-      this generate a new input file depending on which sampler is chosen
+      This generates a new input file depending on which sampler is chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
@@ -131,7 +131,7 @@ class Melcor(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputFiles,origFiles)
 
-    return currentInputFiles,origInputFiles,samplerType
+    return currentInputFiles #, origInputFiles, samplerType
     #return self.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
 
   def writeDict(self,filen,workDir):
@@ -141,27 +141,7 @@ class Melcor(CodeInterfaceBase):
       @ In, workDir, str, current working directory
       @ Out, None
     """
-    path = "./MELCOR_pyPlot"
-    if not os.path.exists(path):
-      import subprocess
-      my_timeout = 20.0
-      p = subprocess.Popen(["git", "clone", "https://github.com/mattdon/MELCOR_pyPlot.git"], cwd=os.path.dirname(os.path.realpath(__file__)))
-      t = 0.
-      found = False
-      while t < my_timeout:
-        try:
-          import MELCOR_pyPlot.melcorTools
-          found = True
-        except ModuleNotFoundError:
-          pass
-        if found:
-          break
-        time.sleep(5.0)
-        t += 5.0
-      if t>= my_timeout:
-        raise ModuleNotFoundError("Cloning of Melcor parser failed")
-
-    from MELCOR_pyPlot.melcorTools import MCRBin
+    from melcorTools import MCRBin
 
     fileDir = os.path.join(workDir,self.MelcorPlotFile)
     Time,Data,VarUdm = MCRBin(fileDir,self.VarList)
