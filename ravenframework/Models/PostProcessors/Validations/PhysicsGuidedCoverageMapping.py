@@ -90,23 +90,14 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     """
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     names = list(dataDict.keys())#
-
-    if 'time' in inputIn['Data'][0][-1].coords.keys():
-      PCMVersion = 'Snapshot'
-      print('Running Snapshot-PCM')
+    evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(inputIn['Data'][0][-1].coords.keys(), dataDict, **{'dataobjectNames': names}).items()}
+    if 'snapshot_pri_post_stdReduct' in evaluation.keys():
       pivotParameter = self.pivotParameter
-      if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
-        if 'dynamic' not in self.dynamicType: #self.model.dataType:
-          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
-      evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(PCMVersion, dataDict, **{'dataobjectNames': names}).items()}
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['time']
-    else:
-      PCMVersion = 'Static'
-      print('Running Static-PCM')
-      evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(PCMVersion, dataDict, **{'dataobjectNames': names}).items()}
+
     return evaluation
 
-  def _evaluate(self, PCMVersion, datasets, **kwargs):
+  def _evaluate(self, keys, datasets, **kwargs):
     """
       Main method of PCM. It collects the response values from Feature and Target models,
       and Measurements from experiment, maps the biases and uncertainties from Feature to
@@ -124,26 +115,45 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     targData =[]
     featPW = []
     msrPW = []
-    targPW = []
+    outputArray = []
 
-    # Static PCM
-    if PCMVersion == 'Static':
+    for feat, msr, targ in zip(self.features, self.measurements, self.targets):
+      featDataProb = self._getDataFromDataDict(datasets, feat, names)
+      msrDataProb = self._getDataFromDataDict(datasets, msr, names)
+      targDataProb = self._getDataFromDataDict(datasets, targ, names)
+      # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
+      featData.append(featDataProb[0].flatten())
+      msrData.append(msrDataProb[0].flatten())
+      # Data values in <x>Data, <x>=targ, feat, msr
+      targData.append(targDataProb[0].flatten())
 
-      for feat, msr in zip(self.features, self.measurements):
-        featDataProb = self._getDataFromDataDict(datasets, feat, names)
-        msrDataProb = self._getDataFromDataDict(datasets, msr, names)
-        # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
-        featData.append(featDataProb[0].flatten())
-        msrData.append(msrDataProb[0].flatten())
-        # Probability Weights for future use
-        featPW.append(featDataProb[1])
-        msrPW.append(msrDataProb[1])
-      # *Data of size (num_of_samples, num_of_features)
+    # Probability Weights for future use
+    featPW.append(featDataProb[1])
+    msrPW.append(msrDataProb[1])
+    # Probability Weights values in <x>PW, , <x>=targ, feat, msr
+    targPW = targDataProb[1]
+
+    if 'time' in keys:
+      pcmVersion = 'snapshot'
+      self.raiseAMessage('***    Running Snapshot-PCM   ***')
+      # Data of size (num_of_samples, num_of_features)
+      num_of_features = np.asarray(datasets['exp'].get('time')).shape[0]
+      num_of_samples = np.asarray(datasets['exp'].get('RAVEN_sample_ID')).shape[0]
+      featData = np.array(featData).reshape(num_of_samples, num_of_features)
+      msrData = np.array(msrData).reshape(num_of_samples, num_of_features)
+      targData = np.array(targData).reshape(num_of_samples, num_of_features)
+    else:
+      pcmVersion = 'static'
+      self.raiseAMessage('***     Running Static-PCM    ***')
       featData = np.array(featData).T
       msrData = np.array(msrData).T
-      featPW = np.array(featPW).T
-      msrPW = np.array(msrPW).T
+      targData = np.array(targData).T
 
+    featPW = np.array(featPW).T
+    msrPW = np.array(msrPW).T
+    targPW = np.array(targPW).T
+
+    for t in range(targData.shape[1]):
       # Probability Weights to be used in the future
       yExp = np.array(featData)
       yMsr = np.array(msrData)
@@ -159,60 +169,54 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       # For each Target/Application model/response, calculate an uncertainty reduction fraction
       # using all available Features/Experiments
-      for targ in self.targets:
-        targDataProb = self._getDataFromDataDict(datasets, targ, names)
-        # Data values in <x>Data, <x>=targ, feat, msr
-        targData = targDataProb[0]
-        # Probability Weights values in <x>PW, , <x>=targ, feat, msr
-        targPW = targDataProb[1]
 
-        # Application responses yApp in Nx1
-        yApp = np.array(targData)
-        # Reference values of Application, yAppRef is a scalar
-        yAppRef = np.mean(yApp)
-        # Standardization
-        yAppStd = (yApp-yAppRef)/yAppRef
+      # Application responses yApp in Nx1
+      yApp = np.array(targData[:,t])
+      # Reference values of Application, yAppRef is a scalar
+      yAppRef = np.mean(yApp)
+      # Standardization
+      yAppStd = (yApp-yAppRef)/yAppRef
 
-        # Single Experiment response
-        if yExpStd.shape[1]==1:
-          yExpReg = yExpStd.flatten()
-          yMsrReg = yMsrStd.flatten()
-        # Pseudo response of multiple Experiment responses
-        # OrthogonalMatchingPursuit from sklearn used here
-        # Possibly change to other regressors
-        elif yExpStd.shape[1]>1:
-          regrExp = OrthogonalMatchingPursuit(fit_intercept=False).fit(yExpStd, yAppStd)
-          yExpReg = regrExp.predict(yExpStd)
-          # Combine measurements by multiple Experiment regression
-          yMsrReg = regrExp.predict(yMsrStd)
+      # Single Experiment response
+      if yExpStd.shape[1]==1:
+        yExpReg = yExpStd.flatten()
+        yMsrReg = yMsrStd.flatten()
+      # Pseudo response of multiple Experiment responses
+      # OrthogonalMatchingPursuit from sklearn used here
+      # Possibly change to other regressors
+      elif yExpStd.shape[1]>1:
+        regrExp = OrthogonalMatchingPursuit(fit_intercept=False).fit(yExpStd, yAppStd)
+        yExpReg = regrExp.predict(yExpStd)
+        # Combine measurements by multiple Experiment regression
+        yMsrReg = regrExp.predict(yMsrStd)
 
-        # Measurement PDF with KDE
-        knlMsr = stats.gaussian_kde(yMsrReg)
+      # Measurement PDF with KDE
+      knlMsr = stats.gaussian_kde(yMsrReg)
 
-        # KDE for joint PDF between Exp and App
-        m1 = yExpReg[:]
-        m2 = yAppStd.flatten()
-        xmin = m1.min()
-        xmax = m1.max()
-        ymin = m2.min()
-        ymax = m2.max()
-        # Grid of Experiment (X), grid of Application (Y)
-        X, Y = np.mgrid[xmin:xmax:self.binKDE, ymin:ymax:self.binKDE]
-        psts = np.vstack([X.ravel(), Y.ravel()])
-        vals = np.vstack([m1, m2])
-        # Measurement PDF over Exp range
-        pdfMsr = knlMsr(X[:, 0])
+      # KDE for joint PDF between Exp and App
+      m1 = yExpReg[:]
+      m2 = yAppStd.flatten()
+      xmin = m1.min()
+      xmax = m1.max()
+      ymin = m2.min()
+      ymax = m2.max()
+      # Grid of Experiment (X), grid of Application (Y)
+      X, Y = np.mgrid[xmin:xmax:self.binKDE, ymin:ymax:self.binKDE]
+      psts = np.vstack([X.ravel(), Y.ravel()])
+      vals = np.vstack([m1, m2])
+      # Measurement PDF over Exp range
+      pdfMsr = knlMsr(X[:, 0])
 
-        # Condition number of matrix of feature and target
-        condNum = np.linalg.cond(vals)
-        # If condition number is greater than 100
-        invErr = 100
-        # Check whether the covavariance matrix is positive definite
-        if condNum>=invErr:
+      # Condition number of matrix of feature and target
+      condNum = np.linalg.cond(vals)
+      # If condition number is greater than 100
+      invErr = 100
+      # Check whether the covavariance matrix is positive definite
+      if condNum>=invErr:
           # If singular matrix, measurement of Experiment is directly transfered
           # as predicted Application
           pdfAppPred = knlMsr(Y[0, :])
-        else:
+      else:
           # If not, KDE of Experiment and Application
           knl = stats.gaussian_kde(vals)
           # Joint PDF of Experiment and Application
@@ -220,149 +224,34 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
           # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
           pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
 
-        # Normalized PDF of predicted application
-        pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
+      # Normalized PDF of predicted application
+      pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
 
-        # Calculate Expectation (average value) of predicted application
-        # by integrating xf(x), where f(x) is PDF of x
-        predMean = 0.0
-        for i in range(len(Y[0, :])):
+      # Calculate Expectation (average value) of predicted application
+      # by integrating xf(x), where f(x) is PDF of x
+      predMean = 0.0
+      for i in range(len(Y[0, :])):
           predMean += Y[0, i]*pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
 
-        # Calculate Variance of predicted application
-        # by integrating (x-mu_x)^2f(x), where f(x) is PDF of x
-        predVar = 0.0
-        for i in range(len(Y[0, :])):
+      # Calculate Variance of predicted application
+      # by integrating (x-mu_x)^2f(x), where f(x) is PDF of x
+      predVar = 0.0
+      for i in range(len(Y[0, :])):
           predVar += (Y[0, i]-predMean)**2.0 * pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
 
-        # Predicted standard deviation is square root of variance
-        predStd = np.sqrt(predVar)
-        # Prior standard deviation is the sample standard deviation
-        # Consider probability weights in the future
-        priStd = np.std(yAppStd)
-        # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
-        name = "pri_post_stdReduct_" + targ.split('|')[-1]
-        outputDict[name] = (1.0-predStd/priStd)
+      # Predicted standard deviation is square root of variance
+      predStd = np.sqrt(predVar)
+      # Prior standard deviation is the sample standard deviation
+      # Consider probability weights in the future
+      priStd = np.std(yAppStd)
+      # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
+      outputArray.append(1.0-predStd/priStd)
 
-    # Snapshot PCM
-    if PCMVersion == 'Snapshot':
-      outputArray = []
+    if pcmVersion=='snapshot':
+      name = "snapshot_pri_post_stdReduct"
+    if pcmVersion=='static':
+      name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
 
-      for feat, msr, targ in zip(self.features, self.measurements, self.targets):
-        featDataProb = self._getDataFromDataDict(datasets, feat, names)
-        msrDataProb = self._getDataFromDataDict(datasets, msr, names)
-        targDataProb = self._getDataFromDataDict(datasets, targ, names)
-        # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
-        featData.append(featDataProb[0].flatten())
-        msrData.append(msrDataProb[0].flatten())
-        # Data values in <x>Data, <x>=targ, feat, msr
-        targData.append(targDataProb[0].flatten())
-
-        # Probability Weights for future use
-        featPW.append(featDataProb[1])
-        msrPW.append(msrDataProb[1])
-        # Probability Weights values in <x>PW, , <x>=targ, feat, msr
-        targPW = targDataProb[1]
-
-
-      # *Data of size (num_of_samples, num_of_features)
-      num_of_features = np.asarray(datasets['exp'].get('time')).shape[0]
-      num_of_samples = np.asarray(datasets['exp'].get('RAVEN_sample_ID')).shape[0]
-      featData = np.array(featData).reshape(num_of_samples, num_of_features)
-      msrData = np.array(msrData).reshape(num_of_samples, num_of_features)
-      targData = np.array(targData).reshape(num_of_samples, num_of_features)
-      featPW = np.array(featPW).T
-      msrPW = np.array(msrPW).T
-      targPW = np.array(targPW).T
-
-
-      for t in range(featData.shape[1]):
-        # Probability Weights to be used in the future
-        yExp = np.array(featData[:,t])
-        yMsr = np.array(msrData[:,t])
-        # Reference values of Experiments, yExpRef in M
-        # Sample mean as reference value for simplicity
-        # Can be user-defined in the future
-        yExpRef = np.mean(yExp, axis=0)
-        # Usually the reference value is given,
-        # and will not be zero, e.g. reference fuel temperature.
-        # Standardization
-        yExpStd = (yExp-yExpRef)/yExpRef
-        yMsrStd = (yMsr-yExpRef)/yExpRef
-
-        # For each Target/Application model/response, calculate an uncertainty reduction fraction
-        # using all available Features/Experiments
-
-        # Application responses yApp in Nx1
-        yApp = np.array(targData[:,t])
-        # Reference values of Application, yAppRef is a scalar
-        yAppRef = np.mean(yApp)
-        # Standardization
-        yAppStd = (yApp-yAppRef)/yAppRef
-
-        # Single Experiment response
-        yExpReg = yExpStd.flatten()
-        yMsrReg = yMsrStd.flatten()
-
-        # Measurement PDF with KDE
-        knlMsr = stats.gaussian_kde(yMsrReg)
-
-        # KDE for joint PDF between Exp and App
-        m1 = yExpReg[:]
-        m2 = yAppStd.flatten()
-        xmin = m1.min()
-        xmax = m1.max()
-        ymin = m2.min()
-        ymax = m2.max()
-        # Grid of Experiment (X), grid of Application (Y)
-        X, Y = np.mgrid[xmin:xmax:self.binKDE, ymin:ymax:self.binKDE]
-        psts = np.vstack([X.ravel(), Y.ravel()])
-        vals = np.vstack([m1, m2])
-        # Measurement PDF over Exp range
-        pdfMsr = knlMsr(X[:, 0])
-
-        # Condition number of matrix of feature and target
-        condNum = np.linalg.cond(vals)
-        # If condition number is greater than 100
-        invErr = 100
-        # Check whether the covavariance matrix is positive definite
-        if condNum>=invErr:
-            # If singular matrix, measurement of Experiment is directly transfered
-            # as predicted Application
-            pdfAppPred = knlMsr(Y[0, :])
-        else:
-            # If not, KDE of Experiment and Application
-            knl = stats.gaussian_kde(vals)
-            # Joint PDF of Experiment and Application
-            Z = np.reshape(knl(psts).T, X.shape)
-            # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
-            pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
-
-        # Normalized PDF of predicted application
-        pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
-
-        # Calculate Expectation (average value) of predicted application
-        # by integrating xf(x), where f(x) is PDF of x
-        predMean = 0.0
-        for i in range(len(Y[0, :])):
-            predMean += Y[0, i]*pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
-
-        # Calculate Variance of predicted application
-        # by integrating (x-mu_x)^2f(x), where f(x) is PDF of x
-        predVar = 0.0
-        for i in range(len(Y[0, :])):
-            predVar += (Y[0, i]-predMean)**2.0 * pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
-
-        # Predicted standard deviation is square root of variance
-        predStd = np.sqrt(predVar)
-        # Prior standard deviation is the sample standard deviation
-        # Consider probability weights in the future
-        priStd = np.std(yAppStd)
-        # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
-        outputArray.append(1.0-predStd/priStd)
-
-
-      name = "pri_post_stdReduct"
-      outputDict[name] = np.asarray(outputArray)
+    outputDict[name] = np.asarray(outputArray)
 
     return outputDict
