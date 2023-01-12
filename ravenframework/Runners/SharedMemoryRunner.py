@@ -133,7 +133,7 @@ class SharedMemoryRunner(InternalRunner):
     """
     if self.thread is not None:
       self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
-      while self.thread is not None and self.thread.isAlive():
+      while self.thread is not None and self.thread.is_alive():
         time.sleep(0.1)
         try:
           self.thread.raiseException(RuntimeError)
@@ -174,7 +174,7 @@ class InterruptibleThread(threading.Thread):
        t = InterruptibleThread( ... )
         ...
         t.raiseException( SomeException )
-        while t.isAlive():
+        while t.is_alive():
           time.sleep( 0.1 )
           t.raiseException( SomeException )
       If the exception is to be caught by the thread, you need a way to check that your thread has caught it.
@@ -183,7 +183,7 @@ class InterruptibleThread(threading.Thread):
       @ In, exceptionType, Exception, the type of exception to raise in this thread
       @ Out, None
     """
-    if self.isAlive():
+    if self.is_alive():
       ## Assuming Python 2.6+, we can remove the need for the _get_my_tid as
       ## specifed in the Stack Overflow answer
       _asyncRaise( self.ident, exceptionType )
