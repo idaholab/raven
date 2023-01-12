@@ -1,6 +1,7 @@
 *RAVEN INPUT VALUES
 * card: 100 word: 1 value: restart
 * card: 103 word: 1 value: -1
+* card: 201 word: 2 value: 1.1000000e-07
 * card: 201 word: 1 value: 2.9151187e+01
 * card: 414 word: 6 value: 1.6000000e+01
 * card: 454 word: 6 value: 1.3520000e+01
@@ -14,7 +15,7 @@
 *       restrtnum
 103  -1
 *     tend minstep maxstep copt pfreq majed rsrtf
-201  2.9151187e+01  1.0e-7  0.05  7  2  1000  1000
+201  2.9151187e+01  1.1000000e-07  0.05  7  2  1000  1000
 *        variable     parameter
 301      cntrlvar           802
 414  time  0  ge  null  0  1.6000000e+01  l
