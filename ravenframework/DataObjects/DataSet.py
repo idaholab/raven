@@ -2073,7 +2073,8 @@ class DataSet(DataObject):
       data = self._data
       mode = 'w'
 
-    data = data.drop(toDrop)
+    #Errors when dropping don't matter since it means they were removed before
+    data = data.drop(toDrop, errors='ignore')
     self.raiseADebug(f'Printing data from "{self.name}" to CSV: "{filenameLocal}.csv"')
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?
