@@ -329,7 +329,6 @@ rlz2 = {'a' :21.0,
        }
 matchDict = {'abc': 1.0,
         'b': 2.0,
-        'c': np.array([3.0, 3.1, 3.2]),
        }
 formatRealization(rlz0)
 formatRealization(rlz1)
