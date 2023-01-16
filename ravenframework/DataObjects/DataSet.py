@@ -1669,7 +1669,14 @@ class DataSet(DataObject):
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
-    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    try:
+      matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    except ValueError as e:
+      # str(e) returns an error such as 'varName' is not in list so the error below reads as
+      # 'varName' is not in list of DataObject self.name
+      self.raiseAnError(ValueError, f"Variable {str(e)} of DataObject '{self.name}'. "
+                        f"Available variables are: {', '.join(self._orderedVars)}. "
+                        "Check <Input>/<Output> sections." )
     if not first:
       rr, rlz = [], []
     for r, _ in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
