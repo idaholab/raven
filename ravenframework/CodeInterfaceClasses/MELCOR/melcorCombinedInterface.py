@@ -16,12 +16,12 @@
   @author: Matteo D'Onorio (Sapienza University of Rome)
 """
 
-import sys
 import os
+from . import melcorTools
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..Generic import GenericParser
 import pandas as pd
-import time
+
 
 class Melcor(CodeInterfaceBase):
   """
@@ -42,16 +42,19 @@ class Melcor(CodeInterfaceBase):
     melNode = xmlNode.find('MelcorOutput')
     varNode = xmlNode.find('variables')
     plotNode = xmlNode.find('CodePlotFile')
+
     if varNode is None:
       raise IOError("Melcor variables not found, define variables to print")
     if plotNode is None:
       raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     if melNode is None:
       raise IOError("Please enter MELCOR message file name")
+
     self.VarList = [var.strip() for var in varNode.text.split("$,")]
     self.MelcorPlotFile = [var.strip() for var in plotNode.text.split(",")][0]
     self.melcorOutFile = [var.strip() for var in melNode.text.split(",")][0]
-    return self.VarList,self.MelcorPlotFile,self.melcorOutFile
+
+    return self.VarList, self.MelcorPlotFile, self.melcorOutFile
 
   def findInps(self,currentInputFiles):
     """
@@ -141,15 +144,13 @@ class Melcor(CodeInterfaceBase):
       @ In, workDir, str, current working directory
       @ Out, None
     """
-    from melcorTools import MCRBin
-
     fileDir = os.path.join(workDir,self.MelcorPlotFile)
-    Time,Data,VarUdm = MCRBin(fileDir,self.VarList)
+    Time,Data,VarUdm = melcorTools.MCRBin(fileDir,self.VarList)
     dfTime = pd.DataFrame(Time, columns= ["Time"])
     dfData = pd.DataFrame(Data, columns = self.VarList)
     df = pd.concat([dfTime, dfData], axis=1, join='inner')
     df.drop_duplicates(subset="Time",keep='first',inplace=True)
-    dictionary=df.to_dict()
+    dictionary = df.to_dict()
     return dictionary
 
   def finalizeCodeOutput(self,command,output,workingDir):
