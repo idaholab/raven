@@ -70,7 +70,7 @@ class Melcor(CodeInterfaceBase):
         melcIn = currentInputFiles[index]
     if not foundMelcorInp:
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
-    return melgIn,melcIn
+    return melgIn, melcIn
 
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
