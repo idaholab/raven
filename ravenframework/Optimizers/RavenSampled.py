@@ -636,23 +636,43 @@ class RavenSampled(Optimizer):
                      'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
-    objValue = rlz[self._objectiveVar[0]]
-    if self._minMax == 'max':
-      objValue *= -1
-    toExport[self._objectiveVar[0]] = objValue
-    toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
-    # constants and functions
-    toExport.update(self.constants)
-    toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
-    # additional from from inheritors
-    toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
-    # check for anything else that solution export wants that rlz might provide
-    for var in self._solutionExport.getVars():
-      if var not in toExport and var in rlz:
-        toExport[var] = rlz[var]
-    # formatting
-    toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
-    self._solutionExport.addRealization(toExport)
+    if len(self._objectiveVar) == 1:
+      objValue = rlz[self._objectiveVar[0]]
+      if self._minMax == 'max':
+        objValue *= -1
+      toExport[self._objectiveVar[0]] = objValue
+      toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
+      # constants and functions
+      toExport.update(self.constants)
+      toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
+      # additional from from inheritors
+      toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+      # check for anything else that solution export wants that rlz might provide
+      for var in self._solutionExport.getVars():
+        if var not in toExport and var in rlz:
+          toExport[var] = rlz[var]
+      # formatting
+      toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
+      self._solutionExport.addRealization(toExport)
+    else:
+      for i in range(len(self._objectiveVar)):
+        objValue = rlz[self._objectiveVar[i]]
+        if self._minMax == 'max':
+          objValue *= -1
+        toExport[self._objectiveVar[i]] = objValue
+      toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
+      # constants and functions
+      toExport.update(self.constants)
+      toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
+      # additional from from inheritors
+      toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+      # check for anything else that solution export wants that rlz might provide
+      for var in self._solutionExport.getVars():
+        if var not in toExport and var in rlz:
+          toExport[var] = rlz[var]
+      # formatting
+      toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
+      self._solutionExport.addRealization(toExport)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

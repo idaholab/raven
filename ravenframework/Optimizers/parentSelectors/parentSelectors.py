@@ -103,18 +103,10 @@ def tournamentSelection(population,**kwargs):
     constraintInfo = kwargs['constraint']
     multiObjectiveRanking = True
     matrixOperationRaw = np.zeros((popSize, 4))
-
-    # constraintInfo     = np.zeros((popSize, 1))
-    # for i in range(len(constraintInfo)):
-    #   constraintInfo[i] = countConstViolation(constraint.data[i])
-
-    # matrixOperationRaw = np.zeros((popSize, 3+len(constraint.data[0])))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
     matrixOperationRaw[:,1] = np.transpose(crowdDistance.data)
     matrixOperationRaw[:,2] = np.transpose(rank.data)
     matrixOperationRaw[:,3] = np.transpose(constraintInfo.data)
-    # for i in range(len(constraint.data[0])):
-    #   matrixOperationRaw[:,3+i] = np.transpose(constraint.data[:,i])
     matrixOperation = np.zeros((popSize,len(matrixOperationRaw[0])))
   else:
     fitness = kwargs['fitness']
@@ -160,18 +152,6 @@ def tournamentSelection(population,**kwargs):
           else:
             index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
-
-    # for i in range(nParents):
-    #   if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
-    #     index = int(matrixOperation[2*i+1,0])
-    #   elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
-    #     index = int(matrixOperation[2*i,0])
-    #   else: # same rank case
-    #     if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-    #       index = int(matrixOperation[2*i,0])
-    #     else:
-    #       index = int(matrixOperation[2*i+1,0])
-    #   selectedParent[i,:] = pop.values[index,:]
 
   return selectedParent
 

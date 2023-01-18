@@ -213,7 +213,11 @@ class DataSet(DataObject):
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
+      getVariables = self.getVars()
+      if all(x in getVariables for x in ['rank', 'CD']):
+        getVariables.remove('rank')
+        getVariables.remove('CD')
+      rlz = dict((var, rlz[var]) for var in getVariables + self.indexes)
     except KeyError as e:
       self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError, f'Provided realization does not have all requisite values for object "{self.name}": "{e.args[0]}"')
@@ -242,7 +246,11 @@ class DataSet(DataObject):
     #  This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #  Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     # set realizations as a list of realizations (which are ordered lists)
-    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0], dtype=object)
+    orderedVariables = self._orderedVars
+    if all(x in orderedVariables for x in ['rank', 'CD']):
+      orderedVariables.remove('rank')
+      orderedVariables.remove('CD')
+    newData = np.array(list(rlz[var] for var in orderedVariables)+[0.0], dtype=object)
     newData = newData[:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -1963,9 +1971,13 @@ class DataSet(DataObject):
       @ In, rlz, dict, standardized and formatted realization
       @ Out, None
     """
+    getVariables = self.getVars()
+    if all(x in getVariables for x in ['rank', 'CD']):
+      getVariables.remove('rank')
+      getVariables.remove('CD')
     if self.types is None:
-      self.types = [None]*len(self.getVars())
-      for v, name in enumerate(self.getVars()):
+      self.types = [None]*len(getVariables)
+      for v, name in enumerate(getVariables):
         val = rlz[name]
         self.types[v] = self._getCompatibleType(val)
 
@@ -2096,6 +2108,7 @@ class DataSet(DataObject):
       self.raiseADebug(f'Wrote master cluster file to "{fileName}.csv"')
     # write sub files as point sets
     ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
+    ordered = [e for e in ordered if e not in ('rank', 'CD')]
     for ID in clusterIDs:
       data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
       subName = f'{fileName}_{ID}'
