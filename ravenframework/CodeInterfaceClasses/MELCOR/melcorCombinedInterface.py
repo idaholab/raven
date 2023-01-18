@@ -162,11 +162,8 @@ class Melcor(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, response, dict, dictionary containing the data
     """
-    failure = False
     self.det = False
-    outfile = os.path.join(workingDir,output+'.out')
-    if failure == False:
-      response = self.writeDict(os.path.join(workingDir,output),workingDir)
+    response = self.writeDict(os.path.join(workingDir,output),workingDir)
     if self.det:
       stopDET = self.stopDET ( workingDir )
       if stopDET == True:
@@ -192,14 +189,13 @@ class Melcor(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-#    goodWord  = "  Normal termination"   mel-fus
-    goodWord  = " Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
+    goodWord  = "Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
     try:
       outputToRead = open(os.path.join(workingDir,self.melcorOutFile),"r")
-    except:
+    except FileNotFoundError:
       return failure
     readLines = outputToRead.readlines()
     lastRow = readLines[-1]
-    if lastRow.startswith(goodWord):
+    if goodWord in lastRow:
       failure = False
     return failure
