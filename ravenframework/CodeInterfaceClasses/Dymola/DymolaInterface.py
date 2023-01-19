@@ -333,7 +333,8 @@ class Dymola(CodeInterfaceBase):
           initDescripIndex = i
       if fileNameInitIndex > 0:
         filePathIndex = initDescripIndex + fileNameInitIndex - initVarIndex #index of path
-        text = text.replace(splitLines[filePathIndex], currentInputFiles[indexVect].getAbsFile().replace(os.sep, '/'))
+        # text = text.replace(splitLines[filePathIndex], currentInputFiles[indexVect].getAbsFile().replace(os.sep, '/'))
+        text = text.replace(splitLines[filePathIndex], currentInputFiles[indexVect].getAbsFile())
       else:
         self.raiseAWarning('Dymola INTERFACE WARNING -> Check subfolers containing the RAVEN samples to see whether they are correctly sampled!')
 
