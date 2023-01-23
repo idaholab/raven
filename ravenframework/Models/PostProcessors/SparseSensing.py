@@ -176,22 +176,15 @@ class SparseSensing(PostProcessorReadyInterface):
     model.fit(data)
     selectedSensors = model.get_all_sensors() #get_selected_sensors()
 
-    dims = ['loc','sensor']
-    coords = {'loc':self.sensingFeatures,
-              'sensor':np.arange(1,len(selectedSensors)+1)}
+    dims = ['sensor']
+    coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
-    sesnorData = []
+    sensorData = {}
     for var in self.sensingFeatures:
-      sesnorData .append(inputDS[var][0,selectedSensors])#inputDS[self.sensingFeatures]
-    sesnorData = np.array(sesnorData)
-    dataDA = xr.DataArray(data = sesnorData, coords=coords, dims=dims)
-    dataDict={}
-    dataDict['sensorLocs'] = dataDA
-    outDS = xr.Dataset(data_vars=dataDict)
+      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data) #inputDS[self.sensingFeatures]
+    outDS = xr.Dataset(data_vars=sensorData, coords=coords)
     ## PLEASE READ: For developers: this is really imporatant, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
     outDS['RAVEN_sample_ID'] = [0]
-    # mergedDS = xr.merge([outDS,inputDS])
-    mergedDS = outDS.combine_first(inputDS)
-    return mergedDS
+    return outDS

@@ -25,11 +25,11 @@
     <PostProcess name="mySPpp">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
       <Model class="Models" type="PostProcessor">mySPSL</Model>
-      <Output class="DataObjects" type="HistorySet">outPP</Output>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
     </PostProcess>
     <IOStep name="plot">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Input class="DataObjects" type="HistorySet">outPP</Input>
+      <Input class="DataObjects" type="DataSet">outPP</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">plotMC</Output>
     </IOStep>
@@ -97,10 +97,11 @@
       <Input>angle</Input>
       <Output>OutputPlaceHolder</Output>
     </HistorySet> -->
-    <PointSet name="outPP">
+    <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>sensor0,sensor1,sensor2,sensor3,sensor4</Output>
-    </PointSet>
+      <Index var="sensor">x,y</Index>
+      <Output>x, y</Output>
+    </DataSet>
   </DataObjects>
 
   <OutStreams>
