@@ -1,0 +1,139 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SPSL</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-05-24</created>
+    <classesTested>Postprocessors.SPSL</classesTested>
+    <description>test SPSL reconstruction</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>reconstruction</WorkingDir>
+    <Sequence>FirstMRun, mySPpp, plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="OutStreams" type="Print">outMC</Output>
+    </MultiRun>
+    <PostProcess name="mySPpp">
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="HistorySet">outPP</Output>
+    </PostProcess>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outPP</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
+      <Output class="OutStreams" type="Plot">plotMC</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t,v</variables>
+    </ExternalModel>
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <TrainingData>myDO</TrainingData>
+        <features>x,y</features>
+        <target>v</target>
+        <basis>svd</basis> <!--Ddefault: svd-->
+        <nModes>5</nModes> <!--default: opt, allows the algorithm to pick nModes-->
+        <nSensors>5</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
+        <threshold>0.2</threshold>
+        <optimizer>QR</optimizer><!--default: QR-->
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>080118</initialSeed>
+      </samplerInit>
+      <variable name="angle">
+        <distribution>angle_d</distribution>
+      </variable>
+      <constant name="v0">10.0</constant>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <!-- <constant name="timeOption">0</constant> -->
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,v0,y0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
+      <!-- <options>
+        <pivotParameter>t</pivotParameter>
+      </options> -->
+    </PointSet>
+    <HistorySet name="outMC">
+      <!-- <Input>v0,angle</Input> -->
+      <Output>x,y,v,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <!-- <HistorySet name="romIn">
+      <Input>angle</Input>
+      <Output>OutputPlaceHolder</Output>
+    </HistorySet> -->
+    <PointSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <Output>sensor0,sensor1,sensor2,sensor3,sensor4</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outMC">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+    </Print>
+    <Plot name="plotMC">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>outMC|Output|x</x>
+          <y>outMC|Output|y</y>
+          <c>blue</c>
+        </plot>
+        <!-- <plot>
+          <type>scatter</type>
+          <marker>+</marker>
+          <x>romOut|Input|angle</x>
+          <y>romOut|Output|r</y>
+          <c>red</c>
+        </plot> -->
+        <xlabel>x</xlabel>
+        <ylabel>y</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

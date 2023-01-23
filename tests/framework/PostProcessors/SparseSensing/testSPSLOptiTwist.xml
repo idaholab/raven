@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SPSL</name>
+    <author>Niharika Karnik (@nkarnik2999)</author>
+    <created>2022-07-18</created>
+    <classesTested>Postprocessors.SPSL</classesTested>
+    <description>test SPSL reconstruction</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>reconstructionOptiTwist</WorkingDir>
+    <Sequence>LoadCSV, mySPpp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name= "twistFile" type= ''>./Perturbations2.csv</Input>
+  </Files>
+
+
+  <Steps>
+   <IOStep name="LoadCSV">
+      <Input class="Files" type="">twistFile</Input>
+      <Output class="DataObjects" type="HistorySet">TwistDO</Output>
+    </IOStep>
+    <PostProcess name="mySPpp">
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
+      <Model class="Models" type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+      <!-- <Output class="DataObjects" type="PointSet">outPP</Output> -->
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
+      <Output class="OutStreams" type="Plot">mySensorPlot</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <TrainingData>myDO</TrainingData>
+        <features>X (m),Y (m)</features>
+        <target>Temperature (K)</target>
+        <basis>svd</basis> <!--Ddefault: svd-->
+        <nModes>5</nModes> <!--default: opt, allows the algorithm to pick nModes-->
+        <nSensors>5</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
+        <threshold>0.2</threshold>
+        <optimizer>QR</optimizer><!--default: QR-->
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="TwistDO">
+      <Input> Power (W), BCTemperature (K)</Input>
+      <Output>X (m),Temperature (K),Y (m)</Output><!-- ,Velocity[j] (m/s),Z (m),Velocity[i] (m/s) -->
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+      <!-- <Index var="Ind">X (m),Temperature (K),Y (m)</Index> -->
+      <!-- <Index var="X (m)">Temperature (K)</Index> -->
+      <!-- <Index var="Y (m)">Temperature (K)</Index> -->
+    </HistorySet>
+    <DataSet name="outPP">
+      <Output>sensorLocs, Temperature (K), X (m), Y (m)</Output>
+      <Index var="loc">sensorLocs</Index>
+      <Index var="sensor">sensorLocs</Index>
+      <Index var="index">Temperature (K)</Index>
+      <Index var="index">X (m)</Index>
+      <Index var="index">Y (m)</Index>
+    </DataSet>
+    <!-- <PointSet name="outPP">
+      <Output>X,Y</Output>
+      <Index var="Ind">X,Y</Index>
+      <!~~ <options>
+        <outputRow>Ind</outputRow>
+      </options> ~~>
+    </PointSet> -->
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+      <what>output</what>
+    </Print>
+    <Plot name="mySensorPlot" subType="SensorsPlot">
+      <source>outPP</source>
+      <vars>sensorLocs,Temperature (m), X (m), Y (m)</vars>
+      <index>sensor</index>
+      <how>png</how>
+      <marker>x</marker>
+      <xlabel>X (m)</xlabel>
+      <ylabel>Y (m)</ylabel>
+      <c>red</c>
+    </Plot>
+    <!-- <Plot name="plotMC">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outPP|Output|x</x>
+          <y>outMC|Output|y</y>
+          <c>blue</c>
+        </plot>
+        <xlabel>x</xlabel>
+        <ylabel>y</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot> -->
+  </OutStreams>
+
+</Simulation>
