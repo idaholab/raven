@@ -43,3 +43,13 @@ sampling.
 
 \xmlExample[coarse,fine,restart]{framework/Samplers/Restart/Truncated/grid.xml}{Simulation}
 
+In order to restart an existing file that failed for some reason, the
+data will need to be listed in the \xmlNode{Files} section and a
+\xmlNode{IOStep} that loads that input into a different data object
+will be needed to be added to the \xmlNode{Steps} section. After that a \xmlNode{Restart} node can be added.
+
+\xmlExample{framework/Samplers/Restart/test_restart_Grid_part2.xml}{Files}
+
+\xmlExample{framework/Samplers/Restart/test_restart_Grid_part2.xml}{Steps}
+
+\xmlExample{framework/Samplers/Restart/test_restart_Grid_part2.xml}{Samplers}
