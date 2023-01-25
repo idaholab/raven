@@ -169,17 +169,21 @@ class SensorsPlot(PlotInterface):
     """
     data = self.source.asDataset()
     outVars = self.source.getVars(subset='output')
-    inpVars = self.source._data['loc']
+    inpVars = self.source._data['sensor']
     # nFigures = len(self.vars)
     fig, axs = plt.subplots(1,1)
     fig.suptitle('Sensors Plot')
     # plt.scatter(data.sel(loc = inpVars[0]).sensorLocs.values,data.sel(loc = inpVars[1]).sensorLocs.values,marker = self.marker, c = self.c, s = self.s, alpha = self.alpha, linewidths = self.linewidths, cmap=self.cmap)
-    plt.scatter(data['X (m)'],data['Y (m)'], cmap=data['Temperature (K)'].data[-1])
-    plt.scatter(data['sensorLocs'].sel(loc = inpVars[0]).values,data['sensorLocs'].sel(loc = inpVars[1]).values,marker = self.marker, c = self.c, s = self.s, alpha = self.alpha, linewidths = self.linewidths)
+    pl = plt.scatter(data['X (m)']*100,data['Y (m)']*100, s=self.s, c=data['Temperature (K)'].data[-1],cmap=plt.cm.coolwarm)
+    plt.scatter(data['X (m)'].to_numpy()*100,data['Y (m)'].to_numpy()*100,marker='x',Color='red')
+    cbar = plt.colorbar(pl)
+    cbar.set_label('Temperature ($^{\circ}K$)')
     plt.xlabel(self.xlabel)
+    plt.tick_params(axis='x', labelrotation = 90)
     plt.ylabel(self.ylabel)
     plt.grid()
-
+    axs=plt.gca()
+    axs.set_aspect(0.7)
     # fig = plt.figure(figsize = (10, 7))
     # ax = plt.axes(projection ="3d")
 

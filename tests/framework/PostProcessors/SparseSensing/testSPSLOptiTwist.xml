@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>tests/framework/Postprocessors/SPSL</name>
-    <author>Niharika Karnik (@nkarnik2999)</author>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
     <created>2022-07-18</created>
     <classesTested>Postprocessors.SPSL</classesTested>
     <description>test SPSL reconstruction</description>
@@ -42,7 +42,7 @@
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <TrainingData>myDO</TrainingData>
-        <features>X (m),Y (m)</features>
+        <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
         <basis>svd</basis> <!--Ddefault: svd-->
         <nModes>5</nModes> <!--default: opt, allows the algorithm to pick nModes-->
@@ -60,17 +60,15 @@
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
-      <!-- <Index var="Ind">X (m),Temperature (K),Y (m)</Index> -->
+      <Index var="index">X (m),Temperature (K),Y (m)</Index>
       <!-- <Index var="X (m)">Temperature (K)</Index> -->
       <!-- <Index var="Y (m)">Temperature (K)</Index> -->
     </HistorySet>
     <DataSet name="outPP">
-      <Output>sensorLocs, Temperature (K), X (m), Y (m)</Output>
-      <Index var="loc">sensorLocs</Index>
-      <Index var="sensor">sensorLocs</Index>
-      <Index var="index">Temperature (K)</Index>
-      <Index var="index">X (m)</Index>
-      <Index var="index">Y (m)</Index>
+      <Input>InputPlaceHolder</Input>
+      <Output>Temperature (K), X (m), Y (m)</Output>
+      <!-- <Index var="loc">sensorLocs</Index> -->
+      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
     </DataSet>
     <!-- <PointSet name="outPP">
       <Output>X,Y</Output>
@@ -89,12 +87,12 @@
     </Print>
     <Plot name="mySensorPlot" subType="SensorsPlot">
       <source>outPP</source>
-      <vars>sensorLocs,Temperature (m), X (m), Y (m)</vars>
+      <vars>Temperature (K), X (m), Y (m)</vars>
       <index>sensor</index>
       <how>png</how>
       <marker>x</marker>
-      <xlabel>X (m)</xlabel>
-      <ylabel>Y (m)</ylabel>
+      <xlabel>X (cm)</xlabel>
+      <ylabel>Y (cm)</ylabel>
       <c>red</c>
     </Plot>
     <!-- <Plot name="plotMC">
