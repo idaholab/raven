@@ -247,11 +247,12 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Uncertainty reduction fraction is 1.0-sigma_pred/sigma_pri
       outputArray.append(1.0-predStd/priStd)
 
-    if pcmVersion=='snapshot':
-      name = "snapshot_pri_post_stdReduct"
-    if pcmVersion=='static':
-      name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
-
-    outputDict[name] = np.asarray(outputArray)
+    for targ in self.targets:
+      if pcmVersion=='snapshot':
+        name = "snapshot_pri_post_stdReduct"
+      if pcmVersion=='static':
+        name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
+        
+      outputDict[name] = np.asarray(outputArray)
 
     return outputDict

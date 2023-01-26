@@ -37,7 +37,7 @@
   [./test_validation_gate_pcm_SnapshotSeth]
     type = 'RavenFramework'
     input = 'test_validation_gate_pcm_SnapshotSeth.xml'
-    csv = 'PhysicsGuidedCoverageMapping/pcmSnapshot_metric_dump_0.csv'
+    csv = 'PhysicsGuidedCoverageMapping/pcmSnapshot_metric_dump.csv PhysicsGuidedCoverageMapping/pcmSnapshot_metric_dump_0.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]

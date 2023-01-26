@@ -143,7 +143,7 @@
     </PointSet>    
     <PointSet name="pcm_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>pri_post_stdReduct_F2,pri_post_stdReduct_F3,pri_post_stdReduct_F4</Output>
+      <Output>static_pri_post_stdReduct_F2,static_pri_post_stdReduct_F3,static_pri_post_stdReduct_F4</Output>
     </PointSet>
   </DataObjects>
 
