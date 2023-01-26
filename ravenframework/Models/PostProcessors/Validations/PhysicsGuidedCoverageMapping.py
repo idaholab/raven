@@ -252,7 +252,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         name = "snapshot_pri_post_stdReduct"
       if pcmVersion=='static':
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
-        
+
       outputDict[name] = np.asarray(outputArray)
 
     return outputDict
