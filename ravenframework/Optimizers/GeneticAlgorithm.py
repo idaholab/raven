@@ -83,6 +83,7 @@ class GeneticAlgorithm(RavenSampled):
     self.multiBestPoint = None
     self.multiBestFitness = None
     self.multiBestObjective = None
+    self.multiBestConstraint = None
     self.objectiveVal = None
     self._populationSize = None
     self._parentSelectionType = None
@@ -539,11 +540,11 @@ class GeneticAlgorithm(RavenSampled):
       offSpringFitness = [item for sublist in offSpringFitness.tolist() for item in sublist]
 
       offSpringFitness = xr.DataArray(offSpringFitness,
-                                    dims=['NumOfConstraintViolated'],
-                                    coords={'NumOfConstraintViolated':np.arange(np.shape(offSpringFitness)[0])})
+                                      dims=['NumOfConstraintViolated'],
+                                      coords={'NumOfConstraintViolated':np.arange(np.shape(offSpringFitness)[0])})
 
-      self._collectOptPointMulti(rlz, self.rank, objectiveVal, offSpringFitness)
-      self._resolveNewGenerationMulti(traj, rlz, objectiveVal, offSpringFitness, g, info)
+      self._collectOptPointMulti(rlz, self.rank, self.crowdingDistance, objectiveVal, g, offSpringFitness)
+      self._resolveNewGenerationMulti(traj, rlz, offSpringFitness, g, info)
 
       # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -578,7 +579,6 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                                                   )
           self.popAge = age
           objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
-
         else:
           self.population = offSprings
           self.constraints = offSpringFitness
@@ -696,6 +696,10 @@ class GeneticAlgorithm(RavenSampled):
     self.bestFitness = None
     self.bestObjective = None
     self.objectiveVal = None
+    self.multiBestPoint = None
+    self.multiBestFitness = None
+    self.multiBestObjective = None
+    self.multiBestConstraint = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
@@ -742,7 +746,7 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def _resolveNewGenerationMulti(self, traj, rlz, objectiveVal, fitness, g, info):
+  def _resolveNewGenerationMulti(self, traj, rlz, fitness, g, info):
     """
       Store a new Generation after checking convergence
       @ In, traj, int, trajectory for this new point
@@ -767,13 +771,11 @@ class GeneticAlgorithm(RavenSampled):
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict[self._objectiveVar[0]] = np.atleast_1d(rlz[self._objectiveVar[0]].data)[i]
         rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
         rlzDict['CD'] = np.atleast_1d(self.crowdingDistance.data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-        # JY: Code lines below may need to be revisited. Should we have constraint values ????
-        # for ind, consName in enumerate(g['Constraint'].values):
-        #   rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
+        for ind, consName in enumerate(g['Constraint'].values):
+          rlzDict['ConstraintEvaluation_'+consName] = g.data[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
@@ -782,6 +784,10 @@ class GeneticAlgorithm(RavenSampled):
       for i in range(len(self._objectiveVar)):
         bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
       bestRlz['fitness'] = self.multiBestFitness
+      bestRlz['rank'] = self.rank
+      bestRlz['CD'] = self.crowdingDistance
+      for ind, consName in enumerate(g['Constraint'].values):
+          bestRlz['ConstraintEvaluation_'+consName] = g.data[i,ind]
       bestRlz.update(self.multiBestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
     elif acceptable == 'rejected':
@@ -813,7 +819,7 @@ class GeneticAlgorithm(RavenSampled):
 
     return point
 
-  def _collectOptPointMulti(self, rlz, rank, objectiveVal, offSpringFitness):
+  def _collectOptPointMulti(self, rlz, rank, CD, objectiveVal, constVal, offSpringFitness):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -828,24 +834,28 @@ class GeneticAlgorithm(RavenSampled):
     selVars = [var for var in varList if var in rlz.data_vars]
     population = datasetToDataArray(rlz, selVars)
 
-    points,rankSorted,multiFit,obj1Sorted,obj2Sorted = zip(*[[a,b,c,d,e] for a, b, c, d, e in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(rank.data),np.atleast_1d(offSpringFitness.data),objectiveVal[0], objectiveVal[1]),reverse=True,key=lambda x: (-x[1],-x[2]))])
-    objSorted = [list(obj1Sorted), list(obj2Sorted)]
+    objVal = [[] for x in range(len(objectiveVal[0]))]
+    for i in range(len(objectiveVal[0])):
+      objVal[i] = [item[i] for item in objectiveVal]
 
+    points,multiFit,rankSorted,cdSorted,objSorted,constSorted = zip(*[[a,b,c,d,e,f] for a, b, c, d, e, f in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(offSpringFitness.data),np.atleast_1d(rank.data),np.atleast_1d(CD.data), objVal, constVal.data),reverse=True,key=lambda x: (-x[1], -x[2], x[3]))])
     optPoints = [points[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
     optMultiFit = [multiFit[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
-    optObj = [[objSorted[0][i],objSorted[1][i]] for i, rank in enumerate(rankSorted) if rank == 1 ]
-
+    optObj = [objSorted[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
+    optConst = [constSorted[i] for i, rank in enumerate(rankSorted) if rank == 1 ]
     if (len(optMultiFit) != len([x for x in optMultiFit if x != 0]) ) :
       optPoints = [optPoints[i] for i, nFit in enumerate(optMultiFit) if nFit == 0 ]
       optMultiFit = [x for x in optMultiFit if x == 0]
       optObj = [optObj[i] for i, nFit in enumerate(optMultiFit) if nFit == 0 ]
+      optConst = [optConst[i] for i, nFit in enumerate(optMultiFit) if nFit == 0 ]
 
-    optPoints_dic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(selVars) if var in rlz.data_vars)
-    self.multiBestPoint = optPoints_dic
+    optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    self.multiBestPoint = optPointsDic
     self.multiBestFitness = optMultiFit
     self.multiBestObjective = optObj
+    self.multiBestConstraint = optConst
 
-    return optPoints_dic
+    return optPointsDic
 
 
   def _checkAcceptability(self, traj):
@@ -911,31 +921,13 @@ class GeneticAlgorithm(RavenSampled):
       obj2 = o1[self._objectiveVar[1]]
       converged = (obj1 == self._convergenceCriteria['objective'] and obj2 == self._convergenceCriteria['objective'])
       # JY: I stopped here. Codeline below needs to be revisited! 01/16/23
-      self.raiseADebug(self.convFormat.format(name='objective',
-                                              conv=str(converged),
-                                              got=obj,
-                                              req=self._convergenceCriteria['objective']))
+      # self.raiseADebug(self.convFormat.format(name='objective',
+      #                                         conv=str(converged),
+      #                                         got=obj1,
+      #                                         req=self._convergenceCriteria['objective']))
 
     return converged
 
-  def _checkConvObjectiveMulti(self, traj, **kwargs):
-    """
-      Checks the change in objective for convergence
-      @ In, traj, int, trajectory identifier
-      @ In, kwargs, dict, dictionary of parameters for convergence criteria
-      @ Out, converged, bool, convergence state
-    """
-    if len(self._optPointHistory[traj]) < 2:
-      return False
-    o1, _ = self._optPointHistory[traj][-1]
-    obj = o1[self._objectiveVar[0]]
-    converged = (obj == self._convergenceCriteria['objective'])
-    self.raiseADebug(self.convFormat.format(name='objective',
-                                            conv=str(converged),
-                                            got=obj,
-                                            req=self._convergenceCriteria['objective']))
-
-    return converged
   def _checkConvAHDp(self, traj, **kwargs):
     """
       Computes the Average Hausdorff Distance as the termination criteria
@@ -1054,7 +1046,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, True if converged on ANY criteria
     """
     # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
-    if len(self._objectiveVar) == 1:
+    if len(self._objectiveVar) == 1: # single-objective optimization
       if acceptable == 'accepted':
         self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
         # check convergence
@@ -1063,7 +1055,7 @@ class GeneticAlgorithm(RavenSampled):
         converged = False
         convDict = dict((var, False) for var in self._convergenceInfo[traj])
       self._convergenceInfo[traj].update(convDict)
-    else:
+    else: # multi-objective optimization
       if acceptable == 'accepted':
         self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
         # check convergence
@@ -1187,7 +1179,9 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
-             'AHD': self.ahd}
+             'AHD': self.ahd,
+             'rank': 0 if len(self._objectiveVar) == 1 else rlz['rank'],
+             'CD': 0 if len(self._objectiveVar) == 1 else  rlz['CD']}
 
     for var, val in self.constants.items():
       toAdd[var] = val

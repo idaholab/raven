@@ -173,13 +173,12 @@ def rankNcrowdingBased(newRlz,**kwargs):
   newPopulationMerged = np.concatenate([population,offSprings])
   newAge.extend([0]*len(offSprings))
 
-  sortedConst,sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives_0,sortedObjectives_1 = zip(*[(x,y,z,i,j,k,m) for x,y,z,i,j,k,m in sorted(zip(newConstMerged,newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged[0],newObjectivesMerged[1]),reverse=False,key=lambda x: (x[0], x[1], -x[2]))])
-  sortedConstT,sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectives_0T,sortedObjectives_1T = np.atleast_1d(list(sortedConst)),np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives_0)),np.atleast_1d(list(sortedObjectives_1))
+  sortedConst,sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives = zip(*[(x,y,z,i,j,k) for x,y,z,i,j,k in sorted(zip(newConstMerged,newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged_pair),reverse=False,key=lambda x: (x[0], x[1], -x[2]))])
+  sortedConstT,sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectivesT = np.atleast_1d(list(sortedConst)),np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives))
 
   newPopulation = sortedPopulationT[:-len(offSprings)]
-  newObjectives_0 = sortedObjectives_0T[:-len(offSprings)]
-  newObjectives_1 = sortedObjectives_1T[:-len(offSprings)]
-  newObjectives = [newObjectives_0.tolist(), newObjectives_1.tolist()]
+  newObjectives = sortedObjectivesT[:-len(offSprings)]
+  newObjectives = [list(ele) for ele in list(zip(*newObjectives))]
   newRank = sortedRankT[:-len(offSprings)]
   newCD = sortedCDT[:-len(offSprings)]
   newAge = sortedAgeT[:-len(offSprings)]

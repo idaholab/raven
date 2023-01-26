@@ -28,19 +28,22 @@ def evaluate(Inputs):
     @ Out, Sum, float, objective function
   """
   Sum = 0
-  LocalSum = 0
+  LocalSum1 = 0
+  LocalSum2 = 0
   # for ind,var in enumerate(Inputs.keys()):
   #   # write the objective function here
   #   Sum += (ind + 1) * Inputs[var]
   #   if (ind == 1):
-  #       LocalSum = Sum
-  # return Sum[:], LocalSum[:]
+  #       LocalSum1 = Sum
+  # return Sum[:], LocalSum1[:]
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
     Sum += (ind + 1) * Inputs[var]
     if (ind == 0) or (ind == 1):
-        LocalSum += (ind + 1) * Inputs[var]
-  return Sum[:], LocalSum[:]
+      LocalSum1 += (ind + 1) * Inputs[var]
+    if (ind == 2) or (ind == 3):
+      LocalSum2 += (ind + 1) * Inputs[var]
+  return Sum[:], LocalSum1[:], LocalSum2[:]
 
 def run(self,Inputs):
   """
@@ -49,4 +52,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.obj1,self.obj2 = evaluate(Inputs) # make sure the name of the objective is consistent obj
+  self.obj1,self.obj2,self.obj3 = evaluate(Inputs) # make sure the name of the objective is consistent with obj1, obj2, obj3.

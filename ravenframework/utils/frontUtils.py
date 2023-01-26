@@ -80,6 +80,13 @@ def rankNonDominatedFrontiers(data):
     @ out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
+  ## tentative code block start
+  # import matplotlib.pyplot as plt
+  # from mpl_toolkits.mplot3d import Axes3D
+  # xdata = [item[0] for item in data]
+  # ydata = [item[1] for item in data]
+  # zdata = [item[2] for item in data]
+
   nonDominatedRank = np.zeros(data.shape[0],dtype=int)
   rank = 0
   indicesDominated = list(np.arange(data.shape[0]))
@@ -95,6 +102,13 @@ def rankNonDominatedFrontiers(data):
     data = rawData[indicesDominated]
     nonDominatedRank[indicesNonDominated] = rank
   nonDominatedRank = list(nonDominatedRank)
+
+  # ax3d = plt.figure().gca(projection='3d')
+  # ax3d.scatter(xdata, ydata, zdata)
+  # for x, y, z, label in zip(xdata, ydata, zdata, nonDominatedRank):
+  #   ax3d.text(x, y, z, label)
+  # plt.title("Data")
+  # plt.show()
   return nonDominatedRank
 
 def crowdingDistance(rank, popSize, objectives):
@@ -105,6 +119,13 @@ def crowdingDistance(rank, popSize, objectives):
     @ In, objectives, np.array, matrix contains objective values for each element of the population
     @ Out, crowdDist, np.array, array of crowding distances
   """
+  # # tentative code block start
+  # import matplotlib.pyplot as plt
+  # from mpl_toolkits.mplot3d import Axes3D
+  # xdata = [item[0] for item in objectives]
+  # ydata = [item[1] for item in objectives]
+  # zdata = [item[2] for item in objectives]
+
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
   fronts = fronts[fronts!=np.inf]
@@ -118,4 +139,12 @@ def crowdingDistance(rank, popSize, objectives):
       crowdDist[front[sortedRank[0]]] = crowdDist[front[sortedRank[-1]]] = np.inf
       for i in range(1, len(front)-1):
         crowdDist[front[sortedRank[i]]] = crowdDist[front[sortedRank[i]]] + (objectives[front[sortedRank[i+1]], obj] - objectives[front[sortedRank[i-1]], obj]) / (fMax[obj]-fMin[obj])
+
+  # ax3d = plt.figure().gca(projection='3d')
+  # ax3d.scatter(xdata, ydata, zdata)
+  # for x, y, z, label in zip(xdata, ydata, zdata, [i+j for i, j in zip([str(ele) for ele in rank.data.tolist()], [str(ele) for ele in crowdDist.tolist()])]):
+  #   ax3d.text(x, y, z, label)
+  # plt.title("Data")
+  # plt.show()
+
   return crowdDist
