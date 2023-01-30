@@ -774,7 +774,7 @@ class RFE(FeatureSelectionBase):
             std = 1.
           ev = (evaluated[target] - avg)/std
           ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
-          s = np.sum(np.square(ref-ev))
+          s = np.sum(np.square(ref-ev)) / (1. if len(X.shape) < 3 else float(X.shape[1]))
           scores[target] = s*w
           score +=  s*w
     # free memory and call garbage collector
