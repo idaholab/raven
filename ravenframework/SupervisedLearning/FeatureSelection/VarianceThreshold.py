@@ -103,7 +103,7 @@ class VarianceThreshold(FeatureSelectionBase):
     # if time dependent, we work on the expected value of the features
     nFeatures = X.shape[-1]
     nTargets = y.shape[-1]
-    
+
     if self.whichSpace == 'feature':
       space = X[:, maskF] if len(X.shape) < 3 else np.average(X[:, :,maskF],axis=0)
       supportOfSupport_, mask = np.ones(nFeatures,dtype=bool), maskF
@@ -113,6 +113,5 @@ class VarianceThreshold(FeatureSelectionBase):
     # fit estimator
     estimator = vt.fit(space)
     supportOfSupport_[mask] = estimator.get_support()
-    
+
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_
-    
