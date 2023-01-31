@@ -147,7 +147,7 @@ def rankNcrowdingBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSprings = np.atleast_2d(kwargs['offSpring'].data)
+  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
   popObjectiveVal = kwargs['popObjectiveVal']
   offspringObjsVals = kwargs['offspringObjsVals']

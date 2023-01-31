@@ -401,20 +401,20 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
       opt = self._optPointHistory[traj][-1][0]
-      val1 = ', '.join(map(str,(s*opt[self._objectiveVar[0]]).tolist()))
-      val2 = ', '.join(map(str,(s*opt[self._objectiveVar[1]]).tolist()))
-      self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
-      bestValue_1 = val1
-      bestValue_2 = val2
+      # val1 = ', '.join(map(str,(s*opt[self._objectiveVar[0]]).tolist()))
+      # val2 = ', '.join(map(str,(s*opt[self._objectiveVar[1]]).tolist()))
+      # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
+      # bestValue_1 = val1
+      # bestValue_2 = val2
       bestTraj = traj
       bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
       bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
       self.raiseADebug('')
-      self.raiseAMessage(' - Final Optimal Point:')
-      finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
-      finalTemplateInt = '    {name:^20s}  {value: 3d}'
-      self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
-      self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+      # self.raiseAMessage(' - Final Optimal Point:')
+      # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
+      # finalTemplateInt = '    {name:^20s}  {value: 3d}'
+      # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
+      # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
       # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
       # for var, val in bestPoint.items():
       #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
@@ -698,38 +698,25 @@ class RavenSampled(Optimizer):
       if self._minMax == 'max':
         objValue *= -1
       toExport[self._objectiveVar[0]] = objValue
-      toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
-      # constants and functions
-      toExport.update(self.constants)
-      toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
-      # additional from from inheritors
-      toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
-      # check for anything else that solution export wants that rlz might provide
-      for var in self._solutionExport.getVars():
-        if var not in toExport and var in rlz:
-          toExport[var] = rlz[var]
-      # formatting
-      toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
-      self._solutionExport.addRealization(toExport)
     else: # Multi Objective Optimization
       for i in range(len(self._objectiveVar)):
         objValue = rlz[self._objectiveVar[i]]
         if self._minMax == 'max':
           objValue *= -1
         toExport[self._objectiveVar[i]] = objValue
-      toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
-      # constants and functions
-      toExport.update(self.constants)
-      toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
-      # additional from from inheritors
-      toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
-      # check for anything else that solution export wants that rlz might provide
-      for var in self._solutionExport.getVars():
-        if var not in toExport and var in rlz:
-          toExport[var] = rlz[var]
-      # formatting
-      toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
-      self._solutionExport.addRealization(toExport)
+    toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
+    # constants and functions
+    toExport.update(self.constants)
+    toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
+    # additional from from inheritors
+    toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+    # check for anything else that solution export wants that rlz might provide
+    for var in self._solutionExport.getVars():
+      if var not in toExport and var in rlz:
+        toExport[var] = rlz[var]
+    # formatting
+    toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
+    self._solutionExport.addRealization(toExport)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

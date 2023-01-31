@@ -58,7 +58,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
   nPoints = data.shape[0]
   nextPointIndex = 0
   while nextPointIndex < len(data):
-    nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1)
+    nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1) # points that indexPoint is dominating
     nondominatedPointMask[nextPointIndex] = True
     isEfficient = isEfficient[nondominatedPointMask]
     data = data[nondominatedPointMask]
