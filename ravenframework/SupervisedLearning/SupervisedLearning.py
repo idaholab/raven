@@ -36,7 +36,7 @@ from ..utils import utils, mathUtils, xmlUtils
 from ..utils import InputTypes, InputData
 from ..BaseClasses import BaseInterface
 from .FeatureSelection import factory as featureSelectionFactory
-from . import utils as featSelectUtils
+from .FeatureSelection import utils as featSelectUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):
