@@ -266,7 +266,7 @@ class TSAUser:
         self.raiseAnError(RuntimeError, "This TSA algorithm cannot generate synthetic histories.")
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
-      indices = tuple(noPivotTargets.index(t) for t in targets)
+      indices = tuple(allTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
       signal = result[:, indices]
       if algo.canTransform():  # covers algorithms which are both transformers and generators
@@ -276,7 +276,7 @@ class TSAUser:
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
     # RAVEN realization construction
-     # FIXME this is not an efficient translation of data!
+    # FIXME this is not an efficient translation of data!
     rlz = dict((target, result[:, t]) for t, target in enumerate(allTargets))
     rlz[self._tsaPivotName] = self._tsaPivotVals
     return rlz
