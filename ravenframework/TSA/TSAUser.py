@@ -64,12 +64,11 @@ class TSAUser:
     self._tsaAlgoSettings = {}       # initialization settings for each algorithm
     self._tsaTrainedParams = {}      # holds results of training each algorithm
     self._tsaAlgorithms = []         # list and order for TSA algorithms to use
-    self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
-    self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
     self._paramNames = None          # cached list of parameter names
     self._paramRealization = None    # cached dict of param variables mapped to values
     self._tsaTargets = None          # cached list of targets
-    self.target = None
+    self._tsaPivotName = None        # name of time-like pivot parameter
+    self._tsaPivotVals = None        # pivot values for the TSA signals
 
   def readTSAInput(self, spec):
     """
@@ -77,8 +76,13 @@ class TSAUser:
       @ In, spec, InputData.parameterInput, input specs filled with user entries
       @ Out, None
     """
-    if self.pivotParameterID is None: # might be handled by parent
-      self.pivotParameterID = spec.findFirst('pivotParameter').value
+    if hasattr(self, 'pivotParameterID'): # might be handled by parent
+      self._tsaPivotName = self.pivotParameterID
+    else:
+      pivotParamNode = spec.findFirst('pivotParameter')
+      if pivotParamNode is not None:
+        self._tsaPivotName = pivotParamNode.value
+
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
@@ -89,12 +93,34 @@ class TSAUser:
       options = ', '.join(factory.knownTypes())
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError(f'TSA: No known TSA type found in input. Available options are: {options}')
-    if self.target is None:
-      # set up all the expected targets from all the TSAs
-      self.target = [self.pivotParameterID] + list(self.getTargets())
-    elif self.pivotParameterID not in self.target:
+
+  def checkVarsPP(self):
+    """
+      Check the signal variables for use as part of a PostProcessor.
+      @ In, None
+      @ Out, None
+    """
+    # nothing much to do, just populate the targets
+    self.getTSATargets()
+
+  def checkVarsROM(self):
+    """
+      Check the signal variables for use as part of a ROM.
+      @ In, None
+      @ Out, None
+    """
+    # ASSUMPTIONS from SupervisedLearningInterface:
+    # self.target is populated
+    # self.features is populated
+    targets = self.getTSATargets()
+    if not all((t in self.target or t in self.features) for t in targets):
+      missing = [(t not in self.target and t not in self.features) for t in targets]
+      self.raiseAnError(IOError, 'The following requested signals were not found in either ROM targets or features:', missing)
+
+    if self._tsaPivotName not in self.target and self._tsaPivotName not in self.features:
       # NOTE this assumes that every TSAUser is also an InputUser!
-      raise IOError('TSA: The pivotParameter must be included in the target space.')
+      self.raiseAnError(IOError, 'The pivotParameter must be included in the feature or target space.')
+
 
   def canCharacterize(self):
     """
@@ -118,12 +144,13 @@ class TSAUser:
       @ In, None
       @ Out, None
     """
-    self._tsaTrainedParams = {}      # holds results of training each algorithm
-    self._paramNames = None          # cached list of parameter names
-    self._paramRealization = None    # cached dict of param variables mapped to values
-    self._tsaTargets = None          # cached list of targets
+    self._tsaTrainedParams = {}    # holds results of training each algorithm
+    self._paramNames = None        # cached list of parameter names
+    self._paramRealization = None  # cached dict of param variables mapped to values
+    self._tsaTargets = None        # cached list of targets
+    self._tsaPivotVals = None      # pivot values for the TSA signals
 
-  def getTargets(self):
+  def getTSATargets(self):
     """
       Provide ordered target set for the set of algorithms used by this entity
       @ In, None
@@ -139,7 +166,7 @@ class TSAUser:
       else:
         for algo, settings in self._tsaAlgoSettings.items():
           targets.update(settings['target'])
-      self._tsaTargets = targets
+      self._tsaTargets = sorted(list(targets))
     return self._tsaTargets
 
   def getCharacterizingVariableNames(self):
@@ -176,16 +203,28 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
-  def trainTSASequential(self, targetVals):
+  def trainTSASequential(self, trainingVals, varList=None, pivots=None):
     """
       Train TSA algorithms using a sequential removal-and-residual approach.
-      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], array of time series data
-        NOTE: this should be a single history/realization, not an array of realizations
+       NOTE: this is a STATEFUL implementation, not a FUNCTIONAL implementation
+      @ In, trainingVals, array, shape = [n_rlz, n_timeStep, n_dimensions], array of time series data
+        NOTE: For now, this should be a single history/realization, not an array of realizations
+      @ In, varList, list(str), optional, variable names associated with dimensions of trainingVals
+        If not provided, we assume they're in the order defined in by self.getTSATargets()
+        NOTE: May include variables that aren't targets of the TSA training
+      # In, pivots, np.array, optional values for the pivot parameter; if not provided, assumed to be in trainingVals
       @ Out, None
     """
-    pivotName = self.pivotParameterID
-    # NOTE assumption: self.target exists!
-    pivotIndex = self.target.index(pivotName)
+    # TODO can't we get away with using the DataObject directly?
+    # XXX don't use self.target or self.features
+    if varList is None:
+      varList = self.getTSATargets()
+    if pivots is None:
+      if self._tsaPivotName not in varList:
+        self.raiseAnError(RuntimeError, f'Pivot param "{self._tsaPivotName}" ' +
+            f'not found in provided training set! Got: {varList}')
+      pivotIndex = varList.index(self._tsaPivotName)
+      pivots = trainingVals[0, :, pivotIndex]
     # NOTE assumption: only one training signal
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
@@ -193,7 +232,7 @@ class TSAUser:
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
-      indices = tuple(self.target.index(t) for t in targets)
+      indices = tuple(allTargets.index(t) for t in targets)
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
       # check if there are missing values in the signal and if algo can accept them
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
@@ -216,13 +255,15 @@ class TSAUser:
       @ In, None
       @ Out, rlz, dict, realization dictionary of values for each target
     """
-    pivots = self.pivotParameterValues
+    pivots = self._tsaPivotVals
     # the algorithms' targets need to be consistently indexed, but there's no
     # reason to keep including the pivot values every time, so set up an indexing
     # that ignores the pivotParameter on which to index the results variables
-    noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
-    result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
+    allTargets = self.getTSATargets()
+    result = np.zeros((self._tsaPivotVals.size, len(allTargets)))
     for algo in self._tsaAlgorithms[::-1]:
+      if not algo.canGenerate():
+        self.raiseAnError(RuntimeError, "This TSA algorithm cannot generate synthetic histories.")
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
@@ -235,8 +276,9 @@ class TSAUser:
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
     # RAVEN realization construction
-    rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
-    rlz[self.pivotParameterID] = self.pivotParameterValues
+     # FIXME this is not an efficient translation of data!
+    rlz = dict((target, result[:, t]) for t, target in enumerate(allTargets))
+    rlz[self._tsaPivotName] = self._tsaPivotVals
     return rlz
 
   def writeTSAtoXML(self, xml):
