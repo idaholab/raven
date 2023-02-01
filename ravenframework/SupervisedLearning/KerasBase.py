@@ -2174,7 +2174,7 @@ class KerasBase(SupervisedLearning):
     writeTo.addScalar('Loss',"Training",' '.join([str(elm) for elm in self._romHistory.history['loss']]))
     writeTo.addScalar('Loss',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_loss']]))
 
-  def train(self,tdict):
+  def train(self, tdict, indexMap=None):
     """
       Method to perform the training of the deep neural network algorithm
       NB.the KerasBase object is committed to convert the dictionary that is passed (in), into the local format

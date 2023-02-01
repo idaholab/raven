@@ -373,7 +373,7 @@ class ROM(Dummy):
       else:
         self.trainingSet = trainingSet
 
-      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'input', False)
+      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
 
       if not useDict or self.segment:
