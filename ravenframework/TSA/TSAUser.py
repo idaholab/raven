@@ -70,18 +70,23 @@ class TSAUser:
     self._tsaPivotName = None        # name of time-like pivot parameter
     self._tsaPivotVals = None        # pivot values for the TSA signals
 
+    # We need these for clustered and interpolated ROMS
+    self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
+    self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
+
   def readTSAInput(self, spec):
     """
       Read in TSA algorithms
       @ In, spec, InputData.parameterInput, input specs filled with user entries
       @ Out, None
     """
-    if hasattr(self, 'pivotParameterID'): # might be handled by parent
+    if hasattr(self, 'pivotParameterID') and self.pivotParameterID is not None: # might be handled by parent
       self._tsaPivotName = self.pivotParameterID
     else:
       pivotParamNode = spec.findFirst('pivotParameter')
       if pivotParamNode is not None:
         self._tsaPivotName = pivotParamNode.value
+        self.pivotParameterID = pivotParamNode.value
 
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
