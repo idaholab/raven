@@ -128,7 +128,7 @@ def fitnessBased(newRlz,**kwargs):
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
 
 # @profile
-def rankNcrowdingBased(newRlz,**kwargs):
+def rankNcrowdingBased(offsprings, **kwargs):
   """
     rankNcrowdingBased survivorSelection mechanism for new generation selection
     It combines the parents and children/offsprings then calculates their rank and crowding distance.
@@ -147,16 +147,19 @@ def rankNcrowdingBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
+  offSprings = np.atleast_2d(offsprings[kwargs['variables']].to_array().transpose().data)
   popObjectiveVal = kwargs['popObjectiveVal']
-  offspringObjsVals = kwargs['offspringObjsVals']
+  offObjectiveVal = kwargs['offObjectiveVal']
   popConst = kwargs['popConst'].data
-  offspringConst = kwargs['offspringConst'].data
+  offConst = kwargs['offConst'].data
+  popConstV = kwargs['popConstV'].data
+  offConstV = kwargs['offConstV'].data
 
-  newConstMerged = np.append(popConst, offspringConst)
+  newConstMerged = np.append(popConst, offConst)
+  newConstVMerged = np.array(popConstV.tolist() + offConstV.tolist())
 
-  newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offspringObjsVals)])
+  newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
   newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
 
   newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newObjectivesMerged_pair))
@@ -173,34 +176,44 @@ def rankNcrowdingBased(newRlz,**kwargs):
   newPopulationMerged = np.concatenate([population,offSprings])
   newAge.extend([0]*len(offSprings))
 
-  sortedConst,sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives = zip(*[(x,y,z,i,j,k) for x,y,z,i,j,k in sorted(zip(newConstMerged,newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged_pair),reverse=False,key=lambda x: (x[0], x[1], -x[2]))])
-  sortedConstT,sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectivesT = np.atleast_1d(list(sortedConst)),np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives))
+  sortedConst,sortedRank,sortedCD,sortedAge,sortedPopulation,sortedObjectives,sortedConstV = \
+    zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
+      sorted(zip(newConstMerged,newPopRank.data,newPopCD.data,newAge,newPopulationMerged.tolist(),newObjectivesMerged_pair,newConstVMerged),reverse=False,key=lambda x: (x[0], x[1], -x[2]))])
+  sortedConstT,sortedRankT,sortedCDT,sortedAgeT,sortedPopulationT,sortedObjectivesT,sortedConstVT = \
+    np.atleast_1d(list(sortedConst)),np.atleast_1d(list(sortedRank)),list(sortedCD),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 
   newPopulation = sortedPopulationT[:-len(offSprings)]
   newObjectives = sortedObjectivesT[:-len(offSprings)]
-  newObjectives = [list(ele) for ele in list(zip(*newObjectives))]
-  newRank = sortedRankT[:-len(offSprings)]
-  newCD = sortedCDT[:-len(offSprings)]
+
+  newRank = frontUtils.rankNonDominatedFrontiers(newObjectives)
+  newRank = xr.DataArray(newRank,
+                         dims=['rank'],
+                         coords={'rank': np.arange(np.shape(newRank)[0])})
+
+  newObjectivesP = [list(ele) for ele in list(zip(*newObjectives))]
+  newCD = frontUtils.crowdingDistance(rank=newRank, popSize=len(newRank), objectives=newObjectives)
+  newCD = xr.DataArray(newCD,
+                       dims=['CrowdingDistance'],
+                       coords={'CrowdingDistance': np.arange(np.shape(newCD)[0])})
+
   newAge = sortedAgeT[:-len(offSprings)]
   newConst = sortedConstT[:-len(offSprings)]
+  newConstV = sortedConstVT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulation,
                                     dims=['chromosome','Gene'],
                                     coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
                                             'Gene': kwargs['variables']})
-  newRank = xr.DataArray(newRank,
-                         dims=['rank'],
-                         coords={'rank':np.arange(np.shape(newRank)[0])})
-
-  newCD = xr.DataArray(newCD,
-                       dims=['CrowdingDistance'],
-                       coords={'CrowdingDistance':np.arange(np.shape(newCD)[0])})
-
   newConst = xr.DataArray(newConst,
-                          dims=['CrowdingDistance'],
-                          coords={'CrowdingDistance':np.arange(np.shape(newConst)[0])})
+                          dims=['NumOfConstViolated'],
+                          coords={'NumOfConstViolated':np.arange(np.shape(newConst)[0])})
 
-  return newPopulationArray,newRank,newAge,newCD,newObjectives,newConst
+  newConstV = xr.DataArray(newConstV,
+                           dims=['chromosome','ConstEvaluation'],
+                           coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
+                                   'ConstEvaluation':np.arange(np.shape(newConstV)[1])})
+
+  return newPopulationArray,newRank,newAge,newCD,newObjectivesP,newConst,newConstV
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased

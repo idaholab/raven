@@ -1,0 +1,11 @@
+<DataObjectMetadata name="opt_export">
+  <DataSet type="Static">
+    <general>
+      <datasetName>opt_export</datasetName>
+      <inputs>trajID</inputs>
+      <outputs>x1,x2,x3,x4,x5,x6,obj1,obj2,age,batchId,rank,CD,ConstraintEvaluation_expConstr3,ConstraintEvaluation_impConstr3,fitness,accepted</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
