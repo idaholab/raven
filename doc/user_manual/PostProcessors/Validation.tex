@@ -9,12 +9,12 @@ Several post-processors are available for model validation:
 \begin{itemize}
   \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
   \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
-  % \item  \textbf{Representativity}
+  \item  \textbf{Representativity}
   \item  \textbf{PCM}, using Physics-guided Coverage Mapping method for validation, can only be used for static problems.
 \end{itemize}
 %
 
-The choices of the available metrics and acceptable data objects are specified in table \ref{tab:ValidationAlgorithms}.
+The choices of the available metrics and acceptable data objects are specified in table~\ref{tab:ValidationAlgorithms}.
 
 \begin{table}[]
 \caption{Validation Algorithms and respective available metrics and DataObjects}
@@ -23,7 +23,7 @@ The choices of the available metrics and acceptable data objects are specified i
 \hline
 \textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
 Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
-Representativity              & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet \\DataSet\end{tabular} & \begin{tabular}[c]{@{}c@{}}BiasFactor\end{tabular} \\ \hline
+Representativity              & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}\end{tabular} \\ \hline
 PPDSS                         & HistorySet                                                     & DSS                                                           \\ \hline
 PCM                           & PointSet                                                       & (not applicable)                                              \\ \hline
 \end{tabular}
@@ -106,7 +106,7 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
       \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g., SKL, Minkowski)
     \end{itemize}
     \nb The choice of the available metric is \xmlString{DSS}, please
-    refer to \ref{sec:Metrics} for detailed descriptions about this metric.
+    refer to~\ref{sec:Metrics} for detailed descriptions about this metric.
     \item \xmlNode{pivotParameterFeature}, \xmlDesc{string, required field}, specifies the pivotParameter for a feature <HistorySet>. The feature pivot parameter is the shared index of the output variables in the data object.
     \item \xmlNode{pivotParameterTarget}, \xmlDesc{string, required field}, specifies the pivotParameter for a target <HistorySet>. The target pivot parameter is the shared index of the output variables in the data object.
     \item \xmlNode{separateFeatureData}, \xmlDesc{string, optional field}, specifies the custom feature interval to apply DSS postprocessing. The string should contain three parts; start time, `|', and end time all in one. For example, 0.0|0.5.
@@ -248,7 +248,7 @@ pivot parameter must be named `pivot\_parameter' and this array is assigned with
     number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
 \end{itemize}
 
-The output of PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'', 
+The output of PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'',
 where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Targets}.
 
 
@@ -280,7 +280,7 @@ form a good representation of a target model. Two, if  a set of experiments can 
 claim a full coverage of the design space and scenarios, and three, if the available set of experiments are not
 enough to declare coverage what are the remaining experiments required in order to achieve full coverage and
 increase the representativity/bias factor. The representativity theory was first founded in the
-Neutronics community \ref{} then shortly after, was transformed to the thermal hydraulics \ref{}.
+Neutronics community \cite{Palmiotti1,Palmiotti2} then shortly after, was transformed to the thermal hydraulics \cite{RepAaron}.
 So far several algorithms are implemented within this post-processor:
 %
 \ppType{Representativity}{Representativity}
@@ -301,20 +301,6 @@ So far several algorithms are implemented within this post-processor:
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).
         \item \xmlNode{targetPivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable in the target model. Default is ``time''.
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).
-
-    \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
-    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
-    \begin{itemize}
-      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
-      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
-    \end{itemize}
-    The choice of the available metrics depends on the specific validation algorithm that is chosen (see table \ref{tab:ValidationAlgorithms})
-\end{itemize}
-
-
-The \textbf{Represntativity} post-processor can make use of the \textbf{Metric} system (See Chapter \ref{sec:Metrics}),
-in conjunction with the specific algorithm chosen from the list above,
-to report validation scores for both static and time-dependent data.
 Indeed, Both \textbf{PointSet} and \textbf{HistorySet} can be accepted by this post-processor.
 If the name of given variable to be compared is unique, it can be used directly, otherwise the variable can be specified
 with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
@@ -324,39 +310,46 @@ with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
 <Simulation>
 ...
   <Steps>
-    <MultiRun name="mcRun" re-seeding="20021986">
-	  <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
-	  <Model class="Models" type="ExternalModel">linModel</Model>
-	  <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-	  <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
-	  <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
-	</MultiRun>
-	<PostProcess name="PP1">
-	  <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
-	  <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
-	  <Model class="Models" type="PostProcessor">pp1</Model>
-	  <Output class="DataObjects" type="PointSet">pp1_metric</Output>
-	  <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
-	</PostProcess>
+  <!--Multirun the prototype model-->
+  <MultiRun name="mcRunExp" re-seeding="20021986">
+    <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+    <Model class="Models" type="ExternalModel">linModel</Model>
+    <Sampler class="Samplers" type="MonteCarlo">ExperimentMCSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+  </MultiRun>
+  <!--Multirun the target model-->
+  <MultiRun name="mcRunTar" re-seeding="68912002">
+    <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+    <Model class="Models" type="ExternalModel">tarModel</Model>
+    <Sampler class="Samplers" type="MonteCarlo">TargetMCSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+  </MultiRun>
+  <!--Create the Representativity PostProcessor-->
+  <PostProcess name="PP1">
+    <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+    <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+    <Model class="Models" type="PostProcessor">pp1</Model>
+    <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+    <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+  </PostProcess>
   </Steps>
 ...
   <Models>
-...
-	<PostProcessor name="pp1" subType="Representativity">
-	  <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
-	  <Targets>outputDataMC2|F1, outputDataMC2|F2, outputDataMC2|F3</Targets>
-	  <Metric class="Metrics" type="Metric">simIndex</Metric>
-	  <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
-	  <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
-	  <pivotParameter>outputDataMC1|time</pivotParameter>
-	  <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
-	</PostProcessor>
-...
-<Models>
-...
-<Metrics>
-	<Metric name="simIndex" subType="RepresentativityFactors"/>
-</Metrics>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/expLinModel.py" name="linModel" subType="">
+      <variables>p1, p2, e1, e2, e3, bE, F1, F2, F3</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/tarLinModel.py" name="tarModel" subType="">
+      <variables>p1, p2, o1, o2, o3, bT, FOM1, FOM2, FOM3</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Representativity">
+      <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
+      <Targets>outputDataMC2|FOM1, outputDataMC2|FOM2, outputDataMC2|FOM3</Targets><!---->
+      <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
+      <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
+      <pivotParameter>outputDataMC1|time</pivotParameter>
+      <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
+    </PostProcessor>
+  </Models>
 ...
 <Simulation>
 \end{lstlisting}
