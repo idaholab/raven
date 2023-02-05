@@ -11,15 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-  Created on April 29, 2021
-
-  @author: Mohammad Abdo (@Jimmy-INL)
-
-  This class represents a base class for the validation algorithms
-  It inherits from the PostProcessor directly
-  ##TODO: Recast it once the new PostProcesso API gets in place
-"""
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -30,7 +21,6 @@ from scipy.linalg import sqrtm
 
 #Internal Modules------------------------------------------------------------------------------------
 from ravenframework.utils import InputData, InputTypes
-from ravenframework.utils import utils
 from .. import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -40,9 +30,9 @@ class Representativity(ValidationBase):
     It represents the base class for most validation problems
 
     @ Authors: Mohammad abdo  (@Jimmy-INL)
-               Congjian Wang  (@)
-               Andrea Alfonsi (@)
-               Aaron Epiney   (@)
+               Congjian Wang  (@wangcj05)
+               Andrea Alfonsi (@aalfonsi)
+               Aaron Epiney   (@AaronEpiney)
 
   """
 
@@ -62,7 +52,6 @@ class Representativity(ValidationBase):
     specs.addSub(parametersInput)
     targetParametersInput = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType,
                             descr=r"""Target model parameters/inputs""")
-    targetParametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(targetParametersInput)
     targetPivotParameterInput = InputData.parameterInputFactory("targetPivotParameter", contentType=InputTypes.StringType,
                                 descr=r"""ID of the temporal variable of the target model. Default is ``time''.
@@ -163,13 +152,17 @@ class Representativity(ValidationBase):
         self.targetParameters = child.value
       elif child.getName() == 'targetPivotParameter':
         self.targetPivotParameter = child.value
+    _, notFound = paramInput.findNodesAndExtractValues(['featureParameters',
+                                                               'targetParameters'])
+    # notFound must be empty
+    assert(not notFound)
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action. In this case it loads the
-      results to specified dataObject
-      @ In, inputIn, list, dictionary of data to process
-      @ Out, outputDict, dict, dictionary containing the post-processed results
+      This method executes the postprocessor action. In this case it computes representativity/bias factors, corrected data, etc.
+
+      @ In, inputIn, dictionary of data to process
+      @ Out, evaluation, dict, dictionary containing the post-processed results
     """
     dataSets = [data for _, _, data in inputIn['Data']]
     pivotParameter = self.pivotParameter
@@ -181,7 +174,8 @@ class Representativity(ValidationBase):
           self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
         else:
           pivotParameter = self.pivotParameter
-    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}#inputIn
+    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}
+
     ## TODO: This is a placeholder to remember the time dependent case
     # if pivotParameter:
     #   # Uncomment this to cause crash: print(dataSets[0], pivotParameter)
