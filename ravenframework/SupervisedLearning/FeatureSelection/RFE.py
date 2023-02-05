@@ -553,7 +553,7 @@ class RFE(FeatureSelectionBase):
     #screen and retrain estimator
     featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
                                             y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
-                                            self.estimator, support_, originalParams)
+                                            self.estimator_, support_, originalParams, self.parametersToInclude)
     self.nFeatures_ = support_.sum()
     self.support_ = support_
     self.ranking_ = ranking_
@@ -655,7 +655,7 @@ class RFE(FeatureSelectionBase):
       #screen and retrain estimator
       featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
                                               y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
-                                              estimator, support_, originalParams, outputToRemove)
+                                              estimator, support_, originalParams, parametersToInclude, outputToRemove)
 
       # Get coefs
       coefs = None
@@ -749,7 +749,7 @@ class RFE(FeatureSelectionBase):
     #screen and retrain estimator
     featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
                                             y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
-                                            estimator, support_, originalParams)
+                                            estimator, support_, originalParams, parametersToInclude)
 
     # evaluate
     score = 0.0

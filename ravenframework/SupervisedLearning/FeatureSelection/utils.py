@@ -19,6 +19,7 @@
 """
 
 #External Modules------------------------------------------------------------------------------------
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ def screenInputParams(support, params, includedParams, addOnKeys = None):
         vals[child.getName()] = newValues
   return vals
 
-def screenAndTrainEstimator(Xreduced, yreduced, estimator, support, params, addOnKeys = None):
+def screenAndTrainEstimator(Xreduced, yreduced, estimator, support, params, includedParams, addOnKeys = None):
   """
     Method to screen estimator input parameters (removing the ones that have been
     identified to be removed) and re-train it.
@@ -58,10 +59,11 @@ def screenAndTrainEstimator(Xreduced, yreduced, estimator, support, params, addO
     @ In, yreduced, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
     @ In, support, np.array(bool), the support of the parameters to keep
     @ In, params, InputData.ParameterInput, the original parameters.
+    @ In, includedParams, list, list of parameters part of this search
     @ In, addOnKeys, list, optional, list of additional keys to remove
     @ Out, None
   """
-  vals = screenInputParams(support, params, addOnKeys)
+  vals = screenInputParams(support, params, includedParams, addOnKeys = addOnKeys)
   if vals:
     estimator.paramInput.findNodesAndSetValues(vals)
     estimator._handleInput(estimator.paramInput)

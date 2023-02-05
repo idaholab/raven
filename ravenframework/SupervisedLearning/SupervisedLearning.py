@@ -408,13 +408,15 @@ class SupervisedLearning(BaseInterface):
       newFeatures, support = self.featureSelectionAlgo.run(self.features, self.target, featureValues, targetValues)
       # identify parameters to remove
       space =  self.featureSelectionAlgo.var("whichSpace")
-      vals = featSelectUtils.screenInputParams(support, self.paramInput, self.featureSelectionAlgo.var("parametersToInclude"))
+      # support here is the support vector on the global space (not just the subspace on which the selection has been performed)
+      # for this reason, the list of parameters to send are the full target or features
+      vals = featSelectUtils.screenInputParams(support, self.paramInput, self.target if 'target' in space else self.features)
       if space == 'feature' and np.sum(support) != len(self.features):
         self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
         self.raiseAMessage("Feature Selection removed the following features: {}".format(', '.join(self.removed)))
         self.raiseAMessage("Old feature space for surrogate model was       : {}".format(', '.join(self.features)))
         self.raiseAMessage("New feature space for surrogate model is now    : {}".format(', '.join(np.asarray(self.features)[newFeatures].tolist())))
-      else:
+      elif np.sum(support) != len(self.target):
         self.removed = set(self.target) - set(np.asarray(self.target)[newFeatures].tolist())
         self.raiseAMessage("Feature Selection removed the following features (from target space): {}".format(', '.join(self.removed)))
         self.raiseAMessage("Old feature space (in the target space) for surrogate model was     : {}".format(', '.join(self.target)))
