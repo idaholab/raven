@@ -105,9 +105,6 @@ class RFE(FeatureSelectionBase):
         descr=r"""If maxNumberFeatures is on, only output score should be"""
         """considered?.""",
         default=False))
-    spec.addSub(InputData.parameterInputFactory('searchTol',contentType=InputTypes.FloatType,
-        descr=r"""Relative tolerance for search! Only if maxNumberFeatures is set""",
-        default=1e-4))
     spec.addSub(InputData.parameterInputFactory('applyClusteringFiltering',contentType=InputTypes.BoolType,
         descr=r"""Applying clustering correlation  before Augmented-RFE search?""",
         default=False))
@@ -131,15 +128,31 @@ class RFE(FeatureSelectionBase):
   def __init__(self):
     super().__init__()
     self.printTag = 'FEATURE SELECTION - Augmented-RFE'
+    # estimator local pointer
     self.estimator = None
+    # number features to select
     self.nFeaturesToSelect = None
+    # max number features to select
     self.maxNumberFeatures = None
-    self.searchTol = None
+    # apply clustering before starting the selection?
     self.applyClusteringFiltering = False
+    # the scoring (if requested) should be done only on the output space (or the features should be considered?)
     self.onlyOutputScore = False
+    # if subgroupping, apply cross correlation filter?
     self.applyCrossCorrelation = False
+    # step to apply during RFE iterations
     self.step = 1
+    # list of subgroups for RFE (list of list (output subspaces))
     self.subGroups = []
+    # these attributes are available at the end of the selection
+    # number of final features
+    self.nFeatures_ = None
+    # mask array of the features selected (based on self.paramtersToInclude)
+    self.support_ = None
+    # mask array of the global features selected (based on global list of targets or features (depening on the space))
+    self.globalSupport_ = None
+    # feature reanking based on self.paramtersToInclude
+    self.ranking_ = None
 
   def __getstate__(self):
     """
@@ -168,13 +181,12 @@ class RFE(FeatureSelectionBase):
     """
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['whichSpace','step','nFeaturesToSelect','onlyOutputScore',
-                                                            'maxNumberFeatures', 'searchTol','applyClusteringFiltering',
+                                                            'maxNumberFeatures','applyClusteringFiltering',
                                                             'applyCrossCorrelation'])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
     self.maxNumberFeatures = nodes['maxNumberFeatures']
-    self.searchTol = nodes['searchTol']
     self.applyClusteringFiltering = nodes['applyClusteringFiltering']
     self.onlyOutputScore = nodes['onlyOutputScore']
     self.applyCrossCorrelation = nodes['applyCrossCorrelation']
@@ -544,18 +556,12 @@ class RFE(FeatureSelectionBase):
         supportIndex = supportIndex + 1
     if self.whichSpace == 'feature':
       features = np.arange(nFeatures)[supportOfSupport_]
-      targets = np.arange(nTargets)
     else:
-      features = np.arange(nFeatures)
       targets = np.arange(nTargets)[supportOfSupport_]
 
-    self.estimator_ = copy.deepcopy(self.estimator)
-    #screen and retrain estimator
-    featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
-                                            y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
-                                            self.estimator_, support_, originalParams, self.parametersToInclude)
     self.nFeatures_ = support_.sum()
     self.support_ = support_
+    self.globalSupport_ = supportOfSupport_
     self.ranking_ = ranking_
 
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_

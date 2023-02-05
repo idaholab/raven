@@ -118,7 +118,7 @@ class JobHandler(BaseType):
   def __setstate__(self, d):
     """
       Initialize the JobHandler with the data contained in newstate
-      @ In, d, dict, it contains all the information needed by the ROM to be initialized
+      @ In, d, dict, it contains all the information needed by the JobHandler to be initialized
       @ Out, None
     """
     self.__dict__.update(d)
