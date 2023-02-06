@@ -149,7 +149,7 @@ class SupervisedLearning(BaseInterface):
     """
     #Note: self.saveParam (BaseInterface class) is set at the _handleInput stage
     super().__init__()
-    self.printTag = 'SupervisedLearning'
+    self.printTag = type(self).__name__
     # "inputs" to this model
     self.features = None
     # "outputs" of this model
@@ -606,12 +606,12 @@ class SupervisedLearning(BaseInterface):
     """
     # different calls depending on if it's static or dynamic
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
-      writeTo.addScalar('ROM', "type", type(self).__name__, None, general = True)
+      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
       # write some common parameters (e.g. features, targets, etc.)
       writeTo.addScalar('ROM', "Features", " ".join(self.features), None, general = True)
       writeTo.addScalar('ROM', "Targets", " ".join(self.target), None, general = True)
     else:
-      writeTo.addScalar('ROM', "type", type(self).__name__)
+      writeTo.addScalar('ROM', "type", self.printTag)
       # write some common parameters (e.g. features, targets, etc.)
       writeTo.addScalar('ROM', "Features", " ".join(self.features))
       writeTo.addScalar('ROM', "Targets", " ".join(self.target))
