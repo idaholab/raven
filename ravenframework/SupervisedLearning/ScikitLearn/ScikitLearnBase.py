@@ -73,8 +73,6 @@ class ScikitLearnBase(SupervisedLearning):
       if cc is not None:
         cc/=float(len(model))
       coefs = cc
-
-
     else:
       if hasattr(model, 'feature_importances_'):
         coefs = model.feature_importances_
@@ -163,7 +161,6 @@ class ScikitLearnBase(SupervisedLearning):
       # the multi-target is handled by the internal wrapper
       self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
-
 
   def __confidenceLocal__(self,featureVals):
     """
