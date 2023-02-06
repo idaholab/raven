@@ -24,7 +24,7 @@ import shutil
 import time
 import threading
 import platform
-from distutils import spawn
+import shutil
 
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -295,7 +295,7 @@ class _TimeoutThread(threading.Thread):
         #Time over
         #If we are on windows, process.kill() is insufficient, so using
         # taskkill instead.
-        if os.name == "nt" and spawn.find_executable("taskkill"):
+        if os.name == "nt" and shutil.which("taskkill"):
           subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:
           self.__process.kill()
