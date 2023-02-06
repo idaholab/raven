@@ -174,9 +174,8 @@ class SparseSensing(PostProcessorReadyInterface):
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
 
     model.fit(data)
-    selectedSensors = model.get_all_sensors() #get_selected_sensors()
-
-    # dims = ['sensor']
+    allSensors = model.get_all_sensors()
+    selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}
@@ -187,4 +186,5 @@ class SparseSensing(PostProcessorReadyInterface):
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
     outDS['RAVEN_sample_ID'] = [0]
+    # mergedDS = outDS.combine_first(inputDS)
     return outDS
