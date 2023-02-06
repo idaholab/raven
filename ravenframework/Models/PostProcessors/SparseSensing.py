@@ -175,7 +175,7 @@ class SparseSensing(PostProcessorReadyInterface):
 
     model.fit(data)
     allSensors = model.get_all_sensors()
-    selectedSensors = model.get_selected_sensors()
+    selectedSensors = model.get_selected_sensors() # should be selected not all
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}

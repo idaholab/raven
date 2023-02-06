@@ -183,7 +183,7 @@ class SensorsPlot(PlotInterface):
     plt.ylabel(self.ylabel)
     plt.grid()
     axs=plt.gca()
-    axs.set_aspect(0.7)
+    # axs.set_aspect(0.7)
     # fig = plt.figure(figsize = (10, 7))
     # ax = plt.axes(projection ="3d")
 
