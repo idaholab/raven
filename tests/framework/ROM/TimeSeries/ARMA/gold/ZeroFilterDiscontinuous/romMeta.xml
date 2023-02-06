@@ -26,7 +26,7 @@
     <ROM>
       <type>ARMA</type>
       <Features>scaling</Features>
-      <Targets>TOTALLOAD WIND SOLAR</Targets>
+      <Targets>TOTALLOAD,WIND,SOLAR</Targets>
     </ROM>
     <TOTALLOAD>
       <Fourier>
@@ -83,7 +83,7 @@
         </period>
       </Fourier>
       <ARMA_params>
-        <std>0.89939785483</std>
+        <std>0.899397854822</std>
       </ARMA_params>
     </TOTALLOAD>
     <WIND>
@@ -141,7 +141,7 @@
         </period>
       </Fourier>
       <ARMA_params>
-        <std>0.842919576145</std>
+        <std>0.842919577858</std>
       </ARMA_params>
     </WIND>
     <SOLAR>
@@ -159,7 +159,7 @@
         </period>
       </Fourier>
       <ARMA_params>
-        <std>1.39794119762</std>
+        <std>1.39794119761</std>
       </ARMA_params>
     </SOLAR>
   </arma>

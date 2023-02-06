@@ -608,13 +608,13 @@ class SupervisedLearning(BaseInterface):
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
       writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
       # write some common parameters (e.g. features, targets, etc.)
-      writeTo.addScalar('ROM', "Features", " ".join(self.features), None, general = True)
-      writeTo.addScalar('ROM', "Targets", " ".join(self.target), None, general = True)
+      writeTo.addScalar('ROM', "Features", ",".join(self.features), None, general = True)
+      writeTo.addScalar('ROM', "Targets", ",".join(self.target), None, general = True)
     else:
       writeTo.addScalar('ROM', "type", self.printTag)
       # write some common parameters (e.g. features, targets, etc.)
-      writeTo.addScalar('ROM', "Features", " ".join(self.features))
-      writeTo.addScalar('ROM', "Targets", " ".join(self.target))
+      writeTo.addScalar('ROM', "Features", ",".join(self.features))
+      writeTo.addScalar('ROM', "Targets", ",".join(self.target))
 
 
   def writePointwiseData(self, *args):

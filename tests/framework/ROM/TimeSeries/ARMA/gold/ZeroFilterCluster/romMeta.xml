@@ -3,7 +3,7 @@
     <ROM>
       <type>Interp. Cluster ROM</type>
       <Features>scaling</Features>
-      <Targets>TOTALLOAD WIND SOLAR HOUR</Targets>
+      <Targets>TOTALLOAD,WIND,SOLAR,HOUR</Targets>
     </ROM>
     <InterpolatedMultiyearROM type="Static">
       <MacroParameterID>YEAR</MacroParameterID>
@@ -125,7 +125,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35989368322</std>
+            <std>2.35989368317</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -148,7 +148,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.23563244096</std>
+            <std>2.23563244091</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -161,7 +161,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.75877005912</std>
+            <std>3.75877005925</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
@@ -188,7 +188,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.29454565796</std>
+            <std>2.29454565793</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -211,7 +211,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.24891878768</std>
+            <std>2.24891878781</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -224,7 +224,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.83837056347</std>
+            <std>2.83837056343</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
@@ -251,7 +251,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35174927913</std>
+            <std>2.35174927911</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -274,7 +274,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19822135084</std>
+            <std>2.19822135096</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -287,7 +287,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.83503123016</std>
+            <std>3.83503122973</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>
@@ -408,7 +408,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35989368322</std>
+            <std>2.35989368317</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -431,7 +431,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.23563244096</std>
+            <std>2.23563244091</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -444,7 +444,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.75877005912</std>
+            <std>3.75877005925</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
@@ -471,7 +471,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.29454565796</std>
+            <std>2.29454565793</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -494,7 +494,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.24891878768</std>
+            <std>2.24891878781</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -507,7 +507,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.83837056347</std>
+            <std>2.83837056343</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
@@ -534,7 +534,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35174927913</std>
+            <std>2.35174927911</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -557,7 +557,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19822135084</std>
+            <std>2.19822135096</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -570,7 +570,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.83503123016</std>
+            <std>3.83503122973</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>
@@ -691,7 +691,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.3598936832244855</std>
+            <std>2.359893683174609</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -714,7 +714,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2356324409619095</std>
+            <std>2.2356324409138963</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -727,7 +727,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.758770059120775</std>
+            <std>3.758770059246469</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
@@ -754,7 +754,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2945456579567667</std>
+            <std>2.2945456579316197</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -777,7 +777,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2489187876784644</std>
+            <std>2.2489187878057613</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -790,7 +790,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.838370563468328</std>
+            <std>2.8383705634296637</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
@@ -817,7 +817,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.351749279131009</std>
+            <std>2.3517492791102144</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -840,7 +840,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.198221350840786</std>
+            <std>2.198221350960821</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -853,7 +853,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.8350312301636995</std>
+            <std>3.8350312297268667</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>

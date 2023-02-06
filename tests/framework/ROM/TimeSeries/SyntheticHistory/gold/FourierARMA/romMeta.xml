@@ -3,7 +3,7 @@
     <ROM>
       <type>SyntheticHistoryROM</type>
       <Features>scaling</Features>
-      <Targets>signal0 signal1 pivot</Targets>
+      <Targets>signal0,signal1,pivot</Targets>
     </ROM>
     <Fourier>
       <signal0>
@@ -39,22 +39,22 @@
     </Fourier>
     <ARMA>
       <signal0>
-        <constant>7.234090456e-03</constant>
-        <AR_0>2.976565856e-01</AR_0>
-        <AR_1>2.312423171e-01</AR_1>
-        <MA_0>2.950216437e-01</MA_0>
-        <MA_1>1.291025326e-01</MA_1>
-        <MA_2>1.513012128e-01</MA_2>
-        <variance>5.611933986e-01</variance>
+        <constant>7.234090799e-03</constant>
+        <AR_0>2.976565851e-01</AR_0>
+        <AR_1>2.312423174e-01</AR_1>
+        <MA_0>2.950216446e-01</MA_0>
+        <MA_1>1.291025329e-01</MA_1>
+        <MA_2>1.513012125e-01</MA_2>
+        <variance>5.611933985e-01</variance>
       </signal0>
       <signal1>
-        <constant>4.832167048e-03</constant>
+        <constant>4.832166618e-03</constant>
         <AR_0>4.679211501e-01</AR_0>
-        <AR_1>2.694770880e-01</AR_1>
-        <MA_0>2.866933698e-02</MA_0>
-        <MA_1>1.667744517e-02</MA_1>
-        <MA_2>1.382157611e-02</MA_2>
-        <variance>5.642030943e-01</variance>
+        <AR_1>2.694770881e-01</AR_1>
+        <MA_0>2.866933674e-02</MA_0>
+        <MA_1>1.667744479e-02</MA_1>
+        <MA_2>1.382157544e-02</MA_2>
+        <variance>5.642030945e-01</variance>
       </signal1>
     </ARMA>
   </synth>

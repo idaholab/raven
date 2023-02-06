@@ -18,7 +18,7 @@
     <ROM>
       <type>Clustered ROM</type>
       <Features>scaling</Features>
-      <Targets>Signal Time</Targets>
+      <Targets>Signal,Time</Targets>
     </ROM>
     <GlobalROM segment="all" type="Static">
       <Signal>
@@ -48,7 +48,7 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.70307716187</std>
+          <std>3.70307716232</std>
         </ARMA_params>
       </Signal>
       <segments_represented>0, 1, 2, 5</segments_represented>
@@ -70,7 +70,7 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.69053984031</std>
+          <std>3.69053984079</std>
         </ARMA_params>
       </Signal>
       <segments_represented>3, 6, 7, 8</segments_represented>
@@ -92,7 +92,7 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.71415064574</std>
+          <std>3.71415064569</std>
         </ARMA_params>
       </Signal>
       <segments_represented>4</segments_represented>
@@ -114,7 +114,7 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.70783547886</std>
+          <std>3.70783547881</std>
         </ARMA_params>
       </Signal>
       <segments_represented>9</segments_represented>
