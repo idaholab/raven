@@ -29,6 +29,8 @@
       <valueAtRisk prefix="VaR" threshold="0.05">x0,y0,z0,x,y,z</valueAtRisk>
       <expectedShortfall prefix="es" threshold="0.05">x0,y0,z0,x,y,z</expectedShortfall>
       <sharpeRatio prefix="sharpe">x0,y0,z0,x,y,z</sharpeRatio>
+      <sortinoRatio prefix="sort" threshold="median">x0,y0,z0,x,y,z</sortinoRatio>
+      <gainLossRatio prefix="glr" threshold="median">x0,y0,z0,x,y,z</gainLossRatio>
       <variance prefix="var">x0,y0,z0,x,y,z</variance>
       <covariance prefix="cov">
         <targets>x0,y0,z0,x,y,z</targets>
@@ -92,6 +94,8 @@
             VaR_0.05_ste_x0,VaR_0.05_ste_y0,VaR_0.05_ste_z0,VaR_0.05_ste_x,VaR_0.05_ste_y,VaR_0.05_ste_z,
             es_0.05_x0,es_0.05_y0,es_0.05_z0,es_0.05_x,es_0.05_y,es_0.05_z,
             sharpe_x0,sharpe_y0,sharpe_z0,sharpe_x,sharpe_y,sharpe_z,
+            sort_median_x0,sort_median_y0,sort_median_z0,sort_median_x,sort_median_y,sort_median_z,
+            glr_median_x0,glr_median_y0,glr_median_z0,glr_median_x,glr_median_y,glr_median_z,
             var_x0,var_y0,var_z0,var_x,var_y,var_z,
             mean_x0, mean_y0, mean_z0, mean_x, mean_y, mean_z,
             sigma_x0, sigma_y0, sigma_z0, sigma_x, sigma_y, sigma_z,

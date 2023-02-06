@@ -298,9 +298,39 @@ where:
   \item $\mathbb{E}(\boldsymbol{X})$ is the expected value of the output space
 \end{itemize}
 
+\subsection{Gaussianizing Noise of an Arbitrary Distribution}
+Many statistical models require noise in a signal to be Gaussian.
+However, this is difficult to guarantee in real-world applications.
+In RAVEN, the ARMA models in both the SupervisedLearning and TSA modules perform the distribution transformation from Morales et al. (2010) to Gaussianize noise of an arbitrary, unknown distribution \cite{morales_methodology_2010}.
 
+This transformation composes the cumulative distribution function (CDF) of the data and the inverse of the CDF of the unit normal distribution and is defined by
+\begin{equation} \label{eq:gaussianizing_transform}
+	y_t = \Phi^{-1}\left[F_X\left(x_t\right)\right],
+\end{equation}
+where $\Phi$ is the CDF of the unit normal distribution, $F_X$ is the CDF of the input process $X_t$, $x_t$ comprise the realized random process, and the values $y_t$ are the Gaussianized realization.
+This transformation operates by determining the quantile of $x_t$ in the original distribution via $F_X$, then determining the value in the normal distribution with the same quantile with the inverse of CDF $\Phi$.
+New realizations in the Gaussian process, $\tilde{y}_t$, can be converted to their equivalent values in the original distribution by applying the inverse transformation
+\begin{equation} \label{eq:gauss_inverse_transform}
+	\tilde{x}_t = F_X^{-1}\left[\Phi\left(\tilde{y}_t\right)\right].
+\end{equation}
 
+This transformation assumes that $F_X$ is known, but this is very often not the case with real-world data.
+Therefore, we are left to approximate $F_X$ before applying Eq.~\ref{eq:gaussianizing_transform}.
+In RAVEN, this is done using the empirical CDF (ECDF), which attributes a point probability of $1 / N$ to each of $N$ data, resulting in a step-wise approximation of the true CDF.
+As a result of this method, ECDF $\hat{F}_X(x) = 0$ for $x < \min(x_t)$ and $\hat{F}_X(x) = 1$ for $x > \max(x_t)$.
+This is problematic because $\Phi$ only approaches 0 and 1 asymptotically, so Eq.~\ref{eq:gaussianizing_transform} is not well-defined for values $x \leq \min(x_t)$ and $x \geq \max(x_t)$.
+This issue is handled by adjusting the extreme values of $\hat{F}_X$ by some $\varepsilon$, such that
+\begin{align*}
+	\hat{F}_X(\min(x_t)) &= \varepsilon, \\
+	\hat{F}_X(\max(x_t)) &= 1 - \varepsilon,
+\end{align*}
+where $\varepsilon$ is small.
+However, the exact choice of $\varepsilon$ is rather arbitrary and can drastically change the quantile of the minimum and maximum values of $x_t$ due to the asymptotic behavior of $\Phi^{-1}$ approaching $0^+$ and $1^-$.
+For example, taking $\varepsilon$ to be machine epsilon for floating values in numpy ($\varepsilon \approx 2.22 \times 10^{-16}$), the extreme values of $y_t$ lie over 8 standard deviations from the mean, which is extremely unlikely to be the case in actuality.
 
-
-
-
+Kernel density estimation (KDE) has been considered as an alternative to the ECDF approximation method because KDE will preserve the asymptotic behavior of the CDF.
+While KDE does provide superior estimation of the probability of the extreme values of $x_t$, the other values of the CDFs are approximately equal, providing little practical benefit despite the drastically increased computational expense of KDE.
+It appears that poorly estimated extrema could result in effective upper and lower bounds on the sampled data due to the extreme unlikelihood of sampling values greater than 6-8 standard deviations from the mean.
+However, this is not an issue in practice because the unit normal distribution is not being sampled directly.
+Instead, an ARMA model is being fit to $y_t$, and the noise term of the ARMA model is not restricted to having a variance of 1.
+As a result, realizations of the model can produce arbitrarily large values and thus can yield values similar to the original $x_t$ when Eq.~\ref{eq:gauss_inverse_transform} is applied, despite the poor approximation of the extreme values of $F_X$ by $\hat{F}_X$.

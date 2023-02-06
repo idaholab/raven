@@ -78,22 +78,26 @@ class ravenROMexternal(object):
       @ Out, None
     """
     # find the RAVEN framework
-    frameworkDir = os.path.abspath(whereFrameworkIs)
-    if not os.path.exists(frameworkDir):
-      raise IOError('The RAVEN framework directory does not exist in location "' + str(frameworkDir)+'" !')
-    sys.path.append(os.path.dirname(frameworkDir))
-    if not os.path.dirname(frameworkDir).endswith("framework"):
-      # we import the Driver to load the RAVEN enviroment for the un-pickling
-      try:
-        from CustomDrivers import DriverUtils
-        DriverUtils.doSetup()
-      except ImportError:
-        # we try to add the framework directory
-        pass
-    else:
-      # we import the Driver to load the RAVEN enviroment for the un-pickling
-      sys.path.append(os.path.join(frameworkDir,"ravenframework"))
-      import Driver
+    try:
+      import ravenframework
+      #If the above succeeded, do not need to do any of the rest.
+    except ModuleNotFoundError:
+      frameworkDir = os.path.abspath(whereFrameworkIs)
+      if not os.path.exists(frameworkDir):
+        raise IOError('The RAVEN framework directory does not exist in location "' + str(frameworkDir)+'" !')
+      sys.path.append(os.path.dirname(frameworkDir))
+      if not os.path.dirname(frameworkDir).endswith("framework"):
+        # we import the Driver to load the RAVEN enviroment for the un-pickling
+        try:
+          from CustomDrivers import DriverUtils
+          DriverUtils.doSetup()
+        except ImportError:
+          # we try to add the framework directory
+          pass
+      else:
+        # we import the Driver to load the RAVEN enviroment for the un-pickling
+        sys.path.append(os.path.join(frameworkDir,"ravenframework"))
+        import Driver
     # de-serialize the ROM
     serializedROMlocation = os.path.abspath(binaryFileName)
     if not os.path.exists(serializedROMlocation):
@@ -119,6 +123,21 @@ class ravenROMexternal(object):
     self._binaryLoc = d['binaryFileName']
     self._frameworkLoc = d['whereFrameworkIs']
     self._load(self._binaryLoc, self._frameworkLoc)
+
+  def setAdditionalParams(self, nodes):
+    """
+      Set ROM parameters for external evaluation
+      @ In, nodes, list, list of xml nodes for setting parameters of pickleROM
+      @ Out, None
+    """
+    from ravenframework.SupervisedLearning.pickledROM import pickledROM
+    spec = pickledROM.getInputSpecification()()
+    # Changing parameters for the ROM
+    for node in nodes:
+      spec.parseNode(node)
+    # Matching the index name of the defaul params object
+    params = {'paramInput':spec}
+    self.rom.setAdditionalParams(params)
 
   def evaluate(self,request):
     """

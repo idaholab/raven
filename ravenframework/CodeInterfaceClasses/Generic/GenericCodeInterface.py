@@ -26,7 +26,7 @@ from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 class GenericCode(CodeInterfaceBase):
   """
     This class is used as a generic code interface for Model.Code in Raven.  It expects
-    input paremeters to be specified by input file, input files be specified by either
+    input parameters to be specified by input file, input files be specified by either
     command line or in a main input file, and produce a csv output.  It makes significant
     use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
     XML file.  See base class for more details.
@@ -76,7 +76,7 @@ class GenericCode(CodeInterfaceBase):
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """

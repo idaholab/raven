@@ -41,7 +41,7 @@
 
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../tests/framework/mode_test/simple_gp.py</executable>
+      <executable>%BASE_WORKING_DIR%/../../cluster_tests/simple_gp.py</executable>
     </Code>
   </Models>
 

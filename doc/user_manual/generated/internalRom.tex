@@ -40,6 +40,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -123,6 +124,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -152,6 +154,7 @@ Example:
       provides seed for VARMA and ARMA sampling.
       Must be provided before training. If no seed is assigned,
       then a random number will be used.
+  \default{None}
 
     \item \xmlNode{Multicycle}: \xmlDesc{string}, 
       indicates that each sample of the ARMA should yield
@@ -164,6 +167,7 @@ Example:
       depend                                                    on both the \xmlNode{pivotParameter}
       as well as the cycle, \xmlString{Cycle}. The cycle is a second
       \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
+  \default{None}
 
       The \xmlNode{Multicycle} node recognizes the following subnodes:
       \begin{itemize}
@@ -189,6 +193,7 @@ Example:
           \end{tabular}                                                      \caption{ARMA Growth
           Factor Examples}                                                      \label{tab:arma
           multicycle growth}                                                    \end{table}
+  \default{None}
           The \xmlNode{growth} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{targets}: \xmlDesc{comma-separated strings, required}, 
@@ -211,9 +216,11 @@ Example:
       changes the structure of the samples for Clustered
       Segmented ROMs. These are identical to the options for \xmlNode{evalMode}
       node under \xmlNode{Segmented}
+  \default{None}
 
     \item \xmlNode{maxCycles}: \xmlDesc{integer}, 
       maximum number of cycles to run (default no limit)
+  \default{None}
   \end{itemize}
 
 \hspace{24pt}
@@ -306,6 +313,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
@@ -339,6 +347,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
     \item \xmlNode{SparseGrid}: \xmlDesc{[smolyak, tensor]}, 
       allows specification of the multidimensional
       quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.
+  \default{smolyak}
 
     \item \xmlNode{IndexPoints}: \xmlDesc{comma-separated list of comma separated integer tuples}, 
       used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
@@ -347,11 +356,13 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
       \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
       \nb{Using custom index sets                                                  does not
       guarantee accurate convergence.}
+  \default{None}
 
     \item \xmlNode{Interpolation}: \xmlDesc{string}, 
       offers the option to specify quadrature, polynomials, and importance weights for the given
       variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
       dimensionality of the input space.
+  \default{None}
       The \xmlNode{Interpolation} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{quad}: \xmlDesc{string, optional}, 
@@ -376,8 +387,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
             delineates the importance weighting of this dimension.  A larger importance weight will
             result in increased resolution for this dimension at the cost of resolution in lower-
-            weighted                   dimensions.  The algorithm normalizes weights at run-
-            time.\default{1}.
+            weighted                   dimensions.  The algorithm normalizes weights at run-time. \default{1}
       \end{itemize}
   \end{itemize}
 
@@ -471,6 +481,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
       specifies alias for         any variable of interest in the input or output space. These
@@ -504,6 +515,7 @@ Example:
     \item \xmlNode{SparseGrid}: \xmlDesc{[smolyak, tensor]}, 
       allows specification of the multidimensional
       quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.
+  \default{smolyak}
 
     \item \xmlNode{IndexPoints}: \xmlDesc{comma-separated list of comma separated integer tuples}, 
       used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
@@ -512,11 +524,13 @@ Example:
       \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
       \nb{Using custom index sets                                                  does not
       guarantee accurate convergence.}
+  \default{None}
 
     \item \xmlNode{Interpolation}: \xmlDesc{string}, 
       offers the option to specify quadrature, polynomials, and importance weights for the given
       variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
       dimensionality of the input space.
+  \default{None}
       The \xmlNode{Interpolation} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{quad}: \xmlDesc{string, optional}, 
@@ -541,8 +555,7 @@ Example:
           \item \xmlAttr{weight}: \xmlDesc{float, optional}, 
             delineates the importance weighting of this dimension.  A larger importance weight will
             result in increased resolution for this dimension at the cost of resolution in lower-
-            weighted                   dimensions.  The algorithm normalizes weights at run-
-            time.\default{1}.
+            weighted                   dimensions.  The algorithm normalizes weights at run-time. \default{1}
       \end{itemize}
 
     \item \xmlNode{SobolOrder}: \xmlDesc{integer}, 
@@ -623,6 +636,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -660,16 +674,19 @@ Example:
       the cluster.                                                    \item \texttt{count} - The
       count of points that flow to or from the
       extremum.                                                  \end{itemize}
+  \default{difference}
 
     \item \xmlNode{gradient}: \xmlDesc{string}, 
       specifies the                                                  method used for estimating the
       gradient, available options are:
       \begin{itemize}                                                    \item \texttt{steepest}
       \end{itemize}
+  \default{steepest}
 
     \item \xmlNode{simplification}: \xmlDesc{float}, 
       specifies the                                                  amount of noise reduction to
       apply before returning labels.
+  \default{0}
 
     \item \xmlNode{graph}: \xmlDesc{string}, 
       specifies the type                                                  of neighborhood graph used
@@ -678,11 +695,13 @@ Example:
       skeleton}                                                    \item \texttt{relaxed beta
       skeleton}                                                    \item \texttt{approximate knn}
       \end{itemize}
+  \default{beta skeleton}
 
     \item \xmlNode{beta}: \xmlDesc{float}, 
       in range: $(0, 2])$. It is                                                  only used when the
       \xmlNode{graph} is set to \texttt{beta skeleton} or
       \texttt{relaxed beta skeleton}.
+  \default{1.0}
 
     \item \xmlNode{knn}: \xmlDesc{integer}, 
       is the number of                                                  neighbors when using the
@@ -690,10 +709,12 @@ Example:
       sub-node and used to speed up the computation of other graphs by using the
       approximate knn graph as a starting point for pruning. -1 means use a fully
       connected graph.
+  \default{-1}
 
     \item \xmlNode{weighted}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       a flag that specifies                                                  whether the regression
       models should be probability weighted.
+  \default{False}
 
     \item \xmlNode{partitionPredictor}: \xmlDesc{string}, 
       a flag that                                                  specifies how the predictions for
@@ -701,11 +722,13 @@ Example:
       performed. Available options are:
       \begin{itemize}                                                    \item \texttt{kde}
       \item \texttt{svm}                                                  \end{itemize}
+  \default{kde}
 
     \item \xmlNode{smooth}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       if this node is present, the ROM will blend the
       estimates of all of the local linear models weighted by the probability the
       query point is categorized as belonging to that partition of the input space.
+  \default{False}
 
     \item \xmlNode{kernel}: \xmlDesc{string}, 
       this option is only                                                  used when the
@@ -720,6 +743,7 @@ Example:
       \item \texttt{cosine}                                                    \item
       \texttt{logistic}                                                    \item \texttt{silverman}
       \item \texttt{exponential}                                                  \end{itemize}
+  \default{gaussian}
 
     \item \xmlNode{bandwidth}: \xmlDesc{float or string}, 
       this                                                  option is only used when the
@@ -728,6 +752,7 @@ Example:
       implies a smooother blending. If set to \texttt{variable}, then the bandwidth
       will be set to the distance of the $k$-nearest neighbor of the query point
       where $k$ is set by the \xmlNode{knn} parameter.
+  \default{1.0}
   \end{itemize}
 
 \hspace{24pt}
@@ -796,6 +821,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -887,6 +913,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -915,6 +942,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{TimeSeriesGenerator}:
       Base class for time series analysis algorithms used in RAVEN.
@@ -1159,6 +1187,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1187,6 +1216,7 @@ Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that is non-decreasing in
       the input HistorySet.
+  \default{time}
 
     \item \xmlNode{correlate}: \xmlDesc{comma-separated strings}, 
       indicates the listed variables                                                    should be
@@ -1195,11 +1225,13 @@ Example:
       variables that are desired for correlation should be included.  \nb The
       correlated VARMA takes notably longer to train than the independent ARMAs for the same number
       of targets.
+  \default{None}
 
     \item \xmlNode{seed}: \xmlDesc{integer}, 
       provides seed for VARMA and ARMA sampling.
       Must be provided before training. If no seed is assigned,
       then a random number will be used.
+  \default{None}
 
     \item \xmlNode{reseedCopies}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       if \xmlString{True} then whenever the ARMA is loaded from file, a
@@ -1216,22 +1248,27 @@ Example:
       is more than 1, it is not possible to guarantee the order of RNG usage by
       the separate processes, so it is not possible to guarantee reproducible
       histories are generated.
+  \default{True}
 
     \item \xmlNode{P}: \xmlDesc{integer}, 
       defines the value of $p$.
+  \default{3}
 
     \item \xmlNode{Q}: \xmlDesc{integer}, 
       defines the value of $q$.
+  \default{3}
 
     \item \xmlNode{Fourier}: \xmlDesc{comma-separated integers}, 
       must be positive integers. This defines the
       based period that will be used for Fourier detrending, i.e., this
       field defines $1/f\_m$ in the above equation.
       When this filed is not specified, the ARMA considers no Fourier detrend.
+  \default{None}
 
     \item \xmlNode{Peaks}: \xmlDesc{string}, 
       designed to estimate the peaks in signals that repeat with some frequency,
       often in periodic data.
+  \default{None}
       The \xmlNode{Peaks} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{target}: \xmlDesc{string, required}, 
@@ -1247,6 +1284,7 @@ Example:
       \begin{itemize}
         \item \xmlNode{nbin}: \xmlDesc{integer}, 
           -- no description yet --
+  \default{5}
 
         \item \xmlNode{window}: \xmlDesc{comma-separated floats}, 
           lists the window of time within each period in which a peak should be discovered.
@@ -1273,12 +1311,14 @@ Example:
       not to stretch                                                    the most extreme events
       (high or low signal values), but instead the sequence of events throughout this
       history. For example, this transform can preserve the load duration curve for a load signal.
+  \default{False}
 
     \item \xmlNode{SpecificFourier}: \xmlDesc{string}, 
       provides a means to specify different Fourier
       decomposition for different target variables.  Values given in the subnodes of this node will
       supercede                                                    the defaults set by the
       \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.
+  \default{None}
       The \xmlNode{SpecificFourier} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{variables}: \xmlDesc{comma-separated strings, required}, 
@@ -1305,6 +1345,7 @@ Example:
       depend                                                    on both the \xmlNode{pivotParameter}
       as well as the cycle, \xmlString{Cycle}. The cycle is a second
       \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
+  \default{None}
 
       The \xmlNode{Multicycle} node recognizes the following subnodes:
       \begin{itemize}
@@ -1330,6 +1371,7 @@ Example:
           \end{tabular}                                                      \caption{ARMA Growth
           Factor Examples}                                                      \label{tab:arma
           multicycle growth}                                                    \end{table}
+  \default{None}
           The \xmlNode{growth} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{targets}: \xmlDesc{comma-separated strings, required}, 
@@ -1350,6 +1392,7 @@ Example:
 
     \item \xmlNode{nyquistScalar}: \xmlDesc{integer}, 
       -- no description yet --
+  \default{1}
 
     \item \xmlNode{ZeroFilter}: \xmlDesc{string}, 
       turns on \emph{zero filtering}                                                  for the listed
@@ -1363,6 +1406,7 @@ Example:
       times. The results from separated ARMAs are recombined after sampling. This can be a
       methodology for                                                  treating histories with long
       zero-value segments punctuated periodically by peaks.
+  \default{None}
       The \xmlNode{ZeroFilter} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{tol}: \xmlDesc{float, optional}, 
@@ -1378,6 +1422,7 @@ Example:
       domain is strictly positive, the absolute value of the original negative value will be used
       instead, and                                                    similarly for the negative
       domain.
+  \default{None}
       The \xmlNode{outTruncation} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{domain}: \xmlDesc{[positive, negative], required}, 
@@ -1553,6 +1598,7 @@ General ARMA Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1581,24 +1627,30 @@ General ARMA Example:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that represents the
       independent monotonic variable
+  \default{time}
 
     \item \xmlNode{numberExpTerms}: \xmlDesc{integer}, 
       the number of exponential terms to be used ($N$ above)
+  \default{3}
 
     \item \xmlNode{coeffRegressor}: \xmlDesc{[poly, spline, nearest]}, 
       defines which regressor to use for interpolating the
       exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.
+  \default{spline}
 
     \item \xmlNode{polyOrder}: \xmlDesc{integer}, 
       the polynomial order to be used for interpolating the exponential
       coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''.
+  \default{3}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       relative tolerance of the optimization problem (differential evolution optimizer)
+  \default{0.001}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       maximum number of iterations (generations) for the
       optimization problem  (differential evolution optimizer)
+  \default{5000}
   \end{itemize}
 
 \hspace{24pt}
@@ -1697,6 +1749,7 @@ Example to export the coefficients of trained PolyExponential ROM:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1727,10 +1780,12 @@ Example to export the coefficients of trained PolyExponential ROM:
       \begin{itemize}                                                     \item \textit{dmd}, for
       classical DMD                                                     \item \textit{hodmd}, for
       high order DMD.                                                   \end{itemize}
+  \default{dmd}
 
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that represents the
       independent monotonic variable
+  \default{time}
 
     \item \xmlNode{rankSVD}: \xmlDesc{integer}, 
       defines the truncation rank to be used for the SVD.
@@ -1739,25 +1794,30 @@ Example to export the coefficients of trained PolyExponential ROM:
       \item \textit{0}, optimal rank is internally computed
       \item \textit{>1}, this rank is going to be used for the truncation
       \end{itemize}
+  \default{None}
 
     \item \xmlNode{energyRankSVD}: \xmlDesc{float}, 
       energy level ($0.0 < float < 1.0$) used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
       identified by                                                    \xmlNode{energyRankSVD}. This
       node has always priority over  \xmlNode{rankSVD}
+  \default{None}
 
     \item \xmlNode{rankTLSQ}: \xmlDesc{integer}, 
       $int > 0$ that defines the truncation rank to be used for the total
       least square problem. If not inputted, no truncation is applied
+  \default{None}
 
     \item \xmlNode{exactModes}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       True if the exact modes need to be computed (eigenvalues and
       eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+  \default{True}
 
     \item \xmlNode{optimized}: \xmlDesc{float}, 
       True if the amplitudes need to be computed minimizing the error
       between the modes and all the time-steps or False, if only the 1st timestep only needs to be
       considered
+  \default{False}
   \end{itemize}
 
 \hspace{24pt}
@@ -1870,6 +1930,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1898,6 +1959,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that represents the
       independent monotonic variable
+  \default{time}
 
     \item \xmlNode{rankSVD}: \xmlDesc{integer}, 
       defines the truncation rank to be used for the SVD.
@@ -1906,25 +1968,30 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{0}, optimal rank is internally computed
       \item \textit{>1}, this rank is going to be used for the truncation
       \end{itemize}
+  \default{None}
 
     \item \xmlNode{energyRankSVD}: \xmlDesc{float}, 
       energy level ($0.0 < float < 1.0$) used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
       identified by                                                    \xmlNode{energyRankSVD}. This
       node has always priority over  \xmlNode{rankSVD}
+  \default{None}
 
     \item \xmlNode{rankTLSQ}: \xmlDesc{integer}, 
       $int > 0$ that defines the truncation rank to be used for the total
       least square problem. If not inputted, no truncation is applied
+  \default{None}
 
     \item \xmlNode{exactModes}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       True if the exact modes need to be computed (eigenvalues and
       eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+  \default{True}
 
     \item \xmlNode{optimized}: \xmlDesc{float}, 
       True if the amplitudes need to be computed minimizing the error
       between the modes and all the time-steps or False, if only the 1st timestep only needs to be
       considered
+  \default{False}
 
     \item \xmlNode{actuators}: \xmlDesc{comma-separated strings}, 
       defines the actuators (i.e. system input parameters)
@@ -1946,11 +2013,13 @@ Example to export the coefficients of trained DMD ROM:
       by the \xmlNode{actuators} signal. The variables listed in
       \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
       node too.
+  \default{[]}
 
     \item \xmlNode{subtractNormUXY}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       True if the initial values need to be subtracted from the
       actuators (u), state (x) and outputs (y) if any. False if the subtraction
       is not needed.
+  \default{False}
   \end{itemize}
 
 \hspace{24pt}

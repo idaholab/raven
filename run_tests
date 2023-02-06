@@ -10,7 +10,6 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
 TEST_SET=2 # 0 for normal tests, 1 for plugin tests, 2 for both
 
 # source read ravenrc script
@@ -20,20 +19,13 @@ source $RAVEN_RC_SCRIPT
 
 # set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
-if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
-  then
-  SKIP_CONDA=0
-else
-  # conda
-  SKIP_CONDA=1
-fi
 
 # read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
-            SKIP_CONDA=0
+            INSTALLATION_MANAGER=PIP
             ;;
         --raven)
             TEST_SET=0
@@ -52,11 +44,14 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
-if [[ ! $SKIP_CONDA == 0 ]]; then
+if  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
+then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
-else
+elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
-    #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+else
+    echo No installation: $INSTALLATION_MANAGER
 fi
 
 # pick tests to run

@@ -16,10 +16,10 @@
   Author: gairabhi
 """
 import numpy as np
-from ...utils import randomUtils, mathUtils, InputData
-from .GradientApproximater import GradientApproximater
+from ...utils import randomUtils, mathUtils
+from .GradientApproximator import GradientApproximator
 
-class SPSA(GradientApproximater):
+class SPSA(GradientApproximator):
   """
     Single-point (zeroth-order) gradient approximation.
     Note that SPSA is a larger algorithm; this is simply the gradient approximation part of it.
@@ -52,6 +52,7 @@ class SPSA(GradientApproximater):
         and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$. This approximation is much less robust
         than FiniteDifference or CentralDifference, but has the benefit of being dimension agnostic.
           """
+
     return specs
 
   def chooseEvaluationPoints(self, opt, stepSize, constraints=None):
@@ -74,6 +75,7 @@ class SPSA(GradientApproximater):
     evalPoints = [new]
     evalInfo = [{'type': 'grad',
                  'delta': delta}]
+
     return evalPoints, evalInfo
 
   def evaluate(self, opt, grads, infos, objVar):
@@ -94,6 +96,7 @@ class SPSA(GradientApproximater):
       gradient[var] = lossDiff / delta
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
     direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
+
     return magnitude, direction, foundInf
 
   def numGradPoints(self):
@@ -102,6 +105,5 @@ class SPSA(GradientApproximater):
       @ In, None
       @ Out, None
     """
-    # SPSA always uses 1 point, regardless of anything
+    # SPSA always uses 1 point, regardless
     return 1
-

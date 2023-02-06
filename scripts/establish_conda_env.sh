@@ -116,6 +116,15 @@ function install_libraries()
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]]; # If pip package is created for pynumero, delete this command and add to pip dependencies
+    then
+      pyomo download-extensions || echo "Pyomo download failed"
+      pyomo build-extensions || echo "Pyomo build failed"
+    fi
   else
     # activate the enviroment
     activate_env
@@ -146,6 +155,15 @@ function create_libraries()
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]];
+    then
+      pyomo download-extensions || echo "Pyomo download failed"
+      pyomo build-extensions || echo "Pyomo build failed"
+    fi
   else
     #pip create virtual enviroment
     local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`

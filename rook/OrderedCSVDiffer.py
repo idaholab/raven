@@ -137,7 +137,7 @@ class OrderedCSVDiffer:
           gold_csv_file = open(gold_filename, 'rb')
       # if file doesn't exist, that's another problem
       except IOError:
-        msg.append('Gold file does not exist!')
+        msg.append('Gold file does not exist:'+gold_filename)
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:

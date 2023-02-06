@@ -5,6 +5,14 @@
    UnorderedCsv = 'Basic/outer_out.csv'
    max_time = 500
  [../]
+ [./Optimizer]
+   type = 'RavenFramework'
+   input = 'optimizer.xml'
+   [./data]
+     type = OrderedCSV
+     output = 'Optimizer/opt_export_0.csv'
+   [../]
+ [../]
  [./Code]
    type = 'RavenFramework'
    input = 'code.xml'

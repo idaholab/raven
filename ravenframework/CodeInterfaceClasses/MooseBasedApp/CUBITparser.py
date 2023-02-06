@@ -86,11 +86,10 @@ class CUBITparser():
     """
     if outFile == None:
       outFile = self.inputfile
-    IOfile = open(outFile,'w')
-    for entry in self.fileOrderStorage:
-      if type(entry) == unicode:
-        IOfile.writelines(entry)
-      elif type(entry) == list:
-        for key, value in self.keywordDictionary.items():
-          IOfile.writelines('#{ '+key+' = '+str(value)+'}'+'\n')
-    IOfile.close()
+    with open(outFile,'w') as IOfile:
+      for entry in self.fileOrderStorage:
+        if type(entry) == unicode:
+          IOfile.writelines(entry)
+        elif type(entry) == list:
+          for key, value in self.keywordDictionary.items():
+            IOfile.writelines('#{ '+key+' = '+str(value)+'}'+'\n')

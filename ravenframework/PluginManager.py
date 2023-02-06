@@ -91,7 +91,14 @@ def finishLoadPlugin(name):
     @ Out, available, bool, if True then plugin is available to use
   """
   if name not in _delayedPlugins:
-    return False
+    #Try to find module in system (such as from pip install)
+    #Note that loadEntities (below) checks if there is a subclass of
+    # PluginBase.PluginBase before using it, so this is safe.
+    spec = importlib.util.find_spec(name)
+    if spec is None:
+      return False
+    plugin = importlib.util.module_from_spec(spec)
+    _delayedPlugins[name] = (spec, plugin, False)
   spec, plugin, loaded = _delayedPlugins[name]
   if not loaded:
     spec.loader.exec_module(plugin)

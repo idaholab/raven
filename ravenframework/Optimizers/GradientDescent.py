@@ -111,9 +111,9 @@ class GradientDescent(RavenSampled):
               use, and its settings if applicable. Exactly one of the stepping algorithms
               below may be selected for this Optimizer.""")
     specs.addSub(step)
-    ## common options to all stepManipulator descenders
-    ## TODO
-    ## get specs for each stepManipulator subclass, and add them to this class's options
+    # common options to all stepManipulator descenders
+    # TODO
+    # get specs for each stepManipulator subclass, and add them to this class's options
     for option in stepFactory.knownTypes():
       subSpecs = stepFactory.returnClass(option).getInputSpecification()
       step.addSub(subSpecs)
@@ -126,9 +126,8 @@ class GradientDescent(RavenSampled):
               it can be accepted. Exactly one of the acceptance criteria
               below may be selected for this Optimizer.""")
     specs.addSub(accept)
-    ## common options to all acceptanceCondition descenders
-    ## TODO
-    ## get specs for each acceptanceCondition subclass, and add them to this class's options
+    # common options to all acceptanceCondition descenders
+    # get specs for each acceptanceCondition subclass, and add them to this class's options
     for option in acceptFactory.knownTypes():
       subSpecs = acceptFactory.returnClass(option).getInputSpecification()
       accept.addSub(subSpecs)
@@ -176,13 +175,14 @@ class GradientDescent(RavenSampled):
     new = {'stepSize': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
     # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
-    # # -> but really should only include active ones, not all of them. This seems like it should work
-    # #    when the InputData can scan forward to determine which entities are actually used.
+    # -> but really should only include active ones, not all of them. This seems like it should work
+    #    when the InputData can scan forward to determine which entities are actually used.
     for grad in gradFactory.knownTypes():
       new.update(gradFactory.returnClass(grad).getSolutionExportVariableNames())
     for step in stepFactory.knownTypes():
       new.update(stepFactory.returnClass(step).getSolutionExportVariableNames())
     ok.update(new)
+
     return ok
 
   def __init__(self):
@@ -192,11 +192,11 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     RavenSampled.__init__(self)
-    ## Instance Variable Initialization
+    # Instance Variable Initialization
     # public
     self.type = 'GradientDescent Optimizer'
     # _protected
-    self._gradientInstance = None  # instance of GradientApproximater
+    self._gradientInstance = None  # instance of GradientApproximator
     self._stepInstance = None      # instance of StepManipulator
     self._acceptInstance = None    # instance of AcceptanceCondition
     # history trackers, by traj, are deques (-1 is most recent)
@@ -214,7 +214,7 @@ class GradientDescent(RavenSampled):
     self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
     # __private
     # additional methods
-    ## register adaptive sample identification criteria
+    # register adaptive sample identification criteria
     self.registerIdentifier('purpose') # whether an opt, or which grad point
 
   def handleInput(self, paramInput):
@@ -322,11 +322,12 @@ class GradientDescent(RavenSampled):
       # fix capitalization for RAVEN standards
       fName = conv[:1].upper() + conv[1:]
       # get function from lookup
-      f = getattr(self, '_checkConv{}'.format(fName))
+      f = getattr(self, f'_checkConv{fName}')
       # check convergence function
       okay = f(traj)
       # store and update
       convs[conv] = okay
+
     return any(convs.values()), convs
 
   def _useRealization(self, info, rlz):
@@ -350,7 +351,8 @@ class GradientDescent(RavenSampled):
       opt, _ = self._stepTracker[traj]['opt']
       grads, gradInfos = zip(*self._stepTracker[traj]['grads'])
       gradMag, gradVersor, _ = self._gradientInstance.evaluate(opt,
-                                                               grads, gradInfos,
+                                                               grads,
+                                                               gradInfos,
                                                                self._objectiveVar)
       self.raiseADebug(' ... gradient calculated ...')
       self._gradHistory[traj].append((gradMag, gradVersor))
@@ -365,19 +367,20 @@ class GradientDescent(RavenSampled):
                                                   )
       except NoMoreStepsNeeded:
         # the stepInstance has decided it's done
-        self.raiseAMessage('Step Manipulator "{}" has declared no more steps needed!'.format(self._stepInstance.type))
+        self.raiseAMessage(f'Step Manipulator "{self._stepInstance.type}" has declared no more steps needed!')
         self._closeTrajectory(traj, 'converge', 'converged', optVal)
         return
+
       self.raiseADebug(' ... found new proposed opt point ...')
       # check new opt point against constraints
       try:
-        suggested, modded = self._handleExplicitConstraints(newOpt, opt, 'opt')
+        suggested, _ = self._handleExplicitConstraints(newOpt, opt, 'opt')
       except NoConstraintResolutionFound:
         # we've tried everything, but we just can't hack it
-        self.raiseAMessage('Optimizer "{}" trajectory {} was unable to continue due to functional or boundary constraints.'
-                           .format(self.name, traj))
+        self.raiseAMessage(f'Optimizer "{self.name}" trajectory {traj} was unable to continue due to functional or boundary constraints.')
         self._closeTrajectory(traj, 'converge', 'no constraint resolution', opt[self._objectiveVar])
         return
+
       # update values if modified by constraint handling
       deltas = dict((var, suggested[var] - opt[var]) for var in self.toBeSampled)
       actualStepSize, stepVersor, _ = mathUtils.calculateMagnitudeAndVersor(np.array(list(deltas.values())))
@@ -389,16 +392,16 @@ class GradientDescent(RavenSampled):
       self._stepHistory[traj].append({'magnitude': stepSize, 'versor': stepVersor, 'info': stepInfo})
       # start new step
       self._initializeStep(traj)
-      self.raiseADebug('Taking step {} for traj {} ...'.format(self.getIteration(traj), traj))
-      self.raiseADebug(' ... gradient magn: {:1.2e} direction: {}'.format(gradMag, gradVersor))
-      self.raiseADebug(' ... normalized desired step size: {}'.format(stepSize))
-      self.raiseADebug(' ... normalized actual  step size: {}'.format(actualStepSize))
+      self.raiseADebug(f'Taking step {self.getIteration(traj)} for traj {traj} ...')
+      self.raiseADebug(f' ... gradient magn: {gradMag:1.2e} direction: {gradVersor}')
+      self.raiseADebug(f' ... normalized desired step size: {stepSize}')
+      self.raiseADebug(f' ... normalized actual  step size: {actualStepSize}')
       # TODO denorm calcs could potentially be expensive, maybe not worth running
-      ## initial tests show it's not a big deal for small systems
-      ## @alfoa: we might "get the verbosity" here and "compute the denorm just in
-      ##         case the verbosity is == debug...
-      self.raiseADebug(' ... current opt point:', self.denormalizeData(opt))
-      self.raiseADebug(' ... new optimum candidate:', self.denormalizeData(suggested))
+      # initial tests show it's not a big deal for small systems
+      # @alfoa: we might "get the verbosity" here and "compute the denorm just in
+      #         case the verbosity is == debug...
+      self.raiseADebug(f' ... current opt point: {self.denormalizeData(opt)}')
+      self.raiseADebug(f' ... new optimum candidate: {self.denormalizeData(suggested)}')
       # initialize step
       self._submitOptAndGrads(suggested, traj, self.getIteration(traj), self._stepHistory[traj][-1]['magnitude'])
     # otherwise, continue submitting and collecting
@@ -421,6 +424,7 @@ class GradientDescent(RavenSampled):
     if len(tracker['grads']) < self._gradientInstance.numGradPoints():
       return False
     # if all checks passed, we're ready
+
     return True
 
   def _initializeStep(self, traj):
@@ -450,6 +454,22 @@ class GradientDescent(RavenSampled):
     for criteria in self._convergenceCriteria:
       self._convergenceInfo[traj][criteria] = False
     return traj
+
+  def flush(self):
+    """
+      Reset Optimizer attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self._gradientInstance.flush()
+    self._stepInstance.flush()
+    self._gradHistory = {}
+    self._stepHistory = {}
+    self._acceptHistory = {}
+    self._stepRecommendations = {}
+    self._acceptRerun = {}
+    self._trajectoryFollowers = defaultdict(list)
 
   def _resolveNewGradPoint(self, traj, rlz, optVal, info):
     """
@@ -481,7 +501,7 @@ class GradientDescent(RavenSampled):
       modded = True
       #  try to find new acceptable point
       denormed = self.denormalizeData(suggested)
-      ### DEBUGG the following lines will add constraint search attempts to the solution export.
+      # DEBUGG the following lines will add constraint search attempts to the solution export.
       # rlz = {'trajID': 0,
       #        'x': denormed['x'],
       #        'y': denormed['y'],
@@ -493,14 +513,15 @@ class GradientDescent(RavenSampled):
       #       }
       # rlz = dict((key, np.atleast_1d(val)) for key, val in rlz.items())
       # self._solutionExport.addRealization(rlz)
-      ### END DEBUGG
+      # END DEBUGG
       suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
       denormed = self.denormalizeData(suggested)
-      self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
+      self.raiseADebug(f' ... suggested norm step {modStepSize:1.2e}, new opt {denormed}')
       passFuncs = self._checkFunctionalConstraints(denormed) and self._checkBoundaryConstraints(denormed)
       tries -= 1
       if tries == 0:
         self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
+
     return suggested, modded
 
   # END resolving potential opt points
@@ -517,21 +538,25 @@ class GradientDescent(RavenSampled):
       @ In, stepSize, float, nominal step size to use
       @ Out, None
     """
-    ### OPT POINT
+    # OPT POINT
     # submit opt point
     self.raiseADebug('* Submitting new opt and grad points *')
     self._submitRun(opt, traj, step, 'opt')
     # GRAD POINTS
     # collect grad points
     # HACK FIXME TODO adding constraints too
-    ## boundary is distribution dict of bounds
-    ## constraint functions is list of functions to call "evaluate" on
-    ## inputs is dictionary of other stuff that constraints might need to be evaluated
-    ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
-    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': copy.deepcopy(self.constants), 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
+    # boundary is distribution dict of bounds
+    # constraint functions is list of functions to call "evaluate" on
+    # inputs is dictionary of other stuff that constraints might need to be evaluated
+    # TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
+    constraints = {'boundary': self.distDict,
+                   'functional': self._constraintFunctions,
+                   'inputs': copy.deepcopy(self.constants),
+                   'normalize': self.normalizeData,
+                   'denormalize': self.denormalizeData}
     gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
-      self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
+      self._submitRun(grad, traj, step, f'grad_{i}', moreInfo=gradInfos[i])
 
   def _submitRun(self, point, traj, step, purpose, moreInfo=None):
     """
@@ -551,7 +576,7 @@ class GradientDescent(RavenSampled):
                  'purpose': purpose,
                 })
     # NOTE: explicit constraints have been checked before this!
-    self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
+    self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
@@ -569,6 +594,7 @@ class GradientDescent(RavenSampled):
       @ Out, old, dict, old opt point
       @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
+
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
@@ -580,15 +606,14 @@ class GradientDescent(RavenSampled):
                                                        self._trajectoryFollowers.get(traj, None),
                                                        self._followerProximity)
         if following is not None:
-          self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
+          self.raiseADebug(f'Cancelling Trajectory {traj} because it is following Trajectory {following}')
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
-          self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
+          self._closeTrajectory(traj, 'cancel', f'following {following}', optVal)
           return 'accepted', old, 'None'
 
-      self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
-                      .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      self.raiseADebug(f' ... change: {optVal-oldVal:1.3e} new: {optVal:1.6e} old: {oldVal:1.6e}')
       rejectReason = 'None'
-      ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
+      # some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
       # if this is an opt point rerun, accept it without checking.
@@ -621,7 +646,8 @@ class GradientDescent(RavenSampled):
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
-    self.raiseADebug(' ... {a}!'.format(a=acceptable))
+    self.raiseADebug(f' ... {acceptable}!')
+
     return acceptable, old, rejectReason
 
   def _checkForImprovement(self, new, old):
@@ -648,17 +674,18 @@ class GradientDescent(RavenSampled):
       @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
-    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
     if acceptable == 'accepted':
-      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
       # check convergence
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
       # since not accepted, none of the convergence criteria are acceptable
-      ## HOWEVER, since not accepted, do NOT reset persistence!
+      # HOWEVER, since not accepted, do NOT reset persistence!
       convDict = dict((var, False) for var in self._convergenceInfo[traj] if var not in ['persistence'])
     self._convergenceInfo[traj].update(convDict)
+
     return converged
 
   def _updatePersistence(self, traj, converged, optVal):
@@ -672,12 +699,12 @@ class GradientDescent(RavenSampled):
     # update persistence
     if converged:
       self._convergenceInfo[traj]['persistence'] += 1
-      self.raiseADebug('Trajectory {} has converged successfully {} / {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence'], self._requiredPersistence))
+      self.raiseADebug(f'Trajectory {traj} has converged successfully {self._convergenceInfo[traj]["persistence"]} / {self._requiredPersistence} time(s)!')
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
         self._closeTrajectory(traj, 'converge', 'converged', optVal)
     else:
       self._convergenceInfo[traj]['persistence'] = 0
-      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
+      self.raiseADebug(f'Resetting convergence for trajectory {traj}.')
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -689,15 +716,16 @@ class GradientDescent(RavenSampled):
     """
     toAdd = {'stepSize': self._stepHistory[traj][-1]['magnitude']}
     for key, val in self._convergenceInfo[traj].items():
-      toAdd['conv_{}'.format(key)] = val
+      toAdd[f'conv_{key}'] = val
     # collect any additions from gradient and stepper
-    ## gradient
+    # gradient
     grads, gradInfos = zip(*self._stepTracker[traj]['grads']) if len(self._stepTracker[traj]['grads']) else [], []
     fromGrad = self._gradientInstance.updateSolutionExport(grads, gradInfos)
     toAdd.update(fromGrad)
-    ## stepper
+    # stepper
     fromStep = self._stepInstance.updateSolutionExport(self._stepHistory[traj])
     toAdd.update(fromStep)
+
     return toAdd
 
   def _rejectOptPoint(self, traj, info, old):
@@ -710,7 +738,7 @@ class GradientDescent(RavenSampled):
     """
     # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
-    ## what do do if a point is rejected?
+    # what do do if a point is rejected?
     # for now, rerun the opt point and gradients, AND cut step
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
@@ -743,6 +771,7 @@ class GradientDescent(RavenSampled):
                                             conv=str(converged),
                                             got=sum(same),
                                             req=len(same)))
+
     return converged
 
   def _checkConvGradient(self, traj):
@@ -758,6 +787,7 @@ class GradientDescent(RavenSampled):
                                             conv=str(converged),
                                             got=gradMag,
                                             req=self._convergenceCriteria['gradient']))
+
     return converged
 
   def _checkConvStepSize(self, traj):
@@ -772,6 +802,7 @@ class GradientDescent(RavenSampled):
                                             conv=str(converged),
                                             got=stepSize,
                                             req=self._convergenceCriteria['stepSize']))
+
     return converged
 
   def _checkConvObjective(self, traj):
@@ -790,6 +821,7 @@ class GradientDescent(RavenSampled):
                                             conv=str(converged),
                                             got=delta,
                                             req=self._convergenceCriteria['objective']))
+
     return converged
   # END convergence Checks
   # * * * * * * * * * * * * * * * *
@@ -816,6 +848,7 @@ class GradientDescent(RavenSampled):
     for var in self.toBeSampled:
       lower, upper = self._variableBounds[var]
       scale *= upper - lower
+
     return gradMag / scale
 
   def _formatSolutionExportVariableNames(self, acceptable):
@@ -834,4 +867,5 @@ class GradientDescent(RavenSampled):
         new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
       else:
         new.append(template)
+
     return set(new)

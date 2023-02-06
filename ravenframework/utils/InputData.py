@@ -620,7 +620,10 @@ class ParameterInput(object):
         msg += ' \\xmlDesc{{{t}}}, '.format(t=cls.contentType.generateLatexType())
       # add description
       msg += '\n{d}'.format(d=desc)
-    # add parameter definitions, if any, tabbed in by 1
+      default = 'default='+ str(cls.default) if cls.default != 'no-default' else ""
+      if default:
+        msg += '\n  {de}'.format(i=doDent(recDepth, 1), de='\\default{'+ str(cls.default) +'}')
+    # # # add parameter definitions, if any, tabbed in by 1
     msg += '\n' + cls.generateParamsLatex(recDepth+1)
     # add subnode definitions in order of printing priority
     if cls.subs:

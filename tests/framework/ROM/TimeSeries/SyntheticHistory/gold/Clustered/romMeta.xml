@@ -1,0 +1,56 @@
+<DataObjectMetadata name="romMeta">
+  <DataSet type="Static">
+    <dims>
+      <ClusterLabels>segment_number</ClusterLabels>
+      <seg_index_end>segment_number</seg_index_end>
+      <seg_index_start>segment_number</seg_index_start>
+      <seg_pivot_end>segment_number</seg_pivot_end>
+      <seg_pivot_start>segment_number</seg_pivot_start>
+    </dims>
+    <general>
+      <datasetName>romMeta</datasetName>
+      <pointwise_meta>ClusterFeature|signal0|ARMA|ar_0|scaled,ClusterFeature|signal0|ARMA|ar_0|unscaled,ClusterFeature|signal0|ARMA|const|scaled,ClusterFeature|signal0|ARMA|const|unscaled,ClusterFeature|signal1|ARMA|ar_0|scaled,ClusterFeature|signal1|ARMA|ar_0|unscaled,ClusterFeature|signal1|ARMA|const|scaled,ClusterFeature|signal1|ARMA|const|unscaled,ClusterLabels,seg_index_end,seg_index_start,seg_pivot_end,seg_pivot_start</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+  <synth type="Static">
+    <ROM>
+      <type>Clustered ROM</type>
+    </ROM>
+    <GlobalROM segment="all" type="Static" />
+    <ClusterROM cluster="0" type="Static">
+      <ARMA>
+        <signal0>
+          <constant>9.276339117e-03</constant>
+          <AR_0>3.847064710e-01</AR_0>
+          <variance>1.834482871e+00</variance>
+        </signal0>
+        <signal1>
+          <constant>1.107435626e-02</constant>
+          <AR_0>-3.643525584e-01</AR_0>
+          <variance>1.923062923e+00</variance>
+        </signal1>
+      </ARMA>
+      <segments_represented>0, 1, 2, 3, 4</segments_represented>
+      <indices>0, 99</indices>
+    </ClusterROM>
+    <ClusterROM cluster="1" type="Static">
+      <ARMA>
+        <signal0>
+          <constant>1.021071648e-02</constant>
+          <AR_0>-5.438779968e-01</AR_0>
+          <variance>1.515047621e+00</variance>
+        </signal0>
+        <signal1>
+          <constant>-3.223478633e-03</constant>
+          <AR_0>3.152658940e-01</AR_0>
+          <variance>1.920182399e+00</variance>
+        </signal1>
+      </ARMA>
+      <segments_represented>5, 6, 7, 8, 9</segments_represented>
+      <indices>100, 199</indices>
+    </ClusterROM>
+  </synth>
+  
+</DataObjectMetadata>

@@ -55,6 +55,12 @@
       <es_0.05_y0>time</es_0.05_y0>
       <es_0.05_z>time</es_0.05_z>
       <es_0.05_z0>time</es_0.05_z0>
+      <glr_median_x>time</glr_median_x>
+      <glr_median_x0>time</glr_median_x0>
+      <glr_median_y>time</glr_median_y>
+      <glr_median_y0>time</glr_median_y0>
+      <glr_median_z>time</glr_median_z>
+      <glr_median_z0>time</glr_median_z0>
       <kurt_x>time</kurt_x>
       <kurt_x0>time</kurt_x0>
       <kurt_y>time</kurt_y>
@@ -145,6 +151,12 @@
       <skew_y0>time</skew_y0>
       <skew_z>time</skew_z>
       <skew_z0>time</skew_z0>
+      <sort_median_x>time</sort_median_x>
+      <sort_median_x0>time</sort_median_x0>
+      <sort_median_y>time</sort_median_y>
+      <sort_median_y0>time</sort_median_y0>
+      <sort_median_z>time</sort_median_z>
+      <sort_median_z0>time</sort_median_z0>
       <var_x>time</var_x>
       <var_x0>time</var_x0>
       <var_y>time</var_y>
@@ -160,7 +172,7 @@
     </dims>
     <general>
       <datasetName>economicRatioHistory</datasetName>
-      <outputs>VaR_0.05_x0,VaR_0.05_y0,VaR_0.05_z0,VaR_0.05_x,VaR_0.05_y,VaR_0.05_z,VaR_0.05_ste_x0,VaR_0.05_ste_y0,VaR_0.05_ste_z0,VaR_0.05_ste_x,VaR_0.05_ste_y,VaR_0.05_ste_z,es_0.05_x0,es_0.05_y0,es_0.05_z0,es_0.05_x,es_0.05_y,es_0.05_z,sharpe_x0,sharpe_y0,sharpe_z0,sharpe_x,sharpe_y,sharpe_z,var_x0,var_y0,var_z0,var_x,var_y,var_z,mean_x0,mean_y0,mean_z0,mean_x,mean_y,mean_z,sigma_x0,sigma_y0,sigma_z0,sigma_x,sigma_y,sigma_z,vc_x0,vc_y0,vc_z0,vc_x,vc_y,vc_z,skew_x0,skew_y0,skew_z0,skew_x,skew_y,skew_z,kurt_x0,kurt_y0,kurt_z0,kurt_x,kurt_y,kurt_z,median_x0,median_y0,median_z0,median_x,median_y,median_z,samp_x0,samp_y0,samp_z0,samp_x,samp_y,samp_z,percentile_5_x0,percentile_5_y0,percentile_5_z0,percentile_5_x,percentile_5_y,percentile_5_z,percentile_95_x0,percentile_95_y0,percentile_95_z0,percentile_95_x,percentile_95_y,percentile_95_z,cov_x0_x0,cov_y0_x0,cov_z0_x0,cov_x_x0,cov_y_x0,cov_z_x0,cov_x0_y0,cov_y0_y0,cov_z0_y0,cov_x_y0,cov_y_y0,cov_z_y0,cov_x0_z0,cov_y0_z0,cov_z0_z0,cov_x_z0,cov_y_z0,cov_z_z0,cov_x0_x,cov_y0_x,cov_z0_x,cov_x_x,cov_y_x,cov_z_x,cov_x0_y,cov_y0_y,cov_z0_y,cov_x_y,cov_y_y,cov_z_y,cov_x0_z,cov_y0_z,cov_z0_z,cov_x_z,cov_y_z,cov_z_z,pearson_x0_x0,pearson_y0_x0,pearson_z0_x0,pearson_x_x0,pearson_y_x0,pearson_z_x0,pearson_x0_y0,pearson_y0_y0,pearson_z0_y0,pearson_x_y0,pearson_y_y0,pearson_z_y0,pearson_x0_z0,pearson_y0_z0,pearson_z0_z0,pearson_x_z0,pearson_y_z0,pearson_z_z0,pearson_x0_x,pearson_y0_x,pearson_z0_x,pearson_x_x,pearson_y_x,pearson_z_x,pearson_x0_y,pearson_y0_y,pearson_z0_y,pearson_x_y,pearson_y_y,pearson_z_y,pearson_x0_z,pearson_y0_z,pearson_z0_z,pearson_x_z,pearson_y_z,pearson_z_z</outputs>
+      <outputs>VaR_0.05_x0,VaR_0.05_y0,VaR_0.05_z0,VaR_0.05_x,VaR_0.05_y,VaR_0.05_z,VaR_0.05_ste_x0,VaR_0.05_ste_y0,VaR_0.05_ste_z0,VaR_0.05_ste_x,VaR_0.05_ste_y,VaR_0.05_ste_z,es_0.05_x0,es_0.05_y0,es_0.05_z0,es_0.05_x,es_0.05_y,es_0.05_z,sharpe_x0,sharpe_y0,sharpe_z0,sharpe_x,sharpe_y,sharpe_z,sort_median_x0,sort_median_y0,sort_median_z0,sort_median_x,sort_median_y,sort_median_z,glr_median_x0,glr_median_y0,glr_median_z0,glr_median_x,glr_median_y,glr_median_z,var_x0,var_y0,var_z0,var_x,var_y,var_z,mean_x0,mean_y0,mean_z0,mean_x,mean_y,mean_z,sigma_x0,sigma_y0,sigma_z0,sigma_x,sigma_y,sigma_z,vc_x0,vc_y0,vc_z0,vc_x,vc_y,vc_z,skew_x0,skew_y0,skew_z0,skew_x,skew_y,skew_z,kurt_x0,kurt_y0,kurt_z0,kurt_x,kurt_y,kurt_z,median_x0,median_y0,median_z0,median_x,median_y,median_z,samp_x0,samp_y0,samp_z0,samp_x,samp_y,samp_z,percentile_5_x0,percentile_5_y0,percentile_5_z0,percentile_5_x,percentile_5_y,percentile_5_z,percentile_95_x0,percentile_95_y0,percentile_95_z0,percentile_95_x,percentile_95_y,percentile_95_z,cov_x0_x0,cov_y0_x0,cov_z0_x0,cov_x_x0,cov_y_x0,cov_z_x0,cov_x0_y0,cov_y0_y0,cov_z0_y0,cov_x_y0,cov_y_y0,cov_z_y0,cov_x0_z0,cov_y0_z0,cov_z0_z0,cov_x_z0,cov_y_z0,cov_z_z0,cov_x0_x,cov_y0_x,cov_z0_x,cov_x_x,cov_y_x,cov_z_x,cov_x0_y,cov_y0_y,cov_z0_y,cov_x_y,cov_y_y,cov_z_y,cov_x0_z,cov_y0_z,cov_z0_z,cov_x_z,cov_y_z,cov_z_z,pearson_x0_x0,pearson_y0_x0,pearson_z0_x0,pearson_x_x0,pearson_y_x0,pearson_z_x0,pearson_x0_y0,pearson_y0_y0,pearson_z0_y0,pearson_x_y0,pearson_y_y0,pearson_z_y0,pearson_x0_z0,pearson_y0_z0,pearson_z0_z0,pearson_x_z0,pearson_y_z0,pearson_z_z0,pearson_x0_x,pearson_y0_x,pearson_z0_x,pearson_x_x,pearson_y_x,pearson_z_x,pearson_x0_y,pearson_y0_y,pearson_z0_y,pearson_x_y,pearson_y_y,pearson_z_y,pearson_x0_z,pearson_y0_z,pearson_z0_z,pearson_x_z,pearson_y_z,pearson_z_z</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>

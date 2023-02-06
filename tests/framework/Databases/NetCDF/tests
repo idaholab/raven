@@ -9,7 +9,7 @@
     [./database]
       type = NetCDF
       output = 'Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
-      gold_files = 'gold/Write/DatabaseStorage/0d.nc gold/Write/DatabaseStorage/1d.nc gold/Write/DatabaseStorage/nd.nc'
+      gold_files = 'Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
     [../]
     [./samples]
       type = UnorderedCSV
@@ -47,7 +47,7 @@
     [./database]
       type = NetCDF
       output = 'TwiceWrite/io_io.nc TwiceWrite/io_sample.nc TwiceWrite/sample_io.nc TwiceWrite/sample_sample.nc'
-      gold_files = 'gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc'
+      gold_files = 'TwiceWrite/correct.nc TwiceWrite/correct.nc TwiceWrite/correct.nc TwiceWrite/correct.nc'
     [../]
   [../]
 []

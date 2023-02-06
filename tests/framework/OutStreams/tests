@@ -56,7 +56,7 @@
   [./csv]
     type = OrderedCSV
     output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
-    gold_files = 'IO_ROM_PICKLE_gold/PrintData_Pickle.csv IO_ROM_PICKLE_gold/PrintData.csv'
+    gold_files = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
   [../]
  [../]
 
@@ -85,14 +85,14 @@
   input = 'sample_plot.xml'
   output = 'SamplePlot/plotter.png'
  [../]
-  
+
  [./PopulationPlot]
   type = 'RavenFramework'
   input = 'ga_population_plot.xml'
   image = 'GApopulation/plotter.png'
   rel_err = 0.1
  [../]
- 
+
  [./ParallelCoordinatePlot]
   type = 'RavenFramework'
   input = 'parallel_coordinate_plot.xml'

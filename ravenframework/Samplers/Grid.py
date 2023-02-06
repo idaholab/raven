@@ -18,26 +18,26 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
 import sys
 import copy
-import numpy as np
 from operator import mul
 from functools import reduce
-#External Modules End--------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+# Internal Modules----------------------------------------------------------------------------------
+from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from .. import GridEntities
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
-class Grid(ForwardSampler):
+class Grid(Sampler):
   """
     Samples the model on a given (by input) set of points
   """
@@ -87,7 +87,7 @@ class Grid(ForwardSampler):
     self.gridCoordinate = []           # current grid coordinates
     self.gridEntity = None
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
@@ -99,13 +99,13 @@ class Grid(ForwardSampler):
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
-    ##FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
-    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"], dimTagsPrefix={"Distribution":"<distribution>"})
+    # FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
+    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable", "Distribution"], dimTagsPrefix={"Distribution": "<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()):
-      self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+      self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
@@ -119,7 +119,8 @@ class Grid(ForwardSampler):
     """
     paramDict = {}
     for variable,value in self.gridInfo.items():
-      paramDict[variable+' is sampled using a grid in '] = value
+      paramDict[f'{variable} is sampled using a grid in '] = value
+
     return paramDict
 
   def localGetCurrentSetting(self):
@@ -132,7 +133,8 @@ class Grid(ForwardSampler):
     """
     paramDict = {}
     for var, value in self.values.items():
-      paramDict['coordinate '+var+' has value'] = value
+      paramDict[f'coordinate {var} has value'] = value
+
     return paramDict
 
   def localInitialize(self):
@@ -147,51 +149,49 @@ class Grid(ForwardSampler):
     self.gridEntity.initialize()
     self.limit = self.gridEntity.len()
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    self.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
     weight = 1.0
     recastDict = {}
     for i in range(len(self.axisName)):
       varName = self.axisName[i]
-      if self.gridInfo[varName]=='CDF':
-        if self.distDict[varName].getDimensionality()==1:
+      if self.gridInfo[varName] == 'CDF':
+        if self.distDict[varName].getDimensionality() == 1:
           recastDict[varName] = [self.distDict[varName].ppf]
         else:
           recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
       elif self.gridInfo[varName] == 'value':
         gridLB = self.gridEntity.gridInitDict['lowerBounds'][varName]
         gridUB = self.gridEntity.gridInitDict['upperBounds'][varName]
-        if self.variables2distributionsMapping[varName]['totDim']==1:
+        if self.variables2distributionsMapping[varName]['totDim'] == 1:
           distLB = self.distDict[varName].lowerBound
           distUB = self.distDict[varName].upperBound
         else:
-          dim = self.variables2distributionsMapping[varName]['dim']-1
+          dim = self.variables2distributionsMapping[varName]['dim'] - 1
           distLB = self.distDict[varName].lowerBound[dim]
           distUB = self.distDict[varName].upperBound[dim]
         if gridLB < distLB or gridUB > distUB:
-          self.raiseAnError(IOError, ('Grids defined for "{var}" in range ({glow}, {ghi}) are outside the range' +\
-                                      'of the given distribution "{dist}" ({dlow}, {dhi})')
-                                      .format(var=varName, glow=gridLB, ghi=gridUB,
-                                              dist=self.distDict[varName].type, dlow=distLB, dhi=distLB))
+          self.raiseAnError(IOError, (f'Grids defined for "{varName}" in range ({gridLB}, {gridUB}) are outside the range' +\
+                                      f'of the given distribution "{self.distDict[varName].type}" ({distLB}, {distUB})'))
       else:
-        self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
+        self.raiseAnError(IOError, f'{self.gridInfo[varName]} is not known as value keyword for type. Sampler: {self.name}')
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
       coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
     else:
       currentIndexes = self.gridEntity.returnIteratorIndexes()
       coordinates = self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
-    if coordinates == None:
+    if coordinates is None:
       self.raiseADebug('Grid finished with restart points!  Moving on...')
       raise utils.NoMoreSamplesNeeded
     coordinatesPlusOne  = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,1))
@@ -199,7 +199,7 @@ class Grid(ForwardSampler):
     for i in range(len(self.axisName)):
       varName = self.axisName[i]
       # compute the SampledVarsPb for 1-D distribution
-      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim'] == 1):
         for key in varName.strip().split(','):
           self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
@@ -207,7 +207,7 @@ class Grid(ForwardSampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
       # compute the SampledVarsPb for N-D distribution
       else:
-        if self.variables2distributionsMapping[varName]['reducedDim']==1:
+        if self.variables2distributionsMapping[varName]['reducedDim'] == 1:
           # to avoid double count;
           distName = self.variables2distributionsMapping[varName]['name']
           ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
@@ -254,7 +254,7 @@ class Grid(ForwardSampler):
         weight *= gridWeight
       # ND variable
       else:
-        if self.variables2distributionsMapping[varName]['reducedDim']==1:
+        if self.variables2distributionsMapping[varName]['reducedDim'] == 1:
           # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           distName = self.variables2distributionsMapping[varName]['name']
           ndCoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
@@ -292,3 +292,13 @@ class Grid(ForwardSampler):
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
+
+  def flush(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    if self.gridEntity is not None:
+      self.gridEntity.flush()

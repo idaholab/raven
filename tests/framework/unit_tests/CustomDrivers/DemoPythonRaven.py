@@ -18,6 +18,7 @@
 import os
 import sys
 
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # note: we use this complicated way to find RAVEN because we don't know how RAVEN
@@ -49,8 +50,31 @@ data.plot.scatter(x="v0", y="angle", hue="r")
 # uncomment for live plotting
 # plt.show()
 
-# run it again - this fails if not re-initialized!
-# raven.runWorkflow()
+# run workflow again to replicate results
+# change csv file name to avoid overwriting the same file
+printer = raven.getEntity('OutStreams', 'to_file')
+printer._printer.name = 'to_file2'
+returnCode2 = raven.runWorkflow()
+# check that re-run was successful
+if returnCode != 0:
+  raise RuntimeError('RAVEN did not re-run successfully!')
+
+# check that re-running the workflow gives the same result
+runOne = pd.read_csv('to_file.csv')
+runTwo = pd.read_csv('to_file2.csv')
+
+# check that both have the same columns
+runOneList = list(runOne.columns)
+runTwoList = list(runTwo.columns)
+allOneInTwo = all(x in runTwoList for x in runOneList)
+allTwoInOne = all(x in runOneList for x in runTwoList)
+
+if not (allOneInTwo and allTwoInOne):
+  raise RuntimeError('Re-running workflow did not reproduce csv columns!')
+
+# check that the values are the same
+if not (runOne[runOne.columns].equals(runTwo[runOne.columns]) and runTwo[runTwo.columns].equals(runOne[runTwo.columns])):
+  raise RuntimeError('Re-running workflow did not reproduce csv values!')
 
 """
   <TestInfo>
@@ -62,5 +86,8 @@ data.plot.scatter(x="v0", y="angle", hue="r")
        Demo of using PythonRaven in RAVEN workflows.
        Different from unit tests in that this is easier to read and unerstand
     </description>
+    <revisions>
+      <revision author="dgarrett622" date="2022-05-31">Adding check on re-running workflow.</revision>
+    </revisions>
   </TestInfo>
 """

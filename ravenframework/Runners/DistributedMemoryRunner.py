@@ -19,6 +19,7 @@ Created on Mar 5, 2013
 #External Modules------------------------------------------------------------------------------------
 import sys
 import gc
+import threading
 from ..utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
@@ -55,6 +56,11 @@ class DistributedMemoryRunner(InternalRunner):
     if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
+    # __func (when using ray) is the object ref
+    self.__func = None
+    # __funcLock is needed because if isDone and kill are called at the
+    # same time, isDone might end up trying to use __func after it is deleted
+    self.__funcLock = threading.RLock()
 
   def isDone(self):
     """
@@ -66,20 +72,34 @@ class DistributedMemoryRunner(InternalRunner):
     if not self.started:
       return False
 
-    if self.thread is None:
-      return True
-    else:
-      if im.isLibAvail("ray"):
-        try:
-          ray.get(self.thread, timeout=waitTimeOut)
-          return True
-        except ray.exceptions.GetTimeoutError:
-          return False
-        #Alternative that was tried:
-        #return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
-        #which ran slower in ray 1.9
+    with self.__funcLock:
+      if self.__func is None:
+        return True
+      elif self.hasBeenAdded:
+        return True
       else:
-        return self.thread.finished
+        if im.isLibAvail("ray"):
+          try:
+            runReturn = ray.get(self.__func, timeout=waitTimeOut)
+            self.runReturn = runReturn
+            self.hasBeenAdded = True
+            if self.runReturn is None:
+              self.returnCode = -1
+            return True
+          except ray.exceptions.GetTimeoutError:
+            #Timeout, so still running.
+            return False
+          except ray.exceptions.RayTaskError:
+            #The code gets this undocumented error, and
+            # I assume it means the task has unfixably died,
+            # and so is done, and set return code to failed.
+            self.returnCode = -1
+            return True
+          #Alternative that was tried:
+          #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
+          #which ran slower in ray 1.9
+        else:
+          return self.__func.finished
 
   def _collectRunnerResponse(self):
     """
@@ -88,12 +108,13 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    if not self.hasBeenAdded:
-      if self.thread is not None:
-        self.runReturn = ray.get(self.thread) if im.isLibAvail("ray") else self.thread()
-      else:
-        self.runReturn = None
-      self.hasBeenAdded = True
+    with self.__funcLock:
+      if not self.hasBeenAdded:
+        if self.__func is not None:
+          self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
+        else:
+          self.runReturn = None
+        self.hasBeenAdded = True
 
   def start(self):
     """
@@ -103,9 +124,9 @@ class DistributedMemoryRunner(InternalRunner):
     """
     try:
       if im.isLibAvail("ray"):
-        self.thread = self.functionToRun(*self.args)
+        self.__func = self.functionToRun(*self.args)
       else:
-        self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
+        self.__func = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
@@ -127,7 +148,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    del self.thread
-    self.thread = None
+    with self.__funcLock:
+      del self.__func
+      self.__func = None
     self.returnCode = -1
     self.trackTime('runner_killed')

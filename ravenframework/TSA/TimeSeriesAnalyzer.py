@@ -117,6 +117,48 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     residual = initial - sample
     return residual
 
+  # clustering
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    # DEFAULT implementation, overwrite if structure is more complex
+    # expected structure for "params" (trained parameters):
+    # -> params = {key: #,          # as a scalar, or
+    #              key: [#, #, #]}  # as a vector
+    # -> cannot handle nested dicts as is
+    #
+    # nameTemplate convention:
+    # -> target is the trained variable (e.g. Signal, Temperature)
+    # -> metric is the algorithm used (e.g. Fourier, ARMA)
+    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
+    features = {}
+    for target, info in params.items():
+      for ident, value in info.items():
+        if not mathUtils.isSingleValued(value):
+          raise NotImplementedError('The default implementation of getClusteringValues for TSA cannot be used for vector values.')
+        key = nameTemplate.format(target=target, metric=self.name, id=ident)
+        features[key] = value
+    return features
+
+  def setClusteringValues(self, fromCluster, params):
+    """
+      Interpret returned clustering settings as settings for this algorithm.
+      Acts somewhat as the inverse of getClusteringValues.
+      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
+      @ In, params, dict, trained parameter settings
+      @ Out, params, dict, updated parameter settings
+    """
+    # TODO this needs to be fast, as it's done a lot.
+    for target, identifier, value in fromCluster:
+      value = float(value)
+      params[target][identifier] = value
+    return params
+
   @abc.abstractclassmethod
   def writeXML(self, writeTo, params):
     """

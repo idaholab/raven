@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/DMD.UnparameterizedDMDCMultipleInput</name>
+    <author>dgarrett622</author>
+    <created>2022-08-17</created>
+    <classesTested>ROM.SupervisedLearning.DMDC</classesTested>
+    <description>
+      This test extends the UnparameterizedDMDC test by including multiple inputs (actuators). The
+      structure of this test is the same as the UnparameterizedDMDC test.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>DMDC/UnparameterizedDMDCMultipleInput</WorkingDir>
+    <Sequence>readTrainData,DMDCTrain,stats,writeOut,runDMDc,dumpROM</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="readTrainData">
+      <Input class="Files" type="">TrainDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">TrainData</Output>
+    </IOStep>
+    <RomTrainer name="DMDCTrain">
+      <Input class="DataObjects" type="HistorySet">TrainData</Input>
+      <Output class="Models" type="ROM">DMDrom</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">DMDrom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">DMDcCxCoeff</Output>
+    </IOStep>
+    <MultiRun name="runDMDc">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">DMDrom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">outputData</Output>
+      <Output class="OutStreams" type="Print">outputData</Output>
+    </MultiRun>
+    <IOStep name="dumpROM">
+      <Input class="Models" type="ROM">DMDrom</Input>
+      <Output class="Files" type="">rom_pickle</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <!-- We load synthetic data with 1 time, 2 actuators (u), 3 states (x) and 2 outputs (y) -->
+    <!-- Note: Adjacent rows should have constant time interval for DMDC -->
+    <Input name="TrainDataFile">../trainingData/BOP_Data_index_unPara_multiple_U.csv</Input>
+    <Input name="rom_pickle" type="">DMDrom.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
+      <Target>Time,x1,x2,x3,y1,y2</Target>
+      <!-- Actuator Variable Names (u) -->
+      <actuators>u1,u2</actuators>
+      <!-- State Variable Names -->
+      <stateVariables>x1,x2,x3</stateVariables>
+      <!-- Pivot variable -->
+      <pivotParameter>Time</pivotParameter>
+      <!-- rankSVD: -1 = No truncation, 0 = optimized truncation, positive integer = truncation level -->
+      <rankSVD>-1</rankSVD>
+      <!-- SubtractNormUXY: True will subtract the initial values from U, X, Y -->
+      <subtractNormUXY>True</subtractNormUXY>
+      <!-- Features are the variable names for predictions: Actuators "u" and initial states -->
+      <Features>u1,u2,x1_init,x2_init,x3_init</Features>
+      <!-- Initialization Variables -->
+      <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="x1_init">11700E5</constant>
+      <constant name="x2_init">48.4667510986328</constant>
+      <constant name="x3_init">11700E5</constant>
+      <constant name="u1" shape="100">
+        11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
+        11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
+        11700E5 11702E5 11704E5 11706E5 11708E5 11710E5 11712E5 11714E5 11716E5 11718E5
+        11720E5 11722E5 11724E5 11726E5 11728E5 11730E5 11732E5 11734E5 11736E5 11738E5
+        11740E5 11742E5 11744E5 11746E5 11748E5 11750E5 11752E5 11754E5 11756E5 11758E5
+        11760E5 11762E5 11764E5 11766E5 11768E5 11770E5 11772E5 11774E5 11776E5 11778E5
+        11780E5 11782E5 11784E5 11786E5 11788E5 11790E5 11792E5 11794E5 11796E5 11798E5
+        11800E5 11802E5 11804E5 11806E5 11808E5 11810E5 11812E5 11814E5 11816E5 11818E5
+        11820E5 11822E5 11824E5 11826E5 11828E5 11830E5 11832E5 11834E5 11836E5 11838E5
+        11840E5 11842E5 11844E5 11846E5 11848E5 11850E5 11852E5 11854E5 11856E5 11858E5
+      </constant>
+      <constant name="u2" shape="100">
+        11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
+        11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
+        11700E5 11702E5 11704E5 11706E5 11708E5 11710E5 11712E5 11714E5 11716E5 11718E5
+        11720E5 11722E5 11724E5 11726E5 11728E5 11730E5 11732E5 11734E5 11736E5 11738E5
+        11740E5 11742E5 11744E5 11746E5 11748E5 11750E5 11752E5 11754E5 11756E5 11758E5
+        11760E5 11762E5 11764E5 11766E5 11768E5 11770E5 11772E5 11774E5 11776E5 11778E5
+        11780E5 11782E5 11784E5 11786E5 11788E5 11790E5 11792E5 11794E5 11796E5 11798E5
+        11800E5 11802E5 11804E5 11806E5 11808E5 11810E5 11812E5 11814E5 11816E5 11818E5
+        11820E5 11822E5 11824E5 11826E5 11828E5 11830E5 11832E5 11834E5 11836E5 11838E5
+        11840E5 11842E5 11844E5 11846E5 11848E5 11850E5 11852E5 11854E5 11856E5 11858E5
+      </constant>
+      <constant name="Time" shape="100">
+        0 1 2 3 4 5 6 7 8 9
+        10 11 12 13 14 15 16 17 18 19
+        20 21 22 23 24 25 26 27 28 29
+        30 31 32 33 34 35 36 37 38 39
+        40 41 42 43 44 45 46 47 48 49
+        50 51 52 53 54 55 56 57 58 59
+        60 61 62 63 64 65 66 67 68 69
+        70 71 72 73 74 75 76 77 78 79
+        80 81 82 83 84 85 86 87 88 89
+        90 91 92 93 94 95 96 97 98 99
+      </constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="DMDcCxCoeff">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+    <Print name="outputData">
+      <type>csv</type>
+      <source>outputData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn"/>
+    <HistorySet name="outputData">
+      <Input>x1_init,x2_init,x3_init</Input>
+      <Output>u1,u2,y1,y2,x1,x2,x3,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="TrainData">
+      <Input>x1_init,x2_init,x3_init</Input>
+      <Output>u1,u2,y1,y2,x1,x2,x3,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+</Simulation>

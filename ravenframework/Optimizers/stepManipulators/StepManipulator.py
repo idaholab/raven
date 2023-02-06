@@ -23,15 +23,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 #External Modules------------------------------------------------------------------------------------
 import abc
-import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ...utils import utils, InputData, InputTypes
+from ...BaseClasses import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
+class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object), MessageUser):
   """
     Base class for handling step sizing in optimization paths
   """
@@ -56,6 +56,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
               should be smaller as the number of optimization variables increases, but large enough
               that the first step is meaningful for the problem. This scaling factor should always
               be less than $1/\sqrt{N}$, where $N$ is the number of optimization variables. \default{0.05} """))
+
     return specs
 
   @classmethod
@@ -74,7 +75,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, None
     """
     # TODO
-    ## Instance Variable Initialization
+    # Instance Variable Initialization
     # public
     self.type = self.__class__.__name__
     self.needsAccessToAcceptance = False # if True, then this stepManip may need to modify opt point acceptance criteria
@@ -156,7 +157,6 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, newPoint, dict, new opt point
       @ In, newVal, float, new objective function value
     """
-    pass
 
   def needDenormalized(self):
     """
@@ -177,3 +177,10 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
   ###################
   # Utility Methods #
   ###################
+  def flush(self):
+    """
+      Reset StepManipulator attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    self._optVars = None

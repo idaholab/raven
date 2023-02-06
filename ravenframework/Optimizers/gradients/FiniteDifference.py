@@ -16,10 +16,10 @@
 """
 import copy
 import numpy as np
-from ...utils import InputData, InputTypes, randomUtils, mathUtils
-from .GradientApproximater import GradientApproximater
+from ...utils import randomUtils, mathUtils
+from .GradientApproximator import GradientApproximator
 
-class FiniteDifference(GradientApproximater):
+class FiniteDifference(GradientApproximator):
   """
     Uses FiniteDifference approach to approximating gradients
   """
@@ -51,6 +51,7 @@ class FiniteDifference(GradientApproximater):
         \end{equation*}
         and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$.
           """
+
     return specs
 
   ###############
@@ -90,6 +91,7 @@ class FiniteDifference(GradientApproximater):
       evalInfo.append({'type': 'grad',
                        'optVar': optVar,
                        'delta': delta})
+
     return evalPoints, evalInfo
 
   def _handleConstraints(self, newPoint, original, optVar, constraints):
@@ -124,7 +126,7 @@ class FiniteDifference(GradientApproximater):
     if okay:
       return newPoint
     # well, that didn't work, so now we try cutting delta (in the original direction)
-    ## first get the workable distance (bounded by distance to boundary)
+    # first get the workable distance (bounded by distance to boundary)
     if origDelta < 0:
       delta =  - min(abs(lower - orgval), abs(origDelta))
     else:
@@ -142,6 +144,7 @@ class FiniteDifference(GradientApproximater):
             raise RuntimeError(f'Could not find acceptable value for {optVar}: start {orgval:1.8e}, wanted {new:1.8e}, rejected all options via constraints.')
         else:
           newPoint[optVar] = orgval + delta
+
     return newPoint
 
 
@@ -162,6 +165,7 @@ class FiniteDifference(GradientApproximater):
         info.update(point)
         okay = constraint.evaluate('constrain', info)
         allOkay &= okay
+
     return allOkay
 
 
@@ -187,6 +191,7 @@ class FiniteDifference(GradientApproximater):
     # obtain the magnitude and versor of the gradient to return
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
     direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
+
     return magnitude, direction, foundInf
 
 
@@ -195,7 +200,6 @@ class FiniteDifference(GradientApproximater):
       Returns the number of grad points required for the method
     """
     return self.N
-
 
   ###################
   # Utility Methods #

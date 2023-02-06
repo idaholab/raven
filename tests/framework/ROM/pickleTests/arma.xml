@@ -1,0 +1,80 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Interpolated</name>
+    <author>AnthoneyGriffith</author>
+    <created>2022-06-30</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      This test is necessary for generating a pickled ROM for the externalROMloader.setAdditionalParams test.
+      This test was orginally from tests/framework/ROM/TimeSeries/ARMA. If dataGenerator.py
+      is necessary it can be found there in the Interpolated folder.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ARMA</WorkingDir>
+    <Sequence>load, train, serialize</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <DataObjects>
+    <HistorySet name="input">
+      <Input>scaling, Year</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal, Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <P>0</P>
+      <Q>0</Q>
+      <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>False</preserveInputCDF>
+      <seed>42</seed>
+      <reseedCopies>False</reseedCopies>
+      <Peaks target='Signal' threshold='-2' period='10'>
+        <window width='0.5' >-1,1</window>
+        <window width='0.55' >6,7</window>
+        <nbin>5</nbin>
+      </Peaks>
+      <Segment grouping='interpolate'>
+        <macroParameter>Year</macroParameter>
+        <!--<clusterSpace>Fourier, Fourier.sin, Fourier.sine, ARMA.sigma, ARMA.arparams, Peaks.amplitude, Peaks.probability, mean, Peaks.amplitude.mean, Peaks.amplitude.histogram, Peaks.amplitude.</clusterSpace>-->
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10'>Time</subspace>
+      </Segment>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>Signal</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
+      </KDD>
+    </PostProcessor>
+  </Models>
+</Simulation>

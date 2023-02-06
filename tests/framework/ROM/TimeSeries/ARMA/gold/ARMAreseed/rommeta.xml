@@ -28,7 +28,7 @@
         </period>
       </Fourier>
       <ARMA_params>
-        <std>0.258086103993</std>
+        <std>0.258080826596</std>
       </ARMA_params>
     </Speed>
   </ARMA>

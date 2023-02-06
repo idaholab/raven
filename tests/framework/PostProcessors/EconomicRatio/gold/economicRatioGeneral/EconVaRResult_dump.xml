@@ -2,8 +2,8 @@
   <DataSet type="Static">
     <general>
       <datasetName>EconVaRResult</datasetName>
-      <outputs>VaR_0.05_NPV,CVaR_0.05_NPV,sort_median_NPV,sharpe_NPV,glr_median_NPV,mean_NPV,med_NPV,sig_NPV,samp_NPV,min_NPV,max_NPV,var_NPV,perc_10_NPV,varcoeff_NPV,skew_NPV,kurt_NPV,sen_NPV_y,sen_NPV_x,cov_NPV_y,cov_NPV_x,pear_NPV_y,pear_NPV_x,spear_NPV_y,spear_NPV_x,normsen_NPV_y,normsen_NPV_x,varsen_NPV_y,varsen_NPV_x</outputs>
-      <pointwise_meta>VaR_0.05_ste_NPV,kurt_ste_NPV,mean_ste_NPV,med_ste_NPV,perc_10_ste_NPV,sig_ste_NPV,skew_ste_NPV,var_ste_NPV</pointwise_meta>
+      <outputs>VaR_0.05_NPV,VaR_0.1_NPV,CVaR_0.05_NPV,CVaR_0.1_NPV,sort_median_NPV,sharpe_NPV,glr_median_NPV,mean_NPV,med_NPV,sig_NPV,samp_NPV,min_NPV,max_NPV,var_NPV,perc_10_NPV,varcoeff_NPV,skew_NPV,kurt_NPV,sen_NPV_y,sen_NPV_x,cov_NPV_y,cov_NPV_x,pear_NPV_y,pear_NPV_x,spear_NPV_y,spear_NPV_x,normsen_NPV_y,normsen_NPV_x,varsen_NPV_y,varsen_NPV_x</outputs>
+      <pointwise_meta>VaR_0.05_ste_NPV,VaR_0.1_ste_NPV,kurt_ste_NPV,mean_ste_NPV,med_ste_NPV,perc_10_ste_NPV,sig_ste_NPV,skew_ste_NPV,var_ste_NPV</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>

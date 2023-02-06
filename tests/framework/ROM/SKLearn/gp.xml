@@ -20,6 +20,7 @@
       <revision author="talbpaul" date="2016-09-15">    other test updates</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
       <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
+      <revision author="abdom" date="2022-06-16">Changing default for optimizer from L-BFGS-B to fmin_l_bfgs_b</revision>
     </revisions>
   </TestInfo>
 
@@ -28,35 +29,86 @@
     <Sequence>
       sample,
       train,
-      resample
+      resample,
+      plot
     </Sequence>
   </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ExternalModel">foo</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ROM">gpROM</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">outData</Output>
+    <Output class="OutStreams" type="Print">outData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Output class="Models" type="ROM">gpROM</Output>
+    </RomTrainer>
+    <IOStep name="plot">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Input class="DataObjects" type="PointSet">outData</Input>
+    <Output class="OutStreams" type="Plot">plotGP</Output>
+    </IOStep>
+  </Steps>
 
   <Models>
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="modelUnderTest" subType="GaussianProcessRegressor">
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <alpha>1e-10</alpha>
       <n_restarts_optimizer>0</n_restarts_optimizer>
       <normalize_y>True</normalize_y>
-      <optimizer>fmin_l_bfgs_b</optimizer>
+      <kernel>RBF</kernel>
     </ROM>
   </Models>
 
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
       <filename>outGP</filename>
-      <what>input,output</what>
+      <what>input,output,metadata</what>
     </Print>
+
+    <Plot name="plotGP">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>trainingData|Input|X</x>
+          <y>trainingData|Input|Y</y>
+          <z>trainingData|Output|Z</z>
+          <c>blue</c>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <marker>+</marker>
+          <x>outData|Input|X</x>
+          <y>outData|Input|Y</y>
+          <z>outData|Output|Z</z>
+          <c>red</c>
+        </plot>
+        <xlabel>X</xlabel>
+        <ylabel>Y</ylabel>
+        <zlabel>Z</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>

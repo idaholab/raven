@@ -65,6 +65,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
     inputSpecification.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
+
     return inputSpecification
 
   @classmethod
@@ -81,6 +82,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
            '{PREFIX}_ste_{VAR}': 'estimate of error in metric with given prefix {PREFIX} for variable {VAR} at current step in convergence',
           }
     ok.update(new)
+
     return ok
 
   def __init__(self):
@@ -97,7 +99,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     self.forceIteration = False   # flag control if at least a self.limit number of iteration should be done
     self.solutionExport = None    # data used to export the solution (it could also not be present)
     self.tolerance = {}           # dictionary stores the tolerance for each variables
-    self.converged = False        # flag convergence
     self.basicStatPP = None       # post-processor to compute the basic statistics
     self.converged = False        # flag that is set to True when the sampler converged
     self.printTag = 'SAMPLER ADAPTIVE MC'
@@ -119,24 +120,24 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
             self.limit = grandchild.value
           elif tag == "persistence":
             self.persistence = grandchild.value
-            self.raiseADebug('Persistence is set at',self.persistence)
+            self.raiseADebug(f'Persistence is set at {self.persistence}')
           elif tag == "forceIteration":
             self.forceIteration = grandchild.value
           elif tag in self.statScVals:
             if 'prefix' not in grandchild.parameterValues:
-              self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
+              self.raiseAnError(IOError, f"No prefix is provided for node: {tag}")
             if 'tol' not in grandchild.parameterValues:
-              self.raiseAnError(IOError, "No tolerance is provided for metric: ", tag)
+              self.raiseAnError(IOError, f"No tolerance is provided for metric: {tag}")
             prefix = grandchild.parameterValues['prefix']
             tol = grandchild.parameterValues['tol']
-            if tag not in self.toDo.keys():
+            if tag not in self.toDo:
               self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
             self.toDo[tag].append({'targets':set(grandchild.value),
                                    'prefix':prefix,
                                    'tol':tol
                                   })
           else:
-            self.raiseAWarning('Unrecognized convergence node "', tag, '" has been ignored!')
+            self.raiseAWarning(f'Unrecognized convergence node "{tag}" has been ignored!')
         assert (len(self.toDo) > 0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
       elif child.getName() == "initialSeed":
         self.initSeed = child.value
@@ -149,7 +150,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
             metaVar = prefix + '_ste_' + target
             self.tolerance[metaVar] = info['tol']
     if self.limit is None:
-      self.raiseAnError(IOError, '{} requires a <limit> to be specified!'.format(self.type))
+      self.raiseAnError(IOError, f'{self.type} requires a <limit> to be specified!')
 
   def localInitialize(self, solutionExport=None):
     """
@@ -164,18 +165,18 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     self.basicStatPP = ppFactory.returnInstance('BasicStatistics')
     # check if solutionExport is actually a "DataObjects" type "PointSet"
     if self._solutionExport.type != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ self._solutionExport.type +'!')
+      self.raiseAnError(IOError, f'solutionExport type is not a PointSet. Got {self._solutionExport.type}!')
 
     self.basicStatPP.what = self.toDo.keys()
     self.basicStatPP.toDo = self.toDo
-    self.basicStatPP.initialize({'WorkingDir':None}, [self._targetEvaluation], {'Output':[]})
+    self.basicStatPP.initialize({'WorkingDir': None}, [self._targetEvaluation], {'Output': []})
     self.raiseADebug('Initialization done')
 
   ###############
   # Run Methods #
   ###############
 
-  def localFinalizeActualSampling(self,jobObject,model,myInput):
+  def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
       General function (available to all samplers) that finalize the sampling
       calculation just ended. In this case, The function is aimed to check if
@@ -204,14 +205,14 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       if converged:
         self.raiseAMessage('Checking target convergence for standard error and tolerance')
         for metric, tol in self.tolerance.items():
-          self.raiseAMessage('Target \"{}\" standard error {:>2.2e} < tolerance {:>2.2e}'.format(''.join(metric.split('_ste')), output[metric][0], tol))
+          self.raiseAMessage(f'Target \"{"".join(metric.split("_ste"))}\" standard error {output[metric][0]:>2.2e} < tolerance {tol:>2.2e}')
         self.persistenceCounter += 1
         # check if we've met persistence requirement; if not, keep going
         if self.persistenceCounter >= self.persistence:
-          self.raiseAMessage(' ... {} converged {} times consecutively!'.format(self.name, self.persistenceCounter))
+          self.raiseAMessage(f' ... {self.name} converged {self.persistenceCounter} times consecutively!')
           self.converged = True
         else:
-          self.raiseAMessage(' ... {} converged {} times, required persistence is {}.'.format(self.name, self.persistenceCounter, self.persistence))
+          self.raiseAMessage(f' ... {self.name} converged {self.persistenceCounter} times, required persistence is {self.persistence}.')
 
   def localStillReady(self, ready):
     """
@@ -222,6 +223,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     """
     if self.converged:
       return False
+
     return ready
 
   def _formatSolutionExportVariableNames(self, acceptable):
@@ -239,7 +241,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       template = acceptable.pop()
       # the only "magic" entries have PREFIX and VAR in them
       if '{VAR}' in template and '{PREFIX}' in template:
-        for metric, info in self.toDo.items():
+        for _, info in self.toDo.items():
           # each metric may have several entries (for different prefixes, tolerances, etc)
           for entry in info:
             prefix = entry['prefix']
@@ -250,3 +252,13 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       else:
         new.append(template)
     return set(new)
+
+  def flush(self):
+    """
+      Reset AdaptiveMonteCarlo attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.persistenceCounter = 0
+    self.basicStatPP = None

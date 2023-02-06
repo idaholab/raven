@@ -7,7 +7,7 @@ scoring metrics. In typical cross-validation, the training and validation sets m
 rounds such that each data point has a chance of being validated against the various sets. The basic form of
 cross-validation is k-fold cross-validation. Other forms of cross-validation are special cases of k-fold or involve
 repeated rounds of k-fold cross-validation. \nb It is important to notice that this post-processor currently can
-only accept \textbf{PointSet} data object.
+only accept \textbf{PointSet} data object and untrained ROM. If the ROM is already trained, an error will be raised.
 %
 \ppType{CrossValidation}{CrossValidation}
 %
@@ -37,8 +37,7 @@ only accept \textbf{PointSet} data object.
   </Files>
   <Models>
     ...
-    <ROM name="surrogate" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
+    <ROM name="surrogate" subType="LinearRegression">
       <Features>x1,x2</Features>
       <Target>ans</Target>
       <fit_intercept>True</fit_intercept>

@@ -18,14 +18,11 @@
   @author: alfoa
   supercedes Samplers.py from alfoa (2/16/2013)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules
+# Internal Modules
 from ..utils import utils, mathUtils, InputData, InputTypes
 
 from .Sampler import Sampler
@@ -49,6 +46,7 @@ class AdaptiveSampler(Sampler):
         descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
               This DataObject is the means by which the sampling entity obtains the results of requested
               samples, and so should require all the input and output variables needed for adaptive sampling."""))
+
     return specs
 
   def __init__(self):
@@ -101,11 +99,22 @@ class AdaptiveSampler(Sampler):
     """
     Sampler._checkSample(self)
     # make sure the prefix is registered for tracking
-    ## but if there's no identifying information, skip this check
+    # but if there's no identifying information, skip this check
     if self._registeredIdentifiers:
       prefix = self.inputInfo['prefix']
       if not prefix in self._prefixToIdentifiers:
-        self.raiseAnError(RuntimeError, 'Prefix "{p}" has not been tracked in adaptive sampling!'.format(p=prefix))
+        self.raiseAnError(RuntimeError, f'Prefix "{prefix}" has not been tracked in adaptive sampling!')
+
+  def _localWhatDoINeed(self):
+    """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In, None
+      @ Out, needDict, dict, list of objects needed
+    """
+    needDict = super()._localWhatDoINeed()
+
+    return needDict
 
   def stillLookingForPrefix(self, prefix):
     """
@@ -137,7 +146,7 @@ class AdaptiveSampler(Sampler):
       @ In, checkDict, dict, dictionary of identifying information for a realization
       @ Out, None
     """
-    assert self._registeredIdentifiers.issubset(set(checkDict.keys())), 'missing identifiers: {}'.format(self._registeredIdentifiers - set(checkDict.keys()))
+    assert self._registeredIdentifiers.issubset(set(checkDict.keys())), f'missing identifiers: {self._registeredIdentifiers - set(checkDict.keys())}'
 
   def getIdentifierFromPrefix(self, prefix, pop=False):
     """
@@ -180,6 +189,7 @@ class AdaptiveSampler(Sampler):
           break
     for p in toPop:
       self._prefixToIdentifiers.pop(p)
+
     return found
 
   def _formatSolutionExportVariableNames(self, acceptable):
@@ -201,4 +211,15 @@ class AdaptiveSampler(Sampler):
       # if not a "magic" entry, just carry it along
       else:
         new.append(template)
+
     return new
+
+  def flush(self):
+    """
+      Reset Sampler attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self._targetEvaluation = None
+    self._solutionExport = None

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>doc/workshop/reducedOrderModeling/inputs/examples.sample</name>
+    <name>doc/workshop/reducedOrderModeling/inputs.sample</name>
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested/>
@@ -14,14 +14,25 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Distributions>
-    <Normal name="angle_d">
-      <mean>45</mean>
-      <sigma>5</sigma>
-      <lowerBound>5</lowerBound>
-      <upperBound>85</upperBound>
-    </Normal>
-  </Distributions>
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">outMC</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="OutStreams" type="Plot">plotMC</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t</variables>
+    </ExternalModel>
+  </Models>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
@@ -38,6 +49,15 @@
     </MonteCarlo>
   </Samplers>
 
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>x0,v0,y0,angle</Input>
@@ -45,30 +65,15 @@
     </PointSet>
     <PointSet name="outMC">
       <Input>angle</Input>
-      <Output>r,t</Output>
+      <Output>r</Output>
     </PointSet>
   </DataObjects>
 
-  <Models>
-    <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile" name="projectile" subType="">
-      <variables>x0,v0,y0,angle,x,y,r,t</variables>
-    </ExternalModel>
-  </Models>
-
-  <Steps>
-    <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
-    </MultiRun>
-    <IOStep name="plot">
-      <Input class="DataObjects" type="PointSet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plotMC</Output>
-    </IOStep>
-  </Steps>
-
   <OutStreams>
+    <Print name="outMC">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
     <Plot name="plotMC">
       <plotSettings>
         <plot>
@@ -76,9 +81,15 @@
           <x>outMC|Input|angle</x>
           <y>outMC|Output|r</y>
           <c>blue</c>
+          <kwargs>
+            <label>ground truth</label>
+          </kwargs>
         </plot>
-        <xlabel>angle</xlabel>
-        <ylabel>r</ylabel>
+        <xlabel>angle (deg)</xlabel>
+        <ylabel>r (m)</ylabel>
+        <legend>
+          <ncol>1</ncol>
+        </legend>
       </plotSettings>
       <actions>
         <how>png</how>

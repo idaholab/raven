@@ -44,7 +44,6 @@ class InternalRunner(Runner):
     self.functionToRun = functionToRun
 
     ## Other parameters manipulated internally
-    self.thread = None
     self.runReturn = None
     self.hasBeenAdded = False
     self.returnCode = 0

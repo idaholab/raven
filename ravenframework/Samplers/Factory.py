@@ -23,9 +23,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from ..EntityFactoryBase import EntityFactory
 
 ################################################################################
-from .Sampler import Sampler
 # Forward samplers
-from .ForwardSampler import ForwardSampler
 from .MonteCarlo import MonteCarlo
 from .Grid import Grid
 from .Stratified import Stratified
@@ -37,7 +35,6 @@ from .EnsembleForward import EnsembleForward
 from .CustomSampler import CustomSampler
 
 # Adaptive samplers
-from .AdaptiveSampler import AdaptiveSampler
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from .AdaptiveSobol import AdaptiveSobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid

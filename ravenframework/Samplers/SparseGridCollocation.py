@@ -18,20 +18,20 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
+# External Modules----------------------------------------------------------------------------------
 from operator import mul
 from functools import reduce
-#External Modules End--------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+# Internal Modules----------------------------------------------------------------------------------
 from .Grid import Grid
 from ..utils import utils, InputData, InputTypes
 from .. import Distributions
 from .. import Quadratures
 from .. import OrthoPolynomials
 from .. import IndexSets
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
 class SparseGridCollocation(Grid):
   """
@@ -79,6 +79,11 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
+    self.writeOut       = None
+    self.indexSet       = None
+    self.sparseGrid     = None
+    self.features       = None
+    self.sparseGridType = None
     self.addAssemblerObject('ROM', InputData.Quantity.one)
 
   def _localWhatDoINeed(self):
@@ -90,6 +95,7 @@ class SparseGridCollocation(Grid):
     """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
+
     return gridDict
 
   def _localGenerateAssembler(self,initDict):
@@ -101,28 +107,28 @@ class SparseGridCollocation(Grid):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
-    #Do a distributions check for ND
-    #This sampler only accept ND distributions with variable transformation defined in this sampler
+    # Do a distributions check for ND
+    # This sampler only accept ND distributions with variable transformation defined in this sampler
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions):
-        self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist, Distributions.NDimensionalDistributions):
+        self.raiseAnError(IOError, 'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    #TODO remove using xmlNode
-    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    # TODO remove using xmlNode
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib else None
     for child in xmlNode:
       if child.tag == 'Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
-        if varName not in self.dependentSample.keys():
+        if varName not in self.dependentSample:
           self.axisName.append(varName)
 
   def transformDistDict(self):
@@ -141,14 +147,15 @@ class SparseGridCollocation(Grid):
     standardNormal.sigma = 1.0
     standardNormal.initializeDistribution()
     distDicts = {}
-    for varName in self.variables2distributionsMapping.keys():
+    for varName in self.variables2distributionsMapping:
       distDicts[varName] = self.distDict[varName]
     if self.variablesTransformationDict:
-      for key,varsDict in self.variablesTransformationDict.items():
+      for key, varsDict in self.variablesTransformationDict.items():
         if self.transformationMethod[key] == 'pca':
           listVars = varsDict['latentVariables']
           for var in listVars:
             distDicts[var] = standardNormal
+
     return distDicts
 
   def localInitialize(self):
@@ -163,41 +170,41 @@ class SparseGridCollocation(Grid):
     SVL = self.readFromROM()
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
-    msg=self.printTag+' INTERPOLATION INFO:\n'
-    msg+='    Variable | Distribution | Quadrature | Polynomials\n'
-    for v in self.quadDict.keys():
-      msg+='   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
-    msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
-    msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
+    msg = self.printTag+' INTERPOLATION INFO:\n'
+    msg += '    Variable | Distribution | Quadrature | Polynomials\n'
+    for v in self.quadDict:
+      msg += '   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+    msg += '    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
+    msg += '    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
     self.raiseADebug(msg)
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.factory.returnInstance(SVL.indexSetType)
-    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features, self.importanceDict, self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
     self.sparseGrid = Quadratures.factory.returnInstance(self.sparseGridType)
-    self.raiseADebug('Starting %s sparse grid generation...' %self.sparseGridType)
-    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler)
+    self.raiseADebug(f'Starting {self.sparseGridType} sparse grid generation...')
+    self.sparseGrid.initialize(self.features, self.indexSet, self.dists, self.quadDict, self.jobHandler)
 
-    if self.writeOut != None:
-      msg=self.sparseGrid.__csv__()
-      outFile=open(self.writeOut,'w')
+    if self.writeOut is not None:
+      msg = self.sparseGrid.__csv__()
+      outFile = open(self.writeOut,'w')
       outFile.writelines(msg)
       outFile.close()
 
     self.limit=len(self.sparseGrid)
-    self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
+    self.raiseADebug(f'Size of Sparse Grid: {self.limit}')
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.supervisedContainer:
-      SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.dists,
-                      'quads':self.quadDict,
-                      'polys':self.polyDict,
-                      'iSet':self.indexSet})
+      SVL.initialize({'SG': self.sparseGrid,
+                      'dists': self.dists,
+                      'quads': self.quadDict,
+                      'polys': self.polyDict,
+                      'iSet': self.indexSet})
 
   def _generateQuadsAndPolys(self,SVL):
     """
@@ -216,18 +223,18 @@ class SparseGridCollocation(Grid):
         samVars.remove(v)
         romVars.remove(v)
     except ValueError:
-      self.raiseAnError(IOError,'variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
-    if len(romVars)>0:
-      self.raiseAnError(IOError,'variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+      self.raiseAnError(IOError, f'variable {v} used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars) > 0:
+      self.raiseAnError(IOError, f'variables {romVars} specified in ROM but not sampler! Collocation requires all vars in both.')
     for v in ROMdata.keys():
       if v not in self.axisName:
-        self.raiseAnError(IOError,'variable "{}" given interpolation rules but variable not in sampler!'.format(v))
+        self.raiseAnError(IOError, f'variable "{v}" given interpolation rules but variable not in sampler!')
       else:
         self.gridInfo[v] = ROMdata[v] #quad, poly, weight
     #set defaults, then replace them if they're asked for
     for v in self.axisName:
-      if v not in self.gridInfo.keys():
-        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
+      if v not in self.gridInfo:
+        self.gridInfo[v]={'poly': 'DEFAULT', 'quad': 'DEFAULT', 'weight': '1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
       if dat['poly'] == 'DEFAULT':
@@ -243,12 +250,12 @@ class SparseGridCollocation(Grid):
         else:
           quadType='CDF'
           subType=dat['quad']
-          if subType not in ['Legendre','ClenshawCurtis']:
-            self.raiseAnError(IOError,'Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
+          if subType not in ['Legendre', 'ClenshawCurtis']:
+            self.raiseAnError(IOError, f'Quadrature {subType} not compatible with Legendre polys for {distr.type} for variable {varName}!')
       else:
         quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        self.raiseAnError(IOError,'Quadrature type"',quadType,'"is not compatible with variable"',varName,'"distribution"',distr.type,'"')
+        self.raiseAnError(IOError, f'Quadrature type "{quadType}" is not compatible with variable "{varName}" distribution "{distr.type}"')
 
       quad = Quadratures.factory.returnInstance(quadType, Subtype=subType)
       quad.initialize(distr)
@@ -260,14 +267,14 @@ class SparseGridCollocation(Grid):
 
       self.importanceDict[varName] = float(dat['weight'])
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     try:
@@ -275,7 +282,7 @@ class SparseGridCollocation(Grid):
     except IndexError:
       raise utils.NoMoreSamplesNeeded
 
-    for v,varName in enumerate(self.sparseGrid.varNames):
+    for v, varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
@@ -299,7 +306,7 @@ class SparseGridCollocation(Grid):
           if location > -1:
             ndCoordinates[positionList.index(position)] = pt[location]
           else:
-            self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+            self.raiseAnError(IOError, f'The variables {var} listed in sparse grid collocation sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
@@ -320,4 +327,14 @@ class SparseGridCollocation(Grid):
     SVL = utils.first(SVLs)
     self.features = SVL.features
     self.sparseGridType = SVL.sparseGridType.lower()
+
     return SVL
+
+  def flush(self):
+    """
+      Reset SparsGridCollocation attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.dists = {}

@@ -456,16 +456,15 @@ class YakInstantLibraryParser():
       @ Out, None.
     """
     for outFile in inFiles:
-      newFile = open(outFile.getAbsFile(),'w')
-      tree = self.xmlsDict[outFile.getFilename()]
-      root = tree.getroot()
-      for child in root:
-        for mat in child:
-          matID = mat.attrib['ID'].strip()
-          if matID not in self.aliases.keys():
-            continue
-          self._replaceXMLNodeText(mat,self.pertLib[matID])
+      with open(outFile.getAbsFile(),'w') as newFile:
+        tree = self.xmlsDict[outFile.getFilename()]
+        root = tree.getroot()
+        for child in root:
+          for mat in child:
+            matID = mat.attrib['ID'].strip()
+            if matID not in self.aliases.keys():
+              continue
+            self._replaceXMLNodeText(mat,self.pertLib[matID])
 
-      toWrite = self._prettify(tree)
-      newFile.writelines(toWrite)
-      newFile.close()
+        toWrite = self._prettify(tree)
+        newFile.writelines(toWrite)

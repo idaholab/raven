@@ -95,9 +95,8 @@ class PathParser():
       @ Out, None
     """
     # open the unperturbed file
-    openInputFile = open(self.inputFiles, "r")
-    lines = openInputFile.readlines()
-    openInputFile.close()
+    with open(self.inputFiles, "r") as openInputFile:
+      lines = openInputFile.readlines()
 
     # remove the file if was already existing
     if os.path.exists(self.inputFiles):

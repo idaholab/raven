@@ -270,12 +270,11 @@ class OpenModelica(CodeInterfaceBase):
     print('sourcefilename:',sourceFileName)
     destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
-    inputFile = open(sourceFileName)
-    for line in inputFile:
-      # Line ends with a comma followed by a newline
-      #XXX toBytes seems to be needed here in python3, despite the text = True
-      os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
-    inputFile.close()
+    with open(sourceFileName) as inputFile:
+      for line in inputFile:
+        # Line ends with a comma followed by a newline
+        #XXX toBytes seems to be needed here in python3, despite the text = True
+        os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
     os.close(tempOutputFD)
     shutil.move(tempOutputFileName, destFileName + '.csv')
     return destFileName   # Return the name without the .csv on it...RAVEN will add it

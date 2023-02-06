@@ -33,6 +33,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -67,6 +68,7 @@
       estimator.                                                    \item eigen: Eigenvalue
       decomposition. Can be combined with shrinkage or custom covariance estimator.
       \end{itemize}
+  \default{svd}
 
     \item \xmlNode{Shrinkage}: \xmlDesc{float or string}, 
       Shrinkage parameter, possible values: 1) None: no shrinkage (default),
@@ -74,27 +76,33 @@
       3) float between 0 an d1: fixed shrinkage parameter.
       This should be left to None if covariance\_estimator is used. Note that shrinkage works
       only with `lsqr' and `eigen' solvers.
+  \default{None}
 
     \item \xmlNode{priors}: \xmlDesc{comma-separated floats}, 
       The class prior probabilities. By default, the class proportions are inferred from the
       training data.
+  \default{None}
 
     \item \xmlNode{n\_components}: \xmlDesc{integer}, 
       Number of components (<= min(n\_classes - 1, n\_features)) for dimensionality reduction.
       If None, will be set to min(n\_classes - 1, n\_features). This parameter only affects the
       transform                                                  method.
+  \default{None}
 
     \item \xmlNode{store\_covariance}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True, explicitely compute the weighted within-class covariance matrix when solver
       is `svd'. The matrix is always computed and stored for the other solvers.
+  \default{False}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Absolute threshold for a singular value of X to be considered significant, used to estimate
       the rank of X.                                                  Dimensions whose singular
       values are non-significant are discarded. Only used if solver is `svd'.
+  \default{0.0001}
 
     \item \xmlNode{covariance\_estimator}: \xmlDesc{integer}, 
       covariance estimator (not supported)
+  \default{None}
   \end{itemize}
 
 
@@ -129,6 +137,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -157,16 +166,19 @@
     \item \xmlNode{priors}: \xmlDesc{comma-separated floats}, 
       The class prior probabilities. By default, the class
       proportions are inferred from the training data.
+  \default{None}
 
     \item \xmlNode{reg\_param}: \xmlDesc{float}, 
       Regularizes the per-class covariance estimates by transforming
       S2 as S2 = (1 - reg\_param) * S2 + reg\_param * np.eye(n\_features),
       where S2 corresponds to the                                                  scaling\_
       attribute of a given class.
+  \default{0.0}
 
     \item \xmlNode{store\_covariance}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True, the class covariance matrices are explicitely
       computed and stored in the self.covariance\_ attribute.
+  \default{False}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Absolute threshold for a singular value to be considered
@@ -174,6 +186,7 @@
       matrix of samples in class k. This parameter does not affect
       the predictions. It only controls a warning that is raised when
       features are considered to be colinear.
+  \default{0.0001}
   \end{itemize}
 
 
@@ -211,6 +224,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -238,46 +252,57 @@
 
     \item \xmlNode{n\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations.
+  \default{300}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{alpha\_1}: \xmlDesc{float}, 
       Hyper-parameter : shape parameter for the Gamma
       distribution prior over the alpha parameter.
+  \default{1e-06}
 
     \item \xmlNode{alpha\_2}: \xmlDesc{float}, 
       Hyper-parameter : inverse scale parameter (rate parameter)
       for the Gamma distribution prior over the alpha parameter.
+  \default{1e-06}
 
     \item \xmlNode{lambda\_1}: \xmlDesc{float}, 
       Hyper-parameter : shape parameter for the Gamma distribution
       prior over the lambda parameter.
+  \default{1e-06}
 
     \item \xmlNode{lambda\_2}: \xmlDesc{float}, 
       Hyper-parameter : inverse scale parameter (rate parameter) for
       the Gamma distribution prior over the lambda parameter.
+  \default{1e-06}
 
     \item \xmlNode{compute\_score}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True, compute the objective function at each step of the
       model.
+  \default{False}
 
     \item \xmlNode{threshold\_lambda}: \xmlDesc{float}, 
       threshold for removing (pruning) weights with
       shigh precision from the computation..
+  \default{10000}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or
       intercept)                                                   should be added to the decision
       function.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Verbose mode when fitting the model.
+  \default{False}
   \end{itemize}
 
 
@@ -316,6 +341,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -343,49 +369,61 @@
 
     \item \xmlNode{n\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations.
+  \default{300}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{alpha\_1}: \xmlDesc{float}, 
       Hyper-parameter : shape parameter for the Gamma
       distribution prior over the alpha parameter.
+  \default{1e-06}
 
     \item \xmlNode{alpha\_2}: \xmlDesc{float}, 
       Hyper-parameter : inverse scale parameter (rate parameter)
       for the Gamma distribution prior over the alpha parameter.
+  \default{1e-06}
 
     \item \xmlNode{lambda\_1}: \xmlDesc{float}, 
       Hyper-parameter : shape parameter for the Gamma distribution
       prior over the lambda parameter.
+  \default{1e-06}
 
     \item \xmlNode{lambda\_2}: \xmlDesc{float}, 
       Hyper-parameter : inverse scale parameter (rate parameter) for
       the Gamma distribution prior over the lambda parameter.
+  \default{1e-06}
 
     \item \xmlNode{alpha\_init}: \xmlDesc{float}, 
       Initial value for alpha (precision of the noise).
       If not set, alpha\_init is $1/Var(y)$.
+  \default{None}
 
     \item \xmlNode{lambda\_init}: \xmlDesc{float}, 
       Initial value for lambda (precision of the weights).
+  \default{1.0}
 
     \item \xmlNode{compute\_score}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True, compute the objective function at each step of the
       model.
+  \default{False}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or
       intercept)                                                   should be added to the decision
       function.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Verbose mode when fitting the model.
+  \default{False}
   \end{itemize}
 
 
@@ -421,6 +459,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -448,12 +487,14 @@
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       specifies a constant                                                  that multiplies the
       penalty terms.                                                  $alpha = 0$ is equivalent to
       an ordinary least square, solved by the
       \textbf{LinearRegression} object.
+  \default{1.0}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       specifies the                                                  ElasticNet mixing parameter,
@@ -461,34 +502,42 @@
       0$ the penalty is an L2 penalty.                                                  For
       $l1\_ratio = 1$ it is an L1 penalty.                                                  For $0 <
       l1\_ratio < 1$, the penalty is a combination of L1 and L2.
+  \default{0.5}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{True}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -524,6 +573,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -551,10 +601,12 @@
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       Length of the path. $eps=1e-3$ means that
       $alpha\_min / alpha\_max = 1e-3$.
+  \default{0.001}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       specifies the                                                  float between 0 and 1 passed to
@@ -566,38 +618,47 @@
       is used. Note that a good choice of list of values for l1\_ratio is often to
       put more values close to 1 (i.e. Lasso) and less close to 0 (i.e. Ridge),
       as in $[.1, .5, .7, .9, .95, .99, 1]$.
+  \default{0.5}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds.
+  \default{None}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{True}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{n\_alphas}: \xmlDesc{integer}, 
       Number of alphas along the regularization path,
       used for each l1\_ratio.
+  \default{100}
   \end{itemize}
 
 
@@ -634,6 +695,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -664,31 +726,38 @@
       diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol
       parameter in some iterative optimization-based algorithms, this parameter does not
       control the tolerance of the optimization.
+  \default{2.220446049250313e-16}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{n\_nonzero\_coefs}: \xmlDesc{integer}, 
       Target number of non-zero coefficients.
+  \default{500}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Sets the verbosity amount.
+  \default{False}
 
     \item \xmlNode{fit\_path}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       If True the full path is stored in the coef\_path\_ attribute.
       If you compute the solution for a large problem or many targets,
       setting fit\_path to False will lead to a speedup, especially with a
       small alpha.
+  \default{True}
   \end{itemize}
 
 
@@ -726,6 +795,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -756,33 +826,41 @@
       diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol
       parameter in some iterative optimization-based algorithms, this parameter does not
       control the tolerance of the optimization.
+  \default{2.220446049250313e-16}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{max\_n\_alphas}: \xmlDesc{integer}, 
       The maximum number of points on the path used to compute the
       residuals in the cross-validation.
+  \default{1000}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Sets the verbosity amount.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations to perform.
+  \default{500}
   \end{itemize}
 
 
@@ -819,6 +897,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -849,39 +928,48 @@
       $alpha = 0$ is equivalent to an ordinary least square, solved by
       the LinearRegression object. For numerical reasons, using $alpha = 0$
       with the Lasso object is not advised.
+  \default{1.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The tolerance for the optimization: if the updates are smaller
       than tol, the optimization code checks the dual gap for optimality and
       continues until it is smaller than tol..
+  \default{0.0001}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{False}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{False}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -919,6 +1007,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -946,48 +1035,60 @@
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       Length of the path. $eps=1e-3$ means that
       $alpha\_min / alpha\_max = 1e-3$.
+  \default{0.001}
 
     \item \xmlNode{n\_alphas}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{100}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{False}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{alphas}: \xmlDesc{comma-separated floats}, 
       List of alphas where to compute the models. If None alphas
       are set automatically.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
+  \default{False}
   \end{itemize}
 
 
@@ -1023,6 +1124,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1053,34 +1155,42 @@
       $alpha = 0$ is equivalent to an ordinary least square, solved by
       the LinearRegression object. For numerical reasons, using $alpha = 0$
       with the Lasso object is not advised.
+  \default{1.0}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{500}
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       The machine-precision regularization in the computation of the Cholesky
       diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol
       parameter in some iterative optimization-based algorithms, this parameter does not
       control the tolerance of the optimization.
+  \default{2.220446049250313e-16}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{False}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
+  \default{False}
   \end{itemize}
 
 
@@ -1117,6 +1227,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1145,38 +1256,47 @@
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{500}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{max\_n\_alphas}: \xmlDesc{integer}, 
       The maximum number of points on the path used to compute the residuals in
       the cross-validation
+  \default{1000}
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       The machine-precision regularization in the computation of the Cholesky
       diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol
       parameter in some iterative optimization-based algorithms, this parameter does not
       control the tolerance of the optimization.
+  \default{2.220446049250313e-16}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{False}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
+  \default{False}
   \end{itemize}
 
 
@@ -1215,6 +1335,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1242,34 +1363,42 @@
 
     \item \xmlNode{criterion}: \xmlDesc{[bic, aic]}, 
       The type of criterion to use.
+  \default{aic}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{500}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram matrix to speed up calculations.
       For sparse input this option is always True to preserve sparsity.
+  \default{auto}
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       The machine-precision regularization in the computation of the Cholesky
       diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol
       parameter in some iterative optimization-based algorithms, this parameter does not
       control the tolerance of the optimization.
+  \default{2.220446049250313e-16}
 
     \item \xmlNode{positive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, forces the coefficients to be positive.
+  \default{False}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
+  \default{False}
   \end{itemize}
 
 
@@ -1305,6 +1434,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1333,11 +1463,13 @@
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
   \end{itemize}
 
 
@@ -1381,6 +1513,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1410,21 +1543,26 @@
       Used to specify the norm used in the penalization. The newton-cg, sag and lbfgs solvers
       support only l2 penalties. elasticnet is only supported by the saga solver. If none (
       not supported by the liblinear solver), no regularization is applied.
+  \default{l2}
 
     \item \xmlNode{dual}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Select the algorithm to either solve the dual or primal optimization problem.
       Prefer dual=False when $n\_samples > n\_features$.
+  \default{True}
 
     \item \xmlNode{C}: \xmlDesc{float}, 
       Regularization parameter. The strength of the regularization is inversely
       proportional to C.Must be strictly positive.
+  \default{1.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or
       intercept) should be added to the decision function.
+  \default{True}
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
@@ -1434,6 +1572,7 @@
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
       intercept)                                                  $intercept\_scaling$ has to be
       increased.
+  \default{1.0}
 
     \item \xmlNode{solver}: \xmlDesc{[newton-cg, lbfgs, liblinear, sag, saga]}, 
       Algorithm to use in the optimization problem.
@@ -1447,9 +1586,11 @@
       \item ``saga'' also supports ``elasticnet'' penalty
       \item ``liblinear'' does not support setting penalty=``none''
       \end{itemize}
+  \default{lbfgs}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{100}
 
     \item \xmlNode{multi\_class}: \xmlDesc{[auto, ovr, multinomial]}, 
       If the option chosen is ``ovr'', then a binary problem is fit for each label. For
@@ -1458,20 +1599,24 @@
       data is binary. ``multinomial' is unavailable when solver=``liblinear''. ``auto'' selects
       ``ovr'' if the data is                                                  binary, or if
       solver=``liblinear'', and otherwise selects ``multinomial''.
+  \default{auto}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       The Elastic-Net mixing parameter, with $0 <= l1\_ratio <= 1$. Only used if
       penalty=``elasticnet''.                                                  Setting $l1\_ratio=0$
       is equivalent to using penalty=``l2'', while setting $l1\_ratio=1$ is equivalent to using
       $penalty=``l1''$. For $0 < l1\_ratio <1$, the penalty is a combination of L1 and L2.
+  \default{0.5}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used when solver == ‘sag’, ‘saga’ or ‘liblinear’ to shuffle the data.
+  \default{None}
   \end{itemize}
 
 
@@ -1509,6 +1654,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1536,12 +1682,14 @@
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       specifies a constant                                                  that multiplies the
       penalty terms.                                                  $alpha = 0$ is equivalent to
       an ordinary least square, solved by the
       \textbf{LinearRegression} object.
+  \default{1.0}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       specifies the                                                  ElasticNet mixing parameter,
@@ -1549,27 +1697,33 @@
       0$ the penalty is an L2 penalty.                                                  For
       $l1\_ratio = 1$ it is an L1 penalty.                                                  For $0 <
       l1\_ratio < 1$, the penalty is a combination of L1 and L2.
+  \default{0.5}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -1608,6 +1762,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1635,12 +1790,15 @@
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       Length of the path. $eps=1e-3$ means that $alpha\_min / alpha\_max = 1e-3$.
+  \default{0.001}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{n\_alpha}: \xmlDesc{integer}, 
       Number of alphas along the regularization path.
+  \default{100}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       specifies the                                                  ElasticNet mixing parameter,
@@ -1648,27 +1806,33 @@
       0$ the penalty is an L2 penalty.                                                  For
       $l1\_ratio = 1$ it is an L1 penalty.                                                  For $0 <
       l1\_ratio < 1$, the penalty is a combination of L1 and L2.
+  \default{0.5}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{5}
   \end{itemize}
 
 
@@ -1705,6 +1869,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1735,32 +1900,39 @@
       $alpha = 0$ is equivalent to an ordinary least square, solved by
       the LinearRegression object. For numerical reasons, using $alpha = 0$
       with the Lasso object is not advised.
+  \default{1.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The tolerance for the optimization: if the updates are smaller
       than tol, the optimization code checks the dual gap for optimality and
       continues until it is smaller than tol..
+  \default{0.0001}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This setting
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -1799,6 +1971,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1826,33 +1999,41 @@
 
     \item \xmlNode{eps}: \xmlDesc{float}, 
       Length of the path. $eps=1e-3$ means that $alpha\_min / alpha\_max = 1e-3$.
+  \default{0.001}
 
     \item \xmlNode{n\_alpha}: \xmlDesc{integer}, 
       Number of alphas along the regularization path.
+  \default{100}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of iterations.
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{selection}: \xmlDesc{[cyclic, random]}, 
       If set to ``random'', a random coefficient is updated every iteration
       rather than looping over features sequentially by default. This (setting to `random'')
       often leads to significantly faster convergence especially when tol is higher than $1e-4$
+  \default{cyclic}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{5}
   \end{itemize}
 
 
@@ -1892,6 +2073,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -1920,22 +2102,27 @@
     \item \xmlNode{n\_nonzero\_coefs}: \xmlDesc{integer}, 
       Desired number of non-zero entries in the solution. If None (by default)
       this value is set to ten-percent of n\_features.
+  \default{None}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Maximum norm of the residual.
+  \default{None}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{precompute}: \xmlDesc{string}, 
       Whether to use a precomputed Gram and Xy matrix to speed up calculations.
       Improves performance when n\_targets or n\_samples is very large.
+  \default{auto}
   \end{itemize}
 
 
@@ -1976,6 +2163,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2004,22 +2192,27 @@
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True,
       the regressors X will be normalized before regression by subtracting the mean and
       dividing by the l2-norm.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum numbers of iterations to perform, therefore maximum
       features to include. Ten-percent of n\_features but at least 5 if available.
+  \default{None}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Amount of verbosity.
+  \default{False}
   \end{itemize}
 
 
@@ -2058,6 +2251,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2085,47 +2279,59 @@
 
     \item \xmlNode{C}: \xmlDesc{float}, 
       Maximum step size (regularization).
+  \default{1.0}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of passes over the training data (aka epochs).
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The stopping criterion.
+  \default{0.001}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       hether to use early stopping to terminate training when validation score is not
       improving. If set to True, it will automatically set aside a stratified fraction of training
       data as validation and terminate training when validation score is not improving by at least
       tol for n\_iter\_no\_change consecutive epochs.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping.
       Must be between 0 and 1. Only used if early\_stopping is True.
+  \default{0.1}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Number of iterations with no improvement to wait before early stopping.
+  \default{5}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether or not the training data should be shuffled after each epoch.
+  \default{True}
 
     \item \xmlNode{loss}: \xmlDesc{[hinge,  squared\_hinge]}, 
       The loss function to be used: hinge: equivalent to PA-I.
       squared\_hinge: equivalent to PA-II.
+  \default{hinge}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       The verbosity level
+  \default{0}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -2160,6 +2366,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2187,55 +2394,69 @@
 
     \item \xmlNode{C}: \xmlDesc{float}, 
       Maximum step size (regularization).
+  \default{1.0}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of passes over the training data (aka epochs).
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The stopping criterion.
+  \default{0.001}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       If the difference between the current prediction and the
       correct label is below this threshold, the model is not updated.
+  \default{0.1}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       hether to use early stopping to terminate training when validation score is not
       improving. If set to True, it will automatically set aside a stratified fraction of training
       data as validation and terminate training when validation score is not improving by at least
       tol for n\_iter\_no\_change consecutive epochs.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping.
       Must be between 0 and 1. Only used if early\_stopping is True.
+  \default{0.1}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Number of iterations with no improvement to wait before early stopping.
+  \default{5}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether or not the training data should be shuffled after each epoch.
+  \default{True}
 
     \item \xmlNode{loss}: \xmlDesc{[epsilon\_insensitive,  squared\_epsilon\_insensitive]}, 
       The loss function to be used: epsilon\_insensitive: equivalent to PA-I.
       squared\_epsilon\_insensitive: equivalent to PA-II.
+  \default{epsilon\_insensitive}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       The verbosity level
+  \default{0}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
 
     \item \xmlNode{average}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, computes the averaged SGD weights and
       stores the result in the coef\_ attribute.
+  \default{False}
   \end{itemize}
 
 
@@ -2273,6 +2494,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2300,54 +2522,68 @@
 
     \item \xmlNode{penalty}: \xmlDesc{[l2,  l1, elasticnet]}, 
       The penalty (aka regularization term) to be used.
+  \default{None}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Constant that multiplies the regularization term if regularization is used.
+  \default{0.0001}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of passes over the training data (aka epochs).
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The stopping criterion.
+  \default{0.001}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Number of iterations with no improvement to wait before early stopping.
+  \default{5}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether or not the training data should be shuffled after each epoch.
+  \default{True}
 
     \item \xmlNode{eta0}: \xmlDesc{float}, 
       The stopping criterion.
+  \default{1}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       hether to use early stopping to terminate training when validation score is not
       improving. If set to True, it will automatically set aside a stratified fraction of training
       data as validation and terminate training when validation score is not improving by at least
       tol for n\_iter\_no\_change consecutive epochs.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping.
       Must be between 0 and 1. Only used if early\_stopping is True.
+  \default{0.1}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       The verbosity level
+  \default{0}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
   \end{itemize}
 
 
@@ -2384,6 +2620,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2414,21 +2651,26 @@
       improves the conditioning of the problem and reduces the variance of the estimates.
       Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
       linear models such as LogisticRegression or LinearSVC.
+  \default{1.0}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True, the
       regressors X will be normalized before regression by subtracting the mean and dividing
       by the l2-norm.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations for conjugate gradient solver.
+  \default{None}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Precision of the solution
+  \default{0.001}
 
     \item \xmlNode{solver}: \xmlDesc{[auto, svd, cholesky, lsqr, sparse\_cg, sag, saga]}, 
       Solver to use in the computational routines:
@@ -2451,6 +2693,7 @@
       guaranteed on                                                               features with
       approximately the same scale. You can preprocess the data with a scaler from
       sklearn.preprocessing.                                                  \end{itemize}
+  \default{auto}
   \end{itemize}
 
 
@@ -2487,6 +2730,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2515,11 +2759,13 @@
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True, the
       regressors X will be normalized before regression by subtracting the mean and dividing
       by the l2-norm.
+  \default{False}
 
     \item \xmlNode{gcv\_mode}: \xmlDesc{[auto, svd, eigen]}, 
       Flag indicating which strategy to use when performing Leave-One-Out Cross-Validation.
@@ -2529,16 +2775,19 @@
       dense, eigenvalue decomposition of $X^T.X$ when X is sparse
       \item \textit{eigen}, force computation via eigendecomposition of $X.X^T$
       \end{itemize}
+  \default{auto}
 
     \item \xmlNode{alpha\_per\_target}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Flag indicating whether to optimize the alpha value for each target separately
       (for multi-output settings: multiple prediction targets). When set to True, after fitting,
       the alpha\_ attribute will contain a value for each target. When set to False, a single alpha
       is used for all targets. New in version 0.24. (not used)
+  \default{False}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{alphas}: \xmlDesc{tuple of comma-separated float}, 
       Array of alpha values to try. Regularization strength; must be a positive float.
@@ -2546,16 +2795,19 @@
       the problem and reduces the variance of the estimates.
       Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
       linear models such as LogisticRegression or LinearSVC.
+  \default{(0.1, 1.0, 10.0)}
 
     \item \xmlNode{scoring}: \xmlDesc{string}, 
       A string (see model evaluation documentation) or a scorer
       callable object / function with signature.
+  \default{None}
 
     \item \xmlNode{store\_cv\_values}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Flag indicating if the cross-validation values corresponding
       to each alpha should be stored in the cv\_values\_ attribute (see below).
       This flag is only compatible with cv=None (i.e. using Leave-One-Out
       Cross-Validation).
+  \default{False}
   \end{itemize}
 
 
@@ -2590,6 +2842,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2620,21 +2873,26 @@
       improves the conditioning of the problem and reduces the variance of the estimates.
       Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
       linear models such as LogisticRegression or LinearSVC.
+  \default{1.0}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True, the
       regressors X will be normalized before regression by subtracting the mean and dividing
       by the l2-norm.
+  \default{False}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations for conjugate gradient solver.
+  \default{None}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Precision of the solution
+  \default{0.001}
 
     \item \xmlNode{solver}: \xmlDesc{[auto, svd, cholesky, lsqr, sparse\_cg, sag, saga]}, 
       Solver to use in the computational routines:
@@ -2657,15 +2915,18 @@
       guaranteed on                                                               features with
       approximately the same scale. You can preprocess the data with a scaler from
       sklearn.preprocessing.                                                  \end{itemize}
+  \default{auto}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
   \end{itemize}
 
 
@@ -2702,6 +2963,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2730,15 +2992,18 @@
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{normalize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       This parameter is ignored when fit\_intercept is set to False. If True, the
       regressors X will be normalized before regression by subtracting the mean and dividing
       by the l2-norm.
+  \default{False}
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       Determines the cross-validation splitting strategy.
       It specifies the number of folds..
+  \default{None}
 
     \item \xmlNode{alphas}: \xmlDesc{comma-separated floats}, 
       Array of alpha values to try. Regularization strength; must be a positive float.
@@ -2746,21 +3011,25 @@
       the problem and reduces the variance of the estimates.
       Larger values specify stronger regularization. Alpha corresponds to $1 / (2C)$ in other
       linear models such as LogisticRegression or LinearSVC.
+  \default{[0.1, 1.0, 10.0]}
 
     \item \xmlNode{scoring}: \xmlDesc{string}, 
       A string (see model evaluation documentation) or a scorer
       callable object / function with signature.
+  \default{None}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{store\_cv\_values}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Flag indicating if the cross-validation values corresponding
       to each alpha should be stored in the cv\_values\_ attribute (see below).
       This flag is only compatible with cv=None (i.e. using Leave-One-Out
       Cross-Validation).
+  \default{False}
   \end{itemize}
 
 
@@ -2804,6 +3073,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -2838,36 +3108,44 @@
       loss used by the perceptron algorithm.                                                  The
       other losses are designed for regression but can be useful in classification as well; see
       SGDRegressor for a description.
+  \default{hinge}
 
     \item \xmlNode{penalty}: \xmlDesc{[l2, l1, elasticnet]}, 
       The penalty (aka regularization term) to be used. Defaults to ``l2'' which is the standard
       regularizer for linear SVM models.                                                  ``l1'' and
       ``elasticnet'' might bring sparsity to the model (feature selection) not achievable with
       ``l2''.
+  \default{l2}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Constant that multiplies the regularization term. The higher the value, the stronger the
       regularization. Also used to compute                                                  the
       learning rate when set to learning\_rate is set to ``optimal''.
+  \default{0.0001}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       The Elastic Net mixing parameter, with $0 <= l1\_ratio <= 1$. $l1\_ratio=0$ corresponds to L2
       penalty, $l1\_ratio=1$ to L1.                                                  Only used if
       penalty is ``elasticnet''.
+  \default{0.15}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of passes over the training data (aka epochs).
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The stopping criterion. If it is not None, training will stop when $(loss > best\_loss - tol)$
       for $n\_iter\_no\_change$                                                  consecutive epochs.
+  \default{0.001}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       TWhether or not the training data should be shuffled after each epoch
+  \default{True}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Epsilon in the epsilon-insensitive loss functions; only if loss is ``huber'',
@@ -2877,6 +3155,7 @@
       right. For epsilon-insensitive, any differences between the current prediction and the correct
       label                                                  are ignored if they are less than this
       threshold.
+  \default{0.1}
 
     \item \xmlNode{learning\_rate}: \xmlDesc{[constant, optimal, invscaling, adaptive]}, 
       The learning rate schedule:                                                  \begin{itemize}
@@ -2888,47 +3167,58 @@
       to decrease the training loss by tol or fail to increase validation score by tol if
       early\_stopping is True, the current
       learning rate is divided by 5.                                                  \end{itemize}
+  \default{optimal}
 
     \item \xmlNode{eta0}: \xmlDesc{float}, 
       The initial learning rate for the ``constant'', ``invscaling'' or ``adaptive'' schedules. The
       default value is 0.0                                                  as eta0 is not used by
       the default schedule ``optimal''.
+  \default{0.0}
 
     \item \xmlNode{power\_t}: \xmlDesc{float}, 
       The exponent for inverse scaling learning rate.
+  \default{0.5}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       hether to use early stopping to terminate training when validation score is not
       improving. If set to True, it will automatically set aside a stratified fraction of training
       data as validation and terminate training when validation score is not improving by at least
       tol for n\_iter\_no\_change consecutive epochs.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping.
       Must be between 0 and 1. Only used if early\_stopping is True.
+  \default{0.1}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Number of iterations with no improvement to wait before early stopping.
+  \default{5}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       The verbosity level
+  \default{0}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
 
     \item \xmlNode{average}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, computes the averaged SGD weights accross
       all updates and stores the result in the coef\_ attribute.
+  \default{False}
   \end{itemize}
 
 
@@ -2974,6 +3264,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3007,36 +3298,44 @@
       ignores errors less than epsilon and is linear past
       that; this is the loss function used in SVR. ``squared\_epsilon\_insensitive'' is the same but
       becomes squared loss past a tolerance of epsilon.
+  \default{squared\_loss}
 
     \item \xmlNode{penalty}: \xmlDesc{[l2, l1, elasticnet]}, 
       The penalty (aka regularization term) to be used. Defaults to ``l2'' which is the standard
       regularizer for linear SVM models.                                                  ``l1'' and
       ``elasticnet'' might bring sparsity to the model (feature selection) not achievable with
       ``l2''.
+  \default{l2}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Constant that multiplies the regularization term. The higher the value, the stronger the
       regularization. Also used to compute                                                  the
       learning rate when set to learning\_rate is set to ``optimal''.
+  \default{0.0001}
 
     \item \xmlNode{l1\_ratio}: \xmlDesc{float}, 
       The Elastic Net mixing parameter, with $0 <= l1\_ratio <= 1$. $l1\_ratio=0$ corresponds to L2
       penalty, $l1\_ratio=1$ to L1.                                                  Only used if
       penalty is ``elasticnet''.
+  \default{0.15}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the intercept should be estimated or not. If False,
       the data is assumed to be already centered.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       The maximum number of passes over the training data (aka epochs).
+  \default{1000}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       The stopping criterion. If it is not None, training will stop when $(loss > best\_loss - tol)$
       for $n\_iter\_no\_change$                                                  consecutive epochs.
+  \default{0.001}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       TWhether or not the training data should be shuffled after each epoch
+  \default{True}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Epsilon in the epsilon-insensitive loss functions; only if loss is ``huber'',
@@ -3046,6 +3345,7 @@
       right. For epsilon-insensitive, any differences between the current prediction and the correct
       label                                                  are ignored if they are less than this
       threshold.
+  \default{0.1}
 
     \item \xmlNode{learning\_rate}: \xmlDesc{[constant, optimal, invscaling, adaptive]}, 
       The learning rate schedule:                                                  \begin{itemize}
@@ -3057,42 +3357,52 @@
       to decrease the training loss by tol or fail to increase validation score by tol if
       early\_stopping is True, the current
       learning rate is divided by 5.                                                  \end{itemize}
+  \default{optimal}
 
     \item \xmlNode{eta0}: \xmlDesc{float}, 
       The initial learning rate for the ``constant'', ``invscaling'' or ``adaptive'' schedules. The
       default value is 0.0                                                  as eta0 is not used by
       the default schedule ``optimal''.
+  \default{0.0}
 
     \item \xmlNode{power\_t}: \xmlDesc{float}, 
       The exponent for inverse scaling learning rate.
+  \default{0.5}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       hether to use early stopping to terminate training when validation score is not
       improving. If set to True, it will automatically set aside a stratified fraction of training
       data as validation and terminate training when validation score is not improving by at least
       tol for n\_iter\_no\_change consecutive epochs.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping.
       Must be between 0 and 1. Only used if early\_stopping is True.
+  \default{0.1}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Number of iterations with no improvement to wait before early stopping.
+  \default{5}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to shuffle the training data, when shuffle is set to
       True. Pass an int for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       The verbosity level
+  \default{0}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call
       to fit as initialization, otherwise, just erase the previous solution.
+  \default{False}
 
     \item \xmlNode{average}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, computes the averaged SGD weights accross
       all updates and stores the result in the coef\_ attribute.
+  \default{False}
   \end{itemize}
 
 
@@ -3127,6 +3437,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3154,18 +3465,22 @@
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).
+  \default{1.0}
 
     \item \xmlNode{norm}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether or not a second normalization of the weights is performed.
+  \default{False}
 
     \item \xmlNode{class\_prior}: \xmlDesc{comma-separated floats}, 
       Prior probabilities of the classes. If specified the priors are
       not adjusted according to the data. \nb the number of elements inputted here must
       match the number of classes in the data set used in the training stage.
+  \default{None}
 
     \item \xmlNode{fit\_prior}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to learn class prior probabilities or not. If false, a uniform
       prior will be used.
+  \default{True}
   \end{itemize}
 
 
@@ -3200,6 +3515,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3227,15 +3543,18 @@
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).
+  \default{1.0}
 
     \item \xmlNode{class\_prior}: \xmlDesc{comma-separated floats}, 
       Prior probabilities of the classes. If specified the priors are
       not adjusted according to the data. \nb the number of elements inputted here must
       match the number of classes in the data set used in the training stage.
+  \default{None}
 
     \item \xmlNode{fit\_prior}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to learn class prior probabilities or not. If false, a uniform
       prior will be used.
+  \default{True}
   \end{itemize}
 
 
@@ -3283,6 +3602,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3310,19 +3630,23 @@
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).
+  \default{1.0}
 
     \item \xmlNode{binarize}: \xmlDesc{float}, 
       Threshold for binarizing (mapping to booleans) of sample features. If None,
       input is presumed to already consist of binary vectors.
+  \default{None}
 
     \item \xmlNode{class\_prior}: \xmlDesc{comma-separated floats}, 
       Prior probabilities of the classes. If specified the priors are
       not adjusted according to the data. \nb the number of elements inputted here must
       match the number of classes in the data set used in the training stage.
+  \default{None}
 
     \item \xmlNode{fit\_prior}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to learn class prior probabilities or not. If false, a uniform
       prior will be used.
+  \default{True}
   \end{itemize}
 
 
@@ -3372,6 +3696,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3401,13 +3726,16 @@
       Prior probabilities of the classes. If specified the priors are
       not adjusted according to the data. \nb the number of elements inputted here must
       match the number of classes in the data set used in the training stage.
+  \default{None}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Additive (Laplace and Lidstone) smoothing parameter (0 for no smoothing).
+  \default{1.0}
 
     \item \xmlNode{fit\_prior}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to learn class prior probabilities or not. If false, a uniform
       prior will be used.
+  \default{True}
   \end{itemize}
 
 
@@ -3445,6 +3773,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3474,10 +3803,12 @@
       Prior probabilities of the classes. If specified the priors are
       not adjusted according to the data. \nb the number of elements inputted here must
       match the number of classes in the data set used in the training stage.
+  \default{None}
 
     \item \xmlNode{var\_smoothing}: \xmlDesc{float}, 
       Portion of the largest variance of all features that is added to variances for
       calculation stability.
+  \default{1e-09}
   \end{itemize}
 
 
@@ -3513,6 +3844,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3541,6 +3873,7 @@
     \item \xmlNode{hidden\_layer\_sizes}: \xmlDesc{comma-separated integers}, 
       The ith element represents the number of neurons in the ith hidden layer.
       lenght = n\_layers - 2
+  \default{(100,)}
 
     \item \xmlNode{activation}: \xmlDesc{[identity, logistic, tanh, tanh]}, 
       Activation function for the hidden layer:
@@ -3550,6 +3883,7 @@
       \item tanh: the hyperbolic tan function, returns $f(x) = tanh(x)$.
       \item relu:  the rectified linear unit function, returns $f(x) = max(0, x)$
       \end{itemize}
+  \default{relu}
 
     \item \xmlNode{solver}: \xmlDesc{[lbfgs, sgd, adam]}, 
       The solver for weight optimization:
@@ -3558,13 +3892,16 @@
       sgd: refers to stochastic gradient descent.
       \item adam: refers to a stochastic gradient-based optimizer proposed by Kingma, Diederik, and
       Jimmy Ba                                                  \end{itemize}
+  \default{adam}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       L2 penalty (regularization term) parameter.
+  \default{0.0001}
 
     \item \xmlNode{batch\_size}: \xmlDesc{integer or string}, 
       Size of minibatches for stochastic optimizers. If the solver is `lbfgs',
       the classifier will not use minibatch. When set to ``auto", batch\_size=min(200, n\_samples)
+  \default{auto}
 
     \item \xmlNode{learning\_rate}: \xmlDesc{[constant, invscaling, adaptive]}, 
       Learning rate schedule for weight updates.:
@@ -3578,43 +3915,54 @@
       least tol, or fail to increase validation score by at least tol if `early\_stopping' is on,
       the current learning rate is divided by 5. Only used when solver=`sgd'.
       \end{itemize}
+  \default{constant}
 
     \item \xmlNode{learning\_rate\_init}: \xmlDesc{float}, 
       The initial learning rate used. It controls the step-size in updating the weights.
       Only used when solver=`sgd' or `adam'.
+  \default{0.001}
 
     \item \xmlNode{power\_t}: \xmlDesc{float}, 
       The exponent for inverse scaling learning rate. It is used in updating effective
       learning rate when the learning\_rate is set to `invscaling'. Only used when solver=`sgd'.
+  \default{0.5}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations. The solver iterates until convergence
       (determined by `tol') or this number of iterations. For stochastic solvers (`sgd', `adam'),
       note that this determines the number of epochs (how many times each data point will be used),
       not the number of gradient steps.
+  \default{200}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to shuffle samples in each iteration. Only used when solver=`sgd' or `adam'.
+  \default{True}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Determines random number generation for weights and bias initialization,
       train-test split if early stopping is used, and batch sampling when solver=`sgd' or `adam'.
+  \default{None}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for the optimization.
+  \default{0.0001}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to print progress messages to stdout.
+  \default{False}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call to fit as initialization, otherwise,
       just erase the previous solution.
+  \default{False}
 
     \item \xmlNode{momentum}: \xmlDesc{float}, 
       Momentum for gradient descent update. Should be between 0 and 1. Only used when solver=`sgd'.
+  \default{0.9}
 
     \item \xmlNode{nesterovs\_momentum}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use Nesterov's momentum. Only used when solver=`sgd' and momentum > 0.
+  \default{True}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use early stopping to terminate training when validation score is not improving.
@@ -3625,26 +3973,32 @@
       then                                                  the training stops when the training
       loss does not improve by more than tol for n\_iter\_no\_change
       consecutive passes over the training set. Only effective when solver=`sgd' or `adam'.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping. Must be
       between 0 and 1.                                                  Only used if early\_stopping
       is True
+  \default{0.1}
 
     \item \xmlNode{beta\_1}: \xmlDesc{float}, 
       Exponential decay rate for estimates of first moment vector in adam, should be in $[0, 1)$.
       Only used when solver=`adam'.
+  \default{0.9}
 
     \item \xmlNode{beta\_2}: \xmlDesc{float}, 
       Exponential decay rate for estimates of second moment vector in adam, should be in $[0, 1)$.
       Only used when solver=`adam'.
+  \default{0.999}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Value for numerical stability in adam. Only used when solver=`adam'.
+  \default{1e-08}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Maximum number of epochs to not meet tol improvement. Only effective when
       solver=`sgd' or `adam'
+  \default{10}
   \end{itemize}
 
 
@@ -3679,6 +4033,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3707,6 +4062,7 @@
     \item \xmlNode{hidden\_layer\_sizes}: \xmlDesc{comma-separated integers}, 
       The ith element represents the number of neurons in the ith hidden layer.
       lenght = n\_layers - 2
+  \default{(100,)}
 
     \item \xmlNode{activation}: \xmlDesc{[identity, logistic, tanh, tanh]}, 
       Activation function for the hidden layer:
@@ -3716,6 +4072,7 @@
       \item tanh: the hyperbolic tan function, returns $f(x) = tanh(x)$.
       \item relu:  the rectified linear unit function, returns $f(x) = max(0, x)$
       \end{itemize}
+  \default{relu}
 
     \item \xmlNode{solver}: \xmlDesc{[lbfgs, sgd, adam]}, 
       The solver for weight optimization:
@@ -3724,13 +4081,16 @@
       \item sgd: refers to stochastic gradient descent.
       \item adam: refers to a stochastic gradient-based optimizer proposed by Kingma, Diederik, and
       Jimmy Ba                                                  \end{itemize}
+  \default{adam}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       L2 penalty (regularization term) parameter.
+  \default{0.0001}
 
     \item \xmlNode{batch\_size}: \xmlDesc{integer or string}, 
       Size of minibatches for stochastic optimizers. If the solver is `lbfgs',
       the classifier will not use minibatch. When set to ``auto", batch\_size=min(200, n\_samples)
+  \default{auto}
 
     \item \xmlNode{learning\_rate}: \xmlDesc{[constant, invscaling, adaptive]}, 
       Learning rate schedule for weight updates.:
@@ -3744,43 +4104,54 @@
       least tol, or fail to increase validation score by at least tol if `early\_stopping' is on,
       the current learning rate is divided by 5. Only used when solver=`sgd'.
       \end{itemize}
+  \default{constant}
 
     \item \xmlNode{learning\_rate\_init}: \xmlDesc{float}, 
       The initial learning rate used. It controls the step-size in updating the weights.
       Only used when solver=`sgd' or `adam'.
+  \default{0.001}
 
     \item \xmlNode{power\_t}: \xmlDesc{float}, 
       The exponent for inverse scaling learning rate. It is used in updating effective
       learning rate when the learning\_rate is set to `invscaling'. Only used when solver=`sgd'.
+  \default{0.5}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Maximum number of iterations. The solver iterates until convergence
       (determined by `tol') or this number of iterations. For stochastic solvers (`sgd', `adam'),
       note that this determines the number of epochs (how many times each data point will be used),
       not the number of gradient steps.
+  \default{200}
 
     \item \xmlNode{shuffle}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to shuffle samples in each iteration. Only used when solver=`sgd' or `adam'.
+  \default{True}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Determines random number generation for weights and bias initialization,
       train-test split if early stopping is used, and batch sampling when solver=`sgd' or `adam'.
+  \default{None}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for the optimization.
+  \default{0.0001}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to print progress messages to stdout.
+  \default{False}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call to fit as initialization, otherwise,
       just erase the previous solution.
+  \default{False}
 
     \item \xmlNode{momentum}: \xmlDesc{float}, 
       Momentum for gradient descent update. Should be between 0 and 1. Only used when solver=`sgd'.
+  \default{0.9}
 
     \item \xmlNode{nesterovs\_momentum}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use Nesterov's momentum. Only used when solver=`sgd' and momentum > 0.
+  \default{True}
 
     \item \xmlNode{early\_stopping}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use early stopping to terminate training when validation score is not improving.
@@ -3791,26 +4162,32 @@
       then                                                  the training stops when the training
       loss does not improve by more than tol for n\_iter\_no\_change
       consecutive passes over the training set. Only effective when solver=`sgd' or `adam'.
+  \default{False}
 
     \item \xmlNode{validation\_fraction}: \xmlDesc{float}, 
       The proportion of training data to set aside as validation set for early stopping. Must be
       between 0 and 1.                                                  Only used if early\_stopping
       is True
+  \default{0.1}
 
     \item \xmlNode{beta\_1}: \xmlDesc{float}, 
       Exponential decay rate for estimates of first moment vector in adam, should be in $[0, 1)$.
       Only used when solver=`adam'.
+  \default{0.9}
 
     \item \xmlNode{beta\_2}: \xmlDesc{float}, 
       Exponential decay rate for estimates of second moment vector in adam, should be in $[0, 1)$.
       Only used when solver=`adam'.
+  \default{0.999}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Value for numerical stability in adam. Only used when solver=`adam'.
+  \default{1e-08}
 
     \item \xmlNode{n\_iter\_no\_change}: \xmlDesc{integer}, 
       Maximum number of epochs to not meet tol improvement. Only effective when
       solver=`sgd' or `adam'
+  \default{10}
   \end{itemize}
 
 
@@ -3866,6 +4243,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -3969,6 +4347,7 @@
       + \frac{d(x\_i, x\_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
       $d(\cdot,\cdot)$ is the Euclidean distance.
       \end{itemize}
+  \default{RBF}
 
     \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
       The number of restarts of the optimizer for finding the kernel's parameters which maximize the
@@ -3976,11 +4355,13 @@
       from the kernel's initial parameters, the remaining ones (if any) from thetas sampled log-
       uniform randomly from the space of allowed theta-values. If greater than
       0, all bounds must be finite.
+  \default{0}
 
     \item \xmlNode{max\_iter\_predict}: \xmlDesc{integer}, 
       The maximum number of iterations in Newton’s method for approximating the posterior during
       predict. Smaller values will reduce computation time at
       the cost of worse results.
+  \default{100}
 
     \item \xmlNode{multi\_class}: \xmlDesc{[one\_vs\_rest, one\_vs\_one]}, 
       Specifies how multi-class classification problems are handled. Supported are ``one\_vs\_rest''
@@ -3991,14 +4372,17 @@
       of classes, which is trained to
       separate these two classes. The predictions of these binary predictors are combined into
       multi-class predictions.
+  \default{one\_vs\_rest}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Seed for the internal random number generator
+  \default{None}
 
     \item \xmlNode{optimizer}: \xmlDesc{[fmin\_l\_bfgs\_b]}, 
       Per default, the 'L-BGFS-B' algorithm from
       scipy.optimize.minimize is used. If None is passed, the kernel’s
       parameters are kept fixed.
+  \default{L-BGFS-B}
   \end{itemize}
 
 
@@ -4051,6 +4435,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4076,7 +4461,7 @@
             either ``input'' or ``output''.
       \end{itemize}
 
-    \item \xmlNode{kernel}: \xmlDesc{[Constant, DotProduct, ExpSineSquared, Exponentiation, Matern, Pairwise, RBF, RationalQuadratic]}, 
+    \item \xmlNode{kernel}: \xmlDesc{[Constant, DotProduct, ExpSineSquared, Exponentiation, Matern, PairwiseLinear, PairwiseAdditiveChi2, PairwiseChi2, PairwisePoly, PairwisePolynomial, PairwiseRBF, PairwiseLaplassian, PairwiseSigmoid, PairwiseCosine, RBF, RationalQuadratic]}, 
       The kernel specifying the covariance function of the GP. If None is passed,
       the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during
       fitting and consequentially the hyperparameters are
@@ -4153,13 +4538,15 @@
       $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x\_i, x\_j) = \left(1
       + \frac{d(x\_i, x\_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
       $d(\cdot,\cdot)$ is the Euclidean distance.
-      \end{itemize}
+      \end{itemize}.
+  \default{None}
 
     \item \xmlNode{alpha}: \xmlDesc{float}, 
       Value added to the diagonal of the kernel matrix during fitting. This can prevent a potential
       numerical issue during fitting, by ensuring that the calculated
       values form a positive definite matrix. It can also be interpreted as the variance of
       additional Gaussian measurement noise on the training observations.
+  \default{1e-10}
 
     \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
       The number of restarts of the optimizer for finding the kernel's parameters which maximize the
@@ -4167,19 +4554,23 @@
       from the kernel's initial parameters, the remaining ones (if any) from thetas sampled log-
       uniform randomly from the space of allowed theta-values. If greater than
       0, all bounds must be finite.
+  \default{0}
 
     \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether the target values y are normalized, the mean and variance of the target values are set
       equal to 0 and 1 respectively. This is recommended for cases where zero-mean,
       unit-variance priors are used.
+  \default{False}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
-      Seed for the internal random number generator
+      Seed for the internal random number generator.
+  \default{None}
 
     \item \xmlNode{optimizer}: \xmlDesc{[fmin\_l\_bfgs\_b]}, 
-      Per default, the 'L-BGFS-B' algorithm from
+      Per default, the 'L-BFGS-B' algorithm from
       scipy.optimize.minimize is used. If None is passed, the kernel’s
       parameters are kept fixed.
+  \default{fmin\_l\_bfgs\_b}
   \end{itemize}
 
 
@@ -4214,6 +4605,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4253,6 +4645,7 @@
       The number of jobs to use for the computation: the n\_classes * ( n\_classes - 1) / 2 OVO
       problems are computed in parallel. None means 1 unless in a joblib.parallel\_backend
       context. -1 means using all processors.
+  \default{None}
   \end{itemize}
 
 
@@ -4291,6 +4684,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4330,6 +4724,7 @@
       TThe number of jobs to use for the computation: the n\_classes one-vs-rest
       problems are computed in parallel. None means 1 unless in a joblib.parallel\_backend
       context. -1 means using all processors.
+  \default{None}
   \end{itemize}
 
 
@@ -4369,6 +4764,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4409,15 +4805,18 @@
       the code book. A number between 0 and 1 will require fewer classifiers
       than one-vs-the-rest. A number greater than 1 will require more classifiers
       than one-vs-the-rest.
+  \default{1.5}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       The generator used to initialize the codebook. Pass an int
       for reproducible output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{n\_jobs}: \xmlDesc{integer}, 
       TThe number of jobs to use for the computation: the n\_classes one-vs-rest
       problems are computed in parallel. None means 1 unless in a joblib.parallel\_backend
       context. -1 means using all processors. See Glossary for more details.
+  \default{None}
   \end{itemize}
 
 
@@ -4457,6 +4856,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4484,25 +4884,30 @@
 
     \item \xmlNode{n\_neighbors}: \xmlDesc{integer}, 
       Number of neighbors to use by default for kneighbors queries.
+  \default{5}
 
     \item \xmlNode{weights}: \xmlDesc{[uniform, distance]}, 
       weight function used in prediction. If ``uniform'', all points in each neighborhood
       are weighted equally. If ``distance'' weight points by the inverse of their distance. in this
       case,closer neighbors of a query point will have a greater influence than neighbors which are
       further away.
+  \default{uniform}
 
     \item \xmlNode{algorithm}: \xmlDesc{[auto, ball\_tree, kd\_tree, brute]}, 
       Algorithm used to compute the nearest neighbors
+  \default{auto}
 
     \item \xmlNode{leaf\_size}: \xmlDesc{integer}, 
       Leaf size passed to BallTree or KDTree. This can affect the speed of the construction
       and query, as well as the memory required to store the tree. The optimal value depends on the
       nature of the problem.
+  \default{30}
 
     \item \xmlNode{p}: \xmlDesc{integer}, 
       Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
       manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$,
       minkowski\_distance                                                  (l\_p) is used.
+  \default{2}
 
     \item \xmlNode{metric}: \xmlDesc{[euclidean, manhattan, minkowski, chebyshev, hamming, braycurtis]}, 
       the distance metric to use for the tree. The default metric is minkowski, and with
@@ -4516,6 +4921,7 @@
       $sum(|x - y| / (|x| + |y|))$                                                    \item
       braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
       \end{itemize}
+  \default{minkowski}
   \end{itemize}
 
 
@@ -4555,6 +4961,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4582,6 +4989,7 @@
 
     \item \xmlNode{shrink\_threshold}: \xmlDesc{float}, 
       Threshold for shrinking centroids to remove features.
+  \default{None}
 
     \item \xmlNode{metric}: \xmlDesc{[uniform, distance]}, 
       The metric to use when calculating distance between instances in a feature array.
@@ -4591,6 +4999,7 @@
       are                                                  minimized. If the ``manhattan'' metric is
       provided, this centroid is the median and for all other metrics,
       the centroid is now set to be the mean.
+  \default{minkowski}
   \end{itemize}
 
 
@@ -4629,6 +5038,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4656,25 +5066,30 @@
 
     \item \xmlNode{radius}: \xmlDesc{float}, 
       Range of parameter space to use by default for radius neighbors queries.
+  \default{1.0}
 
     \item \xmlNode{weights}: \xmlDesc{[uniform, distance]}, 
       weight function used in prediction. If ``uniform'', all points in each neighborhood
       are weighted equally. If ``distance'' weight points by the inverse of their distance. in this
       case,closer neighbors of a query point will have a greater influence than neighbors which are
       further away.
+  \default{uniform}
 
     \item \xmlNode{algorithm}: \xmlDesc{[auto, ball\_tree, kd\_tree, brute]}, 
       Algorithm used to compute the nearest neighbors
+  \default{auto}
 
     \item \xmlNode{leaf\_size}: \xmlDesc{integer}, 
       Leaf size passed to BallTree or KDTree. This can affect the speed of the construction
       and query, as well as the memory required to store the tree. The optimal value depends on the
       nature of the problem.
+  \default{30}
 
     \item \xmlNode{p}: \xmlDesc{integer}, 
       Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
       manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$,
       minkowski\_distance                                                  (l\_p) is used.
+  \default{2}
 
     \item \xmlNode{metric}: \xmlDesc{[minkowski, euclidean, manhattan, chebyshev, hamming, canberra, braycurtis]}, 
       the distance metric to use for the tree. The default metric is minkowski, and with
@@ -4688,6 +5103,7 @@
       $sum(|x - y| / (|x| + |y|))$                                                    \item
       braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
       \end{itemize}
+  \default{minkowski}
   \end{itemize}
 
 
@@ -4725,6 +5141,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4752,25 +5169,30 @@
 
     \item \xmlNode{n\_neighbors}: \xmlDesc{integer}, 
       Number of neighbors to use by default for kneighbors queries.
+  \default{5}
 
     \item \xmlNode{weights}: \xmlDesc{[uniform, distance]}, 
       weight function used in prediction. If ``uniform'', all points in each neighborhood
       are weighted equally. If ``distance'' weight points by the inverse of their distance. in this
       case,closer neighbors of a query point will have a greater influence than neighbors which are
       further away.
+  \default{uniform}
 
     \item \xmlNode{algorithm}: \xmlDesc{[auto, ball\_tree, kd\_tree, brute]}, 
       Algorithm used to compute the nearest neighbors
+  \default{auto}
 
     \item \xmlNode{leaf\_size}: \xmlDesc{integer}, 
       Leaf size passed to BallTree or KDTree. This can affect the speed of the construction
       and query, as well as the memory required to store the tree. The optimal value depends on the
       nature of the problem.
+  \default{30}
 
     \item \xmlNode{p}: \xmlDesc{integer}, 
       Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
       manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$,
       minkowski\_distance                                                  (l\_p) is used.
+  \default{2}
 
     \item \xmlNode{metric}: \xmlDesc{[euclidean, manhattan, minkowski, chebyshev, hamming, braycurtis]}, 
       the distance metric to use for the tree. The default metric is minkowski, and with
@@ -4784,6 +5206,7 @@
       $sum(|x - y| / (|x| + |y|))$                                                    \item
       braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
       \end{itemize}
+  \default{minkowski}
   \end{itemize}
 
 
@@ -4823,6 +5246,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4850,25 +5274,30 @@
 
     \item \xmlNode{radius}: \xmlDesc{float}, 
       Range of parameter space to use by default for radius neighbors queries.
+  \default{1.0}
 
     \item \xmlNode{weights}: \xmlDesc{[uniform, distance]}, 
       weight function used in prediction. If ``uniform'', all points in each neighborhood
       are weighted equally. If ``distance'' weight points by the inverse of their distance. in this
       case,closer neighbors of a query point will have a greater influence than neighbors which are
       further away.
+  \default{uniform}
 
     \item \xmlNode{algorithm}: \xmlDesc{[auto, ball\_tree, kd\_tree, brute]}, 
       Algorithm used to compute the nearest neighbors
+  \default{auto}
 
     \item \xmlNode{leaf\_size}: \xmlDesc{integer}, 
       Leaf size passed to BallTree or KDTree. This can affect the speed of the construction
       and query, as well as the memory required to store the tree. The optimal value depends on the
       nature of the problem.
+  \default{30}
 
     \item \xmlNode{p}: \xmlDesc{integer}, 
       Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
       manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$,
       minkowski\_distance                                                  (l\_p) is used.
+  \default{2}
 
     \item \xmlNode{metric}: \xmlDesc{[minkowski, euclidean, manhattan, chebyshev, hamming, canberra, braycurtis]}, 
       the distance metric to use for the tree. The default metric is minkowski, and with
@@ -4882,6 +5311,7 @@
       $sum(|x - y| / (|x| + |y|))$                                                    \item
       braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
       \end{itemize}
+  \default{minkowski}
 
     \item \xmlNode{outlier\_label}: \xmlDesc{comma-separated strings}, 
       label for outlier samples (samples with no neighbors in given radius).
@@ -4890,6 +5320,7 @@
       \item most\_frequent: assign the most frequent label of y to outliers.
       \item None: when any outlier is detected, an error will be raised.
       \end{itemize}
+  \default{None}
   \end{itemize}
 
 
@@ -4926,6 +5357,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -4954,23 +5386,28 @@
     \item \xmlNode{penalty}: \xmlDesc{[l1, l2]}, 
       Specifies the norm used in the penalization. The ``l2'' penalty is the standard used in SVC.
       The ``l1' leads to coefficients vectors that are sparse.
+  \default{l2}
 
     \item \xmlNode{loss}: \xmlDesc{[hinge, squared\_hinge]}, 
       Specifies the loss function. ``hinge'' is the standard SVM loss (used e.g. by the SVC class)
       while ``squared\_hinge'' is the square of the hinge loss. The combination of penalty=``l1' and
       loss=``hinge''                                                  is not supported.
+  \default{squared\_hinge}
 
     \item \xmlNode{dual}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Select the algorithm to either solve the dual or primal optimization problem.
       Prefer dual=False when $n\_samples > n\_features$.
+  \default{True}
 
     \item \xmlNode{C}: \xmlDesc{float}, 
       Regularization parameter. The strength of the regularization is inversely
       proportional to C.                                                            Must be strictly
       positive. The penalty is a squared l2 penalty..
+  \default{1.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{multi\_class}: \xmlDesc{[crammer\_singer, ovr]}, 
       Determines the multi-class strategy if y contains more than two classes. ``ovr'' trains
@@ -4980,10 +5417,12 @@
       in practice as it rarely leads to better accuracy and is more expensive to compute. If
       ``crammer\_singer''                                                  is chosen, the options
       loss, penalty and dual will be ignored.
+  \default{ovr}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. If set to false, no
       intercept will be used in calculations (i.e. data is expected to be already centered).
+  \default{True}
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
@@ -4993,14 +5432,17 @@
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
       intercept)                                                  $intercept\_scaling$ has to be
       increased.
+  \default{1.0}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{1000}
 
     \item \xmlNode{verbose}: \xmlDesc{integer}, 
       Enable verbose output. Note that this setting takes advantage
       of a per-process runtime setting in liblinear that, if enabled, may not
       work properly in a multithreaded context.
+  \default{0}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the pseudo random number generation for shuffling
@@ -5008,11 +5450,13 @@
       the underlying implementation of LinearSVC is not random and
       random\_state has no effect on the results. Pass an int for reproducible
       output across multiple function calls.
+  \default{None}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
   \end{itemize}
 
 
@@ -5049,6 +5493,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5077,18 +5522,22 @@
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Epsilon parameter in the epsilon-insensitive loss function. The value of
       this parameter depends on the scale of the target variable y. If unsure, set $epsilon=0.$
+  \default{0.0}
 
     \item \xmlNode{loss}: \xmlDesc{[epsilon\_insensitive’, squared\_epsilon\_insensitive]}, 
       Specifies the loss function. The epsilon-insensitive loss (standard SVR)
       is the L1 loss, while the squared epsilon-insensitive loss (``squared\_epsilon\_insensitive'')
       is the L2 loss.
+  \default{squared\_epsilon\_insensitive}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.0001}
 
     \item \xmlNode{fit\_intercept}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to calculate the intercept for this model. If set to false, no
       intercept will be used in calculations (i.e. data is expected to be already centered).
+  \default{True}
 
     \item \xmlNode{intercept\_scaling}: \xmlDesc{float}, 
       When fit\_intercept is True, instance vector x becomes $[x, intercept\_scaling]$,
@@ -5098,13 +5547,16 @@
       To lessen the effect of regularization on synthetic feature weight (and therefore on the
       intercept)                                                  $intercept\_scaling$ has to be
       increased.
+  \default{1.0}
 
     \item \xmlNode{dual}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Select the algorithm to either solve the dual or primal optimization problem.
       Prefer dual=False when $n\_samples > n\_features$.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{-1}
   \end{itemize}
 
 
@@ -5140,6 +5592,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5168,32 +5621,41 @@
     \item \xmlNode{nu}: \xmlDesc{float}, 
       An upper bound on the fraction of margin errors and
       a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.
+  \default{0.5}
 
     \item \xmlNode{kernel}: \xmlDesc{[linear, poly, rbf, sigmoid]}, 
       Specifies the kernel type to be used in the algorithm. It must be one of
       ``linear'', ``poly'', ``rbf'' or ``sigmoid''.
+  \default{rbf}
 
     \item \xmlNode{degree}: \xmlDesc{integer}, 
       Degree of the polynomial kernel function ('poly').Ignored by all other kernels.
+  \default{3}
 
     \item \xmlNode{gamma}: \xmlDesc{float}, 
       Kernel coefficient for ``poly'', ``rbf'' or ``sigmoid''. If not input, then it uses
       $1 / (n\_features * X.var())$ as value of gamma
+  \default{scale}
 
     \item \xmlNode{coef0}: \xmlDesc{float}, 
       Independent term in kernel function
+  \default{0.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
+  \default{200.0}
 
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{-1}
 
     \item \xmlNode{decision\_function\_shape}: \xmlDesc{[ovo, ovr]}, 
       Whether to return a one-vs-rest (``ovr'') decision function of shape $(n\_samples, n\_classes)$
@@ -5202,24 +5664,29 @@
       shape $(n\_samples, n\_classes * (n\_classes - 1) / 2)$. However, one-vs-one (``ovo'') is always
       used as                                                            multi-class strategy. The
       parameter is ignored for binary classification.
+  \default{ovr}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Enable verbose output. Note that this setting takes advantage
       of a per-process runtime setting in libsvm that, if enabled, may not
       work properly in a multithreaded context.
+  \default{False}
 
     \item \xmlNode{probability}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to enable probability estimates.
+  \default{False}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the pseudo random number generation for shuffling
       the data for probability estimates. Ignored when probability is False.
       Pass an int for reproducible output across multiple function calls.
+  \default{None}
   \end{itemize}
 
 
@@ -5255,6 +5722,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5283,37 +5751,47 @@
     \item \xmlNode{nu}: \xmlDesc{float}, 
       An upper bound on the fraction of margin errors and
       a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.
+  \default{0.5}
 
     \item \xmlNode{C}: \xmlDesc{float}, 
       Regularization parameter. The strength of the regularization is inversely
       proportional to C.                                                           Must be strictly
       positive. The penalty is a squared l2 penalty.
+  \default{1.0}
 
     \item \xmlNode{kernel}: \xmlDesc{[linear, poly, rbf, sigmoid]}, 
       Specifies the kernel type to be used in the algorithm. It must be one of
       ``linear'', ``poly'', ``rbf'' or ``sigmoid''.
+  \default{rbf}
 
     \item \xmlNode{degree}: \xmlDesc{integer}, 
       Degree of the polynomial kernel function ('poly').Ignored by all other kernels.
+  \default{3}
 
     \item \xmlNode{gamma}: \xmlDesc{float}, 
       Kernel coefficient for ``poly'', ``rbf'' or ``sigmoid''. If not input, then it uses
       $1 / (n\_features * X.var())$ as value of gamma
+  \default{scale}
 
     \item \xmlNode{coef0}: \xmlDesc{float}, 
       Independent term in kernel function
+  \default{0.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
+  \default{200.0}
 
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{-1}
   \end{itemize}
 
 
@@ -5350,6 +5828,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5379,32 +5858,41 @@
       Regularization parameter. The strength of the regularization is inversely
       proportional to C.                                                            Must be strictly
       positive. The penalty is a squared l2 penalty..
+  \default{1.0}
 
     \item \xmlNode{kernel}: \xmlDesc{[linear, poly, rbf, sigmoid]}, 
       Specifies the kernel type to be used in the algorithm. It must be one of
       ``linear'', ``poly'', ``rbf'' or ``sigmoid''.
+  \default{rbf}
 
     \item \xmlNode{degree}: \xmlDesc{integer}, 
       Degree of the polynomial kernel function ('poly').Ignored by all other kernels.
+  \default{3}
 
     \item \xmlNode{gamma}: \xmlDesc{float}, 
       Kernel coefficient for ``poly'', ``rbf'' or ``sigmoid''. If not input, then it uses
       $1 / (n\_features * X.var())$ as value of gamma
+  \default{scale}
 
     \item \xmlNode{coef0}: \xmlDesc{float}, 
       Independent term in kernel function
+  \default{0.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
+  \default{200.0}
 
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{-1}
 
     \item \xmlNode{decision\_function\_shape}: \xmlDesc{[ovo, ovr]}, 
       Whether to return a one-vs-rest (``ovr'') decision function of shape $(n\_samples, n\_classes)$
@@ -5413,24 +5901,29 @@
       shape $(n\_samples, n\_classes * (n\_classes - 1) / 2)$. However, one-vs-one (``ovo'') is always
       used as                                                            multi-class strategy. The
       parameter is ignored for binary classification.
+  \default{ovr}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Enable verbose output. Note that this setting takes advantage
       of a per-process runtime setting in libsvm that, if enabled, may not
       work properly in a multithreaded context.
+  \default{False}
 
     \item \xmlNode{probability}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to enable probability estimates.
+  \default{False}
 
     \item \xmlNode{class\_weight}: \xmlDesc{[balanced]}, 
       If not given, all classes are supposed to have weight one.
       The “balanced” mode uses the values of y to automatically adjust weights
       inversely proportional to class frequencies in the input data
+  \default{None}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the pseudo random number generation for shuffling
       the data for probability estimates. Ignored when probability is False.
       Pass an int for reproducible output across multiple function calls.
+  \default{None}
   \end{itemize}
 
 
@@ -5467,6 +5960,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5496,43 +5990,54 @@
       Regularization parameter. The strength of the regularization is inversely
       proportional to C.                                                            Must be strictly
       positive. The penalty is a squared l2 penalty..
+  \default{1.0}
 
     \item \xmlNode{kernel}: \xmlDesc{[linear, poly, rbf, sigmoid]}, 
       Specifies the kernel type to be used in the algorithm. It must be one of
       ``linear'', ``poly'', ``rbf'' or ``sigmoid''.
+  \default{rbf}
 
     \item \xmlNode{degree}: \xmlDesc{integer}, 
       Degree of the polynomial kernel function ('poly').Ignored by all other kernels.
+  \default{3}
 
     \item \xmlNode{gamma}: \xmlDesc{float}, 
       Kernel coefficient for ``poly'', ``rbf'' or ``sigmoid''. If not input, then it uses
       $1 / (n\_features * X.var())$ as value of gamma
+  \default{scale}
 
     \item \xmlNode{coef0}: \xmlDesc{float}, 
       Independent term in kernel function
+  \default{0.0}
 
     \item \xmlNode{tol}: \xmlDesc{float}, 
       Tolerance for stopping criterion
+  \default{0.001}
 
     \item \xmlNode{cache\_size}: \xmlDesc{float}, 
       Size of the kernel cache (in MB)
+  \default{200.0}
 
     \item \xmlNode{epsilon}: \xmlDesc{float}, 
       Epsilon in the epsilon-SVR model. It specifies the epsilon-tube
       within which no penalty is associated in the training loss function
       with points predicted within a distance epsilon from the actual
       value.
+  \default{0.1}
 
     \item \xmlNode{shrinking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use the shrinking heuristic.
+  \default{True}
 
     \item \xmlNode{max\_iter}: \xmlDesc{integer}, 
       Hard limit on iterations within solver.``-1'' for no limit
+  \default{-1}
 
     \item \xmlNode{verbose}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Enable verbose output. Note that this setting takes advantage
       of a per-process runtime setting in libsvm that, if enabled, may not
       work properly in a multithreaded context.
+  \default{False}
   \end{itemize}
 
 
@@ -5565,6 +6070,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5593,17 +6099,21 @@
     \item \xmlNode{criterion}: \xmlDesc{[gini, entropy]}, 
       The function to measure the quality of a split. Supported criteria are ``gini'' for the
       Gini impurity and ``entropy'' for the information gain.
+  \default{gini}
 
     \item \xmlNode{splitter}: \xmlDesc{[best, random]}, 
       The strategy used to choose the split at each node. Supported strategies are ``best''
       to choose the best split and ``random'' to choose the best random split.
+  \default{best}
 
     \item \xmlNode{max\_depth}: \xmlDesc{integer}, 
       The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure
       or until all leaves contain less than min\_samples\_split samples.
+  \default{None}
 
     \item \xmlNode{min\_samples\_split}: \xmlDesc{integer}, 
       The minimum number of samples required to split an internal node
+  \default{2}
 
     \item \xmlNode{min\_samples\_leaf}: \xmlDesc{integer}, 
       The minimum number of samples required to be at a leaf node. A split point at any
@@ -5611,10 +6121,12 @@
       each                                                  of the left and right branches. This may
       have the effect of smoothing the model, especially
       in regression.
+  \default{1}
 
     \item \xmlNode{min\_weight\_fraction\_leaf}: \xmlDesc{float}, 
       The minimum weighted fraction of the sum total of weights (of all the input samples)
       required to be at a leaf node. Samples have equal weight when sample\_weight is not provided.
+  \default{0.0}
 
     \item \xmlNode{max\_features}: \xmlDesc{[auto, sqrt, log2]}, 
       The strategy to compute the number of features to consider when looking for the best split:
@@ -5625,11 +6137,13 @@
       \end{itemize}                                                   \nb the search for a split
       does not stop until at least one valid partition of the node
       samples is found, even if it requires to effectively inspect more than max\_features features.
+  \default{None}
 
     \item \xmlNode{max\_leaf\_nodes}: \xmlDesc{integer}, 
       Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative
       reduction                                                  in impurity. If None then unlimited
       number of leaf nodes.
+  \default{None}
 
     \item \xmlNode{min\_impurity\_decrease}: \xmlDesc{float}, 
       A node will be split if this split induces a decrease of the impurity greater than or equal to
@@ -5641,6 +6155,7 @@
       left child, and $N\_t\_R$ is the number of samples in the right child.
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
+  \default{0.0}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the randomness of the estimator. The features are
@@ -5652,6 +6167,7 @@
       of the criterion is identical for several splits and one split has to
       be selected at random. To obtain a deterministic behaviour during
       fitting, random\_state has to be fixed to an integer.
+  \default{None}
   \end{itemize}
 
 
@@ -5684,6 +6200,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5718,17 +6235,21 @@
       mean absolute error, which minimizes the L1 loss using the median of each terminal node, and
       ``poisson''                                                  which uses reduction in Poisson
       deviance to find splits.
+  \default{mse}
 
     \item \xmlNode{splitter}: \xmlDesc{[best, random]}, 
       The strategy used to choose the split at each node. Supported strategies are ``best''
       to choose the best split and ``random'' to choose the best random split.
+  \default{best}
 
     \item \xmlNode{max\_depth}: \xmlDesc{integer}, 
       The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure
       or until all leaves contain less than min\_samples\_split samples.
+  \default{None}
 
     \item \xmlNode{min\_samples\_split}: \xmlDesc{integer}, 
       The minimum number of samples required to split an internal node
+  \default{2}
 
     \item \xmlNode{min\_samples\_leaf}: \xmlDesc{integer}, 
       The minimum number of samples required to be at a leaf node. A split point at any
@@ -5736,10 +6257,12 @@
       each                                                  of the left and right branches. This may
       have the effect of smoothing the model, especially
       in regression.
+  \default{1}
 
     \item \xmlNode{min\_weight\_fraction\_leaf}: \xmlDesc{float}, 
       The minimum weighted fraction of the sum total of weights (of all the input samples)
       required to be at a leaf node. Samples have equal weight when sample\_weight is not provided.
+  \default{0.0}
 
     \item \xmlNode{max\_features}: \xmlDesc{[auto, sqrt, log2]}, 
       The strategy to compute the number of features to consider when looking for the best split:
@@ -5751,11 +6274,13 @@
       \end{itemize}                                                   \nb the search for a split
       does not stop until at least one valid partition of the node
       samples is found, even if it requires to effectively inspect more than max\_features features.
+  \default{None}
 
     \item \xmlNode{max\_leaf\_nodes}: \xmlDesc{integer}, 
       Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative
       reduction                                                  in impurity. If None then unlimited
       number of leaf nodes.
+  \default{None}
 
     \item \xmlNode{min\_impurity\_decrease}: \xmlDesc{float}, 
       A node will be split if this split induces a decrease of the impurity greater than or equal to
@@ -5767,6 +6292,7 @@
       left child, and $N\_t\_R$ is the number of samples in the right child.
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
+  \default{0.0}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the randomness of the estimator. The features are
@@ -5778,6 +6304,7 @@
       of the criterion is identical for several splits and one split has to
       be selected at random. To obtain a deterministic behaviour during
       fitting, random\_state has to be fixed to an integer.
+  \default{None}
   \end{itemize}
 
 
@@ -5815,6 +6342,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5843,17 +6371,21 @@
     \item \xmlNode{criterion}: \xmlDesc{[gini, entropy]}, 
       The function to measure the quality of a split. Supported criteria are ``gini'' for the
       Gini impurity and ``entropy'' for the information gain.
+  \default{gini}
 
     \item \xmlNode{splitter}: \xmlDesc{[best, random]}, 
       The strategy used to choose the split at each node. Supported strategies are ``best''
       to choose the best split and ``random'' to choose the best random split.
+  \default{best}
 
     \item \xmlNode{max\_depth}: \xmlDesc{integer}, 
       The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure
       or until all leaves contain less than min\_samples\_split samples.
+  \default{None}
 
     \item \xmlNode{min\_samples\_split}: \xmlDesc{integer}, 
       The minimum number of samples required to split an internal node
+  \default{2}
 
     \item \xmlNode{min\_samples\_leaf}: \xmlDesc{integer}, 
       The minimum number of samples required to be at a leaf node. A split point at any
@@ -5861,10 +6393,12 @@
       each                                                  of the left and right branches. This may
       have the effect of smoothing the model, especially
       in regression.
+  \default{1}
 
     \item \xmlNode{min\_weight\_fraction\_leaf}: \xmlDesc{float}, 
       The minimum weighted fraction of the sum total of weights (of all the input samples)
       required to be at a leaf node. Samples have equal weight when sample\_weight is not provided.
+  \default{0.0}
 
     \item \xmlNode{max\_features}: \xmlDesc{[auto, sqrt, log2]}, 
       The strategy to compute the number of features to consider when looking for the best split:
@@ -5876,11 +6410,13 @@
       \end{itemize}                                                   \nb the search for a split
       does not stop until at least one valid partition of the node
       samples is found, even if it requires to effectively inspect more than max\_features features.
+  \default{None}
 
     \item \xmlNode{max\_leaf\_nodes}: \xmlDesc{integer}, 
       Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative
       reduction                                                  in impurity. If None then unlimited
       number of leaf nodes.
+  \default{None}
 
     \item \xmlNode{min\_impurity\_decrease}: \xmlDesc{float}, 
       A node will be split if this split induces a decrease of the impurity greater than or equal to
@@ -5892,9 +6428,11 @@
       left child, and $N\_t\_R$ is the number of samples in the right child.
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
+  \default{0.0}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to pick randomly the max\_features used at each split.
+  \default{None}
   \end{itemize}
 
 
@@ -5932,6 +6470,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -5964,17 +6503,21 @@
       terminal node, ``friedman\_mse'', which uses mean squared error with Friedman's improvement
       score for potential splits,                                                  ``mae'' for the
       mean absolute error, which minimizes the L1 loss using the median of each terminal node.
+  \default{mse}
 
     \item \xmlNode{splitter}: \xmlDesc{[best, random]}, 
       The strategy used to choose the split at each node. Supported strategies are ``best''
       to choose the best split and ``random'' to choose the best random split.
+  \default{best}
 
     \item \xmlNode{max\_depth}: \xmlDesc{integer}, 
       The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure
       or until all leaves contain less than min\_samples\_split samples.
+  \default{None}
 
     \item \xmlNode{min\_samples\_split}: \xmlDesc{integer}, 
       The minimum number of samples required to split an internal node
+  \default{2}
 
     \item \xmlNode{min\_samples\_leaf}: \xmlDesc{integer}, 
       The minimum number of samples required to be at a leaf node. A split point at any
@@ -5982,10 +6525,12 @@
       each                                                  of the left and right branches. This may
       have the effect of smoothing the model, especially
       in regression.
+  \default{1}
 
     \item \xmlNode{min\_weight\_fraction\_leaf}: \xmlDesc{float}, 
       The minimum weighted fraction of the sum total of weights (of all the input samples)
       required to be at a leaf node. Samples have equal weight when sample\_weight is not provided.
+  \default{0.0}
 
     \item \xmlNode{max\_features}: \xmlDesc{[auto, sqrt, log2]}, 
       The strategy to compute the number of features to consider when looking for the best split:
@@ -5996,11 +6541,13 @@
       \end{itemize}                                                   \nb the search for a split
       does not stop until at least one valid partition of the node
       samples is found, even if it requires to effectively inspect more than max\_features features.
+  \default{None}
 
     \item \xmlNode{max\_leaf\_nodes}: \xmlDesc{integer}, 
       Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative
       reduction                                                  in impurity. If None then unlimited
       number of leaf nodes.
+  \default{None}
 
     \item \xmlNode{min\_impurity\_decrease}: \xmlDesc{float}, 
       A node will be split if this split induces a decrease of the impurity greater than or equal to
@@ -6012,14 +6559,17 @@
       left child, and $N\_t\_R$ is the number of samples in the right child.
       $N$, $N\_t$, $N\_t]\_R$ and $N\_t\_L$ all refer to the weighted sum, if sample\_weight is
       passed.
+  \default{0.0}
 
     \item \xmlNode{ccp\_alpha}: \xmlDesc{float}, 
       Complexity parameter used for Minimal Cost-Complexity Pruning. The subtree with the largest
       cost                                                  complexity that is smaller than
       ccp\_alpha will be chosen. By default, no pruning is performed.
+  \default{0.0}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Used to pick randomly the max\_features used at each split.
+  \default{None}
   \end{itemize}
 
 
@@ -6053,6 +6603,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -6091,6 +6642,7 @@
     \item \xmlNode{weights}: \xmlDesc{comma-separated floats}, 
       Sequence of weights (float or int) to weight the occurrences of predicted
       values before averaging. Uses uniform weights if None.
+  \default{None}
   \end{itemize}
 
 
@@ -6128,6 +6680,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -6165,30 +6718,38 @@
 
     \item \xmlNode{n\_estimators}: \xmlDesc{integer}, 
       The number of base estimators in the ensemble.
+  \default{10}
 
     \item \xmlNode{max\_samples}: \xmlDesc{float}, 
       The number of samples to draw from X to train each base estimator
+  \default{1.0}
 
     \item \xmlNode{max\_features}: \xmlDesc{float}, 
       The number of features to draw from X to train each base estimator
+  \default{1.0}
 
     \item \xmlNode{bootstrap}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether samples are drawn with replacement. If False, sampling without
       replacement is performed.
+  \default{True}
 
     \item \xmlNode{bootstrap\_features}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether features are drawn with replacement.
+  \default{False}
 
     \item \xmlNode{oob\_score}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       Whether to use out-of-bag samples to estimate the generalization error.
       Only available if bootstrap=True.
+  \default{False}
 
     \item \xmlNode{warm\_start}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When set to True, reuse the solution of the previous call to fit and add more
       estimators to the ensemble, otherwise, just fit a whole new ensemble.
+  \default{False}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the random resampling of the original dataset (sample wise and feature wise).
+  \default{None}
   \end{itemize}
 
 
@@ -6223,6 +6784,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -6262,20 +6824,24 @@
       The maximum number of estimators at which boosting is
       terminated. In case of perfect fit, the learning procedure is
       stopped early.
+  \default{50}
 
     \item \xmlNode{learning\_rate}: \xmlDesc{float}, 
       Weight applied to each regressor at each boosting iteration.
       A higher learning rate increases the contribution of each regressor.
       There is a trade-off between the learning\_rate and n\_estimators
       parameters.
+  \default{1.0}
 
     \item \xmlNode{loss}: \xmlDesc{[linear, square, exponential]}, 
       The loss function to use when updating the weights after each
       boosting iteration.
+  \default{linear}
 
     \item \xmlNode{random\_state}: \xmlDesc{integer}, 
       Controls the random seed given at each estimator at each
       boosting iteration.
+  \default{None}
   \end{itemize}
 
 
@@ -6309,6 +6875,7 @@
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
       etc) used in the input HistorySet.
+  \default{time}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
       The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
@@ -6349,9 +6916,11 @@
 
     \item \xmlNode{cv}: \xmlDesc{integer}, 
       specify the number of folds in a (Stratified) KFold,
+  \default{5}
 
     \item \xmlNode{passthrough}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
       When False, only the predictions of estimators will be used as training
       data for final\_estimator. When True, the final\_estimator is trained on the predictions
       as well as the original training data.
+  \default{False}
   \end{itemize}

@@ -143,7 +143,7 @@ class GaussPolynomialRom(SupervisedLearning):
     interpolationParam.addParam("weight", InputTypes.FloatType, required=False,
                   descr=r"""delineates the importance weighting of this dimension.  A larger importance weight will
                   result in increased resolution for this dimension at the cost of resolution in lower-weighted
-                  dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
+                  dimensions.  The algorithm normalizes weights at run-time.""", default=1)
     specs.addSub(interpolationParam)
     return specs
 
@@ -465,9 +465,7 @@ class GaussPolynomialRom(SupervisedLearning):
         missing.append(pt)
     if len(missing)>0:
       msg='\n'
-      msg+='DEBUG missing feature vals:\n'
-      for i in missing:
-        msg+='  '+str(i)+'\n'
+      msg+='DEBUG missing feature vals:\n' + '\n'.join(map(lambda x:'  '+str(x),missing))+ '\n'
       self.raiseADebug(msg)
       self.raiseADebug('sparse:',sgs)
       self.raiseADebug('solns :',fvs)

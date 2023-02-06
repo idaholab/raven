@@ -1,0 +1,156 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MaxContinuousHRangeConstrained</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-07-21</created>
+    <classesTested/>
+    <description>Workshop test: GA maximization Horizontal Range Constrained</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MaxHRange</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="080510">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../../tests/framework/AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,x,y,t,r</variables><!--Complete this-->
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../../../../../tests/framework/AnalyticModels/optimizing/projectileConstraints.py" name="impConstr1"><!--Take a look at the projectileConstraints.py-->
+      <variables></variables><!--Complete this-->
+    </External>
+  </Functions>
+
+
+  <Distributions>
+    <Uniform name='angle_dist'>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+    <Uniform name='v0_dist'>
+      <lowerBound>100</lowerBound>
+      <upperBound>170</upperBound>
+    </Uniform>
+  </Distributions>
+
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>60</limit>
+        <initialSeed>123456</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>max</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.1</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">
+          <a>1.0</a>
+          <b>1.0</b><!--Modify this-->
+        </fitness>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+
+      <objective>r</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <ImplicitConstraint class='XX' type='External'>??</ImplicitConstraint><!--Complete this-->
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>223344</initialSeed>
+      </samplerInit>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>angle,v0</Input>
+      <Output>r</Output><!--Complete this-->
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>angle,v0,r,age,batchId,fitness,iteration,accepted,conv_objective, ConstraintEvaluation_impConstr1</Output><!--Modify if necessary-->
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>angle,v0,r</vars><!--Modify if necessary-->
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source>opt_export</source>
+      <vars>angle,v0,r</vars><!--Modify if necessary-->
+      <logVars>r</logVars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>

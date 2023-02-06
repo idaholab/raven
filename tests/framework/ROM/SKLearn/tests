@@ -145,11 +145,16 @@
   [./GP]
     type = 'RavenFramework'
     input = 'gp.xml'
-    csv = 'data/outGP.csv'
-    output = 'data/outGP.xml'
-    # rel_err was updated from 1.0e-6 to 5.0e-6 due to the small changes in the outputs
-    # from all linux related test machines.
-    rel_err = 5.0e-6
+    image = 'data/plotGP_scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.01
+    [./csv]
+      type = OrderedCSV
+      output = 'data/outGP.csv'
+      # rel_err was updated from 1.0e-6 to 5.0e-6 due to the small changes in the outputs
+      # from all linux related test machines.
+      rel_err = 5.0e-06
+    [../]
   [../]
   [./linearARD]
     type = 'RavenFramework'

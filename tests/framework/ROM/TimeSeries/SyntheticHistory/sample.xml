@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.ARMA.Sampler</name>
+    <author>dylanjm</author>
+    <created>2022-06-29</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.ARMA</classesTested>
+    <description>Tests the ability to load and sample ARMA created by SyntheticHistory ROM.</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ARMA</WorkingDir>
+    <Sequence>read, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">pk_samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal0, signal1, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <arma target="signal0, signal1" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="pk_samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>signal0, signal1</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

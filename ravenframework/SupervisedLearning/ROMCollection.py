@@ -371,7 +371,7 @@ class Segments(Collection):
       delim = self._divisionInfo['delimiters'][s]
       picker = slice(delim[0], delim[-1] + 1)
       result = segment.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
-    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
+    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=None, slicer=None)
     return result
 
   def writePointwiseData(self, writeTo):

@@ -23,15 +23,14 @@
 OUTFILE=$1
 # BASH_PROFILE 
 HEAD_ADDRESS=$2
-REDIS_PASS=$3
-NUM_CPUS=$4
-RAVEN_FRAMEWORK_DIR=$5
+NUM_CPUS=$3
+RAVEN_FRAMEWORK_DIR=$4
 
 echo starting >> $OUTFILE
 
-if [ $# -eq 6 ]
+if [ $# -eq 5 ]
   then
-  REMOTE_BASH=$6
+  REMOTE_BASH=$5
   source $REMOTE_BASH >> $OUTFILE 2>&1
 fi
 
@@ -40,4 +39,4 @@ hostname >> $OUTFILE
 
 echo loaded >> $OUTFILE
 command -v ray >> $OUTFILE 2>&1
-ray start --address=$HEAD_ADDRESS --redis-password=$REDIS_PASS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1
+ray start --verbose --address=$HEAD_ADDRESS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1
