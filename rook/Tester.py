@@ -24,7 +24,6 @@ import shutil
 import time
 import threading
 import platform
-import shutil
 
 warnings.simplefilter('default', DeprecationWarning)
 
