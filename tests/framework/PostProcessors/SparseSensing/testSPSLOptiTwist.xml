@@ -85,7 +85,7 @@
       <source>outPP</source>
       <what>output</what>
     </Print>
-    <Plot name="mySensorPlot" subType="SensorsPlot">
+    <!-- <Plot name="mySensorPlot" subType="SensorsPlot">
       <source>outPP</source>
       <vars>Temperature (K), X (m), Y (m)</vars>
       <index>sensor</index>
@@ -94,14 +94,22 @@
       <xlabel>X (cm)</xlabel>
       <ylabel>Y (cm)</ylabel>
       <c>red</c>
-    </Plot>
-    <!-- <Plot name="plotMC">
+    </Plot> -->
+    <Plot name="mySensorPlot">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>outPP|Output|x</x>
-          <y>outMC|Output|y</y>
-          <c>blue</c>
+          <x>TwistDO|Output|X (m)</x>
+          <y>TwistDO|Output|Y (m)</y>
+          <cmap>coolwarm</cmap>
+          <colorMap>TwistDO|Output|Temperature (K)</colorMap>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outPP|Output|X (m)</x>
+          <y>outPP|Output|Y (m)</y>
+          <c>red</c>
+          <marker>x</marker>
         </plot>
         <xlabel>x</xlabel>
         <ylabel>y</ylabel>
@@ -109,7 +117,7 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot> -->
+    </Plot>
   </OutStreams>
 
 </Simulation>

@@ -80,7 +80,7 @@ class SparseSensing(PostProcessorReadyInterface):
     goal.addSub(optimizer)
     threshold = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType,
                                                            printPriority=108,
-                                                           descr=r"""The persentage of sensors used (i.e., nSensors/nFeatures)""")
+                                                           descr=r"""The percentage of sensors used (i.e., nSensors/nFeatures)""")
     goal.addSub(threshold)
     inputSpecification.addSub(goal)
     return inputSpecification
@@ -98,7 +98,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.outputMultipleRealizations = True # True indicate multiple realizations are returned
     self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
-    # self.pivotParameter = 'time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    # self.pivotParameter = 'time'
     # self.outputLen = None
 
   def initialize(self, runInfo, inputs, initDict=None):
@@ -134,6 +134,10 @@ class SparseSensing(PostProcessorReadyInterface):
         self.threshold = child.findFirst('threshold').value
       elif child.parameterValues['subType'] not in self.goalsDict.keys():
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
+    # _, notFound = paramInput.findNodesAndExtractValues(['featureParameters', 'targetParameters'])
+    # # notFound must be empty
+    # assert(not notFound)
+
     # # checks
     # if not hasattr(self, 'pivotParameter'):
     #   self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
@@ -174,17 +178,15 @@ class SparseSensing(PostProcessorReadyInterface):
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
 
     model.fit(data)
-    allSensors = model.get_all_sensors()
-    selectedSensors = model.get_selected_sensors() # should be selected not all
+    selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}
     for var in self.sensingFeatures:
       sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data) #inputDS[self.sensingFeatures]
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
-    ## PLEASE READ: For developers: this is really imporatant, currently,
+    ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims('RAVEN_sample_ID')
     outDS['RAVEN_sample_ID'] = [0]
-    # mergedDS = outDS.combine_first(inputDS)
     return outDS
