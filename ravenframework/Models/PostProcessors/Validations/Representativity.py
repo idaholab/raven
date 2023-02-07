@@ -29,7 +29,7 @@ class Representativity(ValidationBase):
     Representativity is a base class for validation problems
     It represents the base class for most validation problems
 
-    @ Authors: Mohammad abdo  (@Jimmy-INL)
+    @ Authors: Mohammad Abdo  (@Jimmy-INL)
                Congjian Wang  (@wangcj05)
                Andrea Alfonsi (@aalfonsi)
                Aaron Epiney   (@AaronEpiney)
