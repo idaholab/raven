@@ -10,7 +10,7 @@
 
   <RunInfo>
     <WorkingDir>reconstruction</WorkingDir>
-    <Sequence>FirstMRun, mySPpp, plot</Sequence>
+    <Sequence>FirstMRun, mySPpp, plot, plotSensors</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -25,13 +25,17 @@
     <PostProcess name="mySPpp">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
       <Model class="Models" type="PostProcessor">mySPSL</Model>
-      <Output class="DataObjects" type="HistorySet">outPP</Output>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
     </PostProcess>
     <IOStep name="plot">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Input class="DataObjects" type="HistorySet">outPP</Input>
+      <Input class="DataObjects" type="DataSet">outPP</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">plotMC</Output>
+    </IOStep>
+    <IOStep name="plotSensors">
+      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Output class="OutStreams" type="Plot">mySensorPlot</Output>
     </IOStep>
   </Steps>
 
@@ -97,10 +101,11 @@
       <Input>angle</Input>
       <Output>OutputPlaceHolder</Output>
     </HistorySet> -->
-    <PointSet name="outPP">
+    <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>sensor0,sensor1,sensor2,sensor3,sensor4</Output>
-    </PointSet>
+      <Index var="sensor">x,y</Index>
+      <Output>x, y</Output>
+    </DataSet>
   </DataObjects>
 
   <OutStreams>
@@ -133,6 +138,16 @@
       <actions>
         <how>png</how>
       </actions>
+    </Plot>
+    <Plot name="mySensorPlot" subType="SensorsPlot">
+      <source>outPP</source>
+      <vars>sensor,v</vars>
+      <index>sensor</index>
+      <how>png</how>
+      <marker>x</marker>
+      <xlabel>X (m)</xlabel>
+      <ylabel>Y (m)</ylabel>
+      <c>red</c>
     </Plot>
   </OutStreams>
 

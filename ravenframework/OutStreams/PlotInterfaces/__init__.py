@@ -24,5 +24,4 @@ from .OptPath import OptPath
 from .SyntheticCloud import SyntheticCloud
 from .PopulationPlot import PopulationPlot
 from. OptParallelCoordinate import OptParallelCoordinatePlot
-from .SensorsPlot import SensorsPlot
 from .Factory import factory

@@ -27,7 +27,6 @@ from .OptPath import OptPath
 from .PopulationPlot import PopulationPlot
 from .SyntheticCloud import SyntheticCloud
 from .OptParallelCoordinate import OptParallelCoordinatePlot
-from .SensorsPlot import SensorsPlot
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
@@ -36,4 +35,3 @@ factory.registerType('OptPath', OptPath)
 factory.registerType('SyntheticCloud', SyntheticCloud)
 factory.registerType('PopulationPlot', PopulationPlot)
 factory.registerType('OptParallelCoordinatePlot', OptParallelCoordinatePlot)
-factory.registerType('SensorsPlot', SensorsPlot)
