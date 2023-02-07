@@ -264,12 +264,12 @@ class RFE(FeatureSelectionBase):
 
     #FIXME: support and ranking for targets is only needed now because
     #       some features (e.g. DMDC state variables) are stored among the targets
-    #       This will go away once (and if) MR #1718 (https://github.com/idaholab/raven/pull/1718) gets merged
-    #       whatever marked with ""FIXME 1718"" will need to be modified
+    #       This will go away once (and if) MR #2051 (https://github.com/idaholab/raven/pull/2051) gets merged
+    #       whatever marked with ""FIXME 2051"" will need to be modified
     # Initialization
     nFeatures = X.shape[-1]
     nTargets = y.shape[-1]
-    #FIXME 1718
+    #FIXME 2051
     nParams = len(self.parametersToInclude)
     # support and ranking for features
     support_ = np.ones(nParams, dtype=np.bool)
@@ -329,7 +329,6 @@ class RFE(FeatureSelectionBase):
     if useParallel:
       # send some data to workers
       self.raiseADebug("Sending large data objects to Workers for parallel")
-      #supportDataForRFERef = jhandler.sendDataToWorkers(supportDataRFE)
       yRef = jhandler.sendDataToWorkers(y)
       XRef = jhandler.sendDataToWorkers(X)
       estimatorRef = jhandler.sendDataToWorkers(self.estimator)
@@ -418,19 +417,6 @@ class RFE(FeatureSelectionBase):
         else:
           space = y[:, targets] if len(y.shape) < 3 else  np.average(y[:, :,targets],axis=0)
 
-        from sklearn.feature_selection import mutual_info_regression
-        ti = None
-        ranksss = []
-        for g in range(nGroups):
-          tspace = y[:, outputSpaceToKeep[g]] if len(y.shape) < 3 else  np.average(y[:, :,outputSpaceToKeep[g]],axis=0)
-          mi = np.ravel(mutual_info_regression(space,tspace[:,0]))
-          if ti is None:
-            ti = mi
-          else:
-            ti = ti - mi
-          ranksss.append(np.ravel(np.argsort(-1*mi)))
-          print(mi[ranksss[-1]])
-
         # compute spearman
         # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
         corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
@@ -439,23 +425,22 @@ class RFE(FeatureSelectionBase):
         # We convert the correlation matrix to a distance matrix before performing
         # hierarchical clustering using Ward's linkage.
 
-        distance_matrix = 1. - np.abs(corr)
-        dist_linkage = hierarchy.ward(squareform(distance_matrix))
+        distanceMatrix = 1. - np.abs(corr)
+        distLinkage = hierarchy.ward(squareform(distanceMatrix))
 
-        t = float('{:.3e}'.format(0.000001*np.max(dist_linkage)))
+        t = float('{:.3e}'.format(0.000001*np.max(distLinkage)))
 
         self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
         self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
-        cluster_ids = hierarchy.fcluster(dist_linkage, t, criterion="distance")
-        cluster_id_to_feature_ids = defaultdict(list)
-        for idx, cluster_id in enumerate(cluster_ids):
-          cluster_id_to_feature_ids[cluster_id].append(idx)
-        selected_features = [v[0] for v in cluster_id_to_feature_ids.values()]
+        clusterIDs = hierarchy.fcluster(distLinkage, t, criterion="distance")
+        clusterIDsToFeatureIDs = defaultdict(list)
+        for idx, cluster_id in enumerate(clusterIDs):
+          clusterIDsToFeatureIDs[cluster_id].append(idx)
+        selectedFeatures = [v[0] for v in clusterIDsToFeatureIDs.values()]
 
-
-        self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selected_features)}!")
+        self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selectedFeatures)}!")
         support_[:] = False
-        support_[np.asarray(selected_features)] = True
+        support_[np.asarray(selectedFeatures)] = True
 
     # now we check if maxNumberFeatures is set and in case perform an
     # additional reduction based on score
@@ -470,7 +455,7 @@ class RFE(FeatureSelectionBase):
       initialNumbOfFeatures = int(np.sum(support_))
       featuresForRanking = np.arange(nParams)[support_]
       originalSupport = copy.copy(support_)
-      scorelist = []
+      scoreCollection = []
       featureList = []
       bestForNumberOfFeatures = {}
       supportData = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,
@@ -482,9 +467,11 @@ class RFE(FeatureSelectionBase):
       def updateBestScore(it, k, score, combo, survivors):
         """
           Update score and combo containers
+          @ In, it, int, iteration number
           @ In, k, int, number of features
           @ In, score, float, the score for this combination
           @ In, combo, list(int), list of integers (combinations)
+          @ In, survivors, list(str), the list of parameters belonging to this iteration (it)
           @ Out, None
         """
         if k in bestForNumberOfFeatures.keys():
@@ -492,7 +479,7 @@ class RFE(FeatureSelectionBase):
             bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
         else:
           bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
-        scorelist.append(score)
+        scoreCollection.append(score)
         featureList.append(combo)
         self.raiseAMessage("Iter. #: {}. Score: {:.6e}. Variables (# {}):  {}".format(it,score,len(survivors)," ".join(survivors)))
 
@@ -502,9 +489,6 @@ class RFE(FeatureSelectionBase):
         # send some data to workers
         self.raiseADebug("Sending large data objects to Workers for parallel")
         supportDataRef = jhandler.sendDataToWorkers(supportData)
-        #yRef = jhandler.sendDataToWorkers(y)
-        #XRef = jhandler.sendDataToWorkers(X)
-        #estimatorRef = jhandler.sendDataToWorkers(self.estimator)
         self.raiseADebug("Large data objects have been sent")
         # we use the parallelization
         for k in range(1,initialNumbOfFeatures + 1):
@@ -516,7 +500,6 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it+1}'
-              #jhandler.addJob((copy.deepcopy(self.estimator), X, y, combo,supportData,),self._scoring,prefix, uniqueHandler='RFE')
               jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),self._scoring, prefix, uniqueHandler='RFE_scoring')
               it += 1
             finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
@@ -541,12 +524,13 @@ class RFE(FeatureSelectionBase):
             # train and get score
             score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator), X, y, combo,supportData)
             updateBestScore(it, k, score, combo, survivors)
-      idxx = np.argmin(scorelist)
+      idxx = np.argmin(scoreCollection)
       support_ = copy.copy(originalSupport)
       support_[featuresForRanking] = False
       support_[np.asarray(featureList[idxx])] = True
       for k in bestForNumberOfFeatures:
-        self.raiseAMessage(f"Best score for {k} features is {bestForNumberOfFeatures[k][0]} with the following features {bestForNumberOfFeatures[k][1]} ")
+        self.raiseAMessage(f"Best score for {k} features is {bestForNumberOfFeatures[k][0]} "
+                            "with the following features {bestForNumberOfFeatures[k][1]} ")
 
     # Set final attributes
     supportIndex = 0

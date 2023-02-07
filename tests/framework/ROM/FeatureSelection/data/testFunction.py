@@ -20,13 +20,23 @@ import numpy as np
 import math
 
 def eval(inp):
+  """
+    Evaluation method fpr the quadratic model
+    @ In, inp, tuple, tuple of input values
+    @ Out, eval, float, the result of the evaluation
+  """
   retVal = (inp[0] - .5)**2 + (inp[1] - .5)**2
   return float('%.8f' % retVal)
 
 def run(self,Input):
-  # Since this model is aimed to test feature selections algorithms
-  # the variables /= X and Y are simply used to add a noise and they
-  # should be filtered out by the algorithm applied
+  """
+    Run method of the model that is aimed to test feature
+    selections algorithms. The variables /= X and Y are
+    simply used to add a noise and they should be filtered
+    out by the algorithm applied.
+    @ In, Input, dict, dictionary of input (sampled) vars
+    @ Out, None
+  """
   # The variables /= X,Y are sampled from a U(-1,1)
   self.Z = eval(((self.X-2),(self.Y+1000)/(2000)))
   for var in Input:

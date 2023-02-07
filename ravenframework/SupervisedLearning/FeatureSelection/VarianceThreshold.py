@@ -94,9 +94,9 @@ class VarianceThreshold(FeatureSelectionBase):
       @ In, featuresIds, list, list of features
       @ In, targetsIds, list, list of targets
       @ In, maskF, optional, np.array, indeces of features to search within
-      (parameters to include None if search is whitin targets)
+                    (parameters to include None if search is whitin targets)
       @ In, maskT, optional, np.array, indeces of targets to search within
-      (parameters to include None if search is whitin features)
+                    (parameters to include None if search is whitin features)
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
     """
