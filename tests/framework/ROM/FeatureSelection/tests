@@ -8,6 +8,6 @@
   [./RFEStaticSklearn]
     type  = 'RavenFramework'
     input = 'sklearn_rfe.xml'
-    xml = 'data/rom_sklearn_static_stats_out.xml'
+    xml = 'data/rom_stats_out.xml'
   [../]
 []

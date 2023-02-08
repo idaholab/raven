@@ -73,7 +73,7 @@
       <type>csv</type>
       <source>outData</source>
     </Print>
-    <Print name="rom_sklearn_static_stats_out">
+    <Print name="rom_stats_out">
       <type>csv</type>
       <source>rom_stats</source>
     </Print>
