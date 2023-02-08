@@ -3,6 +3,6 @@
     type = 'RavenFramework'
     input = 'testSPSLOptiTwist.xml'
     csv = 'reconstructionOptiTwist/outPP.csv'
-    output = ''
+    output = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png'
   [../]
 []
