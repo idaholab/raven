@@ -747,9 +747,10 @@ class RFE(FeatureSelectionBase):
 
     # evaluate
     score = 0.0
+    avgArray = np.atleast_1d(np.average(y, axis=(0,) if len(y.shape) < 3 else (0, 1)))
+    stdArray = np.atleast_1d(np.std(y, axis=(0,) if len(y.shape) < 3 else (0, 1), ddof=1))
     for samp in range(X.shape[0]):
       evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
-      scores = {}
       for target in evaluated:
         if target in targetsIds:
           if target not in parametersToInclude:
@@ -760,16 +761,11 @@ class RFE(FeatureSelectionBase):
             if onlyOutputScore:
               continue
           tidx = targetsIds.index(target)
-          avg = np.average(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx])
-          std = np.std(y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx],ddof=1)
-          if compareFloats (avg, 0.):
-            avg = 1
-          if compareFloats (std, 0.):
-            std = 1.
-          ev = (evaluated[target] - avg)/std
-          ref = ((y[samp,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
+          # get std and set to 1 if it is zero
+          std = stdArray[tidx] if not compareFloats (stdArray[tidx], 0.) else 1.
+          ev = (evaluated[target] - avgArray[tidx] )/std
+          ref = ((y[samp,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avgArray[tidx]  )/std
           s = np.sum(np.square(ref-ev)) / (1. if len(X.shape) < 3 else float(X.shape[1]))
-          scores[target] = s*w
           score +=  s*w
     # free memory and call garbage collector
     del estimator
