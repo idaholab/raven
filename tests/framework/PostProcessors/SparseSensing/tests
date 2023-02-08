@@ -1,7 +1,8 @@
 [Tests]
-  [./testSPSLProjectile]
+  [./testSPSLOptiTwist]
     type = 'RavenFramework'
-    input = 'testSPSLReconstructioProjectile.xml'
-    csv = 'reconstruction/outPP.csv'
+    input = 'testSPSLOptiTwist.xml'
+    csv = 'reconstructionOptiTwist/outPP.csv'
+    output = ''
   [../]
 []
