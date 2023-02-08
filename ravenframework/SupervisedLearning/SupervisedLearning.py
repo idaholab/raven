@@ -181,6 +181,12 @@ class SupervisedLearning(BaseInterface):
     self.metadataKeys = set()
     # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
     self.metadataParams = {}
+    # This parameter is set at the initialization of the model
+    # If True, the importances are computed if no 'feature_importances_' and
+    # 'coef_' are set by the estimator (see def initializeModel)
+    # After the computation, the importances are set as attribute of the self.model
+    # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
+    self.computeImportances = False
 
   def __getstate__(self):
     """
@@ -235,6 +241,9 @@ class SupervisedLearning(BaseInterface):
       self.featureSelectionAlgo = featureSelectionFactory.returnInstance(featAlgo.getName())
       # handle input
       self.featureSelectionAlgo._handleInput(featAlgo)
+      # if the feature selection algorithm is set, we should always have a mean to compute
+      # the feature importances (e.g. either the model can provide them or we use permutation)
+      self.computeImportances = True
     # dim reduction?
     dimReduction = paramInput.findFirst("dimensionalityReduction")
     if dimReduction is not None:
@@ -416,15 +425,15 @@ class SupervisedLearning(BaseInterface):
         self.raiseAMessage("Feature Selection removed the following features: {}".format(', '.join(self.removed)))
         self.raiseAMessage("Old feature space for surrogate model was       : {}".format(', '.join(self.features)))
         self.raiseAMessage("New feature space for surrogate model is now    : {}".format(', '.join(np.asarray(self.features)[newFeatures].tolist())))
-      elif np.sum(support) != len(self.target):
+      elif space == 'target' and np.sum(support) != len(self.target):
         self.removed = set(self.target) - set(np.asarray(self.target)[newFeatures].tolist())
         self.raiseAMessage("Feature Selection removed the following features (from target space): {}".format(', '.join(self.removed)))
         self.raiseAMessage("Old feature space (in the target space) for surrogate model was     : {}".format(', '.join(self.target)))
         self.raiseAMessage("New feature space (in the target space) for surrogate model is now  : {}".format(', '.join(np.asarray(self.target)[newFeatures].tolist())))
-        if self.performDimReduction:
-          print("pca:")
-          print(newFeatures)
-          print(support)
+      else:
+        self.raiseAMessage("Feature Selection DID NOT remove any feature since all all needed to maximize the performance of the surrogate model!")
+
+
       self.paramInput.findNodesAndSetValues(vals)
       self._handleInput(self.paramInput)
       if self.dynamicFeatures:

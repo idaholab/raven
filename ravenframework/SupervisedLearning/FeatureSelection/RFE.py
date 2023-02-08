@@ -344,7 +344,8 @@ class RFE(FeatureSelectionBase):
             outputspace = None
           prefix = f'subgroup_{g}'
           if g > 0: supportDataRFE['firstStep'] = setStep
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),self._rfe, prefix, uniqueHandler='RFE_subgroup')
+          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),
+                          self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
@@ -380,7 +381,8 @@ class RFE(FeatureSelectionBase):
           outputspace = self.subGroups[g]
           self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
         # apply RFE
-        supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator, X, y, g, outputspace, supportDataRFE)
+        supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator,
+                                                                            X, y, g, outputspace, supportDataRFE)
 
         if nGroups > 1:
           # store candidates in case of sugroupping
@@ -428,7 +430,7 @@ class RFE(FeatureSelectionBase):
         distanceMatrix = 1. - np.abs(corr)
         distLinkage = hierarchy.ward(squareform(distanceMatrix))
 
-        t = float('{:.3e}'.format(0.000001*np.max(distLinkage)))
+        t = float('{:.3e}'.format(1.e-6*np.max(distLinkage)))
 
         self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
         self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
@@ -500,7 +502,8 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it+1}'
-              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),self._scoring, prefix, uniqueHandler='RFE_scoring')
+              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),
+                              self._scoring, prefix, uniqueHandler='RFE_scoring')
               it += 1
             finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
             if not finishedJobs:
@@ -522,7 +525,8 @@ class RFE(FeatureSelectionBase):
           #Looping over all possible combinations: from initialNumbOfFeatures choose k
           for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
             # train and get score
-            score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator), X, y, combo,supportData)
+            score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator),
+                                                                  X, y, combo,supportData)
             updateBestScore(it, k, score, combo, survivors)
       idxx = np.argmin(scoreCollection)
       support_ = copy.copy(originalSupport)
@@ -530,7 +534,7 @@ class RFE(FeatureSelectionBase):
       support_[np.asarray(featureList[idxx])] = True
       for k in bestForNumberOfFeatures:
         self.raiseAMessage(f"Best score for {k} features is {bestForNumberOfFeatures[k][0]} "
-                            "with the following features {bestForNumberOfFeatures[k][1]} ")
+                           f"with the following features {bestForNumberOfFeatures[k][1]} ")
 
     # Set final attributes
     supportIndex = 0
@@ -750,9 +754,9 @@ class RFE(FeatureSelectionBase):
         if target in targetsIds:
           if target not in parametersToInclude:
             # if not feature variable, then this target is output variable
-            w = 1/float(len(targets)-1-len(featureCombination))
+            w = abs(1/float(len(targets)-1-len(featureCombination)))
           else:
-            w = 1/float(len(featureCombination))
+            w = abs(1/float(len(featureCombination)))
             if onlyOutputScore:
               continue
           tidx = targetsIds.index(target)
@@ -763,7 +767,7 @@ class RFE(FeatureSelectionBase):
           if compareFloats (std, 0.):
             std = 1.
           ev = (evaluated[target] - avg)/std
-          ref = ((y[:,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
+          ref = ((y[samp,tidx] if len(y.shape) < 3 else y[samp,:,tidx]) - avg )/std
           s = np.sum(np.square(ref-ev)) / (1. if len(X.shape) < 3 else float(X.shape[1]))
           scores[target] = s*w
           score +=  s*w

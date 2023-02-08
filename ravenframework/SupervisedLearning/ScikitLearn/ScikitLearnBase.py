@@ -61,8 +61,7 @@ class ScikitLearnBase(SupervisedLearning):
       This property is in charge of extracting from the estimators
       the importance of the features used in the training process
       @ In, None
-      @ Out, coefs, np.array, 1D (nFeatures) or 2D (nFeatures,nTargets) array
-                              containing importances of the features
+      @ Out, importances, dict, {featName:float or array(nTargets)} importances of the features
     """
     coefs = None
     if hasattr(self.model, 'estimators_'):
@@ -88,7 +87,9 @@ class ScikitLearnBase(SupervisedLearning):
         coefs = model.feature_importances_
       elif hasattr(model, 'coef_'):
         coefs = model.coef_
-    return coefs
+    # store importances
+    importances = {feat:coefs[f] for f, feat in enumerate(self.features) } if coefs is not None else None
+    return importances
 
   def updateSettings(self, settings):
     """
@@ -171,6 +172,14 @@ class ScikitLearnBase(SupervisedLearning):
       # the multi-target is handled by the internal wrapper
       self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
+    if self.computeImportances and self.featureImportances_ is None:
+      # we compute importances using a permutation method
+      from sklearn.inspection import permutation_importance
+      r = permutation_importance(self.model, featureVals, targetVals, random_state=0)
+      # we set the attribute to self.model as feature_importances_
+      model = self.model.estimators_ if hasattr(self.model, 'estimators_') else [self.model]
+      for m in model:
+        setattr(m, 'feature_importances_', r['importances_mean'])
 
   def __confidenceLocal__(self,featureVals):
     """
