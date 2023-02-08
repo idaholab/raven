@@ -40,7 +40,7 @@
     <ROM name="modelUnderTest" subType="SVR">
       <Features>X,Y,A,B,C,D</Features>
       <Target>Z</Target>
-      <C>1.0</C>
+      <C>10.0</C>
       <epsilon>0.1</epsilon>
       <kernel>rbf</kernel>
       <degree>3</degree>
@@ -52,13 +52,11 @@
       <max_iter>-1</max_iter>
       <featureSelection>
         <RFE name="mySelectionAlgo">
-          <!-- <parametersToInclude>state_variables</parametersToInclude> -->
           <parametersToInclude>X,Y,A,B,C,D</parametersToInclude>
           <onlyOutputScore>False</onlyOutputScore>
           <step>1</step>
           <onlyOutputScore>True</onlyOutputScore>
-          <maxNumberFeatures>6</maxNumberFeatures>
-          <!--  <nFeaturesToSelect>2</nFeaturesToSelect> -->
+          <maxNumberFeatures>2</maxNumberFeatures>
           <applyClusteringFiltering>False</applyClusteringFiltering>
           <whichSpace>feature</whichSpace>
         </RFE>
@@ -75,7 +73,7 @@
       <type>csv</type>
       <source>outData</source>
     </Print>
-    <Print name="rom_stats_out">
+    <Print name="rom_sklearn_static_stats_out">
       <type>csv</type>
       <source>rom_stats</source>
     </Print>
