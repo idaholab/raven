@@ -47,7 +47,7 @@ Note all install methods after "main" take
          AttributeError: 'EntryPoints' object has no attribute 'get'
          so should be skipped.
     -->
-    <xarray>0.19</xarray>
+    <xarray>2023</xarray>
     <netcdf4>1.5</netcdf4>
     <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
