@@ -375,7 +375,7 @@ class DMDC(DMD):
       @ Out, None
     """
     # add description
-    super().writeXMLPreamble
+    super().writeXMLPreamble(writeTo, targets)
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     description  = ' This XML file contains the main information of the DMDC ROM.'
@@ -383,7 +383,7 @@ class DMDC(DMD):
     description += ' Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz. '
     description += ' "Dynamic mode decomposition with control." '
     description += ' SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.'
-    writeTo.addScalar('ROM',"description",description)
+    writeTo.addScalar('ROM',"description",description, replaceNode=True)
 
   def writeXML(self, writeTo, targets = None, skip = None):
     """

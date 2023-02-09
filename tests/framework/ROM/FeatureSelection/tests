@@ -2,12 +2,23 @@
   [./RFEStaticSklearn]
     type  = 'RavenFramework'
     input = 'sklearn_rfe.xml'
-    xml = 'data/rom_stats_out.xml'
+    [./xml_data]
+      type = XML
+      output = 'data/rom_stats_out.xml'
+      unordered = true
+      remove_unicode_identifier = true
+    [../]
   [../]
   [./DMDcRFEScoringSubgroup]
     type  = 'RavenFramework'
     input = 'dmdc_rfe_and_score.xml'
-    xml = 'data/dmdc_stats_rfe_score_subgroup.xml'
     output = 'data/ReducedSpaceDMDcROM'
+    rel_err = 0.0001
+    [./xml_data]
+      type = XML
+      output = 'data/dmdc_stats_rfe_score_subgroup.xml'
+      unordered = true
+      remove_unicode_identifier = true
+    [../]
   [../]
 []

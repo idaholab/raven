@@ -1,6 +1,9 @@
 <DataObjectMetadata name="rom_stats">
   <DMDrom type="Static">
     <ROM>
+      <type>DMDC</type>
+      <Features>pulse_SES.y,pulse_BOP.y,pulse_TES.y,SES_Max_Power,BOP_Max_Power,TES_Max_Power,BOP.sensor_T1.y_init,BOP.HPT.state_a.d_init,BOP.HPT.sat_in.Tsat_init,BOP.HPT.dew_out.d_init,BOP.tee.medium.T_degC_init,SES.SinkExhaustGas.medium.d_init,SES.SinkExhaustGas.medium.p_bar_init,SES.fuelCtrl.VCE_init,TES.hot_tank.der(V)_init,TES.cold_tank.V_init,TES.discharge_pump.medium.u_init</Features>
+      <Targets>Time,BOP.sensor_T1.y,BOP.HPT.state_a.d,BOP.HPT.dew_out.d,TES.hot_tank.der(V),SES_Electric_Power,SES_Firing_Temperature,BOP_Electric_Power,BOP_Turbine_Pressure,TES_HotTank_Level,TES_HT_Level_Ramprate</Targets>
       <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
     </ROM>
     <DMDcModel>

@@ -448,7 +448,7 @@ class StaticXmlElement(object):
     self._tree = newTree(tag, attrib)    # base tree structure
     self._root = self._tree.getroot()   # root element of tree
 
-  def addScalar(self, target, name, value, root=None, attrs=None):
+  def addScalar(self, target, name, value, root=None, attrs=None, replaceNode=False):
     """
       Adds a node entry named "name" with value/text "value" to a node "target". For example:
       <root>
@@ -461,15 +461,21 @@ class StaticXmlElement(object):
       @ In, value, string, text of new subnode
       @ In, root, xml.etree.ElementTree.Element, optional, root to append to
       @ In, attrs, dict, optional, attributes for new subnode
+      @ In, replaceNode, bool, optional, replace node if found in the tree already?
       @ Out, None
     """
     if root is None:
       root = self.getRoot()
     # find target node (if it exists, otherwise create it)
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
+    if replaceNode:
+      el = targ.find(name)
+      if el is not None:
+        targ.remove(el)
     targ.append(newNode(name, text=value, attrib=attrs))
 
-  def addVector(self, target, name, valueCont, root=None, attrs=None, valueAttrsDict=None):
+  def addVector(self, target, name, valueCont, root=None, attrs=None,
+                valueAttrsDict=None, replaceNode=False):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -497,6 +503,7 @@ class StaticXmlElement(object):
       @ In, attrs, dict, optional, dictionary of attributes to be stored in the node (name)
       @ In, valueAttrsDict, dict, optional, dictionary of attributes to be stored along the subnodes
             identified by the valueCont dictionary
+      @ In, replaceNode, bool, optional, replace node (named "name") if found in the tree already?
       @ Out, None
     """
     isStr = isinstance(valueCont, str)
@@ -505,6 +512,11 @@ class StaticXmlElement(object):
     if valueAttrsDict is None:
       valueAttrsDict = {}
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
+    if replaceNode:
+      # replace node?
+      el = targ.find(name)
+      if el is not None:
+        targ.remove(el)
     nameNode = newNode(name, attrib=attrs, text=valueCont if isStr else '')
     if not isStr:
       for key, value in sorted(list(valueCont.items())):
