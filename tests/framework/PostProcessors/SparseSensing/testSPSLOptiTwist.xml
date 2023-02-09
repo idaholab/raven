@@ -46,6 +46,7 @@
         <basis>svd</basis>
         <nModes>5</nModes>
         <nSensors>5</nSensors>
+        <seed>42</seed>
         <optimizer>QR</optimizer>
       </Goal>
     </PostProcessor>
