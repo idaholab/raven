@@ -252,7 +252,8 @@ class SupervisedLearning(BaseInterface):
       if pca is None:
         self.raiseAnError(IOError, "Only available dimensionality algorithms are: {}".format(",".join(['PCA'])))
       nodesPCA, notFound = pca.findNodesAndExtractValues(['parametersToInclude', 'whichSpace', 'nComponents','whiten','tol'])
-      if nodesPCA['nComponents'] is not None: nodesPCA['nComponents'] = int(nodesPCA['nComponents'])
+      if nodesPCA['nComponents'] is not None:
+        nodesPCA['nComponents'] = int(nodesPCA['nComponents'])
       if nodesPCA['parametersToInclude'] is None:
         self.raiseAnError(IOError, '"parametersToInclude" must be present in dimensionality reduction settings (for now)!' )
       self.dimReductionSettings.update(nodesPCA)

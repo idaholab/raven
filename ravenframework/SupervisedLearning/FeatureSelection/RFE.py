@@ -344,7 +344,8 @@ class RFE(FeatureSelectionBase):
           else:
             outputspace = None
           prefix = f'subgroup_{g}'
-          if g > 0: supportDataRFE['firstStep'] = setStep
+          if g > 0:
+            supportDataRFE['firstStep'] = setStep
           jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),
                           self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
