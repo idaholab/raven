@@ -106,7 +106,7 @@ class RFE(FeatureSelectionBase):
         """considered?.""",
         default=False))
     spec.addSub(InputData.parameterInputFactory('applyClusteringFiltering',contentType=InputTypes.BoolType,
-        descr=r"""Applying clustering correlation  before Augmented-RFE search?""",
+        descr=r"""Applying clustering correlation before Augmented-RFE search?""",
         default=False))
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
         descr=r"""Applying cross correlation in case of subgroupping at the """
@@ -216,6 +216,7 @@ class RFE(FeatureSelectionBase):
       @ In, mask, np.array, indeces of features to search within (parameters to include None if search is whitin targets)
       @ In, support_, np.array, boolean array of selected features
       @ Out, support_, np.array, boolean array of selected features
+      @ Out, len(selectedFeatures), int, reduced number of features
     """
     if self.whichSpace == 'feature':
       space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
@@ -232,17 +233,15 @@ class RFE(FeatureSelectionBase):
     distanceMatrix = 1. - np.abs(corr)
     distLinkage = hierarchy.ward(squareform(distanceMatrix))
     t = float('{:.3e}'.format(1.e-6*np.max(distLinkage)))
-    self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
-    self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
+    self.raiseAMessage(f"Applying distance tollerance of <{t}>")
     clusterIds = hierarchy.fcluster(distLinkage, t, criterion="distance")
     clusterIdToFeatureIds = defaultdict(list)
     for idx, clusterId in enumerate(clusterIds):
       clusterIdToFeatureIds[clusterId].append(idx)
     selectedFeatures = [v[0] for v in clusterIdToFeatureIds.values()]
-    self.raiseAMessage(f"Features reduced via clustering (before Augmented-RFE search) from {len(support_)} to {len(selectedFeatures)}!")
     support_[:] = False
     support_[np.asarray(selectedFeatures)] = True
-    return support_
+    return support_, len(selectedFeatures)
 
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """
@@ -277,8 +276,6 @@ class RFE(FeatureSelectionBase):
     ranking_ = np.ones(nParams, dtype=np.int)
     supportOfSupport_ = np.ones(nFeatures, dtype=np.bool) if self.whichSpace == 'feature' else np.ones(nTargets, dtype=np.bool)
     mask = maskF if self.whichSpace == 'feature' else maskT
-    # initialize coefs = None
-    coefs = None
     # number of subgroups
     nGroups = max(len(self.subGroups), 1)
     # features to select
@@ -298,7 +295,11 @@ class RFE(FeatureSelectionBase):
 
     # clustering appraoch here
     if self.applyClusteringFiltering:
-      support_ = self.__applyClusteringPrefiltering(X, y, mask, support_)
+      self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
+      initialNumber = len(support_)
+      support_, reducedNumber = self.__applyClusteringPrefiltering(X, y, mask, support_)
+      self.raiseAMessage(f"Features reduced via clustering (before Augmented-RFE search) from {initialNumber} to {reducedNumber}!")
+
 
     # compute number of steps
     setStep = int(self.step) if self.step > 1 else int(max(1, self.step * nParams))
@@ -339,7 +340,7 @@ class RFE(FeatureSelectionBase):
         if jhandler.availability() > 0:
           if nGroups > 1:
             outputspace = self.subGroups[g]
-            self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
+            self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputspace)))
           else:
             outputspace = None
           prefix = f'subgroup_{g}'
@@ -357,7 +358,7 @@ class RFE(FeatureSelectionBase):
           self.raiseAMessage(f"Collecting results from subgroup {finished.identifier}")
           collectedOutput+=1
           if nGroups > 1:
-            # store candidates in case of sugroupping
+            # store candidates in case of sub-groupping
             supportCandidates.append(copy.deepcopy(supportParallel_))
             outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
           else:
@@ -365,11 +366,11 @@ class RFE(FeatureSelectionBase):
       while collectedOutput < nGroups:
         finishedJobs = jhandler.getFinished(uniqueHandler='RFE_subgroup')
         for finished in finishedJobs:
-          self.raiseAMessage(f"Collecting results from subgroup {finished.identifier}")
+          self.raiseAMessage(f"Collecting results from sub-group {finished.identifier}")
           supportParallel_, indexToKeepParallel = finished.getEvaluation()
           collectedOutput += 1
           if nGroups > 1:
-            # store candidates in case of sugroupping
+            # store candidates in case of sub-groupping
             supportCandidates.append(copy.deepcopy(supportParallel_))
             outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
           else:
@@ -379,13 +380,13 @@ class RFE(FeatureSelectionBase):
         # loop over groups
         if nGroups > 1:
           outputspace = self.subGroups[g]
-          self.raiseAMessage("Subgroupping with targets: {}".format(",".join(outputspace)))
+          self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputspace)))
         # apply RFE
         supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator,
                                                                             X, y, g, outputspace, supportDataRFE)
 
         if nGroups > 1:
-          # store candidates in case of sugroupping
+          # store candidates in case of sub-groupping
           supportCandidates.append(copy.deepcopy(supportParallel_))
           outputSpaceToKeep.append(copy.deepcopy(indexToKeepParallel))
         else:
@@ -393,57 +394,26 @@ class RFE(FeatureSelectionBase):
 
     if nGroups > 1:
       support_[:] = False
-      featuresForRanking = copy.deepcopy(groupFeaturesForRanking)
-      ranking_ = copy.deepcopy(groupRanking_)
-      supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)
       for g in range(nGroups):
         subGroupMask = np.where(supportCandidates[g] == True)
         support_[subGroupMask] = True
-      self.raiseAMessage("After subGroupping stragety, number of candidate features are {}".format(np.sum(support_)))
+      self.raiseAMessage("After sub-groupping strategy, number of candidate features are {}".format(np.sum(support_)))
       # apply cross correlation if activated
       if self.applyCrossCorrelation:
         supportIndex = 0
-        for idx in range(len(supportOfSupport_)):
+        crossCorrMask = np.zeros(groupSupportOfSupport_.shape, dtype=bool)
+        for idx in range(len(crossCorrMask)):
           if mask[idx]:
-            supportOfSupport_[idx] = support_[supportIndex]
-            supportIndex=supportIndex+1
-        if self.whichSpace == 'feature':
-          features = np.arange(nFeatures)[supportOfSupport_]
-          targets = np.arange(nTargets)
-        else:
-          features = np.arange(nFeatures)
-          targets = np.arange(nTargets)[supportOfSupport_]
+            crossCorrMask[idx] = support_[supportIndex]
+            supportIndex = supportIndex + 1
 
-        if self.whichSpace == 'feature':
-          space = X[:, features] if len(X.shape) < 3 else np.average(X[:, :,features],axis=0)
-        else:
-          space = y[:, targets] if len(y.shape) < 3 else  np.average(y[:, :,targets],axis=0)
-
-        # compute spearman
-        # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
-        corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
-        corr = (corr + corr.T) / 2.
-        np.fill_diagonal(corr, 1)
-        # We convert the correlation matrix to a distance matrix before performing
-        # hierarchical clustering using Ward's linkage.
-
-        distanceMatrix = 1. - np.abs(corr)
-        distLinkage = hierarchy.ward(squareform(distanceMatrix))
-
-        t = float('{:.3e}'.format(1.e-6*np.max(distLinkage)))
-
-        self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
-        self.raiseAMessage(f"Applying distance clustering tollerance of <{t}>")
-        clusterIDs = hierarchy.fcluster(distLinkage, t, criterion="distance")
-        clusterIDsToFeatureIDs = defaultdict(list)
-        for idx, cluster_id in enumerate(clusterIDs):
-          clusterIDsToFeatureIDs[cluster_id].append(idx)
-        selectedFeatures = [v[0] for v in clusterIDsToFeatureIDs.values()]
-
-        self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {len(support_)} to {len(selectedFeatures)}!")
-        support_[:] = False
-        support_[np.asarray(selectedFeatures)] = True
-
+        self.raiseAMessage("Applying hierarchical cross correlation clustering to reduce redondant"
+                           " features obtained from sub-groupping strategy")
+        initialNumber = int(np.sum(support_))
+        support_, reducedNumber = self.__applyClusteringPrefiltering(X, y, crossCorrMask, support_)
+        self.raiseAMessage(f"Features reduced via hierarchical cross correlation clustering from {initialNumber} to {reducedNumber}!")
+      # reinitialize array
+      supportOfSupport_ = copy.deepcopy(groupSupportOfSupport_)
     # now we check if maxNumberFeatures is set and in case perform an
     # additional reduction based on score
     # removing the variables one by one
@@ -550,7 +520,6 @@ class RFE(FeatureSelectionBase):
     self.nFeatures_ = support_.sum()
     self.support_ = support_
     self.globalSupport_ = supportOfSupport_
-    self.ranking_ = ranking_
 
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_
 

@@ -20,7 +20,6 @@
 #External Modules------------------------------------------------------------------------------------
 import sys
 import numpy as np
-from sklearn.feature_selection import VarianceThreshold as vt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -100,6 +99,7 @@ class VarianceThreshold(FeatureSelectionBase):
       @ Out, newFeatures or newTargets, list, list of new features/targets
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
     """
+    from sklearn.feature_selection import VarianceThreshold as vt
     # if time dependent, we work on the expected value of the features
     nFeatures = X.shape[-1]
     nTargets = y.shape[-1]
@@ -111,7 +111,11 @@ class VarianceThreshold(FeatureSelectionBase):
       space = y[:, maskT] if len(y.shape) < 3 else  np.average(y[:, :,maskT],axis=0)
       supportOfSupport_, mask = np.ones(nTargets,dtype=bool), maskT
     # fit estimator
-    estimator = vt.fit(space)
+    estimator = vt(threshold=self.threshold).fit(space)
     supportOfSupport_[mask] = estimator.get_support()
+    if self.whichSpace == 'feature':
+      newVariables = np.arange(nFeatures)[supportOfSupport_]
+    else:
+      newVariables = np.arange(nTargets)[supportOfSupport_]
 
-    return features if self.whichSpace == 'feature' else targets, supportOfSupport_
+    return newVariables, supportOfSupport_

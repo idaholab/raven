@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/FeatureSelection.SKLearnRFE</name>
+    <name>framework/ROM/FeatureSelection.StaticSklearnRFE</name>
     <author>aalfonsi</author>
     <created>2022-11-15</created>
-    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <classesTested>FeatureSelection.RFE,SupervisedLearning.SciKitLearn</classesTested>
     <description>
        An example of using RFE feature selection exercising supervised sklearn methods,
        specifically the svm|SVR model is tested here.

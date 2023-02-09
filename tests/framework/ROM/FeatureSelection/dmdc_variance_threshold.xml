@@ -1,25 +1,22 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
     <TestInfo>
-      <name>framework/ROM/FeatureSelection.DMDcRFEScoringSubgroup</name>
+      <name>framework/ROM/FeatureSelection.DMDcVarianceThreshold</name>
       <author>aalfonsi</author>
       <created>2023-02-06</created>
-      <classesTested>FeatureSelection.RFE,SupervisedLearning.DMDc</classesTested>
+      <classesTested>FeatureSelection.VarianceThreshold,SupervisedLearning.DMDc</classesTested>
       <description>
-         An example of using RFE feature selection exercising DMDc rom,
-         including RFE selection on subdomains (subgroupping),
-         scoring and selection of best combination.
-         In addition, it shows that the ROM constructed on the
-         reduced space can be pickled (serialized).
+          An example of using VarianceThreshold feature selection algorithm
+          exercising DMDc rom. This test shows how this feature selection
+          algorithm can be applied on time series data.
       </description>
       <revisions>
-        <revision author="aalfonsi" date="2023-02-06">Added feature selection test for DMDc
-                                                      model with RFE, scoring and subgroupping</revision>
+        <revision author="aalfonsi" date="2023-02-06">Added feature selection test for DMDc model with VarianceThreshold</revision>
       </revisions>
     </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
-    <Sequence>readTrainData,DMDCTrain,pickleRom,stats,writeOut</Sequence>
+    <Sequence>readTrainData,DMDCTrain,stats,writeOut</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -28,8 +25,6 @@
     3 state(x) and 2 output(y) -->
 	  <!-- Note: Adjacent rows should have constant time interval for DMDC -->
     <Input name="TrainDataFile">./DMDcTrainingData/reduced.csv</Input>
-    <Input name="ReducedSpaceDMDcROM" type="">ReducedSpaceDMDcROM</Input>
- 
   </Files>
   
   <Models>
@@ -53,15 +48,11 @@
       <initStateVariables>state_variables_init</initStateVariables>
  
       <featureSelection>
-        <RFE name="mySelectionAlgo">
+        <VarianceThreshold name="mySelectionAlgo">
+          <threshold>0.01</threshold>
           <parametersToInclude>parameters_to_include</parametersToInclude>
-          <step>10</step>
-          <maxNumberFeatures>2</maxNumberFeatures>
           <whichSpace>target</whichSpace>
-          <subGroup>SES_Electric_Power,SES_Firing_Temperature</subGroup>
-          <subGroup>BOP_Electric_Power,BOP_Turbine_Pressure</subGroup>
-          <subGroup>TES_HotTank_Level,TES_HT_Level_Ramprate</subGroup>
-        </RFE>
+        </VarianceThreshold>
       </featureSelection>
      </ROM>
   </Models>
@@ -75,22 +66,18 @@
       <Input class="DataObjects" type="HistorySet">TrainData</Input>
       <Output class="Models" type="ROM">DMDrom</Output>
     </RomTrainer>
-    <IOStep name="pickleRom">
-      <Input class="Models" type="ROM">DMDrom</Input>
-      <Output class="Files" type="">ReducedSpaceDMDcROM</Output>
-    </IOStep>
     <IOStep name="stats">
       <Input class="Models" type="ROM">DMDrom</Input>
       <Output class="DataObjects" type="DataSet">rom_stats</Output>
     </IOStep>
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="DataObjects" type="DataSet">rom_stats</Input>
-      <Output class="OutStreams" type="Print">dmdc_stats_rfe_score_subgroup</Output>
+      <Output class="OutStreams" type="Print">dmdc_stats_variance_threshold</Output>
     </IOStep>
  
   </Steps>
   <OutStreams>
-    <Print name="dmdc_stats_rfe_score_subgroup">
+    <Print name="dmdc_stats_variance_threshold">
       <type>csv</type>
       <source>rom_stats</source>
     </Print>

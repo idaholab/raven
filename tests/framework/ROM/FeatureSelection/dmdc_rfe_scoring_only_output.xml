@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
     <TestInfo>
-      <name>framework/ROM/FeatureSelection.DMDcRFEScoringSubgroup</name>
+      <name>framework/ROM/FeatureSelection.DMDcRFEScoringOnlyOutput</name>
       <author>aalfonsi</author>
       <created>2023-02-06</created>
       <classesTested>FeatureSelection.RFE,SupervisedLearning.DMDc</classesTested>
@@ -9,8 +9,7 @@
          An example of using RFE feature selection exercising DMDc rom,
          including RFE selection on subdomains (subgroupping),
          scoring and selection of best combination.
-         In addition, it shows that the ROM constructed on the
-         reduced space can be pickled (serialized).
+         The scoring process is here performed on Target space only (not state variables).
       </description>
       <revisions>
         <revision author="aalfonsi" date="2023-02-06">Added feature selection test for DMDc
@@ -55,12 +54,11 @@
       <featureSelection>
         <RFE name="mySelectionAlgo">
           <parametersToInclude>parameters_to_include</parametersToInclude>
+          <onlyOutputScore>True</onlyOutputScore>
           <step>10</step>
           <maxNumberFeatures>2</maxNumberFeatures>
+          <applyClusteringFiltering>False</applyClusteringFiltering>
           <whichSpace>target</whichSpace>
-          <subGroup>SES_Electric_Power,SES_Firing_Temperature</subGroup>
-          <subGroup>BOP_Electric_Power,BOP_Turbine_Pressure</subGroup>
-          <subGroup>TES_HotTank_Level,TES_HT_Level_Ramprate</subGroup>
         </RFE>
       </featureSelection>
      </ROM>
@@ -85,12 +83,12 @@
     </IOStep>
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="DataObjects" type="DataSet">rom_stats</Input>
-      <Output class="OutStreams" type="Print">dmdc_stats_rfe_score_subgroup</Output>
+      <Output class="OutStreams" type="Print">dmdc_stats_rfe_score_only_output</Output>
     </IOStep>
  
   </Steps>
   <OutStreams>
-    <Print name="dmdc_stats_rfe_score_subgroup">
+    <Print name="dmdc_stats_rfe_score_only_output">
       <type>csv</type>
       <source>rom_stats</source>
     </Print>
