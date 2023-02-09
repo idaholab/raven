@@ -173,7 +173,7 @@ class CustomSampler(Sampler):
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
       headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
-      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float64, delimiter=',', skiprows=1, ndmin=2)
       lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled:

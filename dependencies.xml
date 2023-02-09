@@ -49,7 +49,7 @@ Note all install methods after "main" take
     -->
     <xarray>0.19</xarray>
     <netcdf4>1.5</netcdf4>
-    <matplotlib>3.3</matplotlib>
+    <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
     <tensorflow>2.9</tensorflow>

@@ -55,7 +55,7 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
     @ Out, None
   """
   N = zs.shape[0]
-  zs = zs.astype(np.float)
+  zs = zs.astype(np.float64)
   dys = ymaxs - ymins
   zs[:, 0] = zs[:, 0]
   zs[:, 1:] = (zs[:, 1:] - ymins[1:]) / dys[1:] * dys[0] + ymins[1:]
