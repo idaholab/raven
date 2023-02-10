@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>RepresentativityPerfectMatch</WorkingDir>
+    <Sequence>mcRunExp, mcRunTar, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_representativity1</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2021-04-29</created>
+    <classesTested>PostProcessors.Validation</classesTested>
+    <description>
+        This test assesses the mechanics of the representativity workflow; one of the validation algorithms used in RAVEN.
+        This test a linear model as both the mock experiment and the target plant models. The expected representativity factor should be close to one for each measurable F_i and Figure of merit FOM_i. Currently the test utilizes the bias factor metric to compute the representativity factors.
+    </description>
+    <revisions>
+      <revision author="Mohammad Abdo (@Jimmy-INL)" date="2021-04-11">Added Modification for new PP API</revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/expLinModel.py" name="linModel" subType="">
+      <variables>p1, p2, e1, e2, e3, bE, F1, F2, F3</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/tarLinModel.py" name="tarModel" subType="">
+      <variables>p1, p2, o1, o2, o3, bT, FOM1, FOM2, FOM3</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Representativity">
+      <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
+      <Targets>outputDataMC2|FOM1, outputDataMC2|FOM2, outputDataMC2|FOM3</Targets><!---->
+      <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
+      <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
+      <pivotParameter>outputDataMC1|time</pivotParameter>
+      <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>5.5</mean>
+      <sigma>0.55</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>8</mean>
+      <sigma>0.8</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="ExperimentMCSampler">
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="p1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="p2">
+        <distribution>dist2</distribution>
+      </variable>
+      <constant name="e1">2,-3</constant>
+      <constant name="e2">1, 8</constant>
+      <constant name="e3">-5,-5</constant>
+      <constant name="bE">0,0,0</constant>
+    </MonteCarlo>
+    <MonteCarlo name="TargetMCSampler">
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="p1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="p2">
+        <distribution>dist2</distribution>
+      </variable>
+      <constant name="o1">2,-3</constant>
+      <constant name="o2">1, 8</constant>
+      <constant name="o3">-5,-5</constant>
+      <constant name="bT">0,0,0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <!--Multirun the prototype model-->
+    <MultiRun name="mcRunExp" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">linModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">ExperimentMCSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+    </MultiRun>
+    <!--Multirun the target model-->
+    <MultiRun name="mcRunTar" re-seeding="68912002">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">tarModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">TargetMCSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <!--Create the Representativity PostProcessor-->
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>p1,p2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC1">
+      <Input>p1,p2</Input>
+      <Output>F1, F2, F3</Output>
+    </PointSet>
+    <PointSet name="outputDataMC2">
+      <Input>p1,p2</Input>
+      <Output>FOM1, FOM2, FOM3</Output>
+    </PointSet>
+    <PointSet name="pp1_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>
+        BiasFactor_MockF1_TarFOM1,
+        BiasFactor_MockF1_TarFOM2,
+        BiasFactor_MockF1_TarFOM3,
+        BiasFactor_MockF2_TarFOM1,
+        BiasFactor_MockF2_TarFOM2,
+        BiasFactor_MockF2_TarFOM3,
+        BiasFactor_MockF3_TarFOM1,
+        BiasFactor_MockF3_TarFOM2,
+        BiasFactor_MockF3_TarFOM3,
+        ExactBiasFactor_MockF1_TarFOM1,
+        ExactBiasFactor_MockF1_TarFOM2,
+        ExactBiasFactor_MockF1_TarFOM3,
+        ExactBiasFactor_MockF2_TarFOM1,
+        ExactBiasFactor_MockF2_TarFOM2,
+        ExactBiasFactor_MockF2_TarFOM3,
+        ExactBiasFactor_MockF3_TarFOM1,
+        ExactBiasFactor_MockF3_TarFOM2,
+        ExactBiasFactor_MockF3_TarFOM3,
+        CorrectedParameters_p1,
+        CorrectedParameters_p2,
+        CorrectedTargets_FOM1,
+        CorrectedTargets_FOM2,
+        CorrectedTargets_FOM3,
+        VarianceInCorrectedParameters_p1,
+        VarianceInCorrectedParameters_p2,
+        CovarianceInCorrectedParameters_p1_p2,
+        CovarianceInCorrectedParameters_p2_p1,
+        CorrectedVar_TarFOM1,
+        CorrectedVar_TarFOM2,
+        CorrectedVar_TarFOM3,
+        ExactCorrectedVar_TarFOM1,
+        ExactCorrectedVar_TarFOM2,
+        ExactCorrectedVar_TarFOM3,
+        CorrectedCov_TarFOM1_TarFOM2,
+        CorrectedCov_TarFOM2_TarFOM1,
+        CorrectedCov_TarFOM1_TarFOM3,
+        CorrectedCov_TarFOM3_TarFOM1,
+        CorrectedCov_TarFOM2_TarFOM3,
+        CorrectedCov_TarFOM3_TarFOM2,
+        ExactCorrectedCov_TarFOM1_TarFOM2,
+        ExactCorrectedCov_TarFOM2_TarFOM1,
+        ExactCorrectedCov_TarFOM1_TarFOM3,
+        ExactCorrectedCov_TarFOM3_TarFOM1,
+        ExactCorrectedCov_TarFOM2_TarFOM3,
+        ExactCorrectedCov_TarFOM3_TarFOM2
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
