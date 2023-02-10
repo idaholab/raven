@@ -5,54 +5,45 @@
     [./xml_data]
       type = XML
       output = 'data/rom_stats_out.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
   [./DMDcRFEScoringSubgroup]
     type  = 'RavenFramework'
     input = 'dmdc_rfe_and_score.xml'
     output = 'data/ReducedSpaceDMDcROM'
-    rel_err = 0.0001
     [./xml_data]
       type = XML
+      rel_err = 0.0001
       output = 'data/dmdc_stats_rfe_score_subgroup.xml'
-      unordered = true
-      remove_unicode_identifier = true
     [../]
   [../]
   [./DMDcRFE]
     type  = 'RavenFramework'
     input = 'dmdc_rfe.xml'
-    rel_err = 0.0001
     [./xml_data]
       type = XML
       output = 'data/dmdc_stats_rfe.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
   [./DMDcRFEScoringOnlyOutput]
     type  = 'RavenFramework'
     input = 'dmdc_rfe_scoring_only_output.xml'
     output = 'data/ReducedSpaceDMDcROM'
-    rel_err = 0.0001
     [./xml_data]
       type = XML
       output = 'data/dmdc_stats_rfe_score_only_output.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
   [./DMDcRFEApplyClustering]
     type  = 'RavenFramework'
     input = 'dmdc_rfe_apply_clustering.xml'
-    rel_err = 0.0001
     [./xml_data]
       type = XML
       output = 'data/dmdc_stats_rfe_apply_clustering.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
   [./DMDcRFESubgroupCrossCorrelation]
@@ -63,12 +54,10 @@
   [./StaticSklearnVarianceThreshold]
     type  = 'RavenFramework'
     input = 'sklearn_variance_threshold.xml'
-    rel_err = 0.0001
     [./xml_data]
       type = XML
       output = 'data/rom_stats_sklearn_var_red.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
   [./DMDcVarianceThreshold]
@@ -78,8 +67,7 @@
     [./xml_data]
       type = XML
       output = 'data/dmdc_stats_variance_threshold.xml'
-      unordered = true
-      remove_unicode_identifier = true
+      rel_err = 0.0001
     [../]
   [../]
 
