@@ -397,9 +397,9 @@ class SupervisedLearning(BaseInterface):
       elif self.featureSpaceTransformationSettings['transformationMethod'].startswith("Kernel"):
         # kernel PCA
         kernel = self.featureSpaceTransformationSettings['transformationMethod'].lower().replace("kernel", "").replace("pca", "")
-        self.transformationEngine = sklearn.decomposition.KernelPCA(n_components=nComponents, kernel= kernel,  fit_inverse_transform=True)
+        self.transformationEngine = sklearn.decomposition.KernelPCA(n_components=nComponents, kernel= kernel,  fit_inverse_transform=True, random_state=0)
       elif self.featureSpaceTransformationSettings['transformationMethod'] == 'ICA':
-        self.transformationEngine = sklearn.decomposition.FastICA(n_components=nComponents)
+        self.transformationEngine = sklearn.decomposition.FastICA(n_components=nComponents, random_state=0)
       # This should be activated when the scaler is avaialable
       #else:
       #  self.transformationEngine = sklearn.decomposition.NMF(n_components=nComponents)

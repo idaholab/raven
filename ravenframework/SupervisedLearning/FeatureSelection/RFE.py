@@ -42,7 +42,7 @@ class RFE(FeatureSelectionBase):
     Feature ranking with recursive feature elimination.
     Given an external estimator that assigns weights to features (e.g., the
     coefficients of a linear model), the goal of recursive feature elimination
-    (Augmented-RFE) is to select features by recursively considering smaller and smaller
+    (RFE) is to select features by recursively considering smaller and smaller
     sets of features. First, the estimator is trained on the initial set of
     features and the importance of each feature is obtained through a
     ``feature_importances_``  property.
@@ -68,15 +68,15 @@ class RFE(FeatureSelectionBase):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+    spec.description = r"""The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
         Feature selection refers to techniques that select a subset of the most relevant features for a model (ROM).
         Fewer features can allow ROMs to run more efficiently (less space or time complexity) and be more effective.
         Indeed, some ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting in worse
         predictive performance.
-        Augmented-RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the
+        RFE is a wrapper-type feature selection algorithm. This means that a different ROM is given and used in the core of the
         method,
-        is wrapped by Augmented-RFE, and used to help select features.
-        \\Augmented-RFE works by searching for a subset of features by starting with all features in the training dataset and successfully
+        is wrapped by RFE, and used to help select features.
+        \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully
         removing
         features until the desired number remains.
         This is achieved by fitting the given ROME used in the core of the model, ranking features by importance,
@@ -87,9 +87,9 @@ class RFE(FeatureSelectionBase):
         At each stage of the search, the least important predictors are iteratively eliminated prior to rebuilding the model.
         Features are scored either using the ROM model (if the model provides a mean to compute feature importances) or by
         using a statistical method.
-        \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation of the basic algorithm, since it allows, optionally,
+        \\In RAVEN the \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows, optionally,
         to perform the search on multiple groups of targets (separately) and then combine the results of the search in a
-        single set. In addition, when the Augmented-RFE search is concluded, the user can request to identify the set of features
+        single set. In addition, when the RFE search is concluded, the user can request to identify the set of features
         that bring to a minimization of the score (i.e. maximimization of the accuracy).
         In addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering algorithm,
         identify highly correlated features to speed up the subsequential search.
@@ -103,31 +103,35 @@ class RFE(FeatureSelectionBase):
         default=None))
     spec.addSub(InputData.parameterInputFactory('onlyOutputScore',contentType=InputTypes.BoolType,
         descr=r"""If maxNumberFeatures is on, only output score should be"""
-        """considered?.""",
+        """considered? Or, in case of particular models (e.g. DMDC), state variable space score should be considered as well. """,
         default=False))
     spec.addSub(InputData.parameterInputFactory('applyClusteringFiltering',contentType=InputTypes.BoolType,
-        descr=r"""Applying clustering correlation before Augmented-RFE search?""",
+        descr=r"""Applying clustering correlation before RFE search? If true, an hierarchal clustering is applied on the feature
+        space aimed to remove features that are correlated before the actual RFE search is performed. This approach can stabilize and
+        accelerate the process in case of large feature spaces (e.g > 500 features).""",
         default=False))
+    subgroup = InputData.parameterInputFactory('subGroup', contentType=InputTypes.InterpretedListType,
+        descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
+        """ can be inputted. The RFE search will be then performed in each ``subgroup'' separately and then the"""
+        """ the union of the different feature sets are used for the final ROM.""")
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
-        descr=r"""Applying cross correlation in case of subgroupping at the """
-        """end of the Augmented-RFE""",
+        descr=r"""In case of subgroupping, should a cross correleation analysis should be performed cross sub-groups?
+        If it is activated, a cross correleation analysis is used to additionally filter the features selected for each
+        sub-groupping search.""",
         default=False))
     spec.addSub(InputData.parameterInputFactory('step',contentType=InputTypes.FloatType,
         descr=r"""If greater than or equal to 1, then step corresponds to the (integer) number
         of features to remove at each iteration. If within (0.0, 1.0), then step
         corresponds to the percentage (rounded down) of features to remove at
         each iteration.""", default=1))
-    subgroup = InputData.parameterInputFactory('subGroup', contentType=InputTypes.InterpretedListType,
-        descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
-        """ can be inputted. The Augmented-RFE search will be then performed on each ``subgroup'' separately and then the"""
-        """ the union of the different feature sets are used for the final ROM.""")
+
     spec.addSub(subgroup)
 
     return spec
 
   def __init__(self):
     super().__init__()
-    self.printTag = 'FEATURE SELECTION - Augmented-RFE'
+    self.printTag = 'FEATURE SELECTION - RFE'
     # estimator local pointer
     self.estimator = None
     # number features to select
@@ -298,7 +302,7 @@ class RFE(FeatureSelectionBase):
       self.raiseAMessage("Applying hierarchical clustering on feature to eliminate possible collinearities")
       initialNumber = len(support_)
       support_, reducedNumber = self.__applyClusteringPrefiltering(X, y, mask, support_)
-      self.raiseAMessage(f"Features reduced via clustering (before Augmented-RFE search) from {initialNumber} to {reducedNumber}!")
+      self.raiseAMessage(f"Features reduced via clustering (before RFE search) from {initialNumber} to {reducedNumber}!")
 
 
     # compute number of steps

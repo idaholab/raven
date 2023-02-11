@@ -48,33 +48,32 @@
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -89,9 +88,10 @@
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -104,19 +104,22 @@
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -128,16 +131,15 @@
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -152,9 +154,10 @@
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -165,32 +168,35 @@
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -283,33 +289,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -324,9 +329,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -339,19 +345,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -363,16 +372,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -387,9 +395,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -400,32 +409,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -623,33 +635,32 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -664,9 +675,10 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -679,19 +691,22 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -703,16 +718,15 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -727,9 +741,10 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -740,32 +755,35 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
@@ -942,33 +960,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -983,9 +1000,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -998,19 +1016,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -1022,16 +1043,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1046,9 +1066,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -1059,32 +1080,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{alias}: \xmlDesc{string}, 
@@ -1248,33 +1272,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1289,9 +1312,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -1304,19 +1328,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -1328,16 +1355,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1352,9 +1378,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -1365,32 +1392,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -1584,33 +1614,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1625,9 +1654,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -1640,19 +1670,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -1664,16 +1697,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1688,9 +1720,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -1701,32 +1734,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -1827,33 +1863,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1868,9 +1903,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -1883,19 +1919,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -1907,16 +1946,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -1931,9 +1969,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -1944,32 +1983,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -2252,33 +2294,32 @@ Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -2293,9 +2334,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -2308,19 +2350,22 @@ Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -2332,16 +2377,15 @@ Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -2356,9 +2400,10 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -2369,32 +2414,35 @@ Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -2814,33 +2862,32 @@ General ARMA Example:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -2855,9 +2902,10 @@ General ARMA Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -2870,19 +2918,22 @@ General ARMA Example:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -2894,16 +2945,15 @@ General ARMA Example:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -2918,9 +2968,10 @@ General ARMA Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -2931,32 +2982,35 @@ General ARMA Example:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -3116,33 +3170,32 @@ Example to export the coefficients of trained PolyExponential ROM:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -3157,9 +3210,10 @@ Example to export the coefficients of trained PolyExponential ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -3172,19 +3226,22 @@ Example to export the coefficients of trained PolyExponential ROM:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -3196,16 +3253,15 @@ Example to export the coefficients of trained PolyExponential ROM:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -3220,9 +3276,10 @@ Example to export the coefficients of trained PolyExponential ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -3233,32 +3290,35 @@ Example to export the coefficients of trained PolyExponential ROM:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
@@ -3448,33 +3508,32 @@ Example to export the coefficients of trained DMD ROM:
       The \xmlNode{featureSelection} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{RFE}:
-          The \xmlString{Augmented-RFE} (Recursive Feature Elimination) is a feature selection
-          algorithm.         Feature selection refers to techniques that select a subset of the most
-          relevant features for a model (ROM).         Fewer features can allow ROMs to run more
-          efficiently (less space or time complexity) and be more effective.         Indeed, some
-          ROMs (machine learning algorithms) can be misled by irrelevant input features, resulting
-          in worse         predictive performance.         Augmented-RFE is a wrapper-type feature
-          selection algorithm. This means that a different ROM is given and used in the core of the
-          method,         is wrapped by Augmented-RFE, and used to help select features.
-          \\Augmented-RFE works by searching for a subset of features by starting with all features
-          in the training dataset and successfully         removing         features until the
-          desired number remains.         This is achieved by fitting the given ROME used in the
-          core of the model, ranking features by importance,         discarding the least important
-          features, and re-fitting the model. This process is repeated until a specified number of
-          features remains.         When the full model is created, a measure of variable importance
-          is computed that ranks the predictors from most         important to least.         At
-          each stage of the search, the least important predictors are iteratively eliminated prior
-          to rebuilding the model.         Features are scored either using the ROM model (if the
-          model provides a mean to compute feature importances) or by         using a statistical
-          method.         \\In RAVEN the \xmlString{Augmented-RFE} class refers to an augmentation
-          of the basic algorithm, since it allows, optionally,         to perform the search on
-          multiple groups of targets (separately) and then combine the results of the search in a
-          single set. In addition, when the Augmented-RFE search is concluded, the user can request
-          to identify the set of features         that bring to a minimization of the score (i.e.
-          maximimization of the accuracy).         In addition, using the
-          ``applyClusteringFiltering'' option, the algorithm can, using an hierarchal clustering
-          algorithm,         identify highly correlated features to speed up the subsequential
-          search.
+          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
+          Feature selection refers to techniques that select a subset of the most relevant features
+          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
+          space or time complexity) and be more effective.         Indeed, some ROMs (machine
+          learning algorithms) can be misled by irrelevant input features, resulting in worse
+          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
+          means that a different ROM is given and used in the core of the         method,         is
+          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
+          subset of features by starting with all features in the training dataset and successfully
+          removing         features until the desired number remains.         This is achieved by
+          fitting the given ROME used in the core of the model, ranking features by importance,
+          discarding the least important features, and re-fitting the model. This process is
+          repeated until a specified number of         features remains.         When the full model
+          is created, a measure of variable importance is computed that ranks the predictors from
+          most         important to least.         At each stage of the search, the least important
+          predictors are iteratively eliminated prior to rebuilding the model.         Features are
+          scored either using the ROM model (if the model provides a mean to compute feature
+          importances) or by         using a statistical method.         \\In RAVEN the
+          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
+          optionally,         to perform the search on multiple groups of targets (separately) and
+          then combine the results of the search in a         single set. In addition, when the RFE
+          search is concluded, the user can request to identify the set of features         that
+          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
+          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
+          hierarchal clustering algorithm,         identify highly correlated features to speed up
+          the subsequential search.
           The \xmlNode{RFE} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -3489,9 +3548,10 @@ Example to export the coefficients of trained DMD ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
               Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
@@ -3504,19 +3564,22 @@ Example to export the coefficients of trained DMD ROM:
   \default{None}
 
             \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered?.
+              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
+              particular models (e.g. DMDC), state variable space score should be considered as
+              well.
   \default{False}
 
-            \item \xmlNode{searchTol}: \xmlDesc{float}, 
-              Relative tolerance for search! Only if maxNumberFeatures is set
-  \default{0.0001}
-
             \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation  before Augmented-RFE search?
+              Applying clustering correlation before RFE search? If true, an hierarchal clustering
+              is applied on the feature         space aimed to remove features that are correlated
+              before the actual RFE search is performed. This approach can stabilize and
+              accelerate the process in case of large feature spaces (e.g > 500 features).
   \default{False}
 
             \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying cross correlation in case of subgroupping at the end of the Augmented-RFE
+              In case of subgroupping, should a cross correleation analysis should be performed
+              cross sub-groups?         If it is activated, a cross correleation analysis is used to
+              additionally filter the features selected for each         sub-groupping search.
   \default{False}
 
             \item \xmlNode{step}: \xmlDesc{float}, 
@@ -3528,16 +3591,15 @@ Example to export the coefficients of trained DMD ROM:
 
             \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
               Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The Augmented-RFE search will be then performed on each
-              ``subgroup'' separately and then the the union of the different feature sets are used
-              for the final ROM.
+              type can be inputted. The RFE search will be then performed in each ``subgroup''
+              separately and then the the union of the different feature sets are used for the final
+              ROM.
           \end{itemize}
 
         \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes all low-variance
-          features.                            This feature selection algorithm looks only at the
-          features and not the desired outputs. The                            variance threshold
-          can be set by the user.
+          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
+          features. This feature selection algorithm looks only at the features and not     the
+          desired outputs. The variance threshold can be set by the user.
           The \xmlNode{VarianceThreshold} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{name}: \xmlDesc{string, required}, 
@@ -3552,9 +3614,10 @@ Example to export the coefficients of trained DMD ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
-  \default{Feature}
+            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+              Which space to search? Target or Feature (this is temporary till DataSet training is
+              implemented)
+  \default{feature}
 
             \item \xmlNode{threshold}: \xmlDesc{float}, 
               Features with a training-set variance lower than this threshold                   will
@@ -3565,32 +3628,35 @@ Example to export the coefficients of trained DMD ROM:
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{dimensionalityReduction}:
-      Use dimensionality reduction for the feature space?
+    \item \xmlNode{featureSpaceTransformation}:
+      Use dimensionality reduction technique to perform a trasformation of the training dataset
+      into an uncorrelated one. The dimensionality of the problem will not be reduced but
+      the data will be transformed in the transformed space. E.g if the number of features
+      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
+      back into the original shape (before fitting the model).
 
-      The \xmlNode{dimensionalityReduction} node recognizes the following subnodes:
+      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{PCA}:
-          Use PCA
+        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
+          Transformation method to use. Eight options (5 Kernel PCAs) are available:
+          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
+          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
+  \default{PCA}
 
-          The \xmlNode{PCA} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to exclude from the search.
+        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
+          List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{string}, 
-              Which space to search? Target or Feature (this is temporary till MR 1718)
+        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+          Which space to search? Target or Feature?
   \default{Feature}
-
-            \item \xmlNode{whiten}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Whiten the signal?
-  \default{False}
-
-            \item \xmlNode{tol}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Tolerance for singular values.
-  \default{0.0}
-          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{CV}: \xmlDesc{string}, 
