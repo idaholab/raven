@@ -14,6 +14,11 @@
     input = 'skl_timedep_kernel_pca.xml'
     csv = 'TimeDepSKL/skl_kernel_pca_cosine_samples.csv TimeDepSKL/skl_kernel_pca_linear_samples.csv TimeDepSKL/skl_kernel_pca_poly_samples.csv TimeDepSKL/skl_kernel_pca_rbf_samples.csv TimeDepSKL/skl_kernel_pca_sigmoid_samples.csv'
   [../]
+  [./SKL_static_ica]
+    type  = 'RavenFramework'
+    input = 'skl_static_ica.xml'
+    csv = 'StaticSKL/skl_static_ica_samples.csv'
+  [../]
 []
 
 
