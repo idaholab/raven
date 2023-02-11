@@ -15,10 +15,9 @@
 Tools used to format, edit, and print XML in a RAVEN-like way
 talbpaul, 2016-05
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
 from .utils import toString, getRelativeSortedListEntry
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
 import re
 import os
 
@@ -440,7 +439,7 @@ class StaticXmlElement(object):
     """
     # default attrib to empty dictionary
     if attrib is None:
-      attrib = {}
+      attrib = OrderedDict()
     # for future reading with RAVEN, mark as a static node
     if 'type' not in attrib:
       attrib['type'] = rootType
