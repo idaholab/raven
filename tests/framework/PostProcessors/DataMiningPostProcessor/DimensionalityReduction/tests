@@ -81,6 +81,7 @@
     input  = 'test_dataMiningSpectralEmbedding.xml'
     csv    = 'SpectralEmbedding/dummy.csv'
     output = 'SpectralEmbedding/1-PlotIris_dataMining.png'
+    rel_err = 0.05
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'

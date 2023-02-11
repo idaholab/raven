@@ -178,6 +178,11 @@ class JobHandler(BaseType):
       if 'UPDATE_PYTHONPATH' in self.runInfoDict:
         sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
 
+      if _rayAvail:
+        # update the python path and working dir
+        olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+        os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
+
       # is ray instanciated outside?
       self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
       if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside:
@@ -206,11 +211,6 @@ class JobHandler(BaseType):
             self.raiseADebug("Head host IP      :", address)
           ## Get servers and run ray remote listener
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName)
-          if self.rayInstanciatedOutside:
-            # update the python path and working dir
-            # update head node paths
-            olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
-            os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
@@ -220,6 +220,7 @@ class JobHandler(BaseType):
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
+        self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
@@ -228,6 +229,7 @@ class JobHandler(BaseType):
         self.raiseADebug("Object store address: ", self.rayServer.address_info['object_store_address'])
         self.raiseADebug("Raylet socket name  : ", self.rayServer.address_info['raylet_socket_name'])
         self.raiseADebug("Session directory   : ", self.rayServer.address_info['session_dir'])
+        self.raiseADebug("GCS Address         : ", self.rayServer.address_info['gcs_address'])
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))

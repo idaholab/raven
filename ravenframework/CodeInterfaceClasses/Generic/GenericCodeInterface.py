@@ -16,11 +16,9 @@ Created March 17th, 2015
 
 @author: talbpaul
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
-import GenericParser
+from . import GenericParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class GenericCode(CodeInterfaceBase):

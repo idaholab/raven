@@ -191,6 +191,9 @@ if __name__ == '__main__':
                       help='lists installed plugins')
   parser.add_argument('-z', '--framework-dir', dest='framework_dir',
                       action='store_true', help='prints framework directory')
+  parser.add_argument('-r', '--raven-dir', dest='raven_dir',
+                      action='store_true', help='prints raven directory')
+
 
   # no arguments? get some help!
   if len(sys.argv) == 1:
@@ -200,6 +203,8 @@ if __name__ == '__main__':
   args = parser.parse_args()
   if args.framework_dir:
     print(os.path.abspath(frameworkDir))
+  if args.raven_dir:
+    print(os.path.dirname(os.path.abspath(frameworkDir)))
   # plugins list
   doList = args.list
   if doList:

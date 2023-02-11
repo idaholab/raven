@@ -64,7 +64,8 @@ class BatemanSimple(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found: raise Exception('No correct input file has been found. Got: '+' '.join(oriInputFiles))
+    if not found:
+      raise Exception('No correct input file has been found. Got: '+' '.join(oriInputFiles))
     # create the output root
     # in this case, we decided to have an output file root that is equal to "results~<InputFileNameRoot>"
     outputfile = 'results~' + inputFiles[index].getBase()
@@ -81,7 +82,8 @@ class BatemanSimple(CodeInterfaceBase):
       @ Out, valid, bool, 'True' if an input file has an extension of .'xml', 'XML' or 'Xml', otherwise 'False'.
     """
     valid = False
-    if inputFile.getExt() in ('xml', 'XML', 'Xml'): valid = True
+    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
+      valid = True
     return valid
 
   def getInputExtension(self):
@@ -110,7 +112,8 @@ class BatemanSimple(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found: raise Exception('No correct input file has been found. Got: '+' '.join(oriInputFiles))
+    if not found:
+      raise Exception('No correct input file has been found. Got: '+' '.join(oriInputFiles))
 
     originalPath = currentInputFiles[index].getAbsFile()
 

@@ -22,7 +22,7 @@ import os
 import copy
 import numpy as np
 from ravenframework.utils.utils import toBytes, toStrish, compare, toString
-import MooseInputParser
+from . import MooseInputParser
 
 class MOOSEparser():
   """

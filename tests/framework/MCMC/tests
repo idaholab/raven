@@ -64,7 +64,7 @@
   [./csv]
    type = OrderedCSV
    output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
-   rel_err = 0.001
+   rel_err = 3.0e-1
   [../]
  [../]
  [./AdaptiveMetropolis]

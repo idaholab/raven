@@ -134,6 +134,16 @@
     max_time = 300
   [../]
 
+  [./ZeroFilterDiscontinuous]
+    type = 'RavenFramework'
+    input = 'zero_filter_discontinuous.xml'
+    [./rom_meta]
+      type = XML
+      output = 'ZeroFilterDiscontinuous/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'

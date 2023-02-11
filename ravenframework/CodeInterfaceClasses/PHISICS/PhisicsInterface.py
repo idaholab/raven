@@ -15,19 +15,18 @@
 Created on July 5th, 2017
 @author: rouxpn
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 import re
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from GenericParser import GenericParser
-import DecayParser
-import FissionYieldParser
-import QValuesParser
-import MaterialParser
-import PathParser
-import XSCreator
-import MassParser  # for MRTAU standalone
-import phisicsdata
+from ..Generic.GenericParser import GenericParser
+from . import DecayParser
+from . import FissionYieldParser
+from . import QValuesParser
+from . import MaterialParser
+from . import PathParser
+from . import XSCreator
+from . import MassParser  # for MRTAU standalone
+from . import phisicsdata
 import xml.etree.ElementTree as ET
 
 
@@ -58,7 +57,7 @@ class Phisics(CodeInterfaceBase):
         'flux', 'repository'
     ]
     for xmlNodeNumber in range(0, len(xmlNodes)):
-      for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
+      for xmlNode in pathRoot.iter(xmlNodes[xmlNodeNumber]):
         self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
 
   def syncLibPathFileWithRavenInp(self, pathFile, currentInputFiles,
@@ -85,7 +84,7 @@ class Phisics(CodeInterfaceBase):
     ]
 
     for typeNumber in range(len(typeList)):
-      for libPathText in pathRoot.getiterator(libPathList[typeNumber]):
+      for libPathText in pathRoot.iter(libPathList[typeNumber]):
         libPathText.text = os.path.join(
             currentInputFiles[keyWordDict[typeList[typeNumber].lower()]]
             .subDirectory, currentInputFiles[keyWordDict[typeList[typeNumber]

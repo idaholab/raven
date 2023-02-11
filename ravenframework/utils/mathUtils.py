@@ -602,7 +602,7 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
   U, s, V = np.linalg.svd(X, full_matrices=full)
   V = V.conj().T if conj else V.T
 
-  if truncationRank is 0:
+  if truncationRank == 0:
     omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
     rank = np.sum(s > np.median(s) * omeg(np.divide(*sorted(X.shape))))
   elif truncationRank > 0 and truncationRank < 1:

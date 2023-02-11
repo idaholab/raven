@@ -116,7 +116,8 @@ class GenericParser():
                 else:
                   for formVal in self.acceptFormats.keys():
                     if formVal in varformat:
-                      self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
+                      self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]
+                      break
             self.segments[infileName].append(line[:start])
             self.segments[infileName].append(var)
             if var not in self.varPlaces.keys():

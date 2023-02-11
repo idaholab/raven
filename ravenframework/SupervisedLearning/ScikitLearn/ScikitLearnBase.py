@@ -45,6 +45,10 @@ class ScikitLearnBase(SupervisedLearning):
       @ Out, None
     """
     super().__init__()
+    #Subclasses can define these to specify what is exported with writeXML
+    self._vectorWriteList = []
+    self._scalarWriteList = []
+
     self.uniqueVals = None # flag to indicate targets only have a single unique value
     self.settings = None # initial settings for the ROM
     self.model = None # Scikitlearn estimator/model
@@ -197,3 +201,27 @@ class ScikitLearnBase(SupervisedLearning):
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super()._localNormalizeData(values,names,feat)
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Allows writing out ROM information.
+      For any SciKitLearn that wants to use this, it should create
+      lists _vectorWriteList and _scalarWriteList for which data should be
+      written.  (See LinearModel/LinearRegression.py for example)
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
+      @ Out, None
+    """
+    if self.multioutputWrapper:
+      for index, targetName in enumerate(self.target):
+        for vectorName in self._vectorWriteList:
+          writeTo.addVector("ROM", vectorName+targetName, ",".join([str(x) for x in getattr(self.model.estimators_[index], vectorName)]))
+        for scalarName in self._scalarWriteList:
+          writeTo.addScalar("ROM", scalarName+targetName, str(getattr(self.model.estimators_[index], scalarName)))
+    else:
+      for vectorName in self._vectorWriteList:
+        writeTo.addVector("ROM", vectorName, ",".join([str(x) for x in getattr(self.model, vectorName)]))
+      for scalarName in self._scalarWriteList:
+        writeTo.addScalar("ROM", scalarName, str(getattr(self.model, scalarName)))
+

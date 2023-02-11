@@ -18,9 +18,6 @@ Created on July 31, 2018
 
 comments: Interface for Projectile Code
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import math
 import csv
@@ -133,4 +130,3 @@ class Projectile(CodeInterfaceBase):
       outputFile.writelines(",".join( headers ) +"\n")
       for i in range(len(data)):
         outputFile.writelines(",".join( data[i] )+"\n")
-
