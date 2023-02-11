@@ -119,7 +119,9 @@ class DMDC(DMD):
                                                   the rolling time-step prediction of the state variables, ``exited''
                                                   by the \xmlNode{actuators} signal. The variables listed in
                                                   \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
-                                                  node too.""", default=[]))
+                                                  node too.
+                                                  \nb The \xmlNode{initStateVariables} MUST be named appending ``_init'' to
+                                                  the stateVariables listed in \xmlNode{stateVariables} XML node""", default=[]))
     specs.addSub(InputData.parameterInputFactory("subtractNormUXY", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the initial values need to be subtracted from the
                                                  actuators (u), state (x) and outputs (y) if any. False if the subtraction
