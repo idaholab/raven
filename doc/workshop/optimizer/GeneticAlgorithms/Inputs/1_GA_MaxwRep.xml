@@ -30,6 +30,7 @@
       <Output class="OutStreams" type="Print">optOut</Output>
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">plotter</Output>
     </IOStep>
   </Steps>
 
@@ -178,6 +179,11 @@
       <logVars>obj</logVars>
       <index>batchId</index>
       <how>png</how>
+    </Plot>
+    <Plot name="plotter" subType="OptParallelCoordinatePlot">
+      <source>opt_export</source>
+      <vars>x1,x2,x3,x4,x5,x6</vars>
+      <index>batchId</index>
     </Plot>
   </OutStreams>
 </Simulation>

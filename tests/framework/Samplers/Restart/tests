@@ -32,6 +32,19 @@
   remove_unicode_identifier = true
  [../]
 
+[./GridPart1]
+  type = 'RavenFramework'
+  input = 'test_restart_Grid_part1.xml'
+  UnorderedCsv = 'gridSplit/coarse.csv'
+ [../]
+ 
+ [./GridPart2]
+  type = 'RavenFramework'
+  input = 'test_restart_Grid_part2.xml'
+  UnorderedCsv = 'gridSplit/coarse2.csv'
+  prereq = GridPart1
+ [../]
+
  [./CSV]
   type = 'RavenFramework'
   input = 'test_restart_csv.xml'

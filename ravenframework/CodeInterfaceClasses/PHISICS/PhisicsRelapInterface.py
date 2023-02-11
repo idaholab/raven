@@ -15,17 +15,16 @@
 Created on February 1st 2018
 @author: rouxpn
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 import re
-import combine
+from . import combine
 import xml.etree.ElementTree as ET
 import copy
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-import phisicsdata
-import relapdata
-from PhisicsInterface import Phisics
-from Relap5Interface import Relap5
+from . import phisicsdata
+from ..RELAP5 import relapdata
+from .PhisicsInterface import Phisics
+from ..RELAP5.Relap5Interface import Relap5
 
 
 class PhisicsRelap5(CodeInterfaceBase):
@@ -98,7 +97,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     libraryTree = ET.parse(inputXML)
     libraryRoot = libraryTree.getroot()
     for key in searchDict:
-      for child in libraryRoot.getiterator(searchDict[key]):
+      for child in libraryRoot.iter(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
     return timeDict
 

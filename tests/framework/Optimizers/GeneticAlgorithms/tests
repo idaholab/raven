@@ -310,4 +310,14 @@
      rel_err = 0.001
     [../]
   [../]
+
+  [./GAwithEnsembleModel]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/test_ensemble_withGA.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/unconstrained/ensemble_withGA/metaModelOutputTestDump.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []

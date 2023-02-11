@@ -20,10 +20,10 @@ import warnings
 import subprocess
 import sys
 import os
+import shutil
 import time
 import threading
 import platform
-from distutils import spawn
 
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -294,7 +294,7 @@ class _TimeoutThread(threading.Thread):
         #Time over
         #If we are on windows, process.kill() is insufficient, so using
         # taskkill instead.
-        if os.name == "nt" and spawn.find_executable("taskkill"):
+        if os.name == "nt" and shutil.which("taskkill"):
           subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:
           self.__process.kill()
@@ -388,6 +388,8 @@ class Tester:
     params.add_param('min_python_version', 'none',
                      'The Minimum python version required for this test.'+
                      ' Example 3.8 (note, format is major.minor)')
+    params.add_param('needed_executable', '',
+                     'Only run test if needed executable is on path.')
     return params
 
   def __init__(self, _name, params):
@@ -400,6 +402,7 @@ class Tester:
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self._needed_executable = self.specs['needed_executable']
     self.__command_prefix = ""
     self.__python_command = sys.executable
     if os.name == "nt":
@@ -546,6 +549,10 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
         " is not a subset of "+str(self.__base_current_run_type)+")"
+      return self.results
+    if len(self._needed_executable) > 0 and \
+       shutil.which(self._needed_executable) is None:
+      self.set_skip('skipped (Missing executable: "'+self._needed_executable+'")')
       return self.results
     if not self.check_runnable():
       return self.results

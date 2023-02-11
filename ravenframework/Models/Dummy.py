@@ -83,8 +83,6 @@ class Dummy(Model):
       @ In, dataIn, object, the object that needs to be manipulated
       @ Out, inRun, dict, the manipulated input
     """
-    if len(dataIn)>1:
-      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple:
       inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:
@@ -152,9 +150,6 @@ class Dummy(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    if len(myInput)>1:
-      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-
     inputDict   = self._inputToInternal(myInput[0])
     self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
 

@@ -45,6 +45,10 @@ class LinearRegression(ScikitLearnBase):
     import sklearn
     import sklearn.linear_model
     self.model = sklearn.linear_model.LinearRegression
+    #These lists are used by writeXML in ScikitLearnBase
+    self._vectorWriteList = ["coef_"]
+    self._scalarWriteList = ["intercept_"]
+
 
   @classmethod
   def getInputSpecification(cls):

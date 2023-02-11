@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Created May 4, 2016
+
+@author: wangc
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import xml.etree.ElementTree as ET

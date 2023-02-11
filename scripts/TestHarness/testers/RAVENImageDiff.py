@@ -107,8 +107,10 @@ class ImageDiff:
         pctNumDiff = onlyDiffs.size/float(diff.size)
         if pctNumDiff > self.__rel_err:
           self.__message += 'Difference between images is too large:'+\
-            ' %2.2f pct (allowable: %2.2f)' %(100*pctNumDiff,\
-                                            100*self.__rel_err)
+            ' %2.2f pct (allowable: %2.2f) for %s and %s' %(100*pctNumDiff,\
+                                                            100*self.__rel_err,
+                                                            goldFilename,
+                                                            testFilename)
           self.__same = False
     return (self.__same, self.__message)
 

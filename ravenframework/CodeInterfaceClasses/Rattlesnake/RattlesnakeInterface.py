@@ -11,14 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import division, print_function, unicode_literals, absolute_import
+
+"""
+Created May 4, 2016
+
+@author: wangc
+"""
 
 import os
 import copy
 from subprocess import Popen
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedApp
-
+from ..MooseBasedApp.MooseBasedAppInterface import MooseBasedApp
+#perturb the Yak multigroup library
+from . import YakMultigroupLibraryParser
+from . import YakInstantLibraryParser
 
 class Rattlesnake(CodeInterfaceBase):
   """
@@ -117,8 +124,6 @@ class Rattlesnake(CodeInterfaceBase):
         where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
-    #perturb the Yak multigroup library
-    import YakMultigroupLibraryParser
     inputDict = self.findInps(currentInputFiles)
     rattlesnakeInputs = inputDict['RattlesnakeInput']
     foundXS = False
@@ -137,7 +142,6 @@ class Rattlesnake(CodeInterfaceBase):
       parser.perturb(**Kwargs)
       #write the perturbed files
       parser.writeNewInput(yakInputs,**Kwargs)
-    import YakInstantLibraryParser
     foundInstantXS = False
     foundInstantAlias = False
     if inputDict['FoundInstantXSInput']:

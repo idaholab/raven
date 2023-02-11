@@ -110,15 +110,13 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ Out, None
     """
     data = self.source.asDataset().to_dataframe()
-    ynames  = self.source.getVars(subset='input')
-
     minGen = int(min(data[self.index]))
     maxGen = int(max(data[self.index]))
 
-    yMin = np.zeros(4)
-    yMax = np.zeros(4)
+    yMin = np.zeros(len(self.vars))
+    yMax = np.zeros(len(self.vars))
 
-    for idx,inp in enumerate(ynames):
+    for idx,inp in enumerate(self.vars):
       yMin[idx] = min(data[inp])
       yMax[idx] = max(data[inp])
 
@@ -126,9 +124,9 @@ class OptParallelCoordinatePlot(PlotInterface):
 
     for idx,genID in enumerate(range(minGen,maxGen+1,1)):
       population = data[data[self.index]==genID]
-      ys = population[ynames].values
+      ys = population[self.vars].values
       fileID = f'{self.name}' + str(genID) + '.png'
-      plotUtils.generateParallelPlot(ys,genID,yMin,yMax,ynames,fileID)
+      plotUtils.generateParallelPlot(ys,genID,yMin,yMax,self.vars,fileID)
       filesID.append(fileID)
 
     fig = plt.figure()

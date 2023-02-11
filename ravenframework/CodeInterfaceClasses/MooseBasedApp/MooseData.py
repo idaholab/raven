@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Created Oct 6, 2015
+
+@author: sonat.sen
+"""
 import os
 import csv
 class mooseData:
@@ -88,7 +93,7 @@ class mooseData:
       location[key] = {}
       timeStep[key] = {}
       for coordinate in writeDict[key].keys():
-        if coordinate is 'x' or coordinate is 'y' or coordinate is 'z':
+        if coordinate == 'x' or coordinate == 'y' or coordinate == 'z':
           location[key][coordinate] = writeDict[key][coordinate]
         else:
           timeStep[key][coordinate] = writeDict[key][coordinate]
