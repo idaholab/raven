@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>workdir</WorkingDir>
-    <Sequence>make,train,stats,print</Sequence>
+    <Sequence>make,train,print</Sequence>
     <batchSize>3</batchSize>
     <internalParallel>True</internalParallel>
     <expectedTime>00:10:00</expectedTime>
@@ -20,15 +20,9 @@
       <Sampler class="Samplers" type="AdaptiveSobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <IOStep name="stats">
-      <Input class="Models" type="ROM">rom</Input>
-      <Output class="DataObjects" type="DataSet">rom_stats</Output>
-    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">par_dump</Output>
-      <Output class="OutStreams" type="Print">par_dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -101,10 +95,6 @@
     <Print name="par_dump">
       <type>csv</type>
       <source>solns</source>
-    </Print>
-    <Print name="par_dumprom">
-      <type>csv</type>
-      <source>rom_stats</source>
     </Print>
   </OutStreams>
 
