@@ -17,7 +17,6 @@ talbpaul, 2016-05
 """
 from .utils import toString, getRelativeSortedListEntry
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
 import re
 import os
 
@@ -439,7 +438,7 @@ class StaticXmlElement(object):
     """
     # default attrib to empty dictionary
     if attrib is None:
-      attrib = OrderedDict()
+      attrib = {}
     # for future reading with RAVEN, mark as a static node
     if 'type' not in attrib:
       attrib['type'] = rootType
