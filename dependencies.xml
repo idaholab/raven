@@ -86,7 +86,6 @@ Note all install methods after "main" take
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <protobuf source="pip">3</protobuf> <!-- needed because protobuf 4 incompatible with current ray -->
     <setuptools/>
-    <pickle5 source="pip" os='windows'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
