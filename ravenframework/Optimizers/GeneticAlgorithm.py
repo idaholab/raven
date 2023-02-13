@@ -594,7 +594,7 @@ class GeneticAlgorithm(RavenSampled):
           objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
           import matplotlib.pyplot as plt
           # JY: Visualization: all points - This code block needs to be either deleted or revisited.
-          # plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
+          plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
           # plt.xlim(70,100)
           # plt.ylim(5,20)
 
@@ -605,7 +605,7 @@ class GeneticAlgorithm(RavenSampled):
           plt.ylim(5,20)
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,0],
-                     np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,1], str(self.batchId))
+                     np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,1], str(self.batchId-1))
           # plt.pause()
           ##############################################################################
 
