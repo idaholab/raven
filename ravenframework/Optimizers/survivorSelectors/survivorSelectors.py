@@ -100,19 +100,23 @@ def fitnessBased(newRlz,**kwargs):
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
+  offSpringsg = np.atleast_1d(kwargs['offSpringsg'].data)
+  parentg = np.atleast_1d(kwargs['parentg'].data)
 
   newPopulation = population
   newFitness = popFitness
   newAge = list(map(lambda x:x+1, popAge))
   newPopulationMerged = np.concatenate([newPopulation,offSprings])
   newFitness = np.concatenate([newFitness,offSpringsFitness])
+  newG = np.concatenate([parentg, offSpringsg])
   newAge.extend([0]*len(offSpringsFitness))
 
   # sort population, popFitness according to age
-  sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulationMerged),reverse=True,key=lambda x: (x[0], -x[1]))])
-  sortedFitnessT,sortedAgeT,sortedPopulationT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))
+  sortedFitness,sortedAge,sortedPopulation, sortedG = zip(*[(x,y,z,a) for x,y,z,a in sorted(zip(newFitness,newAge,newPopulationMerged,newG),reverse=True,key=lambda x: (x[0], -x[1]))])
+  sortedFitnessT,sortedAgeT,sortedPopulationT, sortedGT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedG))
   newPopulationSorted = sortedPopulationT[:-len(offSprings)]
   newFitness = sortedFitnessT[:-len(offSprings)]
+  newG = sortedGT[:-len(offSprings)]
   newAge = sortedAgeT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
@@ -123,8 +127,14 @@ def fitnessBased(newRlz,**kwargs):
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
 
+  newG = [item for sublist in newG for item in sublist]
+
+  newG = xr.DataArray(newG,
+                      dims=['chromosome'],
+                      coords={'chromosome':np.arange(np.shape(newG)[0])})
+
   #return newPopulationArray,newFitness,newAge
-  return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
+  return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal'], newG
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased

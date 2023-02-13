@@ -71,6 +71,7 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None     # population age
     self.fitness = None    # population fitness
+    self.gParent = None    # Parent population g
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
     self.bestPoint = None
@@ -488,25 +489,30 @@ class GeneticAlgorithm(RavenSampled):
                                              constraintFunction=g,
                                              type=self._minMax)
 
-    self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
-
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                                             variables=list(self.toBeSampled),
-                                                                                             population=self.population,
-                                                                                             fitness=self.fitness,
-                                                                                             newRlz=rlz,
-                                                                                             offSpringsFitness=offSpringFitness,
-                                                                                             popObjectiveVal=self.objectiveVal)
+        self.population,self.fitness,age,self.objectiveVal,self.gParent = self._survivorSelectionInstance(age=self.popAge,
+                                                                                                          variables=list(self.toBeSampled),
+                                                                                                          population=self.population,
+                                                                                                          fitness=self.fitness,
+                                                                                                          newRlz=rlz,
+                                                                                                          offSpringsFitness=offSpringFitness,
+                                                                                                          popObjectiveVal=self.objectiveVal,
+                                                                                                          offSpringsg = g,
+                                                                                                          parentg = self.gParent)
         self.popAge = age
+
+        # self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
+        # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
+        self._collectOptPoint(rlz, self.population, self.fitness, self.objectiveVal, self.gParent)
+        self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
       else:
         self.population = offSprings
         self.fitness = offSpringFitness
         self.objectiveVal = rlz[self._objectiveVar].data
+        self.gParent = g
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
@@ -645,7 +651,7 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
+  def _collectOptPoint(self, rlz, population, fitness, objectiveVal, g):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -653,7 +659,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-
+    ## From this place
     varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
     varList = set(varList)
     selVars = [var for var in varList if var in rlz.data_vars]
