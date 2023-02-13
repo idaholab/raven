@@ -504,15 +504,14 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                           parentg = self.gParent)
         self.popAge = age
 
-        # self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
-        # self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
-        self._collectOptPoint(rlz, self.population, self.fitness, self.objectiveVal, self.gParent)
-        self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
       else:
         self.population = offSprings
         self.fitness = offSpringFitness
         self.objectiveVal = rlz[self._objectiveVar].data
         self.gParent = g
+
+      self._collectOptPoint(rlz, self.population, self.fitness, self.objectiveVal, self.gParent)
+      self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, self.gParent, info)
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
@@ -632,7 +631,8 @@ class GeneticAlgorithm(RavenSampled):
     if self._writeSteps == 'every':
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
         for ind, consName in enumerate(g['Constraint'].values):
@@ -659,13 +659,8 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-    ## From this place
-    varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
-    varList = set(varList)
-    selVars = [var for var in varList if var in rlz.data_vars]
-    population = datasetToDataArray(rlz, selVars)
     optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
-    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(population.Gene.data))
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
       point.update(gOfBest)

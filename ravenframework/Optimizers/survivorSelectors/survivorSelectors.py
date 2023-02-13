@@ -127,11 +127,10 @@ def fitnessBased(newRlz,**kwargs):
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
 
-  newG = [item for sublist in newG for item in sublist]
-
   newG = xr.DataArray(newG,
-                      dims=['chromosome'],
-                      coords={'chromosome':np.arange(np.shape(newG)[0])})
+                      dims=['chromosome','Constraint'],
+                      coords={'chromosome':np.arange(np.shape(newG)[0]),
+                              'Constraint':kwargs['parentg'].coords['Constraint'].values})
 
   #return newPopulationArray,newFitness,newAge
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal'], newG
