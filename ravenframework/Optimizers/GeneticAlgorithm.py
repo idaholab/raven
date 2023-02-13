@@ -500,6 +500,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                                                           newRlz=rlz,
                                                                                                           offSpringsFitness=offSpringFitness,
                                                                                                           popObjectiveVal=self.objectiveVal,
+                                                                                                          offObjectiveVal=objectiveVal,
                                                                                                           offSpringsg = g,
                                                                                                           parentg = self.gParent)
         self.popAge = age
@@ -511,7 +512,7 @@ class GeneticAlgorithm(RavenSampled):
         self.gParent = g
 
       self._collectOptPoint(rlz, self.population, self.fitness, self.objectiveVal, self.gParent)
-      self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, self.gParent, info)
+      self._resolveNewGeneration(traj, rlz, self.objectiveVal, self.fitness, self.gParent, info)
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
@@ -633,7 +634,7 @@ class GeneticAlgorithm(RavenSampled):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
-        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+        rlzDict[self._objectiveVar] = np.atleast_1d(objectiveVal)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
         for ind, consName in enumerate(g['Constraint'].values):
           rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
