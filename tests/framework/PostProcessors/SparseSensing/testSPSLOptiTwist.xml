@@ -44,8 +44,8 @@
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
         <basis>svd</basis>
-        <nModes>5</nModes>
-        <nSensors>5</nSensors>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
         <optimizer>QR</optimizer>
       </Goal>
     </PostProcessor>
