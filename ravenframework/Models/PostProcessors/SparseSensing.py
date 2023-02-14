@@ -82,6 +82,10 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The percentage of sensors used (i.e., nSensors/nFeatures)""")
     goal.addSub(threshold)
+    seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
+                                                           printPriority=108,
+                                                           descr=r"""The integer seed use for sensor placement random number seed""")
+    goal.addSub(seed)
     inputSpecification.addSub(goal)
     return inputSpecification
 
@@ -130,6 +134,10 @@ class SparseSensing(PostProcessorReadyInterface):
       self.sensingFeatures = child.findFirst('features').value
       self.sensingTarget = child.findFirst('target').value
       self.optimizer = child.findFirst('optimizer').value
+      if child.findFirst('seed') is not None:
+        self.seed = child.findFirst('seed').value
+      else:
+        self.seed = None
       if child.parameterValues['subType'] == 'classification':
         self.threshold = child.findFirst('threshold').value
       elif child.parameterValues['subType'] not in self.goalsDict.keys():
@@ -177,7 +185,10 @@ class SparseSensing(PostProcessorReadyInterface):
     data = inputDS[self.sensingTarget].data
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
 
-    model.fit(data)
+    if self.seed is not None:
+      model.fit(data, seed=self.seed)
+    else:
+      model.fit(data)
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
