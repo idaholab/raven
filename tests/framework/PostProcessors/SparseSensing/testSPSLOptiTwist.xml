@@ -15,12 +15,11 @@
   </RunInfo>
 
   <Files>
-    <Input name= "twistFile" type= ''>./Perturbations2.csv</Input>
+    <Input name="twistFile" type="">./Perturbations2.csv</Input>
   </Files>
 
-
   <Steps>
-   <IOStep name="LoadCSV">
+    <IOStep name="LoadCSV">
       <Input class="Files" type="">twistFile</Input>
       <Output class="DataObjects" type="HistorySet">TwistDO</Output>
     </IOStep>
@@ -58,7 +57,6 @@
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
-      <Index var="index">X (m),Temperature (K),Y (m)</Index>
     </HistorySet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
