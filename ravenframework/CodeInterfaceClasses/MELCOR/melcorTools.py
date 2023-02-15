@@ -26,6 +26,7 @@ def MCRBin(fileDir, VarSrch):
   with open(fileDir, 'rb') as bf:
     while True:
       BlkLenBefSlave = bf.read(4)
+      print(BlkLenBefSlave)
       if not BlkLenBefSlave:
         break
       BlkLenBef.append(unpack('I', BlkLenBefSlave)[0])
@@ -102,7 +103,7 @@ def MCRBin(fileDir, VarSrch):
 
       cntr +=1
 
-  data=np.empty([len(DataPos), len(VarSrch)+1])*np.nan
+  data = np.empty([len(DataPos), len(VarSrch)+1])*np.nan
 
   with open(fileDir, 'rb') as bf:
     for i,Pos in enumerate(DataPos):
