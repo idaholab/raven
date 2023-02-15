@@ -84,7 +84,6 @@ class RavenFramework(Tester):
                      'Skip test if the library listed is below the supplied'+
                      ' version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.add_param('skip_if_env', '', 'Skip test if this environmental variable is defined')
-    params.add_param('skip_if_OS', '', 'Skip test if the operating system defined')
     params.add_param('test_interface_only', False,
                      'Test the interface only (without running the driven code')
     params.add_param('check_absolute_value', False,
@@ -179,17 +178,6 @@ class RavenFramework(Tester):
       envVar = self.specs['skip_if_env']
       if envVar in os.environ:
         self.set_skip('skipped (found environmental variable "'+envVar+'")')
-        return False
-    ## OS
-    if len(self.specs['skip_if_OS']) > 0:
-      skipOs = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
-      # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
-      currentOs = platform.system().lower()
-      # replace Darwin with more expected "mac"
-      if currentOs == 'darwin':
-        currentOs = 'mac'
-      if currentOs in skipOs:
-        self.set_skip('skipped (OS is "{}")'.format(currentOs))
         return False
     for lib in self.required_libraries:
       found, _, _ = library_handler.checkSingleLibrary(lib)
