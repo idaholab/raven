@@ -296,7 +296,8 @@
     type = 'RavenFramework'
     input = 'interpolated_maxcycles.xml'
     csv = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
-    skip = 'inconsistent see 1351'
+    #not consistent, see 1351
+    rel_err = 10000.0
   [../]
 
   [./CloudPlot]
