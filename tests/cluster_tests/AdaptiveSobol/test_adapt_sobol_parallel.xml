@@ -88,7 +88,6 @@
       <Input>x1,x2,x3,x4</Input>
       <Output>ans,ans2</Output>
     </PointSet>
-    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
