@@ -622,7 +622,7 @@ class JobHandler(BaseType):
         if run:
           if uniqueHandler == run.uniqueHandler:
             return False
-          elif jobIdentifier is None or run.identifier.startswith(jobIdentifier)):
+          elif jobIdentifier is None or run.identifier.startswith(jobIdentifier):
             return False
     # Are there runs that need to be claimed? If so, then I cannot say I am done.
     numFinished = len(self.getFinishedNoPop())
