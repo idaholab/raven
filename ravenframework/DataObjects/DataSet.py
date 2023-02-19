@@ -213,8 +213,9 @@ class DataSet(DataObject):
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      getVariables = self.getVars()
-      rlz = dict((var, rlz[var]) for var in getVariables + self.indexes)
+      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
+      # getVariables = self.getVars()
+      # rlz = dict((var, rlz[var]) for var in getVariables + self.indexes)
     except KeyError as e:
       self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError, f'Provided realization does not have all requisite values for object "{self.name}": "{e.args[0]}"')
@@ -243,8 +244,9 @@ class DataSet(DataObject):
     #  This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #  Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     # set realizations as a list of realizations (which are ordered lists)
-    orderedVariables = self._orderedVars
-    newData = np.array(list(rlz[var] for var in orderedVariables)+[0.0], dtype=object)
+    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0], dtype=object)
+    # orderedVariables = self._orderedVars
+    # newData = np.array(list(rlz[var] for var in orderedVariables)+[0.0], dtype=object)
     newData = newData[:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -1967,8 +1969,10 @@ class DataSet(DataObject):
     """
     getVariables = self.getVars()
     if self.types is None:
-      self.types = [None]*len(getVariables)
-      for v, name in enumerate(getVariables):
+      self.types = [None]*len(self.getVars())
+      for v, name in enumerate(self.getVars()):
+      # self.types = [None]*len(getVariables)
+      # for v, name in enumerate(getVariables):
         val = rlz[name]
         self.types[v] = self._getCompatibleType(val)
 
