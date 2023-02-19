@@ -3739,9 +3739,9 @@ Example to export the coefficients of trained DMD ROM:
       the rolling time-step prediction of the state variables, ``exited''
       by the \xmlNode{actuators} signal. The variables listed in
       \xmlNode{initStateVariables} must be listed in the  \xmlNode{Features}
-      node too.
-      \nb The \xmlNode{initStateVariables} MUST be named appending ``\_init''
-      to the stateVariables listed in \xmlNode{stateVariables} XML node.
+      node too.                                                   \nb The
+      \xmlNode{initStateVariables} MUST be named appending ``\_init'' to
+      the stateVariables listed in \xmlNode{stateVariables} XML node
   \default{[]}
 
     \item \xmlNode{subtractNormUXY}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
@@ -3749,6 +3749,10 @@ Example to export the coefficients of trained DMD ROM:
       actuators (u), state (x) and outputs (y) if any. False if the subtraction
       is not needed.
   \default{False}
+
+    \item \xmlNode{singleValuesTruncationTol}: \xmlDesc{float}, 
+      Truncation threshold to apply to singular values vector
+  \default{1e-09}
   \end{itemize}
 
 \hspace{24pt}

@@ -126,6 +126,8 @@ class DMDC(DMD):
                                                  descr=r"""True if the initial values need to be subtracted from the
                                                  actuators (u), state (x) and outputs (y) if any. False if the subtraction
                                                  is not needed.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("singleValuesTruncationTol", contentType=InputTypes.FloatType,
+                                                 descr=r"""Truncation threshold to apply to singular values vector""", default=1e-9))
     return specs
 
   def __init__(self):
@@ -139,6 +141,7 @@ class DMDC(DMD):
     self.stateID = None         # State Variable Names
     self.initStateID = None     # Initialization State Variable Names
     self.outputID = None        # Output Names
+    self.sTruncationTol = None  # Truncation threshold to apply to singular values
     self.parametersIDs = None   # Parameter Names
     self.neigh = None           # neighbors
     # variables filled up in the training stages
@@ -158,22 +161,24 @@ class DMDC(DMD):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['actuators','stateVariables', 'initStateVariables',
-                                                               'subtractNormUXY'])
+                                                               'subtractNormUXY','singleValuesTruncationTol'])
     # notFound must be empty
     assert(not notFound)
-    ### Extract the Actuator Variable Names (u)
+    # Truncation threshold to apply to single values
+    self.sTruncationTol = settings.get('singleValuesTruncationTol')
+    # Extract the Actuator Variable Names (u)
     self.actuatorsID = settings.get('actuators')
-    ### Extract the State Variable Names (x)
+    # Extract the State Variable Names (x)
     self.stateID = settings.get('stateVariables')
-    ### Extract the Initialization State Variable Names (x). Optional. If not
-    ### found, the state is initialized with the initial values in the state field
+    # Extract the Initialization State Variable Names (x). Optional. If not
+    # found, the state is initialized with the initial values in the state field
     self.initStateID = settings.get('initStateVariables')
     # FIXME 1718
-    try:
-      [el.split("_init")[1] for el in self.initStateID]
-    except IndexError:
-      self.raiseAnError(IndexError, "initStateVariables must be named {stateVariable}_init")
-    varsToCheck = [el.split("_init")[0] for el in self.initStateID]
+    check = [el.endswith('_init') for el in self.initStateID]
+    if not np.all(check):
+      missingVars = ', '.join(np.asarray(self.initStateID)[np.logical_not(check)].tolist())
+      self.raiseAnError(IndexError, "initStateVariables must be named {stateVariable}_init. Missing state variables are: {missingVars}")
+    varsToCheck = [el.strip()[:-5] for el in self.initStateID]
     self.initStateID = [self.initStateID[cnt] for cnt, el in enumerate(varsToCheck) if el in self.stateID]
     # END FIXME 1718
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
@@ -186,10 +191,9 @@ class DMDC(DMD):
     if not (set(self.initStateID) <= set(self.features)):
       self.raiseAnError(IOError,'initStateVariables must also be listed among <Features> variables!')
 
-    ### Extract the Output Names (Output, Y)
+    # Extract the Output Names (Output, Y)
     self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
-    # self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID))
     for i in range(len(self.parametersIDs)-1,-1,-1):
       if str(self.parametersIDs[i]).endswith('_init'):
@@ -209,7 +213,7 @@ class DMDC(DMD):
       @ In, featureVals, numpy.ndarray, shape=[n_samples,n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, numpy.ndarray, shape = [n_samples,n_timeStep, n_dimensions], an array of time series data
     """
-    ### Extract the Pivot Values (Actuator, U) ###
+    # Extract the Pivot Values (Actuator, U)
     self.neigh = None
     self._importances = None # we reset importances
     if len(self.parametersIDs):
@@ -219,12 +223,12 @@ class DMDC(DMD):
       self.neigh.fit(self.parameterValues, y)
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]. Shape is [n_samples, n_timesteps, n_actuators]
     self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
-    ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
-    ### the pivotValues must be all the same
+    # Extract the time marks "self.pivotValues" (discrete, in time step marks)
+    # the pivotValues must be all the same
     self.pivotValues = targetVals[0, :, self.target.index(self.pivotParameterID)].flatten()
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_targets]
     self.outputVals =  np.asarray([targetVals[:, :,self.target.index(out)] for out in self.outputID]).T
-    ### Extract the State Values (State, X) ###
+    # Extract the State Values (State, X)
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_state_variables]
     self.stateVals =  np.asarray([targetVals[:, :, self.target.index(st)] for st in self.stateID]).T
     # create matrices
@@ -245,7 +249,8 @@ class DMDC(DMD):
   def featureImportances_(self, group = None):
     """
       Method to return the features' importances
-      @ In, None
+      @ In, group, list(str), optional, names of the outputs should be considered in the importance evaluation.
+                                        If None, all the outputs (Targets) are considered.
       @ Out, importances, dict , dict of importances {feature1:(importanceTarget1,importanceTarget2,...),
                                                               feature2:(importanceTarget1,importanceTarget2,...),...}
     """
@@ -289,11 +294,10 @@ class DMDC(DMD):
           groupMask[cnt] = False
       newImportances  = {}
       for key in self._importances:
-        newImportances[key] =  newImportances[key][groupMask]
+        newImportances[key] =  self._importances[key][groupMask]
       return newImportances
     return self._importances
 
-  #######
   def __evaluate(self, featureVals):
     indices = [0]
     if len(self.parametersIDs):
@@ -302,7 +306,7 @@ class DMDC(DMD):
       # using nearest neighbour method to identify the index
       indices = self.neigh.predict(feats).astype(int)
     nreqs = len(indices)
-    ### Extract the Actuator signal U ###
+    # Extract the Actuator signal U #
     uVector = []
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
@@ -311,7 +315,7 @@ class DMDC(DMD):
     # Get the time steps for evaluation
     tsEval = uVector.shape[-1] # ts_Eval = 100
 
-    ### Extract the initial state vector shape(n_requests,n_stateID)
+    # Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
     evalX = np.zeros((len(indices), tsEval, len(self.initStateID)))
@@ -325,7 +329,7 @@ class DMDC(DMD):
         initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
       evalX[cnt, 0, :] = initStates[cnt,:]
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
-      ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
+      # perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] #
       for i in range(tsEval-1):
         # make sure that Btilde dot uVector works correctly for multiple inputs and has the same shape as aTilde dot evalX
         xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + (self.__Btilde[index,:,:].dot(uVector[:,:,i])).reshape(-1,), (-1,1)).T
@@ -353,13 +357,13 @@ class DMDC(DMD):
       # using nearest neighbour method to identify the index
       indices = self.neigh.predict(feats).astype(int)
     nreqs = len(indices)
-    ### Initialize the final return value ###
+    # Initialize the final return value #
     returnEvaluation = {}
-    ### Extract the Actuator signal U ###
+    # Extract the Actuator signal U #
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
       returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
-    ### Store the results to the dictionary "returnEvaluation"
+    # Store the results to the dictionary "returnEvaluation"
     for varID in self.stateID:
       varIndex = self.stateID.index(varID)
       returnEvaluation.update({varID: evalX[: , :, varIndex] if nreqs > 1 else evalX[: , :, varIndex].flatten()})
@@ -480,12 +484,27 @@ class DMDC(DMD):
 
   def getSolutionMetadata(self):
     """
-      Get solution metadata
+      Method to retrive the solution metadata (model trained hyper parameters)
+      @ In, None
+      @ Out, solutionMetadata, dict, dictionary containing the following info:
+                                     {'acturators': actuators ids
+                                      'stateVariables': state variables ids
+                                      'initStateVariables': initial state variables ids
+                                      'outputs': outputs ids
+                                      'dmdTimeScale': state variables ids
+                                      'dataBySamples': list (n samples) of dicts containing:
+                                                       {'attributeDict': {sampleId:int,parameterId:value}
+                                                        'UNorm': norminal values of actuators
+                                                        'XNorm': norminal values of state variables
+                                                        'YNorm': norminal values of output variables
+                                                        'XLast': last values of state variables
+                                                        'Atilde': A matrix in discrete time domain
+                                                        'Btilde': B matrix in discrete time domain
+                                                        'Ctilde': C matrix in discrete time domain
+                                                       }
+                                      }
     """
     solutionMetadata = {}
-
-
-    targNode = writeTo._findTarget(writeTo.getRoot(), target)
     solutionMetadata["acturators"] = self.actuatorsID
     solutionMetadata["stateVariables"] = self.stateID
     solutionMetadata["initStateVariables"] = self.initStateID
@@ -494,10 +513,8 @@ class DMDC(DMD):
     solutionMetadata["dmdTimeScale"] = self._getTimeScale()
     solutionMetadata["dataBySamples"] = []
 
-
     for smp in range(self.stateVals.shape[1]):
       solutionMetadata["dataBySamples"].append({})
-
       attributeDict = {}
       if len(self.parametersIDs):
         attributeDict = {self.parametersIDs[index]:'%.6e' % self.parameterValues[smp,index] for index in range(len(self.parametersIDs))}
@@ -556,7 +573,7 @@ class DMDC(DMD):
     # SVD
     uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
-    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*1e-9, sTrucSVD.tolist()))
+    rankTruc = sum(map(lambda x : x>=np.max(sTrucSVD)*self.sTruncationTol, sTrucSVD.tolist()))
     if rankTruc < uTrucSVD.shape[1]:
       uTruc = uTrucSVD[:, :rankTruc]
       vTruc = vTrucSVD[:, :rankTruc]
