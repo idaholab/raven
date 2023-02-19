@@ -18,6 +18,9 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
+# Internal Modules----------------------------------------------------------------------------------
+from ...utils import frontUtils
+
 # External Imports
 import numpy as np
 import xarray as xr
@@ -74,6 +77,36 @@ def invLinear(rlz,**kwargs):
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(len(data))})
   return fitness
+
+def rank_crowding(rlz,**kwargs):
+  r"""
+    Multiobjective optimization using NSGA-II requires the rank and crowding distance values to the objective function
+
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
+    @ In, kwargs, dict, dictionary of parameters for this rank_crowding method:
+          objVar, string, the names of the objective variables
+    @ Out, offSpringRank, xr.DataArray, the rank of the given objective corresponding to a specific chromosome.
+           offSpringCD,   xr.DataArray, the crowding distance of the given objective corresponding to a specific chromosome.
+  """
+  objectiveVal = []
+  for i in range(len(kwargs['objVals'])):
+    objectiveVal.append(list(np.atleast_1d(rlz[kwargs['objVals'][i]].data)))
+
+  offspringObjsVals = [list(ele) for ele in list(zip(*objectiveVal))]
+
+  offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringObjsVals))
+  offSpringRank = xr.DataArray(offSpringRank,
+                              dims=['rank'],
+                              coords={'rank': np.arange(np.shape(offSpringRank)[0])})
+
+  offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank, popSize=len(offSpringRank), objectives=np.array(offspringObjsVals))
+  offSpringCD = xr.DataArray(offSpringCD,
+                            dims=['CrowdingDistance'],
+                            coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
+
+  return offSpringRank, offSpringCD
 
 def feasibleFirst(rlz,**kwargs):
   r"""
@@ -166,6 +199,7 @@ __fitness = {}
 __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
 __fitness['feasibleFirst'] = feasibleFirst
+__fitness['rank_crowding'] = rank_crowding
 
 
 def returnInstance(cls, name):

@@ -166,7 +166,7 @@ class Optimizer(AdaptiveSampler):
     self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
     self._convergedTraj = {}            # tracks converged trajectories, and values obtained
     self._numRepeatSamples = 1          # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = None           # objective variable for optimization
+    self._objectiveVar = []           # objective variable for optimization
     self._initialValuesFromInput = None # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
     self._initialValues = None          # initial variable values (trajectory starting locations), list of dicts
     self._variableBounds = None         # dictionary of upper/lower bounds for each variable (may be inf?)
@@ -247,8 +247,13 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
-    # objective var
-    self._objectiveVar = paramInput.findFirst('objective').value
+
+    if bool(paramInput.findAll('GAparams')):
+      rawObjectiveVar = paramInput.findFirst('objective').value
+      self._objectiveVar = [rawObjectiveVar.split(",")[i] for i in range(0,len(rawObjectiveVar.split(","))) ]
+
+    else:
+      self._objectiveVar = paramInput.findFirst('objective').value
 
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
