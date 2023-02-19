@@ -599,10 +599,12 @@ class GeneticAlgorithm(RavenSampled):
           # plt.ylim(5,20)
 
           # JY: Visualization: optimal points only - This code block needs to be either deleted or revisited.
-          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0],
-                   np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,1],'*')
           plt.xlim(75,100)
           plt.ylim(5,20)
+          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0],
+                   np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,1],'*')
+          # plt.xlim(75,100)
+          # plt.ylim(5,20)
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,0],
                      np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,1], str(self.batchId-1))

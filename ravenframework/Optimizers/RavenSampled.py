@@ -400,27 +400,58 @@ class RavenSampled(Optimizer):
       if len(self._optPointHistory[traj]) == 0:
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
-      opt = self._optPointHistory[traj][-1][0]
-      # val1 = ', '.join(map(str,(s*opt[self._objectiveVar[0]]).tolist()))
-      # val2 = ', '.join(map(str,(s*opt[self._objectiveVar[1]]).tolist()))
-      # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
-      # bestValue_1 = val1
-      # bestValue_2 = val2
-      bestTraj = traj
-      bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
-      bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-      self.raiseADebug('')
+
+      for i in range(len(self._optPointHistory[traj][-1][0]['obj1'])):
+        opt = self._optPointHistory[traj][-1][0]
+        key = list(opt.keys())
+        val = [item[i] for item in opt.values()]
+        optElm = {key[a]: val[a] for a in range(len(key))}
+        optVal = [s*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
+        # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
+        # bestValue_1 = val1
+        # bestValue_2 = val2
+        bestTraj = traj
+        bestOpt = self.denormalizeData(optElm)
+        bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+        # self.raiseADebug('')
+        # self.raiseAMessage(' - Final Optimal Point:')
+        # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
+        # finalTemplateInt = '    {name:^20s}  {value: 3d}'
+        # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
+        # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+        # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
+        # for var, val in bestPoint.items():
+        #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
+        # self.raiseAMessage('*' * 80)
+        # write final best solution to soln export
+        self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+
+      # ### Original start ###
+      # opt = self._optPointHistory[traj][-1][0]
+      # val = range(len(self._objectiveVar))
+      # for i in range(len(val)):
+      #   val[i] = [', '.join(map(str,(s*opt[self._objectiveVar[i]])))]
+      # # val1 = ', '.join(map(str,(s*opt[self._objectiveVar[0]]).tolist()))
+      # # val2 = ', '.join(map(str,(s*opt[self._objectiveVar[1]]).tolist()))
+      # # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
+      # # bestValue_1 = val1
+      # # bestValue_2 = val2
+      # bestTraj = traj
+      # bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
+      # bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+      # self.raiseADebug('')
       # self.raiseAMessage(' - Final Optimal Point:')
-      # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
-      # finalTemplateInt = '    {name:^20s}  {value: 3d}'
-      # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
-      # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-      # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
-      # for var, val in bestPoint.items():
-      #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
-      self.raiseAMessage('*' * 80)
-      # write final best solution to soln export
-      self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+      # # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
+      # # finalTemplateInt = '    {name:^20s}  {value: 3d}'
+      # # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
+      # # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+      # # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
+      # # for var, val in bestPoint.items():
+      # #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
+      # self.raiseAMessage('*' * 80)
+      # # write final best solution to soln export
+      # self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+      # ### Original end ###
 
   def flush(self):
     """

@@ -15,18 +15,6 @@
 # @author: Mohammad Abdo (@Jimmy-INL)
 
 def evaluate(Inputs):
-  """
-    Evaluates a weighted sum function.
-    $summ = \Sigma_{i=0} (i+1)*x_{i}$
-
-    min with replacement = n*(n-1)/2*lb occurs at x_{i} = lb (i.e., lower bound of the discrete variables)
-    max with replacement = n*(n-1)/2*ub occurs at x_{i} = ub (i.e., upper bound of the discrete variables)
-    min w/o replacement  = $\Sigma_{i=0}^{n-1} (lb+i)(i+1)$ occurs at x_{i} = lb+i
-    max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
-
-    @ In, Inputs, dictionary, dictionary of inputs passed to the external model
-    @ Out, Sum, float, objective function
-  """
   Sum = 0
   LocalSum1 = 0
   LocalSum2 = 0
