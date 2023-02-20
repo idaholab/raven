@@ -93,8 +93,9 @@ class SupervisedLearning(BaseInterface):
                                                   (n_samples*n_timesteps,n_features) before applying the transformation and then reconstructed
                                                   back into the original shape (before fitting the model).
                                                    """)
-    transformationMethodType = InputTypes.makeEnumType("transformationMethod","transformationMethodeType",['PCA', 'KernelLinearPCA','KernelPolyPCA','KernelRbfPCA',
-                                                                                                           'KernelSigmoidPCA','KernelCosinePCA', 'ICA'])
+    transformationMethodType = InputTypes.makeEnumType("transformationMethod",
+                                                       "transformationMethodeType",
+                                                       ['PCA', 'KernelLinearPCA','KernelPolyPCA','KernelRbfPCA','KernelSigmoidPCA','KernelCosinePCA', 'ICA'])
     featureSpaceTransformation.addSub(InputData.parameterInputFactory('transformationMethod',contentType=transformationMethodType,
         descr=r"""Transformation method to use. Eight options (5 Kernel PCAs) are available:
                   \begin{itemize}
@@ -110,7 +111,9 @@ class SupervisedLearning(BaseInterface):
         """, default="PCA"))
     featureSpaceTransformation.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the transformation process.""", default=None))
-    featureSpaceTransformation.addSub(InputData.parameterInputFactory('whichSpace',contentType=InputTypes.StringType,
+
+    spaceEnum = InputTypes.makeEnumType("spaceEnum","spaceEnumType",['Feature', 'Target'])
+    featureSpaceTransformation.addSub(InputData.parameterInputFactory('whichSpace',contentType=spaceEnum,
         descr=r"""Which space to search? Target or Feature?""", default="Feature"))
     spec.addSub(featureSpaceTransformation)
 

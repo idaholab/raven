@@ -593,14 +593,12 @@ class JobHandler(BaseType):
     with self.__queueLock:
       self.__finished.append(run)
 
-  def isFinished(self, jobIdentifier=None, uniqueHandler="any"):
+  def isFinished(self, uniqueHandler=None):
     """
       Method to check if all the runs in the queue are finished, or if a specific job(s) is done (jobIdentifier or uniqueHandler)
-      @ In, jobIdentifier, string, optional, if specified, only check
-        finished runs that start with this text. If not specified (None) check all.
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
         each runner. If provided, just the jobs that have the uniqueIdentifier
-        will be checked. By default uniqueHandler = 'any' => all the jobs for
+        will be checked. By default uniqueHandler = None => all the jobs for
         which no uniqueIdentifier has been set up are going to be checked
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
@@ -620,9 +618,7 @@ class JobHandler(BaseType):
       # that is not done.
       for run in self.__running+self.__clientRunning:
         if run:
-          if uniqueHandler == run.uniqueHandler:
-            return False
-          elif jobIdentifier is None or run.identifier.startswith(jobIdentifier):
+          if uniqueHandler is None or uniqueHandler == run.uniqueHandler:
             return False
     # Are there runs that need to be claimed? If so, then I cannot say I am done.
     numFinished = len(self.getFinishedNoPop())

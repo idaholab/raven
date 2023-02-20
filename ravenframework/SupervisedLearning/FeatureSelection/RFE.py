@@ -622,8 +622,8 @@ class RFE(FeatureSelectionBase):
         toRemove += outputToRemove
       #screen and retrain estimator
       featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
-                                              y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
-                                              estimator, support_, originalParams, parametersToInclude, outputToRemove)
+                                               y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
+                                               estimator, support_, originalParams, parametersToInclude, outputToRemove)
 
       # Get coefs
       coefs = None
@@ -718,7 +718,6 @@ class RFE(FeatureSelectionBase):
     featSelectUtils.screenAndTrainEstimator(X[:, features] if len(X.shape) < 3 else X[:, :,features],
                                             y[:, targets] if len(y.shape) < 3 else y[:, :,targets],
                                             estimator, support_, originalParams, parametersToInclude)
-
     # evaluate
     score = 0.0
     avgArray = np.atleast_1d(np.average(y, axis=(0,) if len(y.shape) < 3 else (0, 1)))

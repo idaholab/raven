@@ -23,6 +23,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 def screenInputParams(support, params, includedParams, addOnKeys = None):
@@ -63,6 +64,8 @@ def screenAndTrainEstimator(Xreduced, yreduced, estimator, support, params, incl
     @ In, addOnKeys, list, optional, list of additional keys to remove
     @ Out, None
   """
+  assert (not issubclass(estimator, SupervisedLearning),
+          f"str(estimator) not a SupervisedLearning derived class")
   vals = screenInputParams(support, params, includedParams, addOnKeys = addOnKeys)
   if vals:
     estimator.paramInput.findNodesAndSetValues(vals)
