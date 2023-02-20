@@ -602,7 +602,7 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
   try:
     U, s, V = np.linalg.svd(X, full_matrices=full)
   except np.linalg.LinAlgError as ae:
-    print(str(ae))
+    raise np.linalg.LinAlgError(str(ae))
   V = V.conj().T if conj else V.T
 
   if truncationRank == 0:
