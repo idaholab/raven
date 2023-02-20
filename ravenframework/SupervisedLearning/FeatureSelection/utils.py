@@ -23,7 +23,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import SupervisedLearning
+from ...SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 def screenInputParams(support, params, includedParams, addOnKeys = None):
