@@ -1897,6 +1897,7 @@ class KerasBase(SupervisedLearning):
 
     if len(self.availOptimizer) == 0:
       # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
+      import tensorflow.keras as keras #Needed if lazily loading tensorflow 2.6
       self.availOptimizer['sgd'] = tf.keras.optimizers.SGD
       # RMSprop optimizer, usually a good choice for recurrent neural network
       self.availOptimizer['rmsprop'] = tf.keras.optimizers.RMSprop

@@ -62,5 +62,6 @@
     csv = 'r9/stats_file_0.csv'
     output = 'r9/stats_file.csv r9/stats_file.xml'
     prereq = FW8
+    zero_threshold = 1e-12
   [../]
 []
