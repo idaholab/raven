@@ -80,9 +80,8 @@ class VarianceThreshold(FeatureSelectionBase):
     """
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['threshold'])
-    assert (not notFound)
     self.threshold = nodes['threshold']
-    if self.threshold <= 0:
+    if self.threshold < 0:
       raise self.raiseAnError(ValueError, '"threshold" parameter must be > 0')
 
   def _train(self, X, y, featuresIds, targetsIds, maskF=None, maskT=None):

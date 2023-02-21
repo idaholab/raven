@@ -50,7 +50,7 @@ class FeatureSelectionBase(BaseInterface):
         contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the search.""", default=None))
 
-    whichSpaceType = InputTypes.makeEnumType("spaceType","spaceTypeType",["feature","target"])
+    whichSpaceType = InputTypes.makeEnumType("spaceType","spaceTypeType",['Feature','feature','Target','target'])
     spec.addSub(InputData.parameterInputFactory('whichSpace',contentType=whichSpaceType,
         descr=r"""Which space to search? Target or Feature (this is temporary till """
         """DataSet training is implemented)""", default="feature"))
@@ -71,7 +71,7 @@ class FeatureSelectionBase(BaseInterface):
     nodes, notFound = paramInput.findNodesAndExtractValues(['parametersToInclude', 'whichSpace'])
     assert(not notFound)
     self.parametersToInclude = nodes['parametersToInclude']
-    self.whichSpace = nodes['whichSpace']
+    self.whichSpace = nodes['whichSpace'].lower()
     if self.parametersToInclude is None:
       self.raiseAnError(ValueError, '"parametersToInclude" must be inputted!' )
 

@@ -153,7 +153,7 @@
       <featureSpaceTransformation>
         <transformationMethod>KernelPolyPCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
     <ROM name="knnRbf" subType="KNeighborsRegressor">
@@ -164,7 +164,7 @@
       <featureSpaceTransformation>
         <transformationMethod>KernelRbfPCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
     <ROM name="knnSigmoid" subType="KNeighborsRegressor">
@@ -175,7 +175,7 @@
       <featureSpaceTransformation>
         <transformationMethod>KernelSigmoidPCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
     <ROM name="knnCosine" subType="KNeighborsRegressor">
@@ -186,7 +186,7 @@
       <featureSpaceTransformation>
         <transformationMethod>KernelCosinePCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
   </Models>

@@ -79,7 +79,7 @@ class RFE(FeatureSelectionBase):
         \\RFE works by searching for a subset of features by starting with all features in the training dataset and successfully
         removing
         features until the desired number remains.
-        This is achieved by fitting the given ROME used in the core of the model, ranking features by importance,
+        This is achieved by fitting the given ROM used in the core of the model, ranking features by importance,
         discarding the least important features, and re-fitting the model. This process is repeated until a specified number of
         features remains.
         When the full model is created, a measure of variable importance is computed that ranks the predictors from most
@@ -314,7 +314,7 @@ class RFE(FeatureSelectionBase):
     firstStep = int(setStep * (1+diff))
     step = firstStep
     # we check the number of subgroups
-    outputspace = None
+    outputSpace = None
     supportCandidates = []
     outputSpaceToKeep = []
     if nGroups > 1:
@@ -343,14 +343,14 @@ class RFE(FeatureSelectionBase):
       while g < nGroups:
         if jhandler.availability() > 0:
           if nGroups > 1:
-            outputspace = self.subGroups[g]
-            self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputspace)))
+            outputSpace = self.subGroups[g]
+            self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputSpace)))
           else:
-            outputspace = None
+            outputSpace = None
           prefix = f'subgroup_{g}'
           if g > 0:
             supportDataRFE['firstStep'] = setStep
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputspace, supportDataRFE,),
+          jhandler.addJob((estimatorRef, XRef, yRef, g, outputSpace, supportDataRFE,),
                           self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
@@ -384,11 +384,11 @@ class RFE(FeatureSelectionBase):
       for g in range(nGroups):
         # loop over groups
         if nGroups > 1:
-          outputspace = self.subGroups[g]
-          self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputspace)))
+          outputSpace = self.subGroups[g]
+          self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputSpace)))
         # apply RFE
         supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator,
-                                                                            X, y, g, outputspace, supportDataRFE)
+                                                                            X, y, g, outputSpace, supportDataRFE)
 
         if nGroups > 1:
           # store candidates in case of sub-groupping
@@ -529,14 +529,14 @@ class RFE(FeatureSelectionBase):
     return features if self.whichSpace == 'feature' else targets, supportOfSupport_
 
   @Parallel()
-  def _rfe(estimatorObj, X, y, groupId, outputspace, supportData):
+  def _rfe(estimatorObj, X, y, groupId, outputSpace, supportData):
     """
       Method to apply recursive feature elimination
       @ In, estimatorObj, object, surrogate model instance
       @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
       @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
       @ In, groupId, int, subGroupIndex
-      @ In, outputspace, list, list of output space variables (if None, not distinction is needed)
+      @ In, outputSpace, list, list of output space variables (if None, not distinction is needed)
       @ In, supportData, dict, dictionary containing data for performing the training/score:
                                featuresForRanking: intial feature set
                                nFeaturesToSelect: number of features to select
@@ -588,7 +588,7 @@ class RFE(FeatureSelectionBase):
       featuresForRanking = np.arange(nParams)[support_]
       # subgrouping
       outputToRemove = None
-      if outputspace != None:
+      if outputSpace != None:
         indexToRemove = []
         outputToRemove = []
         indexToKeep = []

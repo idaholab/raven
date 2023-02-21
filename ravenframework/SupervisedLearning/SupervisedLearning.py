@@ -112,7 +112,7 @@ class SupervisedLearning(BaseInterface):
     featureSpaceTransformation.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
         descr=r"""List of IDs of features/variables to include in the transformation process.""", default=None))
 
-    spaceEnum = InputTypes.makeEnumType("spaceEnum","spaceEnumType",['Feature', 'Target'])
+    spaceEnum = InputTypes.makeEnumType("spaceEnum","spaceEnumType",['Feature','feature', 'Target','target'])
     featureSpaceTransformation.addSub(InputData.parameterInputFactory('whichSpace',contentType=spaceEnum,
         descr=r"""Which space to search? Target or Feature?""", default="Feature"))
     spec.addSub(featureSpaceTransformation)
@@ -269,6 +269,7 @@ class SupervisedLearning(BaseInterface):
       if nodesFeatureTransformation['parametersToInclude'] is None:
         self.raiseAnError(IOError, '"parametersToInclude" not found. It must be inputted in Feature Space Transformation settings!' )
       self.featureSpaceTransformationSettings.update(nodesFeatureTransformation)
+      self.featureSpaceTransformationSettings['whichSpace'] = self.featureSpaceTransformationSettings['whichSpace'].lower()
 
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
@@ -409,7 +410,7 @@ class SupervisedLearning(BaseInterface):
       #  setattr(self.transformationEngine, "scaler", sklearn.preprocessing.MinMaxScaler())
 
       params = self.featureSpaceTransformationSettings['parametersToInclude']
-      space = self.featureSpaceTransformationSettings['whichSpace'].lower()
+      space = self.featureSpaceTransformationSettings['whichSpace']
       if space == 'feature':
         indeces = np.asarray([i for i, e in enumerate(self.features) if e in params])
       else:
