@@ -20,10 +20,7 @@
 # External Modules
 import numpy as np
 ##################
-
-# A = np.array([[2, -3],[1,8],[-5, -5]])
-# b = np.array([[0],[0],[0]])
-
+# Author: Mohammad Abdo (@Jimmy-INL)
 def run(self,Input):
   """
     Method require by RAVEN to run this as an external model.
@@ -34,23 +31,17 @@ def run(self,Input):
   self.F1 = main(Input)
 
 def main(Input):
-  # y = A @ np.array(list(Input.values())).reshape(-1,1) + b
+  """
+    Experiment Model evaluation method
+    @ In, Input, dict, dictionary containing inputs from RAVEN
+    @ Out, y[:], floats, list of response values from the linear model $ y = Ax+b $
+  """
   m = len([key for key in Input.keys() if 'e' in key]) # number of experiments
   n = len([par for par in Input.keys() if 'p' in par]) # number of parameters
   A = np.array([Input['e1']]).reshape(-1,n)
   b = Input['bE'].reshape(-1,1)
   x = np.atleast_2d(np.array([Input['p1'],Input['p2']])).reshape(-1,1)
-  assert(np.shape(A)[1],np.shape(b)[0])
+  assert(np.shape(A)[1],np.shape(b)[0],n)
   assert(np.shape(A)[0],np.shape(b)[0],m)
   y = A @ x + b
   return y[:]
-
-
-if __name__ == '__main__':
-  Input = {}
-  Input['e1'] = [2,-3]
-  Input['bE'] = np.array([[0],[0],[0]])
-  Input['x1'] = 5.5
-  Input['x2'] = 8
-  a = main(Input)
-  print(a)

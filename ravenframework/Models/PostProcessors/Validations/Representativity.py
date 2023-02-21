@@ -397,9 +397,11 @@ class Representativity(ValidationBase):
       @ Out, r, np.array, the representativity (bias factor) matrix neglecting uncertainties in measurables
       @ Out, rExact, np.array, the representativity (bias factor) matrix considering uncertainties in measurables
     """
+    if UmesVar is None:
+      UmesVar = np.zeros((len(normalizedSenExp), len(normalizedSenExp)))
     # Compute representativity (#eq 79)
-    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T))).real
-    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
+    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T))).real
+    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
     return r, rExact
 
   def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
