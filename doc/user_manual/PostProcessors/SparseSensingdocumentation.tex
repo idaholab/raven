@@ -25,14 +25,14 @@ Some important terms related to sensor placement problems are :
 ppType{SparseSensing post-processor}{SparseSensing}
 \begin{itemize}
 	\item \xmlNode{"Goal"}, \xmlDesc{The goal of the sparse sensor optimization (i.e., reconstruction or classification) should be filled in subType}.
-	\item \xmlNode{"TrainingData"}, \xmlDesc{}
-	\item \xmlNode{"features"}, \xmlDesc{}
-	\item \xmlNode{"target"}, \xmlDesc{}
-	\item \xmlNode{"basis"}, \xmlDesc{}
-	\item \xmlNode{"nModes"}, \xmlDesc{}
-	\item \xmlNode{"nSensors"}, \xmlDesc{}
-	\item \xmlNode{"threshold"}, \xmlDesc{}
-	\item \xmlNode{"optimizer"}, \xmlDesc{}
+	\item \xmlNode{"TrainingData"}, \xmlDesc{The Dataobject containing the training data}
+	\item \xmlNode{"features"}, \xmlDesc{Features/inputs of the data model}
+	\item \xmlNode{"target"}, \xmlDesc{target of data model}
+	\item \xmlNode{"basis"}, \xmlDesc{The type of basis onto which the data are projected}
+	\item \xmlNode{"nModes"}, \xmlDesc{The number of modes retained}
+	\item \xmlNode{"nSensors"}, \xmlDesc{The number of sensors used}
+	\item \xmlNode{"threshold"}, \xmlDesc{The percentage of sensors used (i.e., nSensors/nFeatures)}
+	\item \xmlNode{"optimizer"}, \xmlDesc{"The type of optimizer used}
 \end{itemize}
 
 \textbf{Example:}
