@@ -29,7 +29,7 @@ from collections import defaultdict
 from .PluginBaseClasses import PluginBase
 from .utils import xmlUtils
 
-
+_filePath = os.path.dirname(__file__)
 ## custom errors
 class PluginError(RuntimeError):
   """
@@ -156,7 +156,7 @@ def getEntities(entityType=None):
 _pluginEntities = defaultdict(dict)
 
 # load plugins directory and collect plugins
-pluginsPath = os.path.join(os.path.dirname(__file__), '..', 'plugins')
+pluginsPath = os.path.join(_filePath, '..', 'plugins')
 # use "catalogue" to differentiate between "path" and "directory"
 pluginsCatalogue = os.path.abspath(os.path.join(pluginsPath, 'plugin_directory.xml'))
 # if no installed plugins, report and finish; otherwise, load plugins
