@@ -77,7 +77,7 @@
       <featureSpaceTransformation>
         <transformationMethod>PCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
   </Models>

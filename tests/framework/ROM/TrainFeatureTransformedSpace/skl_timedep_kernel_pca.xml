@@ -142,7 +142,7 @@
       <featureSpaceTransformation>
         <transformationMethod>KernelLinearPCA</transformationMethod>
         <parametersToInclude>v0,y0,ang</parametersToInclude>
-        <whichSpace>feature</whichSpace>
+        <whichSpace>Feature</whichSpace>
       </featureSpaceTransformation>
     </ROM>
     <ROM name="knnPoly" subType="KNeighborsRegressor">
