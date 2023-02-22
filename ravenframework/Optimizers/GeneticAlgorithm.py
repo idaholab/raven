@@ -729,9 +729,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
-    self._checkConvSAHDp(traj, **kwargs)
-    
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data    
     if ('p' not in kwargs or kwargs['p'] is None):
       p = 3
     else:
@@ -779,7 +777,6 @@ class GeneticAlgorithm(RavenSampled):
     old = kwargs['old'].data
     new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     self.hdsm = self._hdsm(old, new)
-    print("----------- self.hdsm: " + str(self.hdsm))
     converged = (self.hdsm >= self._convergenceCriteria['HDSM'])
     self.raiseADebug(self.convFormat.format(name='HDSM',
                                             conv=str(converged),
@@ -871,6 +868,8 @@ class GeneticAlgorithm(RavenSampled):
     """
     normFactor = self._envelopeSize(a, b)
     ahd = self._ahd(a,b)
+    if mathUtils.compareFloats(ahd, 0.0, 1e-14):
+      return 1.
     return  1. - ahd / normFactor    
 
   def _updateConvergence(self, traj, new, old, acceptable):
