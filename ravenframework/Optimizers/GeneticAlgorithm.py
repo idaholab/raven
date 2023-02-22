@@ -52,7 +52,9 @@ class GeneticAlgorithm(RavenSampled):
                          at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
-                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations"""}
+                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
+                        'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
+                                     This number is between 0 and 1 (where values closer to 1 means tighter convergence criterion)"""}
   def __init__(self):
     """
       Constructor.
@@ -728,6 +730,8 @@ class GeneticAlgorithm(RavenSampled):
     """
     old = kwargs['old'].data
     new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
+    self._checkConvSAHDp(traj, **kwargs)
+    
     if ('p' not in kwargs or kwargs['p'] is None):
       p = 3
     else:
@@ -760,6 +764,27 @@ class GeneticAlgorithm(RavenSampled):
                                             conv=str(converged),
                                             got=ahd,
                                             req=self._convergenceCriteria['AHD']))
+
+    return converged
+
+  def _checkConvHDSM(self, traj, **kwargs):
+    """
+      Computes the Hausdorff Distance Similarity Metric as the termination criteria
+      @ In, traj, int, trajectory identifier
+      @ In, kwargs, dict, dictionary of parameters for SAHDp termination criteria:
+            old, np.array, old generation
+            new, np.array, new generation
+      @ Out, converged, bool, convergence state
+    """
+    old = kwargs['old'].data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
+    self.hdsm = self._hdsm(old, new)
+    print("----------- self.hdsm: " + str(self.hdsm))
+    converged = (self.hdsm >= self._convergenceCriteria['HDSM'])
+    self.raiseADebug(self.convFormat.format(name='HDSM',
+                                            conv=str(converged),
+                                            got= self.hdsm,
+                                            req=self._convergenceCriteria['HDSM']))
 
     return converged
 
@@ -823,6 +848,30 @@ class GeneticAlgorithm(RavenSampled):
       s.append(self._popDist(a[i,:],b))
 
     return max(s)
+
+  def _envelopeSize(self,a,b):
+    r"""
+      Compute hyper diagonal of envelope containing old and new population
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+    """
+    aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
+    bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
+    sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
+    hyperDiagonal = mathUtils.hyperdiagonal(sides)
+    return hyperDiagonal
+
+  def _hdsm(self, a, b):
+    """
+      Hausdorff Distance Similarity Measure for generation convergence
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _hdsm, float, average Hausdorff distance
+    """
+    normFactor = self._envelopeSize(a, b)
+    ahd = self._ahd(a,b)
+    return  1. - ahd / normFactor    
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
