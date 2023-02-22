@@ -3,23 +3,22 @@
 
   <TestInfo>
       <name>framework/CodeInterfaceTests.melcorInterfaceForwardSamplingNoExe</name>
-      <author>alfoa</author>
-      <created>2017-04-27</created>
+      <author>mattdon</author>
+      <created>2023-02-20</created>
       <classesTested>Models.Code.Melcor</classesTested>
       <description>
           An example of using the Melcor 2.1/2.2 code interface. This test is aimed to test the mechanics of the interface (no executable).
       </description>
       <revisions>
-          <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
-          <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
+          <revision author="mattdon" date="2023-02-20">Adding this test description.</revision>
+          <revision author="mattdon" date="2020-02-20">Modified csv file for new interface test</revision>
       </revisions>
   </TestInfo>
-
-  <!-- test info block end -->
 
   <RunInfo>
     <WorkingDir>MelcorInterface</WorkingDir>
     <Sequence>testMelcor,dumpResults</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -28,20 +27,13 @@
 
   <Models>
 	<Code name="MELGEN" subType="Melcor">
-	  <executable></executable>
-	  <!--preexec>MELCOR_2.2/bin/melgen</preexec-->
-	  <clargs arg="" extension=".inp" type="input"/>
+	  <executable>/home/administrator/projects/melcor/MELCOR-2.2.18019/binaries/Linux/01_Melcor.18019.lic</executable>
+	  <preexec>/home/administrator/projects/melcor/MELCOR-2.2.18019/binaries/Linux/00_Melgen.18019.lic</preexec>
+      <variables>
+         CVH-P_1$, CVH-TLIQ_2$, CFVALU_2
+      </variables>
 	  <CodePlotFile>MELMPTF.PTF</CodePlotFile>
-	  <variables>CVH-P_1</variables>
 	  <MelcorOutput>MELMES.TXT</MelcorOutput>
-      <!--
-        READ THIS CAREFULLY!
-        The following flag indicates that we will write a CSV with
-        the data (by default we return the data directly to RAVEN)
-        IF NOT NEEDED, SET THIS FLAG TO FALSE (OR REMOVE THE NODE)
-        SINCE THE PERFORMANCE WILL IMPROVE
-      -->
-      <csv>True</csv>
     </Code>
   </Models>
 
@@ -68,19 +60,11 @@
   <DataObjects>
     <PointSet name="MelcorPointSet">
       <Input>%PRE%</Input>
-      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP, ZERO, Test CF</Output>
+      <Output>CVH-P_1, CFVALU_2</Output>
     </PointSet>
-    <HistorySet name="MelcorHistorySet">
-      <Input>%PRE%</Input>
-      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP, ZERO, Test CF</Output>
-    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="dumpMelcorHistorySet">
-      <type>csv</type>
-      <source>MelcorHistorySet</source>
-    </Print>
     <Print name="dumpMelcorPointSet">
       <type>csv</type>
       <source>MelcorPointSet</source>
@@ -94,13 +78,10 @@
         <Model   class="Models"      type="Code">MELGEN</Model>
         <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>
         <Output  class="Databases"   type="HDF5">DataMELCOR</Output>
-        <Output  class="DataObjects" type="HistorySet">MelcorHistorySet</Output>
         <Output  class="DataObjects" type="PointSet">MelcorPointSet</Output>
     </MultiRun>
     <IOStep name="dumpResults" >
-        <Input   class="DataObjects" type="HistorySet">MelcorHistorySet</Input>
         <Input   class="DataObjects" type="PointSet">MelcorPointSet</Input>
-        <Output class="OutStreams"   type="Print">dumpMelcorHistorySet</Output>
         <Output class="OutStreams"   type="Print">dumpMelcorPointSet</Output>
     </IOStep>
   </Steps>
