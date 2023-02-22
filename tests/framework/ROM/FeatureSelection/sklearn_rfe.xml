@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/FeatureSelection.StaticSklearnRFE</name>
+    <author>aalfonsi</author>
+    <created>2022-11-15</created>
+    <classesTested>FeatureSelection.RFE,SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example of using RFE feature selection exercising supervised sklearn methods,
+       specifically the svm|SVR model is tested here.
+       
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+       Classifiers will use this same function to determine if a point is
+       above 0.25, and multitask methods will additionally fit an additive
+       model (x+y).
+    </description>
+    <revisions>
+      <revision author="aalfonsi" date="2022-11-16">Added feature selection test for SKlearn model</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      stats_rom,
+      export_rom_stats
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <inputs>X,Y,A,B,C,D</inputs>
+      <outputs>Z</outputs>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SVR">
+      <Features>X,Y,A,B,C,D</Features>
+      <Target>Z</Target>
+      <C>10.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+      <featureSelection>
+        <RFE name="mySelectionAlgo">
+          <parametersToInclude>X,Y,A,B,C,D</parametersToInclude>
+          <step>1</step>
+          <onlyOutputScore>True</onlyOutputScore>
+          <maxNumberFeatures>2</maxNumberFeatures>
+          <applyClusteringFiltering>False</applyClusteringFiltering>
+          <whichSpace>feature</whichSpace>
+        </RFE>
+      </featureSelection>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedXMLblocks/sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedXMLblocks/sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedXMLblocks/sharedSteps.xml"/>
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+    </Print>
+    <Print name="rom_stats_out">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedXMLblocks/sharedDataObjects.xml"/>
+</Simulation>
