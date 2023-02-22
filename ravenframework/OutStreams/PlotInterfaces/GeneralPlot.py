@@ -1259,7 +1259,7 @@ class GeneralPlot(PlotInterface):
                       if first:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
