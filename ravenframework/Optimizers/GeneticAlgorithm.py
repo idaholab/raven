@@ -540,8 +540,8 @@ class GeneticAlgorithm(RavenSampled):
       Fitness = [item for sublist in Fitness.tolist() for item in sublist]
 
       Fitness = xr.DataArray(Fitness,
-                                      dims=['NumOfConstraintViolated'],
-                                      coords={'NumOfConstraintViolated':np.arange(np.shape(Fitness)[0])})
+                             dims=['NumOfConstraintViolated'],
+                             coords={'NumOfConstraintViolated':np.arange(np.shape(Fitness)[0])})
 
       # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -595,16 +595,16 @@ class GeneticAlgorithm(RavenSampled):
           import matplotlib.pyplot as plt
           # JY: Visualization: all points - This code block needs to be either deleted or revisited.
           plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
-          # plt.xlim(70,100)
-          # plt.ylim(5,20)
 
           # JY: Visualization: optimal points only - This code block needs to be either deleted or revisited.
-          plt.xlim(75,100)
-          plt.ylim(5,20)
-          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0],
-                   np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,1],'*')
           # plt.xlim(75,100)
           # plt.ylim(5,20)
+          plt.xlim(0,1)
+          plt.ylim(0,6)
+          plt.title(str('Iteration ' + str(self.counter-1)))
+
+          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0],
+                   np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,1],'*')
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,0],
                      np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,1], str(self.batchId-1))
@@ -829,8 +829,9 @@ class GeneticAlgorithm(RavenSampled):
       bestRlz['fitness'] = self.multiBestFitness
       bestRlz['rank'] = self.multiBestRank
       bestRlz['CD'] = self.multiBestCD
-      for ind, consName in enumerate(self.multiBestConstraint.Constraint):
-          bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
+      if len(self.multiBestConstraint) != 0: # No constraints
+        for ind, consName in enumerate(self.multiBestConstraint.Constraint):
+            bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
       bestRlz.update(self.multiBestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
     elif acceptable == 'rejected':
@@ -904,10 +905,11 @@ class GeneticAlgorithm(RavenSampled):
     for i in range(len(optConstraintsV)):
       optConstNew.append(optConstraintsV[i])
     optConstNew = list(map(list, zip(*optConstNew)))
-    optConstNew = xr.DataArray(optConstNew,
-                               dims=['Constraint','Evaluation'],
-                               coords={'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
-                                       'Evaluation':np.arange(np.shape(optConstNew)[1])})
+    if (len(optConstNew)) != 0:
+      optConstNew = xr.DataArray(optConstNew,
+                                dims=['Constraint','Evaluation'],
+                                coords={'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
+                                        'Evaluation':np.arange(np.shape(optConstNew)[1])})
 
     self.multiBestPoint = optPointsDic
     self.multiBestFitness = optConstraints
