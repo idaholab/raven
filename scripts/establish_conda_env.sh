@@ -186,7 +186,7 @@ function create_libraries()
     fi
   else
     #pip create virtual enviroment
-    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`
+    local COMMAND="$PYTHON_COMMAND -m venv $PIP_ENV_LOCATION"
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... virtual enviroment command: ${COMMAND}; fi
     ${COMMAND}
     # activate the enviroment
@@ -444,10 +444,6 @@ else
     echo ... \>\> Install PIP if you want to use it or CONDA as alternative installation manager!
     exit 1
   else
-    # install virtual env and upgrade pip
-    if ! ve_loc="$(type -p virtualenv)" || [[ -z $ve_loc ]]; then
-      pip3 install virtualenv
-    fi
     # set PIP_ENV_LOCATION
     PIP_ENV_LOCATION="$HOME/pip_envs"
   fi
