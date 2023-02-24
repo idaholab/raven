@@ -28,7 +28,6 @@
   <Steps>
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Input class="Files" type="">restart.csv</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
