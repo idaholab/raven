@@ -1,14 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/GA.MaxwReplacement</name>
-    <author>MohammadAbdo</author>
-    <created>2020-05-16</created>
+    <name>framework/Optimizers/GA.MaxwReplacementCustomSampler</name>
+    <author>mandd</author>
+    <created>2022-02-24</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test assesses the Genetic algorithm using the weighted sum found in myLocalSum.py function.
-      The nominal dimensionality of the test problem is 3.
-      The objective variable is ans. The problem in unconstrained, it is a maximization problem, and the sampling is from discrete variables with replacement.
+      This test assesses the Genetic algorithm when a custom sampler (initialized by file) is used to 
+      initialize the initial population
     </description>
     <analytic>
       This test uses myLocalSum's analytic objective function.
@@ -16,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MaxwReplacement</WorkingDir>
+    <WorkingDir>MaxwReplacement_customsampler</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
