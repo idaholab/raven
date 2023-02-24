@@ -208,7 +208,8 @@ class Optimizer(AdaptiveSampler):
     self.assemblerDict['DataObjects'] = []
     self.assemblerDict['Distributions'] = []
     self.assemblerDict['Functions'] = []
-    for mainClass in ['DataObjects', 'Distributions', 'Functions']:
+    self.assemblerDict['Files'] = []
+    for mainClass in ['DataObjects', 'Distributions', 'Functions', 'Files']:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,
                                               initDict[mainClass][funct].type,
@@ -217,7 +218,7 @@ class Optimizer(AdaptiveSampler):
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
-      unfortunately-named method that serves as a pass-through for input reading.
+      Method that serves as a pass-through for input reading.
       comes from inheriting from Sampler and _readMoreXML chain.
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node (don't use!)
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
@@ -237,6 +238,7 @@ class Optimizer(AdaptiveSampler):
     needDict['Distributions'] = [(None,'all')]
     needDict['Functions'    ] = [(None,'all')]
     needDict['DataObjects'  ] = [(None,'all')]
+    needDict['Files'        ] = [(None,'all')]
 
     return needDict
 
@@ -401,7 +403,7 @@ class Optimizer(AdaptiveSampler):
     self._initSampler = sampler
     # initialize sampler
     samplerInit = {}
-    for entity in ['Distributions', 'Functions', 'DataObjects']:
+    for entity in ['Distributions', 'Functions', 'DataObjects','Files']:
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
     # assure sampler provides useful info

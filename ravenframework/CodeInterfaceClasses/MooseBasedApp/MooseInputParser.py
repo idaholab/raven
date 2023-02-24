@@ -91,6 +91,7 @@ def getpotToInputTree(getpot):
           parentNodes.append(currentNode)
         currentNode = TreeStructure.InputNode(tag=line.strip('[]./'))
         closeEntry = False
+
       #------------------
       # closing node
       elif line.startswith(('[../]', '[]')):
@@ -106,7 +107,9 @@ def getpotToInputTree(getpot):
       #------------------
       # attributes and values
       elif '=' in line:
+        print('HERE')
         attribute, value = (x.strip() for x in line.split('=', maxsplit=1))
+        print(attribute, value)
         # TODO multilline, if "'" or '"' in line
         # ASSUME: both " and ' aren't used in the same line
         if any(x in line for x in multiIndicators):
@@ -124,6 +127,7 @@ def getpotToInputTree(getpot):
             # DO NOT continue, keep going until multiline is closed
             continue
         else:
+          print('HERE1')
           # single line entry with no vector representation
           value = value.strip()
           closeEntry = True
