@@ -32,7 +32,7 @@
       <variables>
          CVH-P_1$, CVH-TLIQ_2$, CFVALU_2
       </variables>
-	  <CodePlotFile>MELMPTF.PTF</CodePlotFile>
+	  <CodePlotFile>MELPTF.PTF</CodePlotFile>
 	  <MelcorOutput>MELMES.TXT</MelcorOutput>
     </Code>
   </Models>
