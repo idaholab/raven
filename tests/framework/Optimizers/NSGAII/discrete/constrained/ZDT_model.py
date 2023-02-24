@@ -38,4 +38,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.obj1,self.obj2 = evaluate(Inputs) # make sure the name of the objective is consistent with obj1, obj2, obj3.
+  self.obj1,self.obj2 = evaluate(Inputs)

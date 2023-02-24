@@ -166,7 +166,8 @@ class Optimizer(AdaptiveSampler):
     self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
     self._convergedTraj = {}            # tracks converged trajectories, and values obtained
     self._numRepeatSamples = 1          # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = []           # objective variable for optimization
+    # self._objectiveVar = []           # objective variable for optimization
+    self._objectiveVar = None           # objective variable for optimization
     self._initialValuesFromInput = None # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
     self._initialValues = None          # initial variable values (trajectory starting locations), list of dicts
     self._variableBounds = None         # dictionary of upper/lower bounds for each variable (may be inf?)

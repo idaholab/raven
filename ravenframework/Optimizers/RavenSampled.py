@@ -301,8 +301,11 @@ class RavenSampled(Optimizer):
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
-      for i in range(len(self._objectiveVar)):
-        rlz[self._objectiveVar[i]] *= -1
+      if type(self._objectiveVar) == str:
+        rlz[self._objectiveVar] *= -1
+      else:
+        for i in range(len(self._objectiveVar)):
+          rlz[self._objectiveVar[i]] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -401,57 +404,39 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
 
-      for i in range(len(self._optPointHistory[traj][-1][0]['obj1'])):
+      if type(self._objectiveVar) == str:
         opt = self._optPointHistory[traj][-1][0]
-        key = list(opt.keys())
-        val = [item[i] for item in opt.values()]
-        optElm = {key[a]: val[a] for a in range(len(key))}
-        optVal = [s*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
-        # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
-        # bestValue_1 = val1
-        # bestValue_2 = val2
-        bestTraj = traj
-        bestOpt = self.denormalizeData(optElm)
+        val = opt[self._objectiveVar]
+        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+        if bestValue is None or val < bestValue:
+          bestValue = val
+          bestTraj = traj
+        bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
         bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-        # self.raiseADebug('')
-        # self.raiseAMessage(' - Final Optimal Point:')
-        # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
-        # finalTemplateInt = '    {name:^20s}  {value: 3d}'
-        # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
-        # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-        # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
-        # for var, val in bestPoint.items():
-        #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
-        # self.raiseAMessage('*' * 80)
+        self.raiseADebug('')
+        self.raiseAMessage(' - Final Optimal Point:')
+        finalTemplate = '    {name:^20s}  {value: 1.3e}'
+        finalTemplateInt = '    {name:^20s}  {value: 3d}'
+        self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=s * bestValue))
+        self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+        for var, val in bestPoint.items():
+          self.raiseAMessage(finalTemplate.format(name=var, value=val))
+        self.raiseAMessage('*' * 80)
         # write final best solution to soln export
         self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+      else:
+        for i in range(len(self._optPointHistory[traj][-1][0][self._objectiveVar[0]])):
+          opt = self._optPointHistory[traj][-1][0]
+          key = list(opt.keys())
+          val = [item[i] for item in opt.values()]
+          optElm = {key[a]: val[a] for a in range(len(key))}
+          optVal = [s*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
 
-      # ### Original start ###
-      # opt = self._optPointHistory[traj][-1][0]
-      # val = range(len(self._objectiveVar))
-      # for i in range(len(val)):
-      #   val[i] = [', '.join(map(str,(s*opt[self._objectiveVar[i]])))]
-      # # val1 = ', '.join(map(str,(s*opt[self._objectiveVar[0]]).tolist()))
-      # # val2 = ', '.join(map(str,(s*opt[self._objectiveVar[1]]).tolist()))
-      # # self.raiseADebug(statusTemplate_multi.format(status='active', traj=traj, val1=val1, val2=val2))
-      # # bestValue_1 = val1
-      # # bestValue_2 = val2
-      # bestTraj = traj
-      # bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
-      # bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-      # self.raiseADebug('')
-      # self.raiseAMessage(' - Final Optimal Point:')
-      # # finalTemplate = '    {name_1:^20s}  {name_2:^20s}  {value_1:^20s}  {value_2:^20s}'
-      # # finalTemplateInt = '    {name:^20s}  {value: 3d}'
-      # # self.raiseAMessage(finalTemplate.format(name_1=self._objectiveVar[0], name_2=self._objectiveVar[1], value_1=bestValue_1, value_2=bestValue_2))
-      # # self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-      # # JY: 23/01/20 two lines below are temperarily commented. If it is not needed, then will be deleted.
-      # # for var, val in bestPoint.items():
-      # #   self.raiseAMessage(finalTemplate.format(name=var, value=val))
-      # self.raiseAMessage('*' * 80)
-      # # write final best solution to soln export
-      # self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
-      # ### Original end ###
+          bestTraj = traj
+          bestOpt = self.denormalizeData(optElm)
+          bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+
+          self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
   def flush(self):
     """
@@ -587,7 +572,10 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    oldVal = normed[self._objectiveVar[0]]
+    if type(self._objectiveVar) == str:
+      oldVal = normed[self._objectiveVar]
+    else:
+      oldVal = normed[self._objectiveVar[0]]
     normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
     denormed[self._objectiveVar[0]] = oldVal
@@ -658,7 +646,10 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
+      if type(self._objectiveVar) == str:
+        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
+      else:
+        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       newAvg = ((N-1)*oldVal + optVal) / N
       self._optPointHistory[traj][-1][0][self._objectiveVar[0]] = newAvg
     else:
@@ -724,8 +715,8 @@ class RavenSampled(Optimizer):
                      'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
-    if len(self._objectiveVar) == 1: # Single Objective Optimization
-      objValue = rlz[self._objectiveVar[0]]
+    if type(self._objectiveVar) == str: # Single Objective Optimization
+      objValue = rlz[self._objectiveVar]
       if self._minMax == 'max':
         objValue *= -1
       toExport[self._objectiveVar[0]] = objValue
