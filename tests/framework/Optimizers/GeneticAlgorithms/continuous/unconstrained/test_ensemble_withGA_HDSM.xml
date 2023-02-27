@@ -1,17 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/GeneticAlgorithms/test_ensemble_withGA</name>
+    <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModelHDSMconvergence</name>
     <author>mandd</author>
     <created>2022-11-17</created>
     <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
     <description>
-       Example of usage of the Ensemble Model with GA optmization methods
+       This test is aimed to test the convergence criterion based on the
+       Hausdorff Similarity Measure. This convergence criterion is based on a normalized
+       similarity metric that can be summurized as the normalized Hausdorff distance
+       (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
+       which implies that values closer to 1. represents a tighter convergence criterion.
     </description>
   </TestInfo>
   
   <RunInfo>
-    <WorkingDir>ensemble_withGA</WorkingDir>
+    <WorkingDir>ensemble_withGA_HDSM</WorkingDir>
     <Sequence>testMetamodelHeatTransfer</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
