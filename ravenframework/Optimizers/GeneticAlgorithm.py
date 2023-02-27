@@ -54,7 +54,10 @@ class GeneticAlgorithm(RavenSampled):
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
                         'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
                         'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
-                                     This number is between 0 and 1 (where values closer to 1 means tighter convergence criterion)"""}
+                                     This convergence criterion is based on a normalized
+                                     similarity metric that can be summurized as the normalized Hausdorff distance
+                                     (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
+                                     which implies that values closer to 1.0 represents a tighter convergence criterion."""}
   def __init__(self):
     """
       Constructor.
@@ -146,6 +149,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                         \item scrambleMutator.
                                                                         \item inversionMutator.
                                                                         \item bitFlipMutator.
+                                                                        \item randomMutator.
                                                                       \end{itemize}
                                                                     \end{itemize}
                                                 \item survivorSelectors:
@@ -209,8 +213,9 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""a subnode containing the implemented mutation mechanisms.
                   This includes: a.    bitFlipMutation,
                                  b.    swapMutation,
-                                 c.    scrambleMutation, or
-                                 d.    inversionMutation.""")
+                                 c.    scrambleMutation,
+                                 d.    inversionMutation, or
+                                 e.    randomMutator.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
