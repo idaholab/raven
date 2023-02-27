@@ -300,9 +300,9 @@ class MSR(NDinterpolatorRom):
       setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []
-    self.__trainLocal__(self.X,self.Y)
+    self._train(self.X,self.Y)
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       @ In, featureVals, np.ndarray or list of list, shape=[n_samples, n_features],

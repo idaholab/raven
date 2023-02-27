@@ -13,9 +13,7 @@
 # limitations under the License.
 """
 Created on October 12, 2022
-
 @author: cogljj
-
 ROM Loader for serialized surrogate model (ROM) for internal usage
 Unlike externalROMloader.ravenROMexternal, this assumes ravenframework is
 already in the path.

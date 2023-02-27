@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<Simulation verbosity="debug">
+    <TestInfo>
+      <name>framework/ROM/FeatureSelection.DMDcRFEApplyClustering</name>
+      <author>aalfonsi</author>
+      <created>2023-02-06</created>
+      <classesTested>FeatureSelection.RFE,SupervisedLearning.DMDc</classesTested>
+      <description>
+         An example of using RFE feature selection exercising DMDc rom and
+         the capability to remove collinearities (and correlated features) via
+         initial clustering.
+      </description>
+      <revisions>
+        <revision author="aalfonsi" date="2023-02-06">Added feature selection test for DMDc model with RFE only</revision>
+      </revisions>
+    </TestInfo>
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>readTrainData,DMDCTrain,stats,writeOut</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <!--  we load a synthesized data with 1 time, 1 actuation(u),
+    3 state(x) and 2 output(y) -->
+	  <!-- Note: Adjacent rows should have constant time interval for DMDC -->
+    <Input name="TrainDataFile">./DMDcTrainingData/reduced.csv</Input>
+  </Files>
+  
+  <Models>
+    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
+      <Target>Time,state_variables,output_variables</Target>
+      <!-- Actuator Variable Names (u) -->
+      <actuators>actuator_variables</actuators>
+      <!-- StateVariables Names (x) -->
+      <stateVariables>state_variables</stateVariables>
+      <!-- Pivot variable (e.g. Time) -->
+      <pivotParameter>Time</pivotParameter>
+      <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+      <rankSVD>-1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
+      <subtractNormUXY>True</subtractNormUXY>
+	    
+      <!-- Features are the variable names for predictions: Actuator "u", scheduling parameters, and initial states -->
+      <Features>actuator_variables,scheduling_paras,state_variables_init</Features>
+      <!-- Initialization Variables-->
+      <initStateVariables>state_variables_init</initStateVariables>
+ 
+      <featureSelection>
+        <RFE name="mySelectionAlgo">
+          <parametersToInclude>parameters_to_include</parametersToInclude>
+          <step>2</step>
+          <nFeaturesToSelect>2</nFeaturesToSelect>
+          <applyClusteringFiltering>True</applyClusteringFiltering>
+          <whichSpace>target</whichSpace>
+        </RFE>
+      </featureSelection>
+     </ROM>
+  </Models>
+  
+  <Steps>
+    <IOStep name="readTrainData">
+      <Input class="Files" type="">TrainDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">TrainData</Output>
+    </IOStep>
+	  <RomTrainer name="DMDCTrain">
+      <Input class="DataObjects" type="HistorySet">TrainData</Input>
+      <Output class="Models" type="ROM">DMDrom</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">DMDrom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">dmdc_stats_rfe_apply_clustering</Output>
+    </IOStep>
+ 
+  </Steps>
+  <OutStreams>
+    <Print name="dmdc_stats_rfe_apply_clustering">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+    <Print name="outputData">
+      <type>csv</type>
+      <source>outputData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn"/>
+    <HistorySet name="outputData">
+      <Input>scheduling_paras,state_variables_init</Input>
+      <Output>actuator_variables,output_variables,state_variables,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="TrainData">
+      <Input>scheduling_paras,state_variables_init</Input>
+      <Output>actuator_variables,output_variables,state_variables,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="scheduling_paras">
+      SES_Max_Power,BOP_Max_Power,TES_Max_Power
+    </Group>
+    <Group name="actuator_variables">
+      pulse_SES.y,pulse_BOP.y,pulse_TES.y
+    </Group>
+    <Group name="output_variables">
+      SES_Electric_Power,
+      SES_Firing_Temperature,
+      BOP_Electric_Power,
+      BOP_Turbine_Pressure,
+      TES_HotTank_Level,
+      TES_HT_Level_Ramprate
+    </Group>
+    <Group name="state_variables">
+        BOP.sensor_T1.y,
+        BOP.HPT.state_a.d,BOP.HPT.sat_in.Tsat,
+        BOP.HPT.dew_out.d,
+        BOP.tee.medium.T_degC,
+        SES.SinkExhaustGas.medium.d,
+        SES.SinkExhaustGas.medium.p_bar,
+        SES.fuelCtrl.VCE,TES.hot_tank.der(V),
+        TES.cold_tank.V,
+        TES.discharge_pump.medium.u
+    </Group>
+    <Group name="parameters_to_include">
+      state_variables
+    </Group>
+    <Group name="state_variables_init">
+        BOP.sensor_T1.y_init,
+        BOP.HPT.state_a.d_init,BOP.HPT.sat_in.Tsat_init,
+        BOP.HPT.dew_out.d_init,
+        BOP.tee.medium.T_degC_init,
+        SES.SinkExhaustGas.medium.d_init,
+        SES.SinkExhaustGas.medium.p_bar_init,
+        SES.fuelCtrl.VCE_init,TES.hot_tank.der(V)_init,
+        TES.cold_tank.V_init,
+        TES.discharge_pump.medium.u_init
+    </Group>
+  </VariableGroups>
+</Simulation>

@@ -19,6 +19,7 @@ Created on Mar 5, 2013
 #External Modules------------------------------------------------------------------------------------
 import sys
 import gc
+import copy
 import threading
 from ..utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
@@ -60,6 +61,25 @@ class DistributedMemoryRunner(InternalRunner):
     self.__func = None
     # __funcLock is needed because if isDone and kill are called at the
     # same time, isDone might end up trying to use __func after it is deleted
+    self.__funcLock = threading.RLock()
+
+  def __getstate__(self):
+    """
+      This function return the state of the DistributedMemoryRunner
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    state.pop('_DistributedMemoryRunner__funcLock')
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the DistributedMemoryRunner with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the DistributedMemoryRunner to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
     self.__funcLock = threading.RLock()
 
   def isDone(self):
