@@ -175,11 +175,13 @@ class Optimizer(AdaptiveSampler):
     self._constraintFunctions = []      # list of constraint functions
     self._impConstraintFunctions = []   # list of implicit constraint functions
     self._requireSolnExport = True      # optimizers only produce result in solution export
+    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files'] # List of assembler entities required to initialize an optmizer
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -209,7 +211,7 @@ class Optimizer(AdaptiveSampler):
     self.assemblerDict['Distributions'] = []
     self.assemblerDict['Functions'] = []
     self.assemblerDict['Files'] = []
-    for mainClass in ['DataObjects', 'Distributions', 'Functions', 'Files']:
+    for mainClass in self.optAssemblerList:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,
                                               initDict[mainClass][funct].type,

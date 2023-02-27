@@ -101,27 +101,10 @@
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     <Sampler class="Samplers" type="CustomSampler">restartSampler</Sampler>
-    <!--Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler-->
     </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
-    <MonteCarlo name="MC_samp">
-      <samplerInit>
-        <limit>10</limit>
-        <initialSeed>20021986</initialSeed>
-      </samplerInit>
-      <variable name="x1">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x2">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x3">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-    </MonteCarlo>
-
     <CustomSampler name="restartSampler">
       <Source class="Files" type="">restart.csv</Source>
       <variable name="x1"/>
