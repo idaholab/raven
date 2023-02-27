@@ -1,15 +1,15 @@
 \subsubsection{SparseSensing}
 \label{SparseSensing}
-The \textbf{SparseSensing} post-processor incorporates "PySensors", a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
+The \textbf{SparseSensing} post-processor incorporates ''PySensors", a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
 
 Sparse sensor placement concerns the problem of selecting a small subset of sensor or measurement locations in a way that allows one to perform some task nearly as well as if one had access to measurements at every location.
 
 This post-processor provides objects designed for the tasks of reconstruction and classification. See
 
 \begin{itemize}
-    \item Manohar, Krithika, et al. "Data-driven sparse sensor placement for reconstruction: Demonstrating the benefits of exploiting known patterns." IEEE Control Systems Magazine 38.3 (2018): 63-86 for more information about the PySensors approach to reconstruction problems and,
-    \item Brunton, Bingni W., et al. "Sparse sensor placement optimization for classification." SIAM Journal on Applied Mathematics 76.5 (2016): 2099-2122 for classification and,
-    \item de Silva, Brian M., et al. "PySensors: A Python package for sparse sensor placement." arXiv preprint arXiv:2102.13476 (2021) contains a full literature review along with examples and additional tips for using PySensors effectively.
+    \item Manohar, Krithika, et al. ''Data-driven sparse sensor placement for reconstruction: Demonstrating the benefits of exploiting known patterns." IEEE Control Systems Magazine 38.3 (2018): 63-86 for more information about the PySensors approach to reconstruction problems and,
+    \item Brunton, Bingni W., et al. ''Sparse sensor placement optimization for classification." SIAM Journal on Applied Mathematics 76.5 (2016): 2099-2122 for classification and,
+    \item de Silva, Brian M., et al. ''PySensors: A Python package for sparse sensor placement." arXiv preprint arXiv:2102.13476 (2021) contains a full literature review along with examples and additional tips for using PySensors effectively.
 \end{itemize} 
 
 Some important terms related to sensor placement problems are : 
@@ -19,20 +19,20 @@ Some important terms related to sensor placement problems are :
 
     \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
 
-    \item \textbf{Bases} in which measurement data are represented can have a dramatic effect on performance. PySensors implements the three bases most commonly used for sparse sensor placement: raw measurements, SVD/POD/PCA modes, and random projections.These bases can be easily incorporated into either classification or reconstruction tasks. 
+    \item \textbf{Bases} in which measurement data are represented can have a dramatic effect on performance. PySensors implements the three bases most commonly used for sparse sensor placement: raw measurements, SVD/POD/PCA modes, and random projections. These bases can be easily incorporated into either classification or reconstruction tasks. 
 \end{itemize}
 
-ppType{SparseSensing post-processor}{SparseSensing}
+\ppType{SparseSensing post-processor}{SparseSensing}
 \begin{itemize}
-	\item \xmlNode{"Goal"}, \xmlDesc{The goal of the sparse sensor optimization (i.e., reconstruction or classification) should be filled in subType}.
-	\item \xmlNode{"TrainingData"}, \xmlDesc{The Dataobject containing the training data}
-	\item \xmlNode{"features"}, \xmlDesc{Features/inputs of the data model}
-	\item \xmlNode{"target"}, \xmlDesc{target of data model}
-	\item \xmlNode{"basis"}, \xmlDesc{The type of basis onto which the data are projected}
-	\item \xmlNode{"nModes"}, \xmlDesc{The number of modes retained}
-	\item \xmlNode{"nSensors"}, \xmlDesc{The number of sensors used}
-	\item \xmlNode{"threshold"}, \xmlDesc{The percentage of sensors used (i.e., nSensors/nFeatures)}
-	\item \xmlNode{"optimizer"}, \xmlDesc{"The type of optimizer used}
+	\item \xmlNode{Goal}, The goal of the sparse sensor optimization (i.e., reconstruction or classification) should be filled in subType.
+	\item \xmlNode{TrainingData}, The Dataobject containing the training data
+	\item \xmlNode{features}, Features/inputs of the data model
+	\item \xmlNode{target}, target of data model
+	\item \xmlNode{basis}, The type of basis onto which the data are projected
+	\item \xmlNode{nModes}, The number of modes retained
+	\item \xmlNode{nSensors}, The number of sensors used
+	\item \xmlNode{threshold}, The percentage of sensors used (i.e., nSensors/nFeatures)
+	\item \xmlNode{optimizer}, The type of optimizer used
 \end{itemize}
 
 \textbf{Example:}
