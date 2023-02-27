@@ -237,10 +237,12 @@ class Optimizer(AdaptiveSampler):
       @ Out, needDict, dict, list of objects needed
     """
     needDict = {}
-    needDict['Distributions'] = [(None,'all')]
-    needDict['Functions'    ] = [(None,'all')]
-    needDict['DataObjects'  ] = [(None,'all')]
-    needDict['Files'        ] = [(None,'all')]
+    for elem in self.optAssemblerList:
+      needDict[elem] = [(None,'all')]
+    #needDict['Distributions'] = [(None,'all')]
+    #needDict['Functions'    ] = [(None,'all')]
+    #needDict['DataObjects'  ] = [(None,'all')]
+    #needDict['Files'        ] = [(None,'all')]
 
     return needDict
 
@@ -405,7 +407,7 @@ class Optimizer(AdaptiveSampler):
     self._initSampler = sampler
     # initialize sampler
     samplerInit = {}
-    for entity in ['Distributions', 'Functions', 'DataObjects','Files']:
+    for entity in self.optAssemblerList:
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
     # assure sampler provides useful info
