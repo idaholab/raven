@@ -239,10 +239,6 @@ class Optimizer(AdaptiveSampler):
     needDict = {}
     for elem in self.optAssemblerList:
       needDict[elem] = [(None,'all')]
-    #needDict['Distributions'] = [(None,'all')]
-    #needDict['Functions'    ] = [(None,'all')]
-    #needDict['DataObjects'  ] = [(None,'all')]
-    #needDict['Files'        ] = [(None,'all')]
 
     return needDict
 
