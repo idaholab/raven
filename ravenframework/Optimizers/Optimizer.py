@@ -175,11 +175,13 @@ class Optimizer(AdaptiveSampler):
     self._constraintFunctions = []      # list of constraint functions
     self._impConstraintFunctions = []   # list of implicit constraint functions
     self._requireSolnExport = True      # optimizers only produce result in solution export
+    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files'] # List of assembler entities required to initialize an optmizer
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -208,7 +210,8 @@ class Optimizer(AdaptiveSampler):
     self.assemblerDict['DataObjects'] = []
     self.assemblerDict['Distributions'] = []
     self.assemblerDict['Functions'] = []
-    for mainClass in ['DataObjects', 'Distributions', 'Functions']:
+    self.assemblerDict['Files'] = []
+    for mainClass in self.optAssemblerList:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,
                                               initDict[mainClass][funct].type,
@@ -217,7 +220,7 @@ class Optimizer(AdaptiveSampler):
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
-      unfortunately-named method that serves as a pass-through for input reading.
+      Method that serves as a pass-through for input reading.
       comes from inheriting from Sampler and _readMoreXML chain.
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node (don't use!)
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
@@ -234,9 +237,8 @@ class Optimizer(AdaptiveSampler):
       @ Out, needDict, dict, list of objects needed
     """
     needDict = {}
-    needDict['Distributions'] = [(None,'all')]
-    needDict['Functions'    ] = [(None,'all')]
-    needDict['DataObjects'  ] = [(None,'all')]
+    for elem in self.optAssemblerList:
+      needDict[elem] = [(None,'all')]
 
     return needDict
 
@@ -401,7 +403,7 @@ class Optimizer(AdaptiveSampler):
     self._initSampler = sampler
     # initialize sampler
     samplerInit = {}
-    for entity in ['Distributions', 'Functions', 'DataObjects']:
+    for entity in self.optAssemblerList:
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
     # assure sampler provides useful info
