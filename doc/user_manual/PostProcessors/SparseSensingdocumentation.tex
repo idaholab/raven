@@ -31,7 +31,6 @@ Some important terms related to sensor placement problems are :
 	\item \xmlNode{basis}, The type of basis onto which the data are projected
 	\item \xmlNode{nModes}, The number of modes retained
 	\item \xmlNode{nSensors}, The number of sensors used
-	\item \xmlNode{threshold}, The percentage of sensors used (i.e., nSensors/nFeatures)
 	\item \xmlNode{optimizer}, The type of optimizer used
 \end{itemize}
 
@@ -44,12 +43,11 @@ Some important terms related to sensor placement problems are :
       <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <TrainingData>myDO</TrainingData>
-        <features>x,y</features>
-        <target>v</target>
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
         <basis>svd</basis> <!--Ddefault: svd-->
-        <nModes>5</nModes> <!--default: opt, allows the algorithm to pick nModes-->
-        <nSensors>5</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
-        <threshold>0.2</threshold>
+        <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
+        <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
         <optimizer>QR</optimizer><!--default: QR-->
       </Goal>
     </PostProcessor>
