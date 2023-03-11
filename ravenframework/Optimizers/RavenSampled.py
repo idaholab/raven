@@ -301,11 +301,14 @@ class RavenSampled(Optimizer):
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
-      if type(self._objectiveVar) == str:
+      if not self._canHandleMultiObjective and len(self._objectiveVar) == 1:
+        self._objectiveVar = self._objectiveVar[0]
         rlz[self._objectiveVar] *= -1
-      else:
+      elif type(self._objectiveVar) == list:
         for i in range(len(self._objectiveVar)):
           rlz[self._objectiveVar[i]] *= -1
+      else:
+        rlz[self._objectiveVar] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -316,7 +319,7 @@ class RavenSampled(Optimizer):
       @ In, failedRuns, list, runs that failed as part of this sampling
       @ Out, None
     """
-    if len(self._objectiveVar) == 1:
+    if not self._canHandleMultiObjective or len(self._objectiveVar) == 1:
       # get and print the best trajectory obtained
       bestValue = None
       bestTraj = None
@@ -350,7 +353,7 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
       opt = self._optPointHistory[traj][-1][0]
-      val = opt[self._objectiveVar[0]]
+      val = opt[self._objectiveVar]
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
       if bestValue is None or val < bestValue:
         bestValue = val
@@ -719,7 +722,7 @@ class RavenSampled(Optimizer):
       objValue = rlz[self._objectiveVar]
       if self._minMax == 'max':
         objValue *= -1
-      toExport[self._objectiveVar[0]] = objValue
+      toExport[self._objectiveVar] = objValue
     else: # Multi Objective Optimization
       for i in range(len(self._objectiveVar)):
         objValue = rlz[self._objectiveVar[i]]

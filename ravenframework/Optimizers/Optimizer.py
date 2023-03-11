@@ -78,9 +78,9 @@ class Optimizer(AdaptiveSampler):
     specs.description = 'Optimizers'
 
     # objective variable
-    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True,
+    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringListType, strictMode=True,
         printPriority=90, # more important than <variable>
-        descr=r"""Name of the response variable (or ``objective function'') that should be optimized
+        descr=r"""Name of the objective variable (or ``objective function'') that should be optimized
         (minimized or maximized)."""))
 
     # modify Sampler variable nodes
@@ -247,13 +247,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
-
-    if bool(paramInput.findAll('GAparams')):
-      rawObjectiveVar = paramInput.findFirst('objective').value
-      self._objectiveVar = [rawObjectiveVar.split(",")[i] for i in range(0,len(rawObjectiveVar.split(","))) ]
-
-    else:
-      self._objectiveVar = paramInput.findFirst('objective').value
+    self._objectiveVar = paramInput.findFirst('objective').value
 
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node

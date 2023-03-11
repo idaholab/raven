@@ -212,6 +212,7 @@ class GradientDescent(RavenSampled):
     self._followerProximity = 1e-2   # distance at which annihilation can start occurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
+    self._canHandleMultiObjective = False # Currently Gradient Descent cannot handle multiobjective optimization
     # __private
     # additional methods
     # register adaptive sample identification criteria
@@ -338,6 +339,10 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
+    if not self._canHandleMultiObjective and len(self._objectiveVar) == 1:
+      self._objectiveVar = self._objectiveVar[0]
+    elif type(self._objectiveVar) == list:
+      self.raiseAnError(IOError, 'Gradient Descent does not support multiObjective optimization yet! objective variable must be a single variable for now!')
     optVal = rlz[self._objectiveVar]
     info['optVal'] = optVal
     purpose = info['purpose']
