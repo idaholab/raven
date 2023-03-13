@@ -188,6 +188,8 @@ def findLibAndVersion(lib, version=None):
   if lib not in metaExceptions:
     try:
       foundVersion = importlib_metadata.version(lib)
+      #The following line can be used for debugging library problems
+      #print(lib, importlib_metadata.files(lib)[0].locate())
       found = True
       output = 'Library found.'
     except importlib_metadata.PackageNotFoundError:
