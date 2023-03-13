@@ -285,7 +285,14 @@ ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
-INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ -z "$INSTALLATION_MANAGER" ]];
+then
+    INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+else
+    #use installation manager from .ravenrc
+    INSTALL_MANAGER="$INSTALLATION_MANAGER"
+fi
 PROXY_COMM="" # proxy is none
 
 # parse command-line arguments
@@ -348,10 +355,10 @@ fi
 if [[ $ECE_VERBOSE == 0 ]];
 then
   echo ... Run Options:
-  echo ...    Mode: $ECE_MODE
+  echo ...    ECE Mode: $ECE_MODE
   echo ...   Verbosity: $ECE_VERBOSE
   echo ...   Clean: $ECE_CLEAN
-  echo ...    Mode: $INSTALL_MANAGER
+  echo ...    Install Mode: $INSTALL_MANAGER
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     echo ...   Conda Defs: $CONDA_DEFS
