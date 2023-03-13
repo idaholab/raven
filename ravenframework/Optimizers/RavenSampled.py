@@ -316,7 +316,7 @@ class RavenSampled(Optimizer):
       @ In, failedRuns, list, runs that failed as part of this sampling
       @ Out, None
     """
-    if len(self._objectiveVar) == 1:
+    if type(self._objectiveVar) == str:
       # get and print the best trajectory obtained
       bestValue = None
       bestTraj = None
@@ -350,7 +350,7 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
       opt = self._optPointHistory[traj][-1][0]
-      val = opt[self._objectiveVar[0]]
+      val = opt[self._objectiveVar]
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
       if bestValue is None or val < bestValue:
         bestValue = val
