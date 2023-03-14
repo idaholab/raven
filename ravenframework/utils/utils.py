@@ -32,6 +32,7 @@ import shutil
 import inspect
 import subprocess
 import platform
+import enum
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -42,6 +43,9 @@ class Object(object):
     Simple custom inheritance object.
   """
   pass
+
+#Enum of the parallel libraries we support
+ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp'])
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):

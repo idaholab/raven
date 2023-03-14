@@ -28,16 +28,24 @@ import re
 
 from .utils import importerUtils as im
 from .utils import utils
+from .utils.utils import ParallelLibEnum
 from .BaseClasses import BaseType
 from . import Runners
 from . import Models
 # for internal parallel
 # TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
-if _rayAvail:
+_daskAvail = im.isLibAvail("dask")
+if _daskAvail:
+  import dask
+  import dask.distributed
+  parallelLib = ParallelLibEnum.dask
+elif _rayAvail:
   import ray
+  parallelLib = ParallelLibEnum.ray
 else:
   import pp
+  parallelLib = ParallelLibEnum.pp
 # end internal parallel module
 # Internal Modules End-----------------------------------------------------------
 
@@ -231,16 +239,33 @@ class JobHandler(BaseType):
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName)
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
-          ## initialize ray server with nProcs
-          self.rayServer = ray.init(address=address,log_to_driver=False,include_dashboard=db) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          if parallelLib == ParallelLibEnum.ray:
+            ## initialize ray server with nProcs
+            self.rayServer = ray.init(address=address,log_to_driver=False,include_dashboard=db)
+          elif parallelLib == ParallelLibEnum.dask:
+            #XXX handle multinode and prestarted configurations
+            cluster = dask.distributed.LocalCluster()
+            self.rayServer = dask.distributed.Client(cluster)
+          elif parallelLib == ParallelLibEnum.pp:
+            self.rayServer = pp.Server(ncpus=int(nProcsHead))
+          else:
+            self.raiseAWarning("No supported server")
           self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
         self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
-                           pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        if parallelLib == ParallelLibEnum.ray:
+          self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db)
+        elif parallelLib == ParallelLibEnum.pp:
+          self.rayServer = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        elif parallelLib == ParallelLibEnum.dask:
+          #XXX handle multinode and prestarted configurations
+          cluster = dask.distributed.LocalCluster(n_workers=int(self.runInfoDict['totalNumCoresUsed']))
+          self.rayServer = dask.distributed.Client(cluster)
+        else:
+          self.raiseAWarning("parallellib creation not handled")
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer.address_info['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer.address_info['redis_address'])
@@ -507,13 +532,25 @@ class JobHandler(BaseType):
                                                    uniqueHandler=uniqueHandler,
                                                    profile=self.__profileJobs)
     else:
-      arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
-      internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
-                                                   functionToRun.remote if _rayAvail else functionToRun.original_function,
-                                                   identifier=identifier,
-                                                   metadata=metadata,
-                                                   uniqueHandler=uniqueHandler,
-                                                   profile=self.__profileJobs)
+      if parallelLib in [ParallelLibEnum.dask,ParallelLibEnum.pp]:
+        arguments =  tuple([self.rayServer] + list(args))
+      else:
+        arguments = args
+      if parallelLib == ParallelLibEnum.dask:
+        internalJob = Runners.factory.returnInstance('DaskRunner', arguments,
+                                                     functionToRun.original_function,
+                                                     identifier=identifier,
+                                                     metadata=metadata,
+                                                     uniqueHandler=uniqueHandler,
+                                                     profile=self.__profileJobs)
+
+      else:
+        internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
+                                                     functionToRun.remote if _rayAvail else functionToRun.original_function,
+                                                     identifier=identifier,
+                                                     metadata=metadata,
+                                                     uniqueHandler=uniqueHandler,
+                                                     profile=self.__profileJobs)
     # set the client info
     internalJob.clientRunner = clientQueue
     #  set the groupping id if present
