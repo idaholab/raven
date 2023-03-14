@@ -24,6 +24,7 @@ from ...utils import frontUtils
 # External Imports
 import numpy as np
 import xarray as xr
+import sys
 # Internal Imports
 
 # [MANDD] Note: the fitness function are bounded by 2 parameters: a and b
@@ -102,6 +103,7 @@ def rank_crowding(rlz,**kwargs):
                               coords={'rank': np.arange(np.shape(offSpringRank)[0])})
 
   offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank, popSize=len(offSpringRank), objectives=np.array(offspringObjsVals))
+  offSpringCD[offSpringCD==np.inf] = sys.float_info.max
   offSpringCD = xr.DataArray(offSpringCD,
                             dims=['CrowdingDistance'],
                             coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})

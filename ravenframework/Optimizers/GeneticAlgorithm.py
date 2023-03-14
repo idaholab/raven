@@ -1244,8 +1244,8 @@ class GeneticAlgorithm(RavenSampled):
              'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
              'AHD': self.ahd,
-             'rank': 0 if len(self._objectiveVar) == 1 else rlz['rank'],
-             'CD': 0 if len(self._objectiveVar) == 1 else  rlz['CD']}
+             'rank': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else rlz['rank'],
+             'CD': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else  rlz['CD']}
 
     for var, val in self.constants.items():
       toAdd[var] = val

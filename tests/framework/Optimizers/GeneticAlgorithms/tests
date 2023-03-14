@@ -320,4 +320,24 @@
      rel_err = 0.001
     [../]
   [../]
+
+  [./NSGA-II_MinwoRepMultiObjective]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjective.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_ZDT1]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []
