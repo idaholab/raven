@@ -120,6 +120,7 @@ class DaskRunner(InternalRunner):
     with self.__funcLock:
       if not self.hasBeenAdded:
         if self.__func is not None:
+          #if the function threw an exception, result will rethrow it.
           self.runReturn = self.__func.result()
         else:
           self.runReturn = None

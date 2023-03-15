@@ -121,6 +121,10 @@ class JobHandler(BaseType):
     """
     state = copy.copy(self.__dict__)
     state.pop('_JobHandler__queueLock')
+    #XXX we probably need to record how this was init, and store that
+    # such as the scheduler file
+    if parallelLib == ParallelLibEnum.dask and 'rayServer' in state:
+      state.pop('rayServer')
     return state
 
   def __setstate__(self, d):
@@ -474,7 +478,7 @@ class JobHandler(BaseType):
       @ In, data, object, any data to send to workers
       @ Out, ref, ray.ObjectRef or object, the reference or the object itself
     """
-    if self.rayServer is not None:
+    if self.rayServer is not None and parallelLib == ParallelLibEnum.ray:
       ref = ray.put(copy.deepcopy(data))
     else:
       ref = copy.deepcopy(data)
