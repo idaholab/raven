@@ -9,7 +9,6 @@
 
   <Files>
     <Input name="input" type="">input.txt</Input>
-    <Input name="old_samples" type="">samples.csv</Input>
   </Files>
 
   <Models>
@@ -42,7 +41,7 @@
       <Input class="Files" type="">input</Input>
       <Model class="Models" type="Code">generic</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="DataSet">samples</Output>
       <Output class="OutStreams" type="Print">samples</Output>
     </MultiRun>
   </Steps>
@@ -51,7 +50,7 @@
     <DataSet name="samples">
       <Input>power, autoindex</Input>
       <Output>x, y, z, temperature</Output>
-      <Index var="autoindex">x, y, z, temperature</Index>
+      <Index var="autoindex" autogenerate="True">x, y, z, temperature</Index>
     </DataSet>
   </DataObjects>
 
