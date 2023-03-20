@@ -38,7 +38,7 @@
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
-  
+
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
@@ -257,7 +257,7 @@
   </Samplers>
 
   <Steps>
-      <MultiRun name="sampleGA-Simulate" re-seeding="2286">
+      <MultiRun name="sampleGA-Simulate" re-seeding="2286" clearRunDir="False">
       <Input class="Files" type="simulatedata">simulatedata_input</Input>
       <Input class="Files" type="perturb">simulateperturb_input</Input>
       <Input class="Files" type="input">input</Input>
@@ -300,6 +300,7 @@
     <Print name="optOut">
       <type>csv</type>
       <source>optOut</source>
+      <what>input, output</what>
     </Print>
     <Print name="opt_export">
       <type>csv</type>
