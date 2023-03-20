@@ -13,21 +13,11 @@
 # limitations under the License.
 """
 Created on August 01, 2022
-Last modified  on August 25, 2022
-
 @author: khnguy22
 
 comments: Interface for Simulate3 Simulation
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
-import copy
-import shutil
-from ravenframework.utils import utils
-import xml.etree.ElementTree as ET
-
-from GenericCodeInterface import GenericParser
 import SpecificParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from SimulateData import SimulateData

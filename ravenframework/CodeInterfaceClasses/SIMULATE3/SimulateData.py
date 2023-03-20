@@ -13,22 +13,12 @@
 # limitations under the License.
 """
 Created on June 04, 2022
-Last modified on August 25, 2022
 @author: khnguy22 NCSU
 
 comments: Interface for SIMULATE3 loading pattern optimzation
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-import os, gc, sys, copy, h5py, math
-import time
-import numpy
-import pickle
-import random
 import os
-import copy
-import shutil
-#from ravenframework.utils import utils
+import numpy
 
 class SimulateData:
   """

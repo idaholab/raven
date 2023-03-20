@@ -4,8 +4,6 @@ Created on Aug. 10th, 2022
 comment: Specific parser for Simulate3 interface
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 from xml.etree import ElementTree as ET
 
@@ -34,7 +32,6 @@ class DataParser():
       @ In, None
       @ Out, None
     """
-
     fullFile = os.path.join(self.inputFile)
     dorm = ET.parse(fullFile)
     root = dorm.getroot()
@@ -57,11 +54,9 @@ class DataParser():
     for FA in root.iter('FA'):
       self.FAdict.append(FA.attrib)
 
-
-
 class PerturbedPaser():
   """
-  Parse value in the perturbed xml file replaces the nominal values by the perturbed values.
+    Parse value in the perturbed xml file replaces the nominal values by the perturbed values.
   """
 
   def __init__(self, inputFile, workingDir, inputName, perturbDict):
@@ -73,12 +68,10 @@ class PerturbedPaser():
       @ In, perturbDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-
     self.inputFile = inputFile
     self.perturbDict = perturbDict
     self.workingDir = workingDir
     self.inputName = inputName
-
     # get perturbed value and create new xml file
     self.replaceOldFile()
 
@@ -98,7 +91,6 @@ class PerturbedPaser():
         id_ = int(id_)
       except:
         ValueError('There is no id indication in variable from RAVEN, please check!')
-
       perturbedID.append(int(id_))
       perturbedVal.append(int(value))
     fullFile = os.path.join(self.inputFile)
@@ -145,16 +137,15 @@ class PerturbedPaser():
     file_.write("'ITE.SRC' 'SET' 'EOLEXP' , , 0.02, , , , , , 'MINBOR' 10., , , , , 4, 4, , , /\n")
     file_.write("'STA'/\n")
     file_.write("'END'/\n")
-
     file_.close()
 
 # Outside functions
-def findType(FAid,FAdict):
+def findType(faID,faDict):
   """
-  Get type of FA ID
+    Get type of FA ID
   """
-  FAtype = [id['type'] for id in FAdict if id['FAid']==str(FAid)][0]
-  return FAtype
+  faType = [id['type'] for id in faDict if id['FAid']==str(faID)][0]
+  return faType
 
 def getMap(parameter, locationList):
   """
@@ -163,7 +154,6 @@ def getMap(parameter, locationList):
   @IN: Location list from PerturbedPaser class
   @OUT: Loading Pattern
   """
-
   maxType = max([id['type'] for id in parameter.FAdict])
   numberSpaces = len(str(maxType)) + 1
   problemMap = getCoreMap(parameter.mapSize, parameter.symmetry,
