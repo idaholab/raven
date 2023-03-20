@@ -34,7 +34,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../Models/myLocalSum.py" name="myLocalSum" subType="">
+    <ExternalModel ModuleToLoad="../../Models/LocalSum.py" name="myLocalSum" subType="">
       <variables>x1,x2,x3,x4,x5,x6,obj</variables>
     </ExternalModel>
   </Models>
@@ -55,15 +55,15 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>15</limit><!--Complete this-->
+        <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>min</type><!--Complete this-->
+        <type></type><!--Complete this-->
       </samplerInit>
 
       <GAparams>
-        <populationSize>20</populationSize><!--Complete this-->
-        <parentSelection>rouletteWheel</parentSelection><!--Complete this-->
+        <populationSize>20</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
         <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
@@ -76,7 +76,7 @@
           <a>1.0</a>
           <b>1.0</b>
         </fitness>
-        <survivorSelection>fitnessBased</survivorSelection><!--Complete this-->
+        <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
 
       <convergence>

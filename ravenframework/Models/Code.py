@@ -14,16 +14,11 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import os
 import sys
 import copy
 import shutil
-import importlib
 import platform
 import shlex
 import time
@@ -39,13 +34,14 @@ from ..Decorators.Parallelization import Parallel
 from .. import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 from .. import Files
 from ..DataObjects import Data
+from ..CodeInterfaceClasses import factory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
   """
     This is the generic class that import an external code into the framework
   """
-  CodeInterfaces = importlib.import_module("..CodeInterfaces", "ravenframework.Models")
+  interfaceFactory = factory
 
   @classmethod
   def getInputSpecification(cls):
@@ -254,8 +250,8 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
-    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
+    self.code = self.interfaceFactory.returnInstance(self.subType)
+    self.code.readXML(xmlNode, workingDir=self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1000</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="noiseUniformDist">
+      <lowerBound>-1.</lowerBound>
+      <upperBound>1.</upperBound>
+    </Uniform>
+  </Distributions>

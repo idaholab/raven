@@ -4,6 +4,18 @@
   input = 'test_ordered_csv.py'
  [../]
 
+ [./check_windows]
+   type = 'RavenPython'
+   input = 'only_windows.py'
+   skip_if_OS = 'mac,linux'
+ [../]
+
+ [./check_not_windows]
+   type = 'RavenPython'
+   input = 'only_not_windows.py'
+   skip_if_OS = 'windows'
+ [../]
+
  [./simple_exec]
   type = 'GenericExecutable'
   executable = 'python'
@@ -47,5 +59,11 @@
     output = a_xml_file.xml
     alt_root = './matching'
    [../]
+ [../]
+ [./check_needed_executable]
+   #Checks that this is skipped
+   type = 'GenericExecutable'
+   executable = 'no_such_executable'
+   needed_executable = 'no_such_executable'
  [../]
 []

@@ -21,3 +21,5 @@ from ExamplePlugin.src import CorrelationPlot
 ### PostProcessors
 from ExamplePlugin.src import testInterfacedPP
 from ExamplePlugin.src import testInterfacedPP_PointSet
+### Code
+from ExamplePlugin.src import ProjectileCodePlugin

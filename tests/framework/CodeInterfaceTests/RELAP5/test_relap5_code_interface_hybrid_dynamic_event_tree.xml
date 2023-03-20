@@ -6,12 +6,19 @@
       <created>2020-11-30</created>
       <classesTested>Models.Code.RELAP5</classesTested>
       <description>
-         An example of using the RELAP5 code interface with the Hybrid Dynamic Event Tree approach
+         An example of using the RELAP5 code interface with the Hybrid Dynamic Event Tree (HDET)approach
          (aleatory uncertanties and epistemic uncertanties). This test shows how to set up the Dynamic Event Tree for
          RELAP5 (i.e. usage of trips) and aliases.
+         This test also shows how fully correlated variables can be used in the HDET
+         (see variables ```missionTime``` and ```464:6```).
       </description>
       <revisions>
+        <revision author="wangc" date="2023-01-10">Added constant in HybridSampler</revision>
         <revision author="alfoa" date="2020-12-01">Added hierarchical dataset</revision>
+        <revision author="aalfonsi" date="2022-11-09">
+            Addition of fully correlated variables (```missionTime``` and ```464:6```) aimed to test
+            the resolution of issue #1929.
+        </revision>
       </revisions>
     </TestInfo>
     <RunInfo>
@@ -59,9 +66,10 @@
           <samplerInit>
             <limit>2</limit>
           </samplerInit>
-          <variable name="missionTime">
+          <variable name="missionTime,464:6">
             <distribution>missionTimeDist</distribution>
           </variable>
+          <constant name="201:2">1.1e-7</constant>
         </HybridSampler>
         <variable name='endtime'>
           <distribution>endtimedist</distribution>
@@ -87,11 +95,11 @@
     </Models>
     <DataObjects>
       <PointSet name="RELAPout">
-        <Input>endtime,endtime2</Input>
+        <Input>endtime,endtime2,464:6,missionTime</Input>
         <Output>cntrlvar_802</Output>
       </PointSet>
       <PointSet name="RELAPout_hier" hierarchical="true">
-        <Input>endtime,endtime2</Input>
+        <Input>endtime,endtime2,464:6,missionTime</Input>
         <Output>cntrlvar_802</Output>
       </PointSet>
     </DataObjects>
@@ -106,4 +114,3 @@
       </Print>
     </OutStreams>
 </Simulation>
-

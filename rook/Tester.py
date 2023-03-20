@@ -20,10 +20,10 @@ import warnings
 import subprocess
 import sys
 import os
+import shutil
 import time
 import threading
 import platform
-from distutils import spawn
 
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -294,7 +294,7 @@ class _TimeoutThread(threading.Thread):
         #Time over
         #If we are on windows, process.kill() is insufficient, so using
         # taskkill instead.
-        if os.name == "nt" and spawn.find_executable("taskkill"):
+        if os.name == "nt" and shutil.which("taskkill"):
           subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:
           self.__process.kill()
@@ -388,6 +388,9 @@ class Tester:
     params.add_param('min_python_version', 'none',
                      'The Minimum python version required for this test.'+
                      ' Example 3.8 (note, format is major.minor)')
+    params.add_param('needed_executable', '',
+                     'Only run test if needed executable is on path.')
+    params.add_param('skip_if_OS', '', 'Skip test if the operating system defined')
     return params
 
   def __init__(self, _name, params):
@@ -400,6 +403,7 @@ class Tester:
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self._needed_executable = self.specs['needed_executable']
     self.__command_prefix = ""
     self.__python_command = sys.executable
     if os.name == "nt":
@@ -533,6 +537,18 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
+    ## OS
+    if len(self.specs['skip_if_OS']) > 0:
+      skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
+      # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
+      current_os = platform.system().lower()
+      # replace Darwin with more expected "mac"
+      if current_os == 'darwin':
+        current_os = 'mac'
+      if current_os in skip_os:
+        self.set_skip('skipped (OS is "{}")'.format(current_os))
+        return self.results
+
     if self.specs['min_python_version'].strip().lower() != 'none':
       major, minor = self.specs['min_python_version'].strip().split(".")
       #check to see if current version of python too old.
@@ -546,6 +562,10 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
         " is not a subset of "+str(self.__base_current_run_type)+")"
+      return self.results
+    if len(self._needed_executable) > 0 and \
+       shutil.which(self._needed_executable) is None:
+      self.set_skip('skipped (Missing executable: "'+self._needed_executable+'")')
       return self.results
     if not self.check_runnable():
       return self.results

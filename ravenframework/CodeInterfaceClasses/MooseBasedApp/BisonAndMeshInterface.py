@@ -16,12 +16,10 @@ Created July 14, 2015
 
 @author: talbpaul
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import copy
 from ravenframework.CodeInterfaceBaseClass   import CodeInterfaceBase
-from MooseBasedAppInterface   import MooseBasedApp
-from BisonMeshScriptInterface import BisonMeshScript
+from ..MooseBasedApp.MooseBasedAppInterface   import MooseBasedApp
+from .BisonMeshScriptInterface import BisonMeshScript
 
 class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInterface):
   """

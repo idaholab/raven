@@ -25,7 +25,7 @@ from UQTemplate.UQTemplate import UQTemplate
 
 print('Loading template ...')
 temp = UQTemplate()
-temp.loadTemplate('uq_template.xml', os.path.dirname(__file__))
+temp.loadTemplate('uq_template.xml', os.path.dirname(os.path.relpath(__file__)))
 print(' ... template loaded')
 
 # information needed by UQTemplate to make run file

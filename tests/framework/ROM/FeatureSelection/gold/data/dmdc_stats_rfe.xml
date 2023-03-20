@@ -1,0 +1,186 @@
+<DataObjectMetadata name="rom_stats">
+  <DMDrom type="Static">
+    <ROM>
+      <type>DMDC</type>
+      <Features>pulse_SES.y,pulse_BOP.y,pulse_TES.y,SES_Max_Power,BOP_Max_Power,TES_Max_Power,BOP.sensor_T1.y_init,BOP.HPT.state_a.d_init,BOP.HPT.sat_in.Tsat_init,BOP.HPT.dew_out.d_init,BOP.tee.medium.T_degC_init,SES.SinkExhaustGas.medium.d_init,SES.SinkExhaustGas.medium.p_bar_init,SES.fuelCtrl.VCE_init,TES.hot_tank.der(V)_init,TES.cold_tank.V_init,TES.discharge_pump.medium.u_init</Features>
+      <Targets>Time,BOP.HPT.state_a.d,TES.hot_tank.der(V),SES_Electric_Power,SES_Firing_Temperature,BOP_Electric_Power,BOP_Turbine_Pressure,TES_HotTank_Level,TES_HT_Level_Ramprate</Targets>
+      <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
+    </ROM>
+    <DMDcModel>
+      <dmdType>None</dmdType>
+      <rankSVD>-1</rankSVD>
+      <acturators>pulse_SES.y pulse_BOP.y pulse_TES.y</acturators>
+      <stateVariables>BOP.HPT.state_a.d TES.hot_tank.der(V)</stateVariables>
+      <initStateVariables>BOP.HPT.state_a.d_init TES.hot_tank.der(V)_init</initStateVariables>
+      <outputs>SES_Electric_Power SES_Firing_Temperature BOP_Electric_Power BOP_Turbine_Pressure TES_HotTank_Level TES_HT_Level_Ramprate</outputs>
+      <dmdTimeScale />
+      <UNorm>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">1.30000000e+01 7.00000000e+00 0.00000000e+00</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">1.30000000e+01 7.00000000e+00 0.00000000e+00</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">1.30000000e+01 3.70000000e+01 0.00000000e+00</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">1.30000000e+01 3.70000000e+01 0.00000000e+00</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">3.90000000e+01 7.00000000e+00 0.00000000e+00</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">3.90000000e+01 7.00000000e+00 0.00000000e+00</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">3.90000000e+01 3.70000000e+01 0.00000000e+00</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">3.90000000e+01 3.70000000e+01 0.00000000e+00</realization>
+      </UNorm>
+      <XNorm>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">2.64375639e+00 -3.44232685e-04</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">2.64375591e+00 5.51163964e-03</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">1.10286112e+01 -3.44251865e-04</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">1.10285759e+01 5.51164290e-03</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">2.64375639e+00 -3.44225555e-04</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">2.64375591e+00 5.51163452e-03</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">1.10286112e+01 -3.44240892e-04</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">1.10285759e+01 5.51165035e-03</realization>
+      </XNorm>
+      <XLast>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">5.61516142e+00 3.32148164e-03</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">5.61515331e+00 -3.51123124e-01</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">1.36112242e+01 3.36859259e-03</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">1.36105766e+01 -3.51123303e-01</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">5.61516142e+00 3.31215397e-03</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">5.61515331e+00 -3.51122916e-01</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">1.36112242e+01 3.35112703e-03</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">1.36105766e+01 -3.51122737e-01</realization>
+      </XLast>
+      <YNorm>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">1.30000000e+07 9.83336365e+02 7.00000150e+06 6.45209250e+05 7.00913000e+00 -1.01543563e-07</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">1.30000000e+07 9.83336365e+02 7.00000000e+06 6.45209125e+05 2.47776127e+00 1.62585241e-06</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">1.30000000e+07 9.83336365e+02 3.70001320e+07 2.67851350e+06 7.00917435e+00 -1.01549226e-07</realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">1.30000000e+07 9.83336365e+02 3.70000000e+07 2.67850500e+06 2.47776127e+00 1.62585332e-06</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">3.90000000e+07 1.40283533e+03 7.00000150e+06 6.45209250e+05 7.00912142e+00 -1.01541460e-07</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">3.90000000e+07 1.40283533e+03 7.00000000e+06 6.45209125e+05 2.47776127e+00 1.62585081e-06</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">3.90000000e+07 1.40283533e+03 3.70001320e+07 2.67851350e+06 7.00915718e+00 -1.01545986e-07</realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">3.90000000e+07 1.40283533e+03 3.70000000e+07 2.67850500e+06 2.47776103e+00 1.62585559e-06</realization>
+      </YNorm>
+      <Atilde>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>9.14196144e-02 1.97800840e-07 3.47532221e-01 1.27728162e-01</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>1.23482504e-01 -1.73570280e-08 2.02191451e-05 8.93819280e-01</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>7.42987089e-01 6.59317746e-07 5.33718748e-01 -3.65351213e-01</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>7.42992954e-01 3.14907625e-08 -2.73412916e-04 8.93818121e-01</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>9.14196144e-02 1.97508398e-07 3.47550002e-01 1.28998158e-01</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>9.14210314e-02 -4.04126156e-08 1.56310726e-05 9.20892258e-01</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>7.42987089e-01 6.56959985e-07 5.33682657e-01 -3.61404598e-01</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,2</matrixShape>
+          <real>7.42992954e-01 3.13940207e-08 -2.73416193e-04 8.93819346e-01</real>
+        </realization>
+      </Atilde>
+      <Btilde>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-1.22546159e-06 3.03628883e-06 2.69480403e-01 1.68737850e-07 -1.09117568e-03 -1.13820284e-04</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.65820953e-08 -3.79112100e-05 2.60319447e-01 8.09348300e-09 9.24543264e-05 -2.77481667e-03</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-2.51224405e-06 4.75202358e-06 6.48543144e-02 1.97187196e-07 -3.38249333e-03 -1.68617880e-04</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-7.06925273e-08 -3.79115789e-05 6.48530996e-02 -4.58121342e-09 1.06884554e-03 -2.77484195e-03</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-1.22599551e-06 3.03166687e-06 2.69480403e-01 1.68486046e-07 -1.09117381e-03 -1.13624039e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.52090029e-08 -2.82443514e-05 2.69480099e-01 1.32817470e-08 3.53852602e-04 -2.21209447e-03</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-2.51199649e-06 4.73799107e-06 6.48543144e-02 1.96715561e-07 -3.38249669e-03 -1.68077428e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-7.09008644e-08 -3.79111314e-05 6.48530999e-02 -4.56426037e-09 1.06884549e-03 -2.77481485e-03</real>
+        </realization>
+      </Btilde>
+      <Ctilde>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>3.84066846e+06 6.32582757e+01 3.33057201e+06 2.43206034e+05 -6.10910002e-05 -5.72347939e-16 1.01980861e+10 1.67969026e+05 1.84424269e+08 -5.75646863e+03 -1.84142470e-01 2.94985248e-04</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>4.31028936e+06 7.09932334e+01 3.36412975e+06 2.43205638e+05 3.59952925e-04 -1.52735600e-14 -3.16667248e+06 -5.21571289e+01 -1.28641244e+04 6.92468662e+00 3.70774189e-02 2.94985247e-04</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>4.55910222e+06 7.50913409e+01 3.86834560e+06 2.41163667e+05 -7.36552551e-05 9.82459907e-16 9.75533177e+09 1.60676577e+05 1.85937934e+07 -4.37157652e+04 -1.69915486e-01 2.94985255e-04</real>
+        </realization>
+        <realization SES_Max_Power="2.600000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>5.15537028e+06 8.49122587e+01 3.86854093e+06 2.41163033e+05 4.38140776e-04 5.57893634e-14 -1.50339353e+06 -2.47618566e+01 -3.67967904e+04 8.06472219e+01 3.72865280e-02 2.94985256e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>3.84069205e+06 5.82131996e+01 3.33057211e+06 2.43206034e+05 -6.11106582e-05 -6.62389515e-16 1.01978214e+10 1.54567803e+05 1.84425737e+08 -5.75748158e+03 -1.84285068e-01 2.94985249e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>4.31513753e+06 6.54043430e+01 3.33323003e+06 2.43205933e+05 3.59070498e-04 3.16362092e-14 -3.09037890e+06 -4.68406942e+01 -3.21612085e+05 9.87211130e+00 3.70705006e-02 2.94985253e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" sample="6">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>4.55913209e+06 6.91025640e+01 3.86834562e+06 2.41163667e+05 -7.37338084e-05 -7.44530701e-18 9.75500706e+09 1.47856083e+05 1.85940683e+07 -4.37127448e+04 -1.70123440e-01 2.94985251e-04</real>
+        </realization>
+        <realization SES_Max_Power="5.200000e+01" TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" sample="7">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>6,2</matrixShape>
+          <real>5.15536612e+06 7.81396495e+01 3.86854093e+06 2.41163033e+05 4.38186056e-04 -9.24853174e-15 -1.50354608e+06 -2.27891409e+01 -3.67968231e+04 8.06465694e+01 3.72863971e-02 2.94985251e-04</real>
+        </realization>
+      </Ctilde>
+    </DMDcModel>
+  </DMDrom>
+  
+</DataObjectMetadata>
