@@ -25,6 +25,7 @@ from .SimulateData import SimulateData
 class Simulate(CodeInterfaceBase):
   """
     Simulate Interface. Reading output from simulate then export to csv dat file.
+    https://www.studsvik.com/what-we-do/products/simulate3-k/
   """
   def __init__(self):
     """
@@ -39,8 +40,7 @@ class Simulate(CodeInterfaceBase):
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
-      some members based on inputs. This can be overloaded in specialize code interface in order to
-      read specific flags
+      some members based on inputs.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
@@ -59,25 +59,25 @@ class Simulate(CodeInterfaceBase):
       @ Out, inputDict, dict, dictionary containing xml and a dummy input for SIMULATE3
     """
     inputDict = {}
-    SimulateData = []
-    SimulatePerturb = []
-    SimulateInput = []
+    simulateData = []
+    simulatePerturb = []
+    simulateInput = []
     for inputFile in inputFiles:
       if inputFile.getType().strip().lower() == "simulatedata":
-        SimulateData.append(inputFile)
+        simulateData.append(inputFile)
       elif inputFile.getType().strip().lower() == "input":
-        SimulateInput.append(inputFile)
+        simulateInput.append(inputFile)
       else:
-        SimulatePerturb.append(inputFile)
-    if len(SimulatePerturb) > 1 or len(SimulateData) > 1 or len(SimulateInput) >1:
+        simulatePerturb.append(inputFile)
+    if len(simulatePerturb) > 1 or len(simulateData) > 1 or len(simulateInput) >1:
       raise IOError('multiple simulate data/perturbed input files have been found. Only one for each is allowed!')
     # Check if the input is available
-    if len(SimulatePerturb) <1 or len(SimulateData) <1:
+    if len(simulatePerturb) <1 or len(simulateData) <1:
       raise IOError('simulatedata/perturb input file has not been found. Please recheck!')
     # add inputs
-    inputDict['SimulateData'] = SimulateData
-    inputDict['SimulatePerturb'] = SimulatePerturb
-    inputDict['SimulateInput'] = SimulateInput
+    inputDict['SimulateData'] = simulateData
+    inputDict['SimulatePerturb'] = simulatePerturb
+    inputDict['SimulateInput'] = simulateInput
     return inputDict
 
   def generateCommand(self, inputFile, executable, clargs=None, fargs=None, preExec=None):
@@ -97,7 +97,7 @@ class Simulate(CodeInterfaceBase):
     inputDict = self.findInps(inputFile)
     sim3Input = str(inputDict['SimulateInput'][0]).split()[1]
     workingDir = os.path.dirname(sim3Input)
-    sim3Input = sim3Input.replace(workingDir+'/','').strip() # can use getfilename() too
+    sim3Input = sim3Input.replace(workingDir+os.sep,'').strip() # can use getfilename() too
 
     executeCommand = []
     seq = self.sequence[0] # only one sequence value
@@ -115,17 +115,13 @@ class Simulate(CodeInterfaceBase):
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
       @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
         where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of new input files (modified or not)
+      @ Out, currentInputFiles, list, list of new input files (modified or not)
     """
-    # may be no need ?
-    currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
-    originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
-
     perturbInput = str(self.findInps(currentInputFiles)['SimulatePerturb'][0]).split()[1]
     sim3Input = str(self.findInps(currentInputFiles)['SimulateInput'][0]).split()[1]
     sim3DataInput = str(self.findInps(currentInputFiles)['SimulateData'][0]).split()[1]
     workingDir = os.path.dirname(perturbInput)
-    sim3Input = sim3Input.replace(workingDir+'/','').strip()
+    sim3Input = sim3Input.replace(workingDir+os.sep,'').strip()
     perturbedVal = Kwargs['SampledVars']
     sim3Data = SpecificParser.DataParser(sim3DataInput)
     perturb = SpecificParser.PerturbedPaser(perturbInput, workingDir, sim3Input, perturbedVal)
@@ -138,7 +134,7 @@ class Simulate(CodeInterfaceBase):
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
       Check for FATAL error in SIMULATE3 output
-      @ In, output, string, the Output name root
+      @ In, output, string, the output name root
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
@@ -158,9 +154,9 @@ class Simulate(CodeInterfaceBase):
     """
       This method converts the Sim3 outputs into a RAVEN compatible CSV file
       @ In, command, string, the command used to run the just ended job
-      @ In, output, string, the Output name root
+      @ In, output, string, the output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, output csv file containing the variables of interest specified in the input
+      @ Out, None
     """
     filesIn = {}
     for key in self.outputRoot.keys():

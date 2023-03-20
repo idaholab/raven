@@ -18,7 +18,6 @@ class DataParser():
     """
       Constructor.
       @ In, inputFiles, string, xml Simulate3 parameters file
-      @ In, workingDir, string, absolute path to the working directory
       @ Out, None
     """
     self.inputFile = inputFile
@@ -28,7 +27,6 @@ class DataParser():
     """
       Get required parameters from xml file for generating
       Simulate3 input later.
-      Constructor.
       @ In, None
       @ Out, None
     """
@@ -50,9 +48,9 @@ class DataParser():
     self.symmetry = root.find('symmetry').text.strip()
     self.numberAssemblies = int(root.find('number_assemblies').text)
     self.reflectorFlag = root.find('reflector').text.strip()
-    self.FAdict = []
-    for FA in root.iter('FA'):
-      self.FAdict.append(FA.attrib)
+    self.faDict = []
+    for fa in root.iter('FA'):
+      self.faDict.append(fa.attrib)
 
 class PerturbedPaser():
   """
@@ -78,8 +76,7 @@ class PerturbedPaser():
   def replaceOldFile(self):
     """
     Replace orignal xml file with perturbed variables
-    @ In, perturbed variables dictionary
-    @ workingDir, absolute path to the working directory
+    @ In, None
     @ Out, None
     """
     perturbedID = []
@@ -108,7 +105,7 @@ class PerturbedPaser():
   def generateSim3Input(self, parameter):
     """
     Generate new input for SIMULATE3 to run
-    @ In, parameter data in DataParser class
+    @ In, parameter, DataParser Ojbect instance, data in DataParser class
     @ Out, None
     """
     file_ = open(f"{self.workingDir}/{self.inputName}",'w')
@@ -143,24 +140,27 @@ class PerturbedPaser():
 def findType(faID,faDict):
   """
     Get type of FA ID
+    @ In, faID, int/str, the id for FA
+    @ In, faDict, list, list of FA xml input attributes
+    @ Out, faType, list, list of FA types
   """
   faType = [id['type'] for id in faDict if id['FAid']==str(faID)][0]
   return faType
 
 def getMap(parameter, locationList):
   """
-  Genrate Loading Pattern
-  @IN: DataParser class
-  @IN: Location list from PerturbedPaser class
-  @OUT: Loading Pattern
+    Genrate Loading Pattern
+    @ In, parameter, DataParser Object Instance, Instance store the parameter data
+    @ In, locationList, list, Location list from PerturbedPaser class
+    @ Out, loadingPattern, str, Loading Pattern
   """
-  maxType = max([id['type'] for id in parameter.FAdict])
+  maxType = max([id['type'] for id in parameter.faDict])
   numberSpaces = len(str(maxType)) + 1
   problemMap = getCoreMap(parameter.mapSize, parameter.symmetry,
                            parameter.numberAssemblies, parameter.reflectorFlag)
   rowCount = 1
   loadingPattern = ""
-  FAdict = parameter.FAdict
+  faDict = parameter.faDict
   for row in range(25):    #max core 25x25
     if row in problemMap:
       loadingPattern += f"'FUE.TYP'  {rowCount},"
@@ -170,7 +170,7 @@ def getMap(parameter, locationList):
             if isinstance(problemMap[row][col], int):
               geneNumber = problemMap[row][col]
               gene = locationList[geneNumber]
-              value = findType(gene,FAdict)
+              value = findType(gene,faDict)
               str_ = f"{value}"
               loadingPattern += f"{str_.rjust(numberSpaces)}"
             else:
@@ -178,7 +178,7 @@ def getMap(parameter, locationList):
           else:
             geneNumber = problemMap[row][col]
             gene = locationList[geneNumber]
-            value = findType(gene,FAdict)
+            value = findType(gene,faDict)
             str_ = f"{value}"
             loadingPattern += f"{str_.rjust(numberSpaces)}"
       loadingPattern += "/\n"
@@ -190,11 +190,11 @@ def getMap(parameter, locationList):
 def getCoreMap(mapSize, symmetry, numberAssemblies, reflectorFlag):
   """
     Get core map depending on symmetry, number of assemblies and reflector
-    @IN, string, Mapsize (full, quarter, octant)
-    @IN, string, symmetry key
-    @IN, int, # of assemblies
-    @IN, Boolean, reflectorFlag indicate usage of reflector
-    @OUT, dictionatry (matrix), Coremap
+    @ In, mapSize, string, Mapsize (full, quarter, octant)
+    @ In, symmetry, string, symmetry key
+    @ In, numberAssemblies, int, # of assemblies
+    @ In, reflectorFlag, Boolean, reflectorFlag indicate usage of reflector
+    @ Out, dictionatry (matrix), Coremap
   """
   if mapSize.lower() == "full_core" or mapSize.lower() == "full":
       mapKey = "FULL"
@@ -642,14 +642,3 @@ coreMaps['QUARTER']['OCTANT'][241]['WITHOUT_REFLECTOR'] = {8:{8:0,  9:1,  10:3, 
                                                            14:{8:21, 9:22, 10:23, 11:24, 12:25,  13:26,  14:27,  15:None,16:None},
                                                            15:{8:28, 9:29, 10:30, 11:31, 12:32,  13:33,  14:None,15:None,16:None},
                                                            16:{8:34, 9:35, 10:36, 11:37, 12:None,13:None,14:None,15:None,16:None}}
-
-
-
-
-
-
-
-
-
-
-
