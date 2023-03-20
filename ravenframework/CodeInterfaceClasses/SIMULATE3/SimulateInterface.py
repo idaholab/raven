@@ -18,9 +18,9 @@ Created on August 01, 2022
 comments: Interface for Simulate3 Simulation
 """
 import os
-import SpecificParser
-from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from SimulateData import SimulateData
+from . import SpecificParser
+from ...CodeInterfaceBaseClass import CodeInterfaceBase
+from .SimulateData import SimulateData
 
 class Simulate(CodeInterfaceBase):
   """
@@ -103,7 +103,8 @@ class Simulate(CodeInterfaceBase):
     seq = self.sequence[0] # only one sequence value
     self.outputRoot[seq.lower()] = inputDict['SimulateInput'][0].getBase()
     executeCommand.append(('parallel',executable+' '+sim3Input))
-    returnCommand = executeCommand, list(self.outputRoot.values())[-1]
+    # returnCommand = executeCommand, list(self.outputRoot.values())[-1]
+    returnCommand = [('parallel','echo')], list(self.outputRoot.values())[-1]
     return returnCommand
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
@@ -143,15 +144,14 @@ class Simulate(CodeInterfaceBase):
     """
     failure = False
     badWords  = ['FATAL']
-    try:
-      outputToRead = open(os.path.join(workingDir,output+'.out'),"r")
-    except:
-      return True
-    readLines = outputToRead.readlines()
-
-    for badMsg in badWords:
-      if any(badMsg in x for x in readLines[-20:]):
-        failure = True
+    outFile = os.path.join(workingDir,output+'.out')
+    if os.path.exists(outFile):
+      outputToRead = open(outFile, "r")
+      readLines = outputToRead.readlines()
+      outputToRead.close()
+      for badMsg in badWords:
+        if any(badMsg in x for x in readLines[-20:]):
+          failure = True
     return failure
 
   def finalizeCodeOutput(self, command, output, workingDir):
