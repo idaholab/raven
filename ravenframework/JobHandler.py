@@ -112,6 +112,7 @@ class JobHandler(BaseType):
     self.__batching = collections.defaultdict()
     self.rayInstanciatedOutside = None
     self.remoteServers = None
+    self.daskSchedulerFile = None
 
   def __getstate__(self):
     """
@@ -199,6 +200,7 @@ class JobHandler(BaseType):
       @ In, None
       @ Out, None
     """
+    self.raiseADebug("Initializing parallel InternalParallel: {0} Nodes: {1}".format(self.runInfoDict['internalParallel'],len(self.runInfoDict['Nodes'])))
     if self.runInfoDict['internalParallel']:
       # dashboard?
       db = self.runInfoDict['includeDashboard']
@@ -247,14 +249,19 @@ class JobHandler(BaseType):
             ## initialize ray server with nProcs
             self.rayServer = ray.init(address=address,log_to_driver=False,include_dashboard=db)
           elif parallelLib == ParallelLibEnum.dask:
-            #XXX handle multinode and prestarted configurations
-            cluster = dask.distributed.LocalCluster()
-            self.rayServer = dask.distributed.Client(cluster)
+            if self.daskSchedulerFile is not None:
+              #handle multinode and prestarted configurations
+              self.rayServer = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
+            else:
+              #Start locally
+              cluster = dask.distributed.LocalCluster()
+              self.rayServer = dask.distributed.Client(cluster)
           elif parallelLib == ParallelLibEnum.pp:
             self.rayServer = pp.Server(ncpus=int(nProcsHead))
           else:
             self.raiseAWarning("No supported server")
-          self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
+          if parallelLib == ParallelLibEnum.ray:
+            self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
@@ -336,6 +343,10 @@ class JobHandler(BaseType):
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
       # shutdown ray API (object storage, plasma, etc.)
       ray.shutdown()
+    elif parallelLib == ParallelLibEnum.dask and self.rayServer is not None and not self.rayInstanciatedOutside:
+      self.rayServer.close()
+      if self.daskSchedulerFile is not None:
+        self._daskScheduler.terminate()
 
   def __runHeadNode(self, nProcs, port=None):
     """
@@ -348,7 +359,7 @@ class JobHandler(BaseType):
     # get local enviroment
     localEnv = os.environ.copy()
     localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
-    if _rayAvail:
+    if parallelLib == ParallelLibEnum.ray:
       command = ["ray", "start", "--head"]
       if nProcs is not None:
         command.append("--num-cpus="+str(nProcs))
@@ -362,6 +373,40 @@ class JobHandler(BaseType):
         self.raiseAnError(RuntimeError, f"RAY failed to start on the --head node! Return code is {rayStart.returncode}")
       else:
         address = self.__getRayInfoFromStart("ray_head.ip")
+    elif parallelLib == ParallelLibEnum.dask:
+      self.daskSchedulerFile = os.path.join(self.runInfoDict['WorkingDir'],"scheduler.json")
+      if os.path.exists(self.daskSchedulerFile):
+        self.raiseADebug("Removing "+str(self.daskSchedulerFile))
+        os.remove(self.daskSchedulerFile)
+
+      tries = 0
+      succeeded = False
+      while not succeeded:
+        #If there is a way to tell dask scheduler to automatically choose a
+        # port, please change this to that.
+        scheduler = utils.pickleSafeSubprocessPopen(["dask","scheduler",
+                                                     "--scheduler-file",
+                                                     self.daskSchedulerFile,
+                                                     "--port",str(8786+tries)])
+
+        waitCount = 0.0
+        while not (os.path.exists(self.daskSchedulerFile) or scheduler.poll() is not None or waitCount > 20.0):
+          time.sleep(0.1)
+          waitCount += 0.1
+        if os.path.exists(self.daskSchedulerFile) and scheduler.poll() is None:
+          succeeded = True
+          self._daskScheduler = scheduler
+          self.raiseADebug("dask scheduler started with "+str(self.daskSchedulerFile))
+          break
+        if scheduler.poll() is None:
+          self.raiseAWarning("killing dask scheduler")
+          scheduler.terminate()
+        tries += 1
+        if tries > 20:
+          succeeded = False
+          self.raiseAWarning("failed to start dask scheduler")
+          self.daskSchedulerFile = None
+          break
     return address
 
   def __getRayInfoFromStart(self, rayLog):
@@ -450,17 +495,28 @@ class JobHandler(BaseType):
 
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
-        if _rayAvail:
+        if parallelLib == ParallelLibEnum.ray:
           self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
           command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir']," --raven-framework-dir",self.runInfoDict["FrameworkDir"],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
           self.raiseADebug("command is: "+command)
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
-        else:
+        elif parallelLib == ParallelLibEnum.pp:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localEnv["PYTHONPATH"],"-d"])
           utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
+        elif parallelLib == ParallelLibEnum.dask:
+          remoteServerScript = os.path.join(self.runInfoDict['FrameworkDir'],
+                                            "RemoteNodeScripts","start_dask.sh")
+          outputFile = os.path.join(self.runInfoDict['WorkingDir'],"server_debug_"+nodeId)
+          command = ['ssh',nodeId,remoteServerScript,outputFile,
+                     self.daskSchedulerFile,str(ntasks),
+                     self.runInfoDict["FrameworkDir"],
+                     self.runInfoDict['RemoteRunCommand']]
+          self.raiseADebug("command is: "+" ".join(command))
+          command.append(localEnv["PYTHONPATH"])
+          utils.pickleSafeSubprocessPopen(command, env=localEnv)
         ## update list of servers
         servers.append(nodeId)
       if _rayAvail:
