@@ -54,6 +54,8 @@ class SimulateData:
     self.data["exposure"] = self.burnupEOC()
     self.data["assembly_power"] = self.assemblyPeakingFactors()
     # this is a dummy variable for demonstration with MOF
+    # Multi-objective --> single objective
+    self.data["target"] = self.getTarget()
     # check if something has been found
     if all(v is None for v in self.data.values()):
       raise IOError("No readable outputs have been found!")
@@ -500,7 +502,23 @@ class SimulateData:
 
     return outputDict
 
-  
+  def getTarget(self):
+    """
+    This is a function to convert the fitness function to be output variable and make the
+    problem to be single-objective rather than multi-objective optimzation
+    @ In, None
+    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                       {'info_ids':list(of ids of data),
+                        'values': list}
+    """
+    tmp = -1.0*max(0,self.data["boron"]['values'][1] - 1300)\
+          -400*max(0,self.data["PinPowerPeaking"]["values"][0]-2.1) \
+          -400*max(0,self.data['FDeltaH']["values"][0]-1.48)\
+          +self.data["cycle_length"]["values"][0]
+    outputDict = {'info_ids':['target'], 'values': [tmp]}
+
+    return outputDict
+
   def writeCSV(self, fileout):
     """
       Print Data into CSV format
