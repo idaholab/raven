@@ -164,9 +164,3 @@ class Simulate(CodeInterfaceBase):
         filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
         outputParser = SimulateData(filesIn[key])
         outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
-
-
-
-
-
-
