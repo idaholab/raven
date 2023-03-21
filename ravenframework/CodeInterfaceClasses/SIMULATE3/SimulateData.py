@@ -31,12 +31,6 @@ class SimulateData:
       @ In, filen, string or dict, file name to be parsed, read one file at a time?
       @ Out, None
     """
-    self._boron = 1300 # value boron concentration limit
-    self._pinPowerPeaking = 2.1 # pin power peaking limit
-    self._deltaH = 1.48 # limit value for deltaH
-    self._boronMultiply = 1 # multiply for boron concentration
-    self._pinPowerPeakingMultiply = 400 # multiply for pin power peaking
-    self._deltaHMultiply = 400 # multiply for deltaH
     self.data = {} # dictionary to store the data from model output file
     self.lines = open(os.path.abspath(os.path.expanduser(filen)),"r").readlines() # raw data from model output
     # retrieve data
@@ -50,8 +44,6 @@ class SimulateData:
     self.data["exposure"] = self.burnupEOC()
     self.data["assembly_power"] = self.assemblyPeakingFactors()
     # this is a dummy variable for demonstration with MOF
-    # Multi-objective --> single objective
-    self.data["target"] = self.getTarget()
     # check if something has been found
     if all(v is None for v in self.data.values()):
       raise IOError("No readable outputs have been found!")
@@ -491,24 +483,6 @@ class SimulateData:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
       outputDict = {'info_ids':['exposure'], 'values': [burnups[-1]] }
-
-    return outputDict
-
-  def getTarget(self):
-    """
-      This is a function to convert the fitness function to be output variable and make the
-      problem to be single-objective rather than multi-objective optimzation
-      @ In, None
-      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                        {'info_ids':list(of ids of data),
-                          'values': list}
-    """
-    # TODO: this need to be changed, values need to be provided by users
-    tmp = -self._boronMultiply*max(0,self.data["boron"]['values'][1] - self._boron)\
-          -self._pinPowerPeakingMultiply*max(0,self.data["PinPowerPeaking"]["values"][0]-self._pinPowerPeaking) \
-          -self._deltaHMultiply*max(0,self.data['FDeltaH']["values"][0]-self._deltaH)\
-          +self.data["cycle_length"]["values"][0]
-    outputDict = {'info_ids':['target'], 'values': [tmp]}
 
     return outputDict
 
