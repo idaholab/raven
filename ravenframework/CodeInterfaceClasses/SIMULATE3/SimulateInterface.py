@@ -27,10 +27,10 @@ import shutil
 from ravenframework.utils import utils
 import xml.etree.ElementTree as ET
 
-from GenericCodeInterface import GenericParser
-import SpecificParser
+from ..Generic import GenericParser
+from . import SpecificParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from SimulateData import SimulateData
+from .SimulateData import SimulateData
 
 class Simulate(CodeInterfaceBase):
   """
