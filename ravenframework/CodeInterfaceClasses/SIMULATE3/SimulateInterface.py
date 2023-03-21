@@ -103,8 +103,7 @@ class Simulate(CodeInterfaceBase):
     seq = self.sequence[0] # only one sequence value
     self.outputRoot[seq.lower()] = inputDict['SimulateInput'][0].getBase()
     executeCommand.append(('parallel',executable+' '+sim3Input))
-    # returnCommand = executeCommand, list(self.outputRoot.values())[-1]
-    returnCommand = [('parallel','echo')], list(self.outputRoot.values())[-1]
+    returnCommand = executeCommand, list(self.outputRoot.values())[-1]
     return returnCommand
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):

@@ -4,12 +4,13 @@
     <name>test_loaddingpattern_GA-SIM3</name>
     <author>khang</author>
     <created>2022-07-12</created>
-    <classesTested>Models.Code.Simulate3-GA</classesTested>
+    <classesTested>Models.Code.CodeInterfaceBase.Simulate</classesTested>
     <description>
        An example of using the the GA and SIM3 to generate the optimized loadding pattern
     </description>
     <revisions>
       <revision author="khang" date="2023-03-20">Test revised</revision>
+      <revision author="wangc" date="2023-03-21">Keep running dir and remove meta data from outputs</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
