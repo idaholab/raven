@@ -11,17 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import division, print_function, unicode_literals, absolute_import
+
+"""
+Created on Apr 26, 2016
+
+@author: wangc
+"""
 
 import os
 import copy
 from subprocess import Popen
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedApp
-from RattlesnakeInterface   import Rattlesnake
-from RELAP7Interface        import RELAP7
+from ..MooseBasedApp.MooseBasedAppInterface import MooseBasedApp
+from ..Rattlesnake.RattlesnakeInterface import Rattlesnake
+from ..RELAP7.RELAP7Interface import RELAP7
 
-class MAMMOTHInterface(CodeInterfaceBase):
+class MAMMOTH(CodeInterfaceBase):
   """
     This class is used to couple raven with MAMMOTH (A moose based application, can call Rattlesnake, Bison and Relap-7)
   """

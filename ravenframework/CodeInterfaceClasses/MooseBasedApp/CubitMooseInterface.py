@@ -16,11 +16,10 @@ Created July 14, 2015
 
 @author: talbpaul
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import copy
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedApp
-from CubitInterface         import Cubit
+from ..MooseBasedApp.MooseBasedAppInterface import MooseBasedApp
+from .CubitInterface         import Cubit
 
 class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
   """

@@ -6,7 +6,8 @@
     <created>2021-06-22</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test is designed to find the optimal solution of a basic knapsack problem using tournament select
+      This test is designed to find the optimal solution of a basic knapsack problem using tournament select.
+      optimal solution of the knapsack problem is: elements 2 8 and 10 which gives the value set to 11.
     </description>
   </TestInfo>
 
@@ -79,7 +80,7 @@
       </variable>
       <variable name="proj2">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+        <initial>0,0,0,1,0,0,0,0,1,0,1,0,0,1</initial>
       </variable>
       <variable name="proj3">
         <distribution>unif_dist_wRepl</distribution>
@@ -91,7 +92,7 @@
       </variable>
       <variable name="proj5">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+        <initial>1,0,0,0,0,1,0,0,0,0,0,0,0,0</initial>
       </variable>
       <variable name="proj6">
         <distribution>unif_dist_wRepl</distribution>
@@ -103,7 +104,7 @@
       </variable>
       <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+        <initial>0,0,1,0,0,0,0,1,0,0,1,0,1,0</initial>
       </variable>
       <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>

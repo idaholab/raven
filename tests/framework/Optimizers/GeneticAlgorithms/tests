@@ -70,6 +70,17 @@
     [../]
   [../]
 
+  [./MaxwReplacementCustomSampler]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwRep_custom_sampler.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwReplacement_customsampler/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./MaxwReplacementDiffDist]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMaxwRepDifferentDist.xml'
@@ -307,6 +318,16 @@
     [./csv]
      type = OrderedCSV
      output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GAwithEnsembleModel]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/test_ensemble_withGA.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/unconstrained/ensemble_withGA/metaModelOutputTestDump.csv'
      rel_err = 0.001
     [../]
   [../]

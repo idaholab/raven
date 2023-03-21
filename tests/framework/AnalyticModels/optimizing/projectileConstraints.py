@@ -15,12 +15,12 @@
 
 def constrain(Input):
   """
-    This fuction calls the explicit constraint whose name is passed through Input.name
+    This function calls the explicit constraint whose name is passed through Input.name
     the evaluation function g is negative if the explicit constraint is violated and positive otherwise.
     This suits the constraint handling in the Genetic Algorithms,
-    but not the Gradient Descent as the latter expects True if the soltution passes the constraint and False if it violates it.
+    but not the Gradient Descent as the latter expects True if the solution passes the constraint and False if it violates it.
     @ In, Input, object, RAVEN container
-    @ Out, g, float, expilicit constraint evaluation (negative if violated and positive otherwise)
+    @ Out, g, float, explicit constraint evaluation (negative if violated and positive otherwise)
   """
   g = eval(Input.name)(Input)
   return g

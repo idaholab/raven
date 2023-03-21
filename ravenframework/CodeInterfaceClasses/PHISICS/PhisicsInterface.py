@@ -15,19 +15,18 @@
 Created on July 5th, 2017
 @author: rouxpn
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import os
 import re
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from GenericParser import GenericParser
-import DecayParser
-import FissionYieldParser
-import QValuesParser
-import MaterialParser
-import PathParser
-import XSCreator
-import MassParser  # for MRTAU standalone
-import phisicsdata
+from ..Generic.GenericParser import GenericParser
+from . import DecayParser
+from . import FissionYieldParser
+from . import QValuesParser
+from . import MaterialParser
+from . import PathParser
+from . import XSCreator
+from . import MassParser  # for MRTAU standalone
+from . import phisicsdata
 import xml.etree.ElementTree as ET
 
 

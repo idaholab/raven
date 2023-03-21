@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.load_histories_filename_middle</name>
+    <author>aalfonsi</author>
+    <created>2023-02-13</created>
+    <classesTested>DataObjects.HistorySet</classesTested>
+    <description>
+       This test verifies that histories set can be constructed from CSV
+       containg the filename of the subfiles in any column (e.g. in the
+       middle). This tests the fix to issue #1778.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>in,out</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">./td_input_filename_middle.csv</Input>
+  </Files>
+
+  <Models>
+  </Models>
+
+  <Steps>
+    <IOStep name="in">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">data</Output>
+    </IOStep>
+    <IOStep name="out">
+      <Input class="DataObjects" type="HistorySet">data</Input>
+      <Output class="OutStreams" type="Print">td_output_filename_middle</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="td_output_filename_middle">
+      <filename>td_output_filename_middle</filename>
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="data">
+      <Input>c,b</Input>
+      <Output>1</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

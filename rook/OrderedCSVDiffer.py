@@ -14,9 +14,9 @@
 """
 This implements comparing CSV files in order.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import sys
 import csv
+import numpy as np
 
 from Tester import Differ
 
@@ -92,6 +92,8 @@ class OrderedCSVDiffer:
     """
     if not is_number:
       return a_obj == b_obj, 0
+    if np.isnan(a_obj) and np.isnan(b_obj):
+      return True, 0
     if self.__ignore_sign:
       a_obj = abs(a_obj)
       b_obj = abs(b_obj)

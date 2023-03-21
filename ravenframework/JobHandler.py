@@ -105,6 +105,25 @@ class JobHandler(BaseType):
     self.rayInstanciatedOutside = None
     self.remoteServers = None
 
+  def __getstate__(self):
+    """
+      This function return the state of the JobHandler
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    state.pop('_JobHandler__queueLock')
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the JobHandler with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the JobHandler to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
+    self.__queueLock = threading.RLock()
+
   def applyRunInfo(self, runInfo):
     """
       Allows access to the RunInfo data
@@ -112,7 +131,6 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.runInfoDict = runInfo
-
 
   def initialize(self):
     """
@@ -178,6 +196,11 @@ class JobHandler(BaseType):
       if 'UPDATE_PYTHONPATH' in self.runInfoDict:
         sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
 
+      if _rayAvail:
+        # update the python path and working dir
+        olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+        os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
+
       # is ray instanciated outside?
       self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
       if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside:
@@ -206,11 +229,6 @@ class JobHandler(BaseType):
             self.raiseADebug("Head host IP      :", address)
           ## Get servers and run ray remote listener
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName)
-          if self.rayInstanciatedOutside:
-            # update the python path and working dir
-            # update head node paths
-            olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
-            os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
@@ -220,6 +238,7 @@ class JobHandler(BaseType):
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
           self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
+        self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
@@ -228,6 +247,7 @@ class JobHandler(BaseType):
         self.raiseADebug("Object store address: ", self.rayServer.address_info['object_store_address'])
         self.raiseADebug("Raylet socket name  : ", self.rayServer.address_info['raylet_socket_name'])
         self.raiseADebug("Session directory   : ", self.rayServer.address_info['session_dir'])
+        self.raiseADebug("GCS Address         : ", self.rayServer.address_info['gcs_address'])
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
@@ -330,7 +350,6 @@ class JobHandler(BaseType):
     self.raiseAWarning("ray start address not found in "+str(rayLog))
     return None
 
-
   def __updateListeningSockets(self, localHostName):
     """
       Update the path in the remote nodes
@@ -422,6 +441,19 @@ class JobHandler(BaseType):
           self.raiseADebug("server "+str(nodeId)+" result: "+str(self.remoteServers[nodeId]))
 
     return servers
+
+  def sendDataToWorkers(self, data):
+    """
+      Method to send data to workers (if ray activated) and return a reference
+      If ray is not used, the data is simply returned, otherwise an object reference id is returned
+      @ In, data, object, any data to send to workers
+      @ Out, ref, ray.ObjectRef or object, the reference or the object itself
+    """
+    if self.rayServer is not None:
+      ref = ray.put(copy.deepcopy(data))
+    else:
+      ref = copy.deepcopy(data)
+    return ref
 
   def startLoop(self):
     """
@@ -561,10 +593,13 @@ class JobHandler(BaseType):
     with self.__queueLock:
       self.__finished.append(run)
 
-  def isFinished(self):
+  def isFinished(self, uniqueHandler=None):
     """
-      Method to check if all the runs in the queue are finished
-      @ In, None
+      Method to check if all the runs in the queue are finished, or if a specific job(s) is done (jobIdentifier or uniqueHandler)
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be checked. By default uniqueHandler = None => all the jobs for
+        which no uniqueIdentifier has been set up are going to be checked
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
 
@@ -583,8 +618,8 @@ class JobHandler(BaseType):
       # that is not done.
       for run in self.__running+self.__clientRunning:
         if run:
-          return False
-
+          if uniqueHandler is None or uniqueHandler == run.uniqueHandler:
+            return False
     # Are there runs that need to be claimed? If so, then I cannot say I am done.
     numFinished = len(self.getFinishedNoPop())
     if numFinished != 0:

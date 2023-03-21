@@ -1088,13 +1088,14 @@ Simulated Annealing Example:
       \begin{itemize}                                                                        \item
       onePointCrossover.
       \item twoPointsCrossover.
-      \item uniformCrossover
+      \item uniformCrossover.
       \end{itemize}                                                                    \item
       mutators:                                                                      \begin{itemize}
       \item swapMutator.
       \item scrambleMutator.
       \item inversionMutator.
       \item bitFlipMutator.
+      \item randomMutator.
       \end{itemize}                                                                    \end{itemize}
       \item survivorSelectors:
       \begin{itemize}                                                                        \item
@@ -1173,8 +1174,8 @@ Simulated Annealing Example:
         \item \xmlNode{fitness}: \xmlDesc{string}, 
           a subnode containing the implemented fitness functions.                   This includes:
           a.    invLinear: $fitness = -a \times obj - b \times \sum\_{j=1}^{nConstraint}
-          max(0,-penalty\_j) $.                                  b.    logistic: $fitness =
-          \frac{1}{1+e^{a\times(obj-b)}}$.                                  c.    feasibleFirst:
+          max(0,-penalty\_j) $.                                   b.    logistic: $fitness =
+          \frac{1}{1+e^{a\times(obj-b)}}$.                                   c.    feasibleFirst:
           $fitness = \left\{\begin{matrix} -obj & g\_j(x)\geq 0 \; \forall j \\ -obj\_{worst}-
           \Sigma\_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right.$
           The \xmlNode{fitness} node recognizes the following parameters:

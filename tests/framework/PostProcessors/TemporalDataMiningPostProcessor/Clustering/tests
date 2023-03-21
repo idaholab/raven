@@ -29,7 +29,6 @@
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSpectralClustering.xml'
     csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/centroid_1.csv SpectralClustering/dummy_0.csv SpectralClustering/dummy_9.csv'
-    minimum_library_versions = 'sklearn 0.18'
   [../]
   [./GaussianMixture]
     type   = 'RavenFramework'

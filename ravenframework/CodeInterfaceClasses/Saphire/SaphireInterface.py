@@ -18,13 +18,11 @@ Created on July 12, 2018
 
 comments: Interface for SAPHIRE Simulation
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
 
-from GenericCodeInterface import GenericCode
-from SaphireData import SaphireData
+from ..Generic.GenericCodeInterface import GenericCode
+from .SaphireData import SaphireData
 
 class Saphire(GenericCode):
   """
@@ -134,7 +132,8 @@ class Saphire(GenericCode):
     index=None
     #inputs
     for flag,elems in clargs['input'].items():
-      if flag == 'noarg': continue
+      if flag == 'noarg':
+        continue
       todo += ' '+flag
       for elem in elems:
         ext, delimiter = elem[0], elem[1]

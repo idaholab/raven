@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Created Oct 6, 2015
+
+@author: sonat.sen
+"""
 import os
 import csv
 class mooseData:

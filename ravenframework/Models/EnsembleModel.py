@@ -110,7 +110,7 @@ class EnsembleModel(Dummy):
         # mirror the structure of medolsDictionary and modelsInputDictionary
         self.modelsInputDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
-        # number of allower entries
+        # number of allowed entries
         allowedEntriesLen = len(self.modelsInputDictionary[modelName].keys())
         for childChild in child:
           if childChild.tag.strip() == 'metadataToTransfer':
@@ -471,9 +471,15 @@ class EnsembleModel(Dummy):
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
     if joinedIndexMap:
       joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
+
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
-        output.addRealization(joinedResponse)
+        # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+        if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
+          for rlz in evaluation['realizations']:
+            output.addRealization(rlz)
+        else:
+          output.addRealization(joinedResponse)
       else:
         output.addRealization(outcomes[targetEvaluationNames[output.name]]['response'])
     else:
@@ -511,18 +517,18 @@ class EnsembleModel(Dummy):
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler as a client job. Note, some parameters are needed
-        by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new
-          one
-        @ In, samplerType, string, is the type of sampler that is calling to
-          generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information
-          coming from the sampler, a mandatory key is the sampledVars' that
-          contains a dictionary {'name variable':value}
-        @ Out, None
+      This will submit an individual sample to be evaluated by this model to a
+      specified jobHandler as a client job. Note, some parameters are needed
+      by createNewInput and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new
+        one
+      @ In, samplerType, string, is the type of sampler that is calling to
+        generate a new input
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ In, **kwargs, dict,  is a dictionary that contains the information
+        coming from the sampler, a mandatory key is the sampledVars' that
+        contains a dictionary {'name variable':value}
+      @ Out, None
     """
     prefix = kwargs['prefix']
 
@@ -534,10 +540,30 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    if self.parallelStrategy == 1:
-      jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-    else:
-      jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
+
+    for index in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][index]
+      else:
+        kw = kwargs
+
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      forceThreads = kw.get("forceThreads",False)
+
+      metadata = kw
+
+      if self.parallelStrategy == 1:
+        jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                  uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
+                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      else:
+        jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -778,5 +804,3 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
-
-

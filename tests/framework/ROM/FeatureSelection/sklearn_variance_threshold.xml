@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/FeatureSelection.StaticSklearnVarianceThreshold</name>
+    <author>aalfonsi</author>
+    <created>2022-11-15</created>
+    <classesTested>FeatureSelection.VarianceThreshold,SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example of using VarianceThreshold feature selection algorithm
+       exercising supervised sklearn methods,
+       specifically the svm|SVR model is tested here.
+    </description>
+    <revisions>
+      <revision author="aalfonsi" date="2022-11-16">Added feature selection test (variance threshold)
+                                                    for SKlearn model</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      stats_rom,
+      export_rom_stats
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <inputs>X,Y,A,B,C,D</inputs>
+      <outputs>Z</outputs>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SVR">
+      <Features>X,Y,A,B,C,D</Features>
+      <Target>Z</Target>
+      <C>10.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+      <featureSelection>
+        <VarianceThreshold name="mySelectionAlgo">
+          <threshold>0.01</threshold>
+          <parametersToInclude>X,Y,A,B,C,D</parametersToInclude>
+          <whichSpace>feature</whichSpace>
+        </VarianceThreshold>
+      </featureSelection>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedXMLblocks/sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedXMLblocks/sharedSamplers.xml"/>
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSamplerConstants</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">modelUnderTest</Output>
+    </RomTrainer>
+    <IOStep name="stats_rom">
+      <Input class="Models" type="ROM">modelUnderTest</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <IOStep name="export_rom_stats" pauseAtEnd="True">
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">rom_stats_sklearn_var_red</Output>
+    </IOStep>
+  </Steps>
+  
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+    </Print>
+    <Print name="rom_stats_sklearn_var_red">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedXMLblocks/sharedDataObjects.xml"/>
+</Simulation>
