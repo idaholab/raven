@@ -3,7 +3,7 @@
     <general>
       <datasetName>opt_export</datasetName>
       <inputs>trajID</inputs>
-      <outputs>loc1,loc2,loc3,loc4,loc5,loc6,loc7,loc8,loc9,loc10,loc11,loc12,loc13,loc14,loc15,loc16,loc17,loc18,loc19,loc20,loc22,loc23,loc24,loc25,loc28,loc29,target,iteration,age,rejectReason,batchId,fitness,accepted</outputs>
+      <outputs>loc1,loc2,loc3,loc4,loc5,loc6,loc7,loc8,loc9,loc10,loc11,loc12,loc13,loc14,loc15,loc16,loc17,loc18,loc19,loc20,loc22,loc23,loc24,loc25,loc28,loc29,pin_peaking,max_boron,MaxFDH,MaxEFPD,iteration,age,rejectReason,batchId,fitness,accepted</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
