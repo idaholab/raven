@@ -1,0 +1,12 @@
+[Tests]
+
+ [./test_GA-SIM3-loaddingpattern]
+   type = 'RavenFramework'
+   input = test_GA-SIM3-loaddingpattern.xml
+   output = 'Simulate_RAVEN-GA/sampleGA-Simulate/b1_r1/input.inp Simulate_RAVEN-GA/sampleGA-Simulate/b1_r2/input.inp Simulate_RAVEN-GA/opt_export_0.csv'
+   UnorderedCsv = 'Simulate_RAVEN-GA/optOut.csv'
+   test_interface_only = True
+   rel_err = 0.01
+ [../]
+
+[]
