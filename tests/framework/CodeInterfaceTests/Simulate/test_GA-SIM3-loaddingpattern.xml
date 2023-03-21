@@ -56,7 +56,7 @@
        <limit>1</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-		<type>max</type>
+        <type>max</type>
       </samplerInit>
 
       <GAparams>
@@ -78,9 +78,9 @@
         <AHDp>0.0</AHDp>
       </convergence>
 
-	  <variable name="loc1">
+      <variable name="loc1">
         <distribution>FA_dist</distribution>
-	  </variable>
+      </variable>
       <variable name="loc2">
         <distribution>FA_dist</distribution>
       </variable>
@@ -156,20 +156,20 @@
       <variable name="loc29">
         <distribution>FA_dist</distribution>
       </variable>
-	  <constant name="loc21">5.0</constant>
-	<constant name="loc26">5.0</constant>
-	<constant name="loc27">5.0</constant>
-	<constant name="loc30">5.0</constant>
-	<constant name="loc31">5.0</constant>
-	<constant name="loc32">5.0</constant>
-	<constant name="loc33">5.0</constant>
-	<constant name="loc34">5.0</constant>
-	<constant name="loc35">5.0</constant>
+      <constant name="loc21">5.0</constant>
+    <constant name="loc26">5.0</constant>
+    <constant name="loc27">5.0</constant>
+    <constant name="loc30">5.0</constant>
+    <constant name="loc31">5.0</constant>
+    <constant name="loc32">5.0</constant>
+    <constant name="loc33">5.0</constant>
+    <constant name="loc34">5.0</constant>
+    <constant name="loc35">5.0</constant>
 
       <objective>MaxEFPD</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-	<ImplicitConstraint class='Functions' type='External'>impConstr1</ImplicitConstraint>
+    <ImplicitConstraint class='Functions' type='External'>impConstr1</ImplicitConstraint>
     <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
     <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
     </GeneticAlgorithm>
@@ -180,9 +180,9 @@
         <limit>2</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
-	  <variable name="loc1">
+      <variable name="loc1">
         <distribution>FA_dist</distribution>
-	  </variable>
+      </variable>
     <variable name="loc2">
       <distribution>FA_dist</distribution>
     </variable>
@@ -257,16 +257,16 @@
     </variable>
     <variable name="loc29">
       <distribution>FA_dist</distribution>
-	</variable>
-	<constant name="loc21">5.0</constant>
-	<constant name="loc26">5.0</constant>
-	<constant name="loc27">5.0</constant>
-	<constant name="loc30">5.0</constant>
-	<constant name="loc31">5.0</constant>
-	<constant name="loc32">5.0</constant>
-	<constant name="loc33">5.0</constant>
-	<constant name="loc34">5.0</constant>
-	<constant name="loc35">5.0</constant>
+    </variable>
+    <constant name="loc21">5.0</constant>
+    <constant name="loc26">5.0</constant>
+    <constant name="loc27">5.0</constant>
+    <constant name="loc30">5.0</constant>
+    <constant name="loc31">5.0</constant>
+    <constant name="loc32">5.0</constant>
+    <constant name="loc33">5.0</constant>
+    <constant name="loc34">5.0</constant>
+    <constant name="loc35">5.0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -281,7 +281,7 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
-	<IOStep name="print">
+    <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -293,23 +293,23 @@
   <DataObjects>
     <PointSet name="optOut">
       <Input>
-	  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	  loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	  loc15, loc16, loc17, loc18, loc19, loc20,
-	  loc22, loc23, loc24, loc25, loc28,
-	  loc29
-	  </Input>
+      loc1, loc2, loc3, loc4, loc5, loc6, loc7,
+      loc8, loc9, loc10, loc11, loc12, loc13, loc14,
+      loc15, loc16, loc17, loc18, loc19, loc20,
+      loc22, loc23, loc24, loc25, loc28,
+      loc29
+      </Input>
       <Output> MaxEFPD, pin_peaking, max_boron, MaxFDH, batchId</Output>
     </PointSet>
     <PointSet name="opt_export">
     <Input>trajID</Input>
     <Output>
-		  loc1, loc2, loc3, loc4, loc5, loc6, loc7,
-	    loc8, loc9, loc10, loc11, loc12, loc13, loc14,
-	    loc15, loc16, loc17, loc18, loc19, loc20,
-	    loc22, loc23, loc24, loc25, loc28,
-	    loc29,pin_peaking, max_boron, MaxFDH, MaxEFPD,
-		iteration,age, rejectReason,batchId,fitness,accepted
+          loc1, loc2, loc3, loc4, loc5, loc6, loc7,
+        loc8, loc9, loc10, loc11, loc12, loc13, loc14,
+        loc15, loc16, loc17, loc18, loc19, loc20,
+        loc22, loc23, loc24, loc25, loc28,
+        loc29,pin_peaking, max_boron, MaxFDH, MaxEFPD,
+        iteration,age, rejectReason,batchId,fitness,accepted
     </Output>
     </PointSet>
   </DataObjects>

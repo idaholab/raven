@@ -14,13 +14,13 @@ are reported in the following subsections.
 The interface was built based on Python 3. It included three main components: 
 \begin{itemize}
 
-	\item \texttt{SimulateInterface.py}: Connects and interacts with RAVEN main module
-	\item \texttt{SimulateData.py}: Collects and extracts data from output file generated after each SIMULATE-3 simulation. The list of data can be extracted are:
-	\begin{itemize}
+    \item \texttt{SimulateInterface.py}: Connects and interacts with RAVEN main module
+    \item \texttt{SimulateData.py}: Collects and extracts data from output file generated after each SIMULATE-3 simulation. The list of data can be extracted are:
+    \begin{itemize}
   \item Time dependent multiplication factor $k_{eff}$;
-	\item Time dependent $F_Q$;
-	\item Time dependent $F_\Delta H$;
-	\item Time dependent critical boron concentration;
+    \item Time dependent $F_Q$;
+    \item Time dependent $F_\Delta H$;
+    \item Time dependent critical boron concentration;
   \end{itemize}
   \item \texttt{SpecificParser.py}: Generates SIMULATE-3 input from sample loading pattern provided by RAVEN-GA module. 
 \end{itemize}
@@ -46,9 +46,9 @@ To successfully execute the code, users need to ensure that the code SIMULATE-3 
 In order to execute the SIMULATE-3-RAVEN interface, user needs to provide three input files. 
 Although the requested input file name can be arbitrary, they need to serve similar functions as shown below:
 \begin{itemize}
-	\item \xmlNode{sim3-perturb.xml}: Contains initial assigned FA type for 1/8 loading pattern following an index scheme shown below since this module was specifically designed to solve the core loading pattern in 17$\times$17 PWR core. 
-	\item \xmlNode{input.inp}: Serves as a placeholder for perturbed SIMULATE-3 input deck.
-	\item \xmlNode{sim3-param.xml}: Contains specification on SIMULATE-3 simulation and modeling for core including FA definition; cross section information.
+    \item \xmlNode{sim3-perturb.xml}: Contains initial assigned FA type for 1/8 loading pattern following an index scheme shown below since this module was specifically designed to solve the core loading pattern in 17$\times$17 PWR core. 
+    \item \xmlNode{input.inp}: Serves as a placeholder for perturbed SIMULATE-3 input deck.
+    \item \xmlNode{sim3-param.xml}: Contains specification on SIMULATE-3 simulation and modeling for core including FA definition; cross section information.
 \end{itemize}
 The requested input will be identified in RAVEN input, then they will be loaded into RAVEN memory.
 With the GA optimizer, a set of sampling for possible FA location mapping 
@@ -116,12 +116,12 @@ Example for \xmlNode{SIMULATE-3-input-gen.xml}:
    <working-dir> SampleSpecificSim3 </working-dir>
    <reflector> TRUE </reflector>
    <FA-list>
-	<FA name='FA1'  FAid ='0'  type ='2'/>
-	<FA name='FA2'  FAid ='1'  type ='3'/>
-	<FA name='FA3'  FAid ='2'  type ='5'/>
-	<FA name='FA4'  FAid ='3'  type ='4'/>
-	<FA name='FA5'  FAid ='4'  type ='6'/>
-	<FA name='REF'  FAid ='5'  type ='1'/>
+    <FA name='FA1'  FAid ='0'  type ='2'/>
+    <FA name='FA2'  FAid ='1'  type ='3'/>
+    <FA name='FA3'  FAid ='2'  type ='5'/>
+    <FA name='FA4'  FAid ='3'  type ='4'/>
+    <FA name='FA5'  FAid ='4'  type ='6'/>
+    <FA name='REF'  FAid ='5'  type ='1'/>
    </FA-list>
   </Sim3-input-gen>
   \end{lstlisting}
