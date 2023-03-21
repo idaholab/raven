@@ -4,12 +4,13 @@
     <name>test_loaddingpattern_GA-SIM3</name>
     <author>khang</author>
     <created>2022-07-12</created>
-    <classesTested>Models.Code.Simulate3-GA</classesTested>
+    <classesTested>Models.Code.CodeInterfaceBase.Simulate</classesTested>
     <description>
        An example of using the the GA and SIM3 to generate the optimized loadding pattern
     </description>
     <revisions>
       <revision author="khang" date="2023-03-20">Test revised</revision>
+      <revision author="wangc" date="2023-03-21">Keep running dir and remove meta data from outputs</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -49,7 +50,7 @@
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
-  
+
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
@@ -271,7 +272,7 @@
   </Samplers>
 
   <Steps>
-      <MultiRun name="sampleGA-Simulate" re-seeding="2286">
+      <MultiRun name="sampleGA-Simulate" re-seeding="2286" clearRunDir="False">
       <Input class="Files" type="simulatedata">simulatedata_input</Input>
       <Input class="Files" type="perturb">simulateperturb_input</Input>
       <Input class="Files" type="input">input</Input>
@@ -317,6 +318,7 @@
     <Print name="optOut">
       <type>csv</type>
       <source>optOut</source>
+      <what>input, output</what>
     </Print>
     <Print name="opt_export">
       <type>csv</type>

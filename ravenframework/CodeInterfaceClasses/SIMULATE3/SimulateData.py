@@ -13,22 +13,12 @@
 # limitations under the License.
 """
 Created on June 04, 2022
-Last modified on August 25, 2022
 @author: khnguy22 NCSU
 
 comments: Interface for SIMULATE3 loading pattern optimzation
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-import os, gc, sys, copy, h5py, math
-import time
-import numpy
-import pickle
-import random
 import os
-import copy
-import shutil
-#from ravenframework.utils import utils
+import numpy
 
 class SimulateData:
   """
@@ -37,12 +27,12 @@ class SimulateData:
   """
   def __init__(self,filen):
     """
-    Constructor
-    @ In, filen, string or dict, file name to be parsed, read one file at a time ?
-    @ Out, None
+      Constructor
+      @ In, filen, string or dict, file name to be parsed, read one file at a time?
+      @ Out, None
     """
-    self.data = {}
-    self.lines = open(os.path.abspath(os.path.expanduser(filen)),"r").readlines()
+    self.data = {} # dictionary to store the data from model output file
+    self.lines = open(os.path.abspath(os.path.expanduser(filen)),"r").readlines() # raw data from model output
     # retrieve data
     self.data['axial_mesh'] = self.axialMeshExtractor()
     self.data['keff'] = self.coreKeffEOC()
@@ -61,11 +51,11 @@ class SimulateData:
   #function to retrivedata
   def getPin(self):
     """
-    Retrive total number of pins
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                           {'info_ids':list(of ids of data),
-                            'values': list}
+      Retrive total number of pins
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                            {'info_ids':list(of ids of data),
+                              'values': list}
     """
     outputDict = None
     for line in self.lines:
@@ -78,11 +68,11 @@ class SimulateData:
 
   def axialMeshExtractor(self):
     """
-    Extracts the axial mesh used in the SIMULATE output file.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                           {'info_ids':list(of ids of data),
-                            'values': list}
+      Extracts the axial mesh used in the SIMULATE output file.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                            {'info_ids':list(of ids of data),
+                              'values': list}
     """
     outputDict = None
     reverseAxialPositions = [] #SIMULATE reversed lists axial meshes from bottom to top
@@ -115,11 +105,11 @@ class SimulateData:
 
   def getCoreWidth(self):
     """
-    Retrive core width
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                           {'info_ids':list(of ids of data),
-                            'values': list}
+      Retrive core width
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                            {'info_ids':list(of ids of data),
+                              'values': list}
     """
     outputDict = None
     for line in self.lines:
@@ -128,17 +118,16 @@ class SimulateData:
         temp = temp[1].split('/')[0]
         break
     outputDict = {'info_ids':['core_width'], 'values': [int(temp)] }
-
     return outputDict
 
 
   def coreKeffEOC(self):
     """
-    Extracts the core K-effective value from the provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                           {'info_ids':list(of ids of data),
-                            'values': list}
+      Extracts the core K-effective value from the provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                            {'info_ids':list(of ids of data),
+                              'values': list}
     """
     keffList = []
     outputDict = None
@@ -146,23 +135,21 @@ class SimulateData:
       if "K-effective . . . . . . . . . . . . ." in line:
         elems = line.strip().split()
         keffList.append(float(elems[-1]))
-
     if not keffList:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
       outputDict = {'info_ids':['eoc_keff'], 'values': [keffList[-1]] }
-
     return outputDict
 
 
   def assemblyPeakingFactors(self):
     """
-    Extracts the assembly radial power peaking factors as a dictionary
-    with the depletion step in GWD/MTU as the dictionary keys.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                           {'info_ids':list(of ids of data),
-                            'values': list}
+      Extracts the assembly radial power peaking factors as a dictionary
+      with the depletion step in GWD/MTU as the dictionary keys.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                            {'info_ids':list(of ids of data),
+                              'values': list}
     """
     radialPowerDictionary = {}
     searching_ = False
@@ -204,13 +191,13 @@ class SimulateData:
 
   def EOCEFPD(self):
     """
-    Returns maximum of EFPD values for cycle exposure in the simulate
-    file.
+      Returns maximum of EFPD values for cycle exposure in the simulate
+      file.
 
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     list_ = []
     outputDict = None
@@ -230,14 +217,13 @@ class SimulateData:
 
   def maxFDH(self):
     """
-    Returns maximum of F-delta-H values for each cycle exposure in the simulate
-    file.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns maximum of F-delta-H values for each cycle exposure in the simulate
+      file.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
-
     list_ = []
     outputDict = None
     for line in self.lines:
@@ -255,12 +241,12 @@ class SimulateData:
 
   def pinPeaking(self):
     """
-    Returns maximum value of pin peaking values, Fq, for each cycle exposure in the simulate
-    file.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns maximum value of pin peaking values, Fq, for each cycle exposure in the simulate
+      file.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     outputDict = None
     list_ = []
@@ -279,11 +265,11 @@ class SimulateData:
 
   def boronEOC(self):
     """
-    Returns EOC and max boron values in PPM at each depletion step.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns EOC and max boron values in PPM at each depletion step.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     boronList = []
     outputDict = None
@@ -303,12 +289,12 @@ class SimulateData:
 
   def kinfEOC(self):
     """
-    Returns a list of kinf values from Simulate3.
-    Only work for PWR
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns a list of kinf values from Simulate3.
+      Only work for PWR
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     kinfList = []
     searchingForKinf = False
@@ -321,7 +307,7 @@ class SimulateData:
         if searchingForKinf:
           if elems[0] == '1':
             kinfList.append(float(elems[1]))
-            searching_for_kinf = False
+            searchingForKinf = False
         if "PRI.STA 2KIN  - Assembly 2D Ave KINF - K-infinity" in line:
           searchingForKinf = True
 
@@ -334,13 +320,13 @@ class SimulateData:
 
   def relativePower(self):
     """
-    Extracts the Relative Core Power from the provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Extracts the Relative Core Power from the provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
-    relative_powers = []
+    relativePowers = []
     outputDict = None
     for line in self.lines:
       if "Relative Power. . . . . . .PERCTP" in line:
@@ -359,11 +345,11 @@ class SimulateData:
 
   def relativeFlow(self):
     """
-    Extracts the Relative Core Flow rate from the provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Extracts the Relative Core Flow rate from the provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     relativeFlows = []
     outputDict = None
@@ -384,11 +370,11 @@ class SimulateData:
 
   def thermalPower(self):
     """
-    Extracts the operating thermal power in MW from the provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Extracts the operating thermal power in MW from the provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     powers = []
     outputDict = None
@@ -407,11 +393,11 @@ class SimulateData:
 
   def coreFlow(self):
     """
-    Returns the core coolant flow in Mlb/hr from the provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns the core coolant flow in Mlb/hr from the provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     flows = []
     outputDict = None
@@ -430,12 +416,12 @@ class SimulateData:
 
   def inletTemperatures(self):
     """
-    Returns the core inlet temperatures in degrees Fahrenheit from the
-    provided simulate file lines.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns the core inlet temperatures in degrees Fahrenheit from the
+      provided simulate file lines.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     temperatures = []
     outputDict = None
@@ -456,11 +442,11 @@ class SimulateData:
 
   def pressure(self):
     """
-    Returns the core exit pressure in PSIA.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Returns the core exit pressure in PSIA.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     pressure = []
     outputDict = None
@@ -481,11 +467,11 @@ class SimulateData:
 
   def burnupEOC(self):
     """
-    Extracts the cycle burnups at a each state point within the depletion.
-    @ In, None
-    @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                       {'info_ids':list(of ids of data),
-                        'values': list}
+      Extracts the cycle burnups at a each state point within the depletion.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
     """
     burnups = []
     for line in self.lines:
@@ -500,7 +486,6 @@ class SimulateData:
 
     return outputDict
 
-  
   def writeCSV(self, fileout):
     """
       Print Data into CSV format
@@ -509,11 +494,8 @@ class SimulateData:
     """
     fileObject = open(fileout.strip()+".csv", mode='wb+') if not fileout.endswith('csv') else open(fileout.strip(), mode='wb+')
     headers=[]
-    timeGrid = None
     nParams = numpy.sum([len(data['info_ids']) for data in self.data.values() if data is not None and type(data) is dict])
-    ndata = 1
     outputMatrix = numpy.zeros((nParams,1))
-    tmp = [data['info_ids'] for data in self.data.values() if data is not None and type(data) is dict]
     index=0
     for data in self.data.values():
       if data is not None and type(data) is dict:

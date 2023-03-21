@@ -45,7 +45,7 @@
  'STA'/
  'END'/
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    1
- Run: RUN NAME  ** Project: PROJECT NAME             ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: PROJECT NAME             ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0                                                                                    0.00 ppm    0.000 GWd/MT  
 
  CASE   1  --- Entering Input Segment ---
@@ -125,7 +125,7 @@
  18   HX-  - Spectral History - X minus       
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    2
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                               0.00 ppm    0.000 GWd/MT  
  DIM.MEM - Dynamic Memory Allocation
 
@@ -149,7 +149,7 @@
  ** Caution -   NO2PIN   - BAT.EDT - Batch edit request for 2PIN ignored --only Q or N prefix is valid for this quantity
  ** Caution -   NO2XPO   - BAT.EDT - Batch edit request for 2XPO ignored --only Q or N prefix is valid for this quantity
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    3
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
  _____________________________________________________________________________________________________________________________
 
@@ -177,7 +177,7 @@
  
  Library created by CMS-Link version: 1.00.02 at 17:55:25 on 2017/10/07
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    4
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
@@ -226,7 +226,7 @@
  CMS.EDT 2EXP    3EXP    3RPF    3PIN    2PIN    2RPF  
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    5
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
  _____________________________________________________________________________________________________________________________
 
@@ -250,7 +250,7 @@
                               0    0 (Diag)
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    6
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Fueled Segments:
@@ -274,7 +274,7 @@
   3   BOTREF              
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    7
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -300,7 +300,7 @@
           --------------------------------------------------------------------------------
    1.000  |  68.200    23.700     3.400     0.000    -1.600    -0.900    -0.600    -2.100
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    8
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Assembly Physical Descriptions
@@ -332,7 +332,7 @@
 
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page    9
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Assm. Name    : ASM250G16           |   Assm. Name    : ASM320C00           |   Assm. Name    : ASM320G16
@@ -380,7 +380,7 @@
    1   -30.4800
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   10
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
 
@@ -397,7 +397,7 @@
     326.194              3.358          GRD
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   11
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Control Rod Descriptions
@@ -426,7 +426,7 @@
  Number of Assemblies        39.2500
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   12
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  _____________________________________________________________________________________________________________________________
@@ -437,7 +437,7 @@
  ERR.CHK - SYMROT - Core Layout Passes Symmetry Check on Full Core FUE.SUB/ROT
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   13
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Option Summary
@@ -501,7 +501,7 @@
  Memory required was 1536702 / 30000000 ( 5.12 % )
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   14
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
  Case   1  --- Entering Neutronics Iterations ---
@@ -557,7 +557,7 @@
 
      The run-time pin library size (in words) =   123648
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   15
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
  _____________________________________________________________________________________________________________________________
  Control Rod Withdrawal Map ( -- Indicates fully withdrawn to 226 Steps ( 358.775 cm) )
@@ -603,7 +603,7 @@
                                             SDC 
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   16
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1774.20 ppm    0.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -656,7 +656,7 @@
  15   1,17   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   17
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -739,7 +739,7 @@
  15  0.000  0.000                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   18
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -817,7 +817,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   19
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -896,7 +896,7 @@
  A-O       -0.045       -0.005        0.000        0.000        0.000        0.000        0.000        0.000        0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   20
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -921,7 +921,7 @@
  A-O        0.000        0.000        0.000        0.000        0.000        0.000        0.000        0.000        0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   21
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.500 GWd/MT  
 
  Cycle exposure at end of this step = 0.50000 GWd/MT                                                 
@@ -953,7 +953,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   22
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1535.61 ppm    0.500 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -968,7 +968,7 @@
      3  3  0.9999820     0.00001802 *   1.9023E-03     1.7131E-04 *   2.30882    -0.037    1515.67    
      4  4  1.0000064 *  -0.00000636 *   8.8712E-05 *   1.6440E-05 *   2.30862    -0.037    1514.93 *  
 
-    Nodal Solution Time = 0.17 Sec
+    Nodal Solution Time = 0.18 Sec
 
  Boron (ppm)  = 1514.932
  Axial Offset =   -0.037
@@ -1003,7 +1003,7 @@
  15  17, 1   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   23
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    0.500 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -1086,7 +1086,7 @@
  15  0.159  0.155                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   24
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    0.500 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -1164,7 +1164,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   25
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    0.500 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -1243,7 +1243,7 @@
  A-O       -0.037       -0.002       -0.038       -0.012       -0.041       -0.000       -0.035        0.000       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   26
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  1 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    0.500 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -1268,7 +1268,7 @@
  A-O       -0.040       -0.041       -0.041       -0.040       -0.001       -0.000       -0.002       -0.002       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   27
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    1.000 GWd/MT  
 
  Cycle exposure at end of this step = 1.0000 GWd/MT                                                  
@@ -1300,7 +1300,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   28
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1514.93 ppm    1.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -1352,7 +1352,7 @@
  15   1* 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   29
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    1.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -1435,7 +1435,7 @@
  15  0.313  0.302                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   30
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    1.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -1513,7 +1513,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   31
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    1.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -1592,7 +1592,7 @@
  A-O       -0.017        0.005       -0.022       -0.002       -0.034        0.000       -0.035        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   32
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  2 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    1.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -1617,7 +1617,7 @@
  A-O       -0.034       -0.034       -0.034       -0.034       -0.001       -0.000       -0.002       -0.002       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   33
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    2.000 GWd/MT  
 
  Cycle exposure at end of this step = 2.0000 GWd/MT                                                  
@@ -1649,7 +1649,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   34
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1614.36 ppm    2.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -1701,7 +1701,7 @@
  15   1* 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   35
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    2.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -1754,7 +1754,7 @@
 
  Max. Intra-Assembly Peaking Factor = 2.785 in Node ( 8, 8, 6)
 
-    Pin Power Reconstruction Time = 0.10 Sec
+    Pin Power Reconstruction Time = 0.11 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -1784,7 +1784,7 @@
  15  0.621  0.584                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   36
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    2.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -1862,7 +1862,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   37
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    2.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -1941,7 +1941,7 @@
  A-O        0.006        0.013        0.003        0.006       -0.020        0.001       -0.035        0.000        0.006
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   38
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  3 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    2.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -1966,7 +1966,7 @@
  A-O       -0.020       -0.020       -0.020       -0.020       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   39
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    3.000 GWd/MT  
 
  Cycle exposure at end of this step = 3.0000 GWd/MT                                                  
@@ -1998,7 +1998,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   40
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1668.94 ppm    3.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -2017,7 +2017,7 @@
      7  7  1.0000045 *  -0.00000451 *   1.0935E-03     7.9162E-05 *   2.18372     0.001    1591.22 *  
      8  8  0.9999981 *   0.00000185 *   3.2754E-04 *   7.3686E-06 *   2.18443     0.000    1591.49 *  
 
-    Nodal Solution Time = 0.38 Sec
+    Nodal Solution Time = 0.39 Sec
 
  Boron (ppm)  = 1591.495
  Axial Offset =    0.000
@@ -2052,7 +2052,7 @@
  15   1, 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   41
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    3.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -2135,7 +2135,7 @@
  15  0.963  0.883                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   42
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    3.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -2213,7 +2213,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   43
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    3.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -2292,7 +2292,7 @@
  A-O        0.001        0.012        0.002        0.012       -0.012        0.000       -0.034        0.000        0.006
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   44
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  4 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    3.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -2317,7 +2317,7 @@
  A-O       -0.012       -0.012       -0.012       -0.012       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   45
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    4.000 GWd/MT  
 
  Cycle exposure at end of this step = 4.0000 GWd/MT                                                  
@@ -2349,7 +2349,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   46
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1591.49 ppm    4.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -2402,7 +2402,7 @@
  15   1, 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   47
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    4.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -2485,7 +2485,7 @@
  15  1.353  1.212                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   48
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    4.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -2563,7 +2563,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   49
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    4.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -2642,7 +2642,7 @@
  A-O       -0.011        0.009       -0.008        0.014       -0.010        0.000       -0.033        0.000        0.005
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   50
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  5 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    4.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -2667,7 +2667,7 @@
  A-O       -0.011       -0.010       -0.010       -0.011       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   51
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    5.000 GWd/MT  
 
  Cycle exposure at end of this step = 5.0000 GWd/MT                                                  
@@ -2699,7 +2699,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   52
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1484.18 ppm    5.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -2718,7 +2718,7 @@
      7  7  1.0000032 *  -0.00000316 *   5.1630E-04     5.8301E-05 *   1.88683    -0.020    1367.77 *  
      8  8  0.9999989 *   0.00000112 *   2.3984E-04 *   7.8827E-06 *   1.88728    -0.020    1367.93 *  
 
-    Nodal Solution Time = 0.38 Sec
+    Nodal Solution Time = 0.40 Sec
 
  Boron (ppm)  = 1367.932
  Axial Offset =   -0.020
@@ -2753,7 +2753,7 @@
  15   1, 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   53
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    5.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -2836,7 +2836,7 @@
  15  1.786  1.569                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   54
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    5.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -2914,7 +2914,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   55
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    5.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -2993,7 +2993,7 @@
  A-O       -0.020        0.008       -0.018        0.014       -0.011        0.000       -0.032        0.000        0.004
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   56
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  6 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    5.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -3018,7 +3018,7 @@
  A-O       -0.012       -0.011       -0.011       -0.012       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   57
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    6.000 GWd/MT  
 
  Cycle exposure at end of this step = 6.0000 GWd/MT                                                  
@@ -3050,7 +3050,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   58
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1367.93 ppm    6.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -3104,7 +3104,7 @@
  15   9, 1   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   59
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    6.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -3187,7 +3187,7 @@
  15  2.256  1.950                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   60
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    6.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -3265,7 +3265,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   61
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    6.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -3344,7 +3344,7 @@
  A-O       -0.025        0.007       -0.023        0.014       -0.013        0.001       -0.032        0.000        0.003
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   62
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  7 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    6.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -3369,7 +3369,7 @@
  A-O       -0.013       -0.013       -0.013       -0.013       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   63
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    7.000 GWd/MT  
 
  Cycle exposure at end of this step = 7.0000 GWd/MT                                                  
@@ -3401,7 +3401,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   64
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1248.62 ppm    7.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -3420,7 +3420,7 @@
      7  7  1.0000024 *  -0.00000245 *   6.8061E-04     6.2257E-05 *   1.72191    -0.028    1128.92 *  
      8  8  0.9999992 *   0.00000083 *   2.5934E-04 *   1.2606E-05 *   1.72236    -0.028    1129.04 *  
 
-    Nodal Solution Time = 0.39 Sec
+    Nodal Solution Time = 0.37 Sec
 
  Boron (ppm)  = 1129.036
  Axial Offset =   -0.028
@@ -3455,7 +3455,7 @@
  15   9* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   65
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    7.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -3538,7 +3538,7 @@
  15  2.756  2.352                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   66
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    7.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -3616,7 +3616,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   67
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    7.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -3695,7 +3695,7 @@
  A-O       -0.028        0.007       -0.027        0.014       -0.015        0.001       -0.031        0.000        0.003
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   68
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  8 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    7.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -3720,7 +3720,7 @@
  A-O       -0.015       -0.015       -0.015       -0.015       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   69
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    8.000 GWd/MT  
 
  Cycle exposure at end of this step = 8.0000 GWd/MT                                                  
@@ -3752,7 +3752,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   70
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1129.04 ppm    8.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -3806,7 +3806,7 @@
  15   2* 9   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   71
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    8.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -3889,7 +3889,7 @@
  15  3.280  2.772                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   72
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    8.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -3967,7 +3967,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   73
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    8.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -4046,7 +4046,7 @@
  A-O       -0.029        0.007       -0.029        0.015       -0.017        0.001       -0.031        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   74
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  9 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    8.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -4071,7 +4071,7 @@
  A-O       -0.017       -0.017       -0.017       -0.017       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   75
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    9.000 GWd/MT  
 
  Cycle exposure at end of this step = 9.0000 GWd/MT                                                  
@@ -4103,7 +4103,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   76
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                            1010.72 ppm    9.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -4122,7 +4122,7 @@
      7  7  1.0000020 *  -0.00000202 *   5.2108E-04     7.4655E-05 *   1.61149    -0.030     894.37 *  
      8  8  0.9999993 *   0.00000072 *   2.1278E-04 *   1.7554E-05 *   1.61183    -0.030     894.47 *  
 
-    Nodal Solution Time = 0.38 Sec
+    Nodal Solution Time = 0.39 Sec
 
  Boron (ppm)  =  894.466
  Axial Offset =   -0.030
@@ -4157,7 +4157,7 @@
  15   2*12   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   77
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm    9.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -4210,7 +4210,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.730 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -4240,7 +4240,7 @@
  15  3.825  3.207                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   78
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm    9.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -4318,7 +4318,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   79
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm    9.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -4397,7 +4397,7 @@
  A-O       -0.030        0.008       -0.030        0.015       -0.018        0.002       -0.031        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   80
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 10 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm    9.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -4422,7 +4422,7 @@
  A-O       -0.018       -0.018       -0.018       -0.018       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   81
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm   10.000 GWd/MT  
 
  Cycle exposure at end of this step = 10.000 GWd/MT                                                  
@@ -4454,7 +4454,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   82
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             894.47 ppm   10.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -4472,7 +4472,7 @@
      6  6  0.9999989 *   0.00000111 *   7.8051E-04     4.9710E-05 *   1.56855    -0.031     780.83 *  
      7  7  1.0000019 *  -0.00000187 *   4.7439E-04 *   8.2329E-05 *   1.56781    -0.031     780.55 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.34 Sec
 
  Boron (ppm)  =  780.549
  Axial Offset =   -0.031
@@ -4507,7 +4507,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   83
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   10.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -4560,7 +4560,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.674 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -4590,7 +4590,7 @@
  15  4.388  3.657                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   84
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   10.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -4668,7 +4668,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   85
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   10.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -4747,7 +4747,7 @@
  A-O       -0.031        0.009       -0.031        0.016       -0.019        0.002       -0.031        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   86
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 11 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   10.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -4772,7 +4772,7 @@
  A-O       -0.020       -0.019       -0.019       -0.020       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   87
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   11.000 GWd/MT  
 
  Cycle exposure at end of this step = 11.000 GWd/MT                                                  
@@ -4804,7 +4804,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   88
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             780.55 ppm   11.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -4822,7 +4822,7 @@
      6  6  0.9999989 *   0.00000105 *   7.1631E-04     5.6759E-05 *   1.52990    -0.031     669.51 *  
      7  7  1.0000017 *  -0.00000169 *   4.2718E-04 *   8.8990E-05 *   1.52925    -0.031     669.26 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.34 Sec
 
  Boron (ppm)  =  669.260
  Axial Offset =   -0.031
@@ -4857,7 +4857,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   89
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   11.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -4910,7 +4910,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.624 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -4940,7 +4940,7 @@
  15  4.966  4.119                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   90
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   11.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -5018,7 +5018,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   91
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   11.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -5097,7 +5097,7 @@
  A-O       -0.031        0.009       -0.032        0.017       -0.021        0.002       -0.030        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   92
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 12 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   11.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -5122,7 +5122,7 @@
  A-O       -0.021       -0.020       -0.020       -0.021       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   93
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   12.000 GWd/MT  
 
  Cycle exposure at end of this step = 12.000 GWd/MT                                                  
@@ -5154,7 +5154,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   94
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             669.26 ppm   12.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -5172,7 +5172,7 @@
      6  6  0.9999990 *   0.00000105 *   6.6732E-04     6.5461E-05 *   1.49681    -0.031     560.51 *  
      7  7  1.0000016 *  -0.00000157 *   3.6617E-04 *   9.6038E-05 *   1.49626    -0.031     560.28 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.36 Sec
 
  Boron (ppm)  =  560.277
  Axial Offset =   -0.031
@@ -5207,7 +5207,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   95
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   12.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -5260,7 +5260,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.582 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -5290,7 +5290,7 @@
  15  5.557  4.593                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   96
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   12.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -5368,7 +5368,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   97
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   12.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -5447,7 +5447,7 @@
  A-O       -0.031        0.010       -0.033        0.017       -0.021        0.003       -0.030        0.000        0.002
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   98
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 13 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   12.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -5472,7 +5472,7 @@
  A-O       -0.022       -0.021       -0.021       -0.022       -0.001       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page   99
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   13.000 GWd/MT  
 
  Cycle exposure at end of this step = 13.000 GWd/MT                                                  
@@ -5504,7 +5504,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  100
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             560.28 ppm   13.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -5522,7 +5522,7 @@
      6  6  0.9999989 *   0.00000111 *   6.3433E-04     7.4148E-05 *   1.46754    -0.031     453.68 *  
      7  7  1.0000015 *  -0.00000149 *   3.4543E-04 *   1.0122E-04 *   1.46703    -0.031     453.46 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.37 Sec
 
  Boron (ppm)  =  453.463
  Axial Offset =   -0.031
@@ -5557,7 +5557,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  101
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   13.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -5610,7 +5610,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.544 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -5640,7 +5640,7 @@
  15  6.161  5.078                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  102
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   13.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -5718,7 +5718,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  103
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   13.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -5797,7 +5797,7 @@
  A-O       -0.031        0.011       -0.033        0.018       -0.022        0.003       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  104
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 14 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   13.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -5822,7 +5822,7 @@
  A-O       -0.022       -0.022       -0.022       -0.022       -0.002       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  105
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   14.000 GWd/MT  
 
  Cycle exposure at end of this step = 14.000 GWd/MT                                                  
@@ -5854,7 +5854,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  106
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             453.46 ppm   14.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -5872,7 +5872,7 @@
      6  6  0.9999988 *   0.00000115 *   5.9979E-04     6.4597E-05 *   1.44156    -0.031     349.20 *  
      7  7  1.0000014 *  -0.00000140 *   3.1690E-04 *   9.2521E-05 *   1.44110    -0.031     349.00 *  
 
-    Nodal Solution Time = 0.32 Sec
+    Nodal Solution Time = 0.36 Sec
 
  Boron (ppm)  =  349.000
  Axial Offset =   -0.031
@@ -5907,7 +5907,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  107
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   14.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -5960,7 +5960,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.512 in Node ( 8, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -5990,7 +5990,7 @@
  15  6.777  5.575                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  108
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   14.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -6068,7 +6068,7 @@
        A-O   0.002   0.002
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  109
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   14.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -6147,7 +6147,7 @@
  A-O       -0.031        0.012       -0.033        0.019       -0.023        0.003       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  110
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 15 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   14.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -6172,7 +6172,7 @@
  A-O       -0.023       -0.023       -0.023       -0.023       -0.002       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  111
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   15.000 GWd/MT  
 
  Cycle exposure at end of this step = 15.000 GWd/MT                                                  
@@ -6204,7 +6204,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  112
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             349.00 ppm   15.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -6222,7 +6222,7 @@
      6  6  0.9999988 *   0.00000119 *   5.6898E-04     7.3358E-05 *   1.41840    -0.032     247.09 *  
      7  7  1.0000013 *  -0.00000133 *   2.9138E-04 *   1.0143E-04 *   1.41798    -0.032     246.90 *  
 
-    Nodal Solution Time = 0.33 Sec
+    Nodal Solution Time = 0.37 Sec
 
  Boron (ppm)  =  246.899
  Axial Offset =   -0.032
@@ -6257,7 +6257,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  113
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   15.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -6340,7 +6340,7 @@
  15  7.403  6.082                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  114
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   15.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -6418,7 +6418,7 @@
        A-O   0.001   0.001
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  115
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   15.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -6497,7 +6497,7 @@
  A-O       -0.032        0.013       -0.034        0.020       -0.023        0.004       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  116
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 16 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   15.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -6522,7 +6522,7 @@
  A-O       -0.024       -0.023       -0.023       -0.024       -0.002       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  117
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   16.000 GWd/MT  
 
  Cycle exposure at end of this step = 16.000 GWd/MT                                                  
@@ -6554,7 +6554,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  118
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             246.90 ppm   16.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -6571,7 +6571,7 @@
      5  5  1.0000023 *  -0.00000228 *   1.9218E-03     2.1733E-04 *   1.40228    -0.032     147.36 *  
      6  6  0.9999987 *   0.00000126 *   4.9256E-04 *   8.2985E-05 *   1.40298    -0.032     147.53 *  
 
-    Nodal Solution Time = 0.27 Sec
+    Nodal Solution Time = 0.29 Sec
 
  Boron (ppm)  =  147.529
  Axial Offset =   -0.032
@@ -6606,7 +6606,7 @@
  15   2,12   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  119
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   16.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -6659,7 +6659,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.475 in Node (13, 8, 2)
 
-    Pin Power Reconstruction Time = 0.12 Sec
+    Pin Power Reconstruction Time = 0.13 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -6689,7 +6689,7 @@
  15  8.040  6.599                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  120
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   16.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -6767,7 +6767,7 @@
        A-O   0.001   0.001
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  121
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   16.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -6846,7 +6846,7 @@
  A-O       -0.032        0.014       -0.034        0.021       -0.024        0.004       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  122
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 17 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   16.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -6871,7 +6871,7 @@
  A-O       -0.024       -0.024       -0.024       -0.024       -0.002       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  123
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   17.000 GWd/MT  
 
  Cycle exposure at end of this step = 17.000 GWd/MT                                                  
@@ -6903,7 +6903,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  124
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                             147.53 ppm   17.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -6920,7 +6920,7 @@
      5  5  1.0000023 *  -0.00000230 *   1.9204E-03     2.6596E-04 *   1.39265    -0.032      50.27 *  
      6  6  0.9999986 *   0.00000138 *   4.8152E-04 *   9.5323E-05 *   1.39332    -0.032      50.45 *  
 
-    Nodal Solution Time = 0.27 Sec
+    Nodal Solution Time = 0.28 Sec
 
  Boron (ppm)  =   50.451
  Axial Offset =   -0.032
@@ -6955,7 +6955,7 @@
  15   2,12   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  125
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   17.000 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -7008,7 +7008,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.460 in Node ( 8,13, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -7038,7 +7038,7 @@
  15  8.688  7.127                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  126
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   17.000 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -7116,7 +7116,7 @@
        A-O   0.001   0.001
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  127
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   17.000 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -7195,7 +7195,7 @@
  A-O       -0.032        0.015       -0.035        0.022       -0.024        0.005       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  128
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 18 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   17.000 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -7220,7 +7220,7 @@
  A-O       -0.025       -0.024       -0.024       -0.025       -0.002       -0.000       -0.003       -0.003       -0.000
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  129
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   18.000 GWd/MT  
 
  Cycle exposure at end of this step = 18.000 GWd/MT                                                  
@@ -7252,7 +7252,7 @@
 
  Total control rod positions withdrawn in full core =  10848
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  130
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              50.45 ppm   18.000 GWd/MT  
 
   ITE.BOR - QPANDA Flux solution with boron search
@@ -7308,7 +7308,7 @@
  
     18 18  0.9999967 *   3.1123E-04 *   8.9496E-05 *    1.38922    -0.033
 
-    Nodal Solution Time = 0.83 Sec
+    Nodal Solution Time = 0.87 Sec
 
  K-effective  = 0.999997
  Axial Offset =   -0.033
@@ -7327,7 +7327,7 @@
  15  0.893  0.861                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  131
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
  ** Caution -   PINAXIS  - PIN.EDT - Pin locations for axis-spanning assemblies may not be correct
  Warning: Pin locations for axis-spanning assemblies may not be correct    
@@ -7346,7 +7346,7 @@
  15  12* 2   1, 1                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  132
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
 
                                                  Axial Distribution Summary
@@ -7399,7 +7399,7 @@
 
  Max. Intra-Assembly Peaking Factor = 1.454 in Node (13, 8, 2)
 
-    Pin Power Reconstruction Time = 0.11 Sec
+    Pin Power Reconstruction Time = 0.12 Sec
 
  _____________________________________________________________________________________________________________________________
 
@@ -7429,7 +7429,7 @@
  15  8.964  7.353                                             15
  **   H-     G-     F-     E-     D-     C-     B-     A-     **
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  133
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
  ____________________________________________________________________________________________________________________________
 
@@ -7507,7 +7507,7 @@
        A-O   0.001   0.001
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  134
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
 
  Output Summary                                                            Reference State Point      0  Ref Exp     0.000
@@ -7586,7 +7586,7 @@
  A-O       -0.032        0.016       -0.035        0.022       -0.025        0.005       -0.030        0.000        0.001
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  135
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step 19 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
 
   K       EY-          EX+          EY+          EX-          HIS          HY-          HX+          HY+          HX-
@@ -7614,7 +7614,7 @@
  Memory required was 1932238 / 30000000 ( 6.44 % )
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  136
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  2 Step  0 PWR CYCLE 1 U02 CORE - NOMINAL CYCLE                                              10.00 ppm   17.423 GWd/MT  
 
  CASE   2  --- Entering Input Segment ---
@@ -7655,7 +7655,7 @@
 
 
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  137
- Run: RUN NAME  ** Project: PROJECT NAME             ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: PROJECT NAME             ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0 READING INPUT                                                                      0.00 ppm    0.000 GWd/MT  
 
 
@@ -7704,7 +7704,7 @@
  
  
 1S I M U L A T E - 3 ** Studsvik CMS Steady-State 3-D Reactor Simulator ** 1.00.02 _BASE   INT Created 12/05/08 ** Page  138
- Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 19.55.34.** Date: 2023/03/20    100.0% Flow  100.0% Power
+ Run: RUN NAME  ** Project: GENERIC PWR EQUILIBR     ** Run Time: 11.19.35.** Date: 2023/03/21    100.0% Flow  100.0% Power
  Case  1 Step  0                                                                                    0.00 ppm    0.000 GWd/MT  
 
                          Report on CPU Time in Seconds By Subroutine
@@ -7712,23 +7712,23 @@
                                                                                      Milli-Sec
                          Subroutine         CPU Time     % of Total         Calls     per Call
                          ----------         --------     ----------         -----     --------
-                         SIGNEW                 4.88          48.57        4200.0         1.16
-                         PINS                   2.19          21.78          20.0       109.31
-                         SWEEP                  1.53          15.27         150.0        10.22
-                         TWOGRP                 1.04          10.37         150.0         6.94
-                         PARTB                  0.18           1.75          20.0         8.77
-                         HYDPWR                 0.07           0.67         150.0         0.45
-                         SIGCAL                 0.05           0.46         150.0         0.31
-                         QPANDA                 0.04           0.38         150.0         0.25
-                         SIMULA                 0.04           0.36           1.0        35.66
-                         PINEDT                 0.03           0.25          20.0         1.25
-                         SIGPIN                 0.01           0.08         486.0         0.02
+                         SIGNEW                 5.06          48.47        4200.0         1.21
+                         PINS                   2.28          21.86          20.0       114.16
+                         SWEEP                  1.60          15.33         150.0        10.68
+                         TWOGRP                 1.07          10.27         150.0         7.15
+                         PARTB                  0.18           1.75          20.0         9.13
+                         HYDPWR                 0.07           0.67         150.0         0.46
+                         SIGCAL                 0.05           0.51         150.0         0.35
+                         QPANDA                 0.04           0.41         150.0         0.29
+                         SIMULA                 0.04           0.35           1.0        36.52
+                         PINEDT                 0.03           0.25          20.0         1.29
+                         SIGPIN                 0.01           0.07         486.0         0.02
                          RODMUV                 0.01           0.06         150.0         0.04
 
- Total CPU Time       10.062 Seconds
+ Total CPU Time       10.465 Seconds
 
- Start Time/Date  19:55:34  23/03/20
- End   Time/Date  19:55:44  23/03/20
+ Start Time/Date  11:19:35  23/03/21
+ End   Time/Date  11:19:45  23/03/21
 
  Elapsed Real Time    10.000 Seconds
  CPU Utilization     100.00%
