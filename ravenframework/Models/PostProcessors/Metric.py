@@ -89,7 +89,7 @@ class Metric(PostProcessorInterface):
     self.pivotParameter = None
     self.pivotValues    = []
     # assembler objects to be requested
-    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
 
   def __getMetricSide(self, metricDataName, currentInputs):
     """

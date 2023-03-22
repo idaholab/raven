@@ -21,28 +21,23 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/singleExpLinModel.py" name="linModel" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/expLinModel.py" name="linModel" subType="">
       <inputs>p1, p2, e1, e2, e3, bE</inputs>
       <outputs>F1, F2, F3</outputs>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/singleTarLinModel.py" name="tarModel" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/tarLinModel.py" name="tarModel" subType="">
       <inputs>p1, p2, o1, o2, o3, bT</inputs>
       <outputs>FOM1, FOM2, FOM3</outputs>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Representativity">
-      <Features>outputDataMC1|F1</Features><!--, outputDataMC1|F2, outputDataMC1|F3-->
-      <Targets>outputDataMC2|FOM1</Targets><!--, outputDataMC2|FOM2, outputDataMC2|FOM3-->
-      <!-- <Metric class="Metrics" type="Metric">simIndex</Metric> -->
+      <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
+      <Targets>outputDataMC2|FOM1, outputDataMC2|FOM2, outputDataMC2|FOM3</Targets>
       <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
       <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
       <pivotParameter>outputDataMC1|time</pivotParameter>
       <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
     </PostProcessor>
   </Models>
-
-  <!-- <Metrics>
-    <Metric name="simIndex" subType="RepresentativityFactors"/>
-  </Metrics> -->
 
   <Distributions>
     <Normal name="dist1">
@@ -68,9 +63,9 @@
         <distribution>dist2</distribution>
       </variable>
       <constant name="e1">2,-3</constant>
-      <!-- <constant name="e2">1, 8</constant>
-      <constant name="e3">-5,-5</constant> -->
-      <constant name="bE">0</constant><!--,0,0-->
+      <constant name="e2">2,-3</constant>
+      <constant name="e3">-5,-5</constant>
+      <constant name="bE">0,0,0</constant>
     </MonteCarlo>
     <MonteCarlo name="TargetMCSampler">
       <samplerInit>
@@ -83,9 +78,9 @@
         <distribution>dist2</distribution>
       </variable>
       <constant name="o1">2,3</constant>
-      <!-- <constant name="o2">1, 8</constant>
-      <constant name="o3">-5,-5</constant> -->
-      <constant name="bT">0</constant><!--,0,0-->
+      <constant name="o2">1, 8</constant>
+      <constant name="o3">-5,-5</constant>
+      <constant name="bT">0,0,0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -118,60 +113,60 @@
     </PointSet>
     <PointSet name="outputDataMC1">
       <Input>p1,p2</Input>
-      <Output>F1</Output><!--, F2, F3-->
+      <Output>F1, F2, F3</Output>
     </PointSet>
     <PointSet name="outputDataMC2">
       <Input>p1,p2</Input>
-      <Output>FOM1</Output><!--, FOM2, FOM3-->
+      <Output>FOM1, FOM2, FOM3</Output>
     </PointSet>
     <PointSet name="pp1_metric">
       <Input>InputPlaceHolder</Input>
       <Output>
         BiasFactor_MockF1_TarFOM1,
-        <!-- BiasFactor_MockF1_TarFOM2,
+        BiasFactor_MockF1_TarFOM2,
         BiasFactor_MockF1_TarFOM3,
         BiasFactor_MockF2_TarFOM1,
         BiasFactor_MockF2_TarFOM2,
         BiasFactor_MockF2_TarFOM3,
         BiasFactor_MockF3_TarFOM1,
         BiasFactor_MockF3_TarFOM2,
-        BiasFactor_MockF3_TarFOM3, -->
+        BiasFactor_MockF3_TarFOM3,
         ExactBiasFactor_MockF1_TarFOM1,
-        <!-- ExactBiasFactor_MockF1_TarFOM2,
+        ExactBiasFactor_MockF1_TarFOM2,
         ExactBiasFactor_MockF1_TarFOM3,
         ExactBiasFactor_MockF2_TarFOM1,
         ExactBiasFactor_MockF2_TarFOM2,
         ExactBiasFactor_MockF2_TarFOM3,
         ExactBiasFactor_MockF3_TarFOM1,
         ExactBiasFactor_MockF3_TarFOM2,
-        ExactBiasFactor_MockF3_TarFOM3, -->
+        ExactBiasFactor_MockF3_TarFOM3,
         CorrectedParameters_p1,
         CorrectedParameters_p2,
         CorrectedTargets_FOM1,
-        <!-- CorrectedTargets_FOM2,
-        CorrectedTargets_FOM3, -->
+        CorrectedTargets_FOM2,
+        CorrectedTargets_FOM3,
         VarianceInCorrectedParameters_p1,
         VarianceInCorrectedParameters_p2,
         CovarianceInCorrectedParameters_p1_p2,
         CovarianceInCorrectedParameters_p2_p1,
         CorrectedVar_TarFOM1,
-        <!-- CorrectedVar_TarFOM2,
-        CorrectedVar_TarFOM3, -->
+        CorrectedVar_TarFOM2,
+        CorrectedVar_TarFOM3,
         ExactCorrectedVar_TarFOM1,
-        <!-- ExactCorrectedVar_TarFOM2,
-        ExactCorrectedVar_TarFOM3, -->
-        <!-- CorrectedCov_TarFOM1_TarFOM2,
+        ExactCorrectedVar_TarFOM2,
+        ExactCorrectedVar_TarFOM3,
+        CorrectedCov_TarFOM1_TarFOM2,
         CorrectedCov_TarFOM2_TarFOM1,
         CorrectedCov_TarFOM1_TarFOM3,
         CorrectedCov_TarFOM3_TarFOM1,
         CorrectedCov_TarFOM2_TarFOM3,
-        CorrectedCov_TarFOM3_TarFOM2, -->
-        <!-- ExactCorrectedCov_TarFOM1_TarFOM2,
+        CorrectedCov_TarFOM3_TarFOM2,
+        ExactCorrectedCov_TarFOM1_TarFOM2,
         ExactCorrectedCov_TarFOM2_TarFOM1,
         ExactCorrectedCov_TarFOM1_TarFOM3,
         ExactCorrectedCov_TarFOM3_TarFOM1,
         ExactCorrectedCov_TarFOM2_TarFOM3,
-        ExactCorrectedCov_TarFOM3_TarFOM2 -->
+        ExactCorrectedCov_TarFOM3_TarFOM2
       </Output>
     </PointSet>
   </DataObjects>
