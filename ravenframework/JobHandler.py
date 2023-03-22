@@ -111,6 +111,7 @@ class JobHandler(BaseType):
     # Dict containing info about batching
     self.__batching = collections.defaultdict()
     self.rayInstanciatedOutside = None
+    self.daskInstanciatedOutside = None
     self.remoteServers = None
     self.daskSchedulerFile = None
 
@@ -217,7 +218,8 @@ class JobHandler(BaseType):
 
       # is ray instanciated outside?
       self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
-      if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside:
+      self.daskInstanciatedOutside = 'schedulerFile' in self.runInfoDict
+      if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside or self.daskInstanciatedOutside:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
         # identify the local host name and get the number of local processors
@@ -230,15 +232,21 @@ class JobHandler(BaseType):
           self.raiseAWarning(f'Head host name "{localHostName}" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
 
-        if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
+        if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside or self.daskInstanciatedOutside:
           if self.rayInstanciatedOutside:
             address = self.runInfoDict['headNode']
+          elif self.daskInstanciatedOutside:
+            self.daskSchedulerFile = self.runInfoDict['schedulerFile']
           else:
             # create head node cluster
             # port 0 lets ray choose an available port
             address = self.__runHeadNode(nProcsHead, 0)
-          # add names in runInfo
-          self.runInfoDict['headNode'] = address
+          if parallelLib == ParallelLibEnum.ray:
+            # add names in runInfo
+            self.runInfoDict['headNode'] = address
+          if parallelLib == ParallelLibEnum.dask:
+            # add file in runInfo
+            self.runInfoDict['schedulerFile'] = self.daskSchedulerFile
           if _rayAvail:
             self.raiseADebug("Head host IP      :", address)
           ## Get servers and run ray remote listener

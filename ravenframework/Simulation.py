@@ -672,6 +672,8 @@ class Simulation(MessageUser):
         self.runInfoDict['headNode'] = element.text.strip()
       elif element.tag == 'remoteNodes':
         self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'schedulerFile':
+        self.runInfoDict['schedulerFile'] = element.text.strip()
       elif element.tag == 'PYTHONPATH':
         self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
