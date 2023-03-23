@@ -350,7 +350,7 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
       opt = self._optPointHistory[traj][-1][0]
-      val = opt[self._objectiveVar]
+      val = opt[self._objectiveVar[0]]
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
       if bestValue is None or val < bestValue:
         bestValue = val
@@ -404,9 +404,10 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
 
-      if type(self._objectiveVar) == str:
+      # if type(self._objectiveVar) == str:
+      if len(self._objectiveVar) == 1:
         opt = self._optPointHistory[traj][-1][0]
-        val = opt[self._objectiveVar]
+        val = opt[self._objectiveVar[0]]
         self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
         if bestValue is None or val < bestValue:
           bestValue = val
