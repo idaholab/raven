@@ -282,15 +282,14 @@ The representativity theory was first founded in the Neutronics community~\cite{
 %
 
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of  the features, which can be the measuables/observables of the mock model. Reader should be warned that this nomenclature is different than the Machine learning nomenclature.
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of  the features, which can be the measuables/observables of the mock model. Reader should be warned that this nomenclature is different than the machine learning nomenclature.
 
   \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
      targets. These are the Figures of merit (FOMs) in the target model against which the mock model is being validated.
 
-    \item \xmlNode{featureParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputs to the mock model.
+    \item \xmlNode{featureParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputs to the mock/prototype model.
 
-    \item \xmlNode{targetParameters}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
-    target parameters/inputs.
+    \item \xmlNode{targetParameters}, \xmlDesc{comma separated string, required field}, specifies the names of the parameters/inputs to the target model.
 
         \item \xmlNode{pivotParameter},  \xmlDesc{string, optional field}, ID of the temporal variable of the mock model. Default is ``time''.
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).
@@ -331,10 +330,12 @@ with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
 ...
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/expLinModel.py" name="linModel" subType="">
-      <variables>p1, p2, e1, e2, e3, bE, F1, F2, F3</variables>
+      <inputs>p1, p2, e1, e2, e3, bE</inputs>
+      <outputs>F1, F2, F3</outputs>
     </ExternalModel>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/tarLinModel.py" name="tarModel" subType="">
-      <variables>p1, p2, o1, o2, o3, bT, FOM1, FOM2, FOM3</variables>
+      <inputs>p1, p2, o1, o2, o3, bT</inputs>
+      <outputs>FOM1, FOM2, FOM3</outputs>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Representativity">
       <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
