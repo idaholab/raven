@@ -114,6 +114,7 @@ class JobHandler(BaseType):
     self.daskInstanciatedOutside = None
     self.remoteServers = None
     self.daskSchedulerFile = None
+    self._daskScheduler = None
 
   def __getstate__(self):
     """
@@ -231,7 +232,7 @@ class JobHandler(BaseType):
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning(f'Head host name "{localHostName}" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-
+        self.raiseADebug("# of total procs    : ", str(len(availableNodes)))
         if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside or self.daskInstanciatedOutside:
           if self.rayInstanciatedOutside:
             address = self.runInfoDict['headNode']
@@ -244,13 +245,16 @@ class JobHandler(BaseType):
           if parallelLib == ParallelLibEnum.ray:
             # add names in runInfo
             self.runInfoDict['headNode'] = address
+            self.raiseADebug("Head host IP      :", address)
           if parallelLib == ParallelLibEnum.dask:
             # add file in runInfo
             self.runInfoDict['schedulerFile'] = self.daskSchedulerFile
-          if _rayAvail:
-            self.raiseADebug("Head host IP      :", address)
+            self.raiseADebug('scheduler file     :', self.daskSchedulerFile)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName)
+          if self.rayInstanciatedOutside or self.daskInstanciatedOutside:
+            servers = self.runInfoDict['remoteNodes']
+          else:
+            servers = self.__runRemoteListeningSockets(address, localHostName)
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           if parallelLib == ParallelLibEnum.ray:
@@ -353,7 +357,7 @@ class JobHandler(BaseType):
       ray.shutdown()
     elif parallelLib == ParallelLibEnum.dask and self.rayServer is not None and not self.rayInstanciatedOutside:
       self.rayServer.close()
-      if self.daskSchedulerFile is not None:
+      if self._daskScheduler is not None:
         self._daskScheduler.terminate()
 
   def __runHeadNode(self, nProcs, port=None):
@@ -521,7 +525,8 @@ class JobHandler(BaseType):
           command = ['ssh',nodeId,remoteServerScript,outputFile,
                      self.daskSchedulerFile,str(ntasks),
                      self.runInfoDict["FrameworkDir"],
-                     self.runInfoDict['RemoteRunCommand']]
+                     self.runInfoDict['RemoteRunCommand'],
+                     self.runInfoDict['WorkingDir']]
           self.raiseADebug("command is: "+" ".join(command))
           command.append(localEnv["PYTHONPATH"])
           utils.pickleSafeSubprocessPopen(command, env=localEnv)
@@ -994,10 +999,10 @@ class JobHandler(BaseType):
             # want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
-              if self.rayServer is not None and 'headNode' in self.runInfoDict:
-                kwargs['headNode'] = self.runInfoDict['headNode']
-              if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
-                kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
+              if self.rayServer is not None:
+                for infoKey in ['headNode','remoteNodes','schedulerFile']:
+                  if infoKey in self.runInfoDict:
+                    kwargs[infoKey] = self.runInfoDict[infoKey]
               kwargs['INDEX'] = str(i)
               kwargs['INDEX1'] = str(i+i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
