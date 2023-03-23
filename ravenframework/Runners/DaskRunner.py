@@ -110,6 +110,22 @@ class DaskRunner(InternalRunner):
       else:
         return self.__func.done()
 
+  def getReturnCode(self):
+    """
+      Returns the return code from running the code.  If return code not yet
+      set, then set it.
+      @ In, None
+      @ Out, returnCode, int,  the return code of this evaluation
+    """
+    if not self.hasBeenAdded:
+      try:
+        self._collectRunnerResponse()
+      except Exception as ae:
+        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+        self.returnCode = -1
+
+    return self.returnCode
+
   def _collectRunnerResponse(self):
     """
       Method to add the process response in the internal variable (pointer)
@@ -121,7 +137,14 @@ class DaskRunner(InternalRunner):
       if not self.hasBeenAdded:
         if self.__func is not None:
           #if the function threw an exception, result will rethrow it.
-          self.runReturn = self.__func.result()
+          try:
+            self.runReturn = self.__func.result()
+          except Exception as ae:
+            self.runReturn = None
+            self.hasBeenAdded = True
+            self.returnCode = -1
+            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+            raise ae
         else:
           self.runReturn = None
         self.hasBeenAdded = True
