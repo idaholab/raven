@@ -148,6 +148,10 @@ specifies the following sub-nodes:
    \begin{itemize}
      \item \xmlAttr{var}, \xmlDesc{required string attribute}, the dimension name of this index (e.g. time)
    \end{itemize}
+   This XML node allows the following attribute:
+   \begin{itemize}
+     \item \xmlAttr{autogenerate}, \xmlDesc{optional boolean attribute}, if this index should be generated automatically if it does not exist.
+   \end{itemize}
  \item \xmlNode{options}, \xmlDesc{optional node}, contains additional option nodes
    for data objects.  This node contains the following subnodes:
    \begin{itemize}
