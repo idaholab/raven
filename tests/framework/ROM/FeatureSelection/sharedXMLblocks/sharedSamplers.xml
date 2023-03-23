@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+      <variable name="A,B">
+        <distribution>noiseUniformDist</distribution>
+      </variable>
+      <variable name="C,D">
+        <distribution>noiseUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="mcSamplerConstants">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+      <variable name="A,B">
+        <distribution>noiseUniformDist</distribution>
+      </variable>
+      <constant name="C">1.0</constant>
+      <constant name="D">1.0</constant>
+    </MonteCarlo>
+  </Samplers>

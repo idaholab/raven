@@ -50,7 +50,7 @@ class InternalRunner(Runner):
     self.exceptionTrace = None    # sys.exc_info() if an error occurred while running
 
     ## These things cannot be deep copied
-    self.skipOnCopy = ['functionToRun','thread','__queueLock']
+    self.skipOnCopy = ['functionToRun','thread','__queueLock', '_InternalRunner__queueLock']
 
   def __deepcopy__(self,memo):
     """

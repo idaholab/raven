@@ -70,6 +70,12 @@
    csv = 'csv/td_output2.csv'
  [../]
 
+ [./load_histories_filename_middle]
+   type = 'RavenFramework'
+   input = 'test_load_csv_histories_filename_middle.xml'
+   output = 'csv/td_output_filename_middle.csv'
+ [../]
+
  [./load_two_csv_histories_fail]
    type = 'RavenErrors'
    input = 'load_two_csv_histories_fail.xml'

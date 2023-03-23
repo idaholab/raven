@@ -43,7 +43,9 @@ from .RELAP7.RELAP7Interface import RELAP7
 from .Rattlesnake.RattlesnakeInterface import Rattlesnake
 from .SCALE.ScaleInterface import Scale
 from .SERPENT.SerpentInterface import SERPENT
+from .SIMULATE3.SimulateInterface import Simulate
 from .Saphire.SaphireInterface import Saphire
+from .SIMULATE3.SimulateInterface import Simulate
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
 from .WorkshopExamples.BatemanInterface import BatemanSimple

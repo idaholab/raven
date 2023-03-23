@@ -46,6 +46,7 @@ example above.
   \item[expected\_fail] if true, then the test should fails, and if it passes, it fails
   \item[run\_types] The run types of this test, separated by spaces. Example: 'heavy qsub' The default is 'normal'
   \item[output\_wait\_time] Number of seconds to wait for output
+  \item[skip\_if\_OS] Skip the test if the OS in the list Examples: 'mac,linux' or 'windows'
 \end{description}
 
 \subsection{GenericExecutable}
@@ -71,8 +72,8 @@ check for output.
   \item[gold\_files] Gold filenames, if different from the default. These are 1 to 1 mappings with the
       \texttt{output} files listed above, and use the same relative pathing. Using the example under
       \textbf{output} above, including \texttt{gold\_files = 'gold/path/to/file2'} would compare the file
-      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}. \nb Unlike the default,
-      \texttt{gold} is not automatically added to the \textttt{gold\_files} path.
+      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}. Note: Unlike the default,
+      \texttt{gold} is not automatically added to the \texttt{gold\_files} path.
 \end{description}
 
 \subsection{Exists}

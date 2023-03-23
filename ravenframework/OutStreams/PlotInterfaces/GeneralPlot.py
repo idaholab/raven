@@ -620,10 +620,23 @@ class GeneralPlot(PlotInterface):
       elif key == 'title':
         self.ax.set_title(self.options[key]['text'], **self.options[key].get('attributes', {}))
       elif key == 'scale':
+        major, minor = [int(x) for x in matplotlib.__version__.split('.')[:2]]
+        #matplotlib before 3.5 used nonpos instead of nonpositive
+        useNonpos = (major == 3 and minor < 5)
         if 'xscale' in self.options[key]:
-          self.ax.set_xscale(self.options[key]['xscale'], nonposx='clip')
+          if useNonpos:
+            self.ax.set_xscale(self.options[key]['xscale'], nonposx='clip')
+          elif self.options[key]['xscale'].lower() == 'log':
+            self.ax.set_xscale(self.options[key]['xscale'], nonpositive='clip')
+          else:
+            self.ax.set_xscale(self.options[key]['xscale'])
         if 'yscale' in self.options[key]:
-          self.ax.set_yscale(self.options[key]['yscale'], nonposy='clip')
+          if useNonpos:
+            self.ax.set_yscale(self.options[key]['yscale'], nonposy='clip')
+          elif self.options[key]['yscale'].lower() == 'log':
+            self.ax.set_yscale(self.options[key]['yscale'], nonpositive='clip')
+          else:
+            self.ax.set_yscale(self.options[key]['yscale'])
         if self.dim == 3:
           if 'zscale' in self.options[key]:
             self.ax.set_zscale(self.options[key]['zscale'])
@@ -1246,7 +1259,7 @@ class GeneralPlot(PlotInterface):
                       if first:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
