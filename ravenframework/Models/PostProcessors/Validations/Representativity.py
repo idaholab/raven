@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# @ Authors: Mohammad Abdo  (@Jimmy-INL)
+#            Congjian Wang  (@wangcj05)
+#            Andrea Alfonsi (@aalfonsi)
+#            Aaron Epiney   (@AaronEpiney)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -28,12 +32,6 @@ class Representativity(ValidationBase):
   """
     Representativity is a base class for validation problems
     It represents the base class for most validation problems
-
-    @ Authors: Mohammad Abdo  (@Jimmy-INL)
-               Congjian Wang  (@wangcj05)
-               Andrea Alfonsi (@aalfonsi)
-               Aaron Epiney   (@AaronEpiney)
-
   """
 
   @classmethod
@@ -110,8 +108,8 @@ class Representativity(ValidationBase):
     if len(names) != 1:
       self.raiseAnError(IOError, "'Targets' and 'targetParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
     targetDataObject = list(names)[0]
-    featVars = [x.split("|")[-1] for x in self.features] + [x.split("|")[1] for x in self.featureParameters]
-    targVars = [x.split("|")[-1] for x in self.targets] + [x.split("|")[1] for x in self.targetParameters]
+    featVars = [x.split("|")[-1] for x in self.features] + [x.split("|")[-1] for x in self.featureParameters]
+    targVars = [x.split("|")[-1] for x in self.targets] + [x.split("|")[-1] for x in self.targetParameters]
 
     for i, inp in enumerate(inputs):
       if inp.name == featDataObject:
