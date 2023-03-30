@@ -237,7 +237,7 @@ class DataSet(DataObject):
         expectedLength = len(rlz[self._pivotParams[autoindex][0]])
         #if it already exists and has correct length, don't add
         if autoindex not in rlz or len(rlz[autoindex]) != expectedLength:
-          rlz[autoindex] = np.arange(len(rlz[self._pivotParams[autoindex][0]]))
+          rlz[autoindex] = np.arange(expectedLength)
     # clean out entries that aren't desired
     try:
       rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
