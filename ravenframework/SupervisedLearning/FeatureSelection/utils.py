@@ -64,7 +64,7 @@ def screenAndTrainEstimator(Xreduced, yreduced, estimator, support, params, incl
     @ In, addOnKeys, list, optional, list of additional keys to remove
     @ Out, None
   """
-  assert not issubclass(estimator.__class__, SupervisedLearning.SupervisedLearning), \
+  assert issubclass(estimator.__class__, SupervisedLearning.SupervisedLearning), \
     f"estimator class str(estimator.__class__) is not a SupervisedLearning derived class"
   vals = screenInputParams(support, params, includedParams, addOnKeys = addOnKeys)
   if vals:
