@@ -186,7 +186,7 @@ function create_libraries()
     fi
   else
     #pip create virtual enviroment
-    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`
+    local COMMAND="$PYTHON_COMMAND -m venv $PIP_ENV_LOCATION"
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... virtual enviroment command: ${COMMAND}; fi
     ${COMMAND}
     # activate the enviroment
@@ -285,7 +285,14 @@ ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
-INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ -z "$INSTALLATION_MANAGER" ]];
+then
+    INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+else
+    #use installation manager from .ravenrc
+    INSTALL_MANAGER="$INSTALLATION_MANAGER"
+fi
 PROXY_COMM="" # proxy is none
 
 # parse command-line arguments
@@ -348,10 +355,10 @@ fi
 if [[ $ECE_VERBOSE == 0 ]];
 then
   echo ... Run Options:
-  echo ...    Mode: $ECE_MODE
+  echo ...    ECE Mode: $ECE_MODE
   echo ...   Verbosity: $ECE_VERBOSE
   echo ...   Clean: $ECE_CLEAN
-  echo ...    Mode: $INSTALL_MANAGER
+  echo ...    Install Mode: $INSTALL_MANAGER
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     echo ...   Conda Defs: $CONDA_DEFS
@@ -444,10 +451,6 @@ else
     echo ... \>\> Install PIP if you want to use it or CONDA as alternative installation manager!
     exit 1
   else
-    # install virtual env and upgrade pip
-    if ! ve_loc="$(type -p virtualenv)" || [[ -z $ve_loc ]]; then
-      pip3 install virtualenv
-    fi
     # set PIP_ENV_LOCATION
     PIP_ENV_LOCATION="$HOME/pip_envs"
   fi

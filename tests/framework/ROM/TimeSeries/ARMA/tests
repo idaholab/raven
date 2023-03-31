@@ -295,9 +295,9 @@
   [./InterpolatedMaxCycles]
     type = 'RavenFramework'
     input = 'interpolated_maxcycles.xml'
-    csv = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
+    output = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
     #not consistent, see 1351
-    rel_err = 10000.0
+    #rel_err = 10000.0
   [../]
 
   [./CloudPlot]

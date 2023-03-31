@@ -107,6 +107,8 @@ if test `uname` = Darwin; then
     export MACOSX_DEPLOYMENT_TARGET;
 fi
 
+(cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU not built)
+
 PIP_COMMAND=pip3
 if [[ $EDITABLE == 0 ]]
 then # Don't install editable
@@ -117,8 +119,6 @@ then # Don't install editable
 else #do install editable
     $PIP_COMMAND --verbose install --editable . --upgrade --target ./install
 fi
-
-(cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU build failed)
 
 if [ ! -z "$RAVEN_SIGNATURE" ];
 then
