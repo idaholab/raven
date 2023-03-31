@@ -44,13 +44,13 @@ class Representativity(ValidationBase):
         specifying input of cls.
     """
     specs = super(Representativity, cls).getInputSpecification()
-    parametersInput = InputData.parameterInputFactory("featureParameters", contentType=InputTypes.StringListType,
+    prototypeParameters = InputData.parameterInputFactory("prototypeParameters", contentType=InputTypes.StringListType,
                       descr=r"""mock model parameters/inputs""")
-    parametersInput.addParam("type", InputTypes.StringType)
-    specs.addSub(parametersInput)
-    targetParametersInput = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType,
+    prototypeParameters.addParam("type", InputTypes.StringType)
+    specs.addSub(prototypeParameters)
+    targetParameters = InputData.parameterInputFactory("targetParameters", contentType=InputTypes.StringListType,
                             descr=r"""Target model parameters/inputs""")
-    specs.addSub(targetParametersInput)
+    specs.addSub(targetParameters)
     targetPivotParameterInput = InputData.parameterInputFactory("targetPivotParameter", contentType=InputTypes.StringType,
                                 descr=r"""ID of the temporal variable of the target model. Default is ``time''.
         \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested (i.e., time dependent validation).""")
@@ -94,22 +94,22 @@ class Representativity(ValidationBase):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs) != 2:
       self.raiseAnError(IOError, "PostProcessor", self.name, "can only accept two DataObjects, but got {}!".format(str(len(inputs))))
-    params = self.features+self.targets+self.featureParameters+self.targetParameters
+    params = self.prototypeOutputs+self.targetOutputs+self.prototypeParameters+self.targetParameters
     validParams = [True if "|" in x  else False for x in params]
     if not all(validParams):
       notValid = list(np.asarray(params)[np.where(np.asarray(validParams)==False)[0]])
-      self.raiseAnError(IOError, "'Features', 'Targets', 'featureParameters', and 'targetParameters' should use 'DataObjectName|variable' format, but variables {} do not follow this rule.".format(','.join(notValid)))
+      self.raiseAnError(IOError, "'prototypeParameters', 'targetParameters', 'prototypeOutputs', and 'targetOutputs' should use 'DataObjectName|Input or Output|variable' format, but variables {} do not follow this rule.".format(','.join(notValid)))
     # Assume features and targets are in the format of: DataObjectName|Variables
-    names = set([x.split("|")[0] for x in self.features] + [x.split("|")[0] for x in self.featureParameters])
+    names = set([x.split("|")[0] for x in self.prototypeOutputs] + [x.split("|")[0] for x in self.prototypeParameters])
     if len(names) != 1:
-      self.raiseAnError(IOError, "'Features' and 'featureParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
+      self.raiseAnError(IOError, "'prototypeOutputs' and 'prototypeParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
     featDataObject = list(names)[0]
-    names = set([x.split("|")[0] for x in self.targets] + [x.split("|")[0] for x in self.targetParameters])
+    names = set([x.split("|")[0] for x in self.targetOutputs] + [x.split("|")[0] for x in self.targetParameters])
     if len(names) != 1:
-      self.raiseAnError(IOError, "'Targets' and 'targetParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
+      self.raiseAnError(IOError, "'targetOutputs' and 'targetParameters' should come from the same DataObjects, but they present in differet DataObjects:{}".fortmat(','.join(names)))
     targetDataObject = list(names)[0]
-    featVars = [x.split("|")[-1] for x in self.features] + [x.split("|")[-1] for x in self.featureParameters]
-    targVars = [x.split("|")[-1] for x in self.targets] + [x.split("|")[-1] for x in self.targetParameters]
+    featVars = [x.split("|")[-1] for x in self.prototypeOutputs] + [x.split("|")[-1] for x in self.prototypeParameters]
+    targVars = [x.split("|")[-1] for x in self.targetOutputs] + [x.split("|")[-1] for x in self.targetParameters]
 
     for i, inp in enumerate(inputs):
       if inp.name == featDataObject:
@@ -127,11 +127,11 @@ class Representativity(ValidationBase):
       self.raiseAnError(IOError, "Variables {} are missing from DataObject {}".format(','.join(missing), self.targetDataObject[0].name))
 
     featStat = self.getBasicStat()
-    featStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.features]), 'features':set([x.split("|")[-1] for x in self.featureParameters]),'prefix':self.senPrefix}]}
+    featStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.prototypeOutputs]), 'features':set([x.split("|")[-1] for x in self.prototypeParameters]),'prefix':self.senPrefix}]}
     featStat.initialize(runInfo, [self.featureDataObject[0]], initDict)
     self.stat[self.featureDataObject[-1]] = featStat
     tartStat = self.getBasicStat()
-    tartStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.targets]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':self.senPrefix}]}
+    tartStat.toDo = {'sensitivity':[{'targets':set([x.split("|")[-1] for x in self.targetOutputs]), 'features':set([x.split("|")[-1] for x in self.targetParameters]),'prefix':self.senPrefix}]}
     tartStat.initialize(runInfo, [self.targetDataObject[0]], initDict)
     self.stat[self.targetDataObject[-1]] = tartStat
 
@@ -144,13 +144,13 @@ class Representativity(ValidationBase):
     """
     super()._handleInput(paramInput)
     for child in paramInput.subparts:
-      if child.getName() == 'featureParameters':
-        self.featureParameters = child.value
+      if child.getName() == 'prototypeParameters':
+        self.prototypeParameters = child.value
       elif child.getName() == 'targetParameters':
         self.targetParameters = child.value
       elif child.getName() == 'targetPivotParameter':
         self.targetPivotParameter = child.value
-    _, notFound = paramInput.findNodesAndExtractValues(['featureParameters',
+    _, notFound = paramInput.findNodesAndExtractValues(['prototypeParameters',
                                                                'targetParameters'])
     # notFound must be empty
     assert(not notFound)
@@ -167,7 +167,7 @@ class Representativity(ValidationBase):
     names=[]
     if isinstance(inputIn['Data'][0][-1], xr.Dataset):
       names = [self.getDataSetName(inp[-1]) for inp in inputIn['Data']]
-      if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
+      if len(inputIn['Data'][0][-1].indexes) > 1 and self.pivotParameter is None:
         if 'dynamic' not in self.dynamicType: #self.model.dataType:
           self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
         else:
@@ -193,52 +193,52 @@ class Representativity(ValidationBase):
     # # ## Analysis:
     # # 1. Compute mean and variance:
     # For mock model
-    self._computeMoments(datasets[0], self.featureParameters, self.features)
-    measurableNames = [s.split("|")[-1] for s in self.features]
+    self._computeMoments(datasets[0], self.prototypeParameters, self.prototypeOutputs)
+    measurableNames = [s.split("|")[-1] for s in self.prototypeOutputs]
     measurables = [datasets[0][var].meanValue for var in measurableNames]
     # For target model
-    self._computeMoments(datasets[1], self.targetParameters, self.targets)
-    FOMNames = [s.split("|")[-1] for s in self.targets]
+    self._computeMoments(datasets[1], self.targetParameters, self.targetOutputs)
+    FOMNames = [s.split("|")[-1] for s in self.targetOutputs]
     FOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMNames]).reshape(-1,1)
     # # 2. Propagate error from parameters to experiment and target outputs.
     # For mock model
-    self._computeErrors(datasets[0],self.featureParameters, self.features)
-    measurableErrorNames = ['err_' + s.split("|")[-1] for s in self.features]
-    FOMErrorNames = ['err_' + s.split("|")[-1] for s in self.targets]
+    self._computeErrors(datasets[0],self.prototypeParameters, self.prototypeOutputs)
+    measurableErrorNames = ['err_' + s.split("|")[-1] for s in self.prototypeOutputs]
+    FOMErrorNames = ['err_' + s.split("|")[-1] for s in self.targetOutputs]
     self._computeMoments(datasets[0], measurableErrorNames, measurableErrorNames)
     UMeasurables = np.atleast_2d([datasets[0][var].meanValue for var in measurableErrorNames]).reshape(-1,1)
     # For target model
-    self._computeErrors(datasets[1],self.targetParameters, self.targets)
+    self._computeErrors(datasets[1],self.targetParameters, self.targetOutputs)
     self._computeMoments(datasets[1], FOMErrorNames, FOMErrorNames)
     UFOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMErrorNames]).reshape(-1,1)
     # # 3. Compute mean and variance in the error space:
-    self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters],['err_' + s2.split("|")[-1] for s2 in self.features])
-    self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targets])
+    self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters],['err_' + s2.split("|")[-1] for s2 in self.prototypeOutputs])
+    self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targetOutputs])
     # # 4. Compute Uncertainties in parameters
-    UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.featureParameters])
+    UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters])
     # # 5. Compute Uncertainties in outputs
     # Outputs of Mock model (Measurables F_i)
-    UMeasurablesVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.features])
+    UMeasurablesVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeOutputs])
     # Outputs of Target model (Targets FOM_i)
-    UFOMsVar = self._computeUncertaintyMatrixInErrors(datasets[1],['err_' + s.split("|")[-1] for s in self.targets])
+    UFOMsVar = self._computeUncertaintyMatrixInErrors(datasets[1],['err_' + s.split("|")[-1] for s in self.targetOutputs])
     # # 6. Compute Normalized Uncertainties
     # In mock experiment outputs (measurables)
     sens = self.stat[self.featureDataObject[-1]].run({"Data":[[None, None, datasets[self.featureDataObject[-1]]]]})
     # normalize sensitivities
-    senMeasurables = self._generateSensitivityMatrix(self.features, self.featureParameters, sens, datasets[0])
+    senMeasurables = self._generateSensitivityMatrix(self.prototypeOutputs, self.prototypeParameters, sens, datasets[0])
     # In target outputs (FOMs)
     sens = self.stat[self.targetDataObject[-1]].run({"Data":[[None, None, datasets[self.targetDataObject[-1]]]]})
     # normalize sensitivities
-    senFOMs = self._generateSensitivityMatrix(self.targets, self.targetParameters, sens, datasets[1])
+    senFOMs = self._generateSensitivityMatrix(self.targetOutputs, self.targetParameters, sens, datasets[1])
     # # 7. Compute representativities
     r,rExact = self._calculateBiasFactor(senMeasurables, senFOMs, UparVar, UMeasurablesVar)
     # # 8. Compute corrected Uncertainties
     UtarVarTilde = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UparVar,r)
     UtarVarTildeExact = self._calculateCovofTargetErrorsfromBiasFactor(senFOMs,UparVar,rExact)
     # # 9 Compute Corrected Targets,
-    # for var in self.targets:
+    # for var in self.targetOutputs:
     #   self._getDataFromDatasets(datasets, var, names=None)
-    parametersNames = [s.split("|")[-1] for s in self.featureParameters]
+    parametersNames = [s.split("|")[-1] for s in self.prototypeParameters]
     par = np.atleast_2d([datasets[0][var].meanValue for var in parametersNames]).reshape(-1,1)
     correctedTargets, correctedTargetCovariance, correctedTargetErrorCov, UtarVarTilde_no_Umes_var, Inner1 = self._targetCorrection(FOMs, UparVar, UMeasurables, UMeasurablesVar, senFOMs, senMeasurables)
     correctedParameters, correctedParametersCovariance = self._parameterCorrection(par, UparVar, UMeasurables, UMeasurablesVar, senMeasurables)
@@ -258,10 +258,10 @@ class Representativity(ValidationBase):
       ExactUncertaintyinCorrectedTargets:$TarTildeVar \in \mathbb{R}^{F \times F}$
     """
     outs = {}
-    for i,param in enumerate(self.featureParameters):
+    for i,param in enumerate(self.prototypeParameters):
       name4 = "CorrectedParameters_{}".format(param.split("|")[-1])
       outs[name4] = correctedParameters[i]
-      for j, param2 in enumerate(self.featureParameters):
+      for j, param2 in enumerate(self.prototypeParameters):
         if param == param2:
           name5 = "VarianceInCorrectedParameters_{}".format(param.split("|")[-1])
           outs[name5] = correctedParametersCovariance[i,i]
@@ -269,15 +269,15 @@ class Representativity(ValidationBase):
           name6 = "CovarianceInCorrectedParameters_{}_{}".format(param.split("|")[-1],param2.split("|")[-1])
           outs[name6] = correctedParametersCovariance[i,j]
 
-    for i,targ in enumerate(self.targets):
+    for i,targ in enumerate(self.targetOutputs):
       name3 = "CorrectedTargets_{}".format(targ.split("|")[-1])
       outs[name3] = correctedTargets[i]
-      for j,feat in enumerate(self.features):
+      for j,feat in enumerate(self.prototypeOutputs):
         name1 = "BiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
         name2 = "ExactBiasFactor_Mock{}_Tar{}".format(feat.split("|")[-1], targ.split("|")[-1])
         outs[name1] = r[i,j]
         outs[name2] = rExact[i,j]
-      for k,tar in enumerate(self.targets):
+      for k,tar in enumerate(self.targetOutputs):
         if k == i:
           name3 = "CorrectedVar_Tar{}".format(tar.split("|")[-1])
           name4 = "ExactCorrectedVar_Tar{}".format(tar.split("|")[-1])

@@ -76,7 +76,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         self.measurements = child.value
     # Number of Features responses must equal to number of Measurements responses
     # Number of samples between Features and Measurements can be different
-    if len(self.features) != len(self.measurements):
+    if len(self.prototypeOutputs) != len(self.measurements):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Measurements"')
 
   def run(self, inputIn):
@@ -109,7 +109,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     msrData = []
     featPW = []
     msrPW = []
-    for feat, msr in zip(self.features, self.measurements):
+    for feat, msr in zip(self.prototypeOutputs, self.measurements):
       featDataProb = self._getDataFromDataDict(datasets, feat, names)
       msrDataProb = self._getDataFromDataDict(datasets, msr, names)
       # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
@@ -139,7 +139,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
     # For each Target/Application model/response, calculate an uncertainty reduction fraction
     # using all available Features/Experiments
-    for targ in self.targets:
+    for targ in self.targetOutputs:
       targDataProb = self._getDataFromDataDict(datasets, targ, names)
       # Data values in <x>Data, <x>=targ, feat, msr
       targData = targDataProb[0]

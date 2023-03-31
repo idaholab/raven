@@ -32,8 +32,8 @@
 
   <Models>
     <PostProcessor name="pp1" subType="Probabilistic">
-      <Features>simulation|ans</Features>
-      <Targets>experiment|ans2</Targets>
+      <prototypeOutputs>simulation|Output|ans</prototypeOutputs>
+      <targetOutputs>experiment|output|ans2</targetOutputs>
       <pivotParameter>time</pivotParameter>
       <Metric class="Metrics" type="Metric">cdf_diff</Metric>
       <Metric class="Metrics" type="Metric">pdf_area</Metric>

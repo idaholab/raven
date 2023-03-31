@@ -106,7 +106,7 @@ class Probabilistic(ValidationBase):
     """
     names = kwargs.get('dataobjectNames')
     outputDict = {}
-    for feat, targ in zip(self.features, self.targets):
+    for feat, targ in zip(self.prototypeOutputs, self.targetOutputs):
       featData = self._getDataFromDataDict(datasets, feat, names)
       targData = self._getDataFromDataDict(datasets, targ, names)
       for metric in self.metrics:
@@ -124,7 +124,7 @@ class Probabilistic(ValidationBase):
     """
     pw = None
     if "|" in var and names is not None:
-      do, feat =  var.split("|")
+      do, _, feat =  var.split("|")
       dat = datasets[do][feat]
     else:
       for doIndex, ds in enumerate(datasets):

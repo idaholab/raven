@@ -30,12 +30,10 @@
       <outputs>FOM1, FOM2, FOM3</outputs>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Representativity">
-      <Features>outputDataMC1|Output|F1, outputDataMC1|Output|F2, outputDataMC1|Output|F3</Features>
-      <Targets>outputDataMC2|Output|FOM1, outputDataMC2|Output|FOM2, outputDataMC2|Output|FOM3</Targets>
-      <featureParameters>outputDataMC1|Input|p1,outputDataMC1|Input|p2</featureParameters>
+      <prototypeOutputs>outputDataMC1|Output|F1, outputDataMC1|Output|F2, outputDataMC1|Output|F3</prototypeOutputs>
+      <targetOutputs>outputDataMC2|Output|FOM1, outputDataMC2|Output|FOM2, outputDataMC2|Output|FOM3</targetOutputs>
+      <prototypeParameters>outputDataMC1|Input|p1,outputDataMC1|Input|p2</prototypeParameters>
       <targetParameters>outputDataMC2|Input|p1,outputDataMC2|Input|p2</targetParameters>
-      <pivotParameter>outputDataMC1|time</pivotParameter>
-      <targetPivotParameter>outputDataMC2|time</targetPivotParameter>
     </PostProcessor>
   </Models>
 
