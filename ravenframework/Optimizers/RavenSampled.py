@@ -300,12 +300,14 @@ class RavenSampled(Optimizer):
     # # testing suggests no big deal on smaller problem
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
-    if self._minMax == 'max':
+
+    if 'max' in self._minMax:
       if not self._canHandleMultiObjective and len(self._objectiveVar) == 1:
         rlz[self._objectiveVar[0]] *= -1
       elif type(self._objectiveVar) == list:
         for i in range(len(self._objectiveVar)):
-          rlz[self._objectiveVar[i]] *= -1
+          if self._minMax[i] == 'max':
+            rlz[self._objectiveVar[i]] *= -1
       else:
         rlz[self._objectiveVar] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
@@ -323,7 +325,7 @@ class RavenSampled(Optimizer):
       bestValue = None
       bestTraj = None
       bestPoint = None
-      s = -1 if self._minMax == 'max' else 1
+      s = -1 if 'max' in self._minMax else 1
       # check converged trajectories
       self.raiseAMessage('*' * 80)
       self.raiseAMessage('Optimizer Final Results:')
@@ -432,7 +434,7 @@ class RavenSampled(Optimizer):
           key = list(opt.keys())
           val = [item[i] for item in opt.values()]
           optElm = {key[a]: val[a] for a in range(len(key))}
-          optVal = [s*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
+          optVal = [(-1*(self._minMax[b]=='max')+(self._minMax[b]=='min'))*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
 
           bestTraj = traj
           bestOpt = self.denormalizeData(optElm)
@@ -719,13 +721,13 @@ class RavenSampled(Optimizer):
     # optimal point input and output spaces
     if len(self._objectiveVar) == 1: # Single Objective Optimization
       objValue = rlz[self._objectiveVar[0]]
-      if self._minMax == 'max':
+      if 'max' in self._minMax:
         objValue *= -1
       toExport[self._objectiveVar[0]] = objValue
     else: # Multi Objective Optimization
       for i in range(len(self._objectiveVar)):
         objValue = rlz[self._objectiveVar[i]]
-        if self._minMax == 'max':
+        if self._minMax[i] == 'max':
           objValue *= -1
         toExport[self._objectiveVar[i]] = objValue
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))

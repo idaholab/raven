@@ -60,7 +60,7 @@
         <limit>2</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>min</type>
+        <type>min,min</type>
       </samplerInit>
 
       <GAparams>
