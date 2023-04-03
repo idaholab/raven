@@ -263,7 +263,9 @@ class Optimizer(AdaptiveSampler):
       if minMax is not None:
         self._minMax = minMax.value
         if len(self._minMax) != len(self._objectiveVar):
-          self.raiseAnError(IOError, 'minMax and objectiveVar must be of the same length!')
+          self.raiseAnError(IOError, 'type and objective must be of the same length!')
+        if list(set(self._minMax)-set(['min','max'])) != []:
+          self.raiseAnError(IOError, "type must be a list of 'min' and/or 'max'")
 
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
