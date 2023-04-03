@@ -71,7 +71,7 @@ class NDinterpolatorRom(SupervisedLearning):
     self.setInterpolator()
     #only train if the original copy was trained
     if self.amITrained:
-      self.__trainLocal__(self.featv,self.targv)
+      self._train(self.featv,self.targv)
 
   def setInterpolator(self):
     """
@@ -81,7 +81,7 @@ class NDinterpolatorRom(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.

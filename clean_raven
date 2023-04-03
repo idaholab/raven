@@ -19,7 +19,8 @@ rm -f ${RAVEN_DIR}/src/AMSC/_amsc*.so \
     ${RAVEN_DIR}/src/AMSC/amsc_wrap.cpp
 rm -Rf ${RAVEN_DIR}/build  \
    ${RAVEN_DIR}/crow/install/ \
-   ${RAVEN_DIR}/install/
+   ${RAVEN_DIR}/install/ \
+   ${RAVEN_DIR}/setup.cfg
 rm -f ${RAVEN_DIR}/src/crow_modules/*.so \
    ${RAVEN_DIR}/src/crow_modules/[dir]*.py \
    ${RAVEN_DIR}/src/crow_modules/*.cpp

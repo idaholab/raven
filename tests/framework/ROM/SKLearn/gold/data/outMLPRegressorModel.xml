@@ -1,7 +1,9 @@
 <DataObjectMetadata name="modelOut">
   <modelUnderTest type="Static">
     <ROM>
-      <type>SupervisedLearning</type>
+      <type>MLPRegressor</type>
+      <Features>X,Y</Features>
+      <Targets>Z</Targets>
       <coefs_>[[ 0.57866553 -0.14216937 -0.49877795  0.00708437 -0.69097522]
  [ 0.19793753 -0.72966728  0.16291997 -0.59780582  0.19012253]],[[ 0.55827053 -0.5684078 ]
  [ 0.38937298  0.55169136]

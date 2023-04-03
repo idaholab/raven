@@ -14,9 +14,6 @@
 """
   Specialized implementation of DataSet to accomodate outputs that share a pivot parameter (e.g. time)
 """
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import sys
 import copy
@@ -39,6 +36,9 @@ try:
   from .DataSet import DataSet
 except ValueError: #attempted relative import in non-package
   from DataSet import DataSet
+
+# name of the column containing history file names
+subFileName = "filename"
 
 # for profiling with kernprof
 try:
@@ -151,13 +151,8 @@ class HistorySet(DataSet):
     ## collect input space data
     for inp in self._inputs + self._inputMetaVars:
       data[inp] = main[inp].values
-    ## get the sampleTag values if they're present, in case it's not just range
-    if self.sampleTag in main:
-      labels = main[self.sampleTag].values
-    else:
-      labels = None
     # load subfiles for output spaces
-    subFiles = main['filename'].values
+    subFiles = main[subFileName].values
     # pre-build realization spots
     for out in self._outputs + self.indexes + self._outputMetaVars:
       data[out] = np.zeros(nSamples,dtype=object)
@@ -186,9 +181,12 @@ class HistorySet(DataSet):
     """
     with open(fileName+'.csv','r') as base:
       inputAvail = list(s.strip() for s in base.readline().split(','))
+      if not inputAvail.count(subFileName):
+        self.raiseAnError(IOError,f"Column containing history file names not found. Column "
+                          f"index must be named {subFileName}")
+      subFileIndex = inputAvail.index(subFileName)
       # get one of the subCSVs from the first row of data in the base file
-      # ASSUMES that filename is the last column.  Currently, there's no way for that not to be true.
-      subFile = base.readline().split(',')[-1].strip()
+      subFile = base.readline().split(',')[subFileIndex].strip()
       # check if abs path otherwise take the dirpath from the master file (fileName)
       if not os.path.isabs(subFile):
         subFile = os.path.join(os.path.dirname(fileName),subFile)
@@ -290,10 +288,10 @@ class HistorySet(DataSet):
     #### don't print directories in the file names, since the files are in that directory
     subFilesNames = np.array(list(os.path.split(s)[1] for s in subFiles),dtype=object)
     ### add column to dataset
-    column = self._collapseNDtoDataArray(subFilesNames,'filename',labels=data[self.sampleTag])
+    column = self._collapseNDtoDataArray(subFilesNames,subFileName,labels=data[self.sampleTag])
     inpData = inpData.assign(filename=column)
     ### also add column name to "ordered"
-    ordered += ['filename']
+    ordered += [subFileName]
     ### write CSV
     self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
