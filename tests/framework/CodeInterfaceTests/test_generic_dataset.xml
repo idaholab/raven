@@ -60,7 +60,7 @@
   <DataObjects>
     <DataSet name="samples">
       <Input>power, autoindex</Input>
-      <Output>x, y, z, temperature</Output>
+      <Output>x, y, z, temperature, prefix</Output>
       <Index var="autoindex" autogenerate="True">x, y, z, temperature</Index>
     </DataSet>
   </DataObjects>
