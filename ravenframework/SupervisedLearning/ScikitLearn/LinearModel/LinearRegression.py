@@ -49,7 +49,6 @@ class LinearRegression(ScikitLearnBase):
     self._vectorWriteList = ["coef_"]
     self._scalarWriteList = ["intercept_"]
 
-
   @classmethod
   def getInputSpecification(cls):
     """

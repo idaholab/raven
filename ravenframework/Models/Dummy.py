@@ -14,10 +14,6 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import copy
 import itertools
@@ -107,18 +103,19 @@ class Dummy(Model):
           for entries in dataIN.getVars('input')+dataIN.getVars('output'):
             localInput[entries] = copy.copy(dataSet[entries].values)
         elif dataIN.type == 'HistorySet':
-          sizeIndex = 0
-          for hist in range(len(dataIN)):
-            for indexes in dataIN.indexes+dataIN.getVars('output'):
-              if localInput[indexes] is None:
-                localInput[indexes] = []
-              localInput[indexes].append(dataSet.isel(RAVEN_sample_ID=hist)[indexes].values)
-              sizeIndex = len(localInput[indexes][-1])
-            for entries in dataIN.getVars('input'):
-              if localInput[entries] is None:
-                localInput[entries] = []
-              value = dataSet.isel(**{dataIN.sampleTag:hist})[entries].values
-              localInput[entries].append(np.full((sizeIndex,),value,dtype=value.dtype))
+          # Andrea Explanation
+          # This part of the code had to be speeded up
+          # For large dataset ~1000 variables, 50 histories this was taking almost ~1 hr
+          # I kept here "tolist" to keep compatibility but this
+          # is 100000 faster for large datasets
+          nsamples = len(dataSet.coords[dataIN.sampleTag])
+          for index in dataIN.indexes:
+            localInput[index] =  list(np.repeat(np.atleast_2d(dataSet[index].values), nsamples, axis=0))
+          sizeIndex = len(localInput[index][-1])
+          for o in dataIN.getVars('output'):
+            localInput[o] =  list(dataSet[o].values)
+          for entries in dataIN.getVars('input'):
+            localInput[entries] =  list(np.repeat(np.atleast_2d(dataSet[entries].values).T, sizeIndex, axis=1))
         elif dataIN.type == 'DataSet':
           for rlz in range(len(dataIN)):
             for index in dataIN.indexes:

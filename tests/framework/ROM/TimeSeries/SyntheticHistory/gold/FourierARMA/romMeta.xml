@@ -2,34 +2,36 @@
   <synth type="Static">
     <ROM>
       <type>SyntheticHistoryROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,pivot</Targets>
     </ROM>
     <Fourier>
       <signal0>
         <fit_intercept>4.188293437e+01</fit_intercept>
-        <waveform frequency="5.000000000e-01" period="2.000000000e+00">
+        <waveform period="2.000000000e+00" frequency="5.000000000e-01">
           <amplitude>8.095058198e+00</amplitude>
           <phase>-6.495269071e-03</phase>
         </waveform>
-        <waveform frequency="2.000000000e-01" period="5.000000000e+00">
+        <waveform period="5.000000000e+00" frequency="2.000000000e-01">
           <amplitude>1.028610269e+01</amplitude>
           <phase>7.869759505e-01</phase>
         </waveform>
-        <waveform frequency="1.000000000e-01" period="1.000000000e+01">
+        <waveform period="1.000000000e+01" frequency="1.000000000e-01">
           <amplitude>1.207943234e+01</amplitude>
           <phase>3.139679191e+00</phase>
         </waveform>
       </signal0>
       <signal1>
         <fit_intercept>4.178308186e+01</fit_intercept>
-        <waveform frequency="5.000000000e-01" period="2.000000000e+00">
+        <waveform period="2.000000000e+00" frequency="5.000000000e-01">
           <amplitude>7.833859547e+00</amplitude>
           <phase>9.669410018e-03</phase>
         </waveform>
-        <waveform frequency="2.000000000e-01" period="5.000000000e+00">
+        <waveform period="5.000000000e+00" frequency="2.000000000e-01">
           <amplitude>9.813097554e+00</amplitude>
           <phase>7.534510925e-01</phase>
         </waveform>
-        <waveform frequency="1.000000000e-01" period="1.000000000e+01">
+        <waveform period="1.000000000e+01" frequency="1.000000000e-01">
           <amplitude>1.196698300e+01</amplitude>
           <phase>3.118624020e+00</phase>
         </waveform>
@@ -37,22 +39,22 @@
     </Fourier>
     <ARMA>
       <signal0>
-        <constant>7.234090786e-03</constant>
-        <AR_0>2.976565848e-01</AR_0>
-        <AR_1>2.312423177e-01</AR_1>
-        <MA_0>2.950216449e-01</MA_0>
-        <MA_1>1.291025328e-01</MA_1>
-        <MA_2>1.513012124e-01</MA_2>
+        <constant>7.234090799e-03</constant>
+        <AR_0>2.976565851e-01</AR_0>
+        <AR_1>2.312423174e-01</AR_1>
+        <MA_0>2.950216446e-01</MA_0>
+        <MA_1>1.291025329e-01</MA_1>
+        <MA_2>1.513012125e-01</MA_2>
         <variance>5.611933985e-01</variance>
       </signal0>
       <signal1>
-        <constant>4.832166974e-03</constant>
+        <constant>4.832166618e-03</constant>
         <AR_0>4.679211501e-01</AR_0>
-        <AR_1>2.694770880e-01</AR_1>
-        <MA_0>2.866933682e-02</MA_0>
-        <MA_1>1.667744499e-02</MA_1>
-        <MA_2>1.382157575e-02</MA_2>
-        <variance>5.642030944e-01</variance>
+        <AR_1>2.694770881e-01</AR_1>
+        <MA_0>2.866933674e-02</MA_0>
+        <MA_1>1.667744479e-02</MA_1>
+        <MA_2>1.382157544e-02</MA_2>
+        <variance>5.642030945e-01</variance>
       </signal1>
     </ARMA>
   </synth>

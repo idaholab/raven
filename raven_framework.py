@@ -19,8 +19,7 @@ Created on Feb 14, 2022
 
 This is a package that properly imports Driver and runs it.
 """
-import re
 import sys
 from ravenframework.Driver import main
 if __name__ == '__main__':
-    sys.exit(main(True))
+  sys.exit(main(True))

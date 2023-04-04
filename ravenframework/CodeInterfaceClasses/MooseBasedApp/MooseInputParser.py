@@ -91,6 +91,7 @@ def getpotToInputTree(getpot):
           parentNodes.append(currentNode)
         currentNode = TreeStructure.InputNode(tag=line.strip('[]./'))
         closeEntry = False
+
       #------------------
       # closing node
       elif line.startswith(('[../]', '[]')):
