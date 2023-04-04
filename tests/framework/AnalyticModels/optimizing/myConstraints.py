@@ -102,7 +102,7 @@ def impConstr3(Input):
     The implicit constraint involves variables from the output space, for example the objective variable or
     a dependent variable that is not in the optimization search space
     @ In, Input, object, RAVEN container
-    @ out, g, float, implicit constraint 3 evaluation function
+    @ out, g, float, implicit constraint #3 evaluation function
   """
   g = 100 - Input.obj1
   return g
