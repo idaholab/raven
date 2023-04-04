@@ -63,9 +63,8 @@ Note all install methods after "main" take
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
-    <!--
     <ray source="pip" pip_extra="[default]" os='mac,linux'>2.2</ray>
-    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray> -->
+    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio>2.22</imageio>

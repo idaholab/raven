@@ -7,7 +7,7 @@
     <classesTested>JobHandler.ParallelPython, Models.ExternalModel</classesTested>
     <description>
        This test is aimed to check the functionality of the RAVEN parallelization scheme for Internal Objects.
-       In this case the functionality of the parallelization is tested for the Model External Model with dask
+       In this case the functionality of the parallelization is tested for the Model External Model with ray
     </description>
     <revisions>
       <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -> samplerInit</revision>
@@ -20,10 +20,10 @@
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
-    <WorkingDir>InternalParallelExtModel</WorkingDir>
+    <WorkingDir>InternalParallelExtModelRay</WorkingDir>
     <Sequence>ParalleMonteCarlo</Sequence>
     <batchSize>4</batchSize>
-    <parallelMethod>dask</parallelMethod>
+    <parallelMethod>ray</parallelMethod>
   </RunInfo>
 
   <!-- STEPS -->

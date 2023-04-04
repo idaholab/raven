@@ -45,7 +45,7 @@ class Object(object):
   pass
 
 #Enum of the parallel libraries we support
-ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp'])
+ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared'])
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):
