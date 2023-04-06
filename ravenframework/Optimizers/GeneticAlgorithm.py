@@ -593,6 +593,8 @@ class GeneticAlgorithm(RavenSampled):
 
           ##############################################################################
           objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
+          ##TODO: remove all the plots and maybe design new plots in outstreams if our current cannot be used
+          ## These are currently for debugging purposes
           import matplotlib.pyplot as plt
           # JY: Visualization: all points - This code block needs to be either deleted or revisited.
           plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
@@ -604,11 +606,11 @@ class GeneticAlgorithm(RavenSampled):
           plt.ylim(0,6)
           plt.title(str('Iteration ' + str(self.counter-1)))
 
-          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0],
-                   np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,1],'*')
-          for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[:,0])):
-            plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,0],
-                     np.array(list(zip(self._optPointHistory[traj][-1][0]['obj1'], self._optPointHistory[traj][-1][0]['obj2'])))[i,1], str(self.batchId-1))
+          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0],
+                   np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,1],'*')
+          for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0])):
+            plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,0],
+                     np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,1], str(self.batchId-1))
           # plt.pause()
           ##############################################################################
 
@@ -810,6 +812,8 @@ class GeneticAlgorithm(RavenSampled):
                           coords={'chromosome':np.arange(np.shape(objVal)[0]),
                                   'obj': self._objectiveVar})
     if self._writeSteps == 'every':
+      print("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
+      print("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         for j in range(len(self._objectiveVar)):
