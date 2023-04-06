@@ -77,7 +77,7 @@ class DataSet(DataObject):
     """
     inputSpecification = super(DataSet,cls).getInputSpecification()
 
-    # TODO this should be specific to ND set
+    # this is specific to DataSet
     indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
     indexInput.addParam('var',InputTypes.StringType,True)
     indexInput.addParam('autogenerate',InputTypes.BoolType,descr="If true, autogenerate this index")
