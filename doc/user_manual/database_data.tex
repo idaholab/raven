@@ -193,6 +193,10 @@ For the \xmlNode{HistorySet}, all inputs must be scalar, and all outputs must sh
 \textit{pivotParameter}.  There cannot be scalars in any of the outputs. The pivotParameter can be changed
 through the corresponding node in the \xmlNode{options} node.
 
+RAVEN automatically creates a \texttt{prefix} in the output space
+that is used to generate the directory name for sampling and other
+purposes. A user can also add \texttt{prefix} explicitly to the
+variables in the object if it is useful to keep this information.
 
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
