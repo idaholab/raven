@@ -543,4 +543,3 @@ class SimulateData:
           index=index+1
     numpy.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
     fileObject.close()
-
