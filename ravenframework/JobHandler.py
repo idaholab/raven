@@ -472,6 +472,28 @@ class JobHandler(BaseType):
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
 
+  def __removeLibPythonFromPath(self, pythonPath):
+    """
+      Method to remove the python library from the path (which can cause
+      problems with different python version)
+      @ In, pythonPath, string, the original python path
+      @ Out, pythonPath, string, the python path with lib.python removed.
+    """
+    if re.search("lib.python", pythonPath):
+      #strip out python libraries from path
+      #XXX ideally, this would have a way to tell if
+      # the paths we are stripping are the real builtin python paths
+      # instead of just using a regular expression
+      splitted=pythonPath.split(os.pathsep)
+      newpath = []
+      for part in splitted:
+        if not re.search("lib.python", part):
+          newpath.append(part)
+        else:
+          self.raiseADebug(f"removepath: {part}")
+      return os.pathsep.join(newpath)
+    return pythonPath
+
   def __runRemoteListeningSockets(self, address, localHostName):
     """
       Method to activate the remote sockets for parallel python
@@ -528,7 +550,7 @@ class JobHandler(BaseType):
                      self.runInfoDict['RemoteRunCommand'],
                      self.runInfoDict['WorkingDir']]
           self.raiseADebug("command is: "+" ".join(command))
-          command.append(localEnv["PYTHONPATH"])
+          command.append(self.__removeLibPythonFromPath(localEnv["PYTHONPATH"]))
           utils.pickleSafeSubprocessPopen(command, env=localEnv)
         ## update list of servers
         servers.append(nodeId)
