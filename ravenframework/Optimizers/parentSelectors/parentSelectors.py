@@ -78,6 +78,9 @@ def rouletteWheel(population,**kwargs):
     fitness = np.delete(fitness,counter,axis=0)
   return selectedParent
 
+def countConstViolation(const):
+  return sum(1 for i in const if i < 0)
+
 def tournamentSelection(population,**kwargs):
   """
     Tournament Selection mechanism for parent selection
@@ -88,21 +91,25 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness']
+
   nParents= kwargs['nParents']
   pop = population
   popSize = population.values.shape[0]
 
-  if 'rank' in kwargs:
+  if 'rank' in kwargs.keys():
     # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
     rank = kwargs['rank']
+    crowdDistance = kwargs['crowdDistance']
+    constraintInfo = kwargs['constraint']
     multiObjectiveRanking = True
-    matrixOperationRaw = np.zeros((popSize,3))
+    matrixOperationRaw = np.zeros((popSize, 4))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
-    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,1] = np.transpose(crowdDistance.data)
     matrixOperationRaw[:,2] = np.transpose(rank.data)
-    matrixOperation = np.zeros((popSize,3))
+    matrixOperationRaw[:,3] = np.transpose(constraintInfo.data)
+    matrixOperation = np.zeros((popSize,len(matrixOperationRaw[0])))
   else:
+    fitness = kwargs['fitness']
     multiObjectiveRanking = False
     matrixOperationRaw = np.zeros((popSize,2))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
@@ -118,30 +125,32 @@ def tournamentSelection(population,**kwargs):
   for idx, val in enumerate(indexesShuffled):
     matrixOperation[idx,:] = matrixOperationRaw[val,:]
 
-  selectedParent = xr.DataArray(
-    np.zeros((nParents,np.shape(pop)[1])),
-    dims=['chromosome','Gene'],
-    coords={'chromosome':np.arange(nParents),
-            'Gene': kwargs['variables']})
+  selectedParent = xr.DataArray(np.zeros((nParents,np.shape(pop)[1])),
+                                dims=['chromosome','Gene'],
+                                coords={'chromosome':np.arange(nParents),
+                                        'Gene': kwargs['variables']})
 
-  if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
+  if not multiObjectiveRanking:    # single-objective implementation of tournamentSelection
     for i in range(nParents):
       if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
         index = int(matrixOperation[2*i,0])
       else:
         index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
-  else: # multi-objective implementation of tournamentSelection
-    for i in range(nParents-1):
-      if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i,0])
-      elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i+1,0])
-      else: # same rank case
-        if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-          index = int(matrixOperation[i,0])
-        else:
-          index = int(matrixOperation[i+1,0])
+  else:                            # multi-objective implementation of tournamentSelection
+    for i in range(nParents):
+      if      matrixOperation[2*i,3] > matrixOperation[2*i+1,3]:  index = int(matrixOperation[2*i+1,0])
+      elif    matrixOperation[2*i,3] < matrixOperation[2*i+1,3]:  index = int(matrixOperation[2*i,0])
+      elif    matrixOperation[2*i,3] == matrixOperation[2*i+1,3]:  # if same number of constraints violations
+        if    matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
+          index = int(matrixOperation[2*i+1,0])
+        elif  matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
+          index = int(matrixOperation[2*i,0])
+        else: # same number of constraints and same rank case
+          if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+            index = int(matrixOperation[2*i,0])
+          else:
+            index = int(matrixOperation[2*i+1,0])
       selectedParent[i,:] = pop.values[index,:]
 
   return selectedParent
