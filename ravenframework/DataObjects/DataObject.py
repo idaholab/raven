@@ -51,11 +51,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     outputInput = InputData.parameterInputFactory('Output', contentType=InputTypes.StringType) #TODO list
     inputSpecification.addSub(outputInput)
 
-    # TODO this should be specific to ND set
-    indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
-    indexInput.addParam('var',InputTypes.StringType,True)
-    inputSpecification.addSub(indexInput)
-
     optionsInput = InputData.parameterInputFactory("options")
     for option in ['operator','pivotParameter']:
       optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.StringType)
@@ -140,6 +135,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
         depends = list(d.strip() for d in child.value.split(','))
         var = child.parameterValues['var']
         self._pivotParams[var] = depends
+        if 'autogenerate' in child.parameterValues and child.parameterValues['autogenerate']:
+          self._autogenerate.add(var)
       # options node
       elif child.getName() == 'options':
         duplicateInp = False # if True, then multiple specification options were used for input
