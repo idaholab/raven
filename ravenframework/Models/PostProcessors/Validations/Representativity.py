@@ -395,11 +395,36 @@ class Representativity(ValidationBase):
       @ Out, r, np.array, the representativity (bias factor) matrix neglecting uncertainties in measurables
       @ Out, rExact, np.array, the representativity (bias factor) matrix considering uncertainties in measurables
     """
+
+
+    UmesVar_r = np.array([[ 0.03603028, 0.01503859, 0.00722245], [ 0.01503859, 0.00766866, 0.00507709], [ 0.00722245, 0.00507709, 0.00424897]])
+    normalizedSenTar_r = np.array([[-0.86540007, 1.86540007], [ 0.08002442, 0.91997558], [ 0.41033666, 0.58966334]])
+    normalizedSenExp_r = np.array([[-0.80794013, 1.80794013], [ 0.07731272, 0.92268728], [ 0.40131466, 0.59868534]])
+    UparVar_r=np.array([[ 0.00774389, -0.00049797], [-0.00049797, 0.00903588]])
+    r_r = np.array([[ 0.95693156, 0.16791481, -0.12086468], [ 0.15894451, 0.37959475, 0.46035267], [-0.11985607, 0.45355145, 0.66341829]])
+    rE_r = np.array([[ 0.67739381, 0.11855779, -0.08918473], [ 0.1120806 , 0.2671181 , 0.3267284 ], [-0.08542844, 0.31902209, 0.47204009]])
     if UmesVar is None:
       UmesVar = np.zeros((len(normalizedSenExp), len(normalizedSenExp)))
     # Compute representativity (#eq 79)
     r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T))).real
     rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
+    print('UmesVar', UmesVar)
+    print('normalizedSenExp',normalizedSenExp)
+    print("normalizedSenTar",normalizedSenTar)
+    print("UparVar", UparVar)
+    print('r',r )
+    print('rExact', rExact)
+    exp = sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T)
+    tar = sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)
+    print('Exp cond: sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T)', np.linalg.cond(exp))
+    print('Tar cond: sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)', np.linalg.cond(tar))
+    print('UmesVar Error', UmesVar-UmesVar_r)
+    print('normalizedSenExp Error',normalizedSenExp-normalizedSenExp_r)
+    print("normalizedSenTar Error",normalizedSenTar-normalizedSenTar_r)
+    print("UparVar Error", UparVar-UparVar_r)
+    print('r Error',r -r_r)
+    print('rExact Error', rExact-rE_r)
+
     return r, rExact
 
   def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
