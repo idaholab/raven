@@ -68,6 +68,7 @@
     <MonteCarlo name="TargetMCSampler">
       <samplerInit>
         <limit>100</limit>
+        <initialSeed>2019</initialSeed>
       </samplerInit>
       <variable name="p1">
         <distribution>dist1</distribution>
