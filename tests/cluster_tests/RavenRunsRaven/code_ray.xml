@@ -7,7 +7,7 @@
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
        Tests running the RAVEN-runs-RAVEN interface on a Code model that reads an
-       auxiliary file (for path testing) with parallel both in the OUTER and INNER
+       auxiliary file (for path testing) with parallel both in the OUTER and INNER with dask.
     </description>
     <revisions>
       <revision author="alfoa" date="2021-04-21">Modified test to add test the internalParallel with outer initialization (RAY) and inner usage (using the new
@@ -18,7 +18,7 @@
 
   <RunInfo>
     <JobName>RrR_Code_o</JobName>
-    <WorkingDir>Code</WorkingDir>
+    <WorkingDir>CodeRay</WorkingDir>
     <Sequence>sample, print</Sequence>
     <batchSize>8</batchSize>
     <NumMPI>8</NumMPI>
@@ -31,7 +31,7 @@
     <clusterParameters>-P ops_gen -j oe</clusterParameters>
     <NodeParameter>--hostfile</NodeParameter>
     <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
-    <internalParallel>True</internalParallel>
+    <parallelMethod>ray</parallelMethod>
   </RunInfo>
 
   <Steps>
