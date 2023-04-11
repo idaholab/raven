@@ -535,14 +535,14 @@ class GeneticAlgorithm(RavenSampled):
           else:
             g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
-      Fitness     = np.zeros((len(offSprings), 1))
-      for i in range(len(Fitness)):
-        Fitness[i] = countConstViolation(g.data[i])
-      Fitness = [item for sublist in Fitness.tolist() for item in sublist]
+      fitness     = np.zeros((len(offSprings), 1))
+      for i in range(len(fitness)):
+        fitness[i] = countConstViolation(g.data[i])
+      fitness = [item for sublist in fitness.tolist() for item in sublist]
 
-      Fitness = xr.DataArray(Fitness,
+      fitness = xr.DataArray(fitness,
                              dims=['NumOfConstraintViolated'],
-                             coords={'NumOfConstraintViolated':np.arange(np.shape(Fitness)[0])})
+                             coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
 
       # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -576,7 +576,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                                popObjectiveVal=self.objectiveVal,
                                                                                offObjectiveVal=objectiveVal,
                                                                                popConst = self.constraints,
-                                                                               offConst = Fitness,
+                                                                               offConst = fitness,
                                                                                popConstV = self.constraintsV,
                                                                                offConstV = g
                                                                               )
@@ -616,7 +616,7 @@ class GeneticAlgorithm(RavenSampled):
 
         else:
           self.population = offSprings
-          self.constraints = Fitness
+          self.constraints = fitness
           self.constraintsV = g
           self.rank, self.crowdingDistance = self._fitnessInstance(rlz,
                                                                    objVals = self._objectiveVar
@@ -625,6 +625,13 @@ class GeneticAlgorithm(RavenSampled):
           for i in range(len(self._objectiveVar)):
             self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
+          self._collectOptPointMulti(self.population,
+                                     self.rank,
+                                     self.crowdingDistance,
+                                     self.objectiveVal,
+                                     self.constraints,
+                                     self.constraintsV)
+          self._resolveNewGenerationMulti(traj, rlz, info)
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
 
