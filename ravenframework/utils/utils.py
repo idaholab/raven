@@ -32,7 +32,6 @@ import shutil
 import inspect
 import subprocess
 import platform
-import enum
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -44,8 +43,13 @@ class Object(object):
   """
   pass
 
-#Enum of the parallel libraries we support
-ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared'])
+try:
+  import enum
+  #Enum of the parallel libraries we support
+  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared'])
+except ImportError:
+  print("unable to import enum")
+
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):
