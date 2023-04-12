@@ -822,7 +822,10 @@ class GeneticAlgorithm(RavenSampled):
       print("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
       print("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
+        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+
+        # rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         for j in range(len(self._objectiveVar)):
           rlzDict[self._objectiveVar[j]] = objVal.data[i][j]
         rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
