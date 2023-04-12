@@ -602,8 +602,8 @@ class GeneticAlgorithm(RavenSampled):
           # JY: Visualization: optimal points only - This code block needs to be either deleted or revisited.
           # plt.xlim(75,100)
           # plt.ylim(5,20)
-          plt.xlim(0,1)
-          plt.ylim(0,6)
+          # plt.xlim(0,1)
+          # plt.ylim(0,6)
           plt.title(str('Iteration ' + str(self.counter-1)))
 
           plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0],
@@ -611,7 +611,7 @@ class GeneticAlgorithm(RavenSampled):
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,0],
                      np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,1], str(self.batchId-1))
-          # plt.pause()
+          plt.savefig('PF.png')
           ##############################################################################
 
         else:
@@ -830,6 +830,9 @@ class GeneticAlgorithm(RavenSampled):
         rlzDict['fitness'] = np.atleast_1d(self.constraints.data)[i]
         for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
           rlzDict['ConstraintEvaluation_'+consName] = self.constraintsV.data[i,ind]
+        for var in set(rlz.keys())-set(rlzDict.keys()):
+          if var not in ['batchId','prefix'] and not var.__contains__('Prob'):
+            rlzDict[var] = rlz[var]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     # decide what to do next

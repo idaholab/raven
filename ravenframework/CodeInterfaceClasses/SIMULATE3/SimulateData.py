@@ -514,10 +514,13 @@ class SimulateData:
     print(FAcount)
     #stop
     #Considering that: FA type 0 is empty, type 1 reflector, type 2 2% enrichment, types 3 and 4 2.5% enrichment, and types 5 and 6 3.2% enrichment. The cost of burnable is not being considered
-    fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*4.94262343 + (FAcount[3] + FAcount[4])*5.67862599 + (FAcount[5] + FAcount[6])*6.7274349
+    if len(FAcount) == 7:
+      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*4.94262343 + (FAcount[3] + FAcount[4])*5.67862599 + (FAcount[5] + FAcount[6])*6.7274349
+    else:
+      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*4.94262343 + (FAcount[3] + FAcount[4])*5.67862599 + (FAcount[5])*6.7274349
     print(fuel_cost)
     #fuel_type.append(float(search_space))
-    #stop        
+    #stop
     if not fuel_cost:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
