@@ -611,7 +611,7 @@ class GeneticAlgorithm(RavenSampled):
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,0],
                      np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,1], str(self.batchId-1))
-          plt.savefig('PF.png')
+            plt.savefig('PF'+str(i)+'.png')
           ##############################################################################
 
         else:
@@ -833,15 +833,14 @@ class GeneticAlgorithm(RavenSampled):
         rlzDict['fitness'] = np.atleast_1d(self.constraints.data)[i]
         for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
           rlzDict['ConstraintEvaluation_'+consName] = self.constraintsV.data[i,ind]
-        for var in set(rlz.keys())-set(rlzDict.keys()):
-          if var not in ['batchId','prefix'] and not var.__contains__('Prob'):
-            rlzDict[var] = rlz[var]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
       bestRlz = {}
+      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+      bestRlz = dict((var,np.atleast_1d(rlz[var].data)) for var in set(varList) if var in rlz.data_vars)
       for i in range(len(self._objectiveVar)):
         bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
       bestRlz['fitness'] = self.multiBestFitness
