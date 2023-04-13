@@ -611,7 +611,7 @@ class GeneticAlgorithm(RavenSampled):
           for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0])):
             plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,0],
                      np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,1], str(self.batchId-1))
-            plt.savefig('PF'+str(i)+'.png')
+            plt.savefig('PF'+str(i)+'_'+str(self.counter-1)+'.png')
           ##############################################################################
 
         else:

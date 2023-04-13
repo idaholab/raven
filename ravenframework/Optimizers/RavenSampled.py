@@ -408,7 +408,7 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
 
-      if type(self._objectiveVar) == str:
+      if len(self._objectiveVar) == 1:
         opt = self._optPointHistory[traj][-1][0]
         val = opt[self._objectiveVar]
         self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
@@ -576,7 +576,7 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    if type(self._objectiveVar) == str:
+    if len(self._objectiveVar) == 1:
       oldVal = normed[self._objectiveVar]
     else:
       oldVal = normed[self._objectiveVar[0]]
@@ -650,7 +650,7 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      if type(self._objectiveVar) == str:
+      if len(self._objectiveVar) == 1:
         oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
       else:
         oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
