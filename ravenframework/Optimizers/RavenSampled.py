@@ -576,10 +576,7 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    if len(self._objectiveVar) == 1:
-      oldVal = normed[self._objectiveVar]
-    else:
-      oldVal = normed[self._objectiveVar[0]]
+    oldVal = normed[self._objectiveVar[0]]
     normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
     denormed[self._objectiveVar[0]] = oldVal
@@ -651,7 +648,7 @@ class RavenSampled(Optimizer):
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
       if len(self._objectiveVar) == 1:
-        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
+        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       else:
         oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       newAvg = ((N-1)*oldVal + optVal) / N
