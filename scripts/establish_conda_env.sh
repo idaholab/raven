@@ -243,6 +243,12 @@ function display_usage()
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
 	echo ''
+        echo '    --mamba'
+        echo '      Use mamba instead of conda for package installation'
+        echo ''
+        echo '    --no-mamba'
+        echo '      Do not use mamba for package installation.'
+        echo ''
 	echo '    --proxy <proxy>'
 	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
@@ -315,7 +321,7 @@ else
     INSTALL_MANAGER="$INSTALLATION_MANAGER"
 fi
 PROXY_COMM="" # proxy is none
-USE_MAMBA=TRUE # Use Mamba for installation
+USE_MAMBA=FALSE # Use Mamba for installation
 
 # parse command-line arguments
 while test $# -gt 0
