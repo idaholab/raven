@@ -107,7 +107,6 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
-    echo USE_MAMBA $USE_MAMBA
     if [[ $USE_MAMBA == TRUE ]]; then
         conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
         activate_env
@@ -174,7 +173,6 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 && $WORKING_PYTHON_COMMAND != $PYTHON_COMMAND ]]; then
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
-    echo USE_MAMBA $USE_MAMBA
     if [[ $USE_MAMBA == TRUE ]]; then
         echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
         conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
