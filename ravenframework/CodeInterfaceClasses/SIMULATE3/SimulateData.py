@@ -213,7 +213,7 @@ class SimulateData:
     if not list_:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
-      outputDict = {'info_ids':['MaxEFPD'], 'values': [float(1/list_[-1])]}
+      outputDict = {'info_ids':['MaxEFPD'], 'values': [float(list_[-1])]}
 
     return outputDict
 
