@@ -41,4 +41,11 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_gate_pcm_TdepSeth]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_pcm_TdepSeth.xml'
+    csv = 'PhysicsGuidedCoverageMapping/pcmTdep_results.csv PhysicsGuidedCoverageMapping/pcmTdep_results_0.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
 []
