@@ -18,13 +18,10 @@
         Here, temperatures from one timestep in SETH-C are used as experiemnt responses (Features);
         temperatures from the corresponding timestep in SETH-D are used as application responses (Target)
         The output is a fraction value reflecting the uncertainty reduction fraction 
-        using Feature to validate Target comparing to the Target prior, 
+        of Target Posterior comparing to the Target prior, 
         which includes uncertainty reductions along timesteps 
-        and has two columns:'time' and 'pri_post_stdReduct'.
+        and has two columns:'timeSnapshot' and 'snapshot_pri_post_stdReduct'.
     </description>
-    <revisions>
-      <revision author="syin" date="2023-01-11">...</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
@@ -33,7 +30,7 @@
 
   <Models>
     <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
-      <pivotParameter>time</pivotParameter>
+      <pivotParameter>timeSnapshot</pivotParameter>
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
@@ -62,26 +59,26 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>time</pivotParameter> 
+       <pivotParameter>timeSnapshot</pivotParameter> 
       </options>
       <Output>TempC</Output>     
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>timeSnapshot</pivotParameter> 
       </options>
       <Output>TempD</Output>     
     </HistorySet>      
     <HistorySet name="msr">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>timeSnapshot</pivotParameter> 
       </options>
       <Output>TempMsrC</Output>     
     </HistorySet>    
     <HistorySet name="pcmSnapshot_metric">
       <Input>InputPlaceHolder</Input>
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>timeSnapshot</pivotParameter> 
       </options>
       <Output>snapshot_pri_post_stdReduct</Output>
     </HistorySet>
