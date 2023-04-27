@@ -156,7 +156,7 @@ class DaskRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.__func = self.__client.submit(self.functionToRun, *self.args)
+      self.__func = self.__client.submit(self.functionToRun, *self.args, retries=0)
       self.trackTime('runner_started')
       self.started = True
       gc.collect()
