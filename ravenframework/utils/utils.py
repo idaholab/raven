@@ -48,7 +48,7 @@ try:
   #Enum of the parallel libraries we support
   ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared'])
 except ImportError:
-  print("unable to import enum")
+  ParallelLibEnum = "ParallelLibEnum is not available without enum"
 
 
 #custom errors
