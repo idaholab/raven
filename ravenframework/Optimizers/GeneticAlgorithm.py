@@ -78,6 +78,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None    # population fitness
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
+    self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -308,6 +309,7 @@ class GeneticAlgorithm(RavenSampled):
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     new['AHD'] = 'Hausdorff Distance between populations'
+    new['HDSM'] = 'Hausdorff Distance Similarity Measure between populations'
     new['ConstraintEvaluation_{CONSTRAINT}'] = 'Constraint function evaluation (negative if violating and positive otherwise)'
     ok.update(new)
 
@@ -602,6 +604,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None
     self.ahdp = np.NaN
     self.ahd = np.NaN
+    self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -609,6 +612,26 @@ class GeneticAlgorithm(RavenSampled):
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
+
+  def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
+    """
+      Utility method to update the solution export
+      @ In, traj, int, trajectory for this new point
+      @ In, rlz, dict, realized realization
+      @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
+      @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
+      @ Out, None
+    """
+    for i in range(rlz.sizes['RAVEN_sample_ID']):
+      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+      rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+      rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+      rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+      for ind, consName in enumerate(g['Constraint'].values):
+        rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
+      self._updateSolutionExport(traj, rlzDict, acceptable, None)
+
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
     """
       Store a new Generation after checking convergence
@@ -631,14 +654,8 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      for i in range(rlz.sizes['RAVEN_sample_ID']):
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
-        rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-        for ind, consName in enumerate(g['Constraint'].values):
-          rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
-        self._updateSolutionExport(traj, rlzDict, acceptable, None)
+      self._solutionExportUtilityUpdate(traj, rlz, fitness, g, acceptable)
+
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -1010,7 +1027,8 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
-             'AHD': self.ahd}
+             'AHD': self.ahd,
+             'HDSM': self.hdsm}
 
     for var, val in self.constants.items():
       toAdd[var] = val
