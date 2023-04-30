@@ -70,7 +70,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>100</limit>
+        <limit>400</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -92,6 +92,7 @@
 
       <convergence>
         <HDSM>0.99</HDSM>
+        <AHDp>5.0</AHDp>
       </convergence>
 
       <variable name="leftTemperature">
@@ -114,7 +115,7 @@
       <Optimizer      class="Optimizers"   type="GeneticAlgorithm" >GAopt</Optimizer>
       <SolutionExport class="DataObjects"  type="PointSet"         >opt_export</SolutionExport>
       <Output         class="DataObjects"  type="PointSet"         >metaModelOutputTest</Output>
-      <Output         class="OutStreams"   type="Print"            >metaModelOutputTestDump</Output>
+      <Output         class="OutStreams"   type="Print"            >opt_export</Output>
     </MultiRun>
   </Steps>
 
@@ -137,7 +138,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,solution</Output>
+      <Output>k,solution,age,batchId,fitness,iteration,accepted,AHDp,AHD,HDSM,conv_HDSM</Output>
     </PointSet>
   </DataObjects>
 
@@ -152,10 +153,9 @@
       <source>heatTransferContainer</source>
       <what>input,output</what>
     </Print>
-    <Print name="metaModelOutputTestDump">
+    <Print name="opt_export">
       <type>csv</type>
-      <source>metaModelOutputTest</source>
-      <what>input,output</what>
+      <source>opt_export</source>
     </Print>
   </OutStreams>
 
