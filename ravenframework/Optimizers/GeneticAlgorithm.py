@@ -71,6 +71,7 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None     # population age
     self.fitness = None    # population fitness
+    self.gParent = None    # Parent population g
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
     self.bestPoint = None
@@ -488,25 +489,30 @@ class GeneticAlgorithm(RavenSampled):
                                              constraintFunction=g,
                                              type=self._minMax)
 
-    self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
-
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                                             variables=list(self.toBeSampled),
-                                                                                             population=self.population,
-                                                                                             fitness=self.fitness,
-                                                                                             newRlz=rlz,
-                                                                                             offSpringsFitness=offSpringFitness,
-                                                                                             popObjectiveVal=self.objectiveVal)
+        self.population,self.fitness,age,self.objectiveVal,self.gParent = self._survivorSelectionInstance(age=self.popAge,
+                                                                                                          variables=list(self.toBeSampled),
+                                                                                                          population=self.population,
+                                                                                                          fitness=self.fitness,
+                                                                                                          newRlz=rlz,
+                                                                                                          offSpringsFitness=offSpringFitness,
+                                                                                                          popObjectiveVal=self.objectiveVal,
+                                                                                                          offObjectiveVal=objectiveVal,
+                                                                                                          offSpringsg = g,
+                                                                                                          parentg = self.gParent)
         self.popAge = age
+
       else:
         self.population = offSprings
         self.fitness = offSpringFitness
         self.objectiveVal = rlz[self._objectiveVar].data
+        self.gParent = g
+
+      self._collectOptPoint(rlz, self.population, self.fitness, self.objectiveVal, self.gParent)
+      self._resolveNewGeneration(traj, rlz, self.objectiveVal, self.fitness, self.gParent, info)
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
@@ -626,8 +632,9 @@ class GeneticAlgorithm(RavenSampled):
     if self._writeSteps == 'every':
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
+        rlzDict[self._objectiveVar] = np.atleast_1d(objectiveVal)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
         for ind, consName in enumerate(g['Constraint'].values):
           rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
@@ -645,7 +652,7 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
+  def _collectOptPoint(self, rlz, population, fitness, objectiveVal, g):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -653,13 +660,8 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-
-    varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
-    varList = set(varList)
-    selVars = [var for var in varList if var in rlz.data_vars]
-    population = datasetToDataArray(rlz, selVars)
     optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
-    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(population.Gene.data))
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
       point.update(gOfBest)

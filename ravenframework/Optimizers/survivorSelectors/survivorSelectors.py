@@ -96,23 +96,31 @@ def fitnessBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
-  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
-  population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
+  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
+  population = np.atleast_2d(kwargs['population'].data)
+  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  popObj = np.atleast_1d(kwargs['popObjectiveVal'].data)
+  offObj = np.atleast_1d(kwargs['offObjectiveVal'])
+  offSpringsg = np.atleast_1d(kwargs['offSpringsg'].data)
+  parentg = np.atleast_1d(kwargs['parentg'].data)
 
   newPopulation = population
   newFitness = popFitness
   newAge = list(map(lambda x:x+1, popAge))
   newPopulationMerged = np.concatenate([newPopulation,offSprings])
   newFitness = np.concatenate([newFitness,offSpringsFitness])
+  newObj = np.concatenate([popObj,offObj])
+  newG = np.concatenate([parentg, offSpringsg])
   newAge.extend([0]*len(offSpringsFitness))
 
   # sort population, popFitness according to age
-  sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulationMerged),reverse=True,key=lambda x: (x[0], -x[1]))])
-  sortedFitnessT,sortedAgeT,sortedPopulationT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))
+  sortedFitness,sortedAge,sortedPopulation,sortedG,sortedObj = zip(*[(x,y,z,a,b) for x,y,z,a,b in sorted(zip(newFitness,newAge,newPopulationMerged,newG,newObj),reverse=True,key=lambda x: (x[0], -x[1]))])
+  sortedFitnessT,sortedAgeT,sortedPopulationT,sortedGT,sortedObjT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedG)),np.atleast_1d(list(sortedObj))
   newPopulationSorted = sortedPopulationT[:-len(offSprings)]
   newFitness = sortedFitnessT[:-len(offSprings)]
+  newG = sortedGT[:-len(offSprings)]
+  newObj = sortedObjT[:-len(offSprings)]
   newAge = sortedAgeT[:-len(offSprings)]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
@@ -123,8 +131,13 @@ def fitnessBased(newRlz,**kwargs):
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
 
+  newG = xr.DataArray(newG,
+                      dims=['chromosome','Constraint'],
+                      coords={'chromosome':np.arange(np.shape(newG)[0]),
+                              'Constraint':kwargs['parentg'].coords['Constraint'].values})
+
   #return newPopulationArray,newFitness,newAge
-  return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
+  return newPopulationArray,newFitness,newAge,newObj, newG
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased
