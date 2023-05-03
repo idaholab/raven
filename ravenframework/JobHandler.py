@@ -419,6 +419,16 @@ class JobHandler(BaseType):
           self.raiseAWarning("failed to start dask scheduler")
           self.daskSchedulerFile = None
           break
+      if succeeded:
+        #do equivelent of dask worker start in start_dask.sh:
+        # dask worker --nthreads $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE
+        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],
+                                    "server_debug_"+self.__getLocalHost()),'w')
+        command = ["dask","worker","--scheduler-file",self.daskSchedulerFile]
+        if nProcs is not None:
+          command.extend(("--nthreads",str(nProcs)))
+        headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
+                                stdout=outFile, stderr=outFile, env=localEnv)
     return address
 
   def __getRayInfoFromStart(self, rayLog):
