@@ -435,12 +435,12 @@ class JobHandler(BaseType):
           break
       if succeeded:
         #do equivelent of dask worker start in start_dask.sh:
-        # dask worker --nthreads $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE
+        # dask worker --nworkers $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE
         outFile = open(os.path.join(self.runInfoDict['WorkingDir'],
                                     "server_debug_"+self.__getLocalHost()),'w')
         command = ["dask","worker","--scheduler-file",self.daskSchedulerFile]
         if nProcs is not None:
-          command.extend(("--nthreads",str(nProcs)))
+          command.extend(("--nworkers",str(nProcs)))
         headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
                                 stdout=outFile, stderr=outFile, env=localEnv)
     return address

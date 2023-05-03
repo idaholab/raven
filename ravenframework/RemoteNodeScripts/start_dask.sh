@@ -19,4 +19,4 @@ which dask >> $OUTFILE 2>&1
 hostname >> $OUTFILE
 echo PYTHONPATH $PYTHONPATH >> $OUTFILE
 
-dask worker --nthreads $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE 2>&1 &
+dask worker --nworkers $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE 2>&1 &
