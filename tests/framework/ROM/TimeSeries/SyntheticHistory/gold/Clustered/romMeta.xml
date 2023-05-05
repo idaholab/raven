@@ -17,25 +17,27 @@
   <synth type="Static">
     <ROM>
       <type>Clustered ROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,pivot</Targets>
     </ROM>
     <GlobalROM segment="all" type="Static" />
-    <ClusterROM cluster="0" type="Static">
+    <ClusterROM type="Static" cluster="0">
       <ARMA>
         <signal0>
-          <constant>9.276339117e-03</constant>
+          <constant>9.276339206e-03</constant>
           <AR_0>3.847064710e-01</AR_0>
           <variance>1.834482871e+00</variance>
         </signal0>
         <signal1>
-          <constant>1.107435626e-02</constant>
-          <AR_0>-3.643525584e-01</AR_0>
+          <constant>1.107435607e-02</constant>
+          <AR_0>-3.643525583e-01</AR_0>
           <variance>1.923062923e+00</variance>
         </signal1>
       </ARMA>
       <segments_represented>0, 1, 2, 3, 4</segments_represented>
       <indices>0, 99</indices>
     </ClusterROM>
-    <ClusterROM cluster="1" type="Static">
+    <ClusterROM type="Static" cluster="1">
       <ARMA>
         <signal0>
           <constant>1.021071648e-02</constant>
@@ -43,7 +45,7 @@
           <variance>1.515047621e+00</variance>
         </signal0>
         <signal1>
-          <constant>-3.223478633e-03</constant>
+          <constant>-3.223478400e-03</constant>
           <AR_0>3.152658940e-01</AR_0>
           <variance>1.920182399e+00</variance>
         </signal1>

@@ -52,6 +52,7 @@
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractorWithCustomNode" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0,customVariable2</variables>
+      
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>

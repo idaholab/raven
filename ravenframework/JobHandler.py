@@ -105,6 +105,25 @@ class JobHandler(BaseType):
     self.rayInstanciatedOutside = None
     self.remoteServers = None
 
+  def __getstate__(self):
+    """
+      This function return the state of the JobHandler
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    state.pop('_JobHandler__queueLock')
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the JobHandler with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the JobHandler to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
+    self.__queueLock = threading.RLock()
+
   def applyRunInfo(self, runInfo):
     """
       Allows access to the RunInfo data
@@ -112,7 +131,6 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.runInfoDict = runInfo
-
 
   def initialize(self):
     """
@@ -332,7 +350,6 @@ class JobHandler(BaseType):
     self.raiseAWarning("ray start address not found in "+str(rayLog))
     return None
 
-
   def __updateListeningSockets(self, localHostName):
     """
       Update the path in the remote nodes
@@ -424,6 +441,19 @@ class JobHandler(BaseType):
           self.raiseADebug("server "+str(nodeId)+" result: "+str(self.remoteServers[nodeId]))
 
     return servers
+
+  def sendDataToWorkers(self, data):
+    """
+      Method to send data to workers (if ray activated) and return a reference
+      If ray is not used, the data is simply returned, otherwise an object reference id is returned
+      @ In, data, object, any data to send to workers
+      @ Out, ref, ray.ObjectRef or object, the reference or the object itself
+    """
+    if self.rayServer is not None:
+      ref = ray.put(copy.deepcopy(data))
+    else:
+      ref = copy.deepcopy(data)
+    return ref
 
   def startLoop(self):
     """
@@ -563,10 +593,13 @@ class JobHandler(BaseType):
     with self.__queueLock:
       self.__finished.append(run)
 
-  def isFinished(self):
+  def isFinished(self, uniqueHandler=None):
     """
-      Method to check if all the runs in the queue are finished
-      @ In, None
+      Method to check if all the runs in the queue are finished, or if a specific job(s) is done (jobIdentifier or uniqueHandler)
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be checked. By default uniqueHandler = None => all the jobs for
+        which no uniqueIdentifier has been set up are going to be checked
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
 
@@ -585,8 +618,8 @@ class JobHandler(BaseType):
       # that is not done.
       for run in self.__running+self.__clientRunning:
         if run:
-          return False
-
+          if uniqueHandler is None or uniqueHandler == run.uniqueHandler:
+            return False
     # Are there runs that need to be claimed? If so, then I cannot say I am done.
     numFinished = len(self.getFinishedNoPop())
     if numFinished != 0:
