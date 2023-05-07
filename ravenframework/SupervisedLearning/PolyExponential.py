@@ -203,7 +203,7 @@ class PolyExponential(SupervisedLearning):
     """
     return np.dot(a, np.exp(-np.outer(b, x)))
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
       @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data
@@ -268,7 +268,7 @@ class PolyExponential(SupervisedLearning):
         self.model[target] = NDspline()
         inputDict = {'Features':self.features, 'Target':targets}
         self.model[target].initializeFromDict(inputDict)
-        self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
+        self.model[target].__class__._train(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 
   def __evaluateLocal__(self,featureVals):

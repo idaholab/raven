@@ -128,7 +128,7 @@ class CustomSampler(Sampler):
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
       @ In, None
-      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
+      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distribtions are needed and the Source is loaded automatically)
     """
     needDict = {}
     needDict['Functions'] = [] # In case functions have been inputted

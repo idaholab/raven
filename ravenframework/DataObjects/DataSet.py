@@ -33,7 +33,7 @@ except ValueError:
   from DataObject import DataObject
 
 from .. import CsvLoader
-from ..utils import utils, cached_ndarray, xmlUtils, mathUtils
+from ..utils import utils, cached_ndarray, xmlUtils, mathUtils, InputData, InputTypes
 
 class DataSet(DataObject):
   """
@@ -65,6 +65,25 @@ class DataSet(DataObject):
     self._neededForReload = [self.sampleTag] # metavariables required to reload this data object.
     self._samplerTag      = None
     self.inputKDTree      = None
+    self._autogenerate    = set()             # index vars in here are automatically generated
+
+  ### INPUT SPECIFICATION ###
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    inputSpecification = super(DataSet,cls).getInputSpecification()
+
+    # this is specific to DataSet
+    indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
+    indexInput.addParam('var',InputTypes.StringType,True)
+    indexInput.addParam('autogenerate',InputTypes.BoolType,descr="If true, autogenerate this index")
+    inputSpecification.addSub(indexInput)
+
+    return inputSpecification
 
   def _readMoreXML(self,xmlNode):
     """
@@ -76,6 +95,7 @@ class DataSet(DataObject):
     inp.parseNode(xmlNode)
     # let parent read first
     DataObject._readMoreXML(self,inp)
+
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
@@ -211,6 +231,13 @@ class DataSet(DataObject):
     if indexMap is not None:
       # keep only those parts of the indexMap that correspond to variables we care about.
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
+    #If the index is in autogenerate set, generate it automatically
+    if len(self._autogenerate) > 0:
+      for autoindex in self._autogenerate:
+        expectedLength = len(rlz[self._pivotParams[autoindex][0]])
+        #if it already exists and has correct length, don't add
+        if autoindex not in rlz or len(rlz[autoindex]) != expectedLength:
+          rlz[autoindex] = np.arange(expectedLength)
     # clean out entries that aren't desired
     try:
       rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)

@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/genericInterfaceDataSet</name>
+    <author>@cogljj</author>
+    <created>2023-03-23</created>
+    <classesTested>DataObjects.DataSet</classesTested>
+    <description>
+      The purpose of this test is to test using a DataSet with
+      autogenerate="True" and a GenericCode interface.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <JobName>testds</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>GenericDataSet</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input" type="">input.txt</Input>
+  </Files>
+
+  <Models>
+    <Code name="generic" subType="GenericCode">
+      <alias variable='power' type='input'>power</alias>
+      <executable>none</executable>
+      <clargs arg="-batch" extension=".txt" type="input"/>
+      <outputFile>ALL.csv</outputFile>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="power_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1200</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="power">
+        <distribution>power_dist</distribution>
+        <grid construction="equal" steps="1" type="value">100 200</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" clearRunDir="False">
+      <Input class="Files" type="">input</Input>
+      <Model class="Models" type="Code">generic</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="DataSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <DataSet name="samples">
+      <Input>power, autoindex</Input>
+      <Output>x, y, z, temperature, prefix</Output>
+      <Index var="autoindex" autogenerate="True">x, y, z, temperature</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

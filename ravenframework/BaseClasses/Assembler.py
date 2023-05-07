@@ -142,7 +142,6 @@ class Assembler(MessageUser):
 
     if '_handleInput' in dir(self) and self._handleInput.__func__.__qualname__.split(".")[0] == self.__class__.__name__:
       #_handleInput in class and not from superclass
-      #print(self, self.getInputSpecification, self.getInputSpecification.__func__.__qualname__, self._handleInput, self._handleInput.__func__.__qualname__)
       paramInput = self.getInputSpecification()()
       paramInput.parseNode(xmlNode)
       self._handleInput(paramInput)

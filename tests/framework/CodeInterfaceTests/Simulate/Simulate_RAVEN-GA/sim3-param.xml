@@ -1,0 +1,28 @@
+<Sim3-input-gen>
+   <pins> 17 </pins>
+   <core_width> 15 </core_width>
+   <load_point> 0.000 </load_point>
+   <depletion> 20 </depletion>
+   <axial_nodes> 25 </axial_nodes>
+   <batch> 0 </batch>
+   <pressure> 2250.0 </pressure>
+   <boron> 900.0 </boron>
+   <power> 100.0 </power>
+   <flow> 100.0 </flow>
+   <inlet_temperature> 550.0 </inlet_temperature>
+   <map_size> quarter </map_size>
+   <symmetry> octant </symmetry>
+   <restart_file> cycle1.res </restart_file>
+   <cs_lib> cms.pwr-all.lib </cs_lib>
+   <number_assemblies> 157 </number_assemblies>
+   <working-dir> SampleSpecificSim3 </working-dir>
+   <reflector> TRUE </reflector>
+   <FA-list>
+	<FA name='FA1'  FAid ='0'  type ='2'/>
+	<FA name='FA2'  FAid ='1'  type ='3'/>
+	<FA name='FA3'  FAid ='2'  type ='5'/>
+	<FA name='FA4'  FAid ='3'  type ='4'/>
+	<FA name='FA5'  FAid ='4'  type ='6'/>
+	<FA name='REF'  FAid ='5'  type ='1'/>
+   </FA-list>
+</Sim3-input-gen>

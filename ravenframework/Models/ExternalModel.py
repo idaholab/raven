@@ -79,6 +79,7 @@ class ExternalModel(Dummy):
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
+    self._availableVariableTypes.append('str') #not a numpy type
     self.printTag = 'EXTERNAL MODEL'  # label
     self.initExtSelf = utils.Object() # initial externalizable object
     self.workingDir = None            # RAVEN working dir

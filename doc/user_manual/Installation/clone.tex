@@ -76,6 +76,14 @@ bash.exe establish_conda_env.sh --install
 
 replacing \texttt{/path/to} with the install path for \texttt{conda}.
 
+\nb Various options exist for \texttt{establish\_conda\_env.sh}, which
+can be found by using the \texttt{--help} option.  These options
+include \texttt{--mamba} which uses the mamba instead of conda for
+resolving dependencies, \texttt{--load} which can be used with
+\verb'source ./scripts/establish_conda_env.sh --load' to switch to the
+raven environment in a shell, \texttt{--installation-manager PIP} which
+uses pip instead of conda.
+
 \subsubsection{Compiling RAVEN}
 Once Python libraries are established and the source code present, navigate to \texttt{raven} and run
 

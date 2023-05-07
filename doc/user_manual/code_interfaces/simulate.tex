@@ -1,0 +1,152 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% SIMULATE3 INTERFACE %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{SIMULATE-3 Interface}
+A recent interface between RAVEN and the neutronics code SIMULATE-3 was implemented.
+The primary purpose of this section is to describe the interface associated 
+with its application using RAVEN/Generic Algorithm in solving the Core optimization problem.
+A brief explanation on the components of the SIMULATE-3 interface and how to use it with RAVEN 
+are reported in the following subsections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Interface components}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The interface was built based on Python 3. It included three main components: 
+\begin{itemize}
+
+    \item \texttt{SimulateInterface.py}: Connects and interacts with RAVEN main module
+    \item \texttt{SimulateData.py}: Collects and extracts data from output file generated after each SIMULATE-3 simulation. The list of data can be extracted are:
+    \begin{itemize}
+  \item Time dependent multiplication factor $k_{eff}$;
+    \item Time dependent $F_Q$;
+    \item Time dependent $F_\Delta H$;
+    \item Time dependent critical boron concentration;
+  \end{itemize}
+  \item \texttt{SpecificParser.py}: Generates SIMULATE-3 input from sample loading pattern provided by RAVEN-GA module. 
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+\subsubsection{Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To successfully execute the code, users need to ensure that the code SIMULATE-3 is included in the 
+\xmlNode{Models} section in a way shown below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+   <Code name="MySimulate" subType="Simulate">
+     <executable>...</executable>
+     <sequence>simulate</sequence>
+   </Code>
+  </Models>
+  \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In order to execute the SIMULATE-3-RAVEN interface, user needs to provide three input files. 
+Although the requested input file name can be arbitrary, they need to serve similar functions as shown below:
+\begin{itemize}
+    \item \xmlNode{sim3-perturb.xml}: Contains initial assigned FA type for 1/8 loading pattern following an index scheme shown below since this module was specifically designed to solve the core loading pattern in 17$\times$17 PWR core. 
+    \item \xmlNode{input.inp}: Serves as a placeholder for perturbed SIMULATE-3 input deck.
+    \item \xmlNode{sim3-param.xml}: Contains specification on SIMULATE-3 simulation and modeling for core including FA definition; cross section information.
+\end{itemize}
+The requested input will be identified in RAVEN input, then they will be loaded into RAVEN memory.
+With the GA optimizer, a set of sampling for possible FA location mapping 
+will be used to update \xmlNode{sim3-perturb.xml} file. From this point, the SIMULATE-3 interface will be called to
+read the remaining requested inputs with the updated \xmlNode{sim3-perturb.xml} to generate input 
+for SIMULATE-3 simulation. After the simulation is completed, the fitness function of GA 
+optimizer will be evaluated and used to generate the population of the next generation. 
+This iterative process will continue until the maximum number of generations as specified 
+in the RAVEN input is reached.
+
+Furthermore, constraints for the optimization problem can be also specified by using \xmlNode{Functions} 
+, see Section~\ref{sec:functions} for more details
+
+\begin{center}
+  \begin{tabular}{ |p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}| } 
+    \hline
+    1& & & & &       \\ 
+    \hline
+    2&3& & & &        \\ 
+    \hline
+    4&5&6& & &        \\ 
+    \hline
+    7&8&9&10& &       \\ 
+    \hline
+    11&12&13&14&15&   \\ 
+    \hline
+    16&17&18&19&20&21  \\ 
+    \hline
+    22&23&24&25&26&27 \\ 
+    \hline
+    28&29&30&31&32&    \\ 
+    \hline
+    33&34&35&  &  &   \\ 
+    \hline
+  \end{tabular}
+\end{center}
+  
+Example:
+  \begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="simulatedata_input" type="simulatedata">sim3-param.xml</Input>
+    <Input name="simulateperturb_input" type="perturb">sim3-perturb.xml</Input>
+    <Input name="input" type="input">input.inp</Input>
+  </Files>
+  \end{lstlisting}
+Example for \xmlNode{SIMULATE-3-input-gen.xml}:
+  \begin{lstlisting}[style=XML]
+  <Sim3-input-gen>
+   <pins> 17 </pins>
+   <core_width> 15 </core_width>
+   <load_point> 0.000 </load_point>
+   <depletion> 20 </depletion>
+   <axial_nodes> 25 </axial_nodes>
+   <batch> 0 </batch>
+   <pressure> 2250.0 </pressure>
+   <boron> 900.0 </boron>
+   <power> 100.0 </power>
+   <flow> 100.0 </flow>
+   <inlet_temperature> 550.0 </inlet_temperature>
+   <map_size> quarter </map_size>
+   <symmetry> octant </symmetry>
+   <restart_file> cycle1.res </restart_file>
+   <cs_lib> cms.pwr-all.lib </cs_lib>
+   <number_assemblies> 157 </number_assemblies>
+   <working-dir> SampleSpecificSim3 </working-dir>
+   <reflector> TRUE </reflector>
+   <FA-list>
+    <FA name='FA1'  FAid ='0'  type ='2'/>
+    <FA name='FA2'  FAid ='1'  type ='3'/>
+    <FA name='FA3'  FAid ='2'  type ='5'/>
+    <FA name='FA4'  FAid ='3'  type ='4'/>
+    <FA name='FA5'  FAid ='4'  type ='6'/>
+    <FA name='REF'  FAid ='5'  type ='1'/>
+   </FA-list>
+  </Sim3-input-gen>
+  \end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sampler/Optimizer}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As mentioned in previous sections, the variables that users desire to optimize are defined in 
+the \xmlNode{Samplers} or  \xmlNode{Optimizers} block. In this interface, the GA optimizer is applied.
+In the loading pattern optimization problem, the variables are the location of Fuel Assembly in the core layout
+with the index scheme shown in this section.
+
+For example, the original locations are specified in the \xmlNode{sim3-perturb.xml.xml} (that needs to be perturbed).
+The name of the variables in the \xmlNode{Samplers} should be the same as the one in original \xmlNode{sim3-perturb.xml.xml}
+file, namely \textbf{loc} and the associated index \textbf{index}.
+
+Example:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  ...
+  <variable name="loc1">
+    <distribution>FA_dist</distribution>
+  ...
+  </variable>
+</Samplers>
+...
+\end{lstlisting}
+
