@@ -216,9 +216,11 @@ class Representativity(ValidationBase):
     self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targetOutputs])
     # # 4. Compute Uncertainties in parameters
     UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters])
+    UparVar = np.diag(np.diag(UparVar))
     # # 5. Compute Uncertainties in outputs
     # Outputs of Mock model (Measurables F_i)
     UMeasurablesVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeOutputs])
+    UMeasurablesVar = np.diag(np.diag(UMeasurablesVar))
     # Outputs of Target model (Targets FOM_i)
     UFOMsVar = self._computeUncertaintyMatrixInErrors(datasets[1],['err_' + s.split("|")[-1] for s in self.targetOutputs])
     # # 6. Compute Normalized Uncertainties
@@ -398,8 +400,8 @@ class Representativity(ValidationBase):
     if UmesVar is None:
       UmesVar = np.zeros((len(normalizedSenExp), len(normalizedSenExp)))
     # Compute representativity (#eq 79)
-    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T))).real
-    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T)) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar))).real
+    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=1e-4) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T),rtol=1e-4)).real
+    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=1e-4) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sqrtm(normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar),rtol=1e-4)).real
     return r, rExact
 
   def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
