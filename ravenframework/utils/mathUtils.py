@@ -599,7 +599,10 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
     @ In, conj, bool, optional, compute conjugate of right-singular vectors matrix)
     @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
   """
-  U, s, V = np.linalg.svd(X, full_matrices=full)
+  try:
+    U, s, V = np.linalg.svd(X, full_matrices=full)
+  except np.linalg.LinAlgError as ae:
+    raise np.linalg.LinAlgError(str(ae))
   V = V.conj().T if conj else V.T
 
   if truncationRank == 0:
@@ -994,7 +997,7 @@ def partialDerivative(f, x0, var, n = 1, h = None, target = None):
   assert(n <= 10)
   def func(x, var, target=None):
     """
-      Simple function wrapper for using scipy
+      Simple function wrapper for using numdifftools
       @ In, x, float, the point at which the nth derivative is found
       @ In, var, str, the variable in the dictionary x0 corresponding
                       to the part derivative to compute

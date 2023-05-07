@@ -9,7 +9,7 @@
     </dims>
     <general>
       <datasetName>romMeta</datasetName>
-      <pointwise_meta>ClusterFeature|Signal|Fourier|3.0_cosineAmp|scaled,ClusterFeature|Signal|Fourier|3.0_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|3.0_sineAmp|scaled,ClusterFeature|Signal|Fourier|3.0_sineAmp|unscaled,ClusterFeature|Signal|Fourier|5.0_cosineAmp|scaled,ClusterFeature|Signal|Fourier|5.0_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|5.0_sineAmp|scaled,ClusterFeature|Signal|Fourier|5.0_sineAmp|unscaled,ClusterFeature|Signal|Fourier|fittingIntercept|scaled,ClusterFeature|Signal|Fourier|fittingIntercept|unscaled,ClusterFeature|Signal|arma|std|scaled,ClusterFeature|Signal|arma|std|unscaled,ClusterFeature|Signal|global|mean|scaled,ClusterFeature|Signal|global|mean|unscaled,ClusterLabels,seg_Time_end,seg_Time_start,seg_index_end,seg_index_start</pointwise_meta>
+      <pointwise_meta>ClusterFeature|Signal|Fourier|3_cosineAmp|scaled,ClusterFeature|Signal|Fourier|3_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|3_sineAmp|scaled,ClusterFeature|Signal|Fourier|3_sineAmp|unscaled,ClusterFeature|Signal|Fourier|5_cosineAmp|scaled,ClusterFeature|Signal|Fourier|5_cosineAmp|unscaled,ClusterFeature|Signal|Fourier|5_sineAmp|scaled,ClusterFeature|Signal|Fourier|5_sineAmp|unscaled,ClusterFeature|Signal|Fourier|fittingIntercept|scaled,ClusterFeature|Signal|Fourier|fittingIntercept|unscaled,ClusterFeature|Signal|arma|std|scaled,ClusterFeature|Signal|arma|std|unscaled,ClusterFeature|Signal|global|mean|scaled,ClusterFeature|Signal|global|mean|unscaled,ClusterLabels,seg_Time_end,seg_Time_start,seg_index_end,seg_index_start</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
@@ -17,6 +17,8 @@
   <arma type="Static">
     <ROM>
       <type>Clustered ROM</type>
+      <Features>scaling</Features>
+      <Targets>Signal,Time</Targets>
     </ROM>
     <GlobalROM segment="all" type="Static">
       <Signal>
@@ -30,7 +32,7 @@
         </Fourier>
       </Signal>
     </GlobalROM>
-    <ClusterROM cluster="0" type="Static">
+    <ClusterROM type="Static" cluster="0">
       <Signal>
         <Fourier>
           <SignalIntercept>-6.593122088e-02</SignalIntercept>
@@ -46,13 +48,13 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.70308130806</std>
+          <std>3.70307716232</std>
         </ARMA_params>
       </Signal>
       <segments_represented>0, 1, 2, 5</segments_represented>
       <indices>0, 10</indices>
     </ClusterROM>
-    <ClusterROM cluster="1" type="Static">
+    <ClusterROM type="Static" cluster="1">
       <Signal>
         <Fourier>
           <SignalIntercept>8.630321843e-02</SignalIntercept>
@@ -68,13 +70,13 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.69054427524</std>
+          <std>3.69053984079</std>
         </ARMA_params>
       </Signal>
       <segments_represented>3, 6, 7, 8</segments_represented>
       <indices>10, 20</indices>
     </ClusterROM>
-    <ClusterROM cluster="2" type="Static">
+    <ClusterROM type="Static" cluster="2">
       <Signal>
         <Fourier>
           <SignalIntercept>9.083303694e-02</SignalIntercept>
@@ -90,13 +92,13 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.71415446774</std>
+          <std>3.71415064569</std>
         </ARMA_params>
       </Signal>
       <segments_represented>4</segments_represented>
       <indices>20, 30</indices>
     </ClusterROM>
-    <ClusterROM cluster="3" type="Static">
+    <ClusterROM type="Static" cluster="3">
       <Signal>
         <Fourier>
           <SignalIntercept>-1.405369827e-01</SignalIntercept>
@@ -112,7 +114,7 @@
           </period>
         </Fourier>
         <ARMA_params>
-          <std>3.7078394939</std>
+          <std>3.70783547881</std>
         </ARMA_params>
       </Signal>
       <segments_represented>9</segments_represented>

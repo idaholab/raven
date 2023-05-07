@@ -181,7 +181,7 @@ class HDMRRom(GaussPolynomialRom):
         self.numRuns    = value
     self.initialized = True
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
       @ In, featureVals, np.array, training feature values

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>workdir</WorkingDir>
     <Sequence>make,train,print</Sequence>
@@ -22,9 +22,7 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreams" type="Print">par_dump</Output>
-      <Output class="OutStreams" type="Print">par_dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -69,7 +67,8 @@
   <Models>
     <Dummy name="MyDummy" print="True" subType=""/>
     <ExternalModel ModuleToLoad="../multi" name="poly" subType="">
-      <variables>x1,x2,x3,x4,ans,ans2</variables>
+      <inputs>x1,x2,x3,x4</inputs>
+      <outputs>ans,ans2</outputs>
     </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>2</SobolOrder>
@@ -95,11 +94,6 @@
     <Print name="par_dump">
       <type>csv</type>
       <source>solns</source>
-    </Print>
-    <Print name="par_dumprom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
     </Print>
   </OutStreams>
 
