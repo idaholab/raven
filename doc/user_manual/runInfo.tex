@@ -173,6 +173,7 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
   If this flag is set to:
   \begin{itemize}
   \item  \textbf{\texttt{shared}}, default value, which uses shared memory threading for running tasks.
+  \item \textbf{\texttt{distributed}}, automatically chooses a distributed library from the following libraries.
   \item \textbf{\texttt{dask}}, use Dask for distributed running tasks.
   \item \textbf{\texttt{ray}}, use Ray for distributed running tasks.
   \item \textbf{\texttt{pp}}, use parallel python library for distributed running tasks.

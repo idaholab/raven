@@ -167,9 +167,12 @@ class JobHandler(BaseType):
       self.__running       = [None]*self.runInfoDict['batchSize']
       self.__clientRunning = [None]*self.runInfoDict['batchSize']
     self._parallelLib = ParallelLibEnum.shared
-    if self.runInfoDict['parallelMethod'] is not None:
+    if self.runInfoDict['parallelMethod'] is not None and self.runInfoDict['parallelMethod'] != ParallelLibEnum.distributed:
       self._parallelLib = self.runInfoDict['parallelMethod']
-    elif self.runInfoDict['internalParallel']:
+    elif self.runInfoDict['internalParallel'] or \
+         self.runInfoDict['parallelMethod'] is not None and self.runInfoDict['parallelMethod'] == ParallelLibEnum.distributed:
+      #If ParallelLibEnum.distributed or internalParallel True
+      # than choose a library automatically.
       if _daskAvail:
         self._parallelLib = ParallelLibEnum.dask
       elif _rayAvail:
@@ -177,7 +180,7 @@ class JobHandler(BaseType):
       else:
         self._parallelLib = ParallelLibEnum.pp
     desiredParallelMethod = f"parallelMethod: {self.runInfoDict['parallelMethod']} internalParallel: {self.runInfoDict['internalParallel']}"
-    self.raiseADebug(f"Using parallelMethod: {self._parallelLib} because Input: {desiredParallelMethod} and Ray: {_rayAvail} and Dask: {_daskAvail}")
+    self.raiseADebug(f"Using parallelMethod: {self._parallelLib} because Input: {desiredParallelMethod} and Ray Availablility: {_rayAvail} and Dask Availabilitiy: {_daskAvail}")
     if self._parallelLib == ParallelLibEnum.dask and not _daskAvail:
       self.raiseAnError(RuntimeError, f"dask requested but not available. {desiredParallelMethod}")
     if self._parallelLib == ParallelLibEnum.ray and not _rayAvail:

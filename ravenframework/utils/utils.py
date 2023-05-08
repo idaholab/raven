@@ -46,7 +46,9 @@ class Object(object):
 try:
   import enum
   #Enum of the parallel libraries we support
-  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared'])
+  #Note that shared is use no parallel lib, and distributed is choose one
+  # and use it.
+  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared','distributed'])
 except ImportError:
   ParallelLibEnum = "ParallelLibEnum is not available without enum"
 
