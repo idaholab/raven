@@ -33,7 +33,6 @@ from .BaseClasses import BaseType
 from . import Runners
 from . import Models
 # for internal parallel
-# TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 _daskAvail = im.isLibAvail("dask")
 if _daskAvail:
@@ -64,8 +63,8 @@ class JobHandler(BaseType):
     super().__init__()
     self.printTag = 'Job Handler' # Print tag of this object
     self.runInfoDict = {}         # Container of the running info (RunInfo block in the input file)
-    self.isRayInitialized = False # Is Ray Initialized?
-    self.rayServer = None         # Variable containing the info about the RAY parallel server.
+    self.__isDistributedInitialized = False # Is Ray or Dask Initialized?
+    self._server = None         # Variable containing the info about the RAY or DASK parallel server.
                                   # If None, multi-threading is used
     self.sleepTime = 1e-4         # Sleep time for collecting/inquiring/submitting new jobs
     self.completed = False        # Is the execution completed? When True, the JobHandler is shut down
@@ -124,8 +123,8 @@ class JobHandler(BaseType):
     state.pop('_JobHandler__queueLock')
     #XXX we probably need to record how this was init, and store that
     # such as the scheduler file
-    if self._parallelLib == ParallelLibEnum.dask and 'rayServer' in state:
-      state.pop('rayServer')
+    if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
+      state.pop('_server')
     return state
 
   def __setstate__(self, d):
@@ -186,8 +185,8 @@ class JobHandler(BaseType):
     if self._parallelLib == ParallelLibEnum.ray and not _rayAvail:
       self.raiseAnError(RuntimeError, f"ray requested but not available. {desiredParallelMethod}")
     # internal server is initialized only in case an internal calc is requested
-    if not self.isRayInitialized:
-      self.__initializeRay()
+    if not self.__isDistributedInitialized:
+      self.__initializeDistributed()
 
   def __checkAndRemoveFinished(self, running):
     """
@@ -210,10 +209,10 @@ class JobHandler(BaseType):
         self.raiseAMessage(f" Process Failed {running} internal returnCode {returnCode}")
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
-  def __initializeRay(self):
+  def __initializeDistributed(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initializes the RAY implementation (with socketing system) in
+      It initializes the RAY or DASK implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
@@ -267,7 +266,7 @@ class JobHandler(BaseType):
             # add file in runInfo
             self.runInfoDict['schedulerFile'] = self.daskSchedulerFile
             self.raiseADebug('scheduler file     :', self.daskSchedulerFile)
-          ## Get servers and run ray remote listener
+          ## Get servers and run ray or dask remote listener
           if self.rayInstanciatedOutside or self.daskInstanciatedOutside:
             servers = self.runInfoDict['remoteNodes']
           else:
@@ -276,43 +275,43 @@ class JobHandler(BaseType):
           self.runInfoDict['remoteNodes'] = servers
           if self._parallelLib == ParallelLibEnum.ray:
             ## initialize ray server with nProcs
-            self.rayServer = ray.init(address=address,log_to_driver=False,include_dashboard=db)
+            self._server = ray.init(address=address,log_to_driver=False,include_dashboard=db)
           elif self._parallelLib == ParallelLibEnum.dask:
             if self.daskSchedulerFile is not None:
               #handle multinode and prestarted configurations
-              self.rayServer = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
+              self._server = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
             else:
               #Start locally
               cluster = dask.distributed.LocalCluster()
-              self.rayServer = dask.distributed.Client(cluster)
+              self._server = dask.distributed.Client(cluster)
           elif self._parallelLib == ParallelLibEnum.pp:
-            self.rayServer = pp.Server(ncpus=int(nProcsHead))
+            self._server = pp.Server(ncpus=int(nProcsHead))
           else:
             self.raiseAWarning("No supported server")
           if self._parallelLib == ParallelLibEnum.ray:
             self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+          self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
         self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         if self._parallelLib == ParallelLibEnum.ray:
-          self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db)
+          self._server = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db)
         elif self._parallelLib == ParallelLibEnum.pp:
-          self.rayServer = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+          self._server = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
         elif self._parallelLib == ParallelLibEnum.dask:
-          #XXX handle multinode and prestarted configurations
+          #handle local method
           cluster = dask.distributed.LocalCluster(n_workers=int(self.runInfoDict['totalNumCoresUsed']))
-          self.rayServer = dask.distributed.Client(cluster)
+          self._server = dask.distributed.Client(cluster)
         else:
           self.raiseAWarning("parallellib creation not handled")
       if self._parallelLib == ParallelLibEnum.ray:
-        self.raiseADebug("Head node IP address: ", self.rayServer.address_info['node_ip_address'])
-        self.raiseADebug("Redis address       : ", self.rayServer.address_info['redis_address'])
-        self.raiseADebug("Object store address: ", self.rayServer.address_info['object_store_address'])
-        self.raiseADebug("Raylet socket name  : ", self.rayServer.address_info['raylet_socket_name'])
-        self.raiseADebug("Session directory   : ", self.rayServer.address_info['session_dir'])
-        self.raiseADebug("GCS Address         : ", self.rayServer.address_info['gcs_address'])
+        self.raiseADebug("Head node IP address: ", self._server.address_info['node_ip_address'])
+        self.raiseADebug("Redis address       : ", self._server.address_info['redis_address'])
+        self.raiseADebug("Object store address: ", self._server.address_info['object_store_address'])
+        self.raiseADebug("Raylet socket name  : ", self._server.address_info['raylet_socket_name'])
+        self.raiseADebug("Session directory   : ", self._server.address_info['session_dir'])
+        self.raiseADebug("GCS Address         : ", self._server.address_info['gcs_address'])
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
@@ -320,10 +319,10 @@ class JobHandler(BaseType):
         self.raiseADebug("JobHandler initialized without ray")
     else:
       ## We are just using threading
-      self.rayServer = None
+      self._server = None
       self.raiseADebug("JobHandler initialized with threading")
-    # ray is initialized
-    self.isRayInitialized = True
+    # ray or dask is initialized
+    self.__isDistributedInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
     """
@@ -353,7 +352,7 @@ class JobHandler(BaseType):
       @ In, None
       @ Out, None
     """
-    if self._parallelLib == ParallelLibEnum.ray and self.rayServer is not None and not self.rayInstanciatedOutside:
+    if self._parallelLib == ParallelLibEnum.ray and self._server is not None and not self.rayInstanciatedOutside:
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
       if 'remoteNodes' in self.runInfoDict:
@@ -372,8 +371,8 @@ class JobHandler(BaseType):
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
       # shutdown ray API (object storage, plasma, etc.)
       ray.shutdown()
-    elif self._parallelLib == ParallelLibEnum.dask and self.rayServer is not None and not self.rayInstanciatedOutside:
-      self.rayServer.close()
+    elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
+      self._server.close()
       if self._daskScheduler is not None:
         self._daskScheduler.terminate()
 
@@ -596,7 +595,7 @@ class JobHandler(BaseType):
       @ In, data, object, any data to send to workers
       @ Out, ref, ray.ObjectRef or object, the reference or the object itself
     """
-    if self.rayServer is not None and self._parallelLib == ParallelLibEnum.ray:
+    if self._server is not None and self._parallelLib == ParallelLibEnum.ray:
       ref = ray.put(copy.deepcopy(data))
     else:
       ref = copy.deepcopy(data)
@@ -646,7 +645,7 @@ class JobHandler(BaseType):
     """
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
            " decorated with RAVEN Parallel decorator"
-    if self.rayServer is None or forceUseThreads:
+    if self._server is None or forceUseThreads:
       internalJob = Runners.factory.returnInstance('SharedMemoryRunner', args,
                                                    functionToRun.original_function,
                                                    identifier=identifier,
@@ -655,7 +654,7 @@ class JobHandler(BaseType):
                                                    profile=self.__profileJobs)
     else:
       if self._parallelLib in [ParallelLibEnum.dask,ParallelLibEnum.pp]:
-        arguments =  tuple([self.rayServer] + list(args))
+        arguments =  tuple([self._server] + list(args))
       else:
         arguments = args
       if self._parallelLib == ParallelLibEnum.dask:
@@ -1048,7 +1047,7 @@ class JobHandler(BaseType):
             # want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
-              if self.rayServer is not None:
+              if self._server is not None:
                 for infoKey in ['headNode','remoteNodes','schedulerFile']:
                   if infoKey in self.runInfoDict:
                     kwargs[infoKey] = self.runInfoDict[infoKey]
