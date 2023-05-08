@@ -281,14 +281,14 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       yAppPredScaled = (uApp[:,:rkApp] @ alphaAppHat.T).T
       yAppPred = yAppPredScaled + yAppRef
       predMean = np.mean(yAppPred, axis=0)
-      predStd = np.std(yAppPred, axis=0)/predMean
-      priStd = np.std(yApp, axis=0)/np.mean(yApp, axis=0)
+      predStd = np.std(yAppPred, axis=0)
+      priStd = np.std(yApp, axis=0)
 
       outputArray=[]
       for t in range(yApp.shape[1]):
         outputArray.append(1.0-predStd[t]/priStd[t])
 
-      return outputArray
+      return outputArray, predMean, predStd
 
 
     """
@@ -335,7 +335,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       msrData = np.array(msrData).reshape(num_of_samples, num_of_featuresExp)
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
 
-      outputArray = pcmTdep(featData, msrData, targData)
+      outputArray, predMean, predStd = pcmTdep(featData, msrData, targData)
 
     elif 'timeSnapshot' in keys:
       pcmVersion = 'snapshot'
@@ -359,12 +359,17 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     for targ in self.targets:
       if pcmVersion=='snapshot':
         name = "snapshot_pri_post_stdReduct"
+        outputDict[name] = np.asarray(outputArray)
       if pcmVersion=='static':
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
+        outputDict[name] = np.asarray(outputArray)
       if pcmVersion=='Tdep':
         name = "Tdep_pri_post_stdReduct"
-
-      outputDict[name] = np.asarray(outputArray)
+        outputDict[name] = np.asarray(outputArray)
+        name = "Tdep_post_mean"
+        outputDict[name] = np.asarray(predMean)
+        name = "Tdep_post_std"
+        outputDict[name] = np.asarray(predStd)
 
     return outputDict
 
