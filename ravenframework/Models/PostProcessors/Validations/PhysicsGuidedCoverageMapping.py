@@ -96,7 +96,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     if 'snapshot_pri_post_stdReduct' in evaluation.keys():
       pivotParameter = self.pivotParameter
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeSnapshot']
-    if 'Tdep_pri_post_stdReduct' in evaluation.keys():
+    if 'Tdep_post_mean' in evaluation.keys():
       pivotParameter = self.pivotParameter
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeTdep']
 
@@ -246,49 +246,57 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       return xMAX[0]
 
+    # Find a reference sample which is closest to samples' average for scaling later
+    def findRef(yExp, yApp):
+      # calculate average temperatures among samples (samples' average)
+      yExpMean = np.mean(yExp, axis=0)
+      yAppMean = np.mean(yApp, axis=0)
+      # find the reference that is closest to the mean by employing Mean Square Error as metric
+      mse1 = np.zeros(yExp.shape[0])
+      mse2 = np.zeros(yExp.shape[0])
+      for i in range(yExp.shape[0]):
+          mse1[i] = np.mean((yExp[i,:]-yExpMean)**2)
+          mse2[i] = np.mean((yApp[i,:]-yAppMean)**2)
+      # The index for the reference sample
+      inExp = np.where(mse1==np.min(mse1))[0][0]
+      inApp = np.where(mse2==np.min(mse2))[0][0]
+      return inExp, inApp
+
     def pcmTdep(featData, msrData, targData):
       yExp = np.array(featData)
       yApp = np.array(targData)
       yExpMsr = np.array(msrData)
-      # Find a reference sample which is the samples' average for scaling later
-      yExpMean = np.mean(yExp, axis=0)
-      yAppMean = np.mean(yApp, axis=0)
+      yExpMsrMean = np.mean(np.array(msrData), axis=0)
 
       # calculate alphaApp as linear combination of alphaExp (with RankApp, RankExp)
-      yAppRef = yAppMean
-      yAppScaled = (yApp[:,:] - yAppRef).T #scaled application prior data
+      inExp, inApp = findRef(yExp, yApp)
+      yAppRef = yApp[inApp, :]
+      yAppScaled = (np.delete(yApp[:,:] - yAppRef, inApp,0)).T #scaled application prior data
       uApp, sApp, vApp_T = np.linalg.svd(yAppScaled, full_matrices=False)
       alphaApp = (uApp.T@yAppScaled).T # coefficients of application prior data under UApp subspace
 
 
-      yExpRef = yExpMean
-      yExpScaled = (yExp[:,:] - yExpRef).T #scaled experiment prior data
+      yExpRef = yExp[inExp, :]
+      yExpScaled = (np.delete(yExp[:,:] - yExpRef, inExp,0)).T #scaled experiment prior data
       uExp, sExp, vExp_T = np.linalg.svd(yExpScaled, full_matrices=False)
       alphaExp = (uExp.T@yExpScaled).T # coefficients of experiment prior data under UExp subspace
 
-      yExpMsrScaled = ((yExpMsr - yExpRef)).T # scaled experiments' Measurement data
+      yExpMsrScaled = ((yExpMsrMean - yExpRef)).T # scaled experiments' Measurement data
       alphaExpMsr = (uExp.T@yExpMsrScaled).T #  coefficients of experiments' Measurement data under UExp subspace
 
 
       #KNN regression
       rkApp = FindRank(yAppRef, yAppScaled, yExpMsr) #rank of application
       rkExp = FindRank(yExpRef, yExpScaled, yExpMsr)  # rank of experiments
-      alphaAppHat=np.zeros((yExpMsr.shape[0],rkApp))
+      alphaAppHat=np.zeros(rkApp)
       for i in range(rkApp):
-        alphaAppHat[:,i] = KNN(alphaExp[:,:rkExp], alphaApp[:,i], alphaExpMsr[:,:rkExp],k=5)
+        alphaAppHat[i] = KNN(alphaExp[:,:rkExp], alphaApp[:,i], alphaExpMsr[:rkExp],k=4)
 
       # reconstruct posterior appliaction data by the perdicted application coefficients alphaAppm_hat
       yAppPredScaled = (uApp[:,:rkApp] @ alphaAppHat.T).T
       yAppPred = yAppPredScaled + yAppRef
-      predMean = np.mean(yAppPred, axis=0)
-      predStd = np.std(yAppPred, axis=0)
-      priStd = np.std(yApp, axis=0)
-
-      outputArray=[]
-      for t in range(yApp.shape[1]):
-        outputArray.append(1.0-predStd[t]/priStd[t])
-
-      return outputArray, predMean, predStd
+      error = abs(yAppPred-yAppRef)/yAppRef
+      return yAppPred, error
 
 
     """
@@ -303,16 +311,18 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     featPW = []
     msrPW = []
 
-    for feat, msr, targ in zip(self.features, self.measurements, self.targets):
+    for feat, msr in zip(self.features, self.measurements):
       featDataProb = self._getDataFromDataDict(datasets, feat, names)
       msrDataProb = self._getDataFromDataDict(datasets, msr, names)
-      targDataProb = self._getDataFromDataDict(datasets, targ, names)
       # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
       featData.append(featDataProb[0].flatten())
       msrData.append(msrDataProb[0].flatten())
+
+    for targ in self.targets:
+      # read targets' data
+      targDataProb = self._getDataFromDataDict(datasets, targ, names)
       # Data values in <x>Data, <x>=targ, feat, msr
       targData.append(targDataProb[0].flatten())
-
 
     # Probability Weights for future use
     featPW.append(featDataProb[1])
@@ -335,7 +345,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       msrData = np.array(msrData).reshape(num_of_samples, num_of_featuresExp)
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
 
-      outputArray, predMean, predStd = pcmTdep(featData, msrData, targData)
+      yAppPred, error = pcmTdep(featData, msrData, targData)
 
     elif 'timeSnapshot' in keys:
       pcmVersion = 'snapshot'
@@ -364,12 +374,10 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
         outputDict[name] = np.asarray(outputArray)
       if pcmVersion=='Tdep':
-        name = "Tdep_pri_post_stdReduct"
-        outputDict[name] = np.asarray(outputArray)
         name = "Tdep_post_mean"
-        outputDict[name] = np.asarray(predMean)
-        name = "Tdep_post_std"
-        outputDict[name] = np.asarray(predStd)
+        outputDict[name] = np.asarray(yAppPred)
+        name = "Error"
+        outputDict[name] = np.asarray(error)
 
     return outputDict
 

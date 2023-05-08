@@ -16,10 +16,8 @@
         based on their U subspace as experiment (Feature) and application (Target) models.
         Here, coefficients of SETH-C are used as experiemnt responses (Features);
         coefficients of SETH-C and SETH-D temperatures data are used as application responses (Target)
-        The outputs are post mean, post standard deviation, 
-        and fraction value reflecting the uncertainty reduction fraction 
-        of Target Posterior comparing to the Target prior, which includes uncertainty reductions along timesteps 
-        and has columns:'timeTdep' and 'Tdep_pri_post_stdReduct', 'Tdep_post_mean', 'Tdep_post_std'.
+        The outputs are posterior mean, and fraction value reflecting the error between posterior and prior mean
+        of Target, and has columns:'timeTdep', 'Tdep_post_mean', 'Error'.
     </description>
   </TestInfo>
 
@@ -79,7 +77,7 @@
       <options>
         <pivotParameter>timeTdep</pivotParameter> 
       </options>
-      <Output>Tdep_pri_post_stdReduct, Tdep_post_mean, Tdep_post_std</Output>
+      <Output>Tdep_post_mean, Error</Output>
     </HistorySet>
   </DataObjects>
 
