@@ -896,7 +896,7 @@ class GeneticAlgorithm(RavenSampled):
       # the envelope has a zero size (=> populations are
       # composed by the same genes (all the same numbers
       # => minimum == maximum within the population
-      return 0.
+      return 1.
     return  1. - ahd / normFactor
 
   def _updateConvergence(self, traj, new, old, acceptable):
