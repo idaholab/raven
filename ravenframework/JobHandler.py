@@ -291,8 +291,14 @@ class JobHandler(BaseType):
           if self._parallelLib == ParallelLibEnum.ray:
             self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
-          self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-          self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+          if self._parallelLib == ParallelLibEnum.ray:
+            self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
+            self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+          elif self._parallelLib == ParallelLibEnum.dask:
+            self.raiseADebug("Executing DASK in the cluster but with a single node configuration")
+            #Start locally
+            cluster = dask.distributed.LocalCluster()
+            self._server = dask.distributed.Client(cluster)
       else:
         self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         if self._parallelLib == ParallelLibEnum.ray:
