@@ -2,14 +2,14 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Optimizers/GA.MaxwoReplacementConvHDSM</name>
-    <author>MohammadAbdo</author>
+    <author>MohammadAbdo and Andrea Alfonsi</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
       This test assesses the Genetic algorithm using the weighted sum found in myLocalSum.py function.
       The nominal dimensionality of the test problem is 3.
       The objective variable is ans. The problem in unconstrained, it is a maximization problem, and the sampling is from discrete variables without replacement.
-      The convergence criterion used is the (p-Average Hausdorff Distance between populations) AHDp.
+      The convergence criterion used is the HDSM convergence.
     </description>
     <analytic>
       This test uses myLocalSum's analytic objective function.
