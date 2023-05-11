@@ -1,0 +1,230 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.ROM.TrainFeatureTransformedSpace.SKL_time_kernel_pca</name>
+    <author>aalfonsi</author>
+    <created>2023-02-10</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+      In this test case, the capability to perform feature space transformation
+      (to explicitily uncorrelate the datase) using Kernel PCA is tested
+      on a time dependent surrogate model. Linear, Polynomial, Rbf, Cosine and Singmoid
+      kernels are tested here.
+      The transformation is applied on the feature space, which
+      is correlated since the sampling table (custom) has been generated via multi variate distributions.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TimeDepSKL</WorkingDir>
+    <Sequence>sample,
+        trainLinear,trainPoly,trainCosine,trainRbf,trainSigmoid,
+        resampleLinear,resamplePoly,resampleCosine,resampleRbf,resampleSigmoid,
+        print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="HistorySet">train</Output>
+    </MultiRun>
+    <MultiRun name="resampleLinear">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ROM">knnLinear</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet">innerPSLinear</Output>
+    </MultiRun>
+    <MultiRun name="resamplePoly">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ROM">knnPoly</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet">innerPSPoly</Output>
+    </MultiRun>
+    <MultiRun name="resampleCosine">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ROM">knnCosine</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet">innerPSCosine</Output>
+    </MultiRun>
+    <MultiRun name="resampleRbf">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ROM">knnRbf</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet">innerPSRbf</Output>
+    </MultiRun>
+    <MultiRun name="resampleSigmoid">
+      <Input   class="DataObjects" type="PointSet">placeholder</Input>
+      <Model   class="Models"      type="ROM">knnSigmoid</Model>
+      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet">innerPSSigmoid</Output>
+    </MultiRun>
+    <RomTrainer name="trainLinear">
+      <Input  class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models"      type="ROM">knnLinear</Output>
+    </RomTrainer>
+    <RomTrainer name="trainPoly">
+      <Input  class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models"      type="ROM">knnPoly</Output>
+    </RomTrainer>
+    <RomTrainer name="trainCosine">
+      <Input  class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models"      type="ROM">knnCosine</Output>
+    </RomTrainer>
+    <RomTrainer name="trainRbf">
+      <Input  class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models"      type="ROM">knnRbf</Output>
+    </RomTrainer>
+    <RomTrainer name="trainSigmoid">
+      <Input  class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models"      type="ROM">knnSigmoid</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input  class="DataObjects" type="PointSet">innerPSLinear</Input>
+      <Input  class="DataObjects" type="PointSet">innerPSPoly</Input>
+      <Input  class="DataObjects" type="PointSet">innerPSCosine</Input>
+      <Input  class="DataObjects" type="PointSet">innerPSRbf</Input>
+      <Input  class="DataObjects" type="PointSet">innerPSSigmoid</Input>
+      <Output class="OutStreams"  type="Print">skl_kernel_pca_linear_samples</Output>
+      <Output class="OutStreams"  type="Print">skl_kernel_pca_poly_samples</Output>
+      <Output class="OutStreams"  type="Print">skl_kernel_pca_rbf_samples</Output>
+      <Output class="OutStreams"  type="Print">skl_kernel_pca_sigmoid_samples</Output>
+      <Output class="OutStreams"  type="Print">skl_kernel_pca_cosine_samples</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,y0,ang</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="innerPSLinear">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <PointSet name="innerPSPoly">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <PointSet name="innerPSCosine">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <PointSet name="innerPSSigmoid">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <PointSet name="innerPSRbf">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <HistorySet name="train">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../TimeDepSKL/projectile" name="projectile" subType="">
+      <inputs>v0,y0,ang</inputs>
+      <outputs>x,y,time</outputs>
+    </ExternalModel>
+    <ROM name="knnLinear" subType="KNeighborsRegressor">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
+      <n_neighbors>1</n_neighbors>
+      <featureSpaceTransformation>
+        <transformationMethod>KernelLinearPCA</transformationMethod>
+        <parametersToInclude>v0,y0,ang</parametersToInclude>
+        <whichSpace>Feature</whichSpace>
+      </featureSpaceTransformation>
+    </ROM>
+    <ROM name="knnPoly" subType="KNeighborsRegressor">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
+      <n_neighbors>1</n_neighbors>
+      <featureSpaceTransformation>
+        <transformationMethod>KernelPolyPCA</transformationMethod>
+        <parametersToInclude>v0,y0,ang</parametersToInclude>
+        <whichSpace>Feature</whichSpace>
+      </featureSpaceTransformation>
+    </ROM>
+    <ROM name="knnRbf" subType="KNeighborsRegressor">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
+      <n_neighbors>1</n_neighbors>
+      <featureSpaceTransformation>
+        <transformationMethod>KernelRbfPCA</transformationMethod>
+        <parametersToInclude>v0,y0,ang</parametersToInclude>
+        <whichSpace>Feature</whichSpace>
+      </featureSpaceTransformation>
+    </ROM>
+    <ROM name="knnSigmoid" subType="KNeighborsRegressor">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
+      <n_neighbors>1</n_neighbors>
+      <featureSpaceTransformation>
+        <transformationMethod>KernelSigmoidPCA</transformationMethod>
+        <parametersToInclude>v0,y0,ang</parametersToInclude>
+        <whichSpace>Feature</whichSpace>
+      </featureSpaceTransformation>
+    </ROM>
+    <ROM name="knnCosine" subType="KNeighborsRegressor">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
+      <n_neighbors>1</n_neighbors>
+      <featureSpaceTransformation>
+        <transformationMethod>KernelCosinePCA</transformationMethod>
+        <parametersToInclude>v0,y0,ang</parametersToInclude>
+        <whichSpace>Feature</whichSpace>
+      </featureSpaceTransformation>
+    </ROM>
+  </Models>
+
+  <Files>
+    <Input name="samples_custom_sampler.csv" type="">samples_custom_sampler.csv</Input>
+  </Files>
+  
+  <Samplers>
+    <CustomSampler name="correlatedSampler">
+      <Source class="Files" type="">samples_custom_sampler.csv</Source>
+      <variable name="v0" />
+      <variable name="ang"/>
+      <variable name="y0"/>
+    </CustomSampler>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="skl_kernel_pca_linear_samples">
+      <source>innerPSLinear</source>
+      <type>csv</type>
+    </Print>
+    <Print name="skl_kernel_pca_poly_samples">
+      <source>innerPSPoly</source>
+      <type>csv</type>
+    </Print>
+    <Print name="skl_kernel_pca_rbf_samples">
+      <source>innerPSRbf</source>
+      <type>csv</type>
+    </Print>
+    <Print name="skl_kernel_pca_sigmoid_samples">
+      <source>innerPSSigmoid</source>
+      <type>csv</type>
+    </Print>
+    <Print name="skl_kernel_pca_cosine_samples">
+      <source>innerPSCosine</source>
+      <type>csv</type>
+    </Print>
+  </OutStreams>
+
+</Simulation>

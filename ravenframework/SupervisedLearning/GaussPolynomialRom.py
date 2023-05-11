@@ -427,7 +427,7 @@ class GaussPolynomialRom(SupervisedLearning):
       tot*=self.polys[varName](o,p)
     return tot
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Trains ROM.
       @ In, featureVals, np.ndarray, feature values

@@ -148,6 +148,10 @@ specifies the following sub-nodes:
    \begin{itemize}
      \item \xmlAttr{var}, \xmlDesc{required string attribute}, the dimension name of this index (e.g. time)
    \end{itemize}
+   This XML node allows the following attribute:
+   \begin{itemize}
+     \item \xmlAttr{autogenerate}, \xmlDesc{optional boolean attribute}, if this index should be generated automatically if it does not exist. This will generate integer numbers from 0 to the maximum needed. This can be used for reading CSV files that do not have an otherwise use-able index.
+   \end{itemize}
  \item \xmlNode{options}, \xmlDesc{optional node}, contains additional option nodes
    for data objects.  This node contains the following subnodes:
    \begin{itemize}
@@ -189,6 +193,10 @@ For the \xmlNode{HistorySet}, all inputs must be scalar, and all outputs must sh
 \textit{pivotParameter}.  There cannot be scalars in any of the outputs. The pivotParameter can be changed
 through the corresponding node in the \xmlNode{options} node.
 
+RAVEN automatically creates a \texttt{prefix} in the output space
+that is used to generate the directory name for sampling and other
+purposes. A user can also add \texttt{prefix} explicitly to the
+variables in the object if it is useful to keep this information.
 
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

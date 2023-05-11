@@ -146,17 +146,15 @@ def checkSameVersion(expected, received):
   #Only check as many digits as given in expSplit
   rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
   # drop trailing 0s on both
-  while expSplit[-1] == 0:
+  while len(expSplit) and expSplit[-1] == 0:
     expSplit.pop()
-  while rcvSplit[-1] == 0:
+  while len(rcvSplit) and rcvSplit[-1] == 0:
     rcvSplit.pop()
   exp = '.'.join(str(x) for x in expSplit)
   rcv = '.'.join(str(x) for x in rcvSplit)
   if exp == rcv:
     return True
   return False
-
-
 
 def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
@@ -190,6 +188,8 @@ def findLibAndVersion(lib, version=None):
   if lib not in metaExceptions:
     try:
       foundVersion = importlib_metadata.version(lib)
+      #The following line can be used for debugging library problems
+      #print(lib, importlib_metadata.files(lib)[0].locate())
       found = True
       output = 'Library found.'
     except importlib_metadata.PackageNotFoundError:

@@ -24,7 +24,7 @@ from ...utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import ast
+import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -48,12 +48,48 @@ class ScikitLearnBase(SupervisedLearning):
     #Subclasses can define these to specify what is exported with writeXML
     self._vectorWriteList = []
     self._scalarWriteList = []
-
     self.uniqueVals = None # flag to indicate targets only have a single unique value
     self.settings = None # initial settings for the ROM
     self.model = None # Scikitlearn estimator/model
-    self.multioutputWrapper = True # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
-                                   # the self.model can handle multioutput/multi-targets prediction
+    # If True, use MultiOutputRegressor or MultiOutputClassifier to wrap self.model else
+    # the self.model can handle multioutput/multi-targets prediction
+    self.multioutputWrapper = True
+
+  @property
+  def featureImportances_(self):
+    """
+      This property is in charge of extracting from the estimators
+      the importance of the features used in the training process
+      @ In, None
+      @ Out, importances, dict, {featName:float or array(nTargets)} importances of the features
+    """
+    coefs = None
+    if hasattr(self.model, 'estimators_'):
+      model = self.model.estimators_
+    else:
+      model = self.model
+    if isinstance(model, list):
+      cc = None
+      for m in model:
+        if hasattr(m, 'feature_importances_'):
+          coefs = m.feature_importances_
+        elif hasattr(m, 'coef_'):
+          coefs = m.coef_
+        if cc is None and coefs is not None:
+          cc = np.zeros(coefs.shape)
+        if coefs is not None:
+          cc[:]+=coefs[:]
+      if cc is not None:
+        cc/=float(len(model))
+      coefs = cc
+    else:
+      if hasattr(model, 'feature_importances_'):
+        coefs = model.feature_importances_
+      elif hasattr(model, 'coef_'):
+        coefs = model.coef_
+    # store importances
+    importances = {feat:coefs[f] for f, feat in enumerate(self.features) } if coefs is not None else None
+    return importances
 
   def updateSettings(self, settings):
     """
@@ -79,11 +115,16 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
       @ Out, None
     """
+    import sklearn.multioutput
     if self.settings is None:
       self.settings = settings
-    self.model = self.model(**settings)
-    if self.multioutputWrapper:
-      self.multioutput(self.info['problemtype'])
+    if inspect.isclass(self.model):
+      self.model = self.model(**settings)
+      if self.multioutputWrapper:
+        self.multioutput(self.info['problemtype'])
+    else:
+      setts = self.updateSettings(settings)
+      self.model.set_params(**setts)
 
   def multioutput(self, type='regression'):
     """
@@ -115,7 +156,7 @@ class ScikitLearnBase(SupervisedLearning):
       else:
         self.raiseADebug('A valid estimator', estimator.name, 'is provided!')
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
@@ -131,6 +172,14 @@ class ScikitLearnBase(SupervisedLearning):
       # the multi-target is handled by the internal wrapper
       self.uniqueVals = None
       self.model.fit(featureVals,targetVals)
+    if self.computeImportances and self.featureImportances_ is None:
+      # we compute importances using a permutation method
+      from sklearn.inspection import permutation_importance
+      r = permutation_importance(self.model, featureVals, targetVals, random_state=0)
+      # we set the attribute to self.model as feature_importances_
+      model = self.model.estimators_ if hasattr(self.model, 'estimators_') else [self.model]
+      for m in model:
+        setattr(m, 'feature_importances_', r['importances_mean'])
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -216,12 +265,15 @@ class ScikitLearnBase(SupervisedLearning):
     if self.multioutputWrapper:
       for index, targetName in enumerate(self.target):
         for vectorName in self._vectorWriteList:
-          writeTo.addVector("ROM", vectorName+targetName, ",".join([str(x) for x in getattr(self.model.estimators_[index], vectorName)]))
+          writeTo.addVector("ROM", vectorName+targetName,
+                            ",".join([str(x) for x in getattr(self.model.estimators_[index],
+                                                              vectorName)]))
         for scalarName in self._scalarWriteList:
-          writeTo.addScalar("ROM", scalarName+targetName, str(getattr(self.model.estimators_[index], scalarName)))
+          writeTo.addScalar("ROM", scalarName+targetName,
+                            str(getattr(self.model.estimators_[index], scalarName)))
     else:
       for vectorName in self._vectorWriteList:
-        writeTo.addVector("ROM", vectorName, ",".join([str(x) for x in getattr(self.model, vectorName)]))
+        writeTo.addVector("ROM", vectorName,
+                          ",".join([str(x) for x in getattr(self.model, vectorName)]))
       for scalarName in self._scalarWriteList:
         writeTo.addScalar("ROM", scalarName, str(getattr(self.model, scalarName)))
-
