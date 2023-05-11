@@ -98,7 +98,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.nModes = None                                       # The number of modes/basis used to truncate the singular value decomposition
     self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
     self.sensingFeatures = None                              # the variable representing the features of the data i.e., X, Y, SensorID, etc.
-    self.sensingTarget = None                                # the Response of interest to be reconstructed (or classified)
+    self.sensingTarget = None                                # the Response of interest to be reconstructed (or classify)
     self.optimizer = None                                    # THe optimizer type (QR, CCQR) for unconstrained and constrained optimization respectively
 
   def initialize(self, runInfo, inputs, initDict=None):
