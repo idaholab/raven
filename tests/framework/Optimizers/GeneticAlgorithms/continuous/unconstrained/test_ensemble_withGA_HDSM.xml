@@ -1,17 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModel</name>
+    <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModelHDSMconvergence</name>
     <author>mandd</author>
     <created>2022-11-17</created>
     <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
     <description>
-       Example of usage of the Ensemble Model with GA optmization methods
+       This test is aimed to test the convergence criterion based on the
+       Hausdorff Similarity Measure. This convergence criterion is based on a normalized
+       similarity metric that can be summurized as the normalized Hausdorff distance
+       (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
+       which implies that values closer to 1. represents a tighter convergence criterion.
     </description>
   </TestInfo>
   
   <RunInfo>
-    <WorkingDir>ensemble_withGA</WorkingDir>
+    <WorkingDir>ensemble_withGA_HDSM</WorkingDir>
     <Sequence>testMetamodelHeatTransfer</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -66,7 +70,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>5</limit>
+        <limit>400</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -87,7 +91,8 @@
       </GAparams>
 
       <convergence>
-        <AHDp>0.0</AHDp>
+        <HDSM>0.99</HDSM>
+        <AHDp>5.0</AHDp>
       </convergence>
 
       <variable name="leftTemperature">
@@ -110,7 +115,7 @@
       <Optimizer      class="Optimizers"   type="GeneticAlgorithm" >GAopt</Optimizer>
       <SolutionExport class="DataObjects"  type="PointSet"         >opt_export</SolutionExport>
       <Output         class="DataObjects"  type="PointSet"         >metaModelOutputTest</Output>
-      <Output         class="OutStreams"   type="Print"            >metaModelOutputTestDump</Output>
+      <Output         class="OutStreams"   type="Print"            >opt_export</Output>
     </MultiRun>
   </Steps>
 
@@ -133,7 +138,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,solution</Output>
+      <Output>k,solution,age,batchId,fitness,iteration,accepted,AHDp,AHD,HDSM,conv_HDSM</Output>
     </PointSet>
   </DataObjects>
 
@@ -148,10 +153,9 @@
       <source>heatTransferContainer</source>
       <what>input,output</what>
     </Print>
-    <Print name="metaModelOutputTestDump">
+    <Print name="opt_export">
       <type>csv</type>
-      <source>metaModelOutputTest</source>
-      <what>input,output</what>
+      <source>opt_export</source>
     </Print>
   </OutStreams>
 
