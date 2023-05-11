@@ -26,10 +26,9 @@ Some important terms related to sensor placement problems are :
 
 In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
 \begin{itemize}
-	\item \xmlNode{TrainingData}, \xmlDesc{string, required field}, the Dataobject containing the training data
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., locations or time stamps we should sense
 	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model
-	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity},\xmlString{ SVD}, \xmlString{Random}. \default{SVD}  
+	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity},\xmlString{ SVD}, \xmlString{Random}. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, \xmlString{CCQR} for unconstrained and cost constrained respectively.
@@ -44,10 +43,9 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
       ...
       <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
-        <TrainingData>myDO</TrainingData>
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
-        <basis>svd</basis> <!--default: svd-->
+        <basis>SVD</basis> <!--default: SVD-->
         <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
         <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
         <optimizer>QR</optimizer><!--default: QR-->

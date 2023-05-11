@@ -48,7 +48,7 @@ class SparseSensing(PostProcessorReadyInterface):
     goal = InputData.parameterInputFactory('Goal',
                                                   printPriority=108,
                                                   descr=r"""The goal of the sparse sensor optimization (i.e., reconstruction or classification)""")
-    goal.addParam("subType", InputTypes.StringType, True)
+    goal.addParam("subType", InputTypes.makeEnumType("Goal", "GoalType", ['reconstruction','classification']), False, default='reconstruction')
     inputSpecification.addSub(goal)
     features = InputData.parameterInputFactory("features", contentType=InputTypes.StringListType,
                                                 printPriority=108,
@@ -58,13 +58,9 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""target of data model""")
     goal.addSub(target)
-    trainingDO = InputData.parameterInputFactory("TrainingData", contentType=InputTypes.StringType,
-                                                printPriority=108,
-                                                descr=r"""The Dataobject containing the training data""")
-    goal.addSub(trainingDO)
-    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.StringType,
+    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type",['Identity','SVD','RandomProjetion']),
                                                            printPriority=108,
-                                                           descr=r"""The type of basis onto which the data are projected""")
+                                                           descr=r"""The type of basis onto which the data are projected""", default='SVD')
     goal.addSub(basis)
     nModes = InputData.parameterInputFactory("nModes", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
@@ -74,14 +70,10 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The number of sensors used""")
     goal.addSub(nSensors)
-    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.StringType,
+    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type",['QR','CCQR']),
                                                            printPriority=108,
-                                                           descr=r"""The type of optimizer used""")
+                                                           descr=r"""The type of optimizer used""",default='QR')
     goal.addSub(optimizer)
-    threshold = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType,
-                                                           printPriority=108,
-                                                           descr=r"""The percentage of sensors used (i.e., nSensors/nFeatures)""")
-    goal.addSub(threshold)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
@@ -98,12 +90,16 @@ class SparseSensing(PostProcessorReadyInterface):
     super().__init__()
     self.setInputDataType('xrDataset')
     self.keepInputMeta(False)
-    # self.supressErrors = True
-    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
-    self.pivotParameter = None # time-dependent data pivot parameter. None if the problem is steady state
+    self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
+    self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
-    # self.pivotParameter = 'time'
-    # self.outputLen = None
+    self.SparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
+    self.nSensors = None                                     # The number of the sensors required by the user.
+    self.nModes = None                                       # The number of modes/basis used to truncate the singular value decomposition
+    self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
+    self.sensingFeatures = None                              # the variable representing the features of the data i.e., X, Y, SensorID, etc.
+    self.sensingTarget = None                                # the Response of interest to be reconstructed (or classified)
+    self.optimizer = None                                    # THe optimizer type (QR, CCQR) for unconstrained and constrained optimization respectively
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -116,8 +112,6 @@ class SparseSensing(PostProcessorReadyInterface):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
-    # if inputs[0].type != 'HistorySet':
-    #   self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
   def _handleInput(self, paramInput):
     """
@@ -138,17 +132,11 @@ class SparseSensing(PostProcessorReadyInterface):
         self.seed = child.findFirst('seed').value
       else:
         self.seed = None
-      if child.parameterValues['subType'] == 'classification':
-        self.threshold = child.findFirst('threshold').value
-      elif child.parameterValues['subType'] not in self.goalsDict.keys():
+      if child.parameterValues['subType'] not in self.goalsDict.keys():
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
-    # _, notFound = paramInput.findNodesAndExtractValues(['featureParameters', 'targetParameters'])
-    # # notFound must be empty
-    # assert(not notFound)
-
-    # # checks
-    # if not hasattr(self, 'pivotParameter'):
-    #   self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
+    _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
+    # notFound must be empty
+    assert(not notFound)
 
   def run(self,inputIn):
     """
@@ -162,19 +150,19 @@ class SparseSensing(PostProcessorReadyInterface):
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
-    if self.basis == 'svd':
+    if self.basis == 'SVD':
       basis=ps.basis.SVD(n_basis_modes=self.nModes)
-    elif self.basis == 'identity':
+    elif self.basis == 'Identity':
       basis=ps.basis.Identity(n_basis_modes=self.nModes)
     elif self.basis == 'RandomProjection':
       basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
-    elif self.basis == 'Custom':
-      basis=ps.basis.Custom(n_basis_modes=self.nModes)
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
 
     if self.optimizer == 'QR':
       optimizer = ps.optimizers.QR()
+    elif self.optimizer == 'CCQR':
+      optimizer = ps.optimizers.CCQR()
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
 

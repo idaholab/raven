@@ -39,10 +39,10 @@
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
-        <TrainingData>myDO</TrainingData>
+        <!-- <TrainingData>myDO</TrainingData> -->
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
-        <basis>svd</basis>
+        <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>
         <optimizer>QR</optimizer>
