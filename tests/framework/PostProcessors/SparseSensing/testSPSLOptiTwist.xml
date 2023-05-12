@@ -16,12 +16,15 @@
 
   <Files>
     <Input name="twistFile" type="">./Perturbations2.csv</Input>
+    <Input name="refDO" type="">./350_330_.csv</Input>
   </Files>
 
   <Steps>
     <IOStep name="LoadCSV">
       <Input class="Files" type="">twistFile</Input>
       <Output class="DataObjects" type="HistorySet">TwistDO</Output>
+      <Input class="Files" type="">refDO</Input>
+      <Output class="DataObjects" type="PointSet">myDO</Output>
     </IOStep>
     <PostProcess name="mySPpp">
       <Input class="DataObjects" type="HistorySet">TwistDO</Input>
@@ -30,7 +33,7 @@
     </PostProcess>
     <IOStep name="print">
       <Input class="DataObjects" type="DataSet">outPP</Input>
-      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
+      <Input class="DataObjects" type="PointSet">myDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot</Output>
     </IOStep>
@@ -58,6 +61,9 @@
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
+    <PointSet name="myDO">
+      <Output>X (m),Temperature (K),Y (m)</Output>
+    </PointSet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
       <Output>Temperature (K), X (m), Y (m)</Output>
@@ -75,10 +81,10 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>TwistDO|Output|X (m)</x>
-          <y>TwistDO|Output|Y (m)</y>
+          <x>myDO|Output|X (m)</x>
+          <y>myDO|Output|Y (m)</y>
           <cmap>coolwarm</cmap>
-          <colorMap>TwistDO|Output|Temperature (K)</colorMap>
+          <colorMap>myDO|Output|Temperature (K)</colorMap>
         </plot>
         <plot>
           <type>scatter</type>

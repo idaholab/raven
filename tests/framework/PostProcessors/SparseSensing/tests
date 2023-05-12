@@ -3,6 +3,7 @@
     type = 'RavenFramework'
     input = 'testSPSLOptiTwist.xml'
     csv = 'reconstructionOptiTwist/outPP.csv'
-    output = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png'
+    image = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png reconstructionOptiTwist/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
   [../]
 []
