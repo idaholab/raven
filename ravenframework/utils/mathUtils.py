@@ -17,7 +17,6 @@
  created on 03/26/2015
  @author: senrs
 """
-
 import math
 import functools
 import copy
