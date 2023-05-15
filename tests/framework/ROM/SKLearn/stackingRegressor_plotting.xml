@@ -240,7 +240,7 @@
         <xlabel>Test Samples</xlabel>
         <ylabel>Predicted</ylabel>
         <legend>
-          <loc>best</loc>
+          <loc>upper right</loc>
         </legend>
       </plotSettings>
       <actions>

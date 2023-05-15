@@ -154,7 +154,7 @@ Genetic Algorithm Example:
       <GAparams>
         <populationSize>20</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="4">
+        <reproduction>
           <crossover type="onePointCrossover">
             <points>3</points>
             <crossoverProb>0.8</crossoverProb>

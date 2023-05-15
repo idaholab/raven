@@ -29,7 +29,8 @@
     <Sequence>
       sample,
       train,
-      resample
+      resample,
+      writemodel
     </Sequence>
   </RunInfo>
 
@@ -48,7 +49,34 @@
 
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <!-- <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/> -->
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">modelUnderTest</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outData</Output>
+      <Output class="OutStreams" type="Print">outData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">modelUnderTest</Output>
+    </RomTrainer>
+    <IOStep name="writemodel">
+      <Input class="Models" type="ROM">modelUnderTest</Input>
+      <Output class="DataObjects" type="PointSet">modelOut</Output>
+      <Output class="OutStreams" type="Print">modelOut</Output>
+    </IOStep>
+  </Steps>
+
+
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -57,7 +85,14 @@
       <what>input,output</what>
       <filename>outLinearRegression</filename>
     </Print>
+    <Print name="modelOut">
+      <type>csv</type>
+      <source>modelOut</source>
+      <what>input,output</what>
+      <filename>outLinearRegressionModel</filename>
+    </Print>
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
 </Simulation>

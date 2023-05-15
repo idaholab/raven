@@ -45,11 +45,7 @@ class StackingRegressor(ScikitLearnBase):
     self.multioutputWrapper = True
     import sklearn
     import sklearn.ensemble
-    # check sklearn version, StackingRegressor is stable in sklearn version >= 0.24
-    version = [int(n) for n in sklearn.__version__.split('.')]
-    if version[0] < 1 and version[1] <= 24:
-      self.raiseAnError(IOError, 'StackingRegressor is not available in current sklearn version', sklearn.__version__,
-                        'Please try to update sklearn version to 0.24 or newer!')
+
     self.model = sklearn.ensemble.StackingRegressor
 
   @classmethod

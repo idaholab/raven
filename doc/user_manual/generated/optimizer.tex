@@ -22,7 +22,7 @@
           \item \texttt{trajID}: integer identifier for different optimization starting locations and paths
              \item \texttt{iteration}: integer identifying which iteration (or step, or generation) a trajectory is on
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
-             \item \texttt{rejectReason}: discription of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
+             \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{stepSize}: the size of step taken in the normalized input space to arrive at each optimal point
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
@@ -541,13 +541,13 @@ Gradient Descent Example:
 \subsection{SimulatedAnnealing}
   The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
   to perform a global search in large design spaces. The methodology rose
-  from statistical physics and was inspitred by metallurgy where                             it was
+  from statistical physics and was inspired by metallurgy where                             it was
   found that fast cooling might lead to smaller and defected crystals,
-  and that reheating and slowly controling cooling will lead to better states.
+  and that reheating and slowly controlling cooling will lead to better states.
   This allows climbing to avoid being stuck in local minima and hence facilitates
-  finding the global minima for non-convex probloems.                             More information
+  finding the global minima for non-convex problems.                             More information
   can be found in: Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
-  ``Optimization by Simulated Annealing". Science. 220 (4598): 671-680.
+  ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -555,10 +555,10 @@ Gradient Descent Example:
           \item \texttt{trajID}: integer identifier for different optimization starting locations and paths
              \item \texttt{iteration}: integer identifying which iteration (or step, or generation) a trajectory is on
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
-             \item \texttt{rejectReason}: discription of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
+             \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
-             \item \texttt{amp\_\{VAR\}}: amplitued associated to each variable used to compute step size based on cooling method and the corresponding next neighbour
+             \item \texttt{amp\_\{VAR\}}: amplitude associated to each variable used to compute step size based on cooling method and the corresponding next neighbor
              \item \texttt{delta\_\{VAR\}}: step size associated to each variable
              \item \texttt{Temp}: temperature at current state
              \item \texttt{fraction}: current fraction of the max iteration limit
@@ -951,7 +951,7 @@ Simulated Annealing Example:
           \item \texttt{trajID}: integer identifier for different optimization starting locations and paths
              \item \texttt{iteration}: integer identifying which iteration (or step, or generation) a trajectory is on
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
-             \item \texttt{rejectReason}: discription of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
+             \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{fitness}: fitness of the current chromosome
@@ -959,6 +959,8 @@ Simulated Annealing Example:
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
              \item \texttt{AHDp}: p-Average Hausdorff Distance between populations
              \item \texttt{AHD}: Hausdorff Distance between populations
+             \item \texttt{HDSM}: Hausdorff Distance Similarity Measure between populations
+             \item \texttt{ConstraintEvaluation\_\{CONSTRAINT\}}: Constraint function evaluation (negative if violating and positive otherwise)
            
          \end{itemize}
 
@@ -1094,6 +1096,7 @@ Simulated Annealing Example:
       \item scrambleMutator.
       \item inversionMutator.
       \item bitFlipMutator.
+      \item randomMutator.
       \end{itemize}                                                                    \end{itemize}
       \item survivorSelectors:
       \begin{itemize}                                                                        \item
@@ -1115,7 +1118,7 @@ Simulated Annealing Example:
           such that the population size is kept constant.                   $nChildren = 2 \times
           {nParents \choose 2} = nParents \times (nParents-1) = popSize$                   solving
           for nParents we get:                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
-          This will result in a popSize a little lareger than the initial one, these excessive
+          This will result in a popSize a little larger than the initial one, these excessive
           children will be later thrawn away and only the first popSize child will be kept
 
         \item \xmlNode{reproduction}:
@@ -1147,7 +1150,8 @@ Simulated Annealing Example:
             \item \xmlNode{mutation}: \xmlDesc{string}, 
               a subnode containing the implemented mutation mechanisms.                   This
               includes: a.    bitFlipMutation,                                  b.    swapMutation,
-              c.    scrambleMutation, or                                  d.    inversionMutation.
+              c.    scrambleMutation,                                  d.    inversionMutation, or
+              e.    randomMutator.
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1171,11 +1175,15 @@ Simulated Annealing Example:
 
         \item \xmlNode{fitness}: \xmlDesc{string}, 
           a subnode containing the implemented fitness functions.                   This includes:
-          a.    invLinear: $fitness = -a \times obj - b \times \sum\_{j=1}^{nConstraint}
-          max(0,-penalty\_j) $.                                  b.    logistic: $fitness =
-          \frac{1}{1+e^{a\times(obj-b)}}$.                                  c.    feasibleFirst:
-          $fitness = \left\{\begin{matrix} -obj & g\_j(x)\geq 0 \; \forall j \\ -obj\_{worst}-
-          \Sigma\_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right.$
+          \begin{itemize}                                 \item    invLinear:
+          \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
+          \item    logistic:                                  \[fitness =
+          \frac{1}{1+e^{a\times(obj-b)}}\].
+          \item           feasibleFirst:                                  \[fitness =           -obj
+          \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \
+          \ g\\_j(x)\geq 0 \;  \forall j\]                                  and           \[fitness
+          = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
+          \end{itemize}.
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1211,6 +1219,14 @@ Simulated Annealing Example:
 
         \item \xmlNode{AHD}: \xmlDesc{float}, 
           provides the desired value for the Hausdorff Distance between populations
+
+        \item \xmlNode{HDSM}: \xmlDesc{float}, 
+          provides the desired value for the Hausdorff Distance Similarity Measure between
+          populations.                                     This convergence criterion is based on a
+          normalized                                     similarity metric that can be summurized as
+          the normalized Hausdorff distance                                     (with respect the
+          domain of to population/iterations). The metric is normalized between 0 and 1,
+          which implies that values closer to 1.0 represents a tighter convergence criterion.
 
         \item \xmlNode{persistence}: \xmlDesc{integer}, 
           provides the number of consecutive times convergence should be reached before a trajectory
@@ -1374,7 +1390,7 @@ Genetic Algorithm Example:
       <GAparams>
         <populationSize>20</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="4">
+        <reproduction>
           <crossover type="onePointCrossover">
             <points>3</points>
             <crossoverProb>0.8</crossoverProb>

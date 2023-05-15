@@ -21,7 +21,7 @@ Created March 19, 2021
 Split from original BaseClasses.py module
 """
 
-from ..utils import mathUtils
+from ..utils import mathUtils, xmlUtils
 from .BaseType import BaseType
 
 class BaseEntity(BaseType):
@@ -83,6 +83,7 @@ class BaseEntity(BaseType):
       @ Out, None
     """
     self.variableGroups = variableGroups if variableGroups is not None else {}
+    xmlUtils.replaceVariableGroups(xmlNode, self.variableGroups)
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
@@ -245,7 +246,6 @@ class BaseEntity(BaseType):
     # get acceptable names
     fromSolnExport = set(self.getSolutionExportVariableNames())
     acceptable = set(self._formatSolutionExportVariableNames(fromSolnExport))
-
     # remove registered solution export names first
     remaining = requested - acceptable
     # anything remaining is unknown!

@@ -21,7 +21,7 @@ import numpy as np
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
 sys.path.append(ravenDir)
 from ravenframework.utils import utils
-utils.find_crow(ravenDir)
+utils.find_crow(os.path.join(ravenDir,"ravenframework"))
 from ravenframework.utils import frontUtils
 
 randomENG = utils.findCrowModule("randomENG")

@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/reducedOrderModeling/inputs/examples.pickle</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: pickle a ROM</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir></WorkingDir><!-- Complete this-->
+    <Sequence>FirstMRun,plot,trainRom,</Sequence><!-- Complete this-->
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="OutStreams" type="Plot">plotMC</Output>
+    </IOStep>
+    <RomTrainer name="trainRom">
+      <Input class="DataObjects" type="PointSet">outMC</Input>
+      <Output class="Models" type="ROM">IDW</Output>
+    </RomTrainer>
+    <IOStep name="dumpRom">
+      <Input class="Models" type=""></Input><!-- Complete this-->
+      <Output class="" type="">pkIDW</Output><!-- Complete this-->
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../tests/framework/AnalyticModels/projectile" name="projectile" subType="">
+      <variables>x0,v0,y0,angle,x,y,r,t</variables>
+    </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
+      <Features>angle</Features>
+      <Target>r</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>080118</initialSeed>
+      </samplerInit>
+      <variable name="angle">
+        <distribution>angle_d</distribution>
+      </variable>
+      <constant name="v0">1.0</constant>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Normal name="angle_d">
+      <mean>45</mean>
+      <sigma>5</sigma>
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Normal>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,v0,y0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outMC">
+      <Input>angle</Input>
+      <Output>r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Files>
+    <Input name="??" type="">IDW.pk</Input><!-- Complete this-->
+  </Files>
+
+  <OutStreams>
+    <Plot name="plotMC">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outMC|Input|angle</x>
+          <y>outMC|Output|r</y>
+          <c>blue</c>
+          <kwargs>
+            <label>ground truth</label>
+          </kwargs>
+        </plot>
+        <xlabel>angle (deg)</xlabel>
+        <ylabel>r (m)</ylabel>
+        <legend>
+          <ncol>1</ncol>
+        </legend>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

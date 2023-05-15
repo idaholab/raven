@@ -5,7 +5,7 @@
     [./csv]
       type = OrderedCSV
       output = 'MC/samples.csv'
-      gold_files = 'gold/samples.csv'
+      gold_files = 'samples.csv'
     [../]
   [../]
 

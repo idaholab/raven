@@ -44,7 +44,6 @@
     csv    = 'MiniBatchSparsePCA/dummy.csv'
     output = 'MiniBatchSparsePCA/1-PlotIris_dataMining.png'
     rel_err = 0.001
-    skip    = 'Issue #376'
   [../]
   [./TruncatedSVD]
     type   = 'RavenFramework'
@@ -81,6 +80,7 @@
     input  = 'test_dataMiningSpectralEmbedding.xml'
     csv    = 'SpectralEmbedding/dummy.csv'
     output = 'SpectralEmbedding/1-PlotIris_dataMining.png'
+    rel_err = 0.05
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'

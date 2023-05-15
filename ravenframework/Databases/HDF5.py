@@ -16,28 +16,26 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
 import numpy as np
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from ..utils import InputData, InputTypes
+# Internal Modules----------------------------------------------------------------------------------
 from ..h5py_interface_creator import hdf5Database as h5Data
 from ..DataObjects import PointSet, HistorySet
-from .Database import DateBase
-#Internal Modules End--------------------------------------------------------------------------------
+from .Database import DataBase
+# Internal Modules End------------------------------------------------------------------------------
 
-class HDF5(DateBase):
+class HDF5(DataBase):
   """
     class to handle h5py (hdf5) databases,
     Used to add and retrieve attributes and values from said database
   """
-  #####################
-  # __magic__
+
   def __init__(self):
     """
       Constructor
@@ -66,6 +64,7 @@ class HDF5(DateBase):
     state.pop("database")
     self.database.closeDatabaseW()
     # what we return here will be stored in the pickle
+
     return state
 
   def __setstate__(self, newstate):
@@ -86,11 +85,11 @@ class HDF5(DateBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(HDF5, self)._handleInput(paramInput)
+    super()._handleInput(paramInput)
 
   #####################
   # base API
-  def initialize(self,gname,options=None):
+  def initialize(self, gname, options=None):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
@@ -106,7 +105,9 @@ class HDF5(DateBase):
       @ In, None
       @ Out, None
     """
-    super(HDF5, self).initializeDatabase()
+    if self.database is not None:
+      self.database.closeDatabaseW()
+    super().initializeDatabase()
     self.database = h5Data(self.name, self.databaseDir, self.filename, self.exist, self.variables)
 
   def saveDataToFile(self, source):
@@ -167,8 +168,9 @@ class HDF5(DateBase):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = DateBase.getInitParams(self)
+    paramDict = DataBase.getInitParams(self)
     paramDict['exist'] = self.exist
+
     return paramDict
 
   def getEndingGroupNames(self):
@@ -178,9 +180,10 @@ class HDF5(DateBase):
     @ Out, endingGroups, list, List of the ending groups' names
     """
     endingGroups = self.database.retrieveAllHistoryNames()
+
     return endingGroups
 
-  def addExpectedMeta(self,keys,params={}):
+  def addExpectedMeta(self, keys, params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
@@ -208,7 +211,9 @@ class HDF5(DateBase):
       # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
       # MC  => The History named ['group'] (one run)
     """
+    # this retrieveHistory method seems to have been deprecated, does it exist somewhere/is it used anywhere?
     tupleVar = self.database.retrieveHistory(options['history'],options)
+
     return tupleVar
 
   def allRealizations(self):
@@ -222,9 +227,10 @@ class HDF5(DateBase):
     # instead to use a OrderedDict in the database, I sort the names here (it is much faster)
     allRealizationNames.sort()
     allData = [self.realization(name) for name in allRealizationNames]
+
     return allData
 
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self, index=None, matchDict=None, tol=1e-15):
     """
       Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
       Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
@@ -235,14 +241,14 @@ class HDF5(DateBase):
       @ Out, rlz, dict, realization requested (None if not found)
     """
     # matchDict not implemented for Databases
-    assert (matchDict is None)
+    assert matchDict is None
     if (not self.exist) and (not self.built):
-      self.raiseAnError(Exception,'Can not retrieve a realization from Database' + self.name + '.It has not been built yet!')
+      self.raiseAnError(Exception, f'Can not retrieve a realization from Database {self.name} .It has not been built yet!')
     if type(index).__name__ == 'int':
       allRealizations = self.database.retrieveAllHistoryNames()
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
-      rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':False})
-    return rlz
+      rlz, _ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index , {'reconstruct': False})
 
+    return rlz

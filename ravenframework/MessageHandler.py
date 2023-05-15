@@ -25,13 +25,6 @@ from .utils import utils
 
 _starttime = time.time()
 
-#custom exceptions
-class NoMoreSamplesNeeded(GeneratorExit):
-  """
-    Custom exception class for no more samples
-  """
-  pass
-
 """
 HOW THIS MODULE WORKS
 
@@ -80,7 +73,7 @@ class MessageHandler(object):
   """
   def __init__(self):
     """
-      Init of class
+      Class constructor
       @ In, None
       @ Out, None
     """
@@ -92,18 +85,23 @@ class MessageHandler(object):
     self.suppressErrs = False
     self.printTime    = True
     self.inColor      = False
-    self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
-    self.colorDict    = {'debug':'yellow', 'message':'neutral', 'warning':'magenta', 'error':'red'}
-    self.colors={
-      'neutral' : '\033[0m',
-      'red'     : '\033[31m',
-      'green'   : '\033[32m',
-      'yellow'  : '\033[33m',
-      'blue'    : '\033[34m',
-      'magenta' : '\033[35m',
-      'cyan'    : '\033[36m'}
-    self.warnings     = [] #collection of warnings that were raised during this run
-    self.warningCount = [] #count of the collections of warning above
+    self.verbCode     = {'silent' : 0,
+                         'quiet'  : 1,
+                         'all'    : 2,
+                         'debug'  : 3}
+    self.colorDict    = {'debug'  : 'yellow',
+                         'message': 'neutral',
+                         'warning': 'magenta',
+                         'error'  : 'red'}
+    self.colors       = {'neutral': '\033[0m',
+                         'red'    : '\033[31m',
+                         'green'  : '\033[32m',
+                         'yellow' : '\033[33m',
+                         'blue'   : '\033[34m',
+                         'magenta': '\033[35m',
+                         'cyan'   : '\033[36m'}
+    self.warnings     = [] # collection of warnings that were raised during this run
+    self.warningCount = [] # count of the collections of warning above
 
   def initialize(self, initDict):
     """
@@ -111,9 +109,9 @@ class MessageHandler(object):
       @ In, initDict, dict, dictionary of global options
       @ Out, None
     """
-    self.verbosity = initDict.get('verbosity','all').lower()
-    self.callerLength = initDict.get('callerLength',25)
-    self.tagLength = initDict.get('tagLength',15)
+    self.verbosity = initDict.get('verbosity', 'all').lower()
+    self.callerLength = initDict.get('callerLength', 25)
+    self.tagLength = initDict.get('tagLength', 15)
     self.suppressErrs = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
 
   def printWarnings(self):
@@ -123,30 +121,30 @@ class MessageHandler(object):
       @ Out, None
     """
     if len(self.warnings)>0:
-      if self.verbCode[self.verbosity]>0:
+      if self.verbCode[self.verbosity] > 0:
         print('-'*50)
-        print('There were %i warnings during the simulation run:' %sum(self.warningCount))
-        for w,warning in enumerate(self.warnings):
+        print(f'There were {sum(self.warningCount)} warnings during the simulation run:')
+        for w, warning in enumerate(self.warnings):
           count = self.warningCount[w]
-          time = 'time'
           if count > 1:
-            time += 's'
-          print('(%i %s) %s' %(self.warningCount[w],time,warning))
+            print(f'({self.warningCount[w]} times) {warning}')
+          else:
+            print(f'({self.warningCount[w]} time) {warning}')
         print('-'*50)
       else:
-        print('There were %i warnings during the simulation run.' %sum(self.warningCount))
+        print(f'There were {sum(self.warningCount)} warnings during the simulation run.')
 
-  def paint(self, str, color):
+  def paint(self, string, color):
     """
       Formats string with color
-      @ In, str, string, string
+      @ In, string, string, string
       @ In, color, string, color name
       @ Out, paint, string, formatted string
     """
-    if color.lower() not in self.colors.keys():
-      self.message(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
-      return str
-    return self.colors[color.lower()]+str+self.colors['neutral']
+    if color.lower() not in self.colors:
+      self.message(self, f'Requested color {color} not recognized!  Skipping...', 'Warning', 'quiet')
+      return string
+    return self.colors[color.lower()] + string + self.colors['neutral']
 
   def setTimePrint(self, msg):
     """
@@ -178,12 +176,13 @@ class MessageHandler(object):
       @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
       @ Out, tag, string, string to print
     """
-    if type(obj).__name__ in ['str','unicode']: # ?when is this ever not true?
+    if type(obj).__name__ in ['str', 'unicode']: # ?when is this ever not true?
       return obj
     if hasattr(obj,'printTag'):
       tag = str(obj.printTag)
     else:
       tag = str(obj)
+
     return tag
 
   def getDesiredVerbosity(self, caller):
@@ -199,6 +198,7 @@ class MessageHandler(object):
     if localVerb is None:
       localVerb = self.verbosity
     desVerbosity = self.checkVerbosity(localVerb)
+
     return desVerbosity
 
   def checkVerbosity(self, verb):
@@ -207,9 +207,10 @@ class MessageHandler(object):
       @ In, verb, string, the string verbosity equivalent
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
-    if str(verb).strip().lower() not in self.verbCode.keys():
+    if str(verb).strip().lower() not in self.verbCode:
       raise IOError(f'Verbosity key {verb} not recognized!  Options are {list(self.verbCode.keys())}')
     currentVerb = self.verbCode[str(verb).strip().lower()]
+
     return currentVerb
 
   def error(self, caller, etype, message, tag='ERROR', verbosity='silent', color=None):
@@ -223,14 +224,14 @@ class MessageHandler(object):
       @ In, color, string, optional, color to apply to message
       @ Out, None
     """
-    verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
-    self.message(caller,message,tag,verbosity,color=color)
+    verbval = max(self.getDesiredVerbosity(caller), self.checkVerbosity(self.verbosity))
+    self.message(caller, message, tag, verbosity, color=color)
     if not self.suppressErrs:
       self.printWarnings()
       # debug mode gets full traceback, others quieted
-      if verbval<3:
+      if verbval < 3:
         #all, quiet, silent
-        sys.tracebacklimit=0
+        sys.tracebacklimit = 0
       raise etype(message)
 
   def message(self, caller, message, tag, verbosity, color=None, writeTo=sys.stdout, forcePrint=False):
@@ -249,7 +250,7 @@ class MessageHandler(object):
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
-      print(msg,file=writeTo)
+      print(msg, file=writeTo)
     sys.stdout.flush()
 
   def addWarning(self, msg):
@@ -258,7 +259,7 @@ class MessageHandler(object):
       @ In, msg, string, only the main part of the message, used to determine uniqueness
       @ Out, None
     """
-    index = bisect.bisect_left(self.warnings,msg)
+    index = bisect.bisect_left(self.warnings, msg)
     if len(self.warnings) == 0 or index == len(self.warnings) or self.warnings[index] != msg:
       self.warnings.insert(index,msg)
       self.warningCount.insert(index,1)
@@ -277,16 +278,17 @@ class MessageHandler(object):
       @ Out, (shouldIPrint,msg), tuple, shouldIPrint -> bool, indication if the print should be allowed
                                         msg          -> string, the formatted message
     """
-    #allows raising standardized messages
+    # allows raising standardized messages
     shouldIPrint = False
     desired = self.getDesiredVerbosity(caller)
     if verbval <= desired or forcePrint:
-      shouldIPrint=True
+      shouldIPrint = True
     if not shouldIPrint:
-      return False,''
+      return False, ''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message,color)
-    return shouldIPrint,msg
+
+    return shouldIPrint, msg
 
   def stdMessage(self, pre, tag, post, color=None):
     """
@@ -299,18 +301,19 @@ class MessageHandler(object):
     """
     msg = ''
     if self.printTime:
-      curtime = time.time()-self.starttime
-      msg+='('+'{:8.2f}'.format(curtime)+' sec) '
+      curtime = time.time() - self.starttime
+      msg += f'({curtime:8.2f} sec) '
       if self.inColor:
-        msg = self.paint(msg,'cyan')
-    msgend = pre.ljust(self.callerLength)[0:self.callerLength] + ': '+tag.ljust(self.tagLength)[0:self.tagLength]+' -> ' + post
+        msg = self.paint(msg, 'cyan')
+    msgend = pre.ljust(self.callerLength)[0:self.callerLength] + ': ' + tag.ljust(self.tagLength)[0:self.tagLength] + ' -> ' + post
     if self.inColor:
       if color is not None:
         #overrides other options
-        msgend = self.paint(msgend,color)
-      elif tag.lower() in self.colorDict.keys():
+        msgend = self.paint(msgend, color)
+      elif tag.lower() in self.colorDict:
         msgend = self.paint(msgend,self.colorDict[tag.lower()])
-    msg+=msgend
+    msg += msgend
+
     return msg
 
 def timePrint(message):
@@ -319,9 +322,8 @@ def timePrint(message):
     @ In, message, string
     @ Out, None
   """
-  curtime = time.time()-_starttime
-  msg = ''
-  msg+='('+'{:8.2f}'.format(curtime)+' sec) '
+  curtime = time.time() - _starttime
+  msg = f'({curtime:8.2f} sec) '
   print(msg + message)
 
 _handlers = {}
@@ -334,6 +336,7 @@ def makeHandler(name):
   """
   handler = MessageHandler()
   _handlers[name] = handler
+
   return handler
 
 # default handler

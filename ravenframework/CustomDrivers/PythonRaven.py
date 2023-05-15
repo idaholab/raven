@@ -16,7 +16,6 @@
   Enables workflow loading, tampering, and running.
 """
 import os
-import sys
 
 from . import DriverUtils
 
@@ -37,13 +36,8 @@ class Raven:
       @ Out, None
     """
     if self.framework is None:
-      #Note: doSetup changes the sys.path, which can cause problems
-      # if it is done at the start of this file which is done during import,
-      # so it is only done now
-      DriverUtils.doSetup()
-
+      DriverUtils.doSetup() # sets up a number of things, really shouldn't be necessary...
       self.framework = DriverUtils.findFramework()
-
 
     self._simulation = None # RAVEN Simulation object (loaded workflow)
     self._xmlSource = None  # XML file from which workflow is loaded
@@ -57,19 +51,18 @@ class Raven:
       @ In, xmlFile, string, target xml file to load (cwd?)
       @ Out, None
     """
-    #Note: PythonRaven is imported as part of framework/__init__.py
-    # so if Simulation is imported at the top, even an import of utils will pull
-    # in almost all of Raven.
+    # really bad practice to import inside a method, but everything in RAVEN is so circular at this point that it can't be avoided
     from .. import Simulation
     from ..utils import TreeStructure as TS
 
     target = self._findFile(xmlFile)
-    root = TS.parse(open(target, 'r')).getroot()
+    with open(target, 'r') as inputXML:
+      root = TS.parse(inputXML).getroot()
     targetDir = os.path.dirname(target)
     self._simulation = Simulation.Simulation(self.framework)
     self._simulation.XMLpreprocess(root, targetDir)
     self._simulation.XMLread(root, runInfoSkip={"DefaultInputFile"}, xmlFilename=target)
-    self._simulation.initialize() # TODO separate method?
+    self._simulation.initialize()
 
   def runWorkflow(self):
     """
@@ -77,8 +70,12 @@ class Raven:
       @ In, None
       @ Out, returnCode, int, value/error returned from RAVEN run
     """
-    # FIXME reset the steps if necessary!
+    if self._simulation.ranPreviously:
+      # reset Simulation
+      self._simulation.resetSimulation()
+
     returnCode = self._simulation.run()
+
     return returnCode
 
   def getEntity(self, kind, name):
@@ -88,15 +85,19 @@ class Raven:
       @ In, name, str, identifier for entity (i.e. name of the entity)
       @ Out, entity, instance, RAVEN instance (None if not found)
     """
-    # TODO is this the fastest way to get-and-check objects?
-    kindGroup = self._simulation.entities.get(kind, None)
-    if kindGroup is None:
-      raise KeyError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
-    entity = kindGroup.get(name, None)
-    if entity is None:
-      raise KeyError(f'No entity named "{name}" found among "{kind}" entities! Found: {list(self._simulation.entities[kind].keys())}')
-    return entity
+    try:
+      # TODO is this the fastest way to get-and-check objects? Probably not, but it seems to work
+      kindGroup = self._simulation.entities.get(kind, None)
+      if kindGroup is None:
+        raise KeyError(f'Entity kind "{kind}" not recognized! Found: {list(self._simulation.entities.keys())}')
+      entity = kindGroup.get(name, None)
+      if entity is None:
+        raise KeyError(f'No entity named "{name}" found among "{kind}" entities! Found: {list(self._simulation.entities[kind].keys())}')
+    except AttributeError:
+      print('Entities have not been instantiated, run loadWorkflowFromFile!')
+      entity = None
 
+    return entity
 
   # ********************
   # UTILITIES
@@ -131,4 +132,5 @@ class Raven:
       msg += 'Please check the path for the desired file.'
       raise IOError(msg)
     print(f'Target file found at "{target}"')
+
     return target

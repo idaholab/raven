@@ -865,14 +865,47 @@ checkAnswer("plogNormal ppf(0.5)",plogNormal.ppf(0.5),20.0855369232)
 lowlogNormalElement = ET.Element("LogNormal",{"name":"test"})
 lowlogNormalElement.append(createElement("mean",text="3.0"))
 lowlogNormalElement.append(createElement("sigma",text="2.0"))
-lowlogNormalElement.append(createElement("lowerBound",text="0.0"))
+lowlogNormalElement.append(createElement("lowerBound",text="0.1"))
 lowlogNormal = getDistribution(lowlogNormalElement)
+
+checkAnswer("lower bound logNormal cdf(2.0)",lowlogNormal.cdf(2.0),0.12084297139220623)
+checkAnswer("lower bound logNormal cdf(1.0)",lowlogNormal.cdf(1.0),0.06305076776893374)
+checkAnswer("lower bound logNormal cdf(3.0)",lowlogNormal.cdf(3.0),0.16754240030151715)
+
+checkAnswer("lower bound logNormal ppf(0.1243677033)",lowlogNormal.ppf(0.124367703363),2.0689561223850608)
+checkAnswer("lower bound logNormal ppf(0.1)",lowlogNormal.ppf(0.1),1.612019592300385)
+checkAnswer("lower bound logNormal ppf(0.5)",lowlogNormal.ppf(0.5),20.288407440410438)
 
 uplogNormalElement = ET.Element("LogNormal",{"name":"test"})
 uplogNormalElement.append(createElement("mean",text="3.0"))
 uplogNormalElement.append(createElement("sigma",text="2.0"))
 uplogNormalElement.append(createElement("upperBound",text="10.0"))
 uplogNormal = getDistribution(uplogNormalElement)
+
+checkAnswer("upper bound logNormal cdf(2.0)",uplogNormal.cdf(2.0),0.34199415173322556)
+checkAnswer("upper bound logNormal cdf(1.0)",uplogNormal.cdf(1.0),0.18371065405065226)
+checkAnswer("upper bound logNormal cdf(3.0)",uplogNormal.cdf(3.0),0.46989633375986495)
+
+checkAnswer("upper bound logNormal ppf(0.1243677033)",uplogNormal.ppf(0.124367703363),0.6797582141162679)
+checkAnswer("upper bound logNormal ppf(0.1)",uplogNormal.ppf(0.1),0.5548644649676321)
+checkAnswer("upper bound logNormal ppf(0.5)",uplogNormal.ppf(0.5),3.2646509377679664)
+
+#Test Truncated log normal with both lower bound and uper bound
+logNormalElement = ET.Element("LogNormal",{"name":"test"})
+logNormalElement.append(createElement("mean",text="0"))
+logNormalElement.append(createElement("sigma",text="0.5"))
+logNormalElement.append(createElement("lowerBound",text="0.1"))
+logNormalElement.append(createElement("upperBound",text="10.0"))
+logNormal = getDistribution(logNormalElement)
+
+
+checkAnswer("lower and upper bound logNormal cdf(2.0)",logNormal.cdf(2.0),0.9171732002887018)
+checkAnswer("lower and upper bound logNormal cdf(1.0)",logNormal.cdf(1.0),0.49999999999999994)
+checkAnswer("lower and upper bound logNormal cdf(3.0)",logNormal.cdf(3.0),0.9859997973706007)
+
+checkAnswer("lower and upper bound logNormal ppf(0.1243677033)",logNormal.ppf(0.124367703363),0.561743785147457)
+checkAnswer("lower and upper bound logNormal ppf(0.1)",logNormal.ppf(0.1),0.5268859928837893)
+checkAnswer("lower and upper bound logNormal ppf(0.5)",logNormal.ppf(0.5),1.0)
 
 #shift log normal
 

@@ -18,15 +18,11 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
+# External Modules----------------------------------------------------------------------------------
 from operator import mul
 from functools import reduce
-#External Modules End--------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import utils, randomUtils, InputData, InputTypes
@@ -70,7 +66,6 @@ class Stratified(Grid):
 
     inputSpecification.addSub(globalGridInput)
 
-
     return inputSpecification
 
   def __init__(self):
@@ -81,9 +76,10 @@ class Stratified(Grid):
       @ Out, None
     """
     Grid.__init__(self)
-    self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
+    self.sampledCoordinate = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
     self.printTag = 'SAMPLER Stratified'
-    self.globalGrid          = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
+    self.globalGrid = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
+    self.pointByVar = None
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -92,21 +88,21 @@ class Stratified(Grid):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    #TODO Remove using xmlNode
+    # TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode, paramInput)
     # check that the correct dimensionality was provided
-    pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
+    pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo]
     lenPBV = len(set(pointByVar))
     if lenPBV != 1:
       if lenPBV == 0:
         # no sampled vars were given, but allow the Sampler to catch this later.
         pass
       else:
-        self.raiseAnError(IOError,'<Stratified> sampler named "{}" requires the same number of point in each dimension!'.format(self.name))
+        self.raiseAnError(IOError, f'<Stratified> sampler named "{self.name}" requires the same number of point in each dimension!')
     else:
       # correct dimensionality given
-      self.pointByVar         = pointByVar[0]
+      self.pointByVar = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 
@@ -126,7 +122,7 @@ class Stratified(Grid):
       tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
       self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i]  = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+        tempFillingCheck[i] = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
       mappingIdVarName = {}
       for cnt, varName in enumerate(self.axisName):
         mappingIdVarName[varName] = cnt
@@ -135,43 +131,43 @@ class Stratified(Grid):
       globGridsCount = {}
       dimInfo = self.gridEntity.returnParameter("dimInfo")
       for val in dimInfo.values():
-        if val[-1] is not None and val[-1] not in globGridsCount.keys():
+        if val[-1] is not None and val[-1] not in globGridsCount:
           globGridsCount[val[-1]] = 0
         globGridsCount[val[-1]] += 1
-      diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
-      tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+      diff = -sum(globGridsCount.values()) + len(globGridsCount.keys())
+      tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) # for all variables
       self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i]  = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+        tempFillingCheck[i]  = randomUtils.randomPermutation(list(range(self.pointByVar-1)),self) # pick a random interval sequence
       cnt = 0
       mappingIdVarName = {}
       for varName in self.axisName:
-        if varName not in dimInfo.keys():
+        if varName not in dimInfo:
           mappingIdVarName[varName] = cnt
         else:
           for addKey,value in dimInfo.items():
-            if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys():
+            if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName:
               mappingIdVarName[addKey] = cnt
         if len(mappingIdVarName.keys()) == len(self.axisName):
           break
-        cnt +=1
+        cnt += 1
 
     for nPoint in range(self.pointByVar-1):
-      self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
+      self.sampledCoordinate[nPoint] = [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     varCount = 0
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    self.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
     weight = 1.0
     for varName in self.axisName:
       # new implementation for ND LHS
@@ -251,7 +247,7 @@ class Stratified(Grid):
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
-            self.raiseAWarning(IOError,"The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
+            self.raiseAWarning(IOError, "The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           gridWeight = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
@@ -273,3 +269,12 @@ class Stratified(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
+
+  def flush(self):
+    """
+      Reset Stratified attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self.sampledCoordinate = []

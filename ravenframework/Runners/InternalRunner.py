@@ -44,14 +44,13 @@ class InternalRunner(Runner):
     self.functionToRun = functionToRun
 
     ## Other parameters manipulated internally
-    self.thread = None
     self.runReturn = None
     self.hasBeenAdded = False
     self.returnCode = 0
     self.exceptionTrace = None    # sys.exc_info() if an error occurred while running
 
     ## These things cannot be deep copied
-    self.skipOnCopy = ['functionToRun','thread','__queueLock']
+    self.skipOnCopy = ['functionToRun','thread','__queueLock', '_InternalRunner__queueLock']
 
   def __deepcopy__(self,memo):
     """

@@ -1,0 +1,239 @@
+\subsubsection{CrossValidation}
+\label{CVPP}
+The \textbf{CrossValidation} post-processor is specifically used to evaluate estimator (i.e., ROMs) performance.
+Cross-validation is a statistical method of evaluating and comparing learning algorithms by dividing data into
+two portions: one used to `train' a surrogate model and the other used to validate the model, based on specific
+scoring metrics. In typical cross-validation, the training and validation sets must crossover in successive
+rounds such that each data point has a chance of being validated against the various sets. The basic form of
+cross-validation is k-fold cross-validation. Other forms of cross-validation are special cases of k-fold or involve
+repeated rounds of k-fold cross-validation. \nb It is important to notice that this post-processor currently can
+only accept \textbf{PointSet} data object and untrained ROM. If the ROM is already trained, an error will be raised.
+%
+\ppType{CrossValidation}{CrossValidation}
+%
+\begin{itemize}
+  \item \xmlNode{SciKitLearn}, \xmlDesc{string, required field}, the subnodes specifies the necessary information
+    for the algorithm to be used in the post-processor. `SciKitLearn' is based on algorithms in SciKit-Learn
+    library, and currently it performs cross-validation over \textbf{PointSet} only.
+  \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
+    \end{itemize}
+    \nb Currently, cross-validation post-processor only accepts \xmlNode{SKL} metrics with \xmlNode{metricType}
+    \xmlString{mean\_absolute\_error}, \xmlString{explained\_variance\_score}, \xmlString{r2\_score},
+    \xmlString{mean\_squared\_error}, and \xmlString{median\_absolute\_error}.
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Files>
+    <Input name="output_cv" type="">output_cv.xml</Input>
+    <Input name="output_cv.csv" type="">output_cv.csv</Input>
+  </Files>
+  <Models>
+    ...
+    <ROM name="surrogate" subType="LinearRegression">
+      <Features>x1,x2</Features>
+      <Target>ans</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>3</n_splits>
+            <shuffle>False</shuffle>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    ...
+  </Models>
+  <Metrics>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+  </Metrics>
+  <Steps>
+    <PostProcess name="PP1">
+        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+        <Input class="Models" type="ROM">surrogate</Input>
+        <Model class="Models" type="PostProcessor">pp1</Model>
+        <Output class="Files" type="">output_cv</Output>
+        <Output class="Files" type="">output_cv.csv</Output>
+    </PostProcess>
+  </Steps>
+ ...
+</Simulation>
+\end{lstlisting}
+
+In order to access the results from this post-processor, RAVEN will define the variables as ``cv'' +
+``\_'' + ``MetricName'' + ``\_'' + ``ROMTargetVariable'' to store the calculation results, and these
+variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+In previous example, variable \textit{cv\_m1\_ans} are accessible by the users.
+
+\paragraph{SciKitLearn}
+
+The algorithm for cross-validation is chosen by the subnode \xmlNode{SKLtype} under the parent node \xmlNode{SciKitLearn}.
+In addition, a special subnode \xmlNode{average} can be used to obtain the average cross validation results.
+
+\begin{itemize}
+  \item \xmlNode{SKLtype}, \xmlDesc{string, required field}, contains a string that
+    represents the cross-validation algorithm to be used. As mentioned, its format is:
+
+    \xmlNode{SKLtype}algorithm\xmlNode{/SKLtype}.
+  \item \xmlNode{average}, \xmlDesc{boolean, optional field}, if `True`, dump the average cross validation results into the
+    output files.
+\end{itemize}
+
+
+Based on the \xmlNode{SKLtype} several different algorithms are available. In the following paragraphs a brief
+explanation and the input requirements are reported for each of them.
+
+\paragraph{K-fold}
+\textbf{KFold} divides all the samples in $k$ groups of samples, called folds (if $k=n$, this is equivalent to the
+\textbf{Leave One Out} strategy), of equal sizes (if possible). The prediction function is learned using $k-1$ folds,
+and fold left out is used for test.
+In order to use this algorithm, the user needs to set the subnode:
+\xmlNode{SKLtype}KFold\xmlNode{/SKLtype}.
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
+  \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
+    batches.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+\end{itemize}
+
+\paragraph{Stratified k-fold}
+\textbf{StratifiedKFold} is a variation of \textit{k-fold} which returns stratified folds: each set contains approximately
+the same percentage of samples of each target class as the complete set.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}StratifiedKFold\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples), required field}, contains a label for each sample.
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
+  \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
+    batches.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+\end{itemize}
+
+\paragraph{Label k-fold}
+\textbf{LabelKFold} is a variation of \textit{k-fold} which ensures that the same label is not in both testing and
+training sets. This is necessary for example if you obtained data from different subjects and you want to avoid
+over-fitting (i.e., learning person specific features) by testing and training on different subjects.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LabelKFold\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{labels}, \xmlDesc{list of integers with length (n\_samples, ), required field}, contains a label for
+    each sample. The folds are built so that the same label does not appear in two different folds.
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
+\end{itemize}
+
+\paragraph{Leave-One-Out - LOO}
+\textbf{LeaveOneOut} (or LOO) is a simple cross-validation. Each learning set is created by taking all the samples
+except one, the test set being the sample left out. Thus, for $n$ samples, we have $n$ different training sets and
+$n$ different tests set. This is cross-validation procedure does not waste much data as only one sample is removed from
+the training set.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LeaveOneOut\xmlNode{/SKLtype}.
+
+\paragraph{Leave-P-Out - LPO}
+\textbf{LeavePOut} is very similar to \textbf{LeaveOneOut} as it creates all the possible training/test sets by removing
+$p$ samples from the complete set. For $n$ samples, this produces $(^n_p)$ train-test pairs. Unlike \textbf{LeaveOneOut}
+and \textbf{KFold}, the test sets will overlap for $p > 1$.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LeavePOut\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{p}, \xmlDesc{integer, required field}, size of the test sets
+\end{itemize}
+
+\paragraph{Leave-One-Label-Out - LOLO}
+\textbf{LeaveOneLabelOut} (LOLO) is a cross-validation scheme which holds out the samples according to a third-party
+provided array of integer labels. This label information can be used to encode arbitrary domain specific pre-defined
+cross-validation folds. Each training set is thus constituted by all samples except the ones related to a specific
+label.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LeaveOneLabelOut\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
+    domain-specific stratificatioin of the data to be used to draw the splits.
+\end{itemize}
+
+\paragraph{Leave-P-Label-Out}
+\textbf{LeavePLabelOut} is imilar as \textit{Leave-One-Label-Out}, but removes samples related to $P$ labels for
+each training/test set.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LeavePLabelOut\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
+    domain-specific stratificatioin of the data to be used to draw the splits.
+  \item \xmlNode{n\_groups}, \xmlDesc{integer, optional field}, number of samples to leave out in the test split.
+\end{itemize}
+
+\paragraph{ShuffleSplit}
+\textbf{ShuffleSplit} iterator will generate a user defined number of independent train/test dataset splits. Samples
+are first shuffled and then split into a pair of train and test sets. it is possible to control the randomness for
+reproducibility of the results by explicitly seeding the \xmlNode{random\_state} pseudo random number generator.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}ShuffleSplit\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+    \default{10}.
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
+    represent the proportion of the dataset to include in the test split. \default{0.1}
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
+    the complement of the train size.
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
+    the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+\end{itemize}
+
+\paragraph{Label-Shuffle-Split}
+\textbf{LabelShuffleSplit} iterator behaves as a combination of \textbf{ShuffleSplit} and \textbf{LeavePLabelOut},
+and generates a sequence of randomized partitions in which a subset of labels are held out for each split.
+In order to use this algorithm, the user needs to set the subnode:
+
+\xmlNode{SKLtype}LabelShuffleSplit\xmlNode{/SKLtype}.
+
+In addition to this XML node, several others are available:
+\begin{itemize}
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples)}, labels of samples.
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+    \default{10}.
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
+    represent the proportion of the dataset to include in the test split. \default{0.1}
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
+    the complement of the train size.
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
+    the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
+\end{itemize}

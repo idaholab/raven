@@ -17,21 +17,20 @@
   Created 2020-01
   @author: zhoujia, alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
-import abc
+# External Modules----------------------------------------------------------------------------------
 import numpy as np
 from scipy.optimize import minpack2
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from ...utils import utils, InputData, InputTypes, mathUtils, randomUtils
+# Internal Modules----------------------------------------------------------------------------------
+from ...utils import mathUtils, randomUtils
 from .StepManipulator import StepManipulator
 from . import NoConstraintResolutionFound, NoMoreStepsNeeded
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
 class ConjugateGradient(StepManipulator):
   """
@@ -51,6 +50,7 @@ class ConjugateGradient(StepManipulator):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(ConjugateGradient, cls).getInputSpecification()
+
     return specs
 
   @classmethod
@@ -62,6 +62,7 @@ class ConjugateGradient(StepManipulator):
     """
     ok = super(ConjugateGradient, cls).getSolutionExportVariableNames()
     ok['CG_task'] = 'for ConjugateGradient, current task of line search. FD suggests continuing the search, and CONV indicates the line search converged and will pivot.'
+
     return ok
 
   def __init__(self):
@@ -80,6 +81,8 @@ class ConjugateGradient(StepManipulator):
     # additional methods
     self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
     self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
+    self._growth = None
+    self._shrink = None
 
   def handleInput(self, specs):
     """
@@ -106,7 +109,6 @@ class ConjugateGradient(StepManipulator):
     StepManipulator.initialize(self, optVars, **kwargs)
     self._persistence = persistence
 
-
   ###############
   # Run Methods #
   ###############
@@ -130,9 +132,9 @@ class ConjugateGradient(StepManipulator):
       @ Out, stepSize, float, new step size
     """
     # Conjugate Gradient does line searches along consecutive gradient estimations
-    ## with gradient estimations updated by more than just local estimation.
-    ## For conjugate gradient notations, see https://en.wikipedia.org/wiki/iNonlinear_conjugate_gradient_method
-    ## For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f
+    # with gradient estimations updated by more than just local estimation.
+    # For conjugate gradient notations, see https://en.wikipedia.org/wiki/iNonlinear_conjugate_gradient_method
+    # For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f
 
     # We start from an opt point, then find the gradient direction.
     #   from there we line search for the best point along that grad direction
@@ -162,8 +164,8 @@ class ConjugateGradient(StepManipulator):
     curObjVal = prevOpt[objVar]
 
     # if we're starting a new line search because we found a minimum along the previous line search
-    ## NOTE this only gets called the first time ever for each trajectory, because of how we start
-    ##      new line searches under the task == 'CONVERGE' switch below
+    # NOTE this only gets called the first time ever for each trajectory, because of how we start
+    #      new line searches under the task == 'CONVERGE' switch below
     if lineSearchTask == b'START':
       lastStepInfo = self._startLineSearch(lastStepInfo, curPoint, curObjVal, curGrad, curGradMag)
     else: # if lineSearchTask is anything except "start"
@@ -188,7 +190,7 @@ class ConjugateGradient(StepManipulator):
       if task.startswith(b'WARN'):
         lastStepInfo['prev task'] = 'WARN'
         msg = task[9:].decode().lower()
-        print('ConjugateGradient WARNING: "{}"'.format(msg))
+        print(f'ConjugateGradient WARNING: "{msg}"')
       elif task.startswith(b'ERROR'):
         lastStepInfo['prev task'] = 'ERROR'
         print('ConjugateGradient ERROR: Not able to continue line search!')
@@ -196,7 +198,7 @@ class ConjugateGradient(StepManipulator):
       if lastStepInfo['persistence'] >= self._persistence:
         raise NoMoreStepsNeeded
     else:
-      self.raiseAnError(RuntimeError, 'Unrecognized "task" return from scipy.optimize.minpack2: "{}"'.format(task))
+      self.raiseAnError(RuntimeError, f'Unrecognized "task" return from scipy.optimize.minpack2: "{task}"')
 
     lastStepInfo['stepSize'] = stepSize
     lastStepInfo['task'] = task
@@ -204,6 +206,7 @@ class ConjugateGradient(StepManipulator):
     currentPivot = lastStepInfo['pivot']['point']
     newPivot = currentPivot - stepSize * lastStepInfo['pivot']['gradient']
     newOpt = dict((var, newPivot[v]) for v, var in enumerate(self._optVars))
+
     return newOpt, stepSize, lastStepInfo
 
   def fixConstraintViolations(self, proposed, previous, fixInfo):
@@ -238,10 +241,11 @@ class ConjugateGradient(StepManipulator):
       stepSize = 0.5 * stepDistance # TODO user option?
       for v, var in enumerate(stepVector):
         proposed[var] = previous[var] + stepSize * stepDirection[v]
-      print(' ... cutting step ...') # norm step to {}, new norm opt {}'.format(stepSize, proposed))
+      print(' ... cutting step ...')
+
       return proposed, stepSize, fixInfo
     else:
-      ### rotate vector and restore full step size
+      # rotate vector and restore full step size
       stepSize = fixInfo['originalStepSize']
       # store original direction
       if 'originalDirection' not in fixInfo:
@@ -249,7 +253,7 @@ class ConjugateGradient(StepManipulator):
       # if this isn't the first time, check if there's angle left to rotate through; reset if not
       if 'perpDir' in fixInfo:
         ang = mathUtils.angleBetweenVectors(stepDirection, fixInfo['perpDir'])
-        print(' ... trying angle:', ang)
+        print(f' ... trying angle: {ang}')
         if ang < self._minRotationAngle:
           del fixInfo['perpDir']
 
@@ -276,7 +280,8 @@ class ConjugateGradient(StepManipulator):
       _, splitDir, _ = mathUtils.calculateMagnitudeAndVersor(list(splitVector.values()))
       for v, var in enumerate(self._optVars):
         proposed[var] = previous[var] + stepSize * splitDir[v]
-      print(' ... rotating step ...') #ed norm direction to {}, new norm opt {}'.format(splitDir, proposed))
+      print(' ... rotating step ...')
+
     return proposed, stepSize, fixInfo
 
   def needDenormalized(self):
@@ -296,10 +301,10 @@ class ConjugateGradient(StepManipulator):
     lastStepInfo = stepHistory[-1]['info']
     if lastStepInfo is not None:
       task = lastStepInfo['prev task']
-      info = {'CG_task': task,
-            }
+      info = {'CG_task': task}
     else:
       info = {'CG_task': 'START'}
+
     return info
 
   def trajIsFollowing(self, traj, opt, info, dataObject, followers, tolerance):
@@ -326,6 +331,7 @@ class ConjugateGradient(StepManipulator):
     _, found = dataObject.realization(matchDict=matchDict, noMatchDict=noMatchDict, tol=tolerance)
     if found is not None:
       return found['trajID']
+
     return None
 
   ###################
@@ -346,6 +352,7 @@ class ConjugateGradient(StepManipulator):
     gain = max(0, np.dot(deltaGradient, curGrad) / gradDotProduct)
     searchVector = -curGrad + gain * searchVector
     searchVectorMag = mathUtils.calculateMultivectorMagnitude(searchVector)
+
     return searchVectorMag, searchVector
 
   def modifyAcceptance(self, oldPoint, oldVal, newPoint, newVal):
@@ -360,8 +367,9 @@ class ConjugateGradient(StepManipulator):
       @ Out, accept, boolean, whether we store the point
     """
     # Because in ConjugateGradient we use all the line search information,
-    ## we "accept" all points from the Optimizer's standpoint, and allow
-    ## the step manipulator to use the information.
+    # we "accept" all points from the Optimizer's standpoint, and allow
+    # the step manipulator to use the information.
+
     return 'accepted'
 
   def _startLineSearch(self, lastStepInfo, curPoint, curObjVal, curGrad, curGradMag):
@@ -375,11 +383,11 @@ class ConjugateGradient(StepManipulator):
       @ Out, lastStepInfo, dict, modified with new line search information
     """
     # use the previous pivots to update the conjugate gradient
-    ## first the objective value
-    ## then the conjugate gradient
+    # first the objective value
+    # then the conjugate gradient
 
     # since we've accepted a pivot, we need to store the old pivot and set up the new one
-    ## first grab the savable params
+    # first grab the savable params
     pivot = lastStepInfo.pop('pivot', None)
     if pivot is None:
       # ONLY RUN ONCE per trajectory! First time ever initialization of line step search
@@ -388,7 +396,7 @@ class ConjugateGradient(StepManipulator):
       # magnitude of the search vector first time is just the gradient magnitude
       searchVectorMag = curGradMag
       # search direction at the start is the opposite direction of the initial gradient
-      ## note this is not great naming
+      # note this is not great naming
       searchVector = curGrad * -1 # pk
       gradDotProduct = np.dot(curGrad, curGrad) # delta_k
     else:
@@ -437,4 +445,14 @@ class ConjugateGradient(StepManipulator):
                                            ftol=1e-4, gtol=0.4, xtol=1e-14,
                                            task=task, stpmin=1e-100, stpmax=1e100,
                                            isave=iSave, dsave=dSave)
+
     return stepSize, task
+
+  def flush(self):
+    """
+      Reset ConjugateGradient attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flush()
+    self._persistence = None

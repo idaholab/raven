@@ -16,26 +16,22 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+# for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+# End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
+# External Modules----------------------------------------------------------------------------------
 import copy
 import os
 import abc
-import gc
-from scipy.interpolate import interp1d
-import collections
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+# Internal Modules----------------------------------------------------------------------------------
 from ..BaseClasses import BaseEntity, InputDataUser
 from ..utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
-class DateBase(BaseEntity, InputDataUser):
+class DataBase(BaseEntity, InputDataUser):
   """
     class to handle a database,
     Used to add and retrieve attributes and values from said database
@@ -53,8 +49,9 @@ class DateBase(BaseEntity, InputDataUser):
     inputSpecification = super().getInputSpecification()
     inputSpecification.addParam("directory", InputTypes.StringType)
     inputSpecification.addParam("filename", InputTypes.StringType)
-    inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
+    inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode", "readModeType", ["overwrite", "read"]), True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
+
     return inputSpecification
 
   def __init__(self):
@@ -64,15 +61,16 @@ class DateBase(BaseEntity, InputDataUser):
       @ Out, None
     """
     super().__init__()
-    self.database = None                # Database object
-    self.exist = False                  # does it exist?
-    self.built = False                  # is it built?
-    self.filename = ""                  # filename
-    self.workingDir  = None             # RAVEN working dir
-    self.databaseDir = None             # Database directory. Default = working directory.
-    self.printTag = 'DATABASE'          # For printing verbosity labels
-    self.variables = None               # if not None, list of specific variables requested to be stored by user
-    self._extension = '.db'             # filetype extension to use, if no filename given
+    self.database = None       # Database object
+    self.exist = False         # does it exist?
+    self.built = False         # is it built?
+    self.filename = ""         # filename
+    self.workingDir  = None    # RAVEN working dir
+    self.databaseDir = None    # Database directory. Default = working directory.
+    self.printTag = 'DATABASE' # For printing verbosity labels
+    self.variables = None      # if not None, list of specific variables requested to be stored by user
+    self._extension = '.db'    # filetype extension to use, if no filename given
+    self.readMode = None
 
   def applyRunInfo(self, runInfo):
     """
@@ -96,11 +94,11 @@ class DateBase(BaseEntity, InputDataUser):
       if not os.path.isabs(self.databaseDir):
         self.databaseDir = os.path.abspath(os.path.join(self.workingDir,self.databaseDir))
     else:
-      self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
+      self.databaseDir = os.path.join(self.workingDir, 'DatabaseStorage')
     if 'filename' in paramInput.parameterValues:
       self.filename = copy.copy(paramInput.parameterValues['filename'])
     else:
-      self.filename = self.name+self._extension
+      self.filename = self.name + self._extension
     # read the variables
     varNode = paramInput.findFirst("variables")
     if varNode is not None:
@@ -121,7 +119,7 @@ class DateBase(BaseEntity, InputDataUser):
         self.exist = False
       self.initializeDatabase()
     else:
-      #file does not exist in path
+      # file does not exist in path
       if self.readMode == 'read':
         self.raiseAnError(IOError, f'Requested to read from database, but it does not exist at "{fullpath}"; '+
                           'The path to the database must be either absolute, or relative to <workingDir>!')
@@ -129,14 +127,13 @@ class DateBase(BaseEntity, InputDataUser):
       self.initializeDatabase()
     self.raiseAMessage(f'Database is located at "{fullpath}"')
 
-  def initialize(*args, **kwargs):
+  def initialize(self, *args, **kwargs):
     """
       Initialization for data object, if any.
       @ In, args, list, ordered arguments
       @ In, kwargs, dict, keyword arguments
       @ Out, None
     """
-    pass
 
   def initializeDatabase(self):
     """
@@ -157,6 +154,7 @@ class DateBase(BaseEntity, InputDataUser):
       @ Out, path, str, full path to db
     """
     path = os.path.join(self.databaseDir, self.filename)
+
     return path
 
   @abc.abstractmethod

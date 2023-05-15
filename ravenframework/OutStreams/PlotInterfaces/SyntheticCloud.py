@@ -132,7 +132,7 @@ class SyntheticCloud(PlotInterface):
         axes = [axes]
       axes[-1].set_xlabel(self.microName)
 
-      mSamples = samples.drop_sel({self.macroName: mac})
+      mSamples = samples.sel({self.macroName: mac}, drop=True)
       mTraining = None
       if self.macroName in training:
         if int(mac) in training[self.macroName]:

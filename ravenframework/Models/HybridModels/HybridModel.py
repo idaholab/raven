@@ -89,25 +89,26 @@ class HybridModel(HybridModelBase):
       @ Out, None
     """
     super().__init__()
-    self.modelInstance         = None                # instance of given model
-    self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
-    self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
-    self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
-    self.romTrainStartSize     = 10                  # the initial size of training set
-    self.romTrainMaxSize       = 1.0e6               # the maximum size of training set
-    self.romValidateSize       = 10                  # the size of rom validation set
-    self.romTrained            = False               # True if all roms are trained
-    self.romConverged          = False               # True if all roms are converged
-    self.romValid              = False               # True if all roms are valid for given input data
-    self.romConvergence        = 0.01                # The criterion used to check ROM convergence
-    self.validationMethod      = {}                  # dict used to store the validation methods and their settings
-    self.existTrainSize        = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
-    self.printTag              = 'HYBRIDMODEL MODEL' # print tag
-    self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
-    self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
-    self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
-    self.crowdingDistance      = None
-    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
+    self.modelInstance            = None                # instance of given model
+    self.targetEvaluationName     = None                # name of data object used to store the inputs and outputs of HybridModel
+    self.targetEvaluationInstance = None                # Instance of data object used to store the inputs and outputs of HybridModel
+    self.tempTargetEvaluation     = None                # Instance of data object that are used to store the training set
+    self.romsDictionary           = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
+    self.romTrainStartSize        = 10                  # the initial size of training set
+    self.romTrainMaxSize          = 1.0e6               # the maximum size of training set
+    self.romValidateSize          = 10                  # the size of rom validation set
+    self.romTrained               = False               # True if all roms are trained
+    self.romConverged             = False               # True if all roms are converged
+    self.romValid                 = False               # True if all roms are valid for given input data
+    self.romConvergence           = 0.01                # The criterion used to check ROM convergence
+    self.validationMethod         = {}                  # dict used to store the validation methods and their settings
+    self.existTrainSize           = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
+    self.printTag                 = 'HYBRIDMODEL MODEL' # print tag
+    self.tempOutputs              = {}                  # Indicators used to collect model inputs/outputs for rom training
+    self.oldTrainingSize          = 0                   # The size of training set that is previous used to train the rom
+    self.modelIndicator           = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
+    self.crowdingDistance         = None
+    self.metricCategories         = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
     self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
@@ -124,7 +125,7 @@ class HybridModel(HybridModelBase):
     paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == 'TargetEvaluation':
-        self.targetEvaluationInstance = child.value.strip()
+        self.targetEvaluationName = child.value.strip()
       if child.getName() == 'ROM':
         romName = child.value.strip()
         self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
@@ -154,7 +155,7 @@ class HybridModel(HybridModelBase):
       @ Out, None
     """
     HybridModelBase.initialize(self,runInfo,inputs,initDict)
-    self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
+    self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationName)
     if len(self.targetEvaluationInstance):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
       self.existTrainSize = len(self.targetEvaluationInstance)
@@ -178,6 +179,8 @@ class HybridModel(HybridModelBase):
       if romIn.amITrained:
         self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
         romIn.reset()
+        # reset HybridModel attributes to allow workflow re-running
+        self.resetHybridModel()
       romIn.initialize(runInfo, inputs, initDict)
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
@@ -428,7 +431,7 @@ class HybridModel(HybridModelBase):
     newSize = newSet.shape[1]
     totSize = oldSize + newSize
     if oldSize != crowdingDistance.size:
-      self.raiseAnError(IOError, "The old crowding distances is not match the old data set!")
+      self.raiseAnError(IOError, "The old crowding distance does not match the old data set!")
     newCrowdingDistance = np.zeros(totSize)
     distMatAppend = np.zeros((oldSize,newSize))
     for i in range(oldSize):
@@ -474,7 +477,6 @@ class HybridModel(HybridModelBase):
       @ Out, None
     """
     prefix = kwargs['prefix']
-    self.counter = prefix
     self.tempOutputs['uncollectedJobIds'].append(prefix)
     if self.amIReadyToTrainROM():
       self.trainRom(samplerType, kwargs)
@@ -488,7 +490,7 @@ class HybridModel(HybridModelBase):
     else:
       self.modelIndicator[prefix] = 0
     kwargs['useROM'] = self.romValid
-    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
+    self.raiseADebug(f"Submit job with job identifier: {kwargs['prefix']},  Running ROM: {self.romValid} ")
     HybridModelBase.submit(self,myInput,samplerType,jobHandler,**kwargs)
 
   def _externalRun(self,inRun, jobHandler):
@@ -581,3 +583,14 @@ class HybridModel(HybridModelBase):
       self.tempTargetEvaluation.addRealization(evaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
     HybridModelBase.collectOutput(self, finishedJob, output)
+
+  def resetHybridModel(self):
+    """
+      Resets HybridModel attributes to allow workflow re-running
+      @ In, None
+      @ Out, None
+    """
+    self.romConverged = False
+    self.oldTrainingSize = 0
+    self.modelIndicator = {}
+    self.crowdingDistance = None

@@ -16,7 +16,10 @@ Created on September 16, 2015
 @author: maljdp
 """
 
-from .CustomDrivers.PythonRaven import Raven # allows from ravenframework import Raven
+import sys
+if sys.version_info[0] > 2:
+    from .CustomDrivers.PythonRaven import Raven # allows from ravenframework import Raven
+
 
 # This file is necessary so that the sub-modules understand the correct hierarchy
 # of things. Once everything is in sub-modules we can possibly do some things

@@ -1,0 +1,269 @@
+\subsubsection{Validation PostProcessors}
+\label{subsubsec:Validation}
+
+The \textbf{Validation} PostProcessors represent a group of validation methods
+for applying a different range of algorithms to validate (e.g. compare)
+dataset and/or models (e.g. Distributions).
+
+Several post-processors are available for model validation:
+\begin{itemize}
+  \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
+  \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
+  % \item  \textbf{Representativity}
+  \item  \textbf{PCM}, using Physics-guided Coverage Mapping method for validation, can only be used for static problems.
+\end{itemize}
+%
+
+The choices of the available metrics and acceptable data objects are specified in table \ref{tab:ValidationAlgorithms}.
+
+\begin{table}[]
+\caption{Validation Algorithms and respective available metrics and DataObjects}
+\label{tab:ValidationAlgorithms}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
+Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
+PPDSS                         & HistorySet                                                     & DSS                                                           \\ \hline
+PCM                           & PointSet                                                       & (not applicable)                                              \\ \hline
+\end{tabular}
+\end{table}
+
+These post-processors can accept multiple \textbf{DataObjects} as inputs. When multiple DataObjects are provided,
+The user can use $DataObjectName|InputOrOutput|VariableName$ nomenclature to specify the variable
+in \xmlNode{Features} and \xmlNode{Targets} for comparison.
+
+\paragraph{Probabilistic}
+The \textbf{Probabilistic} specify that the validation needs to be performed
+using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})
+or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea})
+
+%
+\ppType{Probabilistic}{Probabilistic}
+%
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+    targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
+    number of targets should be equal to the number of features.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
+    The pivot parameter is the shared index of the output variables in the data object.
+  \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g., Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g., SKL, Minkowski)
+    \end{itemize}
+    \nb The choices of the available metrics are \xmlString{CDFAreaDifference} and \xmlString{PDFCommonArea}, please
+    refer to \ref{sec:Metrics} for detailed descriptions about these metrics.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Metrics>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
+  </Metrics>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp1" subType="Probabilistic">
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\paragraph{PPDSS}
+\textbf{PPDSS} specifies that the validation needs to be performed
+using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (\ref{subsection:DSS}).
+
+%
+\ppType{PPDSS}{PPDSS}
+%
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features. Make sure the feature data are normalized by a nominal value.
+    To enable user defined time interval selection, this postprocessor will only consider the first feature name provided. If user provides more than one,
+    it will output an error.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, specifies the names of the targets. Make sure the feature data are normalized by a nominal value. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}.
+    To enable user defined time interval selection, this postprocessor will only consider the first feature name provided. If user provides more than one,
+    it will output an error.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
+    The pivot parameter is the shared index of the output variables in the data object.
+  \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g., Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g., SKL, Minkowski)
+    \end{itemize}
+    \nb The choice of the available metric is \xmlString{DSS}, please
+    refer to \ref{sec:Metrics} for detailed descriptions about this metric.
+    \item \xmlNode{pivotParameterFeature}, \xmlDesc{string, required field}, specifies the pivotParameter for a feature <HistorySet>. The feature pivot parameter is the shared index of the output variables in the data object.
+    \item \xmlNode{pivotParameterTarget}, \xmlDesc{string, required field}, specifies the pivotParameter for a target <HistorySet>. The target pivot parameter is the shared index of the output variables in the data object.
+    \item \xmlNode{separateFeatureData}, \xmlDesc{string, optional field}, specifies the custom feature interval to apply DSS postprocessing. The string should contain three parts; start time, `|', and end time all in one. For example, 0.0|0.5.
+      The start and end time should be in ratios or raw values of the full interval. In this case 0.5 would be either the midpoint time or time 0.5 of the given time units. This node is not required and if not provided, the default is the full time interval.
+      the following attributes need to be specified:
+      \begin{itemize}
+        \item \xmlAttr{type}, \xmlDesc{optional string attribute}, options are `ratio' or `raw\_values'. The default is `ratio'.
+      \end{itemize}
+    \item \xmlNode{separateTargetData}, \xmlDesc{string, optional field}, specifies the custom target interval to apply DSS postprocessing. The string should contain three parts; start time, `|', and end time all in one. For example, 0.0|0.5.
+      The start and end time should be in ratios or raw values of the full interval. In this case 0.5 would be either the midpoint time or time 0.5 of the given time units. This node is not required and if not provided, the default is the full time interval.
+      the following attributes need to be specified:
+      \begin{itemize}
+        \item \xmlAttr{type}, \xmlDesc{optional string attribute}, options are `ratio' or `raw\_values'. The default is `ratio'.
+      \end{itemize}
+    \item \xmlNode{scale}, \xmlDesc{string, required field}, specifies the type of time scaling. The following are the options for scaling (specific definitions for each scaling type is provided in \ref{sec:dssdoc}):
+      \begin{itemize}
+        \item \textbf{DataSynthesis}, calculating the distortion for two data sets without applying other scaling ratios.
+        \item \textbf{2\_2\_affine}, calculating the distortion for two data sets with scaling ratios for parameter of interest and agent of changes.
+        \item \textbf{dilation}, calculating the distortion for two data sets with scaling ratios for parameter of interest and agent of changes.
+        \item \textbf{beta\_strain}, calculating the distortion for two data sets with scaling ratio for parameter of interest.
+        \item \textbf{omega\_strain}, calculating the distortion for two data sets with scaling ratios for agent of changes.
+        \item \textbf{identity}, calculating the distortion for two data sets with scaling ratios of 1.
+      \end{itemize}
+    \item \xmlNode{scaleBeta}, \xmlDesc{float, required field}, specifies the parameter of interest scaling ratio between the feature and target.
+    \item \xmlNode{scaleOmega}, \xmlDesc{float, required field}, specifies the agents of change scaling ratio between the feature and target.
+\end{itemize}
+
+The output \textbf{DataObjects} has required and optional components to provide the user the flexibility to obtain desired postprocessed data. The following are information about DSS output \textbf{DataObjects}:
+\begin{itemize}
+  \item \xmlNode{Output}, \xmlDesc{string, required field}, specifies the string of postprocessed results to output. The following is the list of DSS output names:
+    \begin{itemize}
+      \item \textbf{pivot\_parameter}, provides the pivot parameter used to postprocess feature and target input data.
+      \item \textbf{total\_distance\_targetName\_featureName}, provides the total metric distance of the whole time interval. `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{feature\_beta\_targetName\_featureName}, provides the normalized feature data provided from \textbf{DataObjects} input.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{target\_beta\_targetName\_featureName}, provides the normalized target data provided from \textbf{DataObjects} input.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{feature\_omega\_targetName\_featureName}, provides the normalized feature first order derivative data.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{target\_omega\_targetName\_featureName}, provides the normalized target first order derivative data.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{feature\_D\_targetName\_featureName}, provides the feature temporal displacement rate (second order term) data.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{target\_D\_targetName\_featureName}, provides the target temporal displacement rate (second order term) data.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{process\_time\_targetName\_featureName}, provides the shared process time data.  `targetName' and `featureName' are the string names of the input target and feature.
+      \item \textbf{standard\_error\_targetName\_featureName}, provides the standard error of the overall transient data.  `targetName' and `featureName' are the string names of the input target and feature.
+    \end{itemize}
+\end{itemize}
+pivot parameter must be named `pivot\_parameter' and this array is assigned within the post-processor algorithm.
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Metrics>
+    <Metric name="dss" subType="DSS"/>
+  </Metrics>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp1" subType="PPDSS">
+      <Features>outMC1|x1</Features>
+      <Targets>outMC2|x2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
+    </PostProcessor>
+    <PostProcessor name="pp2" subType="PPDSS">
+      <Features>outMC1|x1</Features>
+      <Targets>outMC2|x2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <separateFeatureData type="ratio">0.0|0.5</separateFeatureData>
+      <separateTargetData type="ratio">0.0|0.5</separateTargetData>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
+    </PostProcessor>
+    <PostProcessor name="pp3" subType="PPDSS">
+      <Features>outMC1|x1</Features>
+      <Targets>outMC2|x2</Targets>
+      <Metric class="Metrics" type="Metric">dss</Metric>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <separateFeatureData type="raw_values">0.2475|0.495</separateFeatureData>
+      <separateTargetData type="raw_values">0.3475|0.695</separateTargetData>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1</scaleBeta>
+      <scaleOmega>1</scaleOmega>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+  <DataObjects>
+    ...
+    <HistorySet name="pp1_out">
+      <Output>
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="pp2_out">
+      <Output>
+          dss_x2_x1,total_distance_x2_x1,process_time_x2_x1,standard_deviation_x2_x1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="pp3_out">
+      <Output>
+          dss_y2_y1,total_distance_y2_y1,process_time_y2_y1,standard_deviation_y2_y1
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    ...
+  </DataObjects>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\paragraph{PCM}
+\textbf{PCM} evaluates the uncertainty reduction fraction when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method.
+
+%
+\ppType{PCM}{PhysicsGuidedCoverageMapping}
+%
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     targets. \nb Each target will be validated using all features listed in xml node \xmlNode{Features}. The
+    number of targets is not necessarily equal to the number of features.
+  \item \xmlNode{Measurements}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     measurements of the features. \nb Each measurement correspond to a feature listed in xml node \xmlNode{Features}. The
+    number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
+\end{itemize}
+
+The output of PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'', 
+where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Targets}.
+
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
+      <Features>outputDataMC1|F1,outputDataMC1|F2</Features>
+      <Targets>outputDataMC2|F2,outputDataMC2|F3,outputDataMC2|F4</Targets>
+      <Measurements>msrData|F1,msrData|F2</Measurements>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}

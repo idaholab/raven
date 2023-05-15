@@ -16,15 +16,11 @@ Created on Jan 28, 2014
 @ author: alfoa
 """
 
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 import xml.etree.ElementTree as ET
-from . import xmlUtils
-
-#message handler
 import os, sys
+
+from . import xmlUtils
+#message handler
 from ..BaseClasses import MessageUser
 
 ##################
@@ -62,13 +58,20 @@ def parse(inFile,dType=None):
       #Possibly we should just try parsing the file instead of checking?
       raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml')
   if dType.lower()=='xml':
-    #try:
-    parser = ET.XMLParser(target=CommentedTreeBuilder())
-    xmltree = ET.parse(inFile,parser=parser) #parser is defined below, under XMLCommentParser
-    tree = xmlToInputTree(xmltree)
-    #except Exception as e:
-    #  print('ERROR: Input parsing error!')
-    #  raise e
+    try:
+      parser = ET.XMLParser(target=CommentedTreeBuilder())
+      xmltree = ET.parse(inFile,parser=parser) #parser is defined below, under XMLCommentParser
+      tree = xmlToInputTree(xmltree)
+    except ET.ParseError as err:
+      fileName = inFile.name
+      inFile.close()
+      lineNo, col = err.position
+      with open(fileName, 'r') as inFile:
+        content = inFile.readlines()
+      line = content[lineNo-1].strip('\n')
+      caret = '{:=>{}}'.format('^', col)
+      err.msg = '{}\n{}\n{}\n in input file: {}'.format(err, line, caret, fileName)
+      raise err
   else:
     raise InputParsingError('Unrecognized file type for:',inFile)
   return tree

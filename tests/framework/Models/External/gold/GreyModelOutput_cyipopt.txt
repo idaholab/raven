@@ -1,0 +1,51 @@
+---------------------< Output Summary >---------------------
+
+
+Problem: 
+- Name: unknown
+  Lower bound: -inf
+  Upper bound: 0.3587964554159516
+  Number of objectives: 1
+  Number of constraints: 1
+  Number of variables: 3
+  Number of binary variables: 0
+  Number of integer variables: 0
+  Number of continuous variables: 3
+  Sense: minimize
+Solver: 
+- Name: cyipopt
+  Status: ok
+  Return code: 0
+  Message: b'Algorithm terminated successfully at a locally optimal point, satisfying the convergence tolerances (can be specified by options).'
+  Wallclock time: 0.14550156800000003
+  Termination condition: optimal
+
+---------------------< Optimization Results >---------------------
+
+1 Objective Declarations
+    obj : Size=1, Index=None, Active=True
+        Key  : Active : Sense    : Expression
+        None :   True : minimize : egb.outputs[ans]
+
+1 ExternalGreyBoxBlock Declarations
+    egb : Size=1, Index=None, Active=True
+        2 Set Declarations
+            _input_names_set : Size=1, Index=None, Ordered=Insertion
+                Key  : Dimen : Domain : Size : Members
+                None :     1 :    Any :    2 : {'y1', 'y2'}
+            _output_names_set : Size=1, Index=None, Ordered=Insertion
+                Key  : Dimen : Domain : Size : Members
+                None :     1 :    Any :    1 : {'ans',}
+
+        2 Var Declarations
+            inputs : Size=2, Index=egb._input_names_set
+                Key : Lower : Value          : Upper : Fixed : Stale : Domain
+                 y1 :   0.0 : 0.938770350603 :   1.0 : False : False :  Reals
+                 y2 :   0.0 : 0.938770350603 :   1.0 : False : False :  Reals
+            outputs : Size=1, Index=egb._output_names_set
+                Key : Lower          : Value          : Upper          : Fixed : Stale : Domain
+                ans : 0.358796465406 : 0.358796455416 : 0.975309912028 : False : False :  Reals
+
+        4 Declarations: _input_names_set inputs _output_names_set outputs
+
+2 Declarations: egb obj

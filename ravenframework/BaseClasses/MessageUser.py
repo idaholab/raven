@@ -24,7 +24,7 @@ class MessageUser(object):
   """
     Inheriting from this class grants access to methods used by the MessageHandler.
   """
-  def __init__(self): #, messageHandler=None, verbosity=None, **kwargs):
+  def __init__(self):
     """
       Construct.
       @ In, messageHandler, MessageHandler.MessageHandler, optional, message handler
@@ -70,11 +70,11 @@ class MessageUser(object):
                             tag, the message label (default 'ERROR')
       @ Out, None
     """
-    verbosity = kwargs.get('verbosity','silent')
-    tag       = kwargs.get('tag'      ,'ERROR' )
-    color     = kwargs.get('color'    ,None     )
+    verbosity = kwargs.get('verbosity', 'silent')
+    tag       = kwargs.get('tag'      , 'ERROR' )
+    color     = kwargs.get('color'    , None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.error(self,etype,msg,str(tag),verbosity,color)
+    self.messageHandler.error(self, etype, msg, str(tag), verbosity, color)
 
   def raiseAWarning(self, *args, **kwargs):
     """
@@ -85,9 +85,9 @@ class MessageUser(object):
                             tag, the message label (default 'Warning')
       @ Out, None
     """
-    verbosity = kwargs.get('verbosity','quiet'  )
-    tag       = kwargs.get('tag'      ,'Warning')
-    color     = kwargs.get('color'    ,None     )
+    verbosity = kwargs.get('verbosity', 'quiet'  )
+    tag       = kwargs.get('tag'      , 'Warning')
+    color     = kwargs.get('color'    , None     )
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
@@ -100,12 +100,12 @@ class MessageUser(object):
                             tag, the message label (default 'Message')
       @ Out, None
     """
-    verbosity  = kwargs.get('verbosity' ,'all'    )
-    tag        = kwargs.get('tag'       ,'Message')
-    color      = kwargs.get('color'     ,None     )
-    forcePrint = kwargs.get('forcePrint',False     )
+    verbosity  = kwargs.get('verbosity' , 'all'    )
+    tag        = kwargs.get('tag'       , 'Message')
+    color      = kwargs.get('color'     , None     )
+    forcePrint = kwargs.get('forcePrint', False     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color,forcePrint=forcePrint)
+    self.messageHandler.message(self, msg, str(tag), verbosity, color, forcePrint=forcePrint)
 
   def raiseADebug(self, *args, **kwargs):
     """

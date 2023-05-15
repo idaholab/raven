@@ -59,10 +59,8 @@ class ValidationBase(PostProcessorReadyInterface):
     pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     specs.addSub(pivotParameterInput)
     featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
-    featuresInput.addParam("type", InputTypes.StringType)
     specs.addSub(featuresInput)
     targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
-    targetsInput.addParam("type", InputTypes.StringType)
     specs.addSub(targetsInput)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
     metricInput.addParam("class", InputTypes.StringType)
@@ -91,7 +89,7 @@ class ValidationBase(PostProcessorReadyInterface):
     self.targets = None         # list of target variables
     self.pivotValues = None     # pivot values (present if dynamic == True)
 
-    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
     ## dataset option
     self.setInputDataType('xrDataset')
@@ -136,8 +134,6 @@ class ValidationBase(PostProcessorReadyInterface):
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
     if not self.features:
       self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -179,6 +175,36 @@ class ValidationBase(PostProcessorReadyInterface):
         notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
         self.raiseAnError(IOError,
             "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
+
+  def _getDataFromDataDict(self, datasets, var, names=None):
+    """
+      Utility function to retrieve the data from dataDict
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
+      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
+      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
+    """
+    pw = None
+    if "|" in var and names is not None:
+      do, feat =  var.split("|")
+      dat = datasets[do][feat]
+    else:
+      for doIndex, ds in enumerate(datasets):
+        if var in ds:
+          dat = ds[var]
+          break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[do]:
+      pw = datasets[do]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
+    return data
 
   # Each individual validation pp should implement their own run method.
   # def run(self, input):

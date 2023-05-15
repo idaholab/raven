@@ -405,7 +405,20 @@ class XMLDiff:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(exp.args)
         if files_read:
-          if 'unordered' in self.__options.keys() and self.__options['unordered']:
+          if self.__options['alt_root'] is not None:
+            alt_test_root_list = test_root.findall(self.__options['alt_root'])
+            alt_gold_root_list = gold_root.findall(self.__options['alt_root'])
+            if len(alt_test_root_list) != 1 or len(alt_gold_root_list) != 1:
+              self.__same = False
+              messages = ["Alt root used and test len "+str(len(alt_test_root_list))+
+                          " and gold len "+str(len(alt_gold_root_list))]
+              same = False
+            else:
+              test_root = alt_test_root_list[0]
+              gold_root = alt_gold_root_list[0]
+          if not self.__same:
+            pass #already failed
+          elif 'unordered' in self.__options.keys() and self.__options['unordered']:
             same, messages = compare_unordered_element(gold_root, test_root, **self.__options)
           else:
             same, messages = compare_ordered_element(test_root, gold_root, **self.__options)
@@ -441,7 +454,10 @@ class XML(Differ):
     params.add_param('remove_unicode_identifier', False,
                      'if true, then remove u infront of a single quote')
     params.add_param('xmlopts', '', "Options for xml checking")
-    params.add_param('rel_err', '', 'Relative Error for csv files or floats in xml ones')
+    params.add_param('rel_err', '',
+                     'Relative Error for csv files or floats in xml ones')
+    params.add_param('alt_root', '', 'If included, do a findall on the value on the root,'+
+                     ' and then use that as the root instead.  Note, findall must return one value')
     return params
 
   def __init__(self, name, params, test_dir):
@@ -462,6 +478,10 @@ class XML(Differ):
     self.__xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
     if len(self.specs['xmlopts']) > 0:
       self.__xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
+    if len(self.specs['alt_root']) > 0:
+      self.__xmlopts['alt_root'] = self.specs['alt_root']
+    else:
+      self.__xmlopts['alt_root'] = None
 
   def check_output(self):
     """

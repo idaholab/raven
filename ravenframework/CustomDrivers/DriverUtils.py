@@ -17,14 +17,17 @@
 
 import os
 import sys
+import builtins
+import warnings
+from ravenframework.utils import utils
 
 # ***********************************************
 # main utilities
 #
-def doSetup():
+def doSetup(checkLibraries=True):
   """
     Fully sets up RAVEN environment and variables.
-    @ In, None
+    @ In,checkLibraries, bool, if true check the library versions
     @ Out, None
   """
   printStatement()
@@ -34,7 +37,8 @@ def doSetup():
   setupFramework()
   setupH5py()
   setupCpp()
-  checkVersions()
+  if checkLibraries:
+    checkVersions()
 
 def findFramework():
   """
@@ -53,10 +57,9 @@ def setupBuiltins():
     @ In, None
     @ Out, None
   """
-  import builtins
   try:
     builtins.profile
-  except (AttributeError,ImportError):
+  except (AttributeError, ImportError):
     # profiler not preset, so pass through
     builtins.profile = lambda f: f
 
@@ -66,7 +69,6 @@ def setupWarnings():
     @ In, None
     @ Out, None
   """
-  import warnings
   if not __debug__:
     warnings.filterwarnings("ignore")
   else:
@@ -78,7 +80,8 @@ def setupFramework():
     @ In, None
     @ Out, None
   """
-  frameworkDir = findFramework()
+  #Get the directory above the ravenframework directory
+  frameworkDir = os.path.dirname(findFramework())
   if frameworkDir not in sys.path:
     sys.path.append(frameworkDir)
 
@@ -88,7 +91,7 @@ def setupH5py():
     @ In, None
     @ Out, None
   """
-  #warning: this needs to be before importing h5py
+  # warning: this needs to be before importing h5py
   os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 def setupCpp():
@@ -99,15 +102,13 @@ def setupCpp():
   """
   frameworkDir = findFramework()
 
-  from ravenframework.utils import utils
   utils.find_crow(frameworkDir)
 
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir,'contrib') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir,"contrib")}" already in system path. Skipping CPP setup')
+  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib', 'pp') for sp in sys.path):
+    print(f'WARNING: "{os.path.join(frameworkDir,"contrib", "pp")}" already in system path. Skipping CPP setup')
   else:
-    utils.add_path(os.path.join(frameworkDir,'contrib'))
-    ##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-    utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+    # TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+    utils.add_path_recursively(os.path.join(frameworkDir, 'contrib', 'pp'))
 
 def checkVersions():
   """
@@ -116,7 +117,7 @@ def checkVersions():
     @ In, None
     @ Out, None
   """
-  # import library handler
+  # import library handler (although it is bad practice to import inside a function)
   frameworkDir = findFramework()
   scriptDir = os.path.join(frameworkDir, '..', 'scripts')
   if scriptDir not in sys.path:
@@ -124,7 +125,11 @@ def checkVersions():
     sys.path.append(scriptDir)
   else:
     remove = False
-  import library_handler as LH
+  try:
+    import library_handler as LH
+  except ModuleNotFoundError:
+    print("ERROR: Unable to check library versions because library_handler not found")
+    return
   if remove:
     sys.path.pop(sys.path.index(scriptDir))
   # if libraries are not to be checked, we're done here
@@ -136,15 +141,15 @@ def checkVersions():
     print('ERROR: Some required Python libraries are missing but required to run RAVEN as configured:')
     for lib, version in missing:
       # report the missing library
-      msg = '  -> MISSING: {}'.format(lib)
+      msg = f'  -> MISSING: {lib}'
       # add the required version if applicable
       if version is not None:
-        msg += ' version {}'.format(version)
+        msg += f' version {version}'
       print(msg)
   if notQA:
     print('ERROR: Some required Python libraries have incorrect versions for running RAVEN as configured:')
-    for lib, found, need in notQA:
-      print('  -> WRONG VERSION: lib "{}" need "{}" but found "{}"'.format(lib, found, need))
+    for lib, need, found in notQA:
+      print(f'  -> WRONG VERSION: lib "{lib}" need "{need}" but found "{found}"')
   if missing or notQA:
     print('Try installing libraries using instructions on RAVEN repository wiki at ' +
            'https://github.com/idaholab/raven/wiki/Installing_RAVEN_Libraries.')
@@ -182,7 +187,7 @@ def printLogo():
     @ In, None
     @ Out, None
   """
-  print("""
+  print(r"""
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .---.        .------######       #####     ###   ###  ########  ###    ###

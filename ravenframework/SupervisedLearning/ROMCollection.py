@@ -166,7 +166,7 @@ class Collection(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
@@ -371,7 +371,7 @@ class Segments(Collection):
       delim = self._divisionInfo['delimiters'][s]
       picker = slice(delim[0], delim[-1] + 1)
       result = segment.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
-    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
+    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=None, slicer=None)
     return result
 
   def writePointwiseData(self, writeTo):
@@ -1899,7 +1899,7 @@ class Interpolated(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.

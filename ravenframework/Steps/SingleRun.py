@@ -19,20 +19,20 @@
   @author: alfoa
   supercedes Steps.py from alfoa (2/16/2013)
 """
-#External Modules------------------------------------------------------------------------------------
+# External Modules----------------------------------------------------------------------------------
 import atexit
 import time
 import os
 import copy
-#External Modules End--------------------------------------------------------------------------------
+# External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+# Internal Modules----------------------------------------------------------------------------------
 from .. import Models
 from .Step import Step
 from ..utils import utils
 from ..OutStreams import OutStreamEntity
 from ..Databases import Database
-#Internal Modules End--------------------------------------------------------------------------------
+# Internal Modules End------------------------------------------------------------------------------
 
 class SingleRun(Step):
   """
@@ -50,58 +50,58 @@ class SingleRun(Step):
     self.lockedFileName = "ravenLocked.raven"
     self.printTag = 'STEP SINGLERUN'
 
-  def _localInputAndCheckParam(self,paramInput):
+  def _localInputAndCheckParam(self, paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
+    self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below', 'FIXME')
     found     = 0
     rolesItem = []
-    #collect model, other entries
+    # collect model, other entries
     for index, parameter in enumerate(self.parList):
       if parameter[0]=='Model':
-        found +=1
+        found += 1
         modelIndex = index
       else:
         rolesItem.append(parameter[0])
-    #test the presence of one and only one model
+    # test the presence of one and only one model
     if found > 1:
-      self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
+      self.raiseAnError(IOError, f'Only one model is allowed for the step named {self.name}')
     elif found == 0:
-      self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
-    #clarify run by roles
+      self.raiseAnError(IOError, f'No model has been found for the step named {self.name}')
+    # clarify run by roles
     roles      = set(rolesItem)
     if 'Optimizer' in roles:
       self.samplerType = 'Optimizer'
       if 'Sampler' in roles:
-        self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
-    #if single run, make sure model is an instance of Code class
+        self.raiseAnError(IOError, f'Only Sampler or Optimizer is alloweed for the step named {self.name}')
+    # if single run, make sure model is an instance of Code class
     if self.type == 'SingleRun':
       if self.parList[modelIndex][2] != 'Code':
-        self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+        self.raiseAnError(IOError, '<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
       if 'Optimizer' in roles or 'Sampler' in roles:
-        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
+        self.raiseAnError(IOError, '<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
       if 'SolutionExport' in roles:
-        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
-    #build entry list for verification of correct input types
+        self.raiseAnError(IOError, '<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
+    # build entry list for verification of correct input types
     toBeTested = {}
     for role in roles:
       toBeTested[role]=[]
     for  myInput in self.parList:
       if myInput[0] in rolesItem:
-        toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
-    #use the models static testing of roles compatibility
+        toBeTested[ myInput[0]].append({'class': myInput[1],'type': myInput[2]})
+    # use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
         Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
     if 'Output' not in roles:
-      self.raiseAnError(IOError,'It is not possible a run without an Output!')
+      self.raiseAnError(IOError, 'It is not possible to run without an Output!')
 
-  def _localInitializeStep(self,inDictionary):
+  def _localInitializeStep(self, inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -111,9 +111,9 @@ class SingleRun(Step):
       @ In, inDictionary, dict, the initialization dictionary
       @ Out, None
     """
-    #Model initialization
-    modelInitDict = {'Output':inDictionary['Output']}
-    if 'SolutionExport' in inDictionary.keys():
+    # Model initialization
+    modelInitDict = {'Output': inDictionary['Output']}
+    if 'SolutionExport' in inDictionary:
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
       currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],
@@ -126,9 +126,9 @@ class SingleRun(Step):
           workingDirReady = True
         except FileExistsError:
           if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
-            self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+            self.raiseAWarning(f'directory {currentWorkingDirectory} is likely used by another program!!! ')
           if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
-              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+            self.raiseAnError(RuntimeError, self, f"another instance of RAVEN is running in the working directory {currentWorkingDirectory}. Please check your input!")
           if self._clearRunDir and not alreadyTried:
             self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
                               'clearing existing files. This action can be disabled through the RAVEN Step input.')
@@ -149,31 +149,28 @@ class SingleRun(Step):
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
-    self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
-      inDictionary['Model'].type,inDictionary['Model'].name))
+    self.raiseADebug(f'for the role Model, the item of class {inDictionary["Model"].type} and name {inDictionary["Model"].name} has been initialized')
 
     #Database initialization
     for i in range(len(inDictionary['Output'])):
-      #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-      # if 'Database' in inDictionary['Output'][i].type:
       if isinstance(inDictionary['Output'][i], Database):
         inDictionary['Output'][i].initialize(self.name)
       elif isinstance(inDictionary['Output'][i], OutStreamEntity):
         inDictionary['Output'][i].initialize(inDictionary)
-      self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+      self.raiseADebug(f'for the role Output the item of class {inDictionary["Output"][i].type} and name {inDictionary["Output"][i].name} has been initialized')
     self._registerMetadata(inDictionary)
 
-  def _localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self, inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    jobHandler     = inDictionary['jobHandler']
-    model          = inDictionary['Model'     ]
-    sampler        = inDictionary.get(self.samplerType,None)
-    inputs         = inDictionary['Input'     ]
-    outputs        = inDictionary['Output'    ]
+    jobHandler = inDictionary['jobHandler']
+    model      = inDictionary['Model'     ]
+    sampler    = inDictionary.get(self.samplerType,None)
+    inputs     = inDictionary['Input'     ]
+    outputs    = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
     # get an input to run -> different between SingleRun and PostProcessor runs
@@ -182,16 +179,16 @@ class SingleRun(Step):
     # else:
     #   newInput = inputs
 
-    ## The single run should still collect its SampledVars for the output maybe?
-    ## The problem here is when we call Code.collectOutput(), the sampledVars
-    ## is empty... The question is where do we ultimately get this information
-    ## the input object's input space or the desired output of the Output object?
-    ## I don't think all of the outputs need to specify their domain, so I suppose
-    ## this should default to all of the ones in the input? Is it possible to
-    ## get an input field in the outputs variable that is not in the inputs
-    ## variable defined above? - DPM 4/6/2017
-    #empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'additionalEdits':{}})
+    # The single run should still collect its SampledVars for the output maybe?
+    # The problem here is when we call Code.collectOutput(), the sampledVars
+    # is empty... The question is where do we ultimately get this information
+    # the input object's input space or the desired output of the Output object?
+    # I don't think all of the outputs need to specify their domain, so I suppose
+    # this should default to all of the ones in the input? Is it possible to
+    # get an input field in the outputs variable that is not in the inputs
+    # variable defined above? - DPM 4/6/2017
+    # empty dictionary corresponds to sampling data in MultiRun
+    model.submit(inputs, None, jobHandler, **{'SampledVars': {'prefix':'None'}, 'additionalEdits': {}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -203,7 +200,7 @@ class SingleRun(Step):
             else:
               output.addOutput()
         else:
-          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
+          self.raiseADebug(f'the job "{finishedJob.identifier}" has failed.')
           if self.failureHandling['fail']:
             #add run to a pool that can be sent to the sampler later
             self.failedRuns.append(copy.copy(finishedJob))
@@ -213,16 +210,12 @@ class SingleRun(Step):
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
               jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+
-                                 finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +
-                               '/'+str(self.failureHandling['repetitions']))
+              self.raiseAWarning(f'As prescribed in the input, trying to re-submit the job "{finishedJob.identifier}". Trial {self.failureHandling["jobRepetitionPerformed"][finishedJob.identifier]}/{self.failureHandling["repetitions"]}')
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
               #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+
-                                 str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+              self.raiseAWarning(f'The job "{finishedJob.identifier}" has been submitted {self.failureHandling["repetitions"]} times, failing every time!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)
@@ -230,7 +223,7 @@ class SingleRun(Step):
       sampler.handleFailedRuns(self.failedRuns)
     else:
       if len(self.failedRuns)>0:
-        self.raiseAWarning('There were %i failed runs!' % len(self.failedRuns))
+        self.raiseAWarning(f'There were {len(self.failedRuns)} failed runs!')
 
   def _localGetInitParams(self):
     """
@@ -241,3 +234,12 @@ class SingleRun(Step):
         and each parameter's initial value as the dictionary values
     """
     return {}
+
+  def flushStep(self):
+    """
+      Reset SingleRun attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """
+    super().flushStep()
+    self.failedRuns = []

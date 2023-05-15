@@ -1,0 +1,24 @@
+[Tests]
+  [./GA_MaxwRep]
+    type = 'RavenFramework'
+    input = '1_GA_MaxwRep.xml'
+    image = 'MaxwReplacement/plotter1.png'
+    rel_err = 0.5
+    output = 'MaxwReplacement/opt_export_0.csv'
+  [../]
+  [./GA_MinwoRep]
+    type = 'RavenFramework'
+    input = '2_GA_MinwoRep.xml'
+    output = 'MinwoReplacement/opt_export_0.csv'
+  [../]
+  [./GA_MaxwoRepConstrained]
+    type = 'RavenFramework'
+    input = '3_GA_MaxwoRepConstrained.xml'
+    output = 'MaxwoReplacementConstrained/opt_export_0.csv'
+  [../]
+  [./GA_MaxContinuousHRangeConstrained]
+    type = 'RavenFramework'
+    input = '4_GA_MaximumHorizontalRange.xml'
+    output = 'MaxHRange/opt_export_0.csv'
+  [../]
+[]

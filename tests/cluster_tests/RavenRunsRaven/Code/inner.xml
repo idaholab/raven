@@ -4,8 +4,8 @@
   <RunInfo>
     <WorkingDir>Inner</WorkingDir>
     <Sequence>sample, aggregate, print</Sequence>
+    <internalParallel>True</internalParallel>
     <batchSize>4</batchSize>
-    <NodeParameter>--hostfile</NodeParameter>
   </RunInfo>
 
   <Steps>

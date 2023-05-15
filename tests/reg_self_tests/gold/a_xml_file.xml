@@ -1,0 +1,8 @@
+<root>
+ <matching>
+   <inside/>
+ </matching>
+ <mismatch>
+   <a_diffrent_thing/>
+ </mismatch>
+</root>

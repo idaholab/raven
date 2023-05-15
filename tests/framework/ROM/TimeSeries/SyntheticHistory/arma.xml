@@ -8,11 +8,14 @@
     <description>
       Tests the SyntheticHistory ROM using only the ARMA TimeSeriesAnalyzer algorithm.
     </description>
+    <revisions>
+      <revision author="j-bryan" date="2022-06-23">Added serialization step to test if ARMA is picklable</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ARMA</WorkingDir>
-    <Sequence>read, train, print, sample</Sequence>
+    <Sequence>read, train, print, serialize, sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -30,6 +33,10 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">synth</Model>
@@ -41,6 +48,7 @@
 
   <Files>
     <Input name="infile">../TrainingData/ARMA_A.csv</Input>
+    <Input name="pk">arma.pk</Input>
   </Files>
 
   <Samplers>

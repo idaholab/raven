@@ -1,0 +1,101 @@
+\subsubsection{External}
+\label{External}
+The \textbf{External} post-processor will execute an arbitrary python function
+defined externally using the \textit{Functions} interface (see
+Section~\ref{sec:functions} for more details).
+%
+
+\ppType{External}{External}
+
+\begin{itemize}
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
+  lists the method names of an external Function that will be computed (each
+  returning a post-processing value). \nb New variable names will be defined as:
+  ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+  node \xmlNode{method}''. These new variables will be used to store the computed
+  values from the list of methods, and can be accessed by the users through RAVEN
+  entities \textbf{DataObjects} and \textbf{OutStreams}.
+  \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
+  the name of a Function where the \textit{methods} listed above are defined.
+  %
+  \nb This name should match one of the Functions defined in the
+  \xmlNode{Functions} block of the input file.
+  %
+  The objects must be listed with a rigorous syntax that, except for the XML
+  node tag, is common among all the objects.
+  %
+  Each of these sub-nodes must contain 2 attributes that are used to map them
+  within the simulation framework:
+
+   \begin{itemize}
+     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+     ``class'' the listed object is from, the only acceptable class for
+     this post-processor is \xmlString{Functions};
+     \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
+     identifier or sub-type, the only acceptable type for this post-processor is
+     \xmlString{External}.
+  \end{itemize}
+\end{itemize}
+
+  This Post-Processor accepts as Input/Output both \xmlString{PointSet} and \xmlString{HistorySet}:
+   \begin{itemize}
+    \item If a \xmlString{PointSet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
+  as numpy arrays. The methods' return type must be either a new array or a scalar. In the following it is reported an example
+  with two methods, one that returns a scalar and the other one that returns an array:
+      \begin{lstlisting}[language=python]
+import numpy as np
+def sum(self):
+  return np.sum(self.aParameterInPointSet)
+
+def sumTwoArraysAndReturnAnotherone(self):
+  return self.aParamInPointSet1+self.aParamInPointSet2
+      \end{lstlisting}
+    \item If a \xmlString{HistorySet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
+     as a list of numpy arrays. The methods' return type must be either a new list of arrays (if the Output is another
+     \xmlString{HistorySet}), a scalar or a single array (if the  Output is  \xmlString{PointSet} . In the following it
+     is reported an example
+     with two methods, one that returns a new list of arrays (Output = HistorySet) and the other one that returns an array (Output =
+     PointSet):
+      \begin{lstlisting}[language=python]
+import numpy as np
+def newHistorySetParameter(self):
+  x = []*len(self.time)
+  for history in range(len(self.time)):
+    for ts in range(len(self.time[history])):
+      if self.time[history][ts] >= 0.001: break
+    x[history] = self.x[history][ts:]
+  return x
+
+def aNewPointSetParameter(self):
+  x = []*len(self.time)
+  for history in range(len(self.time)):
+    x[history] = self.x[history][-1]
+  return x
+      \end{lstlisting}
+   \end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="externalPP" subType='External' verbosity='debug'>
+      <method>Delta,Sum</method>
+      <Function class='Functions' type='External'>operators</Function>
+        <!-- Here, you can add a Function defined in the
+             Functions block. This should be present or
+             else RAVEN will not know where to find the
+             defined methods. -->
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\nb The calculation results from this post-processor are stored in the internal variables. These variables
+are accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. The names
+of these variables are defined as: ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+node \xmlNode{method}''. For example, in previous case, variables ``operators\_Delta'' and ``operators\_Sum''
+are defined by RAVEN to store the outputs of this post-processor.

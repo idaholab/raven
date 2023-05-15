@@ -14,16 +14,11 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import os
 import sys
 import copy
 import shutil
-import importlib
 import platform
 import shlex
 import time
@@ -39,13 +34,14 @@ from ..Decorators.Parallelization import Parallel
 from .. import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 from .. import Files
 from ..DataObjects import Data
+from ..CodeInterfaceClasses import factory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
   """
     This is the generic class that import an external code into the framework
   """
-  CodeInterfaces = importlib.import_module("..CodeInterfaces", "ravenframework.Models")
+  interfaceFactory = factory
 
   @classmethod
   def getInputSpecification(cls):
@@ -254,8 +250,8 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
-    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
+    self.code = self.interfaceFactory.returnInstance(self.subType)
+    self.code.readXML(xmlNode, workingDir=self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
@@ -575,6 +571,8 @@ class Code(Model):
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
     self.raiseADebug(f'shell execution command: "{command}"')
+    self.raiseADebug('shell cwd: "'+localenv['PWD']+'"')
+    self.raiseADebug('self pid:' + str(os.getpid())+' ppid: '+str(os.getppid()))
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -586,7 +584,7 @@ class Code(Model):
         time.sleep(0.5)
         process.poll()
         if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
           process.kill()
           process.returncode = -1
         if process.returncode is not None or time.time() > timeout:
@@ -595,6 +593,8 @@ class Code(Model):
       process.wait()
 
     returnCode = process.returncode
+    self.raiseADebug(" Process "+str(process.pid)+" finished "+time.ctime()+
+                     " with returncode "+str(process.returncode))
     # procOutput = process.communicate()[0]
 
     ## If the returnCode is already non-zero, we should maintain our current
@@ -766,6 +766,9 @@ class Code(Model):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
+    if not hasattr(evaluation, 'pop'):
+      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}

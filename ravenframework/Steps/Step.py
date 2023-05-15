@@ -68,17 +68,18 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     super().__init__(**kwargs)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
-    #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
+    # If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
-    #If there is no instruction (self.initSeed = None) the sampler will reinitialize
+    # If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed = None
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
-    self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
+    self.failureHandling = {"fail": True, "repetitions": 0, "perturbationFactor": 0.0, "jobRepetitionPerformed": {}}
     self.printTag = 'STEPS'
     self._clearRunDir = None
+    self.pauseEndStep = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -162,7 +163,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
         try:
           self.initSeed  = int(self.initSeed)
         except:
-          self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
+          self.raiseAnError(IOError, printString.format(self.type, self.name, self.initSeed, 're-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
     if os.environ.get('RAVENinterfaceCheck', None) == 'True':
@@ -181,27 +182,19 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
       elif utils.stringIsFalse(paramInput.parameterValues['pauseAtEnd']):
         self.pauseEndStep = False
       else:
-        self.raiseAnError(IOError,printString.format(self.type,self.name,paramInput.parameterValues['pauseAtEnd'],'pauseAtEnd'),
-                                  'expected one of {}'.format(utils.boolThingsFull))
+        self.raiseAnError(IOError, printString.format(self.type, self.name, paramInput.parameterValues['pauseAtEnd'], 'pauseAtEnd'),
+                                  f'expected one of {utils.boolThingsFull}')
     if 'repeatFailureRuns' in paramInput.parameterValues:
       failureSettings = str(paramInput.parameterValues['repeatFailureRuns']).split("|")
       self.failureHandling['fail'] = False
-      #failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
-      #if len(failureSettings) not in [1,2]: (for future usage)
-      #  self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting either the repetition number only ' +
-      #                            'or the repetition number and the perturbation factor separated by "|" symbol')
       if len(failureSettings) != 1:
-        self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting the repetition number only ')
+        self.raiseAnError(IOError, 'repeatFailureRuns format error. Expecting the repetition number only ')
       self.failureHandling['repetitions'] = utils.intConversion(failureSettings[0])
-      #if len(failureSettings) == 2:
-      #  self.failureHandling['perturbationFactor'] = utils.floatConversion(failureSettings[1])
       if self.failureHandling['repetitions'] is None:
-        self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "repetitions" attribute into an integer!')
-      #if self.failureHandling['perturbationFactor'] is None:
-      #  self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "perturbationFactor" attribute into a float!')
+        self.raiseAnError(IOError, f'In Step named {self.name} it was not possible to cast "repetitions" attribute into an integer!')
     self._localInputAndCheckParam(paramInput)
     if None in self.parList:
-      self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
+      self.raiseAnError(IOError, f'A problem was found in the definition of the step {self.name}')
 
   @abc.abstractmethod
   def _localInputAndCheckParam(self,paramInput):
@@ -211,7 +204,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    pass
 
   def getInitParams(self):
     """
@@ -229,6 +221,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     for List in self.parList:
       paramDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
     paramDict.update(self._localGetInitParams())
+
     return paramDict
 
   @abc.abstractmethod
@@ -242,7 +235,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     """
     return {}
 
-  def _initializeStep(self,inDictionary):
+  def _initializeStep(self, inDictionary):
     """
       Method to initialize the current step.
       the job handler is restarted and re-seeding action are performed
@@ -254,7 +247,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     self._localInitializeStep(inDictionary)
 
   @abc.abstractmethod
-  def _localInitializeStep(self,inDictionary):
+  def _localInitializeStep(self, inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -264,27 +257,25 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
       @ In, inDictionary, dict, the initialization dictionary
       @ Out, None
     """
-    pass
 
   @abc.abstractmethod
-  def _localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self, inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    pass
 
-  def _registerMetadata(self,inDictionary):
+  def _registerMetadata(self, inDictionary):
     """
       collects expected metadata keys and deliver them to output data objects
       @ In, inDictionary, dict, initialization dictionary
       @ Out, None
     """
-    ## first collect them
+    # first collect them
     metaKeys = set()
     metaParams = dict()
-    for role, entities in inDictionary.items():
+    for _, entities in inDictionary.items():
       if isinstance(entities, list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
@@ -296,7 +287,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
           keys, params = entities.provideExpectedMetaKeys()
           metaKeys = metaKeys.union(keys)
           metaParams.update(params)
-    ## then give them to the output data objects
+    # then give them to the output data objects
     for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
         out.addExpectedMeta(metaKeys,metaParams)
@@ -328,3 +319,10 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     self.raiseAMessage('***     Closing the step      ***')
     self._endStepActions(inDictionary)
     self.raiseAMessage('***        Step closed        ***')
+
+  def flushStep(self):
+    """
+      Reset Step attributes to allow rerunning a workflow
+      @ In, None
+      @ Out, None
+    """

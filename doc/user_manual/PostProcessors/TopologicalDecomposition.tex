@@ -1,0 +1,104 @@
+\subsubsection{TopologicalDecomposition}
+\label{TopologicalDecomposition}
+The \textbf{TopologicalDecomposition} post-processor will compute an
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
+%
+
+The topological post-processor can also be run in `interactive' mode, that is
+by passing the keyword \texttt{interactive} to the command line of RAVEN's
+driver.
+%
+In this way, RAVEN will initiate an interactive UI that allows one to explore
+the topological hierarchy in real-time and adjust the simplification setting
+before adjusting a dataset. Use in interactive mode will replace the parameter
+\xmlNode{simplification} described below with whatever setting is set in the UI
+upon exiting it.
+
+In order to use the \textbf{TopologicalDecomposition} post-processor, the user
+needs to set the attribute \xmlAttr{subType}:
+\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}.
+The following is a list of acceptable sub-nodes:
+\begin{itemize}
+  \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
+  of neighborhood graph used in the algorithm, available options are:
+  \begin{itemize}
+    \item \texttt{beta skeleton}
+    \item \texttt{relaxed beta skeleton}
+    \item \texttt{approximate knn}
+    %\item Delaunay \textit{(disabled)}
+  \end{itemize}
+  \default{\texttt{beta skeleton}}
+  \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the
+  method used for estimating the gradient, available options are:
+  \begin{itemize}
+    \item \texttt{steepest}
+    %\item \xmlString{maxflow} \textit{(disabled)}
+  \end{itemize}
+  \default{\texttt{steepest}}
+  \item \xmlNode{beta}, \xmlDesc{float in the range: (0,2], optional field}, is
+  only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+  \texttt{relaxed beta skeleton}.
+  \default{1.0}
+  \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
+  neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
+  sub-node and used to speed up the computation of other graphs by using the
+  approximate knn graph as a starting point for pruning. -1 means use a fully
+  connected graph.
+  \default{-1}
+  \item \xmlNode{weighted}, \xmlDesc{boolean, optional}, a flag that specifies
+  whether the regression models should be probability weighted.
+  \default{False}
+  \item \xmlNode{interactive}, if this node is present \emph{and} the user has
+  specified the keyword \texttt{interactive} at the command line, then this will
+  initiate a graphical interface for exploring the different simplification
+  levels of the topological hierarchy. Upon exit of the graphical interface, the
+  specified simplification level will be updated to use the last value of the
+  graphical interface before writing any ``output'' results.
+  \item \xmlNode{persistence}, \xmlDesc{string, optional field}, specifies how
+  to define the hierarchical simplification by assigning a value to each local
+  minimum and maximum according to the one of the strategy options below:
+  \begin{itemize}
+    \item \texttt{difference} - The function value difference between the
+    extremum and its closest-valued neighboring saddle.
+    \item \texttt{probability} - The probability integral computed as the
+    sum of the probability of each point in a cluster divided by the count of
+    the cluster.
+    \item \texttt{count} - The count of points that flow to or from the
+    extremum.
+    % \item \xmlString{area} - The area enclosed by the manifold that flows to
+    % or from the extremum.
+  \end{itemize}
+  \default{\texttt{difference}}
+  \item \xmlNode{simplification}, \xmlDesc{float, optional field}, specifies the
+  amount of noise reduction to apply before returning labels.
+  \default{0}
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
+  lists the parameters defining the input space.
+  \item \xmlNode{response}, \xmlDesc{string, required field}, is a single
+  variable name defining the scalar output space.
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="***" subType='TopologicalDecomposition'>
+      <graph>beta skeleton</graph>
+      <gradient>steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+      <weighted>true</weighted>
+      <simplification>0.3</simplification>
+      <persistence>difference</persistence>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}

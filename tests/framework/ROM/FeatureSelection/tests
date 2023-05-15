@@ -1,0 +1,72 @@
+[Tests]
+  [./StaticSklearnRFE]
+    type  = 'RavenFramework'
+    input = 'sklearn_rfe.xml'
+    [./xml_data]
+      type = XML
+      output = 'data/rom_stats_out.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+  [./DMDcRFEScoringSubgroup]
+    type  = 'RavenFramework'
+    input = 'dmdc_rfe_and_score.xml'
+    output = 'data/ReducedSpaceDMDcROM data/dmdc_stats_rfe_score_subgroup.xml'
+  [../]
+  [./DMDcRFE]
+    type  = 'RavenFramework'
+    input = 'dmdc_rfe.xml'
+    [./xml_data]
+      type = XML
+      output = 'data/dmdc_stats_rfe.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+  [./DMDcRFEScoringOnlyOutput]
+    type  = 'RavenFramework'
+    input = 'dmdc_rfe_scoring_only_output.xml'
+    output = 'data/ReducedSpaceDMDcROM'
+    [./xml_data]
+      type = XML
+      output = 'data/dmdc_stats_rfe_score_only_output.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+  [./DMDcRFEApplyClustering]
+    type  = 'RavenFramework'
+    input = 'dmdc_rfe_apply_clustering.xml'
+    [./xml_data]
+      type = XML
+      output = 'data/dmdc_stats_rfe_apply_clustering.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+  [./DMDcRFESubgroupCrossCorrelation]
+    type  = 'RavenFramework'
+    input = 'dmdc_rfe_and_score_cross_corr.xml'
+    output = 'data/dmdc_stats_rfe_score_subgroup_cross_correlation.xml'
+  [../]
+  [./StaticSklearnVarianceThreshold]
+    type  = 'RavenFramework'
+    input = 'sklearn_variance_threshold.xml'
+    [./xml_data]
+      type = XML
+      output = 'data/rom_stats_sklearn_var_red.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+  [./DMDcVarianceThreshold]
+    type  = 'RavenFramework'
+    input = 'dmdc_variance_threshold.xml'
+    rel_err = 0.0001
+    [./xml_data]
+      type = XML
+      output = 'data/dmdc_stats_variance_threshold.xml'
+      rel_err = 0.0001
+    [../]
+  [../]
+
+[]
+
+
+

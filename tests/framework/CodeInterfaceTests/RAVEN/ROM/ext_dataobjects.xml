@@ -24,7 +24,7 @@
 		<!--Output>CladTempThreshold</Output-->
 	</PointSet>
 	<HistorySet name="outputMontecarloRomHS">
-			<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+			<Input>GRO_targets</Input>
 			<Output>CladTempThreshold,time</Output>
 	</HistorySet>
 	<PointSet name="outputMontecarloRomND">

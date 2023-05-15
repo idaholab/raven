@@ -146,17 +146,15 @@ def checkSameVersion(expected, received):
   #Only check as many digits as given in expSplit
   rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
   # drop trailing 0s on both
-  while expSplit[-1] == 0:
+  while len(expSplit) and expSplit[-1] == 0:
     expSplit.pop()
-  while rcvSplit[-1] == 0:
+  while len(rcvSplit) and rcvSplit[-1] == 0:
     rcvSplit.pop()
   exp = '.'.join(str(x) for x in expSplit)
   rcv = '.'.join(str(x) for x in rcvSplit)
   if exp == rcv:
     return True
   return False
-
-
 
 def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
@@ -190,6 +188,8 @@ def findLibAndVersion(lib, version=None):
   if lib not in metaExceptions:
     try:
       foundVersion = importlib_metadata.version(lib)
+      #The following line can be used for debugging library problems
+      #print(lib, importlib_metadata.files(lib)[0].locate())
       found = True
       output = 'Library found.'
     except importlib_metadata.PackageNotFoundError:
@@ -378,7 +378,7 @@ def _getInstallMethod(override=None):
     @ In, override, str, optional, use given method if valid
     @ Out, install, str, type of install
   """
-  valid = ['conda', 'pip'] #custom?
+  valid = ['conda', 'pip', 'pyomo'] #custom?
   if override is not None:
     if override.lower() not in valid:
       raise TypeError('Library Handler: Provided override install method not recognized: "{}"! Acceptable options: {}'.format(override, valid))
@@ -431,7 +431,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
     Reads a single library request node into existing config
     @ In, libNode, xml.etree.ElementTree.Element, node with library request
     @ In, config, dict, mapping of existing configuration requests
-    @ In, toRemove, list, list of library names to be remeoved at the end
+    @ In, toRemove, list, list of library names to be removed at the end
     @ In, opSys, str, operating system (not checked)
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
@@ -529,13 +529,14 @@ if __name__ == '__main__':
         help='Chooses whether to (create) a new environment, (install) in existing environment, ' +
              'or (list) installation libraries.')
   condaParser.add_argument('--subset', dest='subset',
-        choices=('core', 'forge', 'pip'), default='core',
+        choices=('core', 'forge', 'pip', 'pyomo'), default='core',
         help='Use subset of installation libraries, divided by source.')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
-  pipParser.add_argument('--action', dest='action', choices=('install', 'list'), default='install',
+  pipParser.add_argument('--action', dest='action', choices=('install', 'list', 'setup.cfg'), default='install',
         help='Chooses whether to (install) in current environment, or ' +
-             '(list) installation libraries.')
+             '(list) installation libraries or ' +
+             '(setup.cfg) output setup.cfg requirements.')
 
   manualParser = subParsers.add_parser('manual', help='provide LaTeX manual list')
 
@@ -574,6 +575,7 @@ if __name__ == '__main__':
       raise IOError('During library installation, the following requested plugin libraries '+
                     ' were not found: {}'.format(', '.join(missing)))
 
+  itemSeperator = ' '
   ### Il Grande Albero Decisionale
   # "optional" and "os" are passed through
   if args.installer == 'manual':
@@ -609,6 +611,14 @@ if __name__ == '__main__':
         actionArgs = ''
         addOptional = False
         limit = ['pip']
+      elif args.subset == 'pyomo':
+        src = ''
+        installer = 'pyomo'
+        equals = '=='
+        equalsTail = '.*'
+        actionArgs = ''
+        addOptional = args.addOptional
+        limit = ['pyomo']
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='conda',
                              addOptional=addOptional,
@@ -638,9 +648,16 @@ if __name__ == '__main__':
       elif args.action == 'list':
         action = 'list'
         preamble = ''
+      if args.action == 'setup.cfg':
+        action = 'setup.cfg'
+        preamble = """#setup.cfg from library_handler.py
+[options]
+install_requires =
+    """
+        itemSeperator = '\n    '
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{extra}{ver}'
+    libTexts = itemSeperator.join(['{lib}{extra}{ver}'
                          .format(lib=lib,
                                  extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
                                  ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))

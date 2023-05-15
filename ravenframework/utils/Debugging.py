@@ -18,7 +18,8 @@ talbpaul, 2020-11
 """
 import sys
 from numbers import Number
-from collections import Set, Mapping, deque
+from collections import deque
+from collections.abc import Set, Mapping
 import numpy as np
 
 # these types have no depth, so should not be searched for subitems

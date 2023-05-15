@@ -35,7 +35,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
   # class attribute
   ## define the clusterable features for this trainer.
-  _features = [] # TODO
+  _features = ['ar',
+               'ma',
+               'sigma2',
+               'const']
 
   @classmethod
   def getInputSpecification(cls):
@@ -154,7 +157,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       Q = settings['Q']
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
-      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q))
+      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
       # NOTE on low_memory use, test using SyntheticHistory.ARMA test:
       #   case    | time used (s) | memory used (MiB)
@@ -177,10 +180,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       selCov = r.dot(q).dot(r.T)
       initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
       initDist = {'mean': initMean, 'cov': initCov}
-      params[target]['arma'] = {'const': res.params[0], # exog/intercept/constant
-                                'ar': res.arparams,     # AR
-                                'ma': res.maparams,     # MA
-                                'var': res.params[-1],  # variance
+      params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
+                                'ar': -res.polynomial_ar[1:],     # AR
+                                'ma': res.polynomial_ma[1:],     # MA
+                                'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'model': model}
       if not settings['reduce_memory']:
@@ -294,6 +297,62 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
 
+  # clustering
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    # nameTemplate convention:
+    # -> target is the trained variable (e.g. Signal, Temperature)
+    # -> metric is the algorithm used (e.g. Fourier, ARMA)
+    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
+    features = {}
+    for target, info in params.items():
+      data = info['arma']
+      if 'ar' in requests:
+        for p, phi in enumerate(data['ar']):
+          key = nameTemplate.format(target=target, metric=self.name, id=f'ar_{p}')
+          features[key] = phi
+      if 'ma' in requests:
+        for q, theta in enumerate(data['ma']):
+          key = nameTemplate.format(target=target, metric=self.name, id=f'ma_{q}')
+          features[key] = theta
+      if 'const' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='const')
+        features[key] = data['const']
+      if 'var' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='var')
+        features[key] = data['var']
+      # TODO mean? should always be 0
+      # TODO CDF properties? might change noise a lot ...
+    return features
+
+  def setClusteringValues(self, fromCluster, params):
+    """
+      Interpret returned clustering settings as settings for this algorithm.
+      Acts somewhat as the inverse of getClusteringValues.
+      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
+      @ In, params, dict, trained parameter settings
+      @ Out, params, dict, updated parameter settings
+    """
+    # TODO this needs to be fast, as it's done a lot.
+    for target, identifier, value in fromCluster:
+      value = float(value)
+      if identifier in ['const', 'var']:
+        params[target]['arma'][identifier] = value
+      elif identifier.startswith('ar_'):
+        index = int(identifier.split('_')[1])
+        params[target]['arma']['ar'][index] = value
+      elif identifier.startswith('ma_'):
+        index = int(identifier.split('_')[1])
+        params[target]['arma']['ma'][index] = value
+    return params
+
+  # utils
   def _generateNoise(self, model, initDict, size):
     """
       Generates purturbations for ARMA sampling.

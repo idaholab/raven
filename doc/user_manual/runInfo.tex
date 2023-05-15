@@ -273,20 +273,10 @@ automatically sets this option )
 %
 \default{None - Automatic detection}
 
-%%%%%% redisPassword
-\item \xmlNode{redisPassword}, \xmlDesc{string, optional
-field}, specifies, if \xmlNode{internalParallel} is set to true, the password used by the RAVEN internal parallelization
-in order to link multiple sockets to the main RAVEN runner. If set, in conjunction with  \xmlNode{headNode},  the RAVEN internal parallelization will try to link
-to an already established parallel enviroment (without re-instanciating another).
-\nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
-automatically sets this option )
-%
-\default{None - Automatic detection}
-
 %%%%%% remoteNodes
 \item \xmlNode{remoteNodes}, \xmlDesc{comma separated string, optional
 field}, specifies, if \xmlNode{internalParallel} is set to true, the list of nodes (IPs) that should be used by the RAVEN to deploy its internal parallelization.
-If set, in conjunction with  \xmlNode{headNode} and \xmlNode{redisPassword},  the RAVEN internal parallelization will try to link
+If set, in conjunction with  \xmlNode{headNode},  the RAVEN internal parallelization will try to link
 to an already established parallel enviroment (without re-instanciating another).
 \nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
 automatically sets this option )

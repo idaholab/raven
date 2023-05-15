@@ -43,8 +43,9 @@ if re.search("lib.python", pythonPath):
   for part in splitted:
     if not re.search("lib.python", part):
       newpath.append(part)
+    else:
+      print("removepath :", part, file=out)
   pythonPath = os.pathsep.join(newpath)
-  print("adjusted pythonpath:",pythonPath)
 os.environ["PYTHONPATH"] = pythonPath
 
 #Close standard in, out, and error

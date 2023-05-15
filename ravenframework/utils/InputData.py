@@ -478,6 +478,7 @@ class ParameterInput(object):
         return sub
     return None
 
+
   def findNodesAndExtractValues(self, names):
     """
       Finds the first subparts with names.  Once found, the values
@@ -500,6 +501,26 @@ class ParameterInput(object):
       values[name] = default
       if default == 'no-default':
         notFound.append(name)
+    return values, notFound
+
+  def findNodesAndSetValues(self, values):
+    """
+      Finds the first subparts with values.keys().  Once found, the values in input
+      are set and if not found, nothing happens and the notFound list is populated
+      @ In, values, dict, dictionary of the nodes and values to set
+      @ Out, notFound, list, list of the names that have not been found
+    """
+    names = list(values.keys())
+    notFound = []
+    found = []
+    for sub in self.subparts:
+      name = sub.getName()
+      if name in names:
+        sub.value = values[name]
+        found.append(name)
+    # add names not found in the notFound list
+    for name in list(set(names) - set(found)):
+      notFound.append(name)
     return values, notFound
 
   def returnDefault(self, name):
@@ -620,7 +641,10 @@ class ParameterInput(object):
         msg += ' \\xmlDesc{{{t}}}, '.format(t=cls.contentType.generateLatexType())
       # add description
       msg += '\n{d}'.format(d=desc)
-    # add parameter definitions, if any, tabbed in by 1
+      default = 'default='+ str(cls.default) if cls.default != 'no-default' else ""
+      if default:
+        msg += '\n  {de}'.format(i=doDent(recDepth, 1), de='\\default{'+ str(cls.default) +'}')
+    # # # add parameter definitions, if any, tabbed in by 1
     msg += '\n' + cls.generateParamsLatex(recDepth+1)
     # add subnode definitions in order of printing priority
     if cls.subs:

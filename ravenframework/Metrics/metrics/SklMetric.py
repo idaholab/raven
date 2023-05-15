@@ -69,11 +69,10 @@ class SKL(MetricInterface):
       self.availMetrics['regression']['r2_score']                 = sklearn.metrics.r2_score
       self.availMetrics['regression']['mean_squared_error']       = sklearn.metrics.mean_squared_error
       # paired distance metrics, no weights
-      if int(sklearn.__version__.split(".")[1]) > 17:
-        self.availMetrics['paired_distance'] = {}
-        self.availMetrics['paired_distance']['euclidean']         = sklearn.metrics.pairwise.paired_euclidean_distances
-        self.availMetrics['paired_distance']['manhattan']         = sklearn.metrics.pairwise.paired_manhattan_distances
-        self.availMetrics['paired_distance']['cosine']            = sklearn.metrics.pairwise.paired_cosine_distances
+      self.availMetrics['paired_distance'] = {}
+      self.availMetrics['paired_distance']['euclidean']         = sklearn.metrics.pairwise.paired_euclidean_distances
+      self.availMetrics['paired_distance']['manhattan']         = sklearn.metrics.pairwise.paired_manhattan_distances
+      self.availMetrics['paired_distance']['cosine']            = sklearn.metrics.pairwise.paired_cosine_distances
       # TODO: add more metrics here
       # metric from scipy.spatial.distance, for example mahalanobis, minkowski
 

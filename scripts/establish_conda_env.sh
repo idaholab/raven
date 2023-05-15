@@ -107,8 +107,16 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-    ${COMMAND}
+    if [[ $USE_MAMBA == TRUE ]]; then
+        conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
+        activate_env
+        local MCOMMAND=${COMMAND/#conda /mamba } #Replace conda at start with mamba
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
+        ${MCOMMAND}
+    else
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+        ${COMMAND}
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -116,6 +124,15 @@ function install_libraries()
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]]; # If pip package is created for pynumero, delete this command and add to pip dependencies
+    then
+      pyomo download-extensions || echo "Pyomo download failed"
+      pyomo build-extensions || echo "Pyomo build failed"
+    fi
   else
     # activate the enviroment
     activate_env
@@ -136,19 +153,59 @@ function create_libraries()
   then
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-    ${COMMAND}
+    #In order to install the libraries, we need a working python command
+    # Check PYTHON_COMMAND and then some other possibilities to find one
+    # that is in the path with command -v
+    if command -v $PYTHON_COMMAND; then
+        #The PYTHON_COMMAND exists
+        WORKING_PYTHON_COMMAND=$PYTHON_COMMAND
+    elif command -v python; then
+        #python exists
+        WORKING_PYTHON_COMMAND=python
+    elif command -v python3; then
+        #python3 exists
+        WORKING_PYTHON_COMMAND=python3
+    else
+        echo Neither PYTHON_COMMAND: $PYTHON_COMMAND nor python nor python3 are available
+        echo Please fix this and run again.
+        exit
+    fi
+    if [[ $ECE_VERBOSE == 0 && $WORKING_PYTHON_COMMAND != $PYTHON_COMMAND ]]; then
+        echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
+    fi
+    if [[ $USE_MAMBA == TRUE ]]; then
+        echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
+        conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
+        activate_env
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+        local MCOMMAND=${COMMAND/#conda /mamba }
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
+        ${MCOMMAND}
+    else
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
+
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+        ${COMMAND}
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
+    # pyomo only
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
+    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
+    if [[ ${COMMAND} == *"pyomo-extensions"* ]];
+    then
+      pyomo download-extensions || echo "Pyomo download failed"
+      pyomo build-extensions || echo "Pyomo build failed"
+    fi
   else
     #pip create virtual enviroment
-    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`
+    local COMMAND="$PYTHON_COMMAND -m venv $PIP_ENV_LOCATION"
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... virtual enviroment command: ${COMMAND}; fi
     ${COMMAND}
     # activate the enviroment
@@ -184,6 +241,12 @@ function display_usage()
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
 	echo ''
+        echo '    --mamba'
+        echo '      Use mamba instead of conda for package installation'
+        echo ''
+        echo '    --no-mamba'
+        echo '      Do not use mamba for package installation.'
+        echo ''
 	echo '    --proxy <proxy>'
 	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
@@ -247,8 +310,16 @@ ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
-INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ -z "$INSTALLATION_MANAGER" ]];
+then
+    INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+else
+    #use installation manager from .ravenrc
+    INSTALL_MANAGER="$INSTALLATION_MANAGER"
+fi
 PROXY_COMM="" # proxy is none
+USE_MAMBA=FALSE # Use Mamba for installation
 
 # parse command-line arguments
 while test $# -gt 0
@@ -271,6 +342,14 @@ do
       ;;
     --install)
       ECE_MODE=2
+      ;;
+    --mamba)
+      echo ... using mamba
+      USE_MAMBA=TRUE
+      ;;
+    --no-mamba)
+      echo ... not using mamba
+      USE_MAMBA=FALSE
       ;;
     --optional)
       echo ... Including optional libraries ...
@@ -310,10 +389,10 @@ fi
 if [[ $ECE_VERBOSE == 0 ]];
 then
   echo ... Run Options:
-  echo ...    Mode: $ECE_MODE
+  echo ...    ECE Mode: $ECE_MODE
   echo ...   Verbosity: $ECE_VERBOSE
   echo ...   Clean: $ECE_CLEAN
-  echo ...    Mode: $INSTALL_MANAGER
+  echo ...    Install Mode: $INSTALL_MANAGER
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     echo ...   Conda Defs: $CONDA_DEFS
@@ -406,10 +485,6 @@ else
     echo ... \>\> Install PIP if you want to use it or CONDA as alternative installation manager!
     exit 1
   else
-    # install virtual env and upgrade pip
-    if ! ve_loc="$(type -p virtualenv)" || [[ -z $ve_loc ]]; then
-      pip3 install virtualenv
-    fi
     # set PIP_ENV_LOCATION
     PIP_ENV_LOCATION="$HOME/pip_envs"
   fi
@@ -464,11 +539,6 @@ fi
 ## install mode
 if [[ $ECE_MODE == 2 ]];
 then
-  # Right before library installation, install ExamplePlugin
-  echo Installing ExamplePlugin...
-  parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-  ${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
-
   # if libraries already exist, depends on if in "clean" mode or not
   if [[ $LIBS_EXIST == 0 ]];
   then
@@ -498,6 +568,12 @@ then
   ## store information about this creation in raven/.ravenrc text file
   if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
   set_install_settings
+
+  # After library installation, install ExamplePlugin
+  echo Installing ExamplePlugin...
+  parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+  ${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
 fi
 
 # activate environment and write settings if successful

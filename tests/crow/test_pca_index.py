@@ -63,12 +63,17 @@ mvnDistribution = distribution1D.BasicMultivariateNormal(covCpp,muCpp,str(covTyp
 COVn = np.asarray(cov).reshape(-1,int(sqrt(len(cov))))
 Un,Sn,Vn = LA.svd(COVn,full_matrices=False)
 uNp = Un[:,index]
+altuNp = np.array(uNp)
+altuNp[:,2:4] = -uNp[:,2:4]
 sNp = Sn[index]
 coordinateInOriginalSpace = np.dot(uNp,np.dot(np.diag(np.sqrt(sNp)),coordinateInTransformedSpace))
+altCoordinateInOriginalSpace = np.dot(altuNp,np.dot(np.diag(np.sqrt(sNp)),coordinateInTransformedSpace))
 
 #compute the gold solution:
 mu = np.asarray(mu)
 coordinateInOriginalSpace += mu
+altCoordinateInOriginalSpace += mu
+print("coordinateInOriginalSpace", coordinateInOriginalSpace, "altCoordinateInOriginalSpace", altCoordinateInOriginalSpace)
 
 #call crow to compute the coordinate
 Xcoordinate = mvnDistribution.coordinateInverseTransformed(coordinateInTransformedSpaceCpp,indexCpp)
@@ -79,6 +84,9 @@ Xcoordinate = np.asarray(Xcoordinate)
 results = {"pass":0,"fail":0}
 
 utils.checkArrayAllClose("MVN return coordinate in original space",Xcoordinate,coordinateInOriginalSpace,results)
+utils.checkArrayAllClose("MVN return coordinate in original space alt",Xcoordinate,altCoordinateInOriginalSpace,results)
+#The Xcoordinate will either equal the original, or the sign inverted alternate, so remove one failure, because one will fail. If both fail, that is a problem.
+results["fail"] -= 1
 
 print(results)
 

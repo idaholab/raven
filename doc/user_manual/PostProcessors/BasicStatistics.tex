@@ -1,0 +1,270 @@
+\subsubsection{BasicStatistics}
+\label{BasicStatistics}
+The \textbf{BasicStatistics} post-processor is the container of the algorithms
+to compute many of the most important statistical quantities. It is important to notice that this
+post-processor can accept as input both \textit{\textbf{PointSet}} and \textit{\textbf{HistorySet}}
+data objects, depending on the type of statistics the user wants to compute:
+\begin{itemize}
+  \item \textit{\textbf{PointSet}}: Static Statistics;
+  \item \textit{\textbf{HistorySet}}: Dynamic Statistics. Depending on a ``pivot parameter'' (e.g. time)
+  the post-processor is going to compute the statistics for each value of it (e.g. for each time step).
+  In case an \textbf{HistorySet} is provided as Input, the Histories needs to be synchronized (use
+    \textit{\textbf{Interfaced}} post-processor of type  \textbf{HistorySetSync}).
+\end{itemize}
+%
+\ppType{BasicStatistics post-processor}{BasicStatistics}
+\begin{itemize}
+  \item \xmlNode{"metric"}, \xmlDesc{comma separated string or node list, required field},
+    specifications for the metric to be calculated.  The name of each node is the requested metric.  There are
+    two forms for specifying the requested parameters of the metric.  For scalar values such as
+    \xmlNode{expectedValue} and \xmlNode{variance}, the text of the node is a comma-separated list of the
+    parameters for which the metric should be calculated.  For matrix values such as \xmlNode{sensitivty} and
+    \xmlNode{covariance}, the matrix node requires two sub-nodes, \xmlNode{targets} and \xmlNode{features},
+    each of which is a comma-separated list of the targets for which the metric should be calculated, and the
+    features for which the metric should be calculated for that target.  See the example below.
+
+    \nb When defining the metrics to use, it is possible to have multiple nodes with the same name.  For
+    example, if a problem has inputs $W$, $X$, $Y$, and $Z$, and the responses are $A$, $B$, and $C$, it is possible that
+    the desired metrics are the \xmlNode{sensitivity} of $A$ and $B$ to $X$ and $Y$, as well as the
+    \xmlNode{sensitivity} of $C$ to $W$ and $Z$, but not the sensitivity of $A$ to $W$.   In this event, two
+    copies of the \xmlNode{sensitivity} node are added to the input.  The first has targets $A,B$ and features
+    $X,Y$, while the second node has target $C$ and features $W,Z$.  This could reduce some computation effort
+    in problems with many responses or inputs.  An example of this is shown below.
+  %
+  \\ Currently the scalar quantities available for request are:
+  \begin{itemize}
+    \item \textbf{expectedValue}: expected value or mean
+    \item \textbf{minimum}: The minimum value of the samples.
+    \item \textbf{maximum}: The maximum value of the samples.
+    \item \textbf{median}:  The weighted median of the samples ( $50\%$ weighted percentile). If probability weights are not assigned, uniform distribution will be assigned. The median $x_k$ satisfying:
+    \begin{equation}
+      \sum_{i = 1}^{k - 1} w_i \le 1/2  and \sum_{i = k + 1}^{n} w_i \le 1/2
+    \end{equation}
+    The user can specify the parameter \textit{interpolation='X'} for the interpolation method used to calculate the median when it falls between data points. \textit{X} can be \textit{'linear'} (default) or \textit{'midpoint'}
+    where \textit{'linear'} uses linear interpolation between points and \textit{'midpoint'} uses the midpoint or average.
+    \item \textbf{variance}: variance
+    \item \textbf{sigma}: standard deviation
+    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
+                               Otherwise the user can specify this quantity with a parameter \textit{percent='X'}, where the \textit{X} represents the requested
+                               percentile (a floating point value between 0.0 and 100.0). The user can also specify the parameter \textit{interpolation='X'} for
+                               the interpolation method used to calculate the percentile when it falls between data points. \textit{X} can be \textit{'linear'}
+                               (default) or \textit{'midpoint'} where \textit{'linear'} uses linear interpolation between points and \textit{'midpoint'} uses the
+                               midpoint or average.
+    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
+    the \textbf{variationCoefficient} will be \textbf{INF}.
+    \item \textbf{skewness}: skewness
+    \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
+  \end{itemize}
+  The matrix quantities available for request are:
+  \begin{itemize}
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method. (\nb The condition number is computed every time this quantity is requsted. If it results
+    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients
+    might be incorrect and a Warning is spooned by the code)
+    \item \textbf{covariance}: covariance matrix
+    \item \textbf{pearson}: matrix of correlation coefficients
+    \item \textbf{spearman}: matrix of spearman ranking coefficients. This matrix is computed in its
+    weighted form (see RAVEN theory manual at \cite{RAVENtheoryManual}):
+    \begin{equation}
+\boldsymbol{\mathrm{P}}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{R(X)},\boldsymbol{R(Y)})}{\sigma_{R(x)} \sigma_{R(y)}}
+\end{equation}
+    \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
+    coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
+    \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
+  \end{itemize}
+  This XML node needs to contain the attribute:
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+      For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
+      ``mean\_x'' will be defined by RAVEN. For \textbf{percentile}, RAVEN will define a variable with name defined as:
+      ``prefix'' + ``\_'' + ``percent'' + ``\_'' + ``parameter name''. For example, if we define ``perc'' as the prefix
+      for \textbf{percentile}, percent as ``10'', and parameter ``x'', then variable ``perc\_10\_x'' will
+      be defined by RAVEN.
+      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+      For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+      variable ``sen\_y\_x'' will be defined by RAVEN.
+      \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+      \textbf{DataObjects} and \textbf{OutStreams}.
+  \end{itemize}
+   %
+  \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
+  \\
+  \nb Certain ROMs provide their own statistical information (e.g., those using
+  the sparse grid collocation sampler such as: \xmlString{GaussPolynomialRom}
+  and \xmlString{HDMRRom}) which can be obtained by printing the ROM to file
+  (xml). For these ROMs, computing the basic statistics on data generated from
+  one of these sampler/ROM combinations may not provide the information that the
+  user expects.
+  \\
+  \nb Determining the percentile requires many samples, especially if the requested percentile is in
+  the tail of the distribution. The standard error of the percentile requires a large number of
+  samples for accuracy due to the asymptotic variance method used.
+  \\
+  In addition, RAVEN will automatically calculate the standard errors on the following scalar quantities:
+  \begin{itemize}
+    \item \textbf{expectedValue}
+    \item \textbf{median}
+    \item \textbf{variance}
+    \item \textbf{sigma}
+    \item \textbf{skewness}
+    \item \textbf{kurtosis}
+    \item \textbf{percentile}
+  \end{itemize}
+  RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
+  store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
+  i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the
+  \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that
+  the users want to print.
+  In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
+  with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
+  index ``target'' will added in the \textbf{DataSets} with respect to these variables. All these quantities will be automatically
+  computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.
+  %
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
+   to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
+   be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference
+   monotonic variable based on which the statistics is going to be computed (e.g. time-dependent
+   statistical moments).
+    \default{None}
+  %
+  \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased
+  quantities are going to be calculated, if \textit{False} unbiased.
+  \default{False}
+  %
+  \item \xmlNode{dataset}, \xmlDesc{boolean, optional field}, if \textit{True} \xmlString{DataSet}
+    will be used to store the calculation results, if \textit{False} \xmlString{PointSet} or \xmlString{HistorySet}
+    will be used to store the calculation results.
+    \nb The optional \xmlString{DataSet} is added only to this PostProcessor, one can still use the \xmlString{OutStreams}
+    to print the variables available in the \textit{DataSet}. The \xmlString{"metric"} names are used as the
+    variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output} in the defined \xmlString{DataSet}.
+    In addition, the extra node \xmlNode{Index} is required, and the value for \xmlAttr{var} can be found in the following:
+    \begin{itemize}
+      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance},
+        are requested, the index variable \xmlString{targets} will be required.
+      \item vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
+        \xmlString{targets} and \xmlString{features} will be required.
+      \item If \xmlNode{percentile} is requested, an additional index variable \xmlString{percent} should be added.
+      \item when dynamic BasicStatistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
+    \end{itemize}
+  \default{False}
+  %
+\item \xmlNode{multipleFeatures}, \xmlDesc(boolean, optional field), if \textbf{False}, this node can be used when
+    the users want to compute sensitivities based on one target variable with respect to one feature variable,
+    i.e. the sensitivity calculations are directly computed using the \textbf{Linear Regression} or
+    \textbf{Best Linear Predictor} method with single feature. This method can be useful when the input features
+    depend on each other. The default value is \textbf{True}, which means the sensitivity calculations are performed
+    using \textbf{Linear Regression} or \textbf{Best Linear Predictor} method with multiple features. If the input
+    features are not fully correlated, the default value for \xmlNode{multipleFeatures} is always recommended.
+    \nb this node only affects the calculations of metrics such as \xmlNode{sensitivity},
+    \xmlNode{VarianceDependentSensitivity} and \xmlNode{NormalizedSensitivity}.
+  \default{True}
+\end{itemize}
+\textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
+\xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
+\xmlString{a} and \xmlString{b}.
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\_a, sen\_x01\_b, sen\_x02\_b''
+will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+
+\textbf{Example (Static, multiple matrix nodes):} This example shows how multiple nodes can specify
+particular metrics multiple times to include different target/feature combinations.  This PostProcessor
+calculates the expected value of $A$, $B$, and $C$, as well as the sensitivity of both $A$ and $B$ to $X$ and
+$Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
+      <expectedValue prefix='mean'>A,B,C</expectedValue>
+      <sensitivity prefix='sen1'>
+        <targets>A,B</targets>
+        <features>x,y</features>
+      </sensitivity>
+      <sensitivity prefix='sen2'>
+        <targets>C</targets>
+        <features>w,z</features>
+      </sensitivity>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+\textbf{Example (Dynamic Statistics):}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+  <HistorySet name='basicStatHistorySet'>
+    <Output>
+      mean_x01,mean_x02,
+      sen_x01_a, sen_x01_b,
+      sen_x02_a, sen_x02_b
+    </Output>
+    <options>
+      <pivotParameter>time</pivotParameter>
+    </options>
+  </HistorySet>
+</Simulation>
+\end{lstlisting}
+
+\textbf{Example (Dumping the results into DataSet):}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
+      <dataset>True</dataset>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+  <DataObjects>
+    <DataSet name='basicStatDataSet'>
+      <Output>expectedValue,sensitivity</Output>
+      <Index var='time'>expectedValue,sensitivity</Index>
+      <Index var='targets'>expectedValue,sensitivity</Index>
+      <Index var='features'>sensitivity</Index>
+    </DataSet>
+  </DataObjects>
+</Simulation>
+\end{lstlisting}

@@ -79,6 +79,7 @@ class ExternalModel(Dummy):
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
+    self._availableVariableTypes.append('str') #not a numpy type
     self.printTag = 'EXTERNAL MODEL'  # label
     self.initExtSelf = utils.Object() # initial externalizable object
     self.workingDir = None            # RAVEN working dir
@@ -186,7 +187,7 @@ class ExternalModel(Dummy):
       # check if there are variables and, in case, load them
       for child in paramInput.subparts:
         if child.getName() == 'variables':
-          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been depreciated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
+          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been deprecated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
           self.modelVariableType = dict.fromkeys(child.value)
         elif child.getName() == 'inputs':
           self._setVariableList('input', child.value)

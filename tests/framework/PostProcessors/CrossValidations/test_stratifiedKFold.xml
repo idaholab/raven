@@ -35,7 +35,6 @@
         <labels>0,0,0,1,1,1,1,2,2,2</labels>
         <n_splits>2</n_splits>
         <shuffle>False</shuffle>
-        <random_state>10</random_state>
       </SciKitLearn>
       <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>

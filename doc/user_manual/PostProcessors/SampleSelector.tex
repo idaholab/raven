@@ -1,0 +1,49 @@
+\subsubsection{SampleSelector}
+\label{SampleSelectorPP}
+The \xmlNode{SampleSelector} PostProcessor is a tool to select a row from a dataset, depending on different
+criteria. The different criteria that can be used are listed below.
+
+The \xmlNode{SampleSelector} PostProcessor can  act on any \xmlNode{DataObjects}, and generates a
+\xmlNode{DataObject} with a single realization in return.
+
+\ppType{SampleSelector}{SampleSelector}
+%
+\begin{itemize}
+  \item \xmlNode{criterion}, \xmlDesc{string, required field}, specifies the criterion to select the
+    realization from the input DataObject. Options are as follows:
+    \begin{itemize}
+      \item \xmlString{min}, choose the realization that has the lowest value of the \xmlNode{target}
+        variable. The target must be scalar.
+      \item \xmlString{max}, choose the realization that has the highest value of the \xmlNode{target}
+        variable. The target must be scalar.
+      \item \xmlString{index}, choose the realization that has the provided index. The index must be an
+        integer and is zero-based, meaning the first entry is at index 0, the second entry is at index 1, etc.
+        The realization order is taken from the order in which they were entered originally into the input
+        DataObject. If this option is used, the \xmlNode{criterion} node must have an \xmlAttr{value}
+        attribute that gives the index.
+    \end{itemize}
+  \item \xmlNode{target}, \xmlDesc{string, optional field}, required if the criterion targets a particular
+    variable (such as the minimum and maximum criteria). Specifies the name of the
+    target for which the criterion should be evaluated.
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="select_min" subType="SampleSelector">
+      <target>x</target>
+      <criterion>min</criterion>
+    </PostProcessor>
+    ...
+    <PostProcessor name="select_index" subType="SampleSelector">
+      <criterion value='3'>index</criterion>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}

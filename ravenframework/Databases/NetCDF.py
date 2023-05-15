@@ -24,10 +24,10 @@ import os
 import numpy as np
 import xarray as xr
 
-from ..utils import InputData, InputTypes, xmlUtils, mathUtils
-from .Database import DateBase
+from ..utils import xmlUtils, mathUtils
+from .Database import DataBase
 
-class NetCDF(DateBase):
+class NetCDF(DataBase):
   """
     Stores data in netCDF format
   """
@@ -44,6 +44,7 @@ class NetCDF(DateBase):
     spec = super(NetCDF, cls).getInputSpecification()
     spec.description = r"""File storage format based on NetCDF4 protocol, which is natively compatible
                        with xarray DataSets used in RAVEN DataObjects."""
+
     return spec
 
   def __init__(self):

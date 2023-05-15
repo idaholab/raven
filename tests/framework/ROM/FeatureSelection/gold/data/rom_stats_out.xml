@@ -1,0 +1,10 @@
+<DataObjectMetadata name="rom_stats">
+  <modelUnderTest type="Static">
+    <ROM>
+      <type>SVR</type>
+      <Features>X,Y</Features>
+      <Targets>Z</Targets>
+    </ROM>
+  </modelUnderTest>
+  
+</DataObjectMetadata>

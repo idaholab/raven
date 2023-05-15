@@ -16,12 +16,9 @@ Created on March 2, 2020
 
 @author: talbpw
 """
-from ..utils import utils
 from ..EntityFactoryBase import EntityFactory
 
-from .Database import DateBase as Database
-from .HDF5 import HDF5
-from .NetCDF import NetCDF
+from .Database import DataBase as Database
 
 factory = EntityFactory('Database', needsRunInfo=True, returnInputParameter=True)
 factory.registerAllSubtypes(Database)

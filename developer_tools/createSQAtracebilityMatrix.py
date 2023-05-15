@@ -63,7 +63,7 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
       # create table here
       fileObject.write("\\begin{tabularx}{\\textwidth}{|s|s|b|} \n")
       fileObject.write("\\hline \n")
-      fileObject.write("\\textbf{Requirment ID} & \\textbf{Requirment Description} & \\textbf{Test(s)}  \\\ \hline \n")
+      fileObject.write("\\textbf{Requirement ID} & \\textbf{Requirement Description} & \\textbf{Test(s)}  \\\ \hline \n")
       fileObject.write("\\hline \n")
       ravenPath =    os.path.realpath(os.path.join(os.path.realpath(__file__) ,"..","..",".."))
       for reqName,req in reqSet.items():
@@ -74,7 +74,7 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
             requirementTests = source
         requirementTests = [] if requirementTests is None else requirementTests
         for i in range(len(requirementTests)):
-          requirementTests[i] = str(i+1) + ")" + requirementTests[i].replace(ravenPath,"").replace("_","\_").strip()
+          requirementTests[i] = str(i+1) + ")" + requirementTests[i].replace(ravenPath,"").replace("\\","/").replace("_","\_").strip()
         fileObject.write(" \\hspace{0pt}"+reqName.strip()+" & \\hspace{0pt}"+req['description']+" & \\hspace{0pt}"+ ' '.join(requirementTests)+" \\\ \hline \n")
         fileObject.write("\\hline \n")
       fileObject.write("\\caption*{"+reqSetName.strip()+"}\n")

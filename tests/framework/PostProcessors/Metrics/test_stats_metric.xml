@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>scipyMetrics</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_metric_scipy</name>
+    <author>wangc</author>
+    <created>2018-02-16</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks metrics from Scipy library
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_metric" type="">output_metric.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">ans</Features>
+      <Targets type="variable">ans2</Targets>
+      <Metric class="Metrics" type="Metric">full</Metric>
+      <Metric class="Metrics" type="Metric">seg</Metric>
+      <Metric class="Metrics" type="Metric">sum_seg</Metric>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="pp1_out">
+      <Output>
+            full_f_test
+            seg_chi_square,
+            sum_seg_ks_test,
+        </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
+
+  <Metrics>
+    <Metric name="fTest" subType="ScipyMetric">
+      <metricType>full|fTest</metricType>
+    </Metric>
+    <Metric name="chiSquare" subType="ScipyMetric">
+      <metricType>seg|chiSquare</metricType>
+    </Metric>
+    <Metric name="ksTest" subType="ScipyMetric">
+      <metricType>sumSeg|ksTest</metricType>
+    </Metric>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>-1</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
+    </PostProcess>
+  </Steps>
+
+</Simulation>
