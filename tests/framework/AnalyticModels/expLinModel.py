@@ -52,7 +52,7 @@ if __name__ == '__main__':
   Input['e2'] = [1,8]
   Input['e3'] = [-5, -5]
   Input['bE'] = np.array([[0],[0],[0]])
-  Input['x1'] = 5.5
-  Input['x2'] = 8
+  Input['p1'] = 5.5
+  Input['p2'] = 8
   a,b,c = main(Input)
   print(a,b,c)

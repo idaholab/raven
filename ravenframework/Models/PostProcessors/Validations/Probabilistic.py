@@ -15,10 +15,6 @@
   Created on April 04, 2021
 
   @author: alfoa
-
-  This class represents a base class for the validation algorithms
-  It inherits from the PostProcessor directly
-  ##TODO: Recast it once the new PostProcesso API gets in place
 """
 
 #External Modules------------------------------------------------------------------------------------

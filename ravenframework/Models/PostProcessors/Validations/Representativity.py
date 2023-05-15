@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# @ Authors: Mohammad Abdo  (@Jimmy-INL)
-#            Congjian Wang  (@wangcj05)
-#            Andrea Alfonsi (@aalfonsi)
-#            Aaron Epiney   (@AaronEpiney)
+"""
+  Created on April 04, 2021
+
+  @ Authors: Mohammad Abdo  (@Jimmy-INL)
+             Congjian Wang  (@wangcj05)
+             Andrea Alfonsi (@aalfonsi)
+"""
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -216,7 +219,8 @@ class Representativity(ValidationBase):
     self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targetOutputs])
     # # 4. Compute Uncertainties in parameters
     UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters])
-    UparVar = np.diag(np.diag(UparVar))
+    if np.linalg.matrix_rank(UparVar) < np.shape(UparVar)[0]:
+      UparVar = UparVar + np.diag(np.ones(np.shape(UparVar)[0])*np.finfo(np.float32).eps)
     # # 5. Compute Uncertainties in outputs
     # Outputs of Mock model (Measurables F_i)
     UMeasurablesVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeOutputs])
@@ -311,38 +315,6 @@ class Representativity(ValidationBase):
           sensMatr[i, j] = sensDict[senName][0]* datasets[inpVar].meanValue / datasets[outVar].meanValue
     return sensMatr
 
-  def _getDataFromDatasets(self, datasets, var, names=None):
-    """
-      Utility function to retrieve the data from datasets
-      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
-      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
-      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
-      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
-    """
-    data = None
-    pw = None
-    dat = None
-    if "|" in var and names is not None:
-      do, feat =  var.split("|")
-      doindex = names.index(do)
-      dat = datasets[doindex][feat]
-    else:
-      for doindex, ds in enumerate(datasets):
-        if var in ds:
-          dat = ds[var]
-          break
-    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
-    elif 'ProbabilityWeight' in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight'].values
-    dim = len(dat.shape)
-    dat = dat.values
-    if dim == 1:
-      #  the following reshaping does not require a copy
-      dat.shape = (dat.shape[0], 1)
-    data = dat, pw
-    return data
-
   def _computeMoments(self, datasets, features, targets):
     """
       A utility function to compute moments, mean value, variance and covariance
@@ -370,7 +342,7 @@ class Representativity(ValidationBase):
     """
     for var in [x.split("|")[-1] for x in features + targets]:
       datasets['err_'+str(var)] = (datasets[var].values - datasets[var].attrs['meanValue'])/datasets[var].attrs['meanValue']
-
+    return datasets
   def _computeUncertaintyMatrixInErrors(self, data, parameters):
     """
       A utility function to variance and covariance of variables in the error space
@@ -400,8 +372,9 @@ class Representativity(ValidationBase):
     if UmesVar is None:
       UmesVar = np.zeros((len(normalizedSenExp), len(normalizedSenExp)))
     # Compute representativity (#eq 79)
-    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=1e-4) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T),rtol=1e-4)).real
-    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=1e-4) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar),rtol=1e-4)).real
+    tol = 1e-6
+    r = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=tol) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T),rtol=tol)).real
+    rExact = (sp.linalg.pinv(sqrtm(normalizedSenTar @ UparVar @ normalizedSenTar.T),rtol=tol) @ (normalizedSenTar @ UparVar @ normalizedSenExp.T) @ sp.linalg.pinv(sqrtm(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar),rtol=tol)).real
     return r, rExact
 
   def _calculateCovofTargetErrorsfromBiasFactor(self, normalizedSenTar, UparVar, r):
