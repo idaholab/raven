@@ -13,14 +13,12 @@
 # limitations under the License.
 '''
   Created on May 24, 2022
-  @ Authors: Mohammad Abdo (@Jimmy-INL), Niharika Karnik (@nkarnik), Krithika Manohar (@kmanohar)
+  @ Authors: Mohammad Abdo (@Jimmy-INL)
+             Niharika Karnik (@nkarnik)
 '''
 import pysensors as ps
 import numpy as np
 import xarray as xr
-# import copy
-# from collections import defaultdict
-# from functools import partial
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import InputData, InputTypes
@@ -70,7 +68,7 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The number of sensors used""")
     goal.addSub(nSensors)
-    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type",['QR','CCQR']),
+    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type",['QR']),
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
     goal.addSub(optimizer)
@@ -93,13 +91,14 @@ class SparseSensing(PostProcessorReadyInterface):
     self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
     self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
-    self.SparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
+    self.sparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
     self.nSensors = None                                     # The number of the sensors required by the user.
     self.nModes = None                                       # The number of modes/basis used to truncate the singular value decomposition
     self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
-    self.sensingFeatures = None                              # the variable representing the features of the data i.e., X, Y, SensorID, etc.
-    self.sensingTarget = None                                # the Response of interest to be reconstructed (or classify)
-    self.optimizer = None                                    # THe optimizer type (QR, CCQR) for unconstrained and constrained optimization respectively
+    self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
+    self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
+    self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
+    self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -121,7 +120,7 @@ class SparseSensing(PostProcessorReadyInterface):
     """
     self.name = paramInput.parameterValues['name']
     for child in paramInput.subparts:
-      self.SparseSensingGoal = child.parameterValues['subType']
+      self.sparseSensingGoal = child.parameterValues['subType']
       self.nSensors = child.findFirst('nSensors').value
       self.nModes = child.findFirst('nModes').value
       self.basis = child.findFirst('basis').value
@@ -150,19 +149,19 @@ class SparseSensing(PostProcessorReadyInterface):
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
-    if self.basis == 'SVD':
+    if self.basis.lower() == 'svd':
       basis=ps.basis.SVD(n_basis_modes=self.nModes)
-    elif self.basis == 'Identity':
+    elif self.basis.lower() == 'identity':
       basis=ps.basis.Identity(n_basis_modes=self.nModes)
-    elif self.basis == 'RandomProjection':
+    elif self.basis.lower() == 'randomprojection':
       basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
 
-    if self.optimizer == 'QR':
+    if self.optimizer.lower() == 'qr':
       optimizer = ps.optimizers.QR()
-    elif self.optimizer == 'CCQR':
-      optimizer = ps.optimizers.CCQR()
+    else:
+      self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
 
@@ -182,10 +181,10 @@ class SparseSensing(PostProcessorReadyInterface):
 
     sensorData = {}
     for var in self.sensingFeatures:
-      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data) #inputDS[self.sensingFeatures]
+      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
-    outDS = outDS.expand_dims('RAVEN_sample_ID')
-    outDS['RAVEN_sample_ID'] = [0]
+    outDS = outDS.expand_dims(self.sampleTag)
+    outDS[self.sampleTag] = [0]
     return outDS

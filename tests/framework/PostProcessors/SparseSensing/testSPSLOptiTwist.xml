@@ -34,15 +34,16 @@
     <IOStep name="print">
       <Input class="DataObjects" type="DataSet">outPP</Input>
       <Input class="DataObjects" type="PointSet">myDO</Input>
+      <Input class="DataObjects" type="HostorySet">TwistDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot</Output>
+      <Output class="OutStreams" type="Plot">mySensorPlot3D</Output>
     </IOStep>
   </Steps>
 
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
-        <!-- <TrainingData>myDO</TrainingData> -->
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
         <basis>SVD</basis>
@@ -95,6 +96,25 @@
         </plot>
         <xlabel>x</xlabel>
         <ylabel>y</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+
+    <Plot name="mySensorPlot3D">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>TwistDO|Output|X (m)</x>
+          <y>TwistDO|Output|Y (m)</y>
+          <z>TwistDO|Output|Temperature (K)</z>
+          <cmap>coolwarm</cmap>
+          <colorMap>TwistDO|Output|Temperature (K)</colorMap>
+        </plot>
+        <xlabel>x</xlabel>
+        <ylabel>y</ylabel>
+        <zlabel>temperature (K)</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>
