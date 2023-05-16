@@ -22,8 +22,8 @@
   <Steps>
     <IOStep name="LoadCSV">
       <Input class="Files" type="">twistFile</Input>
-      <Output class="DataObjects" type="HistorySet">TwistDO</Output>
       <Input class="Files" type="">refDO</Input>
+      <Output class="DataObjects" type="HistorySet">TwistDO</Output>
       <Output class="DataObjects" type="PointSet">myDO</Output>
     </IOStep>
     <PostProcess name="mySPpp">
@@ -55,6 +55,9 @@
   </Models>
 
   <DataObjects>
+    <PointSet name="myDO">
+      <Output>X (m),Temperature (K),Y (m)</Output>
+    </PointSet>
     <HistorySet name="TwistDO">
       <Input> Power (W), BCTemperature (K)</Input>
       <Output>X (m),Temperature (K),Y (m)</Output>
@@ -62,9 +65,6 @@
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="myDO">
-      <Output>X (m),Temperature (K),Y (m)</Output>
-    </PointSet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
       <Output>Temperature (K), X (m), Y (m)</Output>
