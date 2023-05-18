@@ -196,27 +196,27 @@ class Representativity(ValidationBase):
     # # ## Analysis:
     # # 1. Compute mean and variance:
     # For mock model
-    self._computeMoments(datasets[0], self.prototypeParameters, self.prototypeOutputs)
+    datasets[0] = self._computeMoments(datasets[0], self.prototypeParameters, self.prototypeOutputs)
     measurableNames = [s.split("|")[-1] for s in self.prototypeOutputs]
     measurables = [datasets[0][var].meanValue for var in measurableNames]
     # For target model
-    self._computeMoments(datasets[1], self.targetParameters, self.targetOutputs)
+    datasets[1] = self._computeMoments(datasets[1], self.targetParameters, self.targetOutputs)
     FOMNames = [s.split("|")[-1] for s in self.targetOutputs]
     FOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMNames]).reshape(-1,1)
     # # 2. Propagate error from parameters to experiment and target outputs.
     # For mock model
-    self._computeErrors(datasets[0],self.prototypeParameters, self.prototypeOutputs)
+    datasets[0] = self._computeErrors(datasets[0],self.prototypeParameters, self.prototypeOutputs)
     measurableErrorNames = ['err_' + s.split("|")[-1] for s in self.prototypeOutputs]
     FOMErrorNames = ['err_' + s.split("|")[-1] for s in self.targetOutputs]
-    self._computeMoments(datasets[0], measurableErrorNames, measurableErrorNames)
+    datasets[0] = self._computeMoments(datasets[0], measurableErrorNames, measurableErrorNames)
     UMeasurables = np.atleast_2d([datasets[0][var].meanValue for var in measurableErrorNames]).reshape(-1,1)
     # For target model
-    self._computeErrors(datasets[1],self.targetParameters, self.targetOutputs)
-    self._computeMoments(datasets[1], FOMErrorNames, FOMErrorNames)
+    datasets[1] = self._computeErrors(datasets[1],self.targetParameters, self.targetOutputs)
+    datasets[1] = self._computeMoments(datasets[1], FOMErrorNames, FOMErrorNames)
     UFOMs = np.atleast_2d([datasets[1][var].meanValue for var in FOMErrorNames]).reshape(-1,1)
     # # 3. Compute mean and variance in the error space:
-    self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters],['err_' + s2.split("|")[-1] for s2 in self.prototypeOutputs])
-    self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targetOutputs])
+    datasets[0] = self._computeMoments(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters],['err_' + s2.split("|")[-1] for s2 in self.prototypeOutputs])
+    datasets[1] = self._computeMoments(datasets[1],['err_' + s.split("|")[-1] for s in self.targetParameters],['err_' + s2.split("|")[-1] for s2 in self.targetOutputs])
     # # 4. Compute Uncertainties in parameters
     UparVar = self._computeUncertaintyMatrixInErrors(datasets[0],['err_' + s.split("|")[-1] for s in self.prototypeParameters])
     if np.linalg.matrix_rank(UparVar) < np.shape(UparVar)[0]:
