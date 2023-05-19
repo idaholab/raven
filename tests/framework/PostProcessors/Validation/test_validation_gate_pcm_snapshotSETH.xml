@@ -20,12 +20,12 @@
         The output is a fraction value reflecting the uncertainty reduction fraction 
         of Target Posterior comparing to the Target prior, 
         which includes uncertainty reductions along timesteps 
-        and has two columns:'timeSnapshot' and 'snapshot_pri_post_stdReduct'.
+        and has two columns:'time' and 'snapshot_pri_post_stdReduct'.
     </description>
   </TestInfo>
 
   <Files>
-    <Input name="allData">./data/SnapshotExample/TSimpleGap.csv</Input>
+    <Input name="allData">./data/SnapshotExample/Snapshot.csv</Input>
   </Files>
 
   <Models>
@@ -78,7 +78,7 @@
     <HistorySet name="pcmSnapshot_metric">
       <Input>InputPlaceHolder</Input>
       <options>
-        <pivotParameter>timeSnapshot</pivotParameter> 
+        <pivotParameter>time</pivotParameter> 
       </options>
       <Output>snapshot_pri_post_stdReduct</Output>
     </HistorySet>
