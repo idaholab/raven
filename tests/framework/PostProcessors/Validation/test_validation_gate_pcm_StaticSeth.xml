@@ -21,9 +21,6 @@
         using Feature to validate Target comparing to the Target prior.
         The output name convention is 'pri_post_stdReduct_'+"Target name".
     </description>
-    <revisions>
-      <revision author="syin" date="2023-01-11">...</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
@@ -34,9 +31,9 @@
 
   <Models>
     <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
-      <Features>expData|time600,expData|time700,expData|time800</Features>
-      <Targets>appData|time900</Targets>
-      <Measurements>msrData|time600,msrData|time700,msrData|time800</Measurements>
+      <Features>expData|time60,expData|time70,expData|time80</Features>
+      <Targets>appData|time90</Targets>
+      <Measurements>msrData|time60,msrData|time70,msrData|time80</Measurements>
     </PostProcessor>
   </Models>
 
@@ -61,17 +58,17 @@
 
   <DataObjects>
     <PointSet name="expData">
-      <Output>time600,time700,time800</Output>     
+      <Output>time60,time70,time80</Output>     
     </PointSet>
     <PointSet name="appData">
-      <Output>time900</Output>     
+      <Output>time90</Output>     
     </PointSet>      
     <PointSet name="msrData">
-      <Output>time600,time700,time800</Output>     
+      <Output>time60,time70,time80</Output>     
     </PointSet>    
     <PointSet name="pcmStatic_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>static_pri_post_stdReduct_time900</Output>
+      <Output>static_pri_post_stdReduct_time90</Output>
     </PointSet>
   </DataObjects>
 

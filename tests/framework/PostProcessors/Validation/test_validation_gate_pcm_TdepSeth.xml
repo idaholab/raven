@@ -22,7 +22,7 @@
   </TestInfo>
 
   <Files>
-    <Input name="allData">./data/TimeDep/TToptanGap.csv</Input>
+    <Input name="allData">./data/TimeDep/Tdep.csv</Input>
   </Files>
 
   <Models>
@@ -73,11 +73,11 @@
       <Output>TempMsrC</Output>     
     </HistorySet>    
     <HistorySet name="pcmTdep_metric">
-      <Input>InputPlaceHolder</Input>
       <options>
-        <pivotParameter>timeTdep</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>Tdep_post_mean, Error</Output>
+      <Input>InputPlaceHolder</Input>
+      <Output>time, Tdep_post_mean, Error</Output>
     </HistorySet>
   </DataObjects>
 

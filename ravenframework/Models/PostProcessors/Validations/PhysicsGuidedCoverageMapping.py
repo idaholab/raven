@@ -99,7 +99,6 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     if 'Tdep_post_mean' in evaluation.keys():
       pivotParameter = self.pivotParameter
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeTdep']
-
     return evaluation
 
   def _evaluate(self, keys, datasets, **kwargs):
@@ -311,17 +310,15 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     featPW = []
     msrPW = []
 
-    for feat, msr in zip(self.features, self.measurements):
+    for feat, msr, targ in zip(self.features, self.measurements, self.targets):
       featDataProb = self._getDataFromDataDict(datasets, feat, names)
       msrDataProb = self._getDataFromDataDict(datasets, msr, names)
-      # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
-      featData.append(featDataProb[0].flatten())
-      msrData.append(msrDataProb[0].flatten())
-
-    for targ in self.targets:
       # read targets' data
       targDataProb = self._getDataFromDataDict(datasets, targ, names)
+      # M>=1 Feature arrays (1D) to 2D array with dimension (N, M)
       # Data values in <x>Data, <x>=targ, feat, msr
+      featData.append(featDataProb[0].flatten())
+      msrData.append(msrDataProb[0].flatten())
       targData.append(targDataProb[0].flatten())
 
     # Probability Weights for future use
@@ -338,24 +335,30 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       pcmVersion = 'Tdep'
       self.raiseAMessage('***    Running Tdep-PCM       ***')
       # Data of size (num_of_samples, num_of_features)
-      num_of_featuresExp = np.asarray(datasets['exp'].get('timeTdep')).shape[0]
-      num_of_featuresApp = np.asarray(datasets['app'].get('timeTdep')).shape[0]
-      num_of_samples = np.asarray(datasets['exp'].get('RAVEN_sample_ID')).shape[0]
+      element = np.asarray(datasets['exp'].get('timeTdep'))[0]
+      v = np.asarray(datasets['exp'].get('timeTdep'))
+      num_of_samples = np.count_nonzero(v == element)
+      num_of_featuresExp = int(np.asarray(datasets['exp'].get('timeTdep')).shape[0]/num_of_samples)
+      num_of_featuresApp = int(np.asarray(datasets['app'].get('timeTdep')).shape[0]/num_of_samples)
       featData = np.array(featData).reshape(num_of_samples, num_of_featuresExp)
       msrData = np.array(msrData).reshape(num_of_samples, num_of_featuresExp)
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
-
+      time = v[:num_of_featuresExp]
       yAppPred, error = pcmTdep(featData, msrData, targData)
 
     elif 'timeSnapshot' in keys:
       pcmVersion = 'snapshot'
       self.raiseAMessage('***    Running Snapshot-PCM   ***')
       # Data of size (num_of_samples, num_of_features)
-      num_of_features = np.asarray(datasets['exp'].get('timeSnapshot')).shape[0]
-      num_of_samples = np.asarray(datasets['exp'].get('RAVEN_sample_ID')).shape[0]
+      element = np.asarray(datasets['exp'].get('timeSnapshot'))[0]
+      v = np.asarray(datasets['exp'].get('timeSnapshot'))
+      num_of_samples = np.count_nonzero(v == element)
+      num_of_features = int(np.asarray(datasets['exp'].get('timeSnapshot')).shape[0]/num_of_samples)
+      num_of_features = int(np.asarray(datasets['app'].get('timeSnapshot')).shape[0]/num_of_samples)
       featData = np.array(featData).reshape(num_of_samples, num_of_features)
       msrData = np.array(msrData).reshape(num_of_samples, num_of_features)
       targData = np.array(targData).reshape(num_of_samples, num_of_features)
+      time = v[:num_of_features]
       outputArray = PCM(featData, msrData, targData)
 
     else:
@@ -366,18 +369,22 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       targData = np.array(targData).T
       outputArray = PCM(featData, msrData, targData)
 
-    for targ in self.targets:
-      if pcmVersion=='snapshot':
-        name = "snapshot_pri_post_stdReduct"
-        outputDict[name] = np.asarray(outputArray)
-      if pcmVersion=='static':
+    if pcmVersion=='snapshot':
+      name = "time"
+      outputDict[name] = np.asarray(time)
+      name = "snapshot_pri_post_stdReduct"
+      outputDict[name] = np.asarray(outputArray)
+    if pcmVersion=='static':
+      for targ in self.targets:
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
         outputDict[name] = np.asarray(outputArray)
-      if pcmVersion=='Tdep':
-        name = "Tdep_post_mean"
-        outputDict[name] = np.asarray(yAppPred)
-        name = "Error"
-        outputDict[name] = np.asarray(error)
+    if pcmVersion=='Tdep':
+      name = "time"
+      outputDict[name] = np.asarray(time)
+      name = "Tdep_post_mean"
+      outputDict[name] = np.asarray(yAppPred)
+      name = "Error"
+      outputDict[name] = np.asarray(error)
 
     return outputDict
 
