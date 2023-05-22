@@ -18,12 +18,6 @@ Created on May 10, 2023
 """
 #External Modules---------------------------------------------------------------
 import numpy as np
-import os
-import copy
-from collections import OrderedDict, defaultdict
-import six
-import xarray as xr
-import scipy.stats as stats
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -31,7 +25,6 @@ from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
 from ...utils import utils
 from ...utils import InputData, InputTypes
-from ...utils import mathUtils
 #Internal Modules End-----------------------------------------------------------
 
 class SubdomainBasicStatistics(PostProcessorInterface):
