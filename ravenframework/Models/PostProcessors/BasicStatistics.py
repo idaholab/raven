@@ -1563,7 +1563,6 @@ class BasicStatistics(PostProcessorInterface):
     """
     inputData = self.inputToInternal(inputIn)
     outputSet = self._runLocal(inputData)
-    print(outputSet)
     return outputSet
 
   def collectOutput(self, finishedJob, output):
