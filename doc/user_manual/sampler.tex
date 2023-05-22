@@ -118,6 +118,34 @@ XML node and the requirements for other attributes change:
       code will raise an error.
 \end{itemize}
 }
+\newcommand{\constructionGridDescriptionNoCFD}
+{
+Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
+XML node and the requirements for other attributes change:
+\begin{itemize}
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{equal}.
+    The grid is going to be constructed equally-spaced
+    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{value}).
+    This construction type requires the definition of additional attributes:
+      \begin{itemize}
+         \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
+           of equally spaced/probable discretization steps.
+      \end{itemize}
+      This construction type requires that the content of the \xmlNode{grid}
+      node represents the lower and upper bounds (either
+      in probability or value). Two values need to be specified; the lowest one
+     will be considered as the $lowerBound$, the largest, the $upperBound$.
+      The $stepSize$ is determined as follows:
+      \\ $stepSize=(upperBound - lowerBound)/steps$
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
+    The grid will be directly specified by the user.
+    No additional attributes are needed.
+    This construction type requires that the \xmlNode{grid} node contains
+    the actual mesh bins.
+    For example, if the grid \xmlAttr{type} is \xmlString{value}, in the body
+    of \xmlNode{grid}, the user will specify the values representing the nodes of the grid.
+\end{itemize}
+}
 \newcommand{\variableDescription}
 {
   \xmlNode{variable}, \xmlDesc{XML node, required parameter} can specify the following attribute:
@@ -232,6 +260,21 @@ XML node and the requirements for other attributes change:
   \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
   node is supplied.  In the case of a \xmlNode{function} node, no grid
   information is requested.}
+}
+
+\newcommand{\gridDescriptionNoCFD}
+{
+  \xmlNode{grid}, \xmlDesc{space separated floats, required
+  field}, the content of this XML node allows for a type of the grid only:
+  \begin{itemize}
+  \itemsep0em
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+      discretization metric type: 1) \xmlString{value}, the grid will be provided
+      using variable values.
+    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
+      the grid needs to be constructed, independent of its type.
+  \end{itemize}
+  \constructionGridDescriptionNoCFD
 }
 
 \newcommand{\convergenceDescription}
