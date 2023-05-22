@@ -60,7 +60,7 @@ class SubdomainBasicStatistics(PostProcessorInterface):
         descr=r"""Name of the variable for this grid/subdomain. \nb As for the other objects,
               this is the name that can be used to refer to this specific entity from other input blocks""")
     gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
-    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.makeEnumType("type", "selectionType",['value']))
     gridInput.addParam("construction", InputTypes.StringType)
     gridInput.addParam("steps", InputTypes.IntegerType)
     variableInput.addSub(gridInput)
@@ -75,9 +75,13 @@ class SubdomainBasicStatistics(PostProcessorInterface):
       @ Out, None
     """
     super().__init__()
-    from ...Models.PostProcessors import factory as ppFactory # delay import to allow definition
+    # delay import to allow definition
+    from ...Models.PostProcessors import factory as ppFactory
+    from ... import GridEntities
     self.stat = ppFactory.returnInstance('BasicStatistics')
+    self.gridEntity = GridEntities.factory.returnInstance("GridEntity")
     self.validDataType  = ['PointSet', 'HistorySet', 'DataSet']
+    self.outputMultipleRealizations = True
     self.printTag = 'PostProcessor SUBDOMAIN STATISTICS'
 
   def inputToInternal(self, currentInp):
@@ -85,93 +89,47 @@ class SubdomainBasicStatistics(PostProcessorInterface):
       Method to convert an input object into the internal format that is
       understandable by this pp.
       @ In, currentInp, object, an object that needs to be converted
-      @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
+      @ Out, cellBasedData, dict, the dict of datasets of inputs and the corresponding variable probability weight (cellId:(processedDataSet, pbWeights))
     """
-    # The BasicStatistics postprocessor only accept DataObjects
+    cellBasedData = {}
+    cellIDs = self.gridEntity.returnCellIdsWithCoordinates()
+    dimensionNames =  self.gridEntity.returnParameter('dimensionNames')
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
     if len(currentInput) == 0:
       self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-
-    pbWeights = None
-    if type(currentInput).__name__ == 'tuple':
-      return currentInput
-    # TODO: convert dict to dataset, I think this will be removed when DataSet is used by other entities that
-    # are currently using this Basic Statisitics PostProcessor.
-    if type(currentInput).__name__ == 'dict':
-      if 'targets' not in currentInput.keys():
-        self.raiseAnError(IOError, 'Did not find targets in the input dictionary')
-      inputDataset = xr.Dataset()
-      for var, val in currentInput['targets'].items():
-        inputDataset[var] = val
-      if 'metadata' in currentInput.keys():
-        metadata = currentInput['metadata']
-        self.pbPresent = True if 'ProbabilityWeight' in metadata else False
-        if self.pbPresent:
-          pbWeights = xr.Dataset()
-          self.realizationWeight = xr.Dataset()
-          self.realizationWeight['ProbabilityWeight'] = metadata['ProbabilityWeight']/metadata['ProbabilityWeight'].sum()
-          for target in self.parameters['targets']:
-            pbName = 'ProbabilityWeight-' + target
-            if pbName in metadata:
-              pbWeights[target] = metadata[pbName]/metadata[pbName].sum()
-            elif self.pbPresent:
-              pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-        else:
-          self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-      else:
-        self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-      if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
-        self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
-        self.sampleTag = utils.first(inputDataset.sizes.keys())
-      return inputDataset, pbWeights
-
     if currentInput.type not in ['PointSet','HistorySet']:
-      self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
+      self.raiseAnError(IOError, self, 'This Postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
     # extract all required data from input DataObjects, an input dataset is constructed
     dataSet = currentInput.asDataset()
-    try:
-      inputDataset = dataSet[self.parameters['targets']]
-    except KeyError:
-      missing = [var for var in self.parameters['targets'] if var not in dataSet]
-      self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),currentInput.name))
-    self.sampleTag = currentInput.sampleTag
+    processedDataSet, pbWeights = self.stat.inputToInternal(currentInput)
+    for cellId, verteces in cellIDs.items():
+      # create masks
+      maskDataset = None
+      # hyperBox shape(number dimensions, number of verteces)
+      hyperBox = np.atleast_2d(verteces).T
+      for dim, dimName in enumerate(dimensionNames):
+        if  maskDataset is None:
+          maskDataset = (dataSet[dimName] >= min(hyperBox[dim])) & (dataSet[dimName] <= max(hyperBox[dim]))
+        else:
+          maskDataset = maskDataset & (dataSet[dimName] >= min(hyperBox[dim])) & (dataSet[dimName] <= max(hyperBox[dim]))
 
-    if currentInput.type == 'HistorySet':
-      dims = inputDataset.sizes.keys()
-      if self.pivotParameter is None:
-        if len(dims) > 1:
-          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
-                got inputted!')
-      elif self.pivotParameter not in dims:
-        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
-                requested variables', ','.join(self.parameters['targets']))
-      else:
-        self.dynamic = True
-        if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-          self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
-        self.pivotValue = inputDataset[self.pivotParameter].values
-        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
-          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
-          " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
-          self.raiseAnError(IOError, msg)
-    # extract all required meta data
-    metaVars = currentInput.getVars('meta')
-    self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
-    if self.pbPresent:
-      pbWeights = xr.Dataset()
-      self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
-      for target in self.parameters['targets']:
-        pbName = 'ProbabilityWeight-' + target
-        if pbName in metaVars:
-          pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
-        elif self.pbPresent:
-          pbWeights[target] = self.realizationWeight['ProbabilityWeight']
-    else:
-      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+      # the following is the cropped dataset that we need to use for the subdomain
+      #cellDataset = dataSet.where(maskDataset, drop=True)
+      cellDataset = processedDataSet.where(maskDataset, drop=True)
+      cellPbWeights =  pbWeights.where(maskDataset, drop=True)
+      # check if at least sample is available (for scalar quantities) and at least 2 samples for derivative quantities
+      setWhat = set(self.stat.what)
+      minimumNumberOfSamples = 2 if len(setWhat.intersection(set(self.stat.vectorVals))) > 0 else 1
+      if len(cellDataset[currentInput.sampleTag]) < minimumNumberOfSamples:
+        self.raiseAnError(RuntimeError,"Number of samples in cell "
+                          f"{cellId}  < {minimumNumberOfSamples}. Found {len(cellDataset[currentInput.sampleTag])}"
+                          " samples within the cell. Please make the evaluation grid coarser or increase number of samples!")
 
-    return inputDataset, pbWeights
+      # store datasets
+      cellBasedData[cellId] = cellDataset, cellPbWeights
+    return cellBasedData
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -182,108 +140,62 @@ class SubdomainBasicStatistics(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    self.stat.intialize(runInfo, inputs, initDict)
+    self.stat.initialize(runInfo, inputs, initDict)
+    self.gridEntity.initialize({'computeCells': True,'constructTensor': True,})
+    # check that the grid is defined only in the input space.
+    dims = self.gridEntity.returnParameter("dimensionNames")
+    inputs = inputs[-1].getVars("input")
+    if not all(item in inputs for item in dims):
+      unset = ', '.join(list(set(dims) - set(inputs)))
+      self.raiseAnError(RuntimeError, "Subdomain grid must be defined on the input space only (inputs)."
+                        f"The following variables '{unset}' are not part of the input space of DataObject {inputs[-1].name}!")
 
 
-  def _handleInput(self, paramInput, childVals=None):
+  def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
       @ In, paramInput, ParameterInput, the already parsed input.
-      @ In, childVals, list, optional, quantities requested from child statistical object
       @ Out, None
     """
     # initialize basic stats
-    subdomain = paramInput.popSub('subdomain')
+    subdomain = paramInput.findFirst('subdomain')
     if subdomain is None:
       self.raiseAnError(IOError,'<subdomain> tag not found!')
-    self.stat._handleInput(paramInput, childVals)
-
-    for child in subdomain.subparts:
-      if child.tag == 'variable':
-        varName = child.parameterValues['name']
-        for childChild in child.subparts:
-
-
-
-
-        # variable for tracking if distributions or functions have been declared
-        foundDistOrFunc = False
-        # store variable name for re-use
-        varName = child.parameterValues['name']
-        # set shape if present
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        # read subnodes
-        for childChild in child.subparts:
-          if childChild.getName() == 'distribution':
-            # can only have a distribution if doesn't already have a distribution or function
-            if foundDistOrFunc:
-              self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function, or more than one of either!')
-            else:
-              foundDistOrFunc = True
-            # name of the distribution to sample
-            toBeSampled = childChild.value
-            varData = {}
-            varData['name'] = childChild.value
-            # variable dimensionality
-            if 'dim' not in childChild.parameterValues:
-              dim = 1
-            else:
-              dim = childChild.parameterValues['dim']
-            varData['dim'] = dim
-            # set up mapping for variable to distribution
-            self.variables2distributionsMapping[varName] = varData
-            # flag distribution as needing to be sampled
-            self.toBeSampled[prefix + varName] = toBeSampled
-          elif childChild.getName() == 'function':
-            # can only have a function if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function!')
-            # function name
-            toBeSampled = childChild.value
-            # track variable as a functional sample
-            self.dependentSample[prefix + varName] = toBeSampled
-
-
-      else:
-        if tag not in childVals:
-          self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
-
-
-
-
-
-
-
-
-
-  def __runLocal(self, inputData):
-    """
-      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In, inputData, tuple,  (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding
-        variable probability weight
-      @ Out, outputSet or outputDict, xarray.Dataset or dict, dataset or dictionary containing the results
-    """
-    inputDataset, pbWeights = inputData[0], inputData[1]
-
-
-    return outputDict
-
-
-
-
+    self.stat._handleInput(paramInput, ['subdomain'])
+    self.gridEntity._handleInput(subdomain, dimensionTags=["variable"])
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
+      @ Out, results, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
     inputData = self.inputToInternal(inputIn)
-    outputSet = self.__runLocal(inputData)
-    return outputSet
+    results = {}
+    outputRealization = {}
+    midPoint = self.gridEntity.returnCellsMidPoints(returnDict=True)
+    firstPass = True
+    for i, (cellId, data) in enumerate(inputData.items()):
+      cellData = self.stat.inputToInternal(data)
+      res = self.stat._runLocal(cellData)
+      for k in res:
+        if firstPass:
+          results[k] = np.zeros(len(inputData), dtype=object if self.stat.dynamic else None)
+        results[k][i] = res[k][0] if not self.stat.dynamic else res[k]
+        for k in midPoint[cellId]:
+          #res[k] =  np.atleast_1d(midPoint[cellId][k])
+          if firstPass:
+            results[k] = np.zeros(len(inputData))
+          results[k][i] =  np.atleast_1d(midPoint[cellId][k])
+      firstPass = False
+    outputRealization['data'] =  results
+    if self.stat.dynamic:
+      dims = dict.fromkeys(results.keys(), inputIn[-1].indexes if type(inputIn) == list else inputIn.indexes)
+      for k in list(midPoint.values())[0]:
+        dims[k] = []
+      outputRealization['dims'] = dims
+
+    return outputRealization
 
   def collectOutput(self, finishedJob, output):
     """

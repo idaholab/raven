@@ -27,7 +27,6 @@ from .PostProcessorInterface import PostProcessorInterface
 from ...utils import InputData, InputTypes, utils, mathUtils
 from ...SupervisedLearning import factory as romFactory
 from ... import GridEntities
-from ... import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessorInterface):
@@ -139,18 +138,6 @@ class LimitSurface(PostProcessorInterface):
         self.indexes = index
     if self.indexes == -1:
       self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
-    #else:
-    #  # check if parameters are contained in the data
-    #  inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
-    #  outKeys = self.inputs[self.indexes].getParaKeys("outputs")
-    #  self.paramType = {}
-    #  for param in self.parameters['targets']:
-    #    if param not in inpKeys + outKeys:
-    #      self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
-    #    if param in inpKeys:
-    #      self.paramType[param] = 'inputs'
-    #    else:
-    #      self.paramType[param] = 'outputs'
     if self.bounds == None:
       dataSet = self.inputs[self.indexes].asDataset()
       self.bounds = {"lowerBounds":{},"upperBounds":{}}

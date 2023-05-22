@@ -18,6 +18,7 @@ Created on Mar 30, 2015
 """
 import abc
 import sys
+from numbers import Number
 
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
@@ -389,6 +390,9 @@ class GridEntity(GridBase):
     initDict        = initDictionary if initDictionary is not None else {}
     computeCells    = bool(initDict.get('computeCells', False))
     self.constructTensor = bool(initDict['constructTensor']) if 'constructTensor' in initDict else False
+    # assert that compute cells are requested if and only if constructTensor is True
+    assert not(not self.constructTensor and computeCells), 'computeCells can be only computed if the tensor grid is activated!!'
+
     if  len(self.gridInitDict.keys()) != 0:
       readKeys = list(self.gridInitDict.keys())
     if initDict is not None:
@@ -701,6 +705,47 @@ class GridEntity(GridBase):
       coordinates = tuple(coordinates)
 
     return coordinates
+
+  def returnCellIdsWithCoordinates(self,  returnDict=False, recastMethods={}):
+    """
+      Method to return the container of the cell ids with the coordinates of the vertices in the real space (real coordinates)
+      @ In, returnDict, bool, optional, flag to request the output of the coordinates in dictionary format or not.
+                                         if True a dict ({cellID: {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} } is returned
+                                         if False a tuple is riturned {cellID:(coordinate1,coordinate2,etc)}
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, cellIdsAndVerteces, dict, dict containing the cell ids and the coordinates of the verteces
+    """
+    # if no cell ids have been computed, it returns an empty dict
+    cellIdsAndVerteces = {}
+    for cid in self.gridContainer['cellIDs']:
+      cellIdsAndVerteces[cid] = []
+      for vertex in self.gridContainer['cellIDs'][cid]:
+        cellIdsAndVerteces[cid].append(self.returnCoordinateFromIndex(vertex, returnDict, recastMethods))
+    return cellIdsAndVerteces
+
+  def returnCellsMidPoints(self,  returnDict=False, recastMethods={}):
+    """
+      Method to return the container of the cell ids with the coordinate of the mid point in the real space (real coordinate)
+      @ In, returnDict, bool, optional, flag to request the output of the coordinates in dictionary format or not.
+                                         if True a dict ({cellID: {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} } is returned
+                                         if False a tuple is riturned {cellID:(coordinate1,coordinate2,etc)}
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, cellIdsAndMidPoints, dict, dict containing the cell ids and the coordinates of the verteces
+    """
+    cellsAndVerteces = self.returnCellIdsWithCoordinates(False, recastMethods)
+    # if no cell ids have been computed, it returns an empty dict
+    cellIdsAndMidPoints = {}
+    for cid in cellsAndVerteces:
+      midPoint = np.atleast_2d(cellsAndVerteces[cid]).mean(axis=0)
+      if returnDict:
+        cellIdsAndMidPoints[cid] = {d: midPoint[cnt] for cnt, d in  enumerate(self.gridContainer['dimensionNames'])}
+      else:
+        cellIdsAndMidPoints[cid] = midPoint
+    return cellIdsAndMidPoints
 
   def flush(self):
     """
@@ -1027,6 +1072,27 @@ class MultiGridEntity(GridBase):
       self.multiGridIterator[0], self.multiGridIterator[1] = node.get("level"), node.get("grid").returnIteratorIndexes(False)
 
     return coordinates
+
+  def returnCoordinateFromIndex(self, multiDimNDIndex, returnDict=False, recastMethods={}):
+    """
+      Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
+      In addition, it advances the iterator in order to point to the following coordinate
+      @ In, multiDimNDIndex, tuple, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
+      @ In, returnDict, bool, optional, flag to request the output in dictionary format or not.
+                                         if True a dict ( {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} is returned
+                                         if False a tuple is riturned (coordinate1,coordinate2,etc)
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, coordinate, tuple or dict, tuple (if returnDict=False) or dict (if returnDict=True) containing the coordinates
+    """
+    if isinstance(multiDimNDIndex[0], Number):
+      level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
+    else:
+      level, multiDimIndex = multiDimNDIndex[0], multiDimNDIndex[1]
+    node = self.grid.find(self.mappingLevelName[level])
+
+    return node.get('grid').returnCoordinateFromIndex(multiDimIndex, returnDict, recastMethods)
 
   def returnCoordinateFromIndex(self, multiDimNDIndex, returnDict=False, recastMethods={}):
     """

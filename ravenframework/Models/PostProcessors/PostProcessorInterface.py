@@ -66,7 +66,7 @@ class PostProcessorInterface(BaseInterface):
     ## However, the DataObject.load can not be directly used to collect single realization
     ## One possible solution is all postpocessors return a list of realizations, and we only
     ## use addRealization method to add the collections into the DataObjects
-    self.outputMultipleRealizations = False
+
 
   def _handleInput(self, paramInput):
     """
