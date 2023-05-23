@@ -90,6 +90,8 @@ class BayesianOptimizer(RavenSampled):
     new ['delta_{VAR}'] = 'step size associated to each variable'
     new['Temp'] = 'temperature at current state'
     new['fraction'] = 'current fraction of the max iteration limit'
+    new['TargetHistory'] = 'list of objective variable values from evaluating the model'
+    new['InputHistory'] = 'list of samples that the model was evaluated at'
     ok.update(new)
     return ok
 
@@ -109,7 +111,7 @@ class BayesianOptimizer(RavenSampled):
     self.bestPoint = None           # Decision variable associated with the current minimum objective value
     self.bestObjective = None       # Smallest objective value
     self._regressionModel = {}
-    self._hyperParams = {'l':1, 'sigf':100}
+    self._hyperParams = {'l':0.1, 'sigf':100}
 
   def handleInput(self, paramInput):
     """
@@ -211,6 +213,7 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAMessage(f'All {self._initialSampleSize} initial samples have been realized, beginning main optimization loop')
 
     # Train the model on our data set
+    self._updateHyperparams()
     self._trainRegressionModel()
     new_point = self._conductAcquisition()
     step = info['step'] + 1
@@ -318,8 +321,9 @@ class BayesianOptimizer(RavenSampled):
     k_star = np.empty(n)
     for i in range(n):
       k_star[i] = self.squaredExponential(x, inputs[i])
-    # Evaluating Posterior mean with ignorant prior
-    mu = np.dot(k_star, self._regressionModel['alpha'])
+    # Evaluating Posterior mean with exploitive prior mean (worst observation)
+    prior_mean = np.max(self._trainingTargets[0])
+    mu = prior_mean + np.dot(k_star, self._regressionModel['alpha'])
     k = self.squaredExponential(x, x)
     # Defining v
     v = np.dot(np.linalg.inv(self._regressionModel['L']), k_star)
@@ -343,6 +347,22 @@ class BayesianOptimizer(RavenSampled):
     for index, varName in enumerate(self._varNameList):
       new_point[varName] = res.x[index]
     return new_point
+
+  def _updateHyperparams(self):
+    """
+      Updates hyperparameters for SE using max LML
+      @ In, None
+      @ Out, None
+    """
+    # Function to optimize over
+    opt_func = self.logMarginalLiklihood
+    theta0 = [self._hyperParams['sigf'], self._hyperParams['l']]
+    bounds = [(10e-3,10e5), (1e-3,1)]
+    options = {'ftol':1e-10, 'maxiter':150, 'disp':False}
+    res = sciopt.minimize(opt_func, theta0, method='SLSQP', jac=True, bounds=bounds, options=options)
+    # Update the hyperparameters from selection
+    self._hyperParams = {'sigf':res.x[0], 'l':res.x[1]}
+    self.raiseADebug(f'Selected new hyperparameters for GPR model: {self._hyperParams}')
 
   # Acquisition Function
   def expectedImprovement(self, x):
@@ -383,8 +403,68 @@ class BayesianOptimizer(RavenSampled):
     r = np.linalg.norm(np.subtract(x, x_prime))
     l = self._hyperParams['l']
     sigma_f = self._hyperParams['sigf']
-    k = (sigma_f**2)*np.exp(-(r**2)/(l**2))
+    k = (sigma_f**2)*np.exp(-(r**2)/(2*(l**2)))
     return k
+
+  def SEHyperparamGradient(self):
+    """
+      Evaluates the gradient of LML function wrt to the hyperparams (SE only)
+      @ In, None
+      @ Out, hyperGrad, np array, gradient of LML wrt hyperparams l and sigmaf
+    """
+    # Need to grab hyperparam values and input vectors
+    sigma_f = self._hyperParams['sigf']
+    l = self._hyperParams['l']
+    inputs = self.getInputs()
+
+    # Initializing derivatives matrices
+    n = len(inputs)
+    dK_dsigf = np.empty((n,n), dtype=float)
+    dK_dl = np.empty((n,n), dtype=float)
+
+    # Calculating covariance matrix for training
+    for i in it.product(range(n),range(n)):
+        x = inputs[i[0]]
+        x_p = inputs[i[1]]
+        var_norm = np.linalg.norm(np.subtract(x,x_p))**2 
+        dK_dsigf[i] = 2 * sigma_f * np.exp( (-1/ (2*(l**2)) ) * var_norm )
+        dK_dl[i] = (sigma_f**2) * np.exp( (-1/ (2*(l**2)) ) * var_norm ) * ( ( 1/(l**3) ) * var_norm )
+
+    # Gradient time
+    K_inv = np.dot(np.linalg.inv(np.transpose(self._regressionModel['L'])), np.linalg.inv(self._regressionModel['L']))
+    aa_t = np.outer(self._regressionModel['alpha'], np.transpose(self._regressionModel['alpha']))
+    dsig = (1/2) * np.trace(np.dot((aa_t - K_inv), dK_dsigf))
+    dl = (1/2) * np.trace(np.dot((aa_t - K_inv), dK_dl))
+    hyperGrad = np.array([dsig, dl])
+    return hyperGrad
+
+  def logMarginalLiklihood(self, theta):
+    """
+      Evaluates the LML and its gradient wrt to theta
+      @ In, theta, ['sigf', 'l']
+      @ Out, -LML, log-marginal likelihood
+      @ Out, -hyperGrad, gradient of log-marginal likelihood wrt theta
+    """
+    # Update the hyperparams
+    self._hyperParams['sigf'] = theta[0]
+    self._hyperParams['l'] = theta[1]
+    # Update GPR w/ new hyperparams
+    self._trainRegressionModel()
+    # Components necessary for evaluation
+    y = self._trainingTargets[0]
+    n = len(y)
+
+    # Calculating second term in marginal likelihood
+    term2 = 0
+    for i in range(n):
+        term2 += np.log(self._regressionModel['L'][i,i])
+    # Similarly, using worst observation as prior mean here
+    M = np.max(y)*np.ones(n)
+    LML = ((-1/2) * np.dot(np.subtract(y,M), self._regressionModel['alpha'])) - (term2) - ((n/2) * np.log(2*np.pi))
+    # LML = ((-1/2) * np.dot(y, self._regressionModel['alpha'])) - (term2) - ((n/2) * np.log(2*np.pi))
+    hyperGrad = self.SEHyperparamGradient()
+    # NOTE we want to maximize this function so we return the negative evaluation
+    return -1*LML, np.multiply(-1, hyperGrad)
 
   def buildTrainingCovariance(self):
     """
@@ -401,7 +481,7 @@ class BayesianOptimizer(RavenSampled):
     # Stabilizing cholesky decomposition
     eps = 1e-9 * self.squaredExponential(inputs[0], inputs[0])
     I = np.eye(n)
-    K = np.add(K, eps*I)
+    K = np.add(K, np.multiply(eps,I))
     # Inverting the cholesky decomposition is more computationally efficient
     L = np.linalg.cholesky(K)
     self._regressionModel['L'] = L
@@ -412,15 +492,15 @@ class BayesianOptimizer(RavenSampled):
       @ In, None
       @ Out, None
     """
-    # This temp method is taking the prior mean to be ignorant
-    y = self._trainingTargets[0]
+    # This temp method is taking the prior mean to constant with value of worst observation
+    y_training = np.subtract(self._trainingTargets[0], np.max(self._trainingTargets[0]))
     L = self._regressionModel['L']
     # Outer inverse term
     L1 = np.linalg.inv(np.transpose(L))
     # Inner inverse term
     L2 = np.linalg.inv(L)
     # Definition of alpha
-    alpha = np.dot(L1, np.dot(L2, y))
+    alpha = np.dot(L1, np.dot(L2, y_training))
     self._regressionModel['alpha'] = alpha
 
   def getInputs(self):
