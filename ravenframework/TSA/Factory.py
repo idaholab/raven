@@ -24,11 +24,13 @@ from .ARMA import ARMA
 from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
 from .RWD import RWD
+from .Transformer import Transformer
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
 aliases = {'Fourier': 'fourier',
            'ARMA': 'arma',
            'RWD': 'rwd',
-           'Wavelet': 'wavelet'}
+           'Wavelet': 'wavelet',
+           'Transformer': 'transformer'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)

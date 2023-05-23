@@ -24,7 +24,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     Act as base class for objects that coordinate the time series analysis algorithms in RAVEN. Note these
     are not the ROM/SupervisedLearning objects; rather, used by those as well as other
-    algorithms throughout the code. Maintain these algorithims in a way they can
+    algorithms throughout the code. Maintain these algorithms in a way they can
     be called without accessing all of RAVEN.
   """
   # class attribute
@@ -116,6 +116,23 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     sample = self.generate(params, pivot, settings)
     residual = initial - sample
     return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    # DEFAULT IMPLEMENTATION, generate one signal and add it to the given one
+    # -> overload in inheritors to change behavior
+    sample = self.generate(params, pivot, settings)
+    composite = initial + sample
+    return composite
 
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:

@@ -54,6 +54,22 @@
     [../]
   [../]
 
+  [./LogARMA]
+    type = 'RavenFramework'
+    input = 'log_arma.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'LogARMA/samples_0.csv LogARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'LogARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./Wavelet]
     type = 'RavenFramework'
     input = 'wavelet.xml'
