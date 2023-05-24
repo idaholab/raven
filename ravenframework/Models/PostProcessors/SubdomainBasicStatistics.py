@@ -193,7 +193,7 @@ class SubdomainBasicStatistics(PostProcessorInterface):
   def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+      @ In, finishedJob, JobHandler.Runner instance, the instance containing the completed job
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
