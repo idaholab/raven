@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.BayesianBeale</name>
+    <author>grifanth</author>
+    <created>2023-05-12</created>
+    <classesTested>BayesianOptimizer</classesTested>
+    <description>
+      This is the most basic test of the Optimizer. It optimizes the Beale function using the default settings
+      for the Bayesian Optimizer. This test provides a baseline for functionality and regression testing of the 
+      method.
+    </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <BayesianOptimizer name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>40</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <initialSampleSize>10</initialSampleSize>
+    </BayesianOptimizer>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans,aux_ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans,aux_ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,aux_ans,iteration,accepted</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x,y,ans</vars>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
