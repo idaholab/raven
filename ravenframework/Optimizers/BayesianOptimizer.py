@@ -438,6 +438,7 @@ class BayesianOptimizer(RavenSampled):
     hyperGrad = np.array([dsig, dl])
     return hyperGrad
 
+  # LML selection
   def logMarginalLiklihood(self, theta):
     """
       Evaluates the LML and its gradient wrt to theta
@@ -466,6 +467,7 @@ class BayesianOptimizer(RavenSampled):
     # NOTE we want to maximize this function so we return the negative evaluation
     return -1*LML, np.multiply(-1, hyperGrad)
 
+  # Training methods
   def buildTrainingCovariance(self):
     """
       Builds gram-matrix for conditioning the posterior
@@ -503,6 +505,7 @@ class BayesianOptimizer(RavenSampled):
     alpha = np.dot(L1, np.dot(L2, y_training))
     self._regressionModel['alpha'] = alpha
 
+  # Utility
   def getInputs(self):
     """
       Converts training data attributes into something of use (np.array)
