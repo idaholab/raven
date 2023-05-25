@@ -253,6 +253,27 @@ class JobHandler(BaseType):
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
       else:
         self.raiseADebug("JobHandler initialized without ray")
+    elif self.runInfoDict['startRay']:
+      #XXX experimenting with what to do here?
+      availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
+      localHostName = self.__getLocalHost()
+      self.raiseADebug("Head host name is   : ", localHostName)
+      # number of processors
+      nProcsHead = availableNodes.count(localHostName)
+      # create head node cluster
+      # port 0 lets ray choose an available port
+      address = self.__runHeadNode(nProcsHead, 0)
+      # add names in runInfo
+      self.runInfoDict['headNode'] = address
+      servers = self.__runRemoteListeningSockets(address, localHostName)
+      # add names in runInfo
+      self.runInfoDict['remoteNodes'] = servers
+      #headNode and remoteNodes can be passed to subravens (in RAVENInterface)
+      self.raiseADebug(f"headNode {address}, remoteNodes {servers}")
+
+      ## In this RAVEN instance, just using threading
+      self.rayServer = None
+      self.raiseADebug("JobHandler initialized ray server but using threading")
     else:
       ## We are just using threading
       self.rayServer = None
@@ -889,6 +910,9 @@ class JobHandler(BaseType):
             # want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
+              if self.runInfoDict['startRay']:
+                kwargs['headNode'] = self.runInfoDict['headNode']
+                kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
               if self.rayServer is not None and 'headNode' in self.runInfoDict:
                 kwargs['headNode'] = self.runInfoDict['headNode']
               if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
