@@ -105,11 +105,12 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
     params = {}
     for tg, target in enumerate(targets):
       history = signal[:, tg] # TODO need to keep in sync with SyntheticSignal ROM!
+      mask = ~np.isnan(history)  # some values might be NaN due to masking
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')
         fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
-        fourierEngine.fit(fourierSignals, history)
+        fourierEngine.fit(fourierSignals[mask], history[mask])
         intercept = fourierEngine.intercept_
         coeffs = fourierEngine.coef_
       else:
@@ -125,7 +126,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         for fn in range(F2):
           fSignal = fourierSignals[:,fn] # Fourier base signal for this waveform
           eng = sklearn.linear_model.LinearRegression(normalize=False) # regressor
-          eng.fit(fSignal.reshape(H,1), signalToFit)
+          eng.fit(fSignal.reshape(H,1)[mask], signalToFit[mask])
           thisIntercept = eng.intercept_
           thisCoeff = eng.coef_[0]
           coeffs[fn] = thisCoeff

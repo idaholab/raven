@@ -113,7 +113,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     except ModuleNotFoundError:
       print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
       raise ModuleNotFoundError
-
+    
 
     ## The pivot input parameter isn't used explicity in the
     ## transformation as it assumed/required that each element in the
@@ -123,6 +123,10 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     params = {target: {'results': {}} for target in targets}
 
     for i, target in enumerate(targets):
+      if np.isnan(signal).any():
+        raise ValueError(f'The history for target {target} contains NaN values.'
+                          'Perhaps there is a Filter transformer that is causing this?')
+
       results = params[target]['results']
       results['coeff_a'], results['coeff_d'] = pywt.dwt(signal[:, i], family)
 

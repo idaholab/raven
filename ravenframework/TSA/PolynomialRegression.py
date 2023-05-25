@@ -84,7 +84,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
     xp = features.fit_transform(pivot.reshape(-1, 1))
 
     for target in targets:
-      results = sm.OLS(signal, xp).fit()
+      results = sm.OLS(signal, xp).fit(missing='drop')
       params[target]['model']['intercept'] = results.params[0]
       for i, value in enumerate(results.params[1:]):
         params[target]['model'][f'coef{i+1}'] = value

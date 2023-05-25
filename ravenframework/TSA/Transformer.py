@@ -15,6 +15,7 @@
   AutoRegressive Moving Average time series analysis
 """
 import sys
+import os
 import importlib
 import numpy as np
 from sklearn.base import TransformerMixin
@@ -23,6 +24,7 @@ from ..utils import InputData, InputTypes, xmlUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .Transformers import *
 
 
 def getModuleAttribute(name):
@@ -36,11 +38,26 @@ def getModuleAttribute(name):
   modulePath = '.'.join(nameSplit[:-1])
   attrName = nameSplit[-1]
   # if modulePath not in sys.modules:  # import the module if it hasn't been already
-  if not importerUtils.isLibAvail(modulePath):
+  if not modulePath:
+    # no module path given, so let's look in the Transformers directory
+    modulePath = 'ravenframework.TSA.Transformers'
+  if modulePath not in sys.modules:
     importlib.import_module(modulePath)
   attribute = getattr(sys.modules[modulePath], attrName)
   return attribute
 
+def loadFileAsModule(filePath):
+  filePath = os.path.expanduser(filePath)  # lets users use the '~' as home directory in path
+  if not os.path.exists(filePath):
+    raise FileNotFoundError(f'The file at path {filePath} could not be found!')
+  # use the name of the file as the module name
+  moduleName = os.path.basename(filePath).split('.')[0]
+  # import file as module using importlib
+  spec = importlib.util.spec_from_file_location(moduleName, filePath)
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[moduleName] = module
+  spec.loader.exec_module(module)
+  return moduleName
 
 # utility methods
 class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
@@ -61,8 +78,11 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
                         to the target values by leveraging scikit-learn's preprocessing module."""
     specs.addParam('subType', param_type=InputTypes.StringType, required=True,
                    descr=r"""specifies the type of transformer to use. This name should match the name
-                   of a class in sklearn.preprocessing. Keyword arguments for the transformer can be 
+                   of a class in sklearn.preprocessing. Keyword arguments for the transformer can be
                    passed using subnodes of the form <key>value</key>.""")
+    specs.addParam('filePath', param_type=InputTypes.StringType, required=False,
+                   descr=r"""gives the path to the file containing the custom transformer class. Note that
+                   importing this class will fail if its file name duplicates an existing module name.""")
     argNode = InputData.parameterInputFactory('arg', contentType=InputTypes.StringType,
                                               descr=r"""specifies a keyword argument to be passed to the
                                               transformer, given in the form key|value.""")
@@ -95,6 +115,10 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
     """
     settings = super().handleInput(spec)
     settings['subType'] = spec.parameterValues.get('subType')
+    settings['filePath'] = spec.parameterValues.get('filePath', None)
+    if settings['filePath']:
+      moduleName = loadFileAsModule(settings['filePath'])
+      settings['subType'] = '.'.join([moduleName, settings['subType']])
 
     transformerClass = getModuleAttribute(settings['subType'])
     # The only requirement of the transformer is to inheret from sklearn.base.TransformerMixin
@@ -116,7 +140,7 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
     settings['transformerKwargs'] = kwargs
 
     return settings
-  
+
   def _interpretArgumentType(self, value, dataType):
     """
       Coerces value to be of type dataType. In the case that dataType="callable", the callable object
@@ -171,7 +195,7 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
       # We need to pass data to transform as column vector, then flatten again
       residual[:, t] = data['model'].transform(initial[:, [t]]).ravel()
     return residual
-  
+
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
@@ -201,7 +225,7 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
       # We need to pass data to inverse_transform as column vector, then flatten again
       composite[:, t] = data['model'].inverse_transform(initial[:, [t]]).ravel()
     return composite
-  
+
   def getParamsAsVars(self, params):
     """
       Map characterization parameters into flattened variable format

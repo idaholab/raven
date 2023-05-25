@@ -143,13 +143,14 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
     for tg, target in enumerate(targets):
       params[target] = {}
       history = signal[:, tg]
+      mask = ~np.isnan(history)
       if settings.get('gaussianize', True):
         # Transform data to obatain normal distrbuted series. See
         # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
-        params[target]['cdf'] = mathUtils.characterizeCDF(history, binOps=2, minBins=self._minBins)
-        normed = mathUtils.gaussianize(history, params[target]['cdf'])
+        params[target]['cdf'] = mathUtils.characterizeCDF(history[mask], binOps=2, minBins=self._minBins)
+        normed = mathUtils.gaussianize(history[mask], params[target]['cdf'])
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
