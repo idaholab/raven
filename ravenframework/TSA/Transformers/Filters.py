@@ -18,120 +18,73 @@ Filters which mask values based on some criterion.
 
 import abc
 import numpy as np
-
-from ..TimeSeriesAnalyzer import TimeSeriesTransformer
-from ...utils import xmlUtils, InputData, InputTypes
+from sklearn.base import TransformerMixin
 
 
-class FilterBase(TimeSeriesTransformer):
+class FilterBase(TransformerMixin):
   """ Base class for transformers which filter or mask data """
-
-  @classmethod
-  def getInputSpecification(cls):
+  def __init__(self, maskFill=np.nan):
     """
-      Define input spec for this class.
-      @ In, None
-      @ Out, specs, InputData.ParameterInput, input specification
+      @ In, maskFill, float or None, value used to replace masked values; if maskFill=None,
+                                      the masked values will be dropped
     """
-    specs = super().getInputSpecification()
-    specs.addParam('fill', param_type=InputTypes.FloatOrStringType, required=False, default='drop',
-                   descr=r"""fill strategy for masked values. May be one of 'drop' or a float value.
-                             If 'drop', the masked values are dropped and replaced with NaN. If a float value,
-                             that value is used to fill the masked values.""")
-    return specs
-
-  def handleInput(self, spec):
-    """
-      Reads user inputs into this object.
-      @ In, spec, InputData.InputParams, input specifications
-      @ Out, settings, dict, initialization settings for this algorithm
-    """
-    settings = super().handleInput(spec)
-    fill = spec.parameterValues.get('fill', 'drop')
-    if isinstance(fill, str):
-      if fill.lower() != 'drop':
-        raise ValueError(f"An unsupported fill value for {spec.name} was provided. Must be one of 'drop' "
-                          "or a numeric value.")
-      settings['fillValue'] = np.nan
-    else:
-      settings['fillValue'] = fill
-    return settings
+    # NOTE using np.nan to fill the masked values is advantageous because it preserves
+    ## the full shape and spacing of the masked array. However, this requires any
+    ## subsequent models to be able to correctly handle NaN values! Using maskFill=None
+    ## will drop the masked values instead of filling them with a different value.
+    self._maskFill = maskFill
+    self._mask = None
+    self._hiddenValues = None
 
   @abc.abstractmethod
-  def criterion(self, signal, settings):
+  def criterion(self, X):
     """
-      Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
-      False otherwise.
-      @ In, signal, numpy.ndarray, data array
-      @ In, settings, dict, initialization settings for this algorithm
+      Criterion for being masked. Evaluates to False if the value should be
+      masked and evaluates to True otherwise.
+      @ In, X, numpy.ndarray, data array
+      @ In, tol, float, tolerance for the criterion
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
     """
     pass
 
-  def fit(self, signal, pivot, targets, settings, trainedParams=None):
+  def fit(self, X):
     """
-      Fits the algorithm/model using the provided time series ("signal") using methods specific to
-      the algorithm.
-      @ In, signal, np.array, time-dependent series
-      @ In, pivot, np.array, time-like parameter
-      @ In, targets, list(str), names of targets
-      @ In, settings, dict, additional settings specific to algorithm
-      @ In, trainedParams, dict, running dict of trained algorithm params
-      @ Out, params, dict, characterization of signal; structure as:
-                           params[target variable][characteristic] = value
+      Fits the mask to the array using the defined criterion
+      @ In, X, np.ndarray, array of data
+      @ Out, self, FilterBase, class instance
     """
-    params = {}
-    for tg, target in enumerate(targets):
-      history = signal[:, tg]
-      mask = self.criterion(history, settings)
-      # save the masked (hidden) values
-      hiddenValues = history[mask]
-      params[target] = {'mask': mask, 'hiddenValues': hiddenValues}
-    return params
+    # find indices to mask based on criterion
+    self._mask = self.criterion(X)
+    # save the masked (hidden) values
+    self._hiddenValues = np.ma.MaskedArray(X, mask=~self._mask)
+    return self
 
-  def getResidual(self, initial, params, pivot, settings):
+  def transform(self, X):
     """
-      Removes trained signal from data and find residual
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+      Applies mask to data
+      @ In, X, np.ndarray, array of data
+      @ Out, xMasked, np.ndarray, array of masked data
     """
-    residual = initial.copy()
-    for t, (target, data) in enumerate(params.items()):
-      mask = data['mask']
-      residual[:, t] = np.ma.MaskedArray(residual[:, t], mask=mask, fill_value=settings['fillValue']).filled()
-    return residual
+    xMasked = np.ma.MaskedArray(X, mask=self._mask, fill_value=self._maskFill)
+    if self._maskFill is None:
+      xMasked = xMasked.compressed()
+    else:
+      xMasked = xMasked.filled()
+    if xMasked.ndim == 1:
+      # X is passed in as a column vector, and masking can flatten the array.
+      ## Reshaping the array here ensures xMasked is returned as a column
+      ## vector (2-d array) rather than as a flat, 1-d array.
+      xMasked = xMasked.reshape(-1, 1)
+    return xMasked
 
-  def getComposite(self, initial, params, pivot, settings):
+  def inverse_transform(self, X):
     """
-      Combines two component signals to form a composite signal. This is essentially the inverse
-      operation of the getResidual method.
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, composite, np.array, resulting composite signal
+      Restores the masked values to the data array X
+      @ In, X, np.ndarray, array of data
+      @ Out, xUnmasked, np.ndarray, array of data with the masked values restored
     """
-    composite = initial.copy()
-    for t, (target, data) in enumerate(params.items()):
-      # Put the hidden values back into the composite signal
-      composite[data['mask'], t] = data['hiddenValues']
-    return composite
-
-  def writeXML(self, writeTo, params):
-    """
-      Allows the engine to put whatever it wants into an XML to print to file.
-      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, params, dict, parameters from training as from self.fit
-      @ Out, None
-    """
-    for target, info in params.items():
-      base = xmlUtils.newNode(target)
-      writeTo.append(base)
+    xUnmasked = np.ma.MaskedArray(X, mask=self._mask).filled(0) + self._hiddenValues.filled(0)
+    return xUnmasked
 
 
 class ZeroFilter(FilterBase):

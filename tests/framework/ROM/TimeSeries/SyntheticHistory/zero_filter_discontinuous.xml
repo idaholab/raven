@@ -36,19 +36,35 @@
       <Input class="Files" type="">input</Input>
       <Output class="DataObjects" type="HistorySet">input</Output>
     </IOStep>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <IOStep name="meta">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">meta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <IOStep name="serialize">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
@@ -56,6 +72,10 @@
       <Output class="DataObjects" type="DataSet">synth</Output>
       <Output class="OutStreams" type="Print">synth</Output>
     </MultiRun>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
   </Steps>
 
   <DataObjects>
@@ -63,6 +83,10 @@
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <HistorySet name="input">
       <Input>scaling,YEAR</Input>
       <Output>TOTALLOAD,WIND,SOLAR,HOUR</Output>
@@ -70,6 +94,10 @@
         <pivotParameter>HOUR</pivotParameter>
       </options>
     </HistorySet>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <DataSet name="synth">
       <Input>scaling</Input>
       <Output>TOTALLOAD,WIND,SOLAR</Output>
@@ -83,18 +111,29 @@
       <Target>TOTALLOAD,WIND,SOLAR,HOUR</Target>
       <Features>scaling</Features>
       <pivotParameter>HOUR</pivotParameter>
+<<<<<<< HEAD
       <outtruncation target="SOLAR" domain="positive"/>
       <zerofilter target="SOLAR"/>
+=======
+      <transformer target="SOLAR" subType="OutTruncationPositive"/>
+      <transformer target="SOLAR" subType="ZeroFilter"/>
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
       <fourier target="SOLAR">
         <periods>24, 12</periods>
       </fourier>
       <fourier target="TOTALLOAD,WIND">
         <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
       </fourier>
+<<<<<<< HEAD
       <gaussianize target="TOTALLOAD,WIND,SOLAR"/>
       <arma target="TOTALLOAD,WIND,SOLAR" seed="42">
         <P>1</P>
         <Q>0</Q>
+=======
+      <arma target="TOTALLOAD,WIND,SOLAR" seed='42'>
+        <SignalLag>1</SignalLag>
+        <NoiseLag>0</NoiseLag>
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
       </arma>
     </ROM>
   </Models>
@@ -104,6 +143,10 @@
       <type>csv</type>
       <source>meta</source>
     </Print>
+<<<<<<< HEAD
+=======
+
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
     <Print name="synth">
       <type>csv</type>
       <source>synth</source>
@@ -119,5 +162,8 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
+<<<<<<< HEAD
 
+=======
+>>>>>>> db18fae25 (adds masking transforms, facilitates common FunctionTransformers, and adds the ability to use custom transformers from a separate python file)
 </Simulation>
