@@ -305,7 +305,7 @@ additional path that will be added to the PYTHONPATH (e.g. path of python script
 \default{None}
 
 %%%%%% schedulerFile
-\item \xmlNode{schedulerFile}, \xmlDesc{string, option field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.
+\item \xmlNode{schedulerFile}, \xmlDesc{string, option field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.  This allows RAVEN to use an already started dask scheduler.  The scheduler file is created by running \texttt{dask scheduler --scheduler-file schedulerFile} which is also how RAVEN starts dask if this node is not provided.
   \default{None}
 
 \end{itemize}

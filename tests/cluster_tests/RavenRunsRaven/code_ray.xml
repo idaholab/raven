@@ -7,11 +7,11 @@
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
        Tests running the RAVEN-runs-RAVEN interface on a Code model that reads an
-       auxiliary file (for path testing) with parallel both in the OUTER and INNER with dask.
+       auxiliary file (for path testing) with parallel both in the OUTER and INNER with ray.
     </description>
     <revisions>
       <revision author="alfoa" date="2021-04-21">Modified test to add test the internalParallel with outer initialization (RAY) and inner usage (using the new
-         nodes headNode and remoteNodes 
+         nodes headNode and remoteNodes
       </revision>
     </revisions>
   </TestInfo>

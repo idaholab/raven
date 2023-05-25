@@ -15,6 +15,7 @@
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="cogljj" date="2023-04-04">Creating a ray specific version of the test.</revision>
     </revisions>
     <requirements>R-IS-8</requirements>
   </TestInfo>
@@ -41,7 +42,7 @@
 
   <!-- MODELS -->
   <Models>
-    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../InternalParallelExtModel/lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>

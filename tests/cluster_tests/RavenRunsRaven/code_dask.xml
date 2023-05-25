@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2021-04-21">Modified test to add test the internalParallel with outer initialization (RAY) and inner usage (using the new
          nodes headNode and remoteNodes 
       </revision>
+      <revision author="cogljj" date="2023-04-11">Added a dask version of this test</revision>
     </revisions>
   </TestInfo>
 

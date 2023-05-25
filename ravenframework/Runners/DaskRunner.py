@@ -25,7 +25,7 @@ from ..utils import importerUtils as im
 from ..utils.utils import ParallelLibEnum
 
 
-## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
+## check which libraries are available.
 if im.isLibAvail("dask"):
   import dask
   import dask.distributed
@@ -47,7 +47,7 @@ from .InternalRunner import InternalRunner
 class DaskRunner(InternalRunner):
   """
     Class for running internal objects in distributed memory fashion using
-    ppserver
+    dask.
   """
   def __init__(self, args, functionToRun, **kwargs):
     """

@@ -659,7 +659,12 @@ class Simulation(MessageUser):
         dashboard = element.attrib.get("dashboard",'False')
         self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
       elif element.tag == 'parallelMethod':
-        self.runInfoDict['parallelMethod'] = ParallelLibEnum.__members__[element.text.strip().lower()]
+        parallelMethodStr = element.text.strip().lower()
+        if parallelMethodStr in ParallelLibEnum.__members__:
+          self.runInfoDict['parallelMethod'] = ParallelLibEnum.__members__[parallelMethodStr]
+        else:
+          parallelMethods = list(ParallelLibEnum.__members__.keys())
+          self.raiseAnError(IOError, f'Unknown parallel method: {parallelMethodStr}, supported methods are {parallelMethods}')
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
