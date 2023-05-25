@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>subdomainTimeDepStats</WorkingDir>
+    <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  
+  <TestInfo>
+    <name>framework/PostProcessors/SubdomainBasicStatistics.subdomainTimeDepStats</name>
+    <author>aalfonsi</author>
+    <created>2023-05-17</created>
+    <classesTested>PostProcessors.SubdomainBasicStatistics</classesTested>
+    <description>
+      This test checks the statistics and sensitivities (and other metrics) calculated
+      by subdomain basic statistics PP on
+      time-dependent data. This test shows how to compute subdomain statistics
+      using a 2D grid defined in the input space on time-dependent (HistorySet) data.
+    </description>
+    <revisions>
+      <revision author="aalfonsi" date="2023-05-17">added test</revision>
+    </revisions>
+  </TestInfo>
+  <Files>
+      <Input name="samples" type="">../../BasicStatistics/basicStatisticsTimeDependent/samples.csv</Input>
+  </Files>
+  <Models>
+    <ExternalModel ModuleToLoad="../../BasicStatistics/basicStatisticsTimeDependent/basicStatisticsExternalModelTest" name="model" subType="">
+      <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
+    </ExternalModel>
+    <PostProcessor name="timeDepBasicStat" subType="SubdomainBasicStatistics" verbosity="silent">
+        <subdomain>
+            <variable name="x0">
+              <grid construction="equal" steps="2" type="value">10 100</grid>
+            </variable>
+            <variable name="y0">
+              <grid construction="equal" steps="1" type="value">10 50</grid>
+            </variable>
+        </subdomain>
+      <pivotParameter>time</pivotParameter>
+      <variance prefix="var">x0,y0,z0,x,y,z</variance>
+      <covariance prefix="cov">
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </covariance>
+      <pearson prefix="pearson">
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </pearson>
+      <expectedValue prefix="mean">x0,y0,z0,x,y,z</expectedValue>
+      <sigma prefix="sigma">x0,y0,z0,x,y,z</sigma>
+      <variationCoefficient prefix="vc">x0,y0,z0,x,y,z</variationCoefficient>
+      <skewness prefix="skew">x0,y0,z0,x,y,z</skewness>
+      <kurtosis prefix="kurt">x0,y0,z0,x,y,z</kurtosis>
+      <median prefix="median">x0,y0,z0,x,y,z</median>
+      <percentile prefix="percentile">x0,y0,z0,x,y,z</percentile>
+      <samples prefix="samp">x0,y0,z0,x,y,z</samples>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <CustomSampler name="customSamplerFile">
+      <Source class="Files" type="">samples</Source>
+      <variable name="x0"/>
+      <variable name="y0"/>
+      <variable name="z0"/>
+    </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceholder</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output class="DataObjects" type="HistorySet">timedepSubdomainStats</Output>
+    </MultiRun>
+    <PostProcess name="timeDepBasicStatPP">
+      <Input class="DataObjects" type="HistorySet">timedepSubdomainStats</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="DataObjects" type="HistorySet">basicStatHistory</Output>
+      <Output class="OutStreams" type="Print">timedepSubdomainStats_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="timedepSubdomainStats_dump">
+      <type>csv</type>
+      <source>basicStatHistory</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceholder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="timedepSubdomainStats">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="basicStatHistory">
+        <Input>x0,y0</Input>
+        <Output>
+            var_x0,var_y0,var_z0,var_x,var_y,var_z,
+            mean_x0, mean_y0, mean_z0, mean_x, mean_y, mean_z,
+            sigma_x0, sigma_y0, sigma_z0, sigma_x, sigma_y, sigma_z,
+            vc_x0, vc_y0, vc_z0, vc_x, vc_y, vc_z,
+            skew_x0, skew_y0, skew_z0, skew_x, skew_y, skew_z,
+            kurt_x0, kurt_y0, kurt_z0, kurt_x, kurt_y, kurt_z,
+            median_x0, median_y0, median_z0, median_x, median_y, median_z,
+            samp_x0, samp_y0, samp_z0, samp_x, samp_y, samp_z,
+            percentile_5_x0, percentile_5_y0, percentile_5_z0, percentile_5_x, percentile_5_y, percentile_5_z,
+            percentile_95_x0, percentile_95_y0, percentile_95_z0, percentile_95_x, percentile_95_y, percentile_95_z,
+            cov_x0_x0, cov_y0_x0, cov_z0_x0, cov_x_x0, cov_y_x0, cov_z_x0,
+            cov_x0_y0, cov_y0_y0, cov_z0_y0, cov_x_y0, cov_y_y0, cov_z_y0,
+            cov_x0_z0, cov_y0_z0, cov_z0_z0, cov_x_z0, cov_y_z0, cov_z_z0,
+            cov_x0_x, cov_y0_x, cov_z0_x, cov_x_x, cov_y_x, cov_z_x,
+            cov_x0_y, cov_y0_y, cov_z0_y, cov_x_y, cov_y_y, cov_z_y,
+            cov_x0_z, cov_y0_z, cov_z0_z, cov_x_z, cov_y_z, cov_z_z,
+            pearson_x0_x0, pearson_y0_x0, pearson_z0_x0, pearson_x_x0, pearson_y_x0, pearson_z_x0,
+            pearson_x0_y0, pearson_y0_y0, pearson_z0_y0, pearson_x_y0, pearson_y_y0, pearson_z_y0,
+            pearson_x0_z0, pearson_y0_z0, pearson_z0_z0, pearson_x_z0, pearson_y_z0, pearson_z_z0,
+            pearson_x0_x, pearson_y0_x, pearson_z0_x, pearson_x_x, pearson_y_x, pearson_z_x,
+            pearson_x0_y, pearson_y0_y, pearson_z0_y, pearson_x_y, pearson_y_y, pearson_z_y,
+            pearson_x0_z, pearson_y0_z, pearson_z0_z, pearson_x_z, pearson_y_z, pearson_z_z
+        </Output>
+        <options>
+            <pivotParameter>time</pivotParameter>
+        </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

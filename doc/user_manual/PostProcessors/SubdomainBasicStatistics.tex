@@ -1,0 +1,112 @@
+\subsubsection{SubdomainBasicStatistics}
+\label{SubdomainBasicStatistics}
+The \textbf{SubdomainBasicStatistics} post-processor is aimed to allow the \textbf{BasicStatistics}
+post-processor to be used on subdomains of the sampling space. This post-processor fully leverages
+the \textbf{BasicStatistics} post-processor and, consequentially, computes many of the most important statistical quantities on 
+a mesh/grid (subdomains). 
+Similarly to the \textbf{BasicStatistics}, the post-processor can accept as input both \textit{\textbf{PointSet}} 
+and \textit{\textbf{HistorySet}}.
+
+\ppType{SubdomainBasicStatistics post-processor}{SubdomainBasicStatistics}
+
+\begin{itemize}
+  \item \xmlNode{"subdomain"}, \xmlDesc{XML node, required parameter}, definition of the subdomain grid. This node
+  can specify the following XML node:
+  \begin{itemize}
+    \item \xmlNode{variable}, \xmlDesc{XML node, required parameter} can specify the \xmlAttr{name} attribute, which is \xmlDesc{required string attribute} and specifies the user-defined name of this variable.
+    \variableChildrenIntro
+    \begin{itemize}
+     \item \gridDescriptionNoCDF
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+Based on the definition above, the post-processor will compute \textbf{BasicStatistics} on each ``cell'' defined
+by the discretization grid. The results will be exported as function of the variables used
+in the definition of the grid (see below for a detailed example).
+
+In addition to the subdomain grid defined above, the same nodes/settings available for \textbf{BasicStatistics}
+are available:
+
+\basicStatisticsBody
+
+\textbf{Example (Static Subdomain Statistics):}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='SubdomainBasicStatistics' verbosity='debug'>
+      <subdomain>
+        <variable name="a">
+          <grid construction="equal" steps="2" type="value">10 100</grid>
+        </variable>
+        <variable name="b">
+          <grid construction="equal" steps="1" type="value">10 50</grid>
+        </variable>
+      </subdomain>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+  <PointSet name='statsOut'>
+    <Input>
+      a,b
+    </Input>
+    <Output>
+      mean_x01,mean_x02,
+      sen_x01_a, sen_x01_b,
+      sen_x02_a, sen_x02_b
+    </Output>
+  </PointSet>
+</Simulation>
+\end{lstlisting}
+
+In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\_a, sen\_x01\_b, sen\_x02\_b''
+will be computed for each cell defined above (2 cells in this case).
+The results will be associated to the mid-point of each cell. For the example above:
+\begin{itemize}
+ \item $(a=32.5,b=30.0)$
+ \item $(a=77.5,b=30.0)$
+\end{itemize}
+The results will be then accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+
+\textbf{Example (Dynamic Subdomain Statistics):}
+
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+  <HistorySet name='basicStatHistorySet'>
+    <Input>
+      a,b
+    </Input>
+    <Output>
+      mean_x01,mean_x02,
+      sen_x01_a, sen_x01_b,
+      sen_x02_a, sen_x02_b
+    </Output>
+    <options>
+      <pivotParameter>time</pivotParameter>
+    </options>
+  </HistorySet>
+</Simulation>
+\end{lstlisting}
+
