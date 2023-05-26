@@ -62,13 +62,6 @@ class BayesianOptimizer(RavenSampled):
                             incorporates noisy observations of the function. This approach tends to offer the
                             tradeoff of additional backend calculation (training regressions and selecting samples) in
                             favor of reducing the number of function or 'model' evaluations."""
-    # Initial sample size for regression
-    initialSampleSize = InputData.parameterInputFactory('initialSampleSize', strictMode=True,
-        contentType=InputTypes.IntegerType,
-        printPriority=108,
-        descr=r""" Number of sample points to build initial Gaussian Process Regression model with.""")
-    specs.addSub(initialSampleSize)
-
     return specs
 
   @classmethod
@@ -102,14 +95,12 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     RavenSampled.__init__(self)
-
+    # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
     self._iteration = {}            # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
     self._varNameList = []          # List of string names for decision variables, allows for easier indexing down the line
-    self._initialSampleSize = 5     # Number of samples to build initial model with prior to applying acquisition (default is 5)
+    self._initialSampleSize = None  # Number of samples to build initial model with before applying acquisition (default is 5)
     self._trainingInputs = [{}]     # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
     self._trainingTargets = []      # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
-    self.bestPoint = None           # Decision variable associated with the current minimum objective value
-    self.bestObjective = None       # Smallest objective value
     self._regressionModel = {}
     self._hyperParams = {'l':0.1, 'sigf':100}
 
@@ -120,21 +111,6 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
-    # Initializing training data objects using input information
-    for traj, init in enumerate(self._initialValues):
-      self._trainingTargets.append([])
-      for varName, _ in init.items():
-       self._trainingInputs[traj][varName] = []
-       if varName not in self._varNameList:
-         self._varNameList.append(varName)
-
-    # Looking for initial sample size input
-    initialSampleSize = paramInput.findFirst('initialSampleSize')
-    if initialSampleSize is None:
-      self.raiseAMessage(f'No initial sample size was provided in input; therefore, the initial regression will use {self._initialSampleSize} points')
-    else:
-      self._initialSampleSize = initialSampleSize.value
-      self.raiseAMessage(f'Initial regression will use {initialSampleSize.value} points')
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -143,29 +119,28 @@ class BayesianOptimizer(RavenSampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    # FIXME currently BO assumes only one optimization 'trajectory'
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
     meta = ['batchId']
     self.addMetaKeys(meta)
-    # Bounds of each variable in format that LHS method needs
-    varLimits = np.empty((len(self._variableBounds), 2))
-    for var in range(len(self._variableBounds)):
-        varLimits[var-1,:] = np.asarray([0,1]) # Since all variables are normalized
+    self._initialSampleSize = len(self._initialValues)
+    self.batch = self._initialSampleSize
 
-    for traj, _ in enumerate(self._initialValues):
-      # Generate sample inputs via LHS sampling
-      initialSampling = LHS(xlimits=varLimits, criterion='cm')
-      varSamples = initialSampling(self._initialSampleSize)
-      self._iteration[traj] = 0
+    # Initialize input and target data set for conditioning regression model on
+    # NOTE assuming that sampler/user provides at least one initial input
+    init = self._initialValues[0]
+    self._trainingTargets.append([])
+    for varName, _ in init.items():
+      self._trainingInputs[0][varName] = []
+      if varName not in self._varNameList:
+        self._varNameList.append(varName)
+
+    # First step is to sample the model at all initial points from the sampler
+    for _, point in enumerate(self._initialValues):
+      self._iteration[0] = 0
       # Submitting each initial sample point to the sampler
-      for samplePoint in varSamples:
-        point = {}
-        dummyIndex = 0
-        for varName in self._varNameList:
-          point[varName] = samplePoint[dummyIndex]
-          dummyIndex += 1
-
-        self._submitRun(point, traj, 0)
+      self._submitRun(point, 0, 0)
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
@@ -179,10 +154,9 @@ class BayesianOptimizer(RavenSampled):
     info = {}
     if moreInfo is not None:
       info.update(moreInfo)
-    info.update({'traj': traj,
-                  'step': step
-                })
-    # NOTE: explicit constraints have been checked before this!
+    info.update({ 'traj': traj,
+                  'step': step,
+                  'batchSize': self.batch})
     self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
     self._submissionQueue.append((point, info))
 
@@ -193,56 +167,42 @@ class BayesianOptimizer(RavenSampled):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization (corrected for min-max)
+      @ In, rlz, xr.Datasheet or dict, realized realization (corrected for min-max)
       @ Out, None
     """
-    # Pulling information from realization to extend training data and check for new optimal point
+    # Checking if we have multiple samples to handle (should be initialization)
+    # NOTE this will include parallel acquisition once it is implemented or at least should
     traj = info['traj']
-    optVal = rlz[self._objectiveVar]
-    self._resolveNewOptPoint(traj, rlz, optVal, info)
+    step = info['step'] + 1
+    if not isinstance(rlz, dict):
+      if step == 1:
+        self.batch = 1 # FIXME when implementing parallel expected improvement, fix this
+        self.raiseAMessage(f'Initialization data of dimension {self._initialSampleSize} received... '
+                           f'Setting sample batch size to {self.batch}')
+      else:
+        self.raiseAMessage(f'Received next set of parallel samples for iteration: {self.getIteration(traj)}')
+      # Add new inputs and model evaluations to the dataset
+      for varName in list(self.toBeSampled):
+        self._trainingInputs[traj][varName].extend(getattr(rlz, varName))
+      self._trainingTargets[traj].extend(getattr(rlz, self._objectiveVar))
+      self._resolveMultiSample(traj, rlz, info)
+    elif isinstance(rlz, dict):
+      self.raiseAMessage(f'Received next sample for iteration: {self.getIteration(traj)}')
+      # Add new input and model evaluation to the dataset
+      for varName in list(self.toBeSampled):
+        self._trainingInputs[traj][varName].append(rlz[varName])
+      self._trainingTargets[traj].append(rlz[self._objectiveVar])
+      optVal = rlz[self._objectiveVar]
+      self._resolveNewOptPoint(traj, rlz, optVal, info)
     self.incrementIteration(traj)
-    self._trainingTargets[traj].append(rlz[self._objectiveVar])
-    for varName in self._varNameList:
-      self._trainingInputs[traj][varName].append(rlz[varName])
-
-    if len(self._trainingTargets[traj]) < self._initialSampleSize:
-      self.raiseAMessage(f'Storing initial sample point number {len(self._trainingTargets[traj])} for trajectory {traj}')
-      self._iteration[traj] += 1
-      return
-    elif len(self._trainingTargets[traj]) == self._initialSampleSize:
-      self.raiseAMessage(f'All {self._initialSampleSize} initial samples have been realized, beginning main optimization loop')
 
     # Train the model on our data set
     self._updateHyperparams()
+    # Condition our model on the data set
     self._trainRegressionModel()
+    # Use acquisition to select next point
     new_point = self._conductAcquisition()
-    step = info['step'] + 1
     self._submitRun(new_point, traj, step)
-
-    # # Plot the model for fun
-    # xvec = np.linspace(0,1,100)
-    # yvec = np.linspace(0,1,100)
-    # X,Y = np.meshgrid(xvec,yvec)
-    # f_vals = np.empty((100,100))
-    # EI_vals = np.empty((100,100))
-    # for i in it.product(range(100),range(100)):
-    #   f_vals[i[1],i[0]] = self._evaluateRegressionModel(np.array([xvec[i[0]], yvec[i[1]]]))[0]
-    #   EI_vals[i[1],i[0]] = self.expectedImprovement(np.array([xvec[i[0]], yvec[i[1]]]))
-    # fig = plt.figure()
-    # ax = fig.add_subplot(1,2,1, projection='3d')
-    # ax.plot_surface(X, Y, f_vals, rstride=1, cstride=1, cmap=cm.coolwarm, edgecolor='none')
-    # inputs = self.getInputs()
-    # ax.scatter3D(inputs[:,0], inputs[:,1], self._trainingTargets[0], color='green')
-    # ax.set_xlabel('x', fontsize=18)
-    # ax.set_ylabel('y', fontsize=18)
-    # ax.set_zlabel('f(x,y)', fontsize=18)
-    # ax = fig.add_subplot(1,2,2, projection='3d')
-    # ax.plot_surface(X, Y, EI_vals, rstride=1, cstride=1, cmap=cm.viridis, edgecolor='none')
-    # ax.set_xlabel('x', fontsize=18)
-    # ax.set_ylabel('y', fontsize=18)
-    # ax.set_zlabel('EI(x,y)', fontsize=18)
-    # plt.show()
-    # exit()
 
   def checkConvergence(self, traj, new, old):
     """
@@ -262,7 +222,7 @@ class BayesianOptimizer(RavenSampled):
     """
     if old - new > 0:
       return True
-    else: 
+    else:
       return False
 
   def flush(self):
@@ -293,6 +253,37 @@ class BayesianOptimizer(RavenSampled):
       @ Out, counter, int, iteration of the trajectory
     """
     return self._iteration[traj]
+
+  # NOTE this method is for barebones validation, not currently intended for user access
+  def plotPosteriorAndAcquisition(self):
+    """
+      Plots the posterior mean of the GP model conditioned on the sampled data and the acquistion function
+      @ In , None
+      @ Out, None
+    """
+    # Plot the model for fun
+    xvec = np.linspace(0,1,100)
+    yvec = np.linspace(0,1,100)
+    X,Y = np.meshgrid(xvec,yvec)
+    f_vals = np.empty((100,100))
+    EI_vals = np.empty((100,100))
+    for i in it.product(range(100),range(100)):
+      f_vals[i[1],i[0]] = self._evaluateRegressionModel(np.array([xvec[i[0]], yvec[i[1]]]))[0]
+      EI_vals[i[1],i[0]] = self.expectedImprovement(np.array([xvec[i[0]], yvec[i[1]]]))
+    fig = plt.figure()
+    ax = fig.add_subplot(1,2,1, projection='3d')
+    ax.plot_surface(X, Y, f_vals, rstride=1, cstride=1, cmap=cm.coolwarm, edgecolor='none')
+    inputs = self.getInputs()
+    ax.scatter3D(inputs[:,0], inputs[:,1], self._trainingTargets[0], color='green')
+    ax.set_xlabel('x', fontsize=18)
+    ax.set_ylabel('y', fontsize=18)
+    ax.set_zlabel('f(x,y)', fontsize=18)
+    ax = fig.add_subplot(1,2,2, projection='3d')
+    ax.plot_surface(X, Y, EI_vals, rstride=1, cstride=1, cmap=cm.viridis, edgecolor='none')
+    ax.set_xlabel('x', fontsize=18)
+    ax.set_ylabel('y', fontsize=18)
+    ax.set_zlabel('EI(x,y)', fontsize=18)
+    plt.show()
 
   ###############################################
   # Temporary Methods for Bayesian Optimization #
@@ -426,7 +417,7 @@ class BayesianOptimizer(RavenSampled):
     for i in it.product(range(n),range(n)):
         x = inputs[i[0]]
         x_p = inputs[i[1]]
-        var_norm = np.linalg.norm(np.subtract(x,x_p))**2 
+        var_norm = np.linalg.norm(np.subtract(x,x_p))**2
         dK_dsigf[i] = 2 * sigma_f * np.exp( (-1/ (2*(l**2)) ) * var_norm )
         dK_dl[i] = (sigma_f**2) * np.exp( (-1/ (2*(l**2)) ) * var_norm ) * ( ( 1/(l**3) ) * var_norm )
 
@@ -565,6 +556,28 @@ class BayesianOptimizer(RavenSampled):
 
   # END constraint handling
   # * * * * * * * * * * * *
+
+  def _resolveMultiSample(self, traj, rlz, info):
+    """
+      Handles case where multiple new datapoints are sampled.
+      Applies resolution (acceptability, improvment, constraints, rejection) to each of the points
+      @ In, traj, int, trajectory
+      @ In, rlz, xr.Datasheet, realization of multiple points
+      @ In, info, dict, information about the realization
+      @ Out, None
+    """
+    # Break out info from xr rlz into the standard realization format
+    singleRlz = {}
+    rlzVars = list(rlz.variables)
+    self.raiseADebug(f'Resolving multi-sample of size {info["batchSize"]}')
+    for index in range(info['batchSize']):
+      for varName in rlzVars:
+        singleRlz[varName] = getattr(rlz, varName)[index].values
+      optVal = singleRlz[self._objectiveVar]
+      print(f'Single Realization in multi method: {singleRlz}')
+      self._resolveNewOptPoint(traj, singleRlz, optVal, info)
+      singleRlz = {} # FIXME is this necessary?
+    self.raiseADebug(f'Mult-sample resolution completed')
 
   # support methods for _resolveNewOptPoint
   def _checkAcceptability(self, traj, opt, optVal, info):

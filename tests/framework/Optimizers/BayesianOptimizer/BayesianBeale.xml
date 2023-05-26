@@ -7,7 +7,7 @@
     <classesTested>BayesianOptimizer</classesTested>
     <description>
       This is the most basic test of the Optimizer. It optimizes the Beale function using the default settings
-      for the Bayesian Optimizer. This test provides a baseline for functionality and regression testing of the 
+      for the Bayesian Optimizer. This test provides a baseline for functionality and regression testing of the
       method.
     </description>
     <analytic>
@@ -46,16 +46,30 @@
     </Uniform>
   </Distributions>
 
+   <Samplers>
+    <Stratified name="LHS_samp">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
   <Optimizers>
     <BayesianOptimizer name="opter">
       <objective>ans</objective>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
@@ -63,7 +77,7 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-      <initialSampleSize>10</initialSampleSize>
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
     </BayesianOptimizer>
   </Optimizers>
 
