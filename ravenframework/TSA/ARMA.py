@@ -39,6 +39,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
                'ma',
                'sigma2',
                'const']
+  _acceptsMissingValues = True
 
   @classmethod
   def getInputSpecification(cls):

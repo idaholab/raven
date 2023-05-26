@@ -208,6 +208,9 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   """
   Act as an identifying class for algorithms that can generate characterize time-dependent signals.
   """
+  # Class attributes
+  ## defines if missing values are accepted by the characterization algorithm
+  _acceptsMissingValues = False
 
   @abc.abstractmethod
   def characterize(self, signal, pivot, targets, settings):
@@ -229,3 +232,13 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
       @ In, params, dict, trained parameters (as from characterize)
       @ Out, rlz, dict, realization-style response
     """
+
+  def canAcceptMissingValues(self):
+    """
+      Checks if the algorithm can accept missing values (generally NaN).
+      @ Out, _acceptsMissingValues, bool, if the characterization algorithm accepts missing values
+    """
+    # NOTE Signals may have missing values, and this is incompatible with some characterization algorithms.
+    ## As missing values will generally require special handling specific to the algorithm, this behavior
+    ## defaults to False. It is left to each algorithm to implement how these missing values are handled.
+    return self._acceptsMissingValues

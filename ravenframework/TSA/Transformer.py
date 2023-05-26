@@ -64,6 +64,11 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
   r"""
     Wrapper for scikit-learn data transformation algorithms
   """
+  # TODO Is there a case where this is not true? This is dependent on the specific transformer used,
+  ## which does not necessarily handle missing values well. Is there a reasonable way to check if a
+  ## given transformer handles missing values?
+  _acceptsMissingValues = True
+
   @classmethod
   def getInputSpecification(cls):
     """

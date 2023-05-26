@@ -176,6 +176,9 @@ class TSAUser:
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
+      # check if there are missing values in the signal and if algo can accept them
+      if np.isnan(signal).any() and not algo.canAcceptMissingValues():
+        self.raiseAnError(ValueError, 'This TSA algorithm cannot accept missing values.')
       params = algo.characterize(signal, pivots, targets, settings)
       # store characteristics
       self._tsaTrainedParams[algo] = params
@@ -204,7 +207,7 @@ class TSAUser:
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
-      if not algo.canGenerate():  # TODO should this be a hard condition only for the last algo in _tsaAlgorithms?
+      if not algo.canGenerate():
         self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = result[:, indices]
       result[:, indices] = algo.getComposite(signal, params, pivots, settings)

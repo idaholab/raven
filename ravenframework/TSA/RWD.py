@@ -131,9 +131,6 @@ class RWD(TimeSeriesCharacterizer):
 
     for tg, target in enumerate(targets):
       history = signal[:, tg]
-      if np.isnan(history).any():
-        raise ValueError(f'The history for target {tg} contains NaN values.'
-                         'Perhaps there is a Filter transformer that is causing this?')
       if settings['signatureWindowLength'] is None:
         settings['signatureWindowLength'] = len(history)//10
       signatureWindowLength = int(settings['signatureWindowLength'])
