@@ -241,7 +241,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       for k in range(1,maxError.shape[0]+1):
         res = x - u[:,:k]@np.diag(s)[:k,:k]@v_T[:k,:]#residual under different rank
         maxError[k-1] = np.max(abs(res)) # maximum of the residual
-      xMAX=min(np.argwhere(maxError<error/6)) #rank corresponding to msr error
+      xMAX=min(np.argwhere(maxError<error/7)) #rank corresponding to msr error
 
       return xMAX[0]
 
@@ -287,6 +287,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       #KNN regression
       rkApp = FindRank(yAppRef, yAppScaled, yExpMsr) #rank of application
       rkExp = FindRank(yExpRef, yExpScaled, yExpMsr)  # rank of experiments
+      print(rkExp, rkApp)
       alphaAppHat=np.zeros(rkApp)
       for i in range(rkApp):
         alphaAppHat[i] = KNN(alphaExp[:,:rkExp], alphaApp[:,i], alphaExpMsr[:rkExp],k=4)
