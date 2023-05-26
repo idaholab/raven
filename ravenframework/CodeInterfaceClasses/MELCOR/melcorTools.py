@@ -4,12 +4,9 @@
   Last update on October 14, 2022
   @authors:
            Matteo D'Onorio (University of Rome La Sapienza)
-           Paolo Balestra (University of Rome La Sapienza)
+           Paolo Balestra (University of Rome La Sapienza)           
 """
-from struct import unpack
-import numpy as np
-from collections import Counter
-
+# ===============================================================================
 def MCRBin(fileDir, VarSrch):
   """
     This method is called to collect the variables to be used in the postprocess
@@ -17,6 +14,9 @@ def MCRBin(fileDir, VarSrch):
     @ In, variableSearch, list, list of variables to be collected
     @ Out, Data, tuple (numpy.ndarray,numpy.ndarray,numpy.ndarray), this contains the extracted data for each declare variable
   """
+  from struct import unpack
+  import numpy as np
+  from collections import Counter
   HdrList = []
   BlkLenBef = []
   BlkLenAft = []
@@ -26,7 +26,6 @@ def MCRBin(fileDir, VarSrch):
   with open(fileDir, 'rb') as bf:
     while True:
       BlkLenBefSlave = bf.read(4)
-      print(BlkLenBefSlave)
       if not BlkLenBefSlave:
         break
       BlkLenBef.append(unpack('I', BlkLenBefSlave)[0])
@@ -87,12 +86,12 @@ def MCRBin(fileDir, VarSrch):
         VarUdmFull=['sec','','','']+VarUdmFull
         for Nam in VarSrch:
           VarSrchPos.append(VarNameFull.index(Nam.strip()))
-        VarUdmFull=[VarUdmFull[i] for i in VarSrchPos]
+        VarUdmFull=[VarUdmFull[i] for i in VarSrchPos]														
         SwapPosVarSrch=sorted(range(len(VarSrchPos)), key=lambda k: VarSrchPos[k])
         SwapPosVarSrch=sorted(range(len(SwapPosVarSrch)), key=lambda k: SwapPosVarSrch[k])
         VarSrchPos.sort()
-        VarSrchPos.append(VarName[1]+4)
-        HdrList.append([])
+        VarSrchPos.append(VarName[1]+4)					   
+        HdrList.append([])				   
       elif HdrList[cntr - 1] == '.TR/':
         DataPos.append(bf.tell())
         bf.seek(BlkLenBef[cntr], 1)
@@ -100,18 +99,15 @@ def MCRBin(fileDir, VarSrch):
       else:
         HdrList.append([])
       BlkLenAft.append(unpack('I', bf.read(4))[0])
-
+	  
       cntr +=1
-
-  data = np.empty([len(DataPos), len(VarSrch)+1])*np.nan
-
+	  
+  data=np.empty([len(DataPos), len(VarSrch)+1])*np.nan
   with open(fileDir, 'rb') as bf:
     for i,Pos in enumerate(DataPos):
       bf.seek(Pos, 0)
       for j in range(len(VarSrchPos)-1):
         data[i,j]=unpack('f', bf.read(4))[0]
         bf.seek((VarSrchPos[j+1]-VarSrchPos[j])*4-4, 1)
-
   data=data[:,SwapPosVarSrch]
-
   return data[:,0],data[:,1:],VarUdmFull[1:]

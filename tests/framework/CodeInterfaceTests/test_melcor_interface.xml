@@ -33,7 +33,7 @@
          CVH-P_1$, CVH-TLIQ_2$, CFVALU_2
       </variables>
 	  <CodePlotFile>MELPTF.PTF</CodePlotFile>
-	  <MelcorOutput>MELMES.TXT</MelcorOutput>
+	  <MelcorOutput>MELMES_v2-0</MelcorOutput>
     </Code>
   </Models>
 
