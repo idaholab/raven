@@ -19,6 +19,7 @@ import copy
 import collections
 import numpy as np
 import sklearn.linear_model
+import statsmodels.api as sm
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
 from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
@@ -35,6 +36,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   _features = ['sin',       # amplitude of sine coefficients
                'cos',       # amplitude of cosine coefficients
                'intercept'] # mean of signal
+  _acceptsMissingValues = True
 
   @classmethod
   def getInputSpecification(cls):
@@ -109,10 +111,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')
-        fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
-        fourierEngine.fit(fourierSignals[mask], history[mask])
-        intercept = fourierEngine.intercept_
-        coeffs = fourierEngine.coef_
+        intercept, coeffs = self.fitSignal(fourierSignals, history)
       else:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}"! ',
                         'Calculating iteratively instead of all at once.')
@@ -125,10 +124,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         coeffs = np.zeros(F2) # amplitude coeffs for sine, cosine
         for fn in range(F2):
           fSignal = fourierSignals[:,fn] # Fourier base signal for this waveform
-          eng = sklearn.linear_model.LinearRegression(normalize=False) # regressor
-          eng.fit(fSignal.reshape(H,1)[mask], signalToFit[mask])
-          thisIntercept = eng.intercept_
-          thisCoeff = eng.coef_[0]
+          thisIntercept, thisCoeff = self.fitSignal(fSignal.reshape(H,1), signalToFit)
           coeffs[fn] = thisCoeff
           intercept += thisIntercept
           # remove this signal from the signal to fit
@@ -160,6 +156,12 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
                         # 'periods'  : self._periods}
       # END for target in targets
     return params
+
+  def fitSignal(self, baseSignal, signalToFit):
+    fitResult = sm.OLS(signalToFit, sm.add_constant(baseSignal), missing='drop').fit()
+    intercept = fitResult.params[0]
+    coeffs = fitResult.params[1:]
+    return intercept, coeffs
 
   def getParamNames(self, settings):
     """
