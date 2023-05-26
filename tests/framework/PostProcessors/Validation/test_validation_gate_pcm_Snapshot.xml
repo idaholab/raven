@@ -7,7 +7,7 @@
   </RunInfo>
 
   <TestInfo>
-    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_SnapshotSeth</name>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_Snapshot</name>
     <author>syin</author>
     <created>2022-12-05</created>
     <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
