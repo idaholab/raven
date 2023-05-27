@@ -79,7 +79,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     SupervisedLearning._handleInput(self, paramInput)
     self.readTSAInput(paramInput)
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training

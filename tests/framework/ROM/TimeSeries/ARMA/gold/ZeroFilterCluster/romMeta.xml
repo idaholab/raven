@@ -2,6 +2,8 @@
   <arma type="Static">
     <ROM>
       <type>Interp. Cluster ROM</type>
+      <Features>scaling</Features>
+      <Targets>TOTALLOAD,WIND,SOLAR,HOUR</Targets>
     </ROM>
     <InterpolatedMultiyearROM type="Static">
       <MacroParameterID>YEAR</MacroParameterID>
@@ -102,7 +104,7 @@
           </Fourier>
         </SOLAR>
       </GlobalROM>
-      <ClusterROM cluster="0" type="Static">
+      <ClusterROM type="Static" cluster="0">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>-3.120004889e-01</SignalIntercept>
@@ -123,7 +125,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35989998927</std>
+            <std>2.35989368317</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -146,7 +148,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.23563396256</std>
+            <std>2.23563244091</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -159,13 +161,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.75877183952</std>
+            <std>3.75877005925</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
-      <ClusterROM cluster="1" type="Static">
+      <ClusterROM type="Static" cluster="1">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.988847570e-01</SignalIntercept>
@@ -186,7 +188,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.29452618465</std>
+            <std>2.29454565793</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -209,7 +211,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2489292529</std>
+            <std>2.24891878781</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -222,13 +224,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.83836077841</std>
+            <std>2.83837056343</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
-      <ClusterROM cluster="2" type="Static">
+      <ClusterROM type="Static" cluster="2">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.648252190e-01</SignalIntercept>
@@ -249,7 +251,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.3517685861</std>
+            <std>2.35174927911</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -272,7 +274,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19822519358</std>
+            <std>2.19822135096</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -285,7 +287,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.83502353694</std>
+            <std>3.83503122973</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>
@@ -385,7 +387,7 @@
           </Fourier>
         </SOLAR>
       </GlobalROM>
-      <ClusterROM cluster="0" type="Static">
+      <ClusterROM type="Static" cluster="0">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>-3.120004889e-01</SignalIntercept>
@@ -406,7 +408,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35989998927</std>
+            <std>2.35989368317</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -429,7 +431,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.23563396256</std>
+            <std>2.23563244091</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -442,13 +444,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.75877183952</std>
+            <std>3.75877005925</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
-      <ClusterROM cluster="1" type="Static">
+      <ClusterROM type="Static" cluster="1">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.988847570e-01</SignalIntercept>
@@ -469,7 +471,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.29452618465</std>
+            <std>2.29454565793</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -492,7 +494,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2489292529</std>
+            <std>2.24891878781</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -505,13 +507,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.83836077841</std>
+            <std>2.83837056343</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
-      <ClusterROM cluster="2" type="Static">
+      <ClusterROM type="Static" cluster="2">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.648252190e-01</SignalIntercept>
@@ -532,7 +534,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.3517685861</std>
+            <std>2.35174927911</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -555,7 +557,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19822519358</std>
+            <std>2.19822135096</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -568,7 +570,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.83502353694</std>
+            <std>3.83503122973</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>
@@ -668,7 +670,7 @@
           </Fourier>
         </SOLAR>
       </GlobalROM>
-      <ClusterROM cluster="0" type="Static">
+      <ClusterROM type="Static" cluster="0">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>-3.120004889e-01</SignalIntercept>
@@ -689,7 +691,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.35989998927</std>
+            <std>2.359893683174609</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -712,7 +714,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.23563396256</std>
+            <std>2.2356324409138963</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -725,13 +727,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.75877183952</std>
+            <std>3.758770059246469</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>0, 6</segments_represented>
         <indices>0, 23</indices>
       </ClusterROM>
-      <ClusterROM cluster="1" type="Static">
+      <ClusterROM type="Static" cluster="1">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.988847570e-01</SignalIntercept>
@@ -752,7 +754,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.29452618465</std>
+            <std>2.2945456579316197</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -775,7 +777,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.2489292529</std>
+            <std>2.2489187878057613</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -788,13 +790,13 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.83836077841</std>
+            <std>2.8383705634296637</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>1, 4</segments_represented>
         <indices>24, 47</indices>
       </ClusterROM>
-      <ClusterROM cluster="2" type="Static">
+      <ClusterROM type="Static" cluster="2">
         <TOTALLOAD>
           <Fourier>
             <SignalIntercept>8.648252190e-01</SignalIntercept>
@@ -815,7 +817,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.3517685861</std>
+            <std>2.3517492791102144</std>
           </ARMA_params>
         </TOTALLOAD>
         <WIND>
@@ -838,7 +840,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>2.19822519358</std>
+            <std>2.198221350960821</std>
           </ARMA_params>
         </WIND>
         <SOLAR>
@@ -851,7 +853,7 @@
             </period>
           </Fourier>
           <ARMA_params>
-            <std>3.83502353694</std>
+            <std>3.8350312297268667</std>
           </ARMA_params>
         </SOLAR>
         <segments_represented>2, 3, 5</segments_represented>

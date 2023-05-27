@@ -134,6 +134,26 @@ class ROM(Dummy):
     self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('estimator', InputData.Quantity.zero_to_infinity)
 
+  def _localWhatDoINeed(self):
+    """
+      Used to obtain necessary objects.
+      @ In, None
+      @ Out, need, dict, the dict listing the needed objects
+    """
+    need = {}
+    if utils.first(self.supervisedContainer).requireJobHandler:
+      need =   {'internal':[(None,'jobHandler')]}
+    return need
+
+  def _localGenerateAssembler(self, assemblerObjects):
+    """
+      Used to obtain necessary objects.
+      @ In, assemblerObjects, dict, the assembler objects
+      @ Out, None
+    """
+    if utils.first(self.supervisedContainer).requireJobHandler:
+      self.assemblerDict['jobHandler'] = assemblerObjects['internal']['jobHandler']
+
   def __getstate__(self):
     """
       Method for choosing what gets serialized in this class
@@ -339,6 +359,8 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      if not self.supervisedContainer[0].requireJobHandler and 'jobHandler' in self.assemblerDict:
+        self.assemblerDict.pop("jobHandler")
 
       self.supervisedContainer[0].setAssembledObjects(self.assemblerDict)
       # if training using ROMCollection, special treatment
@@ -583,9 +605,9 @@ class ROM(Dummy):
     pivotParameterId = self.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedContainer[0].target
+    romTargets = self.supervisedContainer[0].target
     ## establish requested targets
-    targets = ROMtargets if what=='all' else what.split(',')
+    targets = romTargets if what=='all' else what.split(',')
     ## establish sets of engines to work from
     engines = self.supervisedContainer
     # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
@@ -615,6 +637,29 @@ class ROM(Dummy):
       engines[0].writeXMLPreamble(xml)
       engines[0].writeXML(xml)
     return xml
+
+  def getSolutionMetadata(self):
+    """
+      Get ROM solution metadata
+      @ In, None
+      @ Out, solutionMetadata, dict, dictionary containing
+                                     ROM-specific solution metadata
+    """
+    solutionMetadata = {}
+    #determine dynamic or static
+    dynamic = self.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.canHandleDynamicData
+    # find some general settings needed for either dynamic or static handling
+    ## establish sets of engines to work from
+    engines = self.supervisedContainer
+    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
+    #    on whether the engine is naturally dynamic or whether we need to handle that part.
+    if dynamic and handleDynamicData:
+      ## pre-print printing
+      if hasattr(engines[0],"getSolutionMetadata"):
+        solutionMetadata = engines[0].getSolutionMetadata()
+    return solutionMetadata
 
   def writePyomoGreyModel(self):
     """
@@ -740,8 +785,4 @@ if __name__ == '__main__':
       print("---------------------< Optimization Results >---------------------" + "\n")
       concreteModel.pprint()
 """
-
     return template
-
-
-

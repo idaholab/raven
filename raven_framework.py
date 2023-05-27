@@ -22,4 +22,4 @@ This is a package that properly imports Driver and runs it.
 import sys
 from ravenframework.Driver import main
 if __name__ == '__main__':
-    sys.exit(main(True))
+  sys.exit(main(True))

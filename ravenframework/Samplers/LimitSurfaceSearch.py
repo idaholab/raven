@@ -165,7 +165,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
                                                 #  cutoff (%  of range space)
     self.sizeGrid       = None                  # size of grid
     self.sizeSubGrid    = None                  # size of subgrid
-    self.printTag            = 'SAMPLER ADAPTIVE'
+    self.printTag        = 'ADAPTIVE LIMIT SURFACE'
 
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']

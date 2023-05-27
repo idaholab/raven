@@ -42,7 +42,11 @@ from .. import PluginManager
 ## -> should we do this through some kind of a PluginLoader that registers the objects
 ##    in other factories?
 
-__basePluginClasses = {'ExternalModel':'ExternalModelPluginBase'}
+__basePluginClasses = {'ExternalModel':'ExternalModelPluginBase',
+                      'Code': 'CodePluginBase',
+                      'PostProcessor': 'PostProcessorPluginBase',
+                      'SupervisedLearning': 'SupervisedLearningPlugin',
+                      }
 __interfaceDict = defaultdict(dict)
 __knownTypes = [] # populate through registration
 

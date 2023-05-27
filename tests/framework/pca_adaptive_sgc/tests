@@ -33,6 +33,7 @@
   input = 'test_adaptive_sgc_poly_pca_analytic.xml'
   UnorderedCsv = 'polynomial/csv_database.csv'
   UnorderedXml = 'polynomial/stats_td1.xml'                    #analytic, "Tensor Polynomial (First-Order) with Multivariate Normal Distribution"
+  max_time = 500 # windows test box is slow, so very slow
  [../]
 
 []
