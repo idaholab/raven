@@ -4,7 +4,7 @@
   Last update on October 14, 2022
   @authors:
            Matteo D'Onorio (University of Rome La Sapienza)
-           Paolo Balestra (University of Rome La Sapienza)           
+           Paolo Balestra (University of Rome La Sapienza)
 """
 # ===============================================================================
 def MCRBin(fileDir, VarSrch):
@@ -86,12 +86,12 @@ def MCRBin(fileDir, VarSrch):
         VarUdmFull=['sec','','','']+VarUdmFull
         for Nam in VarSrch:
           VarSrchPos.append(VarNameFull.index(Nam.strip()))
-        VarUdmFull=[VarUdmFull[i] for i in VarSrchPos]														
+        VarUdmFull=[VarUdmFull[i] for i in VarSrchPos]
         SwapPosVarSrch=sorted(range(len(VarSrchPos)), key=lambda k: VarSrchPos[k])
         SwapPosVarSrch=sorted(range(len(SwapPosVarSrch)), key=lambda k: SwapPosVarSrch[k])
         VarSrchPos.sort()
-        VarSrchPos.append(VarName[1]+4)					   
-        HdrList.append([])				   
+        VarSrchPos.append(VarName[1]+4)
+        HdrList.append([])
       elif HdrList[cntr - 1] == '.TR/':
         DataPos.append(bf.tell())
         bf.seek(BlkLenBef[cntr], 1)
@@ -99,9 +99,9 @@ def MCRBin(fileDir, VarSrch):
       else:
         HdrList.append([])
       BlkLenAft.append(unpack('I', bf.read(4))[0])
-	  
+
       cntr +=1
-	  
+
   data=np.empty([len(DataPos), len(VarSrch)+1])*np.nan
   with open(fileDir, 'rb') as bf:
     for i,Pos in enumerate(DataPos):

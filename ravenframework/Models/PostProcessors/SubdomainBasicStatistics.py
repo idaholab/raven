@@ -137,12 +137,12 @@ class SubdomainBasicStatistics(PostProcessorInterface):
     self.gridEntity.initialize({'computeCells': True,'constructTensor': True,})
     # check that the grid is defined only in the input space.
     dims = self.gridEntity.returnParameter("dimensionNames")
-    inputs = inputs[-1].getVars("input")
-    if not all(item in inputs for item in dims):
-      unset = ', '.join(list(set(dims) - set(inputs)))
-      self.raiseAnError(RuntimeError, "Subdomain grid must be defined on the input space only (inputs)."
-                        f"The following variables '{unset}' are not part of the input space of DataObject {inputs[-1].name}!")
-
+    inputVars = inputs[-1].getVars("input")
+    if not all(item in inputVars for item in dims):
+      unset = ', '.join(list(set(dims) - set(inputVars)))
+      self.raiseAnError(RuntimeError, ("Subdomain grid must be defined on the input space only (inputs)."
+                        f"The following variables '{unset}' are not part "
+                        f "of the input space of DataObject {inputs[-1].name}!"))
 
   def _handleInput(self, paramInput):
     """
