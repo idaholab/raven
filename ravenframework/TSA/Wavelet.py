@@ -113,7 +113,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     except ModuleNotFoundError:
       print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
       raise ModuleNotFoundError
-    
+
 
     ## The pivot input parameter isn't used explicity in the
     ## transformation as it assumed/required that each element in the
