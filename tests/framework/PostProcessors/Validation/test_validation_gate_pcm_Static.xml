@@ -31,9 +31,9 @@
 
   <Models>
     <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
-      <Features>expData|time60,expData|time70,expData|time80</Features>
-      <Targets>appData|time90</Targets>
-      <Measurements>msrData|time60,msrData|time70,msrData|time80</Measurements>
+      <Features>expData|time20s,expData|time40s,expData|time50s</Features>
+      <Targets>appData|time20s</Targets>
+      <Measurements>msrData|time20s,msrData|time40s,msrData|time50s</Measurements>
     </PostProcessor>
   </Models>
 
@@ -58,17 +58,17 @@
 
   <DataObjects>
     <PointSet name="expData">
-      <Output>time60,time70,time80</Output>     
+      <Output>time20s,time40s,time50s</Output>     
     </PointSet>
     <PointSet name="appData">
-      <Output>time90</Output>     
+      <Output>time20s</Output>     
     </PointSet>      
     <PointSet name="msrData">
-      <Output>time60,time70,time80</Output>     
+      <Output>time20s,time40s,time50s</Output>     
     </PointSet>    
     <PointSet name="pcmStatic_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>static_pri_post_stdReduct_time90</Output>
+      <Output>static_pri_post_stdReduct_time20s</Output>
     </PointSet>
   </DataObjects>
 
