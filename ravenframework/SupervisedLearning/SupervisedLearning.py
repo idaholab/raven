@@ -409,7 +409,7 @@ class SupervisedLearning(BaseInterface):
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         if self.dynamicFeatures:
-          featureValues[:, :, cnt] = (valueToUse[:, :] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+          featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
 
@@ -795,16 +795,16 @@ class SupervisedLearning(BaseInterface):
     return evaluation
   ### END ROM Clustering ###
 
-  @abc.abstractmethod
-  def _train(self,featureVals,targetVals):
-    """
-      Perform training on samples in featureVals with responses y.
-      For an one-class model, +1 or -1 is returned.
-      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-        an array of input feature values
-      @ Out, targetVals, array, shape = [n_samples], an array of output target
-        associated with the corresponding points in featureVals
-    """
+  # @abc.abstractmethod
+  # def _train(self,featureVals,targetVals):
+  #   """
+  #     Perform training on samples in featureVals with responses y.
+  #     For an one-class model, +1 or -1 is returned.
+  #     @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+  #       an array of input feature values
+  #     @ Out, targetVals, array, shape = [n_samples], an array of output target
+  #       associated with the corresponding points in featureVals
+  #   """
 
   @abc.abstractmethod
   def __confidenceLocal__(self,featureVals):
