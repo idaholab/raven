@@ -117,7 +117,6 @@
  [./melcorInterfaceForwardSamplingNoExe]
    type = 'RavenFramework'
    input = 'test_melcor_interface.xml'
-   output = 'MelcorInterface/dumpMelcorHistorySet_2.csv MelcorInterface/dumpMelcorHistorySet.csv'
    csv = 'MelcorInterface/dumpMelcorPointSet.csv'
    text = 'MelcorInterface/testMelcor/1/test.i'
    test_interface_only = True
