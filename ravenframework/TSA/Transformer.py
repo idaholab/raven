@@ -79,12 +79,17 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
     """
     specs = super(Transformer, cls).getInputSpecification()
     specs.name = 'transformer'
-    specs.description = r"""TimeSeriesAnalysis algorithm for applying a specified transformation
-                        to the target values by leveraging scikit-learn's preprocessing module."""
+    specs.description = r"""performs a transformation of the target data. This leverages the interface
+                        defined by the sklearn.base.TransformerMixin class of scikit-learn for fit,
+                        transform, and inverse transform functions. The functionality here is designed
+                        with the transformers of the sklearn.preprocessing module in mind, though any
+                        class which inherits from sklearn.base.TransformerMixin may be used. This includes
+                        classes from other scikit-learn modules, other libraries, and user-defined
+                        transformers."""
     specs.addParam('subType', param_type=InputTypes.StringType, required=True,
                    descr=r"""specifies the type of transformer to use. This name should match the name
                    of a class in sklearn.preprocessing. Keyword arguments for the transformer can be
-                   passed using subnodes of the form <key>value</key>.""")
+                   passed using the \xmlNode{arg} node.""")
     specs.addParam('filePath', param_type=InputTypes.StringType, required=False,
                    descr=r"""gives the path to the file containing the custom transformer class. Note that
                    importing this class will fail if its file name duplicates an existing module name.""")
@@ -163,7 +168,7 @@ class Transformer(TimeSeriesGenerator, TimeSeriesCharacterizer):
     elif dataType == 'callable':
       typedValue = getModuleAttribute(value)
     else:
-      self.raiseAnError(TypeError, f'Unknown data type {dataType} provided for argument value {value}.')
+      raise ValueError(f'Unknown data type {dataType} provided for argument value {value}.')
 
     return typedValue
 

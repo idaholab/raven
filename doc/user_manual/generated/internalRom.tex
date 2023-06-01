@@ -58,7 +58,7 @@
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -88,7 +88,7 @@
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -154,7 +154,7 @@
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -194,7 +194,7 @@
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -299,7 +299,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -329,7 +329,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -395,7 +395,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -435,7 +435,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -645,7 +645,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -675,7 +675,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -741,7 +741,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -781,7 +781,7 @@ defined in \xmlNode{Models}, and the model loaded in \xmlNode{Steps}.
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -970,7 +970,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -1000,7 +1000,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1066,7 +1066,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1106,7 +1106,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -1282,7 +1282,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -1312,7 +1312,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1378,7 +1378,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1418,7 +1418,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -1624,7 +1624,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -1654,7 +1654,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1720,7 +1720,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1760,7 +1760,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -1873,7 +1873,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -1903,7 +1903,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -1969,7 +1969,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -2009,7 +2009,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -2175,6 +2175,41 @@ Example:
           Specifies the degree polynomial to fit the data with.
       \end{itemize}
 
+    \item \xmlNode{transformer}:
+      performs a transformation of the target data. This leverages the interface
+      defined by the sklearn.base.TransformerMixin class of scikit-learn for fit,
+      transform, and inverse transform functions. The functionality here is designed
+      with the transformers of the sklearn.preprocessing module in mind, though any
+      class which inherits from sklearn.base.TransformerMixin may be used. This includes
+      classes from other scikit-learn modules, other libraries, and user-defined
+      transformers.
+      The \xmlNode{transformer} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{subType}: \xmlDesc{string, required}, 
+            specifies the type of transformer to use. This name should match the name
+            of a class in sklearn.preprocessing. Keyword arguments for the transformer can be
+            passed using the \xmlNode{arg} node.
+          \item \xmlAttr{filePath}: \xmlDesc{string, optional}, 
+            gives the path to the file containing the custom transformer class. Note that
+            importing this class will fail if its file name duplicates an existing module name.
+      \end{itemize}
+
+      The \xmlNode{transformer} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{arg}: \xmlDesc{string}, 
+          specifies a keyword argument to be passed to the
+          transformer, given in the form key|value.
+          The \xmlNode{arg} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{type}: \xmlDesc{[str, int, float, callable], required}, 
+                specifies the data type of the argument.
+          \end{itemize}
+      \end{itemize}
+
     \item \xmlNode{rwd}:
       TimeSeriesAnalysis algorithm for sliding window snapshots to generate features
       The \xmlNode{rwd} node recognizes the following parameters:
@@ -2304,7 +2339,7 @@ Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -2334,7 +2369,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -2400,7 +2435,7 @@ Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -2440,7 +2475,7 @@ Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -2872,7 +2907,7 @@ General ARMA Example:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -2902,7 +2937,7 @@ General ARMA Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -2968,7 +3003,7 @@ General ARMA Example:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -3008,7 +3043,7 @@ General ARMA Example:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -3180,7 +3215,7 @@ Example to export the coefficients of trained PolyExponential ROM:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -3210,7 +3245,7 @@ Example to export the coefficients of trained PolyExponential ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -3276,7 +3311,7 @@ Example to export the coefficients of trained PolyExponential ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -3316,7 +3351,7 @@ Example to export the coefficients of trained PolyExponential ROM:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}
@@ -3518,7 +3553,7 @@ Example to export the coefficients of trained DMD ROM:
           wrapped by RFE, and used to help select features.         \\RFE works by searching for a
           subset of features by starting with all features in the training dataset and successfully
           removing         features until the desired number remains.         This is achieved by
-          fitting the given ROME used in the core of the model, ranking features by importance,
+          fitting the given ROM used in the core of the model, ranking features by importance,
           discarding the least important features, and re-fitting the model. This process is
           repeated until a specified number of         features remains.         When the full model
           is created, a measure of variable importance is computed that ranks the predictors from
@@ -3548,7 +3583,7 @@ Example to export the coefficients of trained DMD ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -3614,7 +3649,7 @@ Example to export the coefficients of trained DMD ROM:
               List of IDs of features/variables to include in the search.
   \default{None}
 
-            \item \xmlNode{whichSpace}: \xmlDesc{[feature, target]}, 
+            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
               Which space to search? Target or Feature (this is temporary till DataSet training is
               implemented)
   \default{feature}
@@ -3654,7 +3689,7 @@ Example to export the coefficients of trained DMD ROM:
           List of IDs of features/variables to include in the transformation process.
   \default{None}
 
-        \item \xmlNode{whichSpace}: \xmlDesc{string}, 
+        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
           Which space to search? Target or Feature?
   \default{Feature}
       \end{itemize}

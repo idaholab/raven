@@ -158,6 +158,13 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
     return params
 
   def fitSignal(self, baseSignal, signalToFit):
+    """
+      Utility for calculating least-squares approximation of Fourier coefficients
+      @ In, baseSignal, np.ndarray, signal composes of Fourier base(s)
+      @ In, signalToFit, np.ndarray, signal being detrended
+      @ Out, intercept, np.ndarray, intercept for the base Fourier signal
+      @ Out, coeffs, np.ndarray, coefficients of the various Fourier components
+    """
     fitResult = sm.OLS(signalToFit, sm.add_constant(baseSignal), missing='drop').fit()
     intercept = fitResult.params[0]
     coeffs = fitResult.params[1:]
