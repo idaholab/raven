@@ -27,6 +27,7 @@
 #External Modules------------------------------------------------------------------------------------
 import abc
 import copy
+from typing_extensions import runtime
 import numpy as np
 import sklearn
 #External Modules End--------------------------------------------------------------------------------
@@ -193,6 +194,7 @@ class SupervisedLearning(BaseInterface):
     #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
     # normalization parameters
+
     self.muAndSigmaFeatures = {}
     # keys that can be passed to DataObject as meta information
     self.metadataKeys = set()
@@ -204,6 +206,8 @@ class SupervisedLearning(BaseInterface):
     # After the computation, the importances are set as attribute of the self.model
     # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
     self.computeImportances = False
+    # True if the "train" method expects a dictionary ONLY
+    self.needsDictTraining = True
 
   def __getstate__(self):
     """
@@ -334,17 +338,31 @@ class SupervisedLearning(BaseInterface):
     """
     return self.featureSelectionAlgo is not None and not self.doneSelectionFeatures
 
-  def train(self, tdict, indexMap=None):
+  def train(self, trainingData, indexMap=None):
     """
       Method to perform the training of the SupervisedLearning algorithm
-      NB.the SupervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, trainingData, dataset or dict, training dictionary
+      @ In, indexMap, dict, mapping of variables to their dependent indices, if any
+      @ Out, None
+    """
+    if self.needsDictTraining:
+      self.trainOnDictionary(trainingData, indexMap)
+    else:
+      self.amITrained = True
+      self.muAndSigmaFeatures = dict((f, (0,1)) for f in self.features)
+
+  def trainOnDictionary(self, tdict, indexMap):
+    """
+      Translates the incoming data as a dictionary into numpy arrays
       @ In, tdict, dict, training dictionary
       @ In, indexMap, dict, mapping of variables to their dependent indices, if any
       @ Out, None
     """
-    if type(tdict) != dict:
-      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if not isinstance(tdict, dict):
+      self.raiseAnError(
+        RuntimeError,
+        f'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is "{str(type(tdict))}"'
+      )
     names, values  = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by skl *MultiTask* that
     ## requires multiple targets.
@@ -365,7 +383,8 @@ class SupervisedLearning(BaseInterface):
       for feat in self.features:
         for index in indexMap.get(feat, []):
           if index not in needFeatures and index not in needTargets:
-            needFeatures.append(feat)
+            needFeatures.append(index)
+
     if self.dynamicFeatures:
       featLen = 0
       for cnt, feat in enumerate(self.features):
@@ -373,7 +392,8 @@ class SupervisedLearning(BaseInterface):
       featureValues = np.zeros(shape=(len(targetValues), featLen,len(self.features)))
     else:
       featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
-    for cnt, feat in enumerate(self.features):
+
+    for cnt, feat in enumerate(needFeatures):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
@@ -383,13 +403,13 @@ class SupervisedLearning(BaseInterface):
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
         if len(valueToUse) != featureValues.shape[0]:
-          self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
-          self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
+          self.raiseAWarning('feature values:', featureValues.shape[0], tag='ERROR')
+          self.raiseAWarning('target values:', len(valueToUse), tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         if self.dynamicFeatures:
-          featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+          featureValues[:, :, cnt] = (valueToUse[:, :] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
 
