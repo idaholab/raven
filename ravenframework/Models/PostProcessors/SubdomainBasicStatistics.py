@@ -141,8 +141,8 @@ class SubdomainBasicStatistics(PostProcessorInterface):
     if not all(item in inputVars for item in dims):
       unset = ', '.join(list(set(dims) - set(inputVars)))
       self.raiseAnError(RuntimeError, ("Subdomain grid must be defined on the input space only (inputs)."
-                        f"The following variables '{unset}' are not part "
-                        f "of the input space of DataObject {inputs[-1].name}!"))
+                                       f"The following variables '{unset}' are not part "
+                                       f"of the input space of DataObject {inputs[-1].name}!"))
 
   def _handleInput(self, paramInput):
     """

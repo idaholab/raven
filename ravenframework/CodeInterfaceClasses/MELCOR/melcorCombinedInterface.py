@@ -145,12 +145,12 @@ class Melcor(CodeInterfaceBase):
       @ Out, None
     """
     fileDir = os.path.join(workDir,self.MelcorPlotFile)
-    Time,Data,VarUdm = melcorTools.MCRBin(fileDir,self.VarList)
-    dfTime = pd.DataFrame(Time, columns= ["Time"])
-    dfData = pd.DataFrame(Data, columns = self.VarList)
+    time,data,VarUdm = melcorTools.MCRBin(fileDir,self.VarList)
+    dfTime = pd.DataFrame(time, columns= ["Time"])
+    dfData = pd.DataFrame(data, columns = self.VarList)
     df = pd.concat([dfTime, dfData], axis=1, join='inner')
     df.drop_duplicates(subset="Time",keep='first',inplace=True)
-    dictionary = df.to_dict()
+    dictionary = df.to_dict(orient='list')
     return dictionary
 
   def finalizeCodeOutput(self,command,output,workingDir):
