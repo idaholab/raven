@@ -4,10 +4,15 @@
   input = 'test_internal_parallel_ROM_scikit.xml'
   UnorderedCsv = 'InternalParallelScikit/PrintDataData2.csv InternalParallelScikit/PrintDataData3.csv'
  [../]
- [./ExternalModel]
+ [./ExternalModelDask]
   type = 'RavenFramework'
   input = 'test_internal_parallel_extModel.xml'
   UnorderedCsv = 'InternalParallelExtModel/testPointSet_dump.csv'
+ [../]
+ [./ExternalModelRay]
+  type = 'RavenFramework'
+  input = 'test_internal_parallel_extModelRay.xml'
+  UnorderedCsv = 'InternalParallelExtModelRay/testPointSet_dump.csv'
  [../]
  [./PostProcessor]
   type = 'RavenFramework'

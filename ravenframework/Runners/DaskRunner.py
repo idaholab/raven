@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Mar 5, 2013
+Created on Mar 13, 2023
 
 @author: alfoa, cogljj, crisr, talbpw, maljdp
 """
@@ -22,11 +22,20 @@ import gc
 import copy
 import threading
 from ..utils import importerUtils as im
-## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
-if im.isLibAvail("ray"):
+from ..utils.utils import ParallelLibEnum
+
+
+## check which libraries are available.
+if im.isLibAvail("dask"):
+  import dask
+  import dask.distributed
+  parallelLib = ParallelLibEnum.dask
+elif im.isLibAvail("ray"):
   import ray
+  parallelLib = ParallelLibEnum.ray
 else:
   import inspect
+  parallelLib = ParallelLibEnum.pp
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,12 +43,11 @@ from ..utils import utils
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
-waitTimeOut = 1e-10 # timeout to check for job to finish
 
-class DistributedMemoryRunner(InternalRunner):
+class DaskRunner(InternalRunner):
   """
     Class for running internal objects in distributed memory fashion using
-    ppserver
+    dask.
   """
   def __init__(self, args, functionToRun, **kwargs):
     """
@@ -54,8 +62,10 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    if not im.isLibAvail("ray"):
-      self.__ppserver, args = args[0], args[1:]
+    if not parallelLib == ParallelLibEnum.dask:
+      raise Exception("in DaskRunner, but using"+str(parallelLib))
+    #XXX weird way to transfer client
+    self.__client, args = args[0], args[1:]
     super().__init__(args, functionToRun, **kwargs)
     # __func (when using ray) is the object ref
     self.__func = None
@@ -70,7 +80,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    state.pop('_DistributedMemoryRunner__funcLock')
+    state.pop('_DaskRunner__funcLock')
     return state
 
   def __setstate__(self, d):
@@ -98,29 +108,23 @@ class DistributedMemoryRunner(InternalRunner):
       elif self.hasBeenAdded:
         return True
       else:
-        if im.isLibAvail("ray"):
-          try:
-            runReturn = ray.get(self.__func, timeout=waitTimeOut)
-            self.runReturn = runReturn
-            self.hasBeenAdded = True
-            if self.runReturn is None:
-              self.returnCode = -1
-            return True
-          except ray.exceptions.GetTimeoutError:
-            #Timeout, so still running.
-            return False
-          except ray.exceptions.RayTaskError as rte:
-            #The code gets this undocumented error, and
-            # I assume it means the task has unfixably died,
-            # and so is done, and set return code to failed.
-            self.raiseAWarning("RayTaskError: "+str(rte))
-            self.returnCode = -1
-            return True
-          #Alternative that was tried:
-          #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
-          #which ran slower in ray 1.9
-        else:
-          return self.__func.finished
+        return self.__func.done()
+
+  def getReturnCode(self):
+    """
+      Returns the return code from running the code.  If return code not yet
+      set, then set it.
+      @ In, None
+      @ Out, returnCode, int,  the return code of this evaluation
+    """
+    if not self.hasBeenAdded:
+      try:
+        self._collectRunnerResponse()
+      except Exception as ae:
+        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+        self.returnCode = -1
+
+    return self.returnCode
 
   def _collectRunnerResponse(self):
     """
@@ -132,7 +136,15 @@ class DistributedMemoryRunner(InternalRunner):
     with self.__funcLock:
       if not self.hasBeenAdded:
         if self.__func is not None:
-          self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
+          #if the function threw an exception, result will rethrow it.
+          try:
+            self.runReturn = self.__func.result()
+          except Exception as ae:
+            self.runReturn = None
+            self.hasBeenAdded = True
+            self.returnCode = -1
+            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+            raise ae
         else:
           self.runReturn = None
         self.hasBeenAdded = True
@@ -144,11 +156,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      if im.isLibAvail("ray"):
-        self.__func = self.functionToRun(*self.args)
-      else:
-        self.__func = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
-                                             modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
+      self.__func = self.__client.submit(self.functionToRun, *self.args, retries=0)
       self.trackTime('runner_started')
       self.started = True
       gc.collect()
