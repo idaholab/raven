@@ -17,7 +17,7 @@
 """
 
 import os
-from . import melcorTools
+from ...contrib.melcorTools import melcorTools
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..Generic import GenericParser
 import pandas as pd

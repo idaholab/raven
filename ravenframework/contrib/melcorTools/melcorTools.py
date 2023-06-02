@@ -4,7 +4,7 @@
   Last update on October 14, 2022
   @authors:
            Matteo D'Onorio (University of Rome La Sapienza)
-           Paolo Balestra (University of Rome La Sapienza)
+           Paolo Balestra  (University of Rome La Sapienza)
 """
 # ===============================================================================
 def MCRBin(fileDir, VarSrch):
@@ -59,13 +59,13 @@ def MCRBin(fileDir, VarSrch):
         for k in range(0,len(VarNam)):
           itm_x_Var.append(VarPos[k+1]-VarPos[k])
         if len(itm_x_Var) != len(VarNam):
-          print("Number of variables different from number of items of offset array")
+          print("MelcorTools: Number of variables different from number of items of offset array")
           print(itm_x_Var)
           print(len(VarNam))
           break
         Items_Tot = sum(itm_x_Var)
         if Items_Tot != len(VarNum):
-          print("Somma degli item da associare ad ogni variabile è diversa dalla somma di tutti gli items id VarNum")
+          print("MelcorTools: The Sum of the items to be associated with each variable is different from the sum of all items id VarNum")
         VarNum_Cntr =0
         Var_dict = {}
         for i,Var in enumerate(VarNam):
