@@ -31,6 +31,7 @@ def functionTransformerFactory(func, inverse_func):
     @ Out, UserFunctionTransformer, class, custom transformer class
   """
   class UserFunctionTransformer(FunctionTransformer):
+    """ Custom FunctionTransformer class """
     def __init__(self):
       super().__init__(func=func, inverse_func=inverse_func)
   return UserFunctionTransformer

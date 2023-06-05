@@ -47,6 +47,11 @@ def getModuleAttribute(name):
   return attribute
 
 def loadFileAsModule(filePath):
+  """
+    Loads a local file as a module, using the file name as the module name.
+    @ In, filePath, str, path to file to load
+    @ Out, moduleName, str, name of module
+  """
   filePath = os.path.expanduser(filePath)  # lets users use the '~' as home directory in path
   if not os.path.exists(filePath):
     raise FileNotFoundError(f'The file at path {filePath} could not be found!')
