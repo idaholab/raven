@@ -34,6 +34,12 @@ def run(self,Input):
   self.F1,self.F2,self.F3 = main(Input)
 
 def main(Input):
+  """
+  This method computes linear responses based on Inputs. i.e., $$y = A @ x$$
+
+  @ In, Input, dict, dictionary containing inputs from RAVEN
+  @ out, y[:], elements of response vector y
+  """
   # y = A @ np.array(list(Input.values())).reshape(-1,1) + b
   m = len([key for key in Input.keys() if 'e' in key]) # number of experiments
   n = len([par for par in Input.keys() if 'p' in par]) # number of parameters
