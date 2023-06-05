@@ -12,18 +12,16 @@ This post-processor provides objects designed for the tasks of reconstruction an
     \item de Silva, Brian M., et al. ``PySensors: A Python package for sparse sensor placement.'' arXiv preprint arXiv:2102.13476 (2021) contains a full literature review along with examples and additional tips for using PySensors effectively.
 \end{itemize}
 
-Some important terms related to sensor placement problems are :
-
+\ppType{SparseSensing }{SparseSensing}
+\begin{itemize}
+\item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
+User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field} representing the goal of the sparse sensing optimization; i.e., which goal function is used in the optimization? Examples for such gola functions are:
 \begin{itemize}
     \item \textbf{Reconstruction} deals with predicting the values of a quantity of interest at different locations other than those where sensors are located. For example, one might predict the temperature at a point point in the middle of a fuel rod based on readings taken at various other positions.
 
     \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
 \end{itemize}
 \nb{Currently, only reconstruction is implemented.}
-\ppType{SparseSensing }{SparseSensing}
-\begin{itemize}
-\item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
-
 In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
 \begin{itemize}
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., locations or time stamps we should sense
