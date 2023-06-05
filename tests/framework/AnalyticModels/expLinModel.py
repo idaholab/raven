@@ -40,7 +40,6 @@ def main(Input):
   @ In, Input, dict, dictionary containing inputs from RAVEN
   @ out, y[:], elements of response vector y
   """
-  # y = A @ np.array(list(Input.values())).reshape(-1,1) + b
   m = len([key for key in Input.keys() if 'e' in key]) # number of experiments
   n = len([par for par in Input.keys() if 'p' in par]) # number of parameters
   A = np.array([Input['e1'],Input['e2'],Input['e3']]).reshape(-1,n)

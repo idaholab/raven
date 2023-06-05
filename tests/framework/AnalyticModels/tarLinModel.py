@@ -35,7 +35,12 @@ def run(self,Input):
   self.FOM1,self.FOM2,self.FOM3 = main(Input)
 
 def main(Input):
-  # y = A @ np.array(list(Input.values())).reshape(-1,1) + b
+  """
+  This method computes linear responses of the target application based on Inputs. i.e., $$y = A @ x$$
+
+  @ In, Input, dict, dictionary containing inputs from RAVEN
+  @ out, y[:], elements of response vector y
+  """
   m = len([key for key in Input.keys() if 'o' in key]) # number of experiments
   n = len([par for par in Input.keys() if 'p' in par]) # number of parameters
   A = np.array([Input['o1'],Input['o2'],Input['o3']]).reshape(-1,n)
