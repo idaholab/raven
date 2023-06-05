@@ -13,7 +13,7 @@
     <classesTested>PostProcessors.Validation</classesTested>
     <description>
         This test assesses the mechanics of the representativity workflow; one of the validation algorithms used in RAVEN.
-        This test a linear model as both the mock experiment and the target plant models. The expected representativity factor should be close to one for each measurable F_i and Figure of merit FOM_i. Currently the test utilizes the bias factor metric to compute the representativity factors.
+        This test a linear model as both the mock experiment and the target plant models. The expected representativity factor should be close to one for each measurable F_i and Figure of merit FOM_i. Currently the test utilizes the bias factor metric to compute the representativity factors. This test includes a single experiment.
     </description>
     <revisions>
       <revision author="Mohammad Abdo (@Jimmy-INL)" date="2021-04-11">Added Modification for new PP API</revision>
