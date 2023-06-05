@@ -132,8 +132,8 @@ class ValidationBase(PostProcessorReadyInterface):
         self.targetOutputs = child.value
     if 'static' not in self.dataType and self.pivotParameter is None:
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
-    # if not self.features:
-    #   self.raiseAnError(IOError, "XML node 'prototypeParameters' is required but not provided")
+    if not self.prototypeOutputs:
+      self.raiseAnError(IOError, "XML node 'prototypeOutputs' is required but not provided")
 
   def initialize(self, runInfo, inputs, initDict):
     """

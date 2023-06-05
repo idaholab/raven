@@ -90,10 +90,9 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
 %
 
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
-  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
-    targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
-    number of targets should be equal to the number of features.
+  \item \xmlNode{prototypeOutputs}, \xmlDesc{comma separated string, required field}, contains a comma separated list of strings specifying the names of the prototype/mock model outputs.
+  \item \xmlNode{targetOutputs}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+   strings specifying target outputs.
   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
     The pivot parameter is the shared index of the output variables in the data object.
   \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
