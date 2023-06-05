@@ -281,6 +281,8 @@ class RAVEN(CodeInterfaceBase):
 
     if 'headNode' in Kwargs:
       modifDict['RunInfo|headNode'] = Kwargs['headNode']
+    if 'schedulerFile' in Kwargs:
+      modifDict['RunInfo|schedulerFile'] = Kwargs['schedulerFile']
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])

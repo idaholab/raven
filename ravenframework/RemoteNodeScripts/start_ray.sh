@@ -39,4 +39,6 @@ hostname >> $OUTFILE
 
 echo loaded >> $OUTFILE
 command -v ray >> $OUTFILE 2>&1
+mkdir -p /tmp/ray
+echo ray start --verbose --address=$HEAD_ADDRESS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1
 ray start --verbose --address=$HEAD_ADDRESS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1

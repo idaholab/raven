@@ -21,6 +21,17 @@
     [../]
   [../]
 
+    [./MinwReplacementConvHDSM]
+      type = 'RavenFramework'
+      input = 'discrete/unconstrained/testGAMinwRepConvHDSM.xml'
+      [./data]
+        type = OrderedCSV
+        output = 'discrete/unconstrained/MinwReplacementConvHDSM/opt_export_0.csv'
+        rel_err = 1e-3
+        zero_threshold = 1e-5
+      [../]
+    [../]
+
   [./MinwReplacementConvAHDpUsingCode]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwRepConvAHDpUsingCode.xml'
@@ -55,6 +66,16 @@
     [../]
   [../]
 
+    [./MinwoReplacementConvHDSM]
+      type = 'RavenFramework'
+      input = 'discrete/unconstrained/testGAMinwoRepConvHDSM.xml'
+      [./data]
+        type = OrderedCSV
+        output = 'discrete/unconstrained/MinwoReplacementConvHDSM/opt_export_0.csv'
+        rel_err = 1e-3
+        zero_threshold = 1e-5
+      [../]
+    [../]
   [./MaxwReplacement]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMaxwRep.xml'
@@ -103,6 +124,17 @@
     [../]
   [../]
 
+    [./MaxwReplacementConvHDSM]
+      type = 'RavenFramework'
+      input = 'discrete/unconstrained/testGAMaxwRepConvHDSM.xml'
+      [./data]
+        type = OrderedCSV
+        output = 'discrete/unconstrained/MaxwReplacementConvHDSM/opt_export_0.csv'
+        rel_err = 1e-3
+        zero_threshold = 1e-5
+      [../]
+    [../]
+
   [./MaxwoReplacement]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMaxwoRep.xml'
@@ -146,6 +178,17 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+    [./MaxwoReplacementConvHDSM]
+      type = 'RavenFramework'
+      input = 'discrete/unconstrained/testGAMaxwoRepConvHDSM.xml'
+      [./data]
+        type = OrderedCSV
+        output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/opt_export_0.csv'
+        rel_err = 1e-3
+        zero_threshold = 1e-5
+      [../]
+    [../]
 
   [./discreteIntWithReplacement]
     type = 'RavenFramework'
@@ -328,6 +371,16 @@
     [./csv]
      type = OrderedCSV
      output = 'continuous/unconstrained/ensemble_withGA/metaModelOutputTestDump.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GAwithEnsembleModelHDSMconvergence]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/test_ensemble_withGA_HDSM.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
      rel_err = 0.001
     [../]
   [../]

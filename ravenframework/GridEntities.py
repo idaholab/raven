@@ -18,6 +18,7 @@ Created on Mar 30, 2015
 """
 import abc
 import sys
+from numbers import Number
 
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
@@ -58,14 +59,15 @@ class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):
     self.gridInitDict = {}
 
   @classmethod
-  def _readMoreXml(cls, xmlNode, dimensionTags=None, dimTagsPrefix=None):
+  def _handleInput(self, paramInput, dimensionTags=None, dimTagsPrefix=None):
     """
-      XML reader for the grid statement.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
     """
+
 
   @classmethod
   def initialize(cls, initDictionary=None):
@@ -252,16 +254,16 @@ class GridEntity(GridBase):
     self.constructTensor                        = False              # True if we need to construct the tensor product of the the ND grid (full grid) or just the iterator (False)
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
-    self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
+    self.gridInitDict                           = {}                 # dictionary with initialization grid info from _handleInput. If None, the "initialize" method will look for all the information in the in Dictionary
     self.volumetricRatio                        = None               # volumetric ratio (optional if steplenght is read or passed in initDict)
     self.nVar = None
     self.dimName = None
     self.gridInitDict = {}
 
-  def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
+  def _handleInput(self, paramInput, dimensionTags=None, dimTagsPrefix=None):
     """
-      XML reader for the grid statement.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      Function to handle the parsed paramInput for the grid (single) instance.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
@@ -269,22 +271,22 @@ class GridEntity(GridBase):
     self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLength':{}}
     gridInfo = {}
     dimInfo = {}
-    for child in xmlNode:
+    for child in paramInput.subparts:
       self.dimName = None
       if dimensionTags is not None:
-        if child.tag in dimensionTags:
-          self.dimName = child.attrib['name']
+        if child.getName() in dimensionTags:
+          self.dimName = child.parameterValues['name']
           if dimTagsPrefix is not None:
-            self.dimName = dimTagsPrefix[child.tag] + self.dimName if child.tag in dimTagsPrefix else self.dimName
-      if child.tag == "grid":
-        gridInfo[self.dimName] = self._readGridStructure(child, xmlNode)
-      for childChild in child:
-        if childChild.tag == "grid":
+            self.dimName = dimTagsPrefix[child.getName()] + self.dimName if child.getName() in dimTagsPrefix else self.dimName
+      if child.getName() == "grid":
+        gridInfo[self.dimName] = self._readGridStructure(child, paramInput)
+      for childChild in child.subparts:
+        if childChild.getName() == "grid":
           gridInfo[self.dimName] = self._readGridStructure(childChild,child)
-        if 'dim' in childChild.attrib:
+        if 'dim' in childChild.parameterValues:
           dimID = str(len(self.gridInitDict['dimensionNames']) + 1) if self.dimName is None else self.dimName
           try:
-            dimInfo[dimID] = [int(childChild.attrib['dim']),None]
+            dimInfo[dimID] = [int(childChild.parameterValues['dim']),None]
           except ValueError:
             self.raiseAnError(ValueError, "cannot convert 'dim' attribute in integer!")
     # check for globalGrid type of structure
@@ -309,51 +311,51 @@ class GridEntity(GridBase):
   def _readGridStructure(self, child, parent):
     """
       This method is aimed to read the grid structure in the xml node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
-      @ In, parent, xml.etree.ElementTree.Element, the xml node that contains the node in which the grid info are defined
+      @ In, child, ParameterInput, the already parsed input containing the grid info
+      @ In, parent, ParameterInput, the already parsed input containing the node in which the grid info are defined
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
-    if child.tag =='grid':
+    if child.getName() =='grid':
       gridStruct, gridName = self._fillGrid(child)
       if self.dimName is None:
         self.dimName = str(len(self.gridInitDict['dimensionNames'])+1)
-      if parent.tag != 'globalGrid':
+      if parent.getName() != 'globalGrid':
         self.gridInitDict['dimensionNames'].append(self.dimName)
       else:
         if gridName is None:
           self.raiseAnError(IOError, 'grid defined in globalGrid block must have the attribute "name"!')
-        self.dimName = parent.tag + ':' + gridName
+        self.dimName = parent.getName() + ':' + gridName
 
       return gridStruct
 
   def _fillGrid(self, child):
     """
       This method is aimed to fill the grid structure from an XML node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
+      @ In, child, ParameterInput, the already parsed input containing the grid info
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
     constrType = None
-    if 'construction' in child.attrib.keys():
-      constrType = child.attrib['construction']
-    if 'type' not in child.attrib.keys():
+    if 'construction' in child.parameterValues.keys():
+      constrType = child.parameterValues['construction']
+    if 'type' not in child.parameterValues.keys():
       self.raiseAnError(IOError, "Each <grid> XML node needs to have the attribute type!!!!")
     nameGrid = None
     if constrType in ['custom','equal']:
-      bounds = [floatConversion(element) for element in child.text.split()]
+      bounds = [floatConversion(element) for element in child.value.split()]
       bounds.sort()
       lower, upper = min(bounds), max(bounds)
-      if 'name' in child.attrib.keys():
-        nameGrid = child.attrib['name']
+      if 'name' in child.parameterValues.keys():
+        nameGrid = child.parameterValues['name']
     if constrType == 'custom':
-      gridStruct = (child.attrib['type'],constrType,bounds),nameGrid
+      gridStruct = (child.parameterValues['type'],constrType,bounds),nameGrid
     elif constrType == 'equal':
       if len(bounds) != 2:
-        self.raiseAnError(IOError, f'body of grid XML node needs to contain 2 values (lower and upper bounds).Tag = {child.tag}')
-      if 'steps' not in child.attrib.keys():
+        self.raiseAnError(IOError, f'body of grid XML node needs to contain 2 values (lower and upper bounds).Tag = {child.getName()}')
+      if 'steps' not in child.parameterValues.keys():
         self.raiseAnError(IOError, 'the attribute step needs to be inputted when "construction" attribute == equal!')
-      gridStruct = (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
-    elif child.attrib['type'] == 'globalGrid':
-      gridStruct = (child.attrib['type'],constrType,child.text),nameGrid
+      gridStruct = (child.parameterValues['type'],constrType,np.linspace(lower,upper,partialEval(child.parameterValues['steps'])+1)),nameGrid
+    elif child.parameterValues['type'] == 'globalGrid':
+      gridStruct = (child.parameterValues['type'],constrType,child.value),nameGrid
     else:
       self.raiseAnError(IOError, f'construction type unknown! Got: {constrType}')
 
@@ -388,6 +390,9 @@ class GridEntity(GridBase):
     initDict        = initDictionary if initDictionary is not None else {}
     computeCells    = bool(initDict.get('computeCells', False))
     self.constructTensor = bool(initDict['constructTensor']) if 'constructTensor' in initDict else False
+    # assert that compute cells are requested if and only if constructTensor is True
+    assert not(not self.constructTensor and computeCells), 'computeCells can be only computed if the tensor grid is activated!!'
+
     if  len(self.gridInitDict.keys()) != 0:
       readKeys = list(self.gridInitDict.keys())
     if initDict is not None:
@@ -701,6 +706,47 @@ class GridEntity(GridBase):
 
     return coordinates
 
+  def returnCellIdsWithCoordinates(self,  returnDict=False, recastMethods={}):
+    """
+      Method to return the container of the cell ids with the coordinates of the vertices in the real space (real coordinates)
+      @ In, returnDict, bool, optional, flag to request the output of the coordinates in dictionary format or not.
+                                         if True a dict ({cellID: {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} } is returned
+                                         if False a tuple is riturned {cellID:(coordinate1,coordinate2,etc)}
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, cellIdsAndVerteces, dict, dict containing the cell ids and the coordinates of the verteces
+    """
+    # if no cell ids have been computed, it returns an empty dict
+    cellIdsAndVerteces = {}
+    for cid in self.gridContainer['cellIDs']:
+      cellIdsAndVerteces[cid] = []
+      for vertex in self.gridContainer['cellIDs'][cid]:
+        cellIdsAndVerteces[cid].append(self.returnCoordinateFromIndex(vertex, returnDict, recastMethods))
+    return cellIdsAndVerteces
+
+  def returnCellsMidPoints(self,  returnDict=False, recastMethods={}):
+    """
+      Method to return the container of the cell ids with the coordinate of the mid point in the real space (real coordinate)
+      @ In, returnDict, bool, optional, flag to request the output of the coordinates in dictionary format or not.
+                                         if True a dict ({cellID: {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} } is returned
+                                         if False a tuple is riturned {cellID:(coordinate1,coordinate2,etc)}
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, cellIdsAndMidPoints, dict, dict containing the cell ids and the coordinates of the verteces
+    """
+    cellsAndVerteces = self.returnCellIdsWithCoordinates(False, recastMethods)
+    # if no cell ids have been computed, it returns an empty dict
+    cellIdsAndMidPoints = {}
+    for cid in cellsAndVerteces:
+      midPoint = np.atleast_2d(cellsAndVerteces[cid]).mean(axis=0)
+      if returnDict:
+        cellIdsAndMidPoints[cid] = {d: midPoint[cnt] for cnt, d in  enumerate(self.gridContainer['dimensionNames'])}
+      else:
+        cellIdsAndMidPoints[cid] = midPoint
+    return cellIdsAndMidPoints
+
   def flush(self):
     """
       Reset GridEntity attributes to allow rerunning a workflow
@@ -759,15 +805,16 @@ class MultiGridEntity(GridBase):
 
     return totalLength
 
-  def _readMoreXml(self, xmlNode, dimensionTags=None, dimTagsPrefix=None):
+
+  def _handleInput(self, paramInput, dimensionTags=None, dimTagsPrefix=None):
     """
-      XML reader for the Multi-grid statement.
-      @ In, xmlNode, xml.etree.ElementTree, XML element node that represents the portion of the input that belongs to this class
+      Function to handle the parsed paramInput for the grid (multi-grid) instance.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ In, dimensionTag, list, optional, names of the tag that represents the grid dimensions
       @ In, dimTagsPrefix, dict, optional, eventual prefix to use for defining the dimName
       @ Out, None
     """
-    self.grid.getrootnode().get("grid")._readMoreXml(xmlNode, dimensionTags, dimTagsPrefix)
+    self.grid.getrootnode().get("grid")._handleInput(paramInput, dimensionTags, dimTagsPrefix)
 
   def initialize(self, initDictionary=None):
     """
@@ -1025,6 +1072,27 @@ class MultiGridEntity(GridBase):
       self.multiGridIterator[0], self.multiGridIterator[1] = node.get("level"), node.get("grid").returnIteratorIndexes(False)
 
     return coordinates
+
+  def returnCoordinateFromIndex(self, multiDimNDIndex, returnDict=False, recastMethods={}):
+    """
+      Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
+      In addition, it advances the iterator in order to point to the following coordinate
+      @ In, multiDimNDIndex, tuple, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
+      @ In, returnDict, bool, optional, flag to request the output in dictionary format or not.
+                                         if True a dict ( {dimName1:
+                                           coordinate1,dimName2:coordinate2,etc} is returned
+                                         if False a tuple is riturned (coordinate1,coordinate2,etc)
+      @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+      @ Out, coordinate, tuple or dict, tuple (if returnDict=False) or dict (if returnDict=True) containing the coordinates
+    """
+    if isinstance(multiDimNDIndex[0], Number):
+      level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
+    else:
+      level, multiDimIndex = multiDimNDIndex[0], multiDimNDIndex[1]
+    node = self.grid.find(self.mappingLevelName[level])
+
+    return node.get('grid').returnCoordinateFromIndex(multiDimIndex, returnDict, recastMethods)
 
   def returnCoordinateFromIndex(self, multiDimNDIndex, returnDict=False, recastMethods={}):
     """

@@ -1,0 +1,18 @@
+[Tests]
+  [./subdomainSensitivity]
+    type = 'RavenFramework'
+    input = 'sensitivity_subdomain.xml'
+    UnorderedCsv = 'subdomainStats/subdomainSensitivity.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./subdomainTimeDepStats]
+    type = 'RavenFramework'
+    input = 'time_dep_subdomain.xml'
+    UnorderedCsv = 'subdomainTimeDepStats/timedepSubdomainStats_dump.csv subdomainTimeDepStats/timedepSubdomainStats_dump_0.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+   
+
+[]

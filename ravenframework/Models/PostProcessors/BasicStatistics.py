@@ -31,7 +31,6 @@ from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import utils
 from ...utils import InputData, InputTypes
 from ...utils import mathUtils
-from ... import Files
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessorReadyInterface):
@@ -155,7 +154,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     self.biased = False # biased statistics?
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.pivotValue = None # time-dependent statistics pivot parameter values
-    self.dynamic        = False # is it time-dependent?
+    self.dynamic        = None # is it time-dependent?
     self.sampleTag      = None  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
@@ -176,7 +175,6 @@ class BasicStatistics(PostProcessorReadyInterface):
     """
     inpVars, outVars, dataSet = inputIn['Data'][0]
     pbWeights = None
-
     try:
       inputDataset = dataSet[self.parameters['targets']]
     except KeyError:
@@ -202,6 +200,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     if self.pbPresent:
       pbWeights = xr.Dataset()
       self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
+      pbWeights['ProbabilityWeight'] = self.realizationWeight['ProbabilityWeight']
       for target in self.parameters['targets']:
         pbName = 'ProbabilityWeight-' + target
         if pbName in dataSet:
@@ -453,7 +452,7 @@ class BasicStatistics(PostProcessorReadyInterface):
         denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
         corrFactor = numer1/denom ,numer2/denom
     else:
-      if   order == 2:
+      if order == 2:
         corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
       elif order == 3:
         corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
@@ -634,7 +633,7 @@ class BasicStatistics(PostProcessorReadyInterface):
 
     return result
 
-  def __runLocal(self, inputData):
+  def _runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In, inputData, tuple,  (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding
@@ -1526,7 +1525,7 @@ class BasicStatistics(PostProcessorReadyInterface):
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
     inputData = self.inputToInternal(inputIn)
-    outputSet = self.__runLocal(inputData)
+    outputSet = self._runLocal(inputData)
     return outputSet
 
   def collectOutput(self, finishedJob, output):
