@@ -182,7 +182,7 @@ class BasicStatistics(PostProcessorReadyInterface):
     except KeyError:
       missing = [var for var in self.parameters['targets'] if var not in dataSet]
       self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),self.inputDataObjectName))
-    self.sampleTag = utils.first(dataSet.dims)
+    self.sampleTag = 'RAVEN_sample_ID'
 
     if self.dynamic:
       dims = inputDataset.sizes.keys()
