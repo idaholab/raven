@@ -148,6 +148,16 @@ class Optimizer(AdaptiveSampler):
               of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
 
+    model = InputData.assemblyInputFactory('Model', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=175,
+        descr=r"""Name of a Model that optimizers may want to use during optimization. For example, the
+              Bayesian Optimizer requires a ROM to select points during optimization. The model is defined in
+              detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
+              the model definition's name.""")
+    model.addParam('subType', InputTypes.StringType, True,
+        descr=r"""RAVEN subType for this source. Options include \xmlNode{GaussianProcessRegressor} and fill in later""")
+
+    specs.addSub(model)
     return specs
 
   def __init__(self):
@@ -175,13 +185,14 @@ class Optimizer(AdaptiveSampler):
     self._constraintFunctions = []      # list of constraint functions
     self._impConstraintFunctions = []   # list of implicit constraint functions
     self._requireSolnExport = True      # optimizers only produce result in solution export
-    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files'] # List of assembler entities required to initialize an optmizer
+    # self._model = None                  # model entity that optimizer may need or want access to (BO needs GPR rom)
+    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files', 'Models'] # List of assembler entities required to initialize an optmizer
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-
+    self.addAssemblerObject('Model', InputData.Quantity.zero_to_one)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -211,6 +222,7 @@ class Optimizer(AdaptiveSampler):
     self.assemblerDict['Distributions'] = []
     self.assemblerDict['Functions'] = []
     self.assemblerDict['Files'] = []
+    self.assemblerDict['Models'] = []
     for mainClass in self.optAssemblerList:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,
@@ -301,6 +313,8 @@ class Optimizer(AdaptiveSampler):
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # sampler
     self._initializeInitSampler(externalSeeding)
+    # model
+    # self._initializeModel(externalSeeding)
     # seed
     if self._seed is not None:
       randomUtils.randomSeed(self._seed)
@@ -431,6 +445,16 @@ class Optimizer(AdaptiveSampler):
       for var in self.toBeSampled:
         if var in rlz:
           self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
+
+  # def _initializeModel(self, externalSeeding):
+  #   """
+  #     Initializes model to be used by optimizer.
+  #     @ In, externalSeeding, int, unused
+  #     @ Out, None
+  #   """
+  #   if not self.assemblerDict.get('Model', False):
+  #     return
+  #   self._model = self.assemblerDict['Model'][0][3]
 
   def initializeTrajectory(self, traj=None):
     """

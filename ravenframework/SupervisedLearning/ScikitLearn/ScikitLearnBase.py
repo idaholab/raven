@@ -204,7 +204,11 @@ class ScikitLearnBase(SupervisedLearning):
     if self.uniqueVals is not None:
       outcomes =  self.uniqueVals
     else:
-      outcomes = self.model.predict(featureVals)
+      # Model may not have access to standard deviation of the prediction
+      try:
+        outcomes = self.model.predict(featureVals, return_std=True)
+      except TypeError:
+        outcomes = self.model.predict(featureVals)
     outcomes = np.atleast_1d(outcomes)
     if len(outcomes.shape) == 1:
       returnDict = {key:value for (key,value) in zip(self.target,outcomes)}

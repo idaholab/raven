@@ -22,6 +22,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -46,6 +47,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.gaussian_process
     self.model = sklearn.gaussian_process.GaussianProcessRegressor
+    self.multioutputWrapper = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -87,8 +89,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          \zNormalizationNotPerformed{GaussianProcessRegressor}
                          """
     # create kernel node
-    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'Exponentiation',
-                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic']),
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared',
+                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
@@ -99,7 +101,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                      It is parameterized by a parameter sigma\_0 $\sigma$ which controls the inhomogenity of the kernel.
                                                    \item ExpSineSquared, it allows one to model functions which repeat themselves exactly. It is parameterized by a length scale parameter $l>0$ and a periodicity parameter $p>0$.
                                                                          The kernel is given by $k(x_i, x_j) = \text{exp}\left(-\frac{ 2\sin^2(\pi d(x_i, x_j)/p) }{ l^ 2} \right)$ where $d(\\cdot,\\cdot)$ is the Euclidean distance.
-                                                   \item Exponentiation, it takes one base kernel and a scalar parameter $p$ and combines them via $k_{exp}(X, Y) = k(X, Y) ^p$.
                                                    \item Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls the smoothness of the resulting function. The smaller $\nu$,
                                                                  the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
                                                                  identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$ (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
@@ -129,6 +130,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                    \item RationalQuadratic, it can be seen as a scale mixture (an infinite sum) of RBF kernels with different characteristic length scales. It is parameterized by a length scale parameter
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
+                                                   \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
                                                  \end{itemize}.""",default=None))
 
 
@@ -148,47 +150,123 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  descr=r"""Per default, the 'L-BFGS-B' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
                                                  parameters are kept fixed.""",default='fmin_l_bfgs_b'))
+    specs.addSub(InputData.parameterInputFactory("anisotropic", contentType=InputTypes.BoolType,
+                                                 descr=r"""Determines if unique length-scales are used for each
+                                                 axis of the input space. The default is False for anisotropic.""",default=False))
+    specs.addSub(InputData.parameterInputFactory("custom_kernel", contentType=InputTypes.StringType,
+                                                 descr=r"""Defines the custom kernel constructed by the existing base kernels.
+                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None""",default=None))
     return specs
 
-  def pickKernel(self, name):
+  def pickKernel(self, name, lengthScaleSetting):
     """
       This method is used to pick a kernel from the iternal factory
       @ In, name, str, the kernel name
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic
       @ Out, kernel, object, the kernel object
     """
     import sklearn
+    # For anisotropic cases length-scale should be a vector
+    if lengthScaleSetting:
+      lengthScale = np.ones(len(self.features))
+    else:
+      lengthScale = 1
+
     if name.lower() == 'constant':
       kernel = sklearn.gaussian_process.kernels.ConstantKernel()
     elif name.lower() == 'dotproduct':
       kernel = sklearn.gaussian_process.kernels.DotProduct()
     elif name.lower() == 'expsinesquared':
       kernel = sklearn.gaussian_process.kernels.ExpSineSquared()
-    elif name.lower() == 'exponentiation':
-      kernel = sklearn.gaussian_process.kernels.Exponentiation()
     elif name.lower() == 'matern':
-      kernel = sklearn.gaussian_process.kernels.Matern()
-    elif name.lower() == 'pairwiselinear':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='linear')
-    elif name.lower() == 'pairwiseadditivechi2':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='additive_chi2')
-    elif name.lower() == 'pairwisechi2':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='chi2')
-    elif name.lower() == 'pairwisepoly':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='poly')
-    elif name.lower() == 'pairwisepolynomial':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='polynomial')
-    elif name.lower() == 'pairwiserbf':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='rbf')
-    elif name.lower() == 'pairwiselaplacian':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='laplacian')
-    elif name.lower() == 'pairwisesigmoid':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='sigmoid')
-    elif name.lower() == 'pairwisecosine':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='cosine')
+      kernel = sklearn.gaussian_process.kernels.Matern(length_scale=lengthScale)
     elif name.lower() == 'rbf':
-      kernel = sklearn.gaussian_process.kernels.RBF()
+      kernel = sklearn.gaussian_process.kernels.RBF(length_scale=lengthScale)
     elif name.lower() == 'rationalquadratic':
       kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
+    # For the pairwise kernels, slice the input string to get metric
+    else:
+      metric = name.lower()[8:]
+      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric=metric)
+    return kernel
+
+  def customKernel(self, kernelStatement, lengthScaleSetting):
+    """
+      Constructs scikit learn kernel defined by input
+      @ In, kernelStatement, string, string form of desired kernel
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic (where applicable)
+      @ Out, kernel, sklearn kernel object
+    """
+    import sklearn
+    # Initialize construction terms
+    kernel = None
+    # Need to apply operations to kernel components
+    operations = {'+':sklearn.gaussian_process.kernels.Sum,
+                  '*':sklearn.gaussian_process.kernels.Product,
+                  '^':sklearn.gaussian_process.kernels.Exponentiation}
+    runningKernel = ""
+    paranthetical = False # Considering kernel expressions with parantheses
+    tempKernel = None
+    operator = None
+    leftIndex = None
+    embedded = 0          # Tracks number of embedded parantheticals
+    for index, char in enumerate(kernelStatement):
+      if char == '(':
+        paranthetical = True
+        # Where does parantheses start?
+        if leftIndex is None:
+          leftIndex = index+1
+        else:
+          embedded += 1
+          continue
+      elif char ==')':
+        # Want to handle parantheses at the highest level first
+        if embedded > 0:
+          embedded -= 1
+          continue
+        # Slicing out expression in parantheses
+        parantheticalKernel = kernelStatement[leftIndex:index+embedded]
+        tempKernel = self.customKernel(parantheticalKernel, lengthScaleSetting)
+        paranthetical = False # ending paranthetical statement
+        leftIndex = None
+        continue
+      # Just finish reading through statement in parantheses
+      if paranthetical:
+        continue
+      # Is the character a piece of a kernel tag or an operator tag?
+      if char not in ['+', '*', '^']:
+        runningKernel += char
+      else:
+        # Consider exponentiation first
+        if operator == '^':
+          tempKernel = float(runningKernel)
+        # Are we about to operate on a paranthetical statement?
+        if tempKernel is None:
+          tempKernel = self.pickKernel(runningKernel, lengthScaleSetting)
+
+        if kernel is None:
+          kernel = tempKernel
+        else:
+          kernel = operations[operator](kernel, tempKernel)
+        # Resetting construction pieces and setting operator for next piece
+        operator = char
+        tempKernel = None
+        runningKernel = ""
+    # Need to apply final operation
+    if len(runningKernel) > 0:
+      try:
+        if operator == '^':
+           kernel = operations[operator](kernel, float(runningKernel))
+        else:
+          kernel = operations[operator](kernel, self.pickKernel(runningKernel, lengthScaleSetting))
+      except KeyError:
+        kernel = self.pickKernel(runningKernel, lengthScaleSetting)
+    # Necessary if last term is a paranthetical
+    else:
+      try:
+        kernel = operations[operator](kernel, tempKernel)
+      except KeyError:
+        kernel = tempKernel
     return kernel
 
   def _handleInput(self, paramInput):
@@ -199,9 +277,19 @@ class GaussianProcessRegressor(ScikitLearnBase):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
-                                                               'normalize_y', 'random_state', 'optimizer'])
+                                                               'normalize_y', 'random_state', 'optimizer', 'anisotropic', 'custom_kernel'])
     # notFound must be empty
     assert(not notFound)
     # special treatment for kernel
-    settings['kernel'] = self.pickKernel(settings['kernel']) if settings['kernel'] is not None else None
+    if settings['kernel'] != "Custom":
+      settings['kernel'] = self.pickKernel(settings['kernel'], settings['anisotropic']) if settings['kernel'] is not None else None
+    # further special treatment for custom kernels
+    else:
+      if settings['custom_kernel'] == None:
+        self.raiseAnError(OSError, 'Custom kernel selected but no custom_kernel input was provided.')
+      settings['kernel'] = self.customKernel(settings['custom_kernel'], settings['anisotropic'])
+    print(settings['kernel'])
+    # exit()
+    del settings['anisotropic']
+    del settings['custom_kernel']
     self.initializeModel(settings)
