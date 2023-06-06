@@ -207,8 +207,7 @@ class ScikitLearnBase(SupervisedLearning):
     else:
       # Model may not have access to standard deviation of the prediction
       try:
-        outcomes, std = self.model.predict(featureVals, return_std=True)
-        std = np.atleast_1d(std)
+        outcomes = self.model.predict(featureVals, return_std=True)
       except TypeError:
         outcomes = self.model.predict(featureVals)
     outcomes = np.atleast_1d(outcomes)

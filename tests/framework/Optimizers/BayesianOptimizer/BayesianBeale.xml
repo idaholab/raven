@@ -25,7 +25,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <Optimizer class="Optimizers" type="BayesianOptimizer">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -73,11 +73,12 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>40</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+      <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
     </BayesianOptimizer>
   </Optimizers>
 
@@ -85,6 +86,16 @@
     <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans,aux_ans</variables>
     </ExternalModel>
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
+      <Features>x,y</Features>
+      <Target>ans</Target>
+      <alpha>1e-10</alpha>
+      <n_restarts_optimizer>5</n_restarts_optimizer>
+      <normalize_y>True</normalize_y>
+      <kernel>Custom</kernel>
+      <custom_kernel>Constant*RBF</custom_kernel>
+      <anisotropic>True</anisotropic>
+    </ROM>
   </Models>
 
   <DataObjects>

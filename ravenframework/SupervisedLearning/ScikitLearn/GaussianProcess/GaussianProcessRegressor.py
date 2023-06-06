@@ -23,6 +23,7 @@
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.gaussian_process
     self.model = sklearn.gaussian_process.GaussianProcessRegressor
+    self.multioutputWrapper = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -90,6 +92,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
     # create kernel node
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared',
                                                                                                                    'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared',
+                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
@@ -130,6 +134,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
                                                    \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
+                                                   \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
                                                  \end{itemize}.""",default=None))
 
 
@@ -150,25 +155,29 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
                                                  parameters are kept fixed.""",default='fmin_l_bfgs_b'))
     specs.addSub(InputData.parameterInputFactory("anisotropic", contentType=InputTypes.BoolType,
-                                                 descr=r"""Boolean that determines if unique length-scales are used for each
-                                                 axis of the input space (where applicable). The default is False.""",default=False))
+                                                 descr=r"""Determines if unique length-scales are used for each
+                                                 axis of the input space. The default is False for anisotropic.""",default=False))
     specs.addSub(InputData.parameterInputFactory("custom_kernel", contentType=InputTypes.StringType,
-                                                 descr=r"""Defines the custom kernel constructed by the available base kernels.
-                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None.""",default=None))
-    specs.addSub(InputData.parameterInputFactory("multioutput", contentType=InputTypes.BoolType,
-                                                 descr=r"""Determines whether model will track multiple targets through the
-                                                 multiouput regressor wrapper class. For most RAVEN applications, this is expected;
-                                                 therefore, the default is True.""",default=True))
+                                                 descr=r"""Defines the custom kernel constructed by the existing base kernels.
+                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None""",default=None))
     return specs
 
+  def pickKernel(self, name, lengthScaleSetting):
   def pickKernel(self, name, lengthScaleSetting):
     """
       This method is used to pick a kernel from the iternal factory
       @ In, name, str, the kernel name
       @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic
       @ Out, kernel, object, the kernel object
     """
     import sklearn
+    # For anisotropic cases length-scale should be a vector
+    if lengthScaleSetting:
+      lengthScale = np.ones(len(self.features))
+    else:
+      lengthScale = 1
+
     # For anisotropic cases length-scale should be a vector
     if lengthScaleSetting:
       lengthScale = np.ones(len(self.features))
@@ -183,16 +192,16 @@ class GaussianProcessRegressor(ScikitLearnBase):
       kernel = sklearn.gaussian_process.kernels.ExpSineSquared()
     elif name.lower() == 'matern':
       kernel = sklearn.gaussian_process.kernels.Matern(length_scale=lengthScale)
+      kernel = sklearn.gaussian_process.kernels.Matern(length_scale=lengthScale)
     elif name.lower() == 'rbf':
+      kernel = sklearn.gaussian_process.kernels.RBF(length_scale=lengthScale)
       kernel = sklearn.gaussian_process.kernels.RBF(length_scale=lengthScale)
     elif name.lower() == 'rationalquadratic':
       kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
     # For the pairwise kernels, slice the input string to get metric
-    elif name.lower()[0:8] == 'pairwise':
+    else:
       metric = name.lower()[8:]
       kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric=metric)
-    else:
-      self.raiseAnError(RuntimeError, f'Invalid kernel input found: {name}')
     return kernel
 
   def customKernel(self, kernelStatement, lengthScaleSetting):
@@ -281,7 +290,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer', 'multioutput',
+    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
                                                                'normalize_y', 'random_state', 'optimizer', 'anisotropic', 'custom_kernel'])
     # notFound must be empty
     assert(not notFound)
@@ -293,10 +302,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
       if settings['custom_kernel'] == None:
         self.raiseAnError(OSError, 'Custom kernel selected but no custom_kernel input was provided.')
       settings['kernel'] = self.customKernel(settings['custom_kernel'], settings['anisotropic'])
-    # Is this regressor for multi-output purposes?
-    self.multioutputWrapper = settings['multioutput']
-    # Deleting items that scikit-learn does not use
-    del settings['multioutput']
+    print(settings['kernel'])
+    # exit()
     del settings['anisotropic']
     del settings['custom_kernel']
     self.initializeModel(settings)
