@@ -70,7 +70,7 @@ Note all install methods after "main" take
     <imageio>2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <pywavelets optional='True'>1.1</pywavelets>
+    <pywavelets optional='True'>1.2</pywavelets>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
