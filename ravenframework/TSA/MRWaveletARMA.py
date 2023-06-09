@@ -149,10 +149,12 @@ class MRWaveletARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
 
       # FIXME: temporary
       settings['gaussianize'] = True
+      params[target]['decomposition_levels'] = {}
 
       for lvl, decomp in enumerate(coeffs_d):
         print(f"... Creating ARMA for Lvl {lvl} of {len(coeffs_d)}")
         wavelet = f'Wavelet_{lvl}'
+
         params[target][wavelet] = {}
 
         if settings.get('gaussianize', True):
@@ -191,7 +193,7 @@ class MRWaveletARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
         # "ConvergenceWarning: Maximum Likelihood optimization failed to converge. Check mle_retvals"
         # "UserWarning: Non-invertible starting MA parameters found. Using zeros as starting parameters"
         #   they are just warnings, so gonne trek further
-        params[target][wavelet] = arma_params
+        params[target]['decomposition_levels'][wavelet] = arma_params
     return params
 
   def getParamNames(self, settings):
@@ -234,6 +236,18 @@ class MRWaveletARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
     # TODO if there's not a model, generate one?
     # -> I think we need the training signal though ...
     synthetic = np.zeros((len(pivot), len(params)))
+    for t, (target, data) in enumerate(params.items()):
+
+      # first add back the zero-th order wavelet used as the trend
+      synthetic[:,t] += data['trend']
+
+      # next generate a new synthetic time series for each decomp level
+      for w, (lvl, subdata) in enumerate(data['decomposition_levels'].items()):
+        ARMA_obj = ARMA()
+        decomp_synthetic = ARMA_obj.generate(subdata, pivot, settings)
+
+        synthetic[:,t] += decomp_synthetic[:,0]
+
     return synthetic
 
   def writeXML(self, writeTo, params):
