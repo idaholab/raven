@@ -20,16 +20,16 @@ import os
 import numpy as np
 import pandas as pd
 
-try:
-  from Tester import Differ
-except ModuleNotFoundError:
-  rook = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..', 'rook'))
-  sys.path.append(rook)
-  from Tester import Differ
-
 raven = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'))
 if raven not in sys.path:
   sys.path.append(raven)
+
+try:
+  from Tester import Differ
+except ModuleNotFoundError:
+  rook = os.path.realpath(os.path.join(raven, 'rook'))
+  sys.path.append(rook)
+  from Tester import Differ
 
 # get access to math tools from RAVEN
 from ravenframework.utils import mathUtils

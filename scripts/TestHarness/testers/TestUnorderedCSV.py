@@ -46,8 +46,7 @@ def test_a_file(fname):
   """
   differ = UCSV([fname], [f'gold/{fname}'], zeroThreshold=5e-14)
   differ.diff()
-  return differ._same, differ._message #differ.__dict__['_UnorderedCSVDiffer__same'],\
-    #differ.__dict__['_UnorderedCSVDiffer__message']
+  return differ._same, differ._message
 
 if __name__ == '__main__':
   results = {'pass':0, 'fail':0}
@@ -66,8 +65,6 @@ if __name__ == '__main__':
   # sorting
   ok, msg = test_a_file('sort.csv')
   check_same('sort', ok, True, msg, results)
-
-
 
 
   print('Passed:', results['pass'], '| Failed:', results['fail'])
