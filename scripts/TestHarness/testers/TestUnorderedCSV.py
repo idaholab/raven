@@ -44,10 +44,10 @@ def test_a_file(fname):
     @ In, fname, string, filename string
     @ Out, test_a_file, (same, message), (bool, str) result of test.
   """
-  differ = UCSV('.', [fname], zeroThreshold=5e-14)
+  differ = UCSV([fname], [f'gold/{fname}'], zeroThreshold=5e-14)
   differ.diff()
-  return differ.__dict__['_UnorderedCSVDiffer__same'],\
-    differ.__dict__['_UnorderedCSVDiffer__message']
+  return differ._same, differ._message #differ.__dict__['_UnorderedCSVDiffer__same'],\
+    #differ.__dict__['_UnorderedCSVDiffer__message']
 
 if __name__ == '__main__':
   results = {'pass':0, 'fail':0}
