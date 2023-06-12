@@ -34,6 +34,10 @@ except ModuleNotFoundError:
 # get access to math tools from RAVEN
 from ravenframework.utils import mathUtils
 
+pd.set_option('display.max_rows', 200)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.precision', 10)
+
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
 
