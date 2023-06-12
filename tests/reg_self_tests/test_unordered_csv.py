@@ -17,7 +17,16 @@
 from __future__ import division, print_function, absolute_import
 import warnings
 
+import os
 import sys
+
+test_system_dir = os.path.realpath(
+    os.path.join(
+        os.path.dirname(__file__), "..", "..", "scripts", "TestHarness", "testers"
+        )
+    )
+print(test_system_dir)
+sys.path.append(test_system_dir)
 from UnorderedCSVDiffer import UnorderedCSVDiffer as UCSV
 
 
