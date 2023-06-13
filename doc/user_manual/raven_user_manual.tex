@@ -90,6 +90,19 @@
 
 \usepackage{listings}
 
+% the following allows for 8 levels list nesting
+\usepackage{enumitem}
+\setlistdepth{8}
+\setlist[itemize,1]{label=$\bullet$}
+\setlist[itemize,2]{label=$\bullet$}
+\setlist[itemize,3]{label=$\bullet$}
+\setlist[itemize,4]{label=$\bullet$}
+\setlist[itemize,5]{label=$\bullet$}
+\setlist[itemize,6]{label=$\bullet$}
+\setlist[itemize,7]{label=$\bullet$}
+\setlist[itemize,8]{label=$\bullet$}
+\renewlist{itemize}{itemize}{8}
+
 % Python style for highlighting
 \newcommand\pythonstyle{\lstset{
 language=Python,

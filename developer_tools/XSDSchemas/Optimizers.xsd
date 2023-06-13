@@ -87,7 +87,16 @@
         <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
         <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
         <xsd:element name="temperature"        type="xsd:float" minOccurs="0"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="GAConvergenceType">
+      <xsd:all>
+        <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
         <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
+        <xsd:element name="AHD"                type="xsd:float" minOccurs="0"/>
+        <xsd:element name="HDSM"               type="xsd:float" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
@@ -184,7 +193,7 @@
         <xsd:sequence>
             <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
             <xsd:element name="GAparams"         type="GAoptInitType"          minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="convergence"      type="SAConvergenceType"      minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="convergence"      type="GAConvergenceType"      minOccurs="0" maxOccurs="1"/>
             <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="optVarType"             minOccurs="1" maxOccurs='unbounded'/>
             <xsd:element name="objective"        type="xsd:string"             minOccurs="1" maxOccurs="1"/>

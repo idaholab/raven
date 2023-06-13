@@ -7,9 +7,17 @@
    type = RavenFramework
    max_time = 3600
  [../]
- [./Code]
-   input = 'code.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
-   output = 'Code/outer_out.csv Code/outer_out.xml'
+ [./CodeDask]
+   input = 'code_dask.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
+   output = 'CodeDask/outer_out.csv CodeDask/outer_out.xml'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./CodeRay]
+   input = 'code_ray.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
+   output = 'CodeRay/outer_out.csv CodeRay/outer_out.xml'
    run_types = 'qsub'
    output_wait_time = 60
    type = RavenFramework

@@ -25,7 +25,7 @@
     <WorkingDir>InternalParallelPostProcessorLS</WorkingDir>
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>5</batchSize>
-    <internalParallel>True</internalParallel>
+    <parallelMethod>distributed</parallelMethod>
   </RunInfo>
 
   <Models>

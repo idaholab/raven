@@ -109,10 +109,11 @@ class DistributedMemoryRunner(InternalRunner):
           except ray.exceptions.GetTimeoutError:
             #Timeout, so still running.
             return False
-          except ray.exceptions.RayTaskError:
+          except ray.exceptions.RayTaskError as rte:
             #The code gets this undocumented error, and
             # I assume it means the task has unfixably died,
             # and so is done, and set return code to failed.
+            self.raiseAWarning("RayTaskError: "+str(rte))
             self.returnCode = -1
             return True
           #Alternative that was tried:

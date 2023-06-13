@@ -28,6 +28,7 @@ from .Runner import Runner
 from .InternalRunner import InternalRunner
 from .SharedMemoryRunner import SharedMemoryRunner
 from .DistributedMemoryRunner import DistributedMemoryRunner
+from .DaskRunner import DaskRunner
 from .PassthroughRunner import PassthroughRunner
 from .Error import Error
 

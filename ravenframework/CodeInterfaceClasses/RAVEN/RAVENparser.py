@@ -107,6 +107,10 @@ class RAVENparser():
     if not foundOutStreams and not foundDatabases:
       raise IOError(self.printTag+' ERROR: No <OutStreams><Print> or <Databases><NetCDF readMode="overwrite"> found in the active <Steps> of inner RAVEN!')
 
+    #XXX note that this working directory assumes that the os.getcwd() is
+    # the directory that contains the parent RAVEN XML.
+    # This is not equal to the variable cwd, and requires that the server
+    # set this.
     # Now we grep the paths of all the inputs the SLAVE RAVEN contains in the workind directory.
     self.workingDir = self.tree.find('.//RunInfo/WorkingDir').text.strip()
     # Find the Files
