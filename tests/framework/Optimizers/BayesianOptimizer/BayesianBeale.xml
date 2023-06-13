@@ -73,12 +73,18 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>100</limit>
+        <limit>590</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
       <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
+      <Acquisition>
+        <ExpectedImprovement>
+          <!-- <optimizationMethod>slsqp</optimizationMethod>
+          <seedingCount>5</seedingCount> -->
+        </ExpectedImprovement>
+      </Acquisition>
     </BayesianOptimizer>
   </Optimizers>
 
@@ -93,8 +99,9 @@
       <n_restarts_optimizer>5</n_restarts_optimizer>
       <normalize_y>True</normalize_y>
       <kernel>Custom</kernel>
-      <custom_kernel>Constant*RBF</custom_kernel>
+      <custom_kernel>(Constant*RBF)</custom_kernel>
       <anisotropic>True</anisotropic>
+      <multioutput>False</multioutput>
     </ROM>
   </Models>
 
@@ -106,7 +113,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,aux_ans,iteration,accepted</Output>
+      <Output>x,y,ans,aux_ans,iteration,accepted,acquisition,radiusFromBest,radiusFromLast</Output>
     </PointSet>
   </DataObjects>
 
