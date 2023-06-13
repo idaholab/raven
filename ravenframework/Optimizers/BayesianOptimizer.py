@@ -20,22 +20,18 @@
 import copy
 from collections import deque, defaultdict
 import numpy as np
-from smt.sampling_methods import LHS
 import itertools as it
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
 from matplotlib import cm
 from mpl_toolkits import mplot3d
-from scipy.stats import norm
-import scipy.optimize as sciopt
-
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes, mathUtils
 from .RavenSampled import RavenSampled
-
+from .acquisitionFunctions import factory as acqFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -62,6 +58,19 @@ class BayesianOptimizer(RavenSampled):
                             incorporates noisy observations of the function. This approach tends to offer the
                             tradeoff of additional backend calculation (training regressions and selecting samples) in
                             favor of reducing the number of function or 'model' evaluations."""
+
+    # Acquisition function
+    acqu = InputData.parameterInputFactory('Acquisition', strictMode=True,
+        printPriority=106,
+        descr=r"""A required node for specifying the details about the acquisition function
+              used in the optimization policy of Bayesian Optimization.""")
+
+    # Pulling specs for each acquisition function option
+    for option in acqFactory.knownTypes():
+      subSpecs = acqFactory.returnClass(option).getInputSpecification()
+      acqu.addSub(subSpecs)
+    specs.addSub(acqu)
+
     return specs
 
   @classmethod
@@ -74,8 +83,11 @@ class BayesianOptimizer(RavenSampled):
     # cannot be determined before run-time due to variables and prefixes.
     ok = super(BayesianOptimizer, cls).getSolutionExportVariableNames()
     new = {}
-    # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
+    new['acquisition'] = 'value of acquisition at each iteration'
+    # NOTE both are within context of normalized space
+    new['radiusFromBest'] = 'radius of current point from current best point'
+    new['radiusFromLast'] = 'radius of current point from previous point'
     ok.update(new)
     return ok
 
@@ -93,6 +105,7 @@ class BayesianOptimizer(RavenSampled):
     self._trainingInputs = [{}]     # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
     self._trainingTargets = []      # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
     self._model = None              # Regression model used for Bayesian Decision making
+    self._acquFunction = None       # Acquisition function object used in optimization
 
   def handleInput(self, paramInput):
     """
@@ -101,7 +114,17 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+    # Model (GPR)
     self._model = paramInput.findFirst('Model').value
+
+    # Acquisition function
+    acquNode = paramInput.findFirst('Acquisition')
+    if len(acquNode.subparts) != 1:
+      self.raiseAnError('The <Acquisition> node requires exactly one acquisition function! Choose from: ', acqFactory.knownTypes())
+    acquType = acquNode.subparts[0].getName()
+    self._acquFunction = acqFactory.returnInstance(acquType)
+    setattr(self._acquFunction, 'N', len(list(self.toBeSampled)))
+    self._acquFunction.handleInput(acquNode.subparts[0])
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -123,11 +146,15 @@ class BayesianOptimizer(RavenSampled):
       modelName = model[2]
       if modelName == self._model:
         self._model = model[3]
+        break
     if self._model is None:
-      self.raiseAnError(RuntimeError, f'No model was provided for Bayesian Optimizer. This method requires a ROM model.')
+      self.raiseAnError(RuntimeError, 'No model was provided for Bayesian Optimizer. This method requires a ROM model.')
     elif self._model.subType not in ["GaussianProcessRegressor"]:
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
                                       f'currently only accepts the following: {["GaussianProcessRegressor"]}')
+
+    # Initialize the acquisition function
+    self._acquFunction.initialize()
 
     # Initialize feature and target data set for conditioning regression model on
     # NOTE assuming that sampler/user provides at least one initial input
@@ -179,6 +206,7 @@ class BayesianOptimizer(RavenSampled):
     if not isinstance(rlz, dict):
       if step == 1:
         self.batch = 1 # FIXME when implementing parallel expected improvement, fix this
+        self.counter -= 1 #FIXME hacky way to make sure iterations are correctly counted
         self.raiseAMessage(f'Initialization data of dimension {self._initialSampleSize} received... '
                            f'Setting sample batch size to {self.batch}')
       else:
@@ -200,9 +228,8 @@ class BayesianOptimizer(RavenSampled):
     # Generate posterior with training data
     self._trainRegressionModel(traj)
     # Use acquisition to select next point
-    new_point = self._conductAcquisition()
+    new_point = self._acquFunction.conductAcquisition(self)
     self._submitRun(new_point, traj, step)
-    print(f'Model information: {self._model.supervisedContainer[0].model.kernel_}')
     self.incrementIteration(traj)
 
   def checkConvergence(self, traj, new, old):
@@ -287,7 +314,7 @@ class BayesianOptimizer(RavenSampled):
     plt.show()
 
   ###############################################
-  # Temporary Methods for Bayesian Optimization #
+  # Model Training and Evaluation #
   ###############################################
   def _trainRegressionModel(self, traj):
     """
@@ -310,207 +337,27 @@ class BayesianOptimizer(RavenSampled):
       @ Out, std, ROM standard-deviation value at that point
     """
     # Evaluating the regression model
-    featurePoint = self.denormalizeData(featurePoint)
+    featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
     resultsDict = self._model.evaluate(featurePoint)
-    if len(resultsDict) == 1:
-      mu = resultsDict[self._objectiveVar][0]
-      std = resultsDict[self._objectiveVar][1]
-    else:
-      mu = {}
-      std = {}
-      for objVar in list(resultsDict):
-        mu[objVar] = resultsDict[objVar][0]
-        std[objVar] = resultsDict[objVar][1]
+    # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
+    mu = resultsDict[self._objectiveVar]
+    std = resultsDict[self._objectiveVar+'_std']
     return mu, std
 
-  def _conductAcquisition(self):
-    """
-      Maximizes the acquisition function to select next point to evaluate the model
-      @ In, None
-      @ Out, new_point, dict, new sample to evaluate
-    """
-    n = len(self._variableBounds)
-    bounds = []
-    for i in range(n):
-      bounds.append((0,1))
-    opt_func = lambda x: -1*self.expectedImprovement(x)
-    res = sciopt.differential_evolution(opt_func, bounds, polish=True, maxiter=100, popsize=60, init='random')
-    new_point = {}
-    for index, varName in enumerate(self._varNameList):
-      new_point[varName] = res.x[index]
-    return new_point
+  # def _evaluateRegressionGradient(self, featurePoint):
+  #   """
+  #     Calculates the gradients of our model's mean and std wrt to the input space
+  #     @ In, featurePoint, dict, feature values to evaluate ROM
+  #     @ Out, dmu, ROM mean/prediction gradient value at that point
+  #     @ Out, dstd, ROM standard-deviation gradient value at that point
+  #   """
+  #   # NOTE this currently assumes that the model is a scikitlearn gp
+  #   x = self.featurePointToArray(featurePoint)
+  #   # kernelGrad = self._model.supervisedContainer[0].model.kernel_(x, self._model.supervisedContainer[0].model.X_train_, eval_gradient=True)
+  #   k, kGrad = self._model.supervisedContainer[0].kernelGradient(x)
+  #   exit()
 
-  def _updateHyperparams(self):
-    """
-      Updates hyperparameters for SE using max LML
-      @ In, None
-      @ Out, None
-    """
-    # Function to optimize over
-    opt_func = self.logMarginalLiklihood
-    theta0 = [self._hyperParams['sigf'], self._hyperParams['l']]
-    bounds = [(10e-3,10e5), (1e-3,1)]
-    options = {'ftol':1e-10, 'maxiter':150, 'disp':False}
-    res = sciopt.minimize(opt_func, theta0, method='SLSQP', jac=True, bounds=bounds, options=options)
-    # Update the hyperparameters from selection
-    self._hyperParams = {'sigf':res.x[0], 'l':res.x[1]}
-    self.raiseADebug(f'Selected new hyperparameters for GPR model: {self._hyperParams}')
-
-  # Acquisition Function
-  def expectedImprovement(self, x):
-    """
-      Evaluates the expected improvement for the stored model
-      @ In, x, np.array, input to evaluate EI at
-      @ Out, EI, float, expected improvement at the given point
-    """
-    # Need to retrieve current optimum point
-    best = self._optPointHistory[0][-1][0]
-    f_opt = best[self._objectiveVar]
-
-    # Need to convert array input "x" into dict point
-    featurePoint = self.arrayToFeaturePoint(x)
-
-    # Evaluate posterior mean and standard deviation
-    mu, s = self._evaluateRegressionModel(featurePoint)
-
-    # Breaking out components from closed-form of EI (GPR)
-    # Definition of standard gaussian density function
-    pdf = (1/(np.sqrt(2*np.pi))) * np.exp(-0.5*(((f_opt - mu)/s)**2))
-    # Standard normal cdf from scipy.stats
-    cdf = norm.cdf((f_opt - mu)/s)
-    # Definition of EI
-    EI = ((f_opt - mu) * cdf) + (s*pdf)
-
-    return EI
-
-  # Kernel
-  def squaredExponential(self, x, x_prime):
-    """
-      Evaluates the squared exponential covariance function
-      @ In, x, np.array, first input point
-      @ In, x_prime, np.array, second input point
-      @ Out, k, float, covariance between the two points
-    """
-    # The radius between the inputs are
-    r = np.linalg.norm(np.subtract(x, x_prime))
-    l = self._hyperParams['l']
-    sigma_f = self._hyperParams['sigf']
-    k = (sigma_f**2)*np.exp(-(r**2)/(2*(l**2)))
-    return k
-
-  def SEHyperparamGradient(self):
-    """
-      Evaluates the gradient of LML function wrt to the hyperparams (SE only)
-      @ In, None
-      @ Out, hyperGrad, np array, gradient of LML wrt hyperparams l and sigmaf
-    """
-    # Need to grab hyperparam values and input vectors
-    sigma_f = self._hyperParams['sigf']
-    l = self._hyperParams['l']
-    inputs = self.getInputs()
-
-    # Initializing derivatives matrices
-    n = len(inputs)
-    dK_dsigf = np.empty((n,n), dtype=float)
-    dK_dl = np.empty((n,n), dtype=float)
-
-    # Calculating covariance matrix for training
-    for i in it.product(range(n),range(n)):
-        x = inputs[i[0]]
-        x_p = inputs[i[1]]
-        var_norm = np.linalg.norm(np.subtract(x,x_p))**2
-        dK_dsigf[i] = 2 * sigma_f * np.exp( (-1/ (2*(l**2)) ) * var_norm )
-        dK_dl[i] = (sigma_f**2) * np.exp( (-1/ (2*(l**2)) ) * var_norm ) * ( ( 1/(l**3) ) * var_norm )
-
-    # Gradient time
-    K_inv = np.dot(np.linalg.inv(np.transpose(self._regressionModel['L'])), np.linalg.inv(self._regressionModel['L']))
-    aa_t = np.outer(self._regressionModel['alpha'], np.transpose(self._regressionModel['alpha']))
-    dsig = (1/2) * np.trace(np.dot((aa_t - K_inv), dK_dsigf))
-    dl = (1/2) * np.trace(np.dot((aa_t - K_inv), dK_dl))
-    hyperGrad = np.array([dsig, dl])
-    return hyperGrad
-
-  # LML selection
-  def logMarginalLiklihood(self, theta):
-    """
-      Evaluates the LML and its gradient wrt to theta
-      @ In, theta, ['sigf', 'l']
-      @ Out, -LML, log-marginal likelihood
-      @ Out, -hyperGrad, gradient of log-marginal likelihood wrt theta
-    """
-    # Update the hyperparams
-    self._hyperParams['sigf'] = theta[0]
-    self._hyperParams['l'] = theta[1]
-    # Update GPR w/ new hyperparams
-    self._trainRegressionModel()
-    # Components necessary for evaluation
-    y = self._trainingTargets[0]
-    n = len(y)
-
-    # Calculating second term in marginal likelihood
-    term2 = 0
-    for i in range(n):
-        term2 += np.log(self._regressionModel['L'][i,i])
-    # Similarly, using worst observation as prior mean here
-    M = np.max(y)*np.ones(n)
-    LML = ((-1/2) * np.dot(np.subtract(y,M), self._regressionModel['alpha'])) - (term2) - ((n/2) * np.log(2*np.pi))
-    # LML = ((-1/2) * np.dot(y, self._regressionModel['alpha'])) - (term2) - ((n/2) * np.log(2*np.pi))
-    hyperGrad = self.SEHyperparamGradient()
-    # NOTE we want to maximize this function so we return the negative evaluation
-    return -1*LML, np.multiply(-1, hyperGrad)
-
-  # Training methods
-  def buildTrainingCovariance(self):
-    """
-      Builds gram-matrix for conditioning the posterior
-      @ In, None
-      @ Out, None
-    """
-    # Want input data set to be easily to work with
-    inputs = self.getInputs()
-    n = len(inputs)
-    K = np.empty((n,n), dtype=float)
-    for i in it.product(range(n),range(n)):
-      K[i] = self.squaredExponential(inputs[i[0]], inputs[i[1]])
-    # Stabilizing cholesky decomposition
-    eps = 1e-9 * self.squaredExponential(inputs[0], inputs[0])
-    I = np.eye(n)
-    K = np.add(K, np.multiply(eps,I))
-    # Inverting the cholesky decomposition is more computationally efficient
-    L = np.linalg.cholesky(K)
-    self._regressionModel['L'] = L
-
-  def calculateAlpha(self):
-    """
-      Computes alpha term necessary for linear combination form of GPR
-      @ In, None
-      @ Out, None
-    """
-    # This temp method is taking the prior mean to constant with value of worst observation
-    y_training = np.subtract(self._trainingTargets[0], np.max(self._trainingTargets[0]))
-    L = self._regressionModel['L']
-    # Outer inverse term
-    L1 = np.linalg.inv(np.transpose(L))
-    # Inner inverse term
-    L2 = np.linalg.inv(L)
-    # Definition of alpha
-    alpha = np.dot(L1, np.dot(L2, y_training))
-    self._regressionModel['alpha'] = alpha
-
-  # Utility
-  def getInputs(self):
-    """
-      Converts training data attributes into something of use (np.array)
-      @ In, None
-      @ Out, inputs, numpy nd array,
-    """
-    inputs = np.empty((len(self._trainingTargets[0]), (len(self._trainingInputs[0]))))
-    dummyIndex = 0
-    for _, dataSet in self._trainingInputs[0].items():
-      inputs[:, dummyIndex] = dataSet
-      dummyIndex += 1
-    return inputs
-
+  # Utilities
   def arrayToFeaturePoint(self, x):
     """
       Converts array input to featurePoint that model evaluation can read
@@ -518,18 +365,78 @@ class BayesianOptimizer(RavenSampled):
       @ Out, featurePoint, input in dictionary form
     """
     # TODO how to properly track variable names
-    dim = len(x)
+    dim = x.shape[0]
     if dim != len(list(self.toBeSampled)):
-      self.raiseAnError(RuntimeError, f'Dimension of input array supplied is {dim}, but the'
+        self.raiseAnError(RuntimeError, f'Dimension of input array supplied is {dim}, but the'
                                       f'dimension of the input space is {len(list(self.toBeSampled))}')
-
-    # FIXME currently assumes indexing of array follows order of 'toBeSampled'
-    index = 0
     featurePoint = {}
-    for var in list(self.toBeSampled):
-      featurePoint[var] = x[index]
-      index += 1
+    # Receiving 2-D array of many inputs
+    if len(x.shape) == 2:
+      # FIXME currently assumes indexing of array follows order of 'toBeSampled'
+      for index, var in enumerate(list(self.toBeSampled)):
+        featurePoint[var] = x[index, :]
+    # Receiving single input location
+    elif len(x.shape) == 1:
+      # FIXME currently assumes indexing of array follows order of 'toBeSampled'
+      for index, var in enumerate(list(self.toBeSampled)):
+        featurePoint[var] = x[index]
+    else:
+      self.raiseAnError(RuntimeError, f'Received invalid array shape in utility function: {len(x.shape)}-D')
     return featurePoint
+
+  def featurePointToArray(self, featurePoint):
+    """
+      Converts featurePoint input to numpy array for easier operating
+      @ In, featurePoint, dict, point in input space
+      @ Out, x, np.array, array form of same input
+    """
+    # TODO same concerns as inverse class (see above)
+    dim = len(featurePoint)
+    x = np.empty(dim)
+    for index, varName in enumerate(list(featurePoint)):
+      x[index] = featurePoint[varName]
+    return x
+
+  def _addToSolutionExport(self, traj, rlz, acceptable):
+    """
+      Contributes additional entries to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, string, acceptability of opt point
+      @ Out, toAdd, dict, additional entries
+    """
+    # Value of the acqusition function post-selection for this iteration
+    toAdd = self._acquFunction.updateSolutionExport()
+    # How close was this sample to the current best?
+    pointDelta = {}
+    # How close to previous sample?
+    recentDelta = {}
+    if self._iteration[traj] > 0:
+      # If this point is the new opt, then it is zero away from itself
+      if acceptable == 'accepted':
+        bestDelta = 0
+        for varName in list(self.toBeSampled):
+          newPoint = rlz[varName]
+          # -2 because newPoint is already appended to self._trainingInputs
+          prevPoint = self._trainingInputs[traj][varName][-2]
+          recentDelta[varName] = newPoint - prevPoint
+        prevDelta = np.linalg.norm(self.featurePointToArray(recentDelta))
+      else:
+        for varName in list(self.toBeSampled):
+          newPoint = rlz[varName]
+          # -2 because newPoint is already appended to self._trainingInputs
+          prevPoint = self._trainingInputs[traj][varName][-2]
+          bestPoint = self._optPointHistory[traj][-1][0][varName]
+          pointDelta[varName] = newPoint - bestPoint
+          recentDelta[varName] = newPoint - prevPoint
+        bestDelta = np.linalg.norm(self.featurePointToArray(pointDelta))
+        prevDelta = np.linalg.norm(self.featurePointToArray(recentDelta))
+    else:
+      bestDelta = None
+      prevDelta = None
+    toAdd['radiusFromBest'] = bestDelta
+    toAdd['radiusFromLast'] = prevDelta
+    return toAdd
 
   # * * * * * * * * * * * *
   # Constraint Handling

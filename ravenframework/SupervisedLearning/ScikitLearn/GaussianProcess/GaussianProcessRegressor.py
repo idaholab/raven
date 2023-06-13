@@ -48,7 +48,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.gaussian_process
     self.model = sklearn.gaussian_process.GaussianProcessRegressor
-    self.multioutputWrapper = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -159,7 +158,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  axis of the input space. The default is False for anisotropic.""",default=False))
     specs.addSub(InputData.parameterInputFactory("custom_kernel", contentType=InputTypes.StringType,
                                                  descr=r"""Defines the custom kernel constructed by the existing base kernels.
-                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None""",default=None))
+                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None.""",default=None))
+    specs.addSub(InputData.parameterInputFactory("multioutput", contentType=InputTypes.BoolType,
+                                                 descr=r"""Determines whether model will track multiple targets through the
+                                                 multiouput regressor wrapper class. For most RAVEN applications, this is expected;
+                                                 therefore, the default is True.""",default=True))
     return specs
 
   def pickKernel(self, name, lengthScaleSetting):
@@ -199,9 +202,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
     elif name.lower() == 'rationalquadratic':
       kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
     # For the pairwise kernels, slice the input string to get metric
-    else:
+    elif name.lower()[0:8] == 'pairwise':
       metric = name.lower()[8:]
       kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric=metric)
+    else:
+      self.raiseAnError(RuntimeError, f'Invalid kernel input found: {name}')
     return kernel
 
   def customKernel(self, kernelStatement, lengthScaleSetting):
@@ -290,7 +295,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
+    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer', 'multioutput',
                                                                'normalize_y', 'random_state', 'optimizer', 'anisotropic', 'custom_kernel'])
     # notFound must be empty
     assert(not notFound)
@@ -302,8 +307,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
       if settings['custom_kernel'] == None:
         self.raiseAnError(OSError, 'Custom kernel selected but no custom_kernel input was provided.')
       settings['kernel'] = self.customKernel(settings['custom_kernel'], settings['anisotropic'])
-    print(settings['kernel'])
-    # exit()
+    # Is this regressor for multi-output purposes?
+    # NOTE is this acceptable?
+    self.multioutputWrapper = settings['multioutput']
+    # Deleting items that scikit-learn does not use
+    del settings['multioutput']
     del settings['anisotropic']
     del settings['custom_kernel']
     self.initializeModel(settings)
