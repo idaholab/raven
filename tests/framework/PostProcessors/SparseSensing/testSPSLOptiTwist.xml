@@ -4,7 +4,7 @@
     <name>tests/framework/Postprocessors/SPSL</name>
     <author>Mohammad Abdo (@Jimmy-INL)</author>
     <created>2022-07-18</created>
-    <classesTested>Postprocessors.SPSL</classesTested>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
     <description>This test aims to check the ability of the Sparse Sensing Postprocessor
      to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
      when perturbing the heater power.

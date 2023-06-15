@@ -135,7 +135,7 @@ class SparseSensing(PostProcessorReadyInterface):
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
     _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
-    assert(not notFound)
+    assert not notFound, "Unexpected nodes in _handleInput"
 
   def run(self,inputIn):
     """
