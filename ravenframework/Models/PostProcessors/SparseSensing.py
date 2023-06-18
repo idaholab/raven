@@ -139,14 +139,16 @@ class SparseSensing(PostProcessorReadyInterface):
 
   def run(self,inputIn):
     """
+      This method executes the postprocessor action. In this case, it finds the optimal sensor locations to achieve a prescribed goal
+      (i.e., reconstruction of a certain response of interest, or classify between data different scenarios)
       @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     _, _, inputDS = inputIn['Data'][0]
 
-    # #identify features
+    ## identify features
     self.features = self.sensingFeatures
-    #don't keep the pivot parameter in the feature space
+    # don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
     if self.basis.lower() == 'svd':
@@ -168,10 +170,10 @@ class SparseSensing(PostProcessorReadyInterface):
     features = {}
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
-
+    nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
-
+    assert np.shape(data) == nSamples,nfeatures
     if self.seed is not None:
       model.fit(data, seed=self.seed)
     else:

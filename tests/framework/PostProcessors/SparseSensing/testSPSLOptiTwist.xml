@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>tests/framework/Postprocessors/SPSL</name>
+    <name>tests/framework/Postprocessors/SparseSensing</name>
     <author>Mohammad Abdo (@Jimmy-INL)</author>
     <created>2022-07-18</created>
     <classesTested>Models.Postprocessors.SparseSensing</classesTested>
