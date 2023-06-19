@@ -173,7 +173,7 @@ class SparseSensing(PostProcessorReadyInterface):
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
-    assert np.shape(data) == nSamples,nfeatures
+    assert np.shape(data) == (nSamples,nfeatures)
     if self.seed is not None:
       model.fit(data, seed=self.seed)
     else:
