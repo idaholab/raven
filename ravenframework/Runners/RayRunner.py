@@ -36,7 +36,7 @@ from .InternalRunner import InternalRunner
 
 waitTimeOut = 1e-10 # timeout to check for job to finish
 
-class DistributedMemoryRunner(InternalRunner):
+class RayRunner(InternalRunner):
   """
     Class for running internal objects in distributed memory fashion using
     ppserver
@@ -65,18 +65,18 @@ class DistributedMemoryRunner(InternalRunner):
 
   def __getstate__(self):
     """
-      This function return the state of the DistributedMemoryRunner
+      This function return the state of the RayRunner
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    state.pop('_DistributedMemoryRunner__funcLock')
+    state.pop('_RayRunner__funcLock')
     return state
 
   def __setstate__(self, d):
     """
-      Initialize the DistributedMemoryRunner with the data contained in newstate
-      @ In, d, dict, it contains all the information needed by the DistributedMemoryRunner to be initialized
+      Initialize the RayRunner with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the RayRunner to be initialized
       @ Out, None
     """
     self.__dict__.update(d)
@@ -98,29 +98,26 @@ class DistributedMemoryRunner(InternalRunner):
       elif self.hasBeenAdded:
         return True
       else:
-        if im.isLibAvail("ray"):
-          try:
-            runReturn = ray.get(self.__func, timeout=waitTimeOut)
-            self.runReturn = runReturn
-            self.hasBeenAdded = True
-            if self.runReturn is None:
-              self.returnCode = -1
-            return True
-          except ray.exceptions.GetTimeoutError:
-            #Timeout, so still running.
-            return False
-          except ray.exceptions.RayTaskError as rte:
-            #The code gets this undocumented error, and
-            # I assume it means the task has unfixably died,
-            # and so is done, and set return code to failed.
-            self.raiseAWarning("RayTaskError: "+str(rte))
+        try:
+          runReturn = ray.get(self.__func, timeout=waitTimeOut)
+          self.runReturn = runReturn
+          self.hasBeenAdded = True
+          if self.runReturn is None:
             self.returnCode = -1
-            return True
-          #Alternative that was tried:
-          #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
-          #which ran slower in ray 1.9
-        else:
-          return self.__func.finished
+          return True
+        except ray.exceptions.GetTimeoutError:
+          #Timeout, so still running.
+          return False
+        except ray.exceptions.RayTaskError as rte:
+          #The code gets this undocumented error, and
+          # I assume it means the task has unfixably died,
+          # and so is done, and set return code to failed.
+          self.raiseAWarning("RayTaskError: "+str(rte))
+          self.returnCode = -1
+          return True
+        #Alternative that was tried:
+        #return self.__func in ray.wait([self.__func], timeout=waitTimeOut)[0]
+        #which ran slower in ray 1.9
 
   def _collectRunnerResponse(self):
     """
@@ -132,7 +129,7 @@ class DistributedMemoryRunner(InternalRunner):
     with self.__funcLock:
       if not self.hasBeenAdded:
         if self.__func is not None:
-          self.runReturn = ray.get(self.__func) if im.isLibAvail("ray") else self.__func()
+          self.runReturn = ray.get(self.__func)
         else:
           self.runReturn = None
         self.hasBeenAdded = True
@@ -144,11 +141,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      if im.isLibAvail("ray"):
-        self.__func = self.functionToRun(*self.args)
-      else:
-        self.__func = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
-                                             modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
+      self.__func = self.functionToRun(*self.args)
       self.trackTime('runner_started')
       self.started = True
       gc.collect()

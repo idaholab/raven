@@ -48,7 +48,7 @@ try:
   #Enum of the parallel libraries we support
   #Note that shared is use no parallel lib, and distributed is choose one
   # and use it.
-  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared','distributed'])
+  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','shared','distributed'])
 except ImportError:
   ParallelLibEnum = "ParallelLibEnum is not available without enum"
 

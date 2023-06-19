@@ -662,9 +662,9 @@ class JobHandler(BaseType):
                                                      uniqueHandler=uniqueHandler,
                                                      profile=self.__profileJobs)
 
-      else:
-        internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
-                                                     functionToRun.remote if _rayAvail else functionToRun.original_function,
+      elif self._parallelLib == ParallelLibEnum.ray:
+        internalJob = Runners.factory.returnInstance('RayRunner', arguments,
+                                                     functionToRun.remote,
                                                      identifier=identifier,
                                                      metadata=metadata,
                                                      uniqueHandler=uniqueHandler,
