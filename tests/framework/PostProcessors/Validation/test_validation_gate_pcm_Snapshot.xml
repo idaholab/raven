@@ -34,6 +34,7 @@
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Snapshot</pcmType>
     </PostProcessor>
   </Models>
 

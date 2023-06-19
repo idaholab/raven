@@ -34,6 +34,7 @@
       <Features>expData|time20s,expData|time40s,expData|time50s</Features>
       <Targets>appData|time20s</Targets>
       <Measurements>msrData|time20s,msrData|time40s,msrData|time50s</Measurements>
+      <pcmType>Static</pcmType>
     </PostProcessor>
   </Models>
 

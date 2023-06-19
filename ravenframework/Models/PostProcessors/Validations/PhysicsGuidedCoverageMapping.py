@@ -53,6 +53,8 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     specs = super(PhysicsGuidedCoverageMapping, cls).getInputSpecification()
     measurementsInput = InputData.parameterInputFactory("Measurements", contentType=InputTypes.StringListType)
     specs.addSub(measurementsInput)
+    pcmTypeInput = InputData.parameterInputFactory("pcmType", contentType=InputTypes.StringType)
+    specs.addSub(pcmTypeInput)
     return specs
 
   def __init__(self):
@@ -74,9 +76,12 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    # Get Measurements data from input
     for child in paramInput.subparts:
-      if child.getName() == 'Measurements':
+      # Get option for type of PCM to be run from input
+      if child.getName() == 'pcmType':
+        self.pcmType = child.value
+      # Get Measurements data from input
+      elif child.getName() == 'Measurements':
         self.measurements = child.value
     # Number of Features responses must equal to number of Measurements responses
     # Number of samples between Features and Measurements can be different
@@ -92,7 +97,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     """
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     names = list(dataDict.keys())#
-    evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(inputIn['Data'][0][-1].coords.keys(), dataDict, **{'dataobjectNames': names}).items()}
+    evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
     if 'snapshot_pri_post_stdReduct' in evaluation.keys():
       pivotParameter = self.pivotParameter
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeSnapshot']
@@ -101,7 +106,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeTdep']
     return evaluation
 
-  def _evaluate(self, keys, datasets, **kwargs):
+  def _evaluate(self, datasets, **kwargs):
     """
       Main method of PCM. It collects the response values from Feature and Target models,
       and Measurements from experiment, maps the biases and uncertainties from Feature to
@@ -114,33 +119,71 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     """
       Functions to be applied
     """
-    #PCM function for snapshot PCM and Static PCM
+    # Find a reference sample which is closest to samples' average for scaling later
+    def FindRef(yExp, yApp):
+      """
+      Method to find reference samples within experimental and application data sets that are
+      the closest to the respective sample mean. The reference samples are determined by
+      minimizing the mean squared error between each sample and the sample mean.
+
+      @ In, yExp, yApp: array-like (2D), experiment and application data [samples x timesteps].
+      @ Out, inExp, inApp: int, indexes of the reference sample in the experimental/application dataset.
+      """
+      # calculate average temperatures among samples (samples' average)
+      yExpMean = np.mean(yExp, axis=0)
+      yAppMean = np.mean(yApp, axis=0)
+      # find the reference that is closest to the mean by employing Mean Square Error as metric
+      mse1 = np.zeros(yExp.shape[0])
+      mse2 = np.zeros(yExp.shape[0])
+      for i in range(yExp.shape[0]):
+          mse1[i] = np.mean((yExp[i,:]-yExpMean)**2)
+          mse2[i] = np.mean((yApp[i,:]-yAppMean)**2)
+      # The index for the reference sample
+      inExp = np.where(mse1==np.min(mse1))[0][0]
+      inApp = np.where(mse2==np.min(mse2))[0][0]
+      return inExp, inApp
+
+
     def PCM(featData, msrData, targData):
+      """
+      This is the PCM function for Static PCM.
+      Snapshot PCM is also applying this function sequentially on data from each single timestep.
+
+      It takes three input matrices and compute the uncertainty reduction fraction
+      for a given set of feature data, measurement data, and target data using Static PCM (OMP+KDE).
+      The data is scaled first, then OMP finds pseudo responses 'yExpReg' based on training(featdata, targdata).
+      Then pseudo response 'yMsrReg' is also obtained for slicing step in KDE later.
+      By slicing at 'yMsrReg' for joint distribution cloud (yExpReg, yAppStd),
+      we have posterior distribution for yApp, and its uncertainty reduction fraction is computed.
+
+      @ In, featData, msrData, targData: array-like, should be formatted as [samples x timesteps].
+      @ Out, outputArray: list, list of uncertainty reduction fractions for each target model/response.
+      """
       outputArray = []
+
+      yExp = np.array(featData)
+      yMsr = np.array(msrData)
+      # Reference values of Experiments, yExpRef is one of the M samples
+      # Which is the closest to sample mean by mean square errors
+      # It can be user-defined in the future
+      inExp, inApp = FindRef(featData, targData)
+      # Reference values of Experiment, yExpRef is a scalar
+      yExpRef = featData[inExp, :]
+      # Reference values of Application, yAppRef is a scalar
+      yAppRef = targData[inApp, :]
+
       for t in range(targData.shape[1]):
-        # Probability Weights to be used in the future
-        yExp = np.array(featData)
-        yMsr = np.array(msrData)
-        # Reference values of Experiments, yExpRef in M
-        # Sample mean as reference value for simplicity
-        # Can be user-defined in the future
-        yExpRef = np.mean(yExp, axis=0)
+        # Application responses yApp in Nx1
+        yApp = np.array(targData[:,t])
         # Usually the reference value is given,
         # and will not be zero, e.g. reference fuel temperature.
         # Standardization
-        yExpStd = (yExp-yExpRef)/yExpRef
+        yExpStd = (np.delete(yExp[:,:] - yExpRef, inExp,0))
         yMsrStd = (yMsr-yExpRef)/yExpRef
+        yAppStd = (np.delete(yApp - yAppRef[t], inApp,0))
 
         # For each Target/Application model/response, calculate an uncertainty reduction fraction
         # using all available Features/Experiments
-
-        # Application responses yApp in Nx1
-        yApp = np.array(targData[:,t])
-        # Reference values of Application, yAppRef is a scalar
-        yAppRef = np.mean(yApp)
-        # Standardization
-        yAppStd = (yApp-yAppRef)/yAppRef
-
         # Single Experiment response
         if yExpStd.shape[1]==1:
           yExpReg = yExpStd.flatten()
@@ -212,8 +255,19 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         outputArray.append(1.0-predStd/priStd)
       return outputArray
 
-    # functions for T-Dep PCM
+    # Functions below, KNN, FindRank, pcmTdep, are for T-Dep PCM
     def KNN(exp, app, expM, k=5, Metric='minkowski'):
+      """
+      Method to perform K-Nearest Neighbors (KNN) regression on a given set of experimental data
+      and application data, and make predictions on application measurement using the fitted model.
+
+      @ In, exp: array-like (2D), the experimental data used for training the KNN model.
+      @ In, app: array-like (1D or 2D), the application data corresponding to the experimental data.
+      @ In, expM: array-like (1D or 2D), the measurement data on which predictions are to be made.
+      @ In, k: int, optional, the number of neighbors to be considered in KNN algorithm. Default is 5.
+      @ In, Metric: str, optional, the distance metric to use for the KNN algorithm. Default is 'minkowski'.
+      @ Out, appPred: array-like, the predicted application data for the given measurement set.
+      """
       # check the dimension of exp matrix, \
       # if it only has one feature, enasure to make it as a 2D matrix instead of a 1D vector
       if expM.ndim==1:
@@ -232,6 +286,17 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       return appPred
 
     def FindRank(ref, x, xM):
+      """
+      Method to determine the rank of matrix 'x' such that the maximum residual for
+      reconstructed matrix 'x_r' under different ranks is less than a error defined,
+      i.e., max|x-x_r|<error. The error is decided based on measurement error given.
+      Here we decide the error by a fraction of measurement standard deviation.
+
+      @ In, ref: array-like (1D), reference sample used for scaling data 'x'.
+      @ In, x: array-like (2D), the matrix [samples x timesteps] for which the rank is to be determined.
+      @ In, xM: array-like (2D), the matrix [samples x timesteps] used to calculate measurement error.
+      @ Out, xMAX[0]: rank, int, the rank of matrix 'x' that satisfies the condition on maximum residual.
+      """
       x = (x.T/ref).T
       error = (np.std(xM, axis=0)/ np.mean(xM, axis=0))[0] #msr error
       #scaling by reference
@@ -239,35 +304,36 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Find the maximum of the residual under different rank
       maxError = np.zeros(np.mean(xM, axis=0).shape[0])
       for k in range(1,maxError.shape[0]+1):
-        res = x - u[:,:k]@np.diag(s)[:k,:k]@v_T[:k,:]#residual under different rank
+        res = x - u[:,:k]@np.diag(s)[:k,:k]@v_T[:k,:]#residual of x-x_r under different rank
         maxError[k-1] = np.max(abs(res)) # maximum of the residual
+      # 1/10 is decided as we want a rank corresponding to around 0.1% reconstruction error.
+      # The precition of pcmTdep is sensitive to the rank here, which determines the dimension of
+      # U_exp, U_app subspaces for KNN regression. We will lose information under low rank, or
+      # overfit data with noise under high rank.
+      # This error can be made as user-defined later.
       xMAX=min(np.argwhere(maxError<error/10)) #rank corresponding to msr error
       return xMAX[0]
 
-    # Find a reference sample which is closest to samples' average for scaling later
-    def findRef(yExp, yApp):
-      # calculate average temperatures among samples (samples' average)
-      yExpMean = np.mean(yExp, axis=0)
-      yAppMean = np.mean(yApp, axis=0)
-      # find the reference that is closest to the mean by employing Mean Square Error as metric
-      mse1 = np.zeros(yExp.shape[0])
-      mse2 = np.zeros(yExp.shape[0])
-      for i in range(yExp.shape[0]):
-          mse1[i] = np.mean((yExp[i,:]-yExpMean)**2)
-          mse2[i] = np.mean((yApp[i,:]-yAppMean)**2)
-      # The index for the reference sample
-      inExp = np.where(mse1==np.min(mse1))[0][0]
-      inApp = np.where(mse2==np.min(mse2))[0][0]
-      return inExp, inApp
-
     def pcmTdep(featData, msrData, targData):
+      """
+        Method to perform Tdep PCM model for uncertainty quantification and data assimilation in time-dependent
+        applications using Singular Value Decomposition (SVD) and K-Nearest Neighbors regression(KNN).
+        The inputs, featData, msrData, targData, are scaled by reference first, then applying SVD
+        to find U_exp, U_app subspace, coefficients under relevant U subspace, and decide on the rank.
+        The coefficients found are fitted with KNN, then predicted application response is reconstructed
+        by the estimated application coefficients.
+
+        @ In, featData, msrData,, targData : array-like (2D), the input data for features, measurements, and targets.
+        @ Out, yAppPred: array-like (2D), the predicted application response.
+        @ Out, error, array-like (2D), the relative error between predicted and computed application reference.
+      """
       yExp = np.array(featData)
       yApp = np.array(targData)
       yExpMsr = np.array(msrData)
       yExpMsrMean = np.mean(np.array(msrData), axis=0)
 
       # calculate alphaApp as linear combination of alphaExp (with RankApp, RankExp)
-      inExp, inApp = findRef(yExp, yApp)
+      inExp, inApp = FindRef(yExp, yApp)
       yAppRef = yApp[inApp, :]
       yAppScaled = (np.delete(yApp[:,:] - yAppRef, inApp,0)).T #scaled application prior data
       uApp, sApp, vApp_T = np.linalg.svd(yAppScaled, full_matrices=False)
@@ -286,6 +352,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       #KNN regression
       rkApp = FindRank(yAppRef, yAppScaled, yExpMsr) #rank of application
       rkExp = FindRank(yExpRef, yExpScaled, yExpMsr)  # rank of experiments
+
       alphaAppHat=np.zeros(rkApp)
       for i in range(rkApp):
         alphaAppHat[i] = KNN(alphaExp[:,:rkExp], alphaApp[:,i], alphaExpMsr[:rkExp],k=4)
@@ -330,8 +397,9 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     msrPW = np.array(msrPW).T
     targPW = np.array(targPW).T
 
-    if 'timeTdep' in keys:
-      pcmVersion = 'Tdep'
+    pcmVersion = self.pcmType
+
+    if pcmVersion == 'Tdep':
       self.raiseAMessage('***    Running Tdep-PCM       ***')
       # Data of size (num_of_samples, num_of_features)
       element = np.asarray(datasets['exp'].get('timeTdep'))[0]
@@ -344,9 +412,14 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
       time = v[:num_of_featuresExp]
       yAppPred, error = pcmTdep(featData, msrData, targData)
+      name = "time"
+      outputDict[name] = np.asarray(time)
+      name = "Tdep_post_mean"
+      outputDict[name] = np.asarray(yAppPred)
+      name = "Error"
+      outputDict[name] = np.asarray(error)
 
-    elif 'timeSnapshot' in keys:
-      pcmVersion = 'snapshot'
+    if pcmVersion == 'Snapshot':
       self.raiseAMessage('***    Running Snapshot-PCM   ***')
       # Data of size (num_of_samples, num_of_features)
       element = np.asarray(datasets['exp'].get('timeSnapshot'))[0]
@@ -359,31 +432,20 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       targData = np.array(targData).reshape(num_of_samples, num_of_features)
       time = v[:num_of_features]
       outputArray = PCM(featData, msrData, targData)
+      name = "time"
+      outputDict[name] = np.asarray(time)
+      name = "snapshot_pri_post_stdReduct"
+      outputDict[name] = np.asarray(outputArray)
 
-    else:
-      pcmVersion = 'static'
+    if pcmVersion == 'Static':
       self.raiseAMessage('***     Running Static-PCM    ***')
       featData = np.array(featData).T
       msrData = np.array(msrData).T
       targData = np.array(targData).T
       outputArray = PCM(featData, msrData, targData)
-
-    if pcmVersion=='snapshot':
-      name = "time"
-      outputDict[name] = np.asarray(time)
-      name = "snapshot_pri_post_stdReduct"
-      outputDict[name] = np.asarray(outputArray)
-    if pcmVersion=='static':
       for targ in self.targets:
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
         outputDict[name] = np.asarray(outputArray)
-    if pcmVersion=='Tdep':
-      name = "time"
-      outputDict[name] = np.asarray(time)
-      name = "Tdep_post_mean"
-      outputDict[name] = np.asarray(yAppPred)
-      name = "Error"
-      outputDict[name] = np.asarray(error)
 
     return outputDict
 

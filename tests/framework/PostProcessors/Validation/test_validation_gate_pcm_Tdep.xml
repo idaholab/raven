@@ -31,6 +31,7 @@
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Tdep</pcmType>
     </PostProcessor>
   </Models>
 
