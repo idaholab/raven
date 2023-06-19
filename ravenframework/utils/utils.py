@@ -697,15 +697,6 @@ def add_path(absolutepath):
     print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
   os.environ['PYTHONPATH'] = newPath
 
-def add_path_recursively(absoluteInitialPath):
-  """
-    Method to recursively add all the path and subpaths contained in absoluteInitialPath in the pythonpath
-    @ In, absoluteInitialPath, string, the absolute path to add
-    @ Out, None
-  """
-  for dirr,_,_ in os.walk(absoluteInitialPath):
-    add_path(dirr)
-
 def findCrowModule(name):
   """
     Method to find one of the crow module (e.g. distribution1D, interpolationNDpy, randomENG, etc.) and return it.
