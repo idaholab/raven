@@ -393,6 +393,9 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     # Probability Weights values in <x>PW, , <x>=targ, feat, msr
     targPW = targDataProb[1]
 
+    featData = np.array(featData)
+    msrData = np.array(msrData)
+    targData = np.array(targData)
     featPW = np.array(featPW).T
     msrPW = np.array(msrPW).T
     targPW = np.array(targPW).T
@@ -407,6 +410,11 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       num_of_samples = np.count_nonzero(v == element)
       num_of_featuresExp = int(np.asarray(datasets['exp'].get('timeTdep')).shape[0]/num_of_samples)
       num_of_featuresApp = int(np.asarray(datasets['app'].get('timeTdep')).shape[0]/num_of_samples)
+
+      if featData.size != num_of_samples * num_of_featuresExp or \
+        targData.size != num_of_samples * num_of_featuresApp:
+        self.raiseAnError(IOError, 'The data provided in XML node "Features/Target" is not following the dimension required by TdepPCM')
+
       featData = np.array(featData).reshape(num_of_samples, num_of_featuresExp)
       msrData = np.array(msrData).reshape(num_of_samples, num_of_featuresExp)
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
@@ -426,10 +434,16 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       v = np.asarray(datasets['exp'].get('timeSnapshot'))
       num_of_samples = np.count_nonzero(v == element)
       num_of_features = int(np.asarray(datasets['exp'].get('timeSnapshot')).shape[0]/num_of_samples)
-      num_of_features = int(np.asarray(datasets['app'].get('timeSnapshot')).shape[0]/num_of_samples)
+      num_of_targets = int(np.asarray(datasets['app'].get('timeSnapshot')).shape[0]/num_of_samples)
+
+      if featData.size != num_of_samples * num_of_features or \
+        targData.size != num_of_samples * num_of_targets or \
+        num_of_features !=  num_of_targets:
+        self.raiseAnError(IOError, 'The data provided in XML node "Features/Target" is not following the dimension required by SnapshotPCM')
+
       featData = np.array(featData).reshape(num_of_samples, num_of_features)
       msrData = np.array(msrData).reshape(num_of_samples, num_of_features)
-      targData = np.array(targData).reshape(num_of_samples, num_of_features)
+      targData = np.array(targData).reshape(num_of_samples, num_of_targets)
       time = v[:num_of_features]
       outputArray = PCM(featData, msrData, targData)
       name = "time"
