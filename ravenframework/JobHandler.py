@@ -40,8 +40,6 @@ if _daskAvail:
   import dask.distributed
 if _rayAvail:
   import ray
-if not _daskAvail and not _rayAvail:
-  import pp
 
 # end internal parallel module
 # Internal Modules End-----------------------------------------------------------
@@ -177,7 +175,8 @@ class JobHandler(BaseType):
       elif _rayAvail:
         self._parallelLib = ParallelLibEnum.ray
       else:
-        self._parallelLib = ParallelLibEnum.pp
+        self.raiseAWarning("Distributed Running requested but no parallel method found")
+        self._parallelLib = ParallelLibEnum.shared
     desiredParallelMethod = f"parallelMethod: {self.runInfoDict['parallelMethod']} internalParallel: {self.runInfoDict['internalParallel']}"
     self.raiseADebug(f"Using parallelMethod: {self._parallelLib} because Input: {desiredParallelMethod} and Ray Availablility: {_rayAvail} and Dask Availabilitiy: {_daskAvail}")
     if self._parallelLib == ParallelLibEnum.dask and not _daskAvail:
@@ -284,8 +283,6 @@ class JobHandler(BaseType):
               #Start locally
               cluster = dask.distributed.LocalCluster()
               self._server = dask.distributed.Client(cluster)
-          elif self._parallelLib == ParallelLibEnum.pp:
-            self._server = pp.Server(ncpus=int(nProcsHead))
           else:
             self.raiseAWarning("No supported server")
           if self._parallelLib == ParallelLibEnum.ray:
@@ -300,11 +297,9 @@ class JobHandler(BaseType):
             cluster = dask.distributed.LocalCluster()
             self._server = dask.distributed.Client(cluster)
       else:
-        self.raiseADebug("Initializing", "ray" if _rayAvail else "pp","locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
+        self.raiseADebug("Initializing", str(self._parallelLib), "locally with num_cpus: ", self.runInfoDict['totalNumCoresUsed'])
         if self._parallelLib == ParallelLibEnum.ray:
           self._server = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db)
-        elif self._parallelLib == ParallelLibEnum.pp:
-          self._server = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
         elif self._parallelLib == ParallelLibEnum.dask:
           #handle local method
           cluster = dask.distributed.LocalCluster(n_workers=int(self.runInfoDict['totalNumCoresUsed']))
@@ -568,10 +563,6 @@ class JobHandler(BaseType):
           self.raiseADebug("command is: "+command)
           command += " --python-path "+localEnv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localEnv)
-        elif self._parallelLib == ParallelLibEnum.pp:
-          ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localEnv["PYTHONPATH"],"-d"])
-          utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=True,env=localEnv)
         elif self._parallelLib == ParallelLibEnum.dask:
           remoteServerScript = os.path.join(self.runInfoDict['FrameworkDir'],
                                             "RemoteNodeScripts","start_dask.sh")
@@ -659,7 +650,7 @@ class JobHandler(BaseType):
                                                    uniqueHandler=uniqueHandler,
                                                    profile=self.__profileJobs)
     else:
-      if self._parallelLib in [ParallelLibEnum.dask,ParallelLibEnum.pp]:
+      if self._parallelLib == ParallelLibEnum.dask:
         arguments =  tuple([self._server] + list(args))
       else:
         arguments = args
