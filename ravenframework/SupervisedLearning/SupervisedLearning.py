@@ -795,16 +795,16 @@ class SupervisedLearning(BaseInterface):
     return evaluation
   ### END ROM Clustering ###
 
-  # @abc.abstractmethod
-  # def _train(self,featureVals,targetVals):
-  #   """
-  #     Perform training on samples in featureVals with responses y.
-  #     For an one-class model, +1 or -1 is returned.
-  #     @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-  #       an array of input feature values
-  #     @ Out, targetVals, array, shape = [n_samples], an array of output target
-  #       associated with the corresponding points in featureVals
-  #   """
+  @abc.abstractmethod
+  def _train(self,featureVals,targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
 
   @abc.abstractmethod
   def __confidenceLocal__(self,featureVals):

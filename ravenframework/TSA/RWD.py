@@ -146,10 +146,10 @@ class RWD(TimeSeriesCharacterizer):
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber-1):
           baseMatrix[:,i] = np.copy(history[i*signatureWindowLength:(i+1)*signatureWindowLength])
-      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
+      U,s,V = np.linalg.svd(baseMatrix, full_matrices=True)
       featureMatrix = U.T @ signatureMatrix
       params[target] = {'uVec'   : U[:,0:fi],
-                        'Feature': featureMatrix}
+                        'Feature': featureMatrix[0:fi,:]}
     return params
 
   def getParamNames(self, settings):
