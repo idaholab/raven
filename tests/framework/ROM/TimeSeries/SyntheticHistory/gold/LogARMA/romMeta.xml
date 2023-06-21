@@ -5,14 +5,9 @@
       <Features>scaling</Features>
       <Targets>signal0,signal1,seconds</Targets>
     </ROM>
-    <Transformer>
-      <signal1>
-        <transformer subType="sklearn.preprocessing.FunctionTransformer">
-          <func>log</func>
-          <inverse_func>exp</inverse_func>
-        </transformer>
-      </signal1>
-    </Transformer>
+    <LogTransformer>
+      <signal1 />
+    </LogTransformer>
     <ARMA>
       <signal0>
         <constant>2.439859975e-03</constant>
