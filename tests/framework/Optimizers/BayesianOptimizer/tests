@@ -1,0 +1,23 @@
+[Tests]
+  [./Basic]
+    type = 'RavenFramework'
+    input = 'Basic/BayesianBasic.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Basic/opt_export_0.csv'
+      rel_err = 1e-2
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./Beale]
+    type = 'RavenFramework'
+    input = 'Beale/BayesianBeale.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Beale/opt_export_0.csv'
+      rel_err = 1e-2
+      zero_threshold = 1e-2
+    [../]
+  [../]
+[]

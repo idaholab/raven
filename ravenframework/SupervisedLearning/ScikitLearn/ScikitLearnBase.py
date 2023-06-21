@@ -201,7 +201,7 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, featureVals, np.array, list of values at which to evaluate the ROM
       @ Out, returnDict, dict, dict of all the target results
     """
-    std = False
+    std = None
     if self.uniqueVals is not None:
       outcomes =  self.uniqueVals
     else:

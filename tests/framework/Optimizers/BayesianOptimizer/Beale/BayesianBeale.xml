@@ -35,7 +35,6 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
-      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -53,11 +52,11 @@
       </samplerInit>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+        <grid construction="equal" steps="20" type="CDF">0 1</grid>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+        <grid construction="equal" steps="20" type="CDF">0 1</grid>
       </variable>
     </Stratified>
   </Samplers>
@@ -73,31 +72,31 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>590</limit>
+        <limit>90</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>every</writeSteps>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
       <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
       <Acquisition>
         <ExpectedImprovement>
-          <!-- <optimizationMethod>slsqp</optimizationMethod>
-          <seedingCount>5</seedingCount> -->
+          <optimizationMethod>differentialEvolution</optimizationMethod>
+          <seedingCount>30</seedingCount>
         </ExpectedImprovement>
       </Acquisition>
     </BayesianOptimizer>
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans,aux_ans</variables>
     </ExternalModel>
     <ROM name="gpROM" subType="GaussianProcessRegressor">
       <Features>x,y</Features>
       <Target>ans</Target>
-      <alpha>1e-10</alpha>
+      <alpha>1e-8</alpha>
       <n_restarts_optimizer>5</n_restarts_optimizer>
       <normalize_y>True</normalize_y>
+      <random_state>42</random_state>
       <kernel>Custom</kernel>
       <custom_kernel>(Constant*RBF)</custom_kernel>
       <anisotropic>True</anisotropic>
@@ -113,7 +112,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,aux_ans,iteration,accepted,acquisition,radiusFromBest,radiusFromLast</Output>
+      <Output>x,y,ans</Output>
     </PointSet>
   </DataObjects>
 
@@ -127,10 +126,6 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="opt_path" subType="OptPath">
-      <source>opt_export</source>
-      <vars>x,y,ans</vars>
-    </Plot>
   </OutStreams>
 
 </Simulation>

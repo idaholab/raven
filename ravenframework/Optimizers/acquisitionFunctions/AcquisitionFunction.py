@@ -38,18 +38,17 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
-    specs.description = 'Base class for acquisition functions for Bayesian Optimizer.'
+    specs.description = 'Base class of acquisition functions for Bayesian Optimizer.'
     specs.addSub(InputData.parameterInputFactory('optimizationMethod', contentType=InputTypes.StringType,
         descr=r"""String to specify routine used for the optimization of the acquisition function.
-              Acceptable options include ('differentialEvolution', 'slsqp'). \default{'differentialEvolution'}"""))
+              Acceptable options include: ('differentialEvolution', 'slsqp'). \default{'differentialEvolution'}"""))
     specs.addSub(InputData.parameterInputFactory('seedingCount', contentType=InputTypes.IntegerType,
-        descr=r"""This can describes two different but similar things depending on the selection of
-              the optimization method. If the method is gradient based or typically handled with singular
-              decisions (ex. slsqp approximates a quadratic program using ), this number
+        descr=r"""If the method is gradient based or typically handled with singular
+              decisions (ex. slsqp approximates a quadratic program using the gradient), this number
               represents the number of trajectories for a multi-start variant (default=2N).
               N is the dimension of the input space.
-              If the method works on populations (ex. differential evolution), the number
-              represents the population size (default=10N)."""))
+              If the method works on populations (ex. differential evolution simulates natural selection on a population),
+              the number represents the population size (default=10N)."""))
     return specs
 
   @classmethod
@@ -82,11 +81,11 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     settings, notFound = specs.findNodesAndExtractValues(['optimizationMethod', 'seedingCount'])
     # If no user provided setting for opt method and seeding count, use default
     if 'optimizationMethod' in notFound:
-      self._optMethod = 'differential evolution'
+      self._optMethod = 'differentialEvolution'
     else:
       self._optMethod = settings['optimizationMethod']
     if 'seedingCount' in notFound:
-      if self._optMethod == 'differential evolution':
+      if self._optMethod == 'differentialEvolution':
         self._seedingCount = 10*self.N
       else:
         self._seedingCount = 2*self.N
@@ -111,11 +110,11 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, newPoint, dict, new point to sample the cost function at
     """
     # Depending on the optimization method, the cost function should be defined differently
-    if self._optMethod == 'differential evolution':
+    if self._optMethod == 'differentialEvolution':
       # NOTE -1 is to enforce maximization of the positive function
       opt_func = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
       res = sciopt.differential_evolution(opt_func, bounds=self._bounds, polish=True, maxiter=100, tol=1e-5,
-                                          popsize=self._seedingCount, init='latinhypercube', vectorized=True)
+                                          popsize=self._seedingCount, vectorized=True)
     else:
       self.raiseAnError(RuntimeError, 'Currently only accepts differential evolution. Other methods still under construction')
     self._optValue = -1*res.fun
@@ -184,9 +183,6 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, None
       @ Out, None
     """
-    self._optMethod = None  # Method used to optimize acquisition function for sample selection
-    self._seedingCount = 0  # For multi-start gradient methods, the number of starting points and the population size for differential evolution
-    self.N = None           # Dimension of the input space
-    self._bounds = []       # List of tuples for bounds that scipy optimizers use
-    self._optValue = None   # Value of the acquisition function at the recommended sample
+    self._bounds = []
+    self._optValue = None
     return

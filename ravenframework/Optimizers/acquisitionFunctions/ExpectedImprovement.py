@@ -42,10 +42,10 @@ class ExpectedImprovement(AcquisitionFunction):
     specs.description = r"""If this node is present within the acquisition node,
                         the expected improvement acqusition function is utilized.
                         This function is derived by applying Bayesian optimal decision making (Bellman's Principle of Optimality)
-                        with a local reward utility function in conjunction with a one-step lookahead
-                        horizon. The approach weighs both expected reward and likely reward with the
+                        with a local reward utility function in conjunction with a one-step lookahead.
+                        The approach weighs both expected reward and likely reward with the
                         following expression (for minimization):
-                        $EI(x) = (f_{opt}-\mu)\phi(\frac{f_{opt}-\mu}{s}) + s \Phi(\frac{f_{opt}-\mu}{s})$"""
+                        $EI(x) = (f^*-\mu)\phi(\frac{f^*-\mu}{s}) + s \Phi(\frac{f^*-\mu}{s})$"""
 
     return specs
 
@@ -65,7 +65,7 @@ class ExpectedImprovement(AcquisitionFunction):
     best = bayesianOptimizer._optPointHistory[0][-1][0]
     fopt = best[bayesianOptimizer._objectiveVar]
 
-     # Need to convert array input "x" into dict point
+    # Need to convert array input "x" into dict point
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
 
     # Evaluate posterior mean and standard deviation

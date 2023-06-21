@@ -150,10 +150,10 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
                                                  parameters are kept fixed.""",default='fmin_l_bfgs_b'))
     specs.addSub(InputData.parameterInputFactory("anisotropic", contentType=InputTypes.BoolType,
-                                                 descr=r"""Determines if unique length-scales are used for each
-                                                 axis of the input space. The default is False for anisotropic.""",default=False))
+                                                 descr=r"""Boolean that determines if unique length-scales are used for each
+                                                 axis of the input space (where applicable). The default is False.""",default=False))
     specs.addSub(InputData.parameterInputFactory("custom_kernel", contentType=InputTypes.StringType,
-                                                 descr=r"""Defines the custom kernel constructed by the existing base kernels.
+                                                 descr=r"""Defines the custom kernel constructed by the available base kernels.
                                                  Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None.""",default=None))
     specs.addSub(InputData.parameterInputFactory("multioutput", contentType=InputTypes.BoolType,
                                                  descr=r"""Determines whether model will track multiple targets through the
@@ -176,7 +176,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
       lengthScale = 1
 
     if name.lower() == 'constant':
-      kernel = sklearn.gaussian_process.kernels.ConstantKernel()
+      kernel = sklearn.gaussian_process.kernels.ConstantKernel(constant_value_bounds=(1e-5,1e7))
     elif name.lower() == 'dotproduct':
       kernel = sklearn.gaussian_process.kernels.DotProduct()
     elif name.lower() == 'expsinesquared':
@@ -294,7 +294,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
         self.raiseAnError(OSError, 'Custom kernel selected but no custom_kernel input was provided.')
       settings['kernel'] = self.customKernel(settings['custom_kernel'], settings['anisotropic'])
     # Is this regressor for multi-output purposes?
-    # NOTE is this acceptable?
     self.multioutputWrapper = settings['multioutput']
     # Deleting items that scikit-learn does not use
     del settings['multioutput']

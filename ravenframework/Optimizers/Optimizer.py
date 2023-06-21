@@ -155,7 +155,9 @@ class Optimizer(AdaptiveSampler):
               detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
               the model definition's name.""")
     model.addParam('subType', InputTypes.StringType, True,
-        descr=r"""RAVEN subType for this source. Options include \xmlNode{GaussianProcessRegressor} and fill in later""")
+        descr=r"""RAVEN subType for this source. For example, \xmlNode{GaussianProcessRegressor} for the
+              GPR model within RAVEN. For more information on specifying ROM's in RAVEN, see the relevant
+              section in the user manual.""")
 
     specs.addSub(model)
     return specs
@@ -185,7 +187,6 @@ class Optimizer(AdaptiveSampler):
     self._constraintFunctions = []      # list of constraint functions
     self._impConstraintFunctions = []   # list of implicit constraint functions
     self._requireSolnExport = True      # optimizers only produce result in solution export
-    # self._model = None                  # model entity that optimizer may need or want access to (BO needs GPR rom)
     self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files', 'Models'] # List of assembler entities required to initialize an optmizer
     # __private
     # additional methods
@@ -313,8 +314,6 @@ class Optimizer(AdaptiveSampler):
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # sampler
     self._initializeInitSampler(externalSeeding)
-    # model
-    # self._initializeModel(externalSeeding)
     # seed
     if self._seed is not None:
       randomUtils.randomSeed(self._seed)
@@ -445,16 +444,6 @@ class Optimizer(AdaptiveSampler):
       for var in self.toBeSampled:
         if var in rlz:
           self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
-
-  # def _initializeModel(self, externalSeeding):
-  #   """
-  #     Initializes model to be used by optimizer.
-  #     @ In, externalSeeding, int, unused
-  #     @ Out, None
-  #   """
-  #   if not self.assemblerDict.get('Model', False):
-  #     return
-  #   self._model = self.assemblerDict['Model'][0][3]
 
   def initializeTrajectory(self, traj=None):
     """

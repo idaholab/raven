@@ -49,6 +49,7 @@
   input = 'test_scgpc_uniform.xml'
   UnorderedXml = 'scgpc/Udumprom.xml'
   csv = 'scgpc/Udump.csv'
+  zero_threshold = 1e-12
  [../]
  [./uniform_cc]
   type = 'RavenFramework'
@@ -67,24 +68,28 @@
   input = 'test_scgpc_gamma.xml'
   UnorderedXml = 'scgpc/Gdumprom.xml'
   csv = 'scgpc/Gdump.csv'
+  zero_threshold = 1e-12
  [../]
  [./gamma_large_scale]
   type = 'RavenFramework'
   input = 'test_scgpc_gamma_large_scale.xml'
   UnorderedXml = 'scgpc/dumpromGammaXml.xml'
   csv = 'scgpc/dumpGamma.csv scgpc/dumpromGamma.csv'
+  zero_threshold = 1e-12
  [../]
  [./beta]
   type = 'RavenFramework'
   input = 'test_scgpc_beta.xml'
   UnorderedXml = 'scgpc/Bdumprom.xml'
   csv = 'scgpc/Bdump.csv'
+  zero_threshold = 1e-12
  [../]
  [./betanorm]
   type = 'RavenFramework'
   input = 'test_scgpc_betanorm.xml'
   UnorderedXml = 'scgpc/BNdumprom.xml'
   csv = 'scgpc/BNdump.csv'
+  zero_threshold = 1e-12
  [../]
  [./triangular]
   type = 'RavenFramework'
@@ -97,6 +102,7 @@
   input = 'test_scgpc_expon.xml'
   UnorderedXml = 'scgpc/Edumprom.xml'
   csv = 'scgpc/Edump.csv'
+  zero_threshold = 1e-12
  [../]
 
  [./AdaptiveOnVariance]
@@ -104,5 +110,6 @@
    input = 'test_adaptive_stochpoly_var.xml'
    UnorderedXml = 'AdaptiveStochasticPolyVar/dump.xml'
    csv = 'AdaptiveStochasticPolyVar/data.csv'
+   zero_threshold = 1e-12
  [../]
 []
