@@ -46,6 +46,22 @@ class LogTransformer(SKLTransformer):
     """ Constructor """
     super().__init__(skl.FunctionTransformer, func=np.log, inverse_func=np.exp)
 
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    # Check for non-positive values in targets before handing off to super
+    for t, (target, data) in enumerate(params.items()):
+      if np.any(initial[:, t] <= 0):
+        raise ValueError('Log transformation requires strictly positive values!')
+    return super().getResidual(initial, params, pivot, settings)
+
 
 class ArcsinhTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for np.arcsinh/np.sinh """

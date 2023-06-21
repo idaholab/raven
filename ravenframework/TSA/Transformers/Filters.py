@@ -26,39 +26,9 @@ from ...utils import xmlUtils, InputTypes
 class FilterBase(TimeSeriesTransformer):
   """ Base class for transformers which filter or mask data """
 
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Define input spec for this class.
-      @ In, None
-      @ Out, specs, InputData.ParameterInput, input specification
-    """
-    specs = super().getInputSpecification()
-    maskFillEnumType = InputTypes.makeEnumType('maskFill', 'maskFillTypeType', ['NaN', 'None',])
-    specs.addParam('maskFill',
-                   param_type=maskFillEnumType,
-                   required=False,
-                   default='NaN',
-                   descr=r"""defines the value used to replace masked values. If \xmlString{NaN},
-                    then the masked values will be replaced with NaN values. If \xmlString{None},
-                    then the masked values will be dropped entirely. Note that dropping the data
-                    will result in collapsing the data into a 1D array, which may cause issues with
-                    later TSA algorithms.""")
-    return specs
-
   def __init__(self):
-    """
-      @ In, maskFill, float or None, value used to replace masked values; if maskFill=None,
-                                      the masked values will be dropped
-    """
+    """ Constructor  """
     super().__init__()
-    # NOTE using np.nan to fill the masked values is advantageous because it preserves
-    ## the full shape and spacing of the masked array. However, this requires any
-    ## subsequent models to be able to correctly handle NaN values! Using maskFill=None
-    ## will drop the masked values instead of filling them with a different value.
-    self._maskFill = np.nan
-    self._mask = {}
-    self._hiddenValues = {}
 
   def handleInput(self, spec):
     """
@@ -67,34 +37,13 @@ class FilterBase(TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-
-    maskFill = spec.parameterValues.get('maskFill', np.nan)
-    if maskFill == 'NaN':
-      settings['maskFill'] = np.nan
-    elif maskFill == 'None':
-      settings['maskFill'] = None
-    else:
-      settings['maskFill'] = maskFill
-
     return settings
-
-  # TODO remove this before commit
-  # def setDefaults(self, settings):
-  #   """
-  #     Fills default values for settings with default values.
-  #     @ In, settings, dict, existing settings
-  #     @ Out, settings, dict, modified settings
-  #   """
-  #   settings = super().setDefaults(settings)
-  #   if 'maskFill' not in settings:
-  #     settings['maskFill'] = np.nan
-  #   return settings
 
   @abc.abstractmethod
   def criterion(self, signal):
     """
-      Criterion for being masked. Evaluates to False if the value should be
-      masked and evaluates to True otherwise.
+      Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
+      False otherwise.
       @ In, signal, numpy.ndarray, data array
       @ In, tol, float, tolerance for the criterion
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
@@ -112,13 +61,12 @@ class FilterBase(TimeSeriesTransformer):
                            params[target variable][characteristic] = value
     """
     params = {}
-    self._maskFill = settings['maskFill']
     for tg, target in enumerate(targets):
-      params[target] = {}  # There are no parameters to save and return
       history = signal[:, tg]
-      self._mask[target] = self.criterion(history)
+      mask = self.criterion(history)
       # save the masked (hidden) values
-      self._hiddenValues[target] = np.ma.MaskedArray(history, mask=~self._mask[target])
+      hiddenValues = history[mask]
+      params[target] = {'mask': mask, 'hiddenValues': hiddenValues}
     return params
 
   def getResidual(self, initial, params, pivot, settings):
@@ -133,13 +81,8 @@ class FilterBase(TimeSeriesTransformer):
     """
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      signal = residual[:, t]
-      masked = np.ma.MaskedArray(signal, mask=self._mask[target], fill_value=self._maskFill)
-      if self._maskFill is None:
-        masked = masked.compressed()
-      else:
-        masked = masked.filled()
-      residual[:, t] = masked
+      mask = data['mask']
+      residual[:, t] = np.ma.MaskedArray(residual[:, t], mask=mask, fill_value=np.nan).filled()
     return residual
 
   def getComposite(self, initial, params, pivot, settings):
@@ -155,8 +98,8 @@ class FilterBase(TimeSeriesTransformer):
     """
     composite = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      unmasked = np.ma.MaskedArray(composite[:, t], mask=self._mask[target]).filled(0) + self._hiddenValues[target].filled(0)
-      composite[:, t] = unmasked
+      # Put the hidden values back into the composite signal
+      composite[data['mask'], t] = data['hiddenValues']
     return composite
 
   def writeXML(self, writeTo, params):
@@ -183,26 +126,16 @@ class ZeroFilter(FilterBase):
     """
     specs = super().getInputSpecification()
     specs.name = 'zerofilter'
-    specs.description = r"""masks values that are near zero. The masked values are either replaced
-    with NaN values or dropped entirely. Caution should be used when using this algorithm because
-    (a) not all algorithms can handle NaN values and (b) dropping masked values can change the
-    auto-correlative structure of the data."""
-    # maskFillEnumType = InputTypes.makeEnumType('maskFill', 'maskFillTypeType', ['NaN', 'None',])
-    # specs.addParam('maskFill',
-    #                param_type=maskFillEnumType,
-    #                required=False,
-    #                default='NaN',
-    #                descr=r"""defines the value used to replace masked values. If \xmlString{NaN},
-    #                 then the masked values will be replaced with NaN values. If \xmlString{None},
-    #                 then the masked values will be dropped entirely. Note that dropping the data
-    #                 will result in collapsing the data into a 1D array, which may cause issues with
-    #                 later TSA algorithms.""")
+    specs.description = r"""masks values that are near zero. The masked values are replaced with NaN
+    values. Caution should be used when using this algorithm because not all algorithms can handle
+    NaN values! A warning will be issued if NaN values are detected in the input of an algorithm that
+    does not support them."""
     return specs
 
   def criterion(self, signal):
     """
-      Criterion for being masked. Evaluates to False if the value should be
-      masked and evaluates to True otherwise.
+      Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
+      False otherwise.
       @ In, signal, numpy.ndarray, data array
       @ In, tol, float, tolerance for the criterion
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
