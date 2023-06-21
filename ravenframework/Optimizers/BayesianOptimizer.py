@@ -18,14 +18,7 @@
 """
 #External Modules------------------------------------------------------------------------------------
 import copy
-from collections import deque, defaultdict
 import numpy as np
-import itertools as it
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.animation import PillowWriter
-from matplotlib import cm
-from mpl_toolkits import mplot3d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -63,7 +56,7 @@ class BayesianOptimizer(RavenSampled):
     acqu = InputData.parameterInputFactory('Acquisition', strictMode=True,
         printPriority=106,
         descr=r"""A required node for specifying the details about the acquisition function
-              used in the optimization policy of Bayesian Optimization.""")
+              used in the policy of Bayesian Optimization.""")
 
     # Pulling specs for each acquisition function option
     for option in acqFactory.knownTypes():
@@ -100,7 +93,6 @@ class BayesianOptimizer(RavenSampled):
     RavenSampled.__init__(self)
     # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
     self._iteration = {}            # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
-    self._varNameList = []          # List of string names for decision variables, allows for easier indexing down the line
     self._initialSampleSize = None  # Number of samples to build initial model with before applying acquisition (default is 5)
     self._trainingInputs = [{}]     # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
     self._trainingTargets = []      # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
@@ -158,14 +150,13 @@ class BayesianOptimizer(RavenSampled):
 
     # Initialize feature and target data set for conditioning regression model on
     # NOTE assuming that sampler/user provides at least one initial input
+    # FIXME do we want to keep storage of features and targets, when targetEvaluation has this info?
     init = self._initialValues[0]
     self._trainingTargets.append([])
     for varName, _ in init.items():
       self._trainingInputs[0][varName] = []
-      if varName not in self._varNameList:
-        self._varNameList.append(varName)
 
-    # First step is to sample the model at all initial points from the sampler
+    # First step is to sample the model at all initial points from the init sampler
     for _, point in enumerate(self._initialValues):
       self._iteration[0] = 0
       # Submitting each initial sample point to the sampler
@@ -260,104 +251,17 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     super().flush()
+    self._acquFunction.flush()
+    self._iteration = {}
+    self._initialSampleSize = None
+    self._trainingInputs = [{}]
+    self._trainingTargets = []
+    self._model = None
+    return
 
   ###################
   # Utility Methods #
   ###################
-  def incrementIteration(self, traj):
-    """
-      Increments the "generation" or "iteration" of an optimization algorithm.
-      The definition of generation is algorithm-specific; this is a utility for tracking only.
-      @ In, traj, int, identifier for trajectory
-      @ Out, None
-    """
-    self._iteration[traj] += 1
-
-  def getIteration(self, traj):
-    """
-      Provides the "generation" or "iteration" of an optimization algorithm.
-      The definition of generation is algorithm-specific; this is a utility for tracking only.
-      @ In, traj, int, identifier for trajectory
-      @ Out, counter, int, iteration of the trajectory
-    """
-    return self._iteration[traj]
-
-  # NOTE this method is for barebones validation, not currently intended for user access
-  def plotPosteriorAndAcquisition(self):
-    """
-      Plots the posterior mean of the GP model conditioned on the sampled data and the acquistion function
-      @ In , None
-      @ Out, None
-    """
-    # Plot the model for fun
-    xvec = np.linspace(0,1,100)
-    yvec = np.linspace(0,1,100)
-    X,Y = np.meshgrid(xvec,yvec)
-    f_vals = np.empty((100,100))
-    EI_vals = np.empty((100,100))
-    for i in it.product(range(100),range(100)):
-      f_vals[i[1],i[0]] = self._evaluateRegressionModel({'x':xvec[i[0]], 'y':xvec[i[1]]})[0]
-      EI_vals[i[1],i[0]] = self.expectedImprovement(np.array([xvec[i[0]], yvec[i[1]]]))
-    fig = plt.figure()
-    ax = fig.add_subplot(1,2,1, projection='3d')
-    ax.plot_surface(X, Y, f_vals, rstride=1, cstride=1, cmap=cm.coolwarm, edgecolor='none')
-    inputs = self.getInputs()
-    ax.scatter3D(inputs[:,0], inputs[:,1], self._trainingTargets[0], color='green')
-    ax.set_xlabel('x', fontsize=18)
-    ax.set_ylabel('y', fontsize=18)
-    ax.set_zlabel('f(x,y)', fontsize=18)
-    ax = fig.add_subplot(1,2,2, projection='3d')
-    ax.plot_surface(X, Y, EI_vals, rstride=1, cstride=1, cmap=cm.viridis, edgecolor='none')
-    ax.set_xlabel('x', fontsize=18)
-    ax.set_ylabel('y', fontsize=18)
-    ax.set_zlabel('EI(x,y)', fontsize=18)
-    plt.show()
-
-  ###############################################
-  # Model Training and Evaluation #
-  ###############################################
-  def _trainRegressionModel(self, traj):
-    """
-      Reformats training data into form that ROM can handle
-      @ In, traj, trajectory for training the model
-      @ Out, None
-    """
-    # Build training set to feed to rom model
-    # trainingSet = {}
-    # for varName in list(self.toBeSampled):
-    #   trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
-    # trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
-    self._model.train(self._targetEvaluation)
-
-  def _evaluateRegressionModel(self, featurePoint):
-    """
-      Evaluates GPR mean and standard deviation at a given input location
-      @ In, featurePoint, dict, feature values to evaluate ROM
-      @ Out, mu, ROM mean/prediction value at that point
-      @ Out, std, ROM standard-deviation value at that point
-    """
-    # Evaluating the regression model
-    featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
-    resultsDict = self._model.evaluate(featurePoint)
-    # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
-    mu = resultsDict[self._objectiveVar]
-    std = resultsDict[self._objectiveVar+'_std']
-    return mu, std
-
-  # def _evaluateRegressionGradient(self, featurePoint):
-  #   """
-  #     Calculates the gradients of our model's mean and std wrt to the input space
-  #     @ In, featurePoint, dict, feature values to evaluate ROM
-  #     @ Out, dmu, ROM mean/prediction gradient value at that point
-  #     @ Out, dstd, ROM standard-deviation gradient value at that point
-  #   """
-  #   # NOTE this currently assumes that the model is a scikitlearn gp
-  #   x = self.featurePointToArray(featurePoint)
-  #   # kernelGrad = self._model.supervisedContainer[0].model.kernel_(x, self._model.supervisedContainer[0].model.X_train_, eval_gradient=True)
-  #   k, kGrad = self._model.supervisedContainer[0].kernelGradient(x)
-  #   exit()
-
-  # Utilities
   def arrayToFeaturePoint(self, x):
     """
       Converts array input to featurePoint that model evaluation can read
@@ -437,6 +341,55 @@ class BayesianOptimizer(RavenSampled):
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
     return toAdd
+
+  def incrementIteration(self, traj):
+    """
+      Increments the "generation" or "iteration" of an optimization algorithm.
+      The definition of generation is algorithm-specific; this is a utility for tracking only.
+      @ In, traj, int, identifier for trajectory
+      @ Out, None
+    """
+    self._iteration[traj] += 1
+
+  def getIteration(self, traj):
+    """
+      Provides the "generation" or "iteration" of an optimization algorithm.
+      The definition of generation is algorithm-specific; this is a utility for tracking only.
+      @ In, traj, int, identifier for trajectory
+      @ Out, counter, int, iteration of the trajectory
+    """
+    return self._iteration[traj]
+
+  ###############################################
+  # Model Training and Evaluation #
+  ###############################################
+  def _trainRegressionModel(self, traj):
+    """
+      Reformats training data into form that ROM can handle
+      @ In, traj, trajectory for training the model
+      @ Out, None
+    """
+    # Build training set to feed to rom model
+    # trainingSet = {}
+    # for varName in list(self.toBeSampled):
+    #   trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
+    # trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
+    self._model.train(self._targetEvaluation)
+
+  def _evaluateRegressionModel(self, featurePoint):
+    """
+      Evaluates GPR mean and standard deviation at a given input location
+      @ In, featurePoint, dict, feature values to evaluate ROM
+      @ Out, mu, ROM mean/prediction value at that point
+      @ Out, std, ROM standard-deviation value at that point
+    """
+    # Evaluating the regression model
+    featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
+    resultsDict = self._model.evaluate(featurePoint)
+    # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
+    mu = resultsDict[self._objectiveVar]
+    std = resultsDict[self._objectiveVar+'_std']
+    return mu, std
 
   # * * * * * * * * * * * *
   # Constraint Handling
