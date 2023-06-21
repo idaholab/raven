@@ -205,7 +205,7 @@ class JobHandler(BaseType):
             metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
         # FIXME: The running.command was always internal now, so I removed it.
         # We should probably find a way to give more pertinent information.
-        self.raiseAMessage(f" Process Failed {running} internal returnCode {returnCode}")
+        self.raiseAMessage(f" Process Failed {running.identifier}:{running} internal returnCode {returnCode}")
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeDistributed(self):
