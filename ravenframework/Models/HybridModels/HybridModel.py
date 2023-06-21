@@ -94,6 +94,7 @@ class HybridModel(HybridModelBase):
     self.targetEvaluationInstance = None                # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None                # Instance of data object that are used to store the training set
     self.romsDictionary           = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
+    self.busyDict                 = {}                  # map from job identifiers to rom names
     self.romTrainStartSize        = 10                  # the initial size of training set
     self.romTrainMaxSize          = 1.0e6               # the maximum size of training set
     self.romValidateSize          = 10                  # the size of rom validation set
@@ -128,7 +129,7 @@ class HybridModel(HybridModelBase):
         self.targetEvaluationName = child.value.strip()
       if child.getName() == 'ROM':
         romName = child.value.strip()
-        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
+        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False, 'Busy': set()}
       if child.getName() == 'settings':
         for childChild in child.subparts:
           if childChild.getName() == 'maxTrainSize':
@@ -295,14 +296,18 @@ class HybridModel(HybridModelBase):
     for romInfo in self.romsDictionary.values():
       cvMetrics = romInfo['Instance'].convergence(self.tempTargetEvaluation)
       if cvMetrics is not None:
-        converged = self.isRomConverged(cvMetrics)
-        romInfo['Converged'] = converged
-        if converged:
-          romInfo['Instance'].reset()
-          romInfo['Instance'].train(self.tempTargetEvaluation)
-          self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+        #Do not check for convergence if still evaluating samples.
+        if len(romInfo['Busy']) == 0:
+          converged = self.isRomConverged(cvMetrics)
+          romInfo['Converged'] = converged
+          if converged:
+            self.raiseADebug("ROM ", romInfo['Instance'].name, " being reset and retrained with busySet ", romInfo['Busy'])
+            romInfo['Instance'].reset()
+            romInfo['Instance'].train(self.tempTargetEvaluation)
+            self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
       else:
         self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
+    self.raiseADebug("Done with training roms")
     self.oldTrainingSize = len(self.tempTargetEvaluation)
 
   def isRomConverged(self, outputDict):
@@ -518,8 +523,11 @@ class HybridModel(HybridModelBase):
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
+            busySet = romInfo['Busy']
             romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
-            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted")
+            busySet.add(inputKwargs[romName]['prefix'])
+            self.busyDict[inputKwargs[romName]['prefix']] = romName
+            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
             nextRom = True
           else:
             time.sleep(self.sleepTime)
@@ -527,7 +535,9 @@ class HybridModel(HybridModelBase):
       while True:
         finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
         for finishedRun in finishedJobs:
-          self.raiseADebug("collect job with identifier ", identifier)
+          jobRom = self.busyDict[finishedRun.identifier]
+          self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
+          self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
           evaluation = finishedRun.getEvaluation()
           if isinstance(evaluation, rerror):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
