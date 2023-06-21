@@ -29,14 +29,13 @@ from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, imp
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 from .. import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesTransformer
 
 # utility methods
-class RWD(TimeSeriesCharacterizer):
-  r"""
+class RWD(TimeSeriesCharacterizer, TimeSeriesTransformer):
+  """
     Randomized Window Decomposition
   """
-
 
   @classmethod
   def getInputSpecification(cls):
@@ -61,7 +60,6 @@ class RWD(TimeSeriesCharacterizer):
     specs.addSub(InputData.parameterInputFactory('seed', contentType=InputTypes.IntegerType,
                  descr=r"""Indicating random seed."""))
     return specs
-
 
   #
   # API Methods
@@ -109,7 +107,7 @@ class RWD(TimeSeriesCharacterizer):
       settings['seed'] = 42
     return settings ####
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -161,12 +159,11 @@ class RWD(TimeSeriesCharacterizer):
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber-1):
           baseMatrix[:,i] = np.copy(history[i*signatureWindowLength:(i+1)*signatureWindowLength])
-      U,s,V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
+      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
       featureMatrix = U.T @ signatureMatrix
       params[target] = {'uVec'   : U[:,0:fi],
                         'Feature': featureMatrix}
     return params
-
 
   def getParamNames(self, settings):
     """
@@ -199,22 +196,46 @@ class RWD(TimeSeriesCharacterizer):
           rlz[f'{base}__uVec{i}_{j}'] = info['uVec'][j,i]
     return rlz
 
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    synthetic = self._generateSignal(params, pivot)
+    residual = initial - synthetic
+    return residual
 
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = self._generateSignal(params, pivot)
+    composite = initial + synthetic
+    return composite
 
-  def generate(self, params, pivot, settings):
+  def _generateSignal(self, params, pivot):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
-      @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
-
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
       sigMatSynthetic = params[target]['uVec'] @ params[target]['Feature']
       synthetic[:, t] = np.hstack((sigMatSynthetic[0,:-1], sigMatSynthetic[:,-1]))
-
     return synthetic
 
   def writeXML(self, writeTo, params):
@@ -228,7 +249,7 @@ class RWD(TimeSeriesCharacterizer):
     for target, info in params.items():
       base = xmlUtils.newNode(target)
       writeTo.append(base)
-      (m,n) = info["uVec"].shape
+      (m, n) = info["uVec"].shape
       for i in range(n):
         U0 = info["uVec"][:,0]
         counter +=1

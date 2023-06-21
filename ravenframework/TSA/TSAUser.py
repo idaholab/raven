@@ -92,6 +92,22 @@ class TSAUser:
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError('TSA: The pivotParameter must be included in the target space.')
 
+  def canCharacterize(self):
+    """
+      Checks if any of the algorithms are characterizers
+      @ In, None
+      @ Out, isCharacterizer, bool, True if this entity is a characterizer
+    """
+    return any(algo.canCharacterize() for algo in self._tsaAlgorithms)
+
+  def canGenerate(self):
+    """
+      Checks if any of the algorithms are generators
+      @ In, None
+      @ Out, isGenerator, bool, True if this entity is a generator
+    """
+    return any(algo.canGenerate() for algo in self._tsaAlgorithms)
+
   def _tsaReset(self):
     """
       Resets trained and cached params
@@ -170,7 +186,6 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    numAlgo = len(self._tsaAlgorithms)
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -179,15 +194,12 @@ class TSAUser:
       # check if there are missing values in the signal and if algo can accept them
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
         self.raiseAnError(ValueError, 'This TSA algorithm cannot accept missing values.')
-      params = algo.characterize(signal, pivots, targets, settings)
+      params = algo.fit(signal, pivots, targets, settings)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
-      # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
-      #             the ARMA
-      if a < numAlgo - 1:
-        algoResidual = algo.getResidual(signal, params, pivots, settings)
-        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
+      algoResidual = algo.getResidual(signal, params, pivots, settings)
+      residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
   def evaluateTSASequential(self):
@@ -207,8 +219,6 @@ class TSAUser:
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
-      if not algo.canGenerate():
-        self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = result[:, indices]
       result[:, indices] = algo.getComposite(signal, params, pivots, settings)
     # RAVEN realization construction

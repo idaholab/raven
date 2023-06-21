@@ -25,7 +25,7 @@ from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, imp
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 from .. import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer
 
 
 # utility methods
@@ -120,7 +120,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       settings['reduce_memory'] = False
     return settings
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -235,7 +235,11 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    raise NotImplementedError('ARMA cannot provide a residual yet; it must be the last TSA used!')
+    # FIXME @j-bryan - This isn't really a residual, but is there a helpful residual to provide?
+    # (See notes below from previous work on this) The values in "initial" are being returned here
+    # to allow for other generative algorithms to be applied to other target variables in later steps.
+    # It likely doesn't make sense to apply any further modeling to the same target after ARMA.
+    return initial
     # FIXME how to get a useful residual?
     # -> the "residual" of the ARMA is ideally white noise, not a 0 vector, even if perfectly fit
     #    so what does it mean to provide the residual from the ARMA training?
@@ -249,6 +253,25 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
     #                            armaData['ma'],
     #                            [armaData.get('var', 1)]])
     #   new = armaData['model'].predict(modelParams)
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    # We assume that the ARMA signal is additive to the initial signal. This is done with the case
+    # of having zeros in the initial signal, which would be the case where the ARMA signal is the
+    # first signal to be added to the composite.
+    # FIXME Is there a more generic way to handle this? Are the cases where ARMA isn't the last
+    # algorithm to be applied to a target?
+    composite = initial + self.generate(params, pivot, settings)
+    return composite
 
   def generate(self, params, pivot, settings):
     """

@@ -22,11 +22,11 @@ import sklearn.linear_model
 import statsmodels.api as sm
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer
 
 
 # utility methods
-class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
@@ -82,7 +82,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
     settings['periods'] = spec.findFirst('periods').value
     return settings
 
-  def characterize(self, signal, pivot, targets, settings, simultFit=True):
+  def fit(self, signal, pivot, targets, settings, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -111,7 +111,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')
-        intercept, coeffs = self.fitSignal(fourierSignals, history)
+        intercept, coeffs = self._fitSignal(fourierSignals, history)
       else:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}"! ',
                         'Calculating iteratively instead of all at once.')
@@ -124,7 +124,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         coeffs = np.zeros(F2) # amplitude coeffs for sine, cosine
         for fn in range(F2):
           fSignal = fourierSignals[:,fn] # Fourier base signal for this waveform
-          thisIntercept, thisCoeff = self.fitSignal(fSignal.reshape(H,1), signalToFit)
+          thisIntercept, thisCoeff = self._fitSignal(fSignal.reshape(H,1), signalToFit)
           coeffs[fn] = thisCoeff
           intercept += thisIntercept
           # remove this signal from the signal to fit
@@ -157,7 +157,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
       # END for target in targets
     return params
 
-  def fitSignal(self, baseSignal, signalToFit):
+  def _fitSignal(self, baseSignal, signalToFit):
     """
       Utility for calculating least-squares approximation of Fourier coefficients
       @ In, baseSignal, np.ndarray, signal composes of Fourier base(s)
@@ -169,6 +169,50 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
     intercept = fitResult.params[0]
     coeffs = fitResult.params[1:]
     return intercept, coeffs
+
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes fitted Fourier signal from data
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    synthetic = self._generateSignal(params, pivot)
+    residual = initial - synthetic
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Adds the Fourier signal back into initial signal
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = self._generateSignal(params, pivot)
+    residual = initial + synthetic
+    return residual
+
+  def _generateSignal(self, params, pivot):
+    """
+      Generates a synthetic history from fitted parameters.
+      @ In, params, dict, characterization such as otained from self.characterize()
+      @ In, pivot, np.array(float), pivot parameter values
+      @ Out, synthetic, np.array(float), synthetic ARMA signal
+    """
+    synthetic = np.zeros((len(pivot), len(params)))
+    for t, (target, data) in enumerate(params.items()):
+      synthetic[:, t] += data['intercept']
+      for period, coeffs in data['coeffs'].items():
+        C = coeffs['amplitude']
+        s = coeffs['phase']
+        synthetic[:, t] += mathUtils.evalFourier(period, C, s, pivot)
+    return synthetic
 
   def getParamNames(self, settings):
     """
@@ -201,24 +245,6 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         for stat, value in info['coeffs'][period].items():
           rlz[f'{baseWave}__{stat}'] = value
     return rlz
-
-
-  def generate(self, params, pivot, settings):
-    """
-      Generates a synthetic history from fitted parameters.
-      @ In, params, dict, characterization such as otained from self.characterize()
-      @ In, pivot, np.array(float), pivot parameter values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, synthetic, np.array(float), synthetic ARMA signal
-    """
-    synthetic = np.zeros((len(pivot), len(params)))
-    for t, (target, data) in enumerate(params.items()):
-      synthetic[:, t] += data['intercept']
-      for period, coeffs in data['coeffs'].items():
-        C = coeffs['amplitude']
-        s = coeffs['phase']
-        synthetic[:, t] += mathUtils.evalFourier(period, C, s, pivot)
-    return synthetic
 
   def writeXML(self, writeTo, params):
     """

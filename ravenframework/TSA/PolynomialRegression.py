@@ -20,10 +20,10 @@ from ..utils import importerUtils
 statsmodels = importerUtils.importModuleLazy("statsmodels", globals())
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesTransformer
 
 
-class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class PolynomialRegression(TimeSeriesTransformer, TimeSeriesCharacterizer):
   """
   """
   _acceptsMissingValues = True
@@ -66,7 +66,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -121,7 +121,36 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
         rlz[f'{base}__{name}'] = value
     return rlz
 
-  def generate(self, params, pivot, settings):
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    synthetic = self._generateSignal(params, pivot, settings)
+    residual = initial - synthetic
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = self._generateSignal(params, pivot, settings)
+    composite = initial + synthetic
+    return composite
+
+  def _generateSignal(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()
@@ -140,7 +169,6 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
       synthetic[:, t] = model.predict(xp)
 
     return synthetic
-
 
   def writeXML(self, writeTo, params):
     """
