@@ -282,7 +282,13 @@ function activate_env()
   then
     conda activate ${RAVEN_LIBS_NAME}
   else
-    source ${PIP_ENV_LOCATION}/bin/activate
+    if [[ "$OSOPTION" = "--os windows" ]];
+    then
+      source ${PIP_ENV_LOCATION}/Scripts/activate
+      #note there are also activate.bat and Activate.ps1
+    else
+      source ${PIP_ENV_LOCATION}/bin/activate
+    fi
   fi
 }
 

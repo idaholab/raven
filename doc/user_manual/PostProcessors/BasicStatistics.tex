@@ -12,7 +12,9 @@ data objects, depending on the type of statistics the user wants to compute:
     \textit{\textbf{Interfaced}} post-processor of type  \textbf{HistorySetSync}).
 \end{itemize}
 %
-\ppType{BasicStatistics post-processor}{BasicStatistics}
+
+\newcommand{\basicStatisticsBody}
+{
 \begin{itemize}
   \item \xmlNode{"metric"}, \xmlDesc{comma separated string or node list, required field},
     specifications for the metric to be calculated.  The name of each node is the requested metric.  There are
@@ -123,7 +125,7 @@ data objects, depending on the type of statistics the user wants to compute:
   computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.
   %
    \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
-   to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
+   to be used for the computation of the Dynamic statistics (e.g. time). This node needs to
    be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference
    monotonic variable based on which the statistics is going to be computed (e.g. time-dependent
    statistical moments).
@@ -146,7 +148,7 @@ data objects, depending on the type of statistics the user wants to compute:
       \item vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
         \xmlString{targets} and \xmlString{features} will be required.
       \item If \xmlNode{percentile} is requested, an additional index variable \xmlString{percent} should be added.
-      \item when dynamic BasicStatistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
+      \item when dynamic statistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
     \end{itemize}
   \default{False}
   %
@@ -164,6 +166,12 @@ data objects, depending on the type of statistics the user wants to compute:
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
 \xmlString{a} and \xmlString{b}.
+}
+
+% in the following we have the description of the statistics 
+\ppType{BasicStatistics post-processor}{BasicStatistics}
+\basicStatisticsBody
+
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
   ...
