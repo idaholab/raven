@@ -73,4 +73,20 @@
    type = RavenFramework
    max_time = 3600
  [../]
+  [./test_hybrid_model_code_local]
+   # seven test (HybridModel Code in parallel)
+   input='test_hybrid_model_code.xml'
+   output = 'hybridModelCode/samples.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_hybride_model_external_local]
+   # eighth test (HybridModel External Model in parallel)
+   input = 'test_hybrid_model_external.xml'
+   output = 'hybridModelExternal/metaModelOutputTestDump.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
 []
