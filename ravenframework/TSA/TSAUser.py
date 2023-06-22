@@ -18,6 +18,7 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
+from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes
 
@@ -46,6 +47,9 @@ class TSAUser:
       if subset == 'characterize' and not c.canCharacterize():
         continue
       elif subset == 'generate' and not c.canGenerate():
+        continue
+      if isabstract(c):
+        # Abstract classes cannot be instantiated, so providing input specs for them is pointless
         continue
       spec.addSub(c.getInputSpecification())
     return spec

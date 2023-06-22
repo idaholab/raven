@@ -28,6 +28,8 @@ from ...utils import InputTypes
 
 class LogTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for np.log/np.exp """
+  templateTransformer = skl.FunctionTransformer(np.log, np.exp)
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -41,10 +43,6 @@ class LogTransformer(SKLTransformer):
     specs.description = r"""applies the natural logarithm to the data and inverts by applying the
                         exponential function."""
     return specs
-
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.FunctionTransformer, func=np.log, inverse_func=np.exp)
 
   def getResidual(self, initial, params, pivot, settings):
     """
@@ -65,6 +63,8 @@ class LogTransformer(SKLTransformer):
 
 class ArcsinhTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for np.arcsinh/np.sinh """
+  templateTransformer = skl.FunctionTransformer(np.arcsinh, np.sinh)
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -79,13 +79,11 @@ class ArcsinhTransformer(SKLTransformer):
                         the hyperbolic sine."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.FunctionTransformer, func=np.arcsinh, inverse_func=np.sinh)
-
 
 class TanhTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for np.tanh/np.arctanh """
+  templateTransformer = skl.FunctionTransformer(np.tanh, np.arctanh)
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -100,13 +98,11 @@ class TanhTransformer(SKLTransformer):
                         inverse hyperbolic tangent."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.FunctionTransformer, func=np.tanh, inverse_func=np.arctanh)
-
 
 class SigmoidTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for scipy.special.expit/scipy.special.logit """
+  templateTransformer = skl.FunctionTransformer(sps.expit, sps.logit)
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -121,13 +117,11 @@ class SigmoidTransformer(SKLTransformer):
                         the logit function."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.FunctionTransformer, func=sps.expit, inverse_func=sps.logit)
-
 
 class OutTruncation(SKLTransformer):
   """ Wrapper of scikit-learn's FunctionTransformer for limiting generated data to a specific range """
+  templateTransformer = skl.FunctionTransformer()
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -143,10 +137,6 @@ class OutTruncation(SKLTransformer):
     domainType = InputTypes.makeEnumType('outDomain', 'outDomainType', ['positive', 'negative'])
     specs.addParam('domain', param_type=domainType, required=True)
     return specs
-
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.FunctionTransformer)
 
   def handleInput(self, spec):
     """

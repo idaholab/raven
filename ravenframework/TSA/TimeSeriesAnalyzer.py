@@ -145,6 +145,16 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
     reserved exclusively for stochastic algorithms. Deterministic generative algorithms should NOT
     inherit from this class.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+
+      @ In, None
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    return specs
 
   @abc.abstractmethod
   def generate(self, params, pivot, settings):
@@ -166,6 +176,18 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   # class attributes
   ## define the clusterable features for this trainer.
   _features = []
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+
+      @ In, None
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    return specs
+
 
   @abc.abstractmethod
   def getParamsAsVars(self, params):
@@ -223,6 +245,16 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
     Acts as a mix-in class for algorithms that can transform time-dependent signals. Algorithms
     which receive an input signal, then produce an output signal should inherit from this class.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+
+      @ In, None
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    return specs
 
   @abc.abstractmethod
   def getResidual(self, initial, params, pivot, settings):

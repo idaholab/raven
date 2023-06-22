@@ -19,6 +19,7 @@ Created on June 20, 2023
 Base classes for wrapping scikit-learn style transformers and characterizers.
 """
 
+import abc
 from copy import deepcopy
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer
@@ -27,15 +28,10 @@ from ...utils import xmlUtils
 
 class SKLTransformer(TimeSeriesTransformer):
   """ Wrapper for scikit-learn transformers """
-  def __init__(self, transformerType, *args, **kwargs):
-    """
-      Constructor
-      @ In, transformerType, class, type of transformer to wrap
-      @ Out, None
-    """
-    super().__init__()
-    # Copied to create new transformers
-    self.templateTransformer = transformerType(*args, **kwargs)
+  @property
+  @abc.abstractmethod
+  def templateTransformer(self):
+    """ Template transformer that must be implemented in child classes """
 
   def fit(self, signal, pivot, targets, settings):
     """
@@ -102,15 +98,6 @@ class SKLTransformer(TimeSeriesTransformer):
 
 class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
   """ Wrapper for scikit-learn transformers that also provide a characterization of the data """
-
-  def __init__(self, transformerType):
-    """
-      Constructor
-      @ In, transformerType, class, type of transformer to wrap
-      @ Out, None
-    """
-    super().__init__(transformerType)
-
   def fit(self, signal, pivot, targets, settings):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to

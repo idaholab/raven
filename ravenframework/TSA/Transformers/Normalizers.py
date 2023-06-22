@@ -22,12 +22,13 @@ Wrappers for scikit-learn preprocessing scalers.
 import sklearn.preprocessing as skl
 
 from .ScikitLearnBase import SKLTransformer, SKLCharacterizer
-from ...utils import InputData, InputTypes
+from ...utils import InputTypes
 
 
 class MaxAbsScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.MaxAbsScaler """
   _features = ['scale']
+  templateTransformer = skl.MaxAbsScaler()
 
   @classmethod
   def getInputSpecification(cls):
@@ -43,14 +44,11 @@ class MaxAbsScaler(SKLCharacterizer):
     the largest absolute value of the data."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.MaxAbsScaler)
-
 
 class MinMaxScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.MinMaxScaler """
   _features = ['dataMin', 'dataMax']
+  templateTransformer = skl.MinMaxScaler()
 
   @classmethod
   def getInputSpecification(cls):
@@ -66,14 +64,11 @@ class MinMaxScaler(SKLCharacterizer):
                         minimum value from each point and dividing by the range."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.MinMaxScaler)
-
 
 class RobustScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.RobustScaler """
   _features = ['center', 'scale']
+  templateTransformer = skl.RobustScaler()
 
   @classmethod
   def getInputSpecification(cls):
@@ -89,14 +84,11 @@ class RobustScaler(SKLCharacterizer):
     the interquartile range."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.RobustScaler)
-
 
 class StandardScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.StandardScaler """
   _features = ['mean', 'scale']
+  templateTransformer = skl.StandardScaler()
 
   @classmethod
   def getInputSpecification(cls):
@@ -112,16 +104,10 @@ class StandardScaler(SKLCharacterizer):
     the standard deviation."""
     return specs
 
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.StandardScaler)
-
 
 class QuantileTransformer(SKLTransformer):
   """ Wrapper of scikit-learn's QuantileTransformer """
-  def __init__(self):
-    """ Constructor """
-    super().__init__(skl.QuantileTransformer)
+  templateTransformer = skl.QuantileTransformer()
 
   @classmethod
   def getInputSpecification(cls):
