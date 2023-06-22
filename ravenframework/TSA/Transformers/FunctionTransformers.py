@@ -13,45 +13,142 @@
 # limitations under the License.
 
 """
+Created on June 20, 2023
+@author: j-bryan
 Commonly used stateless transformation functions
 """
 
 import numpy as np
 import scipy.special as sps
-from sklearn.preprocessing import FunctionTransformer
+import sklearn.preprocessing as skl
+
+from .ScikitLearnBase import SKLTransformer
+from ...utils import InputTypes
 
 
-def functionTransformerFactory(func, inverse_func):
-  """
-    Utility function for creating FunctionTransformer classes with common
-    transforming functions
+class LogTransformer(SKLTransformer):
+  """ Wrapper of scikit-learn's FunctionTransformer for np.log/np.exp """
+  templateTransformer = skl.FunctionTransformer(np.log, np.exp)
 
-    @ In, func, callable, forward transformation function
-    @ In, inverse_fun, callable, inverse transformation function
-    @ Out, UserFunctionTransformer, class, custom transformer class
-  """
-  class UserFunctionTransformer(FunctionTransformer):
-    """ Custom FunctionTransformer class """
-    def __init__(self):
-      super().__init__(func=func, inverse_func=inverse_func)
-  return UserFunctionTransformer
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.name = 'logtransformer'
+    specs.description = r"""applies the natural logarithm to the data and inverts by applying the
+                        exponential function."""
+    return specs
+
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    # Check for non-positive values in targets before handing off to super
+    for t, (target, data) in enumerate(params.items()):
+      if np.any(initial[:, t] <= 0):
+        raise ValueError('Log transformation requires strictly positive values!')
+    return super().getResidual(initial, params, pivot, settings)
 
 
-LogTransformer = functionTransformerFactory(np.log, np.exp)
-ArcsinhTransformer = functionTransformerFactory(np.arcsinh, np.sinh)
-TanhTransformer = functionTransformerFactory(np.tanh, np.arctanh)
-SigmoidTransformer = functionTransformerFactory(sps.expit, sps.logit)
-# TODO what are other commonly used FunctionTransformers?
+class ArcsinhTransformer(SKLTransformer):
+  """ Wrapper of scikit-learn's FunctionTransformer for np.arcsinh/np.sinh """
+  templateTransformer = skl.FunctionTransformer(np.arcsinh, np.sinh)
 
-# These replicate the <outTruncation> option in the ARMA ROM
-OutTruncationPositive = functionTransformerFactory(None, np.abs)
-OutTruncationNegative = functionTransformerFactory(None, lambda x: -1 * np.abs(x))
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.name = 'arcsinhtransformer'
+    specs.description = r"""applies the inverse hyperbolic sine to the data and inverts by applying
+                        the hyperbolic sine."""
+    return specs
 
-__all__ = [
-  "LogTransformer",
-  "ArcsinhTransformer",
-  "TanhTransformer",
-  "SigmoidTransformer",
-  "OutTruncationPositive",
-  "OutTruncationNegative"
-]
+
+class TanhTransformer(SKLTransformer):
+  """ Wrapper of scikit-learn's FunctionTransformer for np.tanh/np.arctanh """
+  templateTransformer = skl.FunctionTransformer(np.tanh, np.arctanh)
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.name = 'tanhtransformer'
+    specs.description = r"""applies the hyperbolic tangent to the data and inverts by applying the
+                        inverse hyperbolic tangent."""
+    return specs
+
+
+class SigmoidTransformer(SKLTransformer):
+  """ Wrapper of scikit-learn's FunctionTransformer for scipy.special.expit/scipy.special.logit """
+  templateTransformer = skl.FunctionTransformer(sps.expit, sps.logit)
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.name = 'sigmoidtransformer'
+    specs.description = r"""applies the sigmoid (expit) function to the data and inverts by applying
+                        the logit function."""
+    return specs
+
+
+class OutTruncation(SKLTransformer):
+  """ Wrapper of scikit-learn's FunctionTransformer for limiting generated data to a specific range """
+  templateTransformer = skl.FunctionTransformer()
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.name = 'outtruncation'
+    specs.description = r"""limits the data to either positive or negative values by "reflecting" the
+                        out-of-range values back into the desired range."""
+    domainType = InputTypes.makeEnumType('outDomain', 'outDomainType', ['positive', 'negative'])
+    specs.addParam('domain', param_type=domainType, required=True)
+    return specs
+
+  def handleInput(self, spec):
+    """
+      Reads user inputs into this object.
+      @ In, inp, InputData.InputParams, input specifications
+      @ Out, settings, dict, initialization settings for this algorithm
+    """
+    settings = super().handleInput(spec)
+    settings['domain'] = spec.parameterValues['domain']
+    # Set the templateTransformer's inverse_func based on the specified domain
+    if settings['domain'] == 'positive':
+      self.templateTransformer.set_params(inverse_func=np.abs)
+    else:  # negative
+      self.templateTransformer.set_params(inverse_func=lambda x: -np.abs(x))
+    return settings

@@ -86,8 +86,8 @@
       <Target>TOTALLOAD,WIND,SOLAR,HOUR</Target>
       <Features>scaling</Features>
       <pivotParameter>HOUR</pivotParameter>
-      <transformer target="SOLAR" subType="OutTruncationPositive"/>
-      <transformer target="SOLAR" subType="ZeroFilter"/>
+      <outtruncation target="SOLAR" domain="positive"/>
+      <zerofilter target="SOLAR"/>
       <fourier target="SOLAR">
         <periods>24, 12</periods>
       </fourier>

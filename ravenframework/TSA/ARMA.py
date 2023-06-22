@@ -120,7 +120,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       settings['reduce_memory'] = False
     return settings
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -225,30 +225,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       for q, ma in enumerate(info['arma']['ma']):
         rlz[f'{base}__MA__{q}'] = ma
     return rlz
-
-  def getResidual(self, initial, params, pivot, settings):
-    """
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
-    """
-    raise NotImplementedError('ARMA cannot provide a residual yet; it must be the last TSA used!')
-    # FIXME how to get a useful residual?
-    # -> the "residual" of the ARMA is ideally white noise, not a 0 vector, even if perfectly fit
-    #    so what does it mean to provide the residual from the ARMA training?
-    # in order to use "predict" (in-sample forecasting) can't be in low-memory mode
-    # if settings['reduce_memory']:
-    #   raise RuntimeError('Cannot get residual of ARMA if in reduced memory mode!')
-    # for tg, (target, data) in enumerate(params.items()):
-    #   armaData = data['arma']
-    #   modelParams = np.hstack([[armaData.get('const', 0)],
-    #                            armaData['ar'],
-    #                            armaData['ma'],
-    #                            [armaData.get('var', 1)]])
-    #   new = armaData['model'].predict(modelParams)
 
   def generate(self, params, pivot, settings):
     """

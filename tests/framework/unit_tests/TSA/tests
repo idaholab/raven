@@ -12,4 +12,20 @@
     input = 'testWavelet.py'
     required_libraries = 'pywavelets'
   [../]
+  [./Filters]
+    type = 'RavenPython'
+    input = 'testFilters.py'
+  [../]
+  [./FunctionTransformers]
+    type = 'RavenPython'
+    input = 'testFunctionTransformers.py'
+  [../]
+  [./OutTruncation]
+    type = 'RavenPython'
+    input = 'testOutTruncation.py'
+  [../]
+  [./Normalization]
+    type = 'RavenPython'
+    input = 'testNormalization.py'
+  [../]
 []

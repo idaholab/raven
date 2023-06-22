@@ -63,10 +63,7 @@
       <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <transformer target="signal1" subType="sklearn.preprocessing.FunctionTransformer">
-        <arg type="callable">func|numpy.log</arg>
-        <arg type="callable">inverse_func|numpy.exp</arg>
-      </transformer>
+      <logtransformer target="signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>2</SignalLag>
         <NoiseLag>3</NoiseLag>
