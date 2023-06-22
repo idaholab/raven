@@ -27,7 +27,7 @@ from ...utils import InputData, InputTypes
 
 class MaxAbsScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.MaxAbsScaler """
-  _features = ['max_abs']
+  _features = ['scale']
 
   @classmethod
   def getInputSpecification(cls):
@@ -50,7 +50,7 @@ class MaxAbsScaler(SKLCharacterizer):
 
 class MinMaxScaler(SKLCharacterizer):
   """ Wrapper of sklearn.preprocessing.MinMaxScaler """
-  _features = ['min', 'scale']
+  _features = ['dataMin', 'dataMax']
 
   @classmethod
   def getInputSpecification(cls):

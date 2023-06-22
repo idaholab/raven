@@ -36,8 +36,6 @@ class SKLTransformer(TimeSeriesTransformer):
     super().__init__()
     # Copied to create new transformers
     self.templateTransformer = transformerType(*args, **kwargs)
-    # Dictionary of transformers, keyed by target
-    self.transformers = {}
 
   def fit(self, signal, pivot, targets, settings):
     """
@@ -126,12 +124,13 @@ class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
     """
     params = {}
     for tg, target in enumerate(targets):
-      self.transformers[target] = deepcopy(self.templateTransformer)
-      self.transformers[target].fit(signal)
+      transformer = deepcopy(self.templateTransformer)
+      transformer.fit(signal)
       # Attributes of interest in the transformer have the convention of ending with an underscore,
       # so that underscore is added here to the feature names before fetching them.
       # Also, the transformer features are stored in an array, so we take the first (and only) element.
-      params[target] = {feat: getattr(self.transformers[target], feat + '_')[0] for feat in self._features}
+      params[target] = {feat: getattr(transformer, self.camelToSnake(feat))[0] for feat in self._features}
+      params[target]['model'] = transformer
     return params
 
   def getParamsAsVars(self, params):
@@ -161,3 +160,16 @@ class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
       for featureName, featureValue in features.items():
         base.append(xmlUtils.newNode(featureName, text=featureValue))
       writeTo.append(base)
+
+  @staticmethod
+  def camelToSnake(camelName):
+    """
+      Converts a parameter name from camel case to snake case with a trailing underscore. Parameter
+      names for scikit-learn transformers follow the convention of being snake case with a trailing
+      underscore (e.g. "scale_" or "data_min_"). This method converts these names to camel case
+      (e.g. "scale" or "dataMin") to align with the convention used in RAVEN.
+      @ In, camelName, str, parameter name in camel case
+      @ Out, paramName, str, parameter name
+    """
+    paramName = ''.join(['_' + c.lower() if c.isupper() else c for c in camelName]).lstrip('_') + '_'
+    return paramName

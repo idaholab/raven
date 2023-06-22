@@ -209,14 +209,19 @@ for transformerType in testedClasses:
 
   # Test forward transformation
   transformed = transformer.getResidual(signals, params, pivot, {})
-  checkArray(f'{transformer.name} forward transform (all positive values)', func(signals), transformed, float)
+  transformedTrue = func(signals)
+  checkArray(f'{transformer.name} forward transform (all positive values)', transformed, transformedTrue, float)
 
-  # Test inverser transformation
+  # Test inverse transformation
   inverse = transformer.getComposite(transformed, params, pivot, {})
-  checkArray(f'{transformer.name} inverse transform (all positive values)', inverseFunc(transformed), inverse, float)
+  inverseTrue = inverseFunc(transformedTrue)
+  checkArray(f'{transformer.name} inverse transform (all positive values)', inverse, inverseTrue, float)
 
-  # For all tested transformations, the inverse of the inverse should also recover the original signal
-  checkArray(f'{transformer.name} inverse of inverse (all positive values)', signals, inverse, float)
+  # NOTE The forward and inverse transformation functions are not necessarily inverses of each other,
+  # and inverseFunc(func(signal)) may not recover the original signal. However, for all tested
+  # transformations, the inverse of the inverse should recover the original signal. We test this here.
+  # This test may not apply to transformations added in the future.
+  checkArray(f'{transformer.name} inverse of inverse (all positive values)', inverse, signals, float)
 
 # Test negative values only
 # This is important because some transforms (e.g. log transform) will fail on negative values
@@ -239,14 +244,19 @@ for transformerType in testedClasses:
 
   # Test forward transformation
   transformed = transformer.getResidual(signals, params, pivot, {})
-  checkArray(f'{transformer.name} forward transform (mixed sign values)', func(signals), transformed, float)
+  transformedTrue = func(signals)
+  checkArray(f'{transformer.name} forward transform (mixed sign values)', transformed, transformedTrue, float)
 
   # Test inverser transformation
   inverse = transformer.getComposite(transformed, params, pivot, {})
-  checkArray(f'{transformer.name} inverse transform (mixed sign values)', inverseFunc(transformed), inverse, float)
+  inverseTrue = inverseFunc(transformedTrue)
+  checkArray(f'{transformer.name} inverse transform (mixed sign values)', inverse, inverseTrue, float)
 
-  # For all tested transformations, the inverse of the inverse should also recover the original signal
-  checkArray(f'{transformer.name} inverse of inverse (mixed sign values)', signals, inverse, float)
+  # NOTE The forward and inverse transformation functions are not necessarily inverses of each other,
+  # and inverseFunc(func(signal)) may not recover the original signal. However, for all tested
+  # transformations, the inverse of the inverse should recover the original signal. We test this here.
+  # This test may not apply to transformations added in the future.
+  checkArray(f'{transformer.name} inverse of inverse (mixed sign values)', inverse, signals, float)
 
 
 print(results)

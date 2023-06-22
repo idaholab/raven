@@ -15,24 +15,13 @@
   Randomized Window Decomposition
 """
 
-import collections
 import numpy as np
-import scipy as sp
-from .. import Decorators
-import string
-import numpy.linalg as LA
-import pandas as pd
-import copy as cp
 
-
-from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
-statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
-
-from .. import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesTransformer
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
 
 # utility methods
-class RWD(TimeSeriesCharacterizer, TimeSeriesTransformer):
+class RWD(TimeSeriesCharacterizer, TimeSeriesGenerator):
   """
     Randomized Window Decomposition
   """
@@ -116,8 +105,6 @@ class RWD(TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ In, settings, dict, settings for this ROM
       @ Out, params, dict of dict: 1st level contains targets/variables; 2nd contains: U vectors and features
     """
-    # lazy import statsmodels
-    import statsmodels.api
     # settings:
     #   signatureWindowLength, int,  Signature window length
     #   featureIndex, list of int,  The index that contains differentiable params
@@ -196,46 +183,20 @@ class RWD(TimeSeriesCharacterizer, TimeSeriesTransformer):
           rlz[f'{base}__uVec{i}_{j}'] = info['uVec'][j,i]
     return rlz
 
-  def getResidual(self, initial, params, pivot, settings):
-    """
-      Removes trained signal from data and find residual
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
-    """
-    synthetic = self._generateSignal(params, pivot)
-    residual = initial - synthetic
-    return residual
-
-  def getComposite(self, initial, params, pivot, settings):
-    """
-      Combines two component signals to form a composite signal. This is essentially the inverse
-      operation of the getResidual method.
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, composite, np.array, resulting composite signal
-    """
-    synthetic = self._generateSignal(params, pivot)
-    composite = initial + synthetic
-    return composite
-
-  def _generateSignal(self, params, pivot):
+  def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
+      @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
+
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
       sigMatSynthetic = params[target]['uVec'] @ params[target]['Feature']
       synthetic[:, t] = np.hstack((sigMatSynthetic[0,:-1], sigMatSynthetic[:,-1]))
+
     return synthetic
 
   def writeXML(self, writeTo, params):

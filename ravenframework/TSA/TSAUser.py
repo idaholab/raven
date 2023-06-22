@@ -193,13 +193,17 @@ class TSAUser:
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
       # check if there are missing values in the signal and if algo can accept them
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
-        self.raiseAnError(ValueError, 'This TSA algorithm cannot accept missing values.')
+        raise ValueError(f'Missing values (NaN) found in input to {algo.name},'
+                         'but {algo.name} cannot accept missing values!')
       params = algo.fit(signal, pivots, targets, settings)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
-      algoResidual = algo.getResidual(signal, params, pivots, settings)
-      residual[0, :, indices] = algoResidual.T # transpose, again because of indices
+      # This is only done if the algo produces a residual (is a transformer). Otherwise, the
+      # residual signal is not altered.
+      if algo.canTransform():
+        algoResidual = algo.getResidual(signal, params, pivots, settings)
+        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
   def evaluateTSASequential(self):
@@ -220,7 +224,12 @@ class TSAUser:
       indices = tuple(noPivotTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
       signal = result[:, indices]
-      result[:, indices] = algo.getComposite(signal, params, pivots, settings)
+      if algo.canTransform():  # covers algorithms which are both transformers and generators
+        result[:, indices] = algo.getResidual(signal, params, pivots, settings)
+      elif algo.canGenerate():
+        result[:, indices] = algo.generate(params, pivots, settings)
+      else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
+        continue
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues

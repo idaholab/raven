@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the TSA.ZeroFilter class.
+  This Module performs Unit Tests for classes in TSA.Transformers.Normalizers.
   It can not be considered part of the active code but of the regression test system
 """
 import os
 import sys
 import numpy as np
+from scipy.stats import norm
 
 # add RAVEN to path
 ravenDir =  os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir]*4)))
@@ -161,15 +162,16 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createTransformer(targets, transformerType):
+def createTransformer(targets, transformerType, **kwargs):
   """
     Creates a transformer of the given type.
     @ In, targets, list(str), names of targets
     @ In, transformerType, type, type of transformer to create
+    @ In, kwargs, dict, optional, keyword arguments to add as attributes to transformer XML node
     @ Out, transformer, subclass of TimeSeriesTransformer, transformer instance
   """
   transformer = transformerType()
-  xml = xmlUtils.newNode(transformer.name.lower(), attrib={'target':','.join(targets)})
+  xml = xmlUtils.newNode(transformer.name.lower(), attrib={'target':','.join(targets), **kwargs})
   inputSpec = transformer.getInputSpecification()()
   inputSpec.parseNode(xml)
   transformer.handleInput(inputSpec)
@@ -178,14 +180,150 @@ def createTransformer(targets, transformerType):
 ###################
 #      Tests      #
 ###################
-# Test positive values only
+# Test MaxAbsScaler
 targets = ['A']
-pivot = np.arange(10)
-signals = np.linspace(1, 2, 11).reshape(-1, 1)  # has negative values
+pivot = np.arange(11)
+signals = np.linspace(-2, 2, 11).reshape(-1, 1)
+settings = {}
+maxAbsScaler = createTransformer(targets, MaxAbsScaler)
+# Check fitted parameters
+params = maxAbsScaler.fit(signals, pivot, targets, settings)
+scale = params['A']['scale']
+scaleTrue = 2
+checkFloat('MaxAbsScaler fit', scale, scaleTrue)
+# Check forward transform
+transformed = maxAbsScaler.getResidual(signals, params, pivot, settings)
+transformedTrue = np.linspace(-1, 1, 11).reshape(-1, 1)
+checkArray('MaxAbsScaler getResidual', transformed, transformedTrue, float)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = maxAbsScaler.getComposite(transformed, params, pivot, settings)
+checkArray('MaxAbsScaler getComposite', inverse, signals, float)
 
-for transformerType in testedClasses:
-  # TODO
-  pass
+# Test MinMaxScaler
+targets = ['B']
+pivot = np.arange(11)
+signals = np.linspace(-2, 2, 11).reshape(-1, 1)
+settings = {}
+minMaxScaler = createTransformer(targets, MinMaxScaler)
+# Check fitted parameters
+params = minMaxScaler.fit(signals, pivot, targets, settings)
+minValue = params['B']['dataMin']
+maxValue = params['B']['dataMax']
+minValueTrue = -2
+maxValueTrue = 2
+scaleTrue = 0.25  # 1 / (2 - (-2))
+checkFloat('MinMaxScaler fit minValue', minValue, minValueTrue)
+checkFloat('MinMaxScaler fit maxValue', maxValue, maxValueTrue)
+# Check forward transform
+transformed = minMaxScaler.getResidual(signals, params, pivot, settings)
+transformedTrue = np.linspace(0, 1, 11).reshape(-1, 1)
+checkArray('MinMaxScaler getResidual', transformed, transformedTrue, float)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = minMaxScaler.getComposite(transformed, params, pivot, settings)
+checkArray('MinMaxScaler getComposite', inverse, signals, float)
+
+# Test StandardScaler
+targets = ['C']
+pivot = np.arange(11)
+signals = np.linspace(-2, 2, 11).reshape(-1, 1)
+settings = {}
+standardScaler = createTransformer(targets, StandardScaler)
+# Check fitted parameters
+params = standardScaler.fit(signals, pivot, targets, settings)
+mean = params['C']['mean']
+scale = params['C']['scale']
+meanTrue = 0
+scaleTrue = np.std(signals)
+checkFloat('StandardScaler fit mean', mean, meanTrue)
+checkFloat('StandardScaler fit scale', scale, scaleTrue)
+# Check forward transform
+transformed = standardScaler.getResidual(signals, params, pivot, settings)
+transformedTrue = (signals - meanTrue) / scaleTrue
+checkArray('StandardScaler getResidual', transformed, transformedTrue, float)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = standardScaler.getComposite(transformed, params, pivot, settings)
+checkArray('StandardScaler getComposite', inverse, signals, float)
+
+# Test RobustScaler
+targets = ['D']
+pivot = np.arange(11)
+signals = np.linspace(-2, 2, 11).reshape(-1, 1)
+settings = {}
+robustScaler = createTransformer(targets, RobustScaler)
+# Check fitted parameters
+params = robustScaler.fit(signals, pivot, targets, settings)
+center = params['D']['center']
+scale = params['D']['scale']
+centerTrue = 0  # median at 0
+scaleTrue = 2  # quartiles at -1 and 1, so interquarter range is 2
+checkFloat('RobustScaler fit center', center, centerTrue)
+checkFloat('RobustScaler fit scale', scale, scaleTrue)
+# Check forward transform
+transformed = robustScaler.getResidual(signals, params, pivot, settings)
+transformedTrue = np.linspace(-1, 1, 11).reshape(-1, 1)
+checkArray('RobustScaler getResidual', transformed, transformedTrue, float)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = robustScaler.getComposite(transformed, params, pivot, settings)
+checkArray('RobustScaler getComposite', inverse, signals, float)
+
+# Testing the QuantileTransformer is a bit more difficult because the internal operations are more
+# involved. However, if the distributions of both the original and target distributions are known,
+# an analytical solution for the transformation can be derived through a change of random variables.
+# The QuantileTransformer can use either a normal or uniform distribution as the target distribution.
+# With the target distribution as the normal distribution, the QuantileTransformer struggles to
+# estimate the correct quantiles of the extreme values of the distribution due to the asymptotic
+# nature of the tails of the distribution. This is not a problem with the uniform distribution due
+# to the bounded domain of the distribution. We can minimize the impact of this tail behavior by
+# increasing the number of samples used to estimate the quantiles, since the quantile function
+# estimation should converge to the true quantile function as the number of samples increases.
+# However, it is still necessary for "reasonable" sample sizes to remove the extreme values from the
+# transformed distribution before comparing the analytical solution and the quantile transformation.
+# Even with these measures, the test tolerance must be kept rather high to accommodate the growing
+# error in the tails.
+#   - j-bryan
+
+# Test QuantileTransformer (normal)
+targets = ['E']
+pivot = np.arange(3000)
+np.random.seed(42)
+signals = np.random.uniform(0, 1, (3000, 1))  # uniform distribution
+settings = {}
+quantileTransformer = createTransformer(targets, QuantileTransformer, outputDistribution='normal')
+params = quantileTransformer.fit(signals, pivot, targets, settings)
+# Check forward transform
+transformed = quantileTransformer.getResidual(signals, params, pivot, settings)
+transformedTrue = norm.ppf(signals)  # norm.ppf is the inverse CDF of the normal distribution
+# Remove values greater than 3 standard deviations from the mean to avoid tail estimation issues
+# when checking results
+transformed = transformed[np.abs(transformedTrue) < 3].reshape(-1, 1)
+transformedTrue = transformedTrue[np.abs(transformedTrue) < 3].reshape(-1, 1)
+checkArray('QuantileTransformer.getResidual() (uniform -> normal)', transformed, transformedTrue, float, tol=3e-1)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = quantileTransformer.getComposite(transformed, params, pivot, settings)
+checkArray('QuantileTransformer.getComposite() (uniform -> normal)', inverse, signals, float)
+
+# Test QuantileTransformer (uniform)
+targets = ['F']
+pivot = np.arange(500)
+np.random.seed(42)
+signals = np.random.normal(0, 1, (500, 1))  # far fewer samples are required
+settings = {}
+quantileTransformer = createTransformer(targets, QuantileTransformer, outputDistribution='uniform')
+params = quantileTransformer.fit(signals, pivot, targets, settings)
+# Check forward transform
+transformed = quantileTransformer.getResidual(signals, params, pivot, settings)
+transformedTrue = norm.cdf(signals)  # norm.cdf is the CDF of the normal distribution
+checkArray('QuantileTransformer.getResidual() (normal -> uniform)', transformed, transformedTrue, float, tol=3e-2)
+# Check inverse transform
+# The inverse transform should recover the original signals
+inverse = quantileTransformer.getComposite(transformed, params, pivot, settings)
+checkArray('QuantileTransformer.getComposite() (normal -> uniform)', inverse, signals, float)
+
 
 print(results)
 
