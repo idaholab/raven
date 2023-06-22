@@ -57,7 +57,7 @@ class TSACharacterizer(PostProcessorInterface, TSAUser):
     super()._handleInput(inp)
     self.readTSAInput(inp)
     if not self.canCharacterize():
-      self.raiseAnError(IOError, 'TSACharacterizer requires at least one TSA that can characterize!')
+      self.raiseAnError(IOError, 'TSACharacterizer requires at least one TSA algorithm that can characterize!')
 
   def initialize(self, runInfo, inputs, initDict=None):
     """

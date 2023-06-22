@@ -63,6 +63,13 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     return issubclass(cls, TimeSeriesCharacterizer)
 
+  @classmethod
+  def canTransform(cls):
+    """
+      Determines if this algorithm is a transformer.
+      @ Out, isTransformer, bool, True if this algorithm is a TimeSeriesTransformer
+    """
+    return issubclass(cls, TimeSeriesTransformer)
 
   ### INHERITED METHODS ###
   def __init__(self, *args, **kwargs):
