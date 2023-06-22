@@ -225,7 +225,7 @@ class TSAUser:
       params = self._tsaTrainedParams[algo]
       signal = result[:, indices]
       if algo.canTransform():  # covers algorithms which are both transformers and generators
-        result[:, indices] = algo.getResidual(signal, params, pivots, settings)
+        result[:, indices] = algo.getComposite(signal, params, pivots, settings)
       elif algo.canGenerate():
         result[:, indices] = algo.generate(params, pivots, settings)
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
