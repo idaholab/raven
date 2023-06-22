@@ -534,9 +534,6 @@ class ParameterInput(object):
     sub = self.getSub(name)
     if sub is not None:
       return sub.default
-    else:
-      pass #uncomment next line if needed for debugging.
-      #raise ValueError("Unrecognized variable '{}'".format(name))
     return None
 
   def findAll(self, name):
