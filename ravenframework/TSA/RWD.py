@@ -18,10 +18,10 @@
 import numpy as np
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils
-from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer
 
 # utility methods
-class RWD(TimeSeriesCharacterizer, TimeSeriesGenerator):
+class RWD(TimeSeriesCharacterizer):
   """
     Randomized Window Decomposition
   """
@@ -191,7 +191,8 @@ class RWD(TimeSeriesCharacterizer, TimeSeriesGenerator):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
-
+    # FIXME This method isn't currently tested or used anywhere. Trying to call this method results
+    # in an error due to a mismatch of array shapes when calculating sigMatSynthetic. Remove this method?
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
       sigMatSynthetic = params[target]['uVec'] @ params[target]['Feature']
