@@ -325,7 +325,7 @@ else
     INSTALL_MANAGER="$INSTALLATION_MANAGER"
 fi
 PROXY_COMM="" # proxy is none
-USE_MAMBA=FALSE # Use Mamba for installation
+USE_MAMBA=TRUE # Use Mamba for installation
 
 # parse command-line arguments
 while test $# -gt 0
