@@ -24,8 +24,9 @@ User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field
 \nb{Currently, only reconstruction is implemented.}
 In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
 \begin{itemize}
-	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., locations or time stamps we should sense
-	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model
+	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
+	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
+  \nb{Currently the algorithms can handle a single target}.
 	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{Random}. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
