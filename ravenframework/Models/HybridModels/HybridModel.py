@@ -406,8 +406,12 @@ class HybridModel(HybridModelBase):
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
       currentInput = self._extractInputs(varDict, paramsList)
-      if self.__crowdingDistance is None:
+      self.raiseADebug(f"trainInput shape: {trainInput.shape} currentInput.shape: {currentInput.shape} crowdingDistance is None: {self.__crowdingDistance is None} rom name: {romInfo['Instance'].name}")
+      if self.__crowdingDistance is None or self.__crowdingDistance.size != trainInput.shape[1]:
+        #XXX Note that if self.__crowdingDistance.size != trainInput.shape[1]
+        # occurs, this is technically a bug.
         self.__crowdingDistance = mathUtils.computeCrowdingDistance(trainInput)
+      self.raiseADebug(f"trainInput shape: {trainInput.shape} currentInput.shape: {currentInput.shape} crowdingDistance shape: {self.__crowdingDistance.shape}")
       sizeCD = len(self.__crowdingDistance)
       if sizeCD != trainInput.shape[1]:
         self.__crowdingDistance = self.__updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.__crowdingDistance)
@@ -440,7 +444,7 @@ class HybridModel(HybridModelBase):
     newSize = newSet.shape[1]
     totSize = oldSize + newSize
     if oldSize != crowdingDistance.size:
-      self.raiseAnError(IOError, "The old crowding distance does not match the old data set!")
+      self.raiseAnError(IOError, f"The old crowding distance {crowdingDistance.size} does not match the old data set {oldSize}! (newSize {newSize})")
     newCrowdingDistance = np.zeros(totSize)
     distMatAppend = np.zeros((oldSize,newSize))
     for i in range(oldSize):
