@@ -10,9 +10,12 @@
 def MCRBin(fileDir, VarSrch):
   """
     This method is called to collect the variables to be used in the postprocess
-    @ In, fileDirectory, string, the file directory. This is the directory of the MELCOR plot file
-    @ In, variableSearch, list, list of variables to be collected
-    @ Out, Data, tuple (numpy.ndarray,numpy.ndarray,numpy.ndarray), this contains the extracted data for each declare variable
+    @ In, fileDir, string, the file directory. This is the directory of the MELCOR plot file
+    @ In, VarSrch, list, list of variables to be collected
+    @ Out, Data, tuple (numpy.ndarray,numpy.ndarray,numpy.ndarray), this contains the extracted data for each declared variable
+                                                                    from MELCOR output file. The first variables indicates the
+                                                                    time arrays, the second one indicates the arryas of the melcor
+                                                                    output variables
   """
   from struct import unpack
   import numpy as np
