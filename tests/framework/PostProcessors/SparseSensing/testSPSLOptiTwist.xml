@@ -19,7 +19,7 @@
 
   <Files>
     <Input name="twistFile" type="">./Perturbations2.csv</Input>
-    <Input name="refDO" type="">./350_330_.csv</Input>
+    <Input name="refDO" type="">./350_330.csv</Input>
   </Files>
 
   <Steps>
