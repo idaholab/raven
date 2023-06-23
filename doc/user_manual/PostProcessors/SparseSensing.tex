@@ -30,7 +30,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{Random}. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
-	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, \xmlString{CCQR} for unconstrained and cost constrained respectively.
+	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, for the unconstrained case.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
 \end{itemize}
 \end{itemize}
