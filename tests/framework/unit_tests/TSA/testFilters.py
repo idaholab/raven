@@ -126,6 +126,11 @@ def checkArray(comment, first, second, dtype, tol=1e-10, update=True):
 #            CONSTRUCTION            #
 ######################################
 def createZeroFilter(targets):
+  """
+    Creates a ZeroFilter object
+    @ In, targets, list(str), list of targets
+    @ Out, zeroFilter, ZeroFilter, zero filter object
+  """
   xml = xmlUtils.newNode('zerofilter', attrib={'target':','.join(targets)})
   zeroFilter = ZeroFilter()
   inputSpec = ZeroFilter.getInputSpecification()()

@@ -35,6 +35,7 @@ class LogTransformer(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -57,7 +58,9 @@ class LogTransformer(SKLTransformer):
     # Check for non-positive values in targets before handing off to super
     for t, (target, data) in enumerate(params.items()):
       if np.any(initial[:, t] <= 0):
-        raise ValueError('Log transformation requires strictly positive values!')
+        raise ValueError('Log transformation requires strictly positive values, and negative values '
+                         f'were found in target "{target}"! If negative values were expected, perhaps '
+                         'an ArcsinhTransformer would be more appropriate?')
     return super().getResidual(initial, params, pivot, settings)
 
 
@@ -70,6 +73,7 @@ class ArcsinhTransformer(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -89,6 +93,7 @@ class TanhTransformer(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -108,6 +113,7 @@ class SigmoidTransformer(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -127,6 +133,7 @@ class OutTruncation(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -141,7 +148,7 @@ class OutTruncation(SKLTransformer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)

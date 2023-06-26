@@ -35,6 +35,7 @@ class MaxAbsScaler(SKLCharacterizer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -55,6 +56,7 @@ class MinMaxScaler(SKLCharacterizer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -75,6 +77,7 @@ class RobustScaler(SKLCharacterizer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -95,6 +98,7 @@ class StandardScaler(SKLCharacterizer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -114,6 +118,7 @@ class QuantileTransformer(SKLTransformer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -134,7 +139,7 @@ class QuantileTransformer(SKLTransformer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)

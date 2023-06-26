@@ -51,6 +51,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   def canGenerate(cls):
     """
       Determines if this algorithm is a generator.
+      @ In, None
       @ Out, isGenerator, bool, True if this algorithm is a TimeSeriesGenerator
     """
     return issubclass(cls, TimeSeriesGenerator)
@@ -59,6 +60,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   def canCharacterize(cls):
     """
       Determines if this algorithm is a characterizer.
+      @ In, None
       @ Out, isCharacterizer, bool, True if this algorithm is a TimeSeriesCharacterizer
     """
     return issubclass(cls, TimeSeriesCharacterizer)
@@ -67,6 +69,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   def canTransform(cls):
     """
       Determines if this algorithm is a transformer.
+      @ In, None
       @ Out, isTransformer, bool, True if this algorithm is a TimeSeriesTransformer
     """
     return issubclass(cls, TimeSeriesTransformer)
@@ -97,7 +100,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = {}

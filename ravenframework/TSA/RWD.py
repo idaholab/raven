@@ -67,7 +67,7 @@ class RWD(TimeSeriesCharacterizer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifsications
+      @ In, spec, InputData.InputParams, input specifsications
       @ In, sampleType, integer = 0, 1, 2
       @     sampleType = 0: Sequentially Sampling
       @     sampleType = 1: Randomly Sampling

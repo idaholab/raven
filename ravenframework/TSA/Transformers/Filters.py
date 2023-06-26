@@ -20,20 +20,15 @@ import abc
 import numpy as np
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer
-from ...utils import xmlUtils, InputTypes
+from ...utils import xmlUtils
 
 
 class FilterBase(TimeSeriesTransformer):
   """ Base class for transformers which filter or mask data """
-
-  def __init__(self):
-    """ Constructor  """
-    super().__init__()
-
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
@@ -45,7 +40,6 @@ class FilterBase(TimeSeriesTransformer):
       Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
       False otherwise.
       @ In, signal, numpy.ndarray, data array
-      @ In, tol, float, tolerance for the criterion
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
     """
 
@@ -137,7 +131,6 @@ class ZeroFilter(FilterBase):
       Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
       False otherwise.
       @ In, signal, numpy.ndarray, data array
-      @ In, tol, float, tolerance for the criterion
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
     """
     return np.isclose(signal, 0)
