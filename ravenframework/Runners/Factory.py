@@ -21,7 +21,7 @@ from ..EntityFactoryBase import EntityFactory
 ################################################################################
 from ..utils import utils
 from .Runner import Runner
-from .DistributedMemoryRunner import DistributedMemoryRunner
+from .RayRunner import RayRunner
 from .InternalRunner import InternalRunner
 from .PassthroughRunner import PassthroughRunner
 from .SharedMemoryRunner import SharedMemoryRunner

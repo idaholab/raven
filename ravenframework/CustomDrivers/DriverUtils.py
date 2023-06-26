@@ -104,12 +104,6 @@ def setupCpp():
 
   utils.find_crow(frameworkDir)
 
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib', 'pp') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir,"contrib", "pp")}" already in system path. Skipping CPP setup')
-  else:
-    # TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-    utils.add_path_recursively(os.path.join(frameworkDir, 'contrib', 'pp'))
-
 def checkVersions():
   """
     Method to check if versions of modules are new enough. Will call sys.exit
