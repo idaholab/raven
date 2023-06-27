@@ -23,6 +23,7 @@ import copy
 import numpy as np
 from numpy import linalg
 import time
+import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -94,6 +95,8 @@ class HybridModel(HybridModelBase):
     self.targetEvaluationInstance = None                # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None                # Instance of data object that are used to store the training set
     self.romsDictionary           = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
+    self.__busyDict               = {}                  # map from job identifiers to rom names
+    self.__busyDictLock           = threading.Lock()    # obtain this lock before modifying busyDict, busySet 'Busy', and before reseting roms
     self.romTrainStartSize        = 10                  # the initial size of training set
     self.romTrainMaxSize          = 1.0e6               # the maximum size of training set
     self.romValidateSize          = 10                  # the size of rom validation set
@@ -107,7 +110,7 @@ class HybridModel(HybridModelBase):
     self.tempOutputs              = {}                  # Indicators used to collect model inputs/outputs for rom training
     self.oldTrainingSize          = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator           = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
-    self.crowdingDistance         = None
+    self.__crowdingDistance         = None
     self.metricCategories         = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
     self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
@@ -128,7 +131,7 @@ class HybridModel(HybridModelBase):
         self.targetEvaluationName = child.value.strip()
       if child.getName() == 'ROM':
         romName = child.value.strip()
-        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
+        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False, 'Busy': set()}
       if child.getName() == 'settings':
         for childChild in child.subparts:
           if childChild.getName() == 'maxTrainSize':
@@ -293,16 +296,22 @@ class HybridModel(HybridModelBase):
     """
     self.raiseADebug("Start to train roms")
     for romInfo in self.romsDictionary.values():
-      cvMetrics = romInfo['Instance'].convergence(self.tempTargetEvaluation)
-      if cvMetrics is not None:
-        converged = self.isRomConverged(cvMetrics)
-        romInfo['Converged'] = converged
-        if converged:
-          romInfo['Instance'].reset()
-          romInfo['Instance'].train(self.tempTargetEvaluation)
-          self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
-      else:
-        self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
+      #Do not check for convergence if still evaluating samples.
+      # Note that convergence resets the ROM
+      with self.__busyDictLock:
+        if len(romInfo['Busy']) == 0:
+          cvMetrics = romInfo['Instance'].convergence(self.tempTargetEvaluation)
+          if cvMetrics is not None:
+            converged = self.isRomConverged(cvMetrics)
+            romInfo['Converged'] = converged
+            if converged:
+              self.raiseADebug("ROM ", romInfo['Instance'].name, " being reset and retrained with busySet ", romInfo['Busy'])
+              romInfo['Instance'].reset()
+              romInfo['Instance'].train(self.tempTargetEvaluation)
+              self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
+        else:
+          self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
+    self.raiseADebug("Done with training roms")
     self.oldTrainingSize = len(self.tempTargetEvaluation)
 
   def isRomConverged(self, outputDict):
@@ -375,14 +384,14 @@ class HybridModel(HybridModelBase):
     allValid = False
     for selectionMethod, params in self.validationMethod.items():
       if selectionMethod == 'CrowdingDistance':
-        allValid = self.crowdingDistanceMethod(params, kwargs['SampledVars'])
+        allValid = self.__crowdingDistanceMethod(params, kwargs['SampledVars'])
       else:
         self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
-  def crowdingDistanceMethod(self, settingDict, varDict):
+  def __crowdingDistanceMethod(self, settingDict, varDict):
     """
       This function will check the validity of all roms based on the crowding distance method
       @ In, settingDict, dict, stores the setting information for the crowding distance method
@@ -397,12 +406,14 @@ class HybridModel(HybridModelBase):
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
       currentInput = self._extractInputs(varDict, paramsList)
-      if self.crowdingDistance is None:
-        self.crowdingDistance = mathUtils.computeCrowdingDistance(trainInput)
-      sizeCD = len(self.crowdingDistance)
+      if self.__crowdingDistance is None or self.__crowdingDistance.size != trainInput.shape[1]:
+        #XXX Note that if self.__crowdingDistance.size != trainInput.shape[1]
+        # occurs, this is technically a bug.
+        self.__crowdingDistance = mathUtils.computeCrowdingDistance(trainInput)
+      sizeCD = len(self.__crowdingDistance)
       if sizeCD != trainInput.shape[1]:
-        self.crowdingDistance = self.updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.crowdingDistance)
-      crowdingDistance = self.updateCrowdingDistance(trainInput, currentInput, self.crowdingDistance)
+        self.__crowdingDistance = self.__updateCrowdingDistance(trainInput[:,0:sizeCD], trainInput[:,sizeCD:], self.__crowdingDistance)
+      crowdingDistance = self.__updateCrowdingDistance(trainInput, currentInput, self.__crowdingDistance)
       maxDist = np.amax(crowdingDistance)
       minDist = np.amin(crowdingDistance)
       if maxDist == minDist:
@@ -419,7 +430,7 @@ class HybridModel(HybridModelBase):
         allValid = False
     return allValid
 
-  def updateCrowdingDistance(self, oldSet, newSet, crowdingDistance):
+  def __updateCrowdingDistance(self, oldSet, newSet, crowdingDistance):
     """
       This function will compute the Crowding distance coefficients among the input parameters
       @ In, oldSet, numpy.array, array contains values of input parameters that have been already used
@@ -431,7 +442,7 @@ class HybridModel(HybridModelBase):
     newSize = newSet.shape[1]
     totSize = oldSize + newSize
     if oldSize != crowdingDistance.size:
-      self.raiseAnError(IOError, "The old crowding distance does not match the old data set!")
+      self.raiseAnError(IOError, f"The old crowding distance {crowdingDistance.size} does not match the old data set {oldSize}! (newSize {newSize})")
     newCrowdingDistance = np.zeros(totSize)
     distMatAppend = np.zeros((oldSize,newSize))
     for i in range(oldSize):
@@ -518,16 +529,23 @@ class HybridModel(HybridModelBase):
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
-            romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
-            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted")
-            nextRom = True
+            with self.__busyDictLock:
+              busySet = romInfo['Busy']
+              romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
+              busySet.add(inputKwargs[romName]['prefix'])
+              self.__busyDict[inputKwargs[romName]['prefix']] = romName
+              self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
+              nextRom = True
           else:
             time.sleep(self.sleepTime)
       # collect the outputs from the runs of ROMs
       while True:
         finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
         for finishedRun in finishedJobs:
-          self.raiseADebug("collect job with identifier ", identifier)
+          with self.__busyDictLock:
+            jobRom = self.__busyDict[finishedRun.identifier]
+            self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
+            self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
           evaluation = finishedRun.getEvaluation()
           if isinstance(evaluation, rerror):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
@@ -593,4 +611,4 @@ class HybridModel(HybridModelBase):
     self.romConverged = False
     self.oldTrainingSize = 0
     self.modelIndicator = {}
-    self.crowdingDistance = None
+    self.__crowdingDistance = None
