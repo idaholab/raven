@@ -23,7 +23,17 @@
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import numpy as np
+from scipy.linalg import solve_triangular
+from .GPKernels import ConstantKernel as skConstantKernel
+from .GPKernels import DotProduct as skDotProduct
+from .GPKernels import Exponentiation as skExponentiation
+from .GPKernels import ExpSineSquared as skExpSineSquared
+from .GPKernels import Matern as skMatern
+from .GPKernels import Product as skProduct
+from .GPKernels import RationalQuadratic as skRationalQuadratic
+from .GPKernels import RBF as skRBF
+from .GPKernels import Sum as skSum
+from .GPKernels import WhiteKernel as skWhiteKernel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -89,9 +99,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          \zNormalizationNotPerformed{GaussianProcessRegressor}
                          """
     # create kernel node
-    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared',
-                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
-    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared',
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'WhiteNoise',
                                                                                                                    'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
@@ -132,7 +140,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                    \item RationalQuadratic, it can be seen as a scale mixture (an infinite sum) of RBF kernels with different characteristic length scales. It is parameterized by a length scale parameter
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
-                                                   \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
+                                                   \item WhiteNoise, This is a kernel representing observation noise in the GPR model and is given by $k(x_i, x_j) = \epsilon\delta_{i,j}$
+                                                                where $\delta$ is the dirac delta function
                                                    \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
                                                  \end{itemize}.""",default=None))
 
@@ -188,19 +197,19 @@ class GaussianProcessRegressor(ScikitLearnBase):
       lengthScale = 1
 
     if name.lower() == 'constant':
-      kernel = sklearn.gaussian_process.kernels.ConstantKernel(constant_value_bounds=(1e-5,1e7))
+      kernel = skConstantKernel()
     elif name.lower() == 'dotproduct':
-      kernel = sklearn.gaussian_process.kernels.DotProduct()
+      kernel = skDotProduct()
     elif name.lower() == 'expsinesquared':
-      kernel = sklearn.gaussian_process.kernels.ExpSineSquared()
+      kernel = skExpSineSquared()
     elif name.lower() == 'matern':
-      kernel = sklearn.gaussian_process.kernels.Matern(length_scale=lengthScale)
-      kernel = sklearn.gaussian_process.kernels.Matern(length_scale=lengthScale)
+      kernel = skMatern(length_scale=lengthScale)
     elif name.lower() == 'rbf':
-      kernel = sklearn.gaussian_process.kernels.RBF(length_scale=lengthScale)
-      kernel = sklearn.gaussian_process.kernels.RBF(length_scale=lengthScale)
+      kernel = skRBF(length_scale=lengthScale)
     elif name.lower() == 'rationalquadratic':
-      kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
+      kernel = skRationalQuadratic()
+    elif name.lower() == 'whitenoise':
+      kernel = skWhiteKernel()
     # For the pairwise kernels, slice the input string to get metric
     elif name.lower()[0:8] == 'pairwise':
       metric = name.lower()[8:]
@@ -216,13 +225,12 @@ class GaussianProcessRegressor(ScikitLearnBase):
       @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic (where applicable)
       @ Out, kernel, sklearn kernel object
     """
-    import sklearn
     # Initialize construction terms
     kernel = None
     # Need to apply operations to kernel components
-    operations = {'+':sklearn.gaussian_process.kernels.Sum,
-                  '*':sklearn.gaussian_process.kernels.Product,
-                  '^':sklearn.gaussian_process.kernels.Exponentiation}
+    operations = {'+':skSum,
+                  '*':skProduct,
+                  '^':skExponentiation}
     runningKernel = ""
     paranthetical = False # Considering kernel expressions with parantheses
     tempKernel = None
@@ -287,6 +295,54 @@ class GaussianProcessRegressor(ScikitLearnBase):
       except KeyError:
         kernel = tempKernel
     return kernel
+
+  def evaluateGradients(self, x):
+    """
+      Evaluates gradient of GPR mean and std wrt to the input
+      @ In, x, np.array, input vector to evaluate model gradient at
+      @ Out, meanGrad, np.array, gradient of predictive mean wrt x
+      @ Out, stdGrad, np.array, gradient of predictive std wrt x
+    """
+    # FIXME is it necessary to give credit to skopt here? The code is mostly identical to their
+    # GPR wrapper since they correct the normalization done in the model.
+    # Gradient of kernel wrt input evaluated against training inputs
+    kernelGrad = self.model.kernel_.gradient_x(x, self.model.X_train_)
+    meanGrad = np.dot(kernelGrad.T, self.model.alpha_)
+    # undo normalization from fitting GPR
+    meanGrad = meanGrad * self.model._y_train_std
+    if len(x.shape) == 1:
+      stdGrad = np.zeros(1)
+    elif len(x.shape) == 2:
+      stdGrad = np.zeros(x.shape[1])
+    else:
+      self.raiseAnError(RuntimeError, f'Invalid input shape found in GPR gradient evaluation: {x.shape}')
+
+    # Need variance information
+    kTrans = self.model.kernel_(x, self.model.X_train_)
+
+    # Compute variance of predictive distribution
+    LInv = solve_triangular(self.model.L_.T, np.eye(self.model.L_.shape[0]))
+    kInv = LInv.dot(LInv.T)
+    yVar = self.model.kernel_.diag(x)
+    yVar -= np.einsum("ki,kj,ij->k", kTrans, kTrans, kInv)
+
+    # Check if any of the variances is negative because of
+    # numerical issues. If yes: set the variance to 0.
+    yVarNegative = yVar < 0
+    if np.any(yVarNegative):
+      self.raiseAWarning("Predicted variances smaller than 0. "
+                    "Setting those variances to 0.")
+      yVar[yVarNegative] = 0
+    # undo normalisation
+    yVar = yVar * self.model._y_train_std**2
+    yStd = np.sqrt(yVar)
+
+    if not np.allclose(yStd, stdGrad):
+      stdGrad = -np.dot(kTrans, np.dot(kInv, kernelGrad))[0] / yStd
+      # undo normalization
+      stdGrad = stdGrad* self.model._y_train_std**2
+
+    return meanGrad, stdGrad
 
   def _handleInput(self, paramInput):
     """

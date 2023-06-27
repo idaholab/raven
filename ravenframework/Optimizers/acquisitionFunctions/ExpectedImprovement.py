@@ -99,11 +99,28 @@ class ExpectedImprovement(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, EIGrad, float/array, EI gradient value
     """
-    # TODO figure out best way to generalize kernel gradients first
-    # # Evaluate gradients of posterior prediction equations
-    # featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
-    # dmu, dstd = bayesianOptimizer._evaluateRegressionGradient(featurePoint)
-    return
+    # NOTE assumes scikitlearn GPR currently
+    # Need to convert array input "x" into dict point
+    featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
+    # Evaluate posterior mean and standard deviation
+    mu, s = bayesianOptimizer._evaluateRegressionModel(featurePoint)
+    featurePoint = bayesianOptimizer.denormalizeData(featurePoint)
+    var = bayesianOptimizer.featurePointToArray(featurePoint)
+    meanGrad, stdGrad = bayesianOptimizer._model.supervisedContainer[0].evaluateGradients(var)
+
+    # Need to retrieve current optimum point
+    best = bayesianOptimizer._optPointHistory[0][-1][0]
+    fopt = best[bayesianOptimizer._objectiveVar]
+    # Other common quantities
+    beta = (fopt - mu)/s
+    phi = norm.pdf(beta)
+    Phi = norm.cdf(beta)
+    betaGrad = np.subtract(-s*np.transpose(meanGrad), (fopt-mu)*stdGrad)/(s**2)
+
+    # Derivative of standard normal pdf
+    phiGrad = (-beta/(np.sqrt(2*np.pi)))*np.exp(-(beta**2)/2)
+    EIGrad = stdGrad*phi - np.transpose(meanGrad)*Phi + betaGrad*(phi*(fopt-mu) + s*phiGrad)
+    return EIGrad
 
   def hessian(self, var, bayesianOptimizer):
     """

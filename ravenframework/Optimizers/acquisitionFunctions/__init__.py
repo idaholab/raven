@@ -23,5 +23,7 @@ from __future__ import absolute_import
 # TODO
 from .AcquisitionFunction import AcquisitionFunction
 from .ExpectedImprovement import ExpectedImprovement
+from .ProbabilityOfImprovement import ProbabilityOfImprovement
+from .LowerConfidenceBound import LowerConfidenceBound
 
 from .Factory import factory

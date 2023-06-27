@@ -21,6 +21,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from ...EntityFactoryBase import EntityFactory
 from .AcquisitionFunction import AcquisitionFunction
 from .ExpectedImprovement import ExpectedImprovement
+from .ProbabilityOfImprovement import ProbabilityOfImprovement
+from .LowerConfidenceBound import LowerConfidenceBound
 
 factory = EntityFactory('Acquisition')
 factory.registerAllSubtypes(AcquisitionFunction)

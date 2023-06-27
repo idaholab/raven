@@ -15,6 +15,9 @@
 """
 # External Modules
 import scipy.optimize as sciopt
+from smt.sampling_methods import LHS
+import numpy as np
+from joblib import Parallel, delayed
 # External Modules
 
 # Internal Modules
@@ -112,11 +115,42 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     # Depending on the optimization method, the cost function should be defined differently
     if self._optMethod == 'differentialEvolution':
       # NOTE -1 is to enforce maximization of the positive function
-      opt_func = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
-      res = sciopt.differential_evolution(opt_func, bounds=self._bounds, polish=True, maxiter=100, tol=1e-5,
-                                          popsize=self._seedingCount, vectorized=True)
+      optFunc = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
+      res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-5,
+                                          popsize=self._seedingCount, init='sobol', vectorized=True)
+    elif self._optMethod == 'slsqp':
+      optFunc = lambda var: (-1*self.evaluate(var, bayesianOptimizer),
+                             -1*self.gradient(var, bayesianOptimizer))
+      # Need to sample seeding points for multi-start slsqp
+      limits = np.array(self._bounds)
+      # NOTE one of our seeds will always come from the current recommended solution (best point)
+      samplingCount = self._seedingCount - 1
+      sampler = LHS(xlimits=limits, criterion='cm')
+      initSamples = sampler(samplingCount)
+      best = bayesianOptimizer._optPointHistory[0][-1][0]
+      # Need to convert 'best point' and add to init array
+      tempArray = np.empty((1,self.N))
+      for index, varName in enumerate(list(bayesianOptimizer.toBeSampled)):
+        tempArray[0,index] = best[varName]
+      initSamples = np.concatenate((initSamples,tempArray),axis=0)
+      options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
+      results = Parallel(n_jobs=-1)(delayed(sciopt.minimize)(optFunc, x0, method='SLSQP', jac=True,
+                                                             bounds=self._bounds, options=options) for x0 in initSamples)
+      res = results[0]
+      for solution in results[1:]:
+        if solution.fun < res.fun:
+          res = solution
+
+      # res = None
+      # for x0 in initSamples:
+      #   result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds, options=options)
+      #   if res is None:
+      #     res = result
+      #   elif result.fun < res.fun:
+      #     res = result
+      print(res)
     else:
-      self.raiseAnError(RuntimeError, 'Currently only accepts differential evolution. Other methods still under construction')
+      bayesianOptimizer.raiseAnError(RuntimeError, 'Currently only accepts differential evolution. Other methods still under construction')
     self._optValue = -1*res.fun
     newPoint = bayesianOptimizer.arrayToFeaturePoint(res.x)
     return newPoint
@@ -179,7 +213,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
   ###################
   def flush(self):
     """
-      Reset GradientApproximater attributes to allow rerunning a workflow
+      Reset Acquisition Function attributes to allow rerunning a workflow
       @ In, None
       @ Out, None
     """
