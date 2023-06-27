@@ -108,7 +108,7 @@ function install_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $USE_MAMBA == TRUE ]]; then
-        conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
+        conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD
         activate_env
         local MCOMMAND=${COMMAND/#conda /mamba } #Replace conda at start with mamba
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
@@ -175,7 +175,7 @@ function create_libraries()
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
         echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
-        conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
+        conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD
         activate_env
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
         local MCOMMAND=${COMMAND/#conda /mamba }
@@ -326,6 +326,14 @@ else
 fi
 PROXY_COMM="" # proxy is none
 USE_MAMBA=TRUE # Use Mamba for installation
+
+if command -v mamba;
+then
+    #This is used to skip installing mamba
+    MAMBA_ECE_ADD=""
+else
+    MAMBA_ECE_ADD="mamba"
+fi
 
 # parse command-line arguments
 while test $# -gt 0
