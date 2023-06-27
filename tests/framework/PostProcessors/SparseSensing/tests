@@ -5,7 +5,6 @@
     csv = 'reconstructionOptiTwist/outPP.csv'
     image = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png reconstructionOptiTwist/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
-    rel_tol = 1
     rel_err = 0.01
   [../]
 []
