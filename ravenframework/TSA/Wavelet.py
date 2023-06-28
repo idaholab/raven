@@ -110,9 +110,9 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     # TODO extend to continuous wavelet transform
     try:
       import pywt
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as exc:
       print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
-      raise ModuleNotFoundError
+      raise ModuleNotFoundError from exc
 
 
     ## The pivot input parameter isn't used explicity in the
@@ -120,11 +120,14 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     ## time-dependent series is independent, uniquely indexed and
     ## sorted in time.
     family = settings['family']
+    levels = settings.get('levels', 1)
     params = {target: {'results': {}} for target in targets}
 
     for i, target in enumerate(targets):
       results = params[target]['results']
-      results['coeff_a'], results['coeff_d'] = pywt.dwt(signal[:, i], family)
+      coeffs = pywt.mra(signal[:, i], family, levels)
+      results['coeff_a'] = coeffs[0]
+      results['coeff_d'] = np.vstack([coeffs[i] for i in range(1,levels)])
 
     return params
 
