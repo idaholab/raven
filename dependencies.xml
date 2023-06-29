@@ -72,6 +72,7 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
+    <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
