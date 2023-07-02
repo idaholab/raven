@@ -17,7 +17,7 @@
         Here, coefficients of SETH-C are used as experiemnt responses (Features);
         coefficients of SETH-C and SETH-D temperatures data are used as application responses (Target)
         The outputs are posterior mean, and fraction value reflecting the error between posterior and prior mean
-        of Target, and has columns:'timeTdep', 'Tdep_post_mean', 'Error'.
+        of Target, and has columns:'time', 'Tdep_post_mean', 'Error'.
     </description>
   </TestInfo>
 
@@ -27,7 +27,7 @@
 
   <Models>
     <PostProcessor name="pcm_Tdep" subType="PhysicsGuidedCoverageMapping">
-      <pivotParameter>timeTdep</pivotParameter>
+      <pivotParameter>time</pivotParameter>
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
@@ -57,19 +57,19 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>timeTdep</pivotParameter> 
+       <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempC</Output>     
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>timeTdep</pivotParameter> 
+        <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempD</Output>     
     </HistorySet>      
     <HistorySet name="msr">
       <options>
-        <pivotParameter>timeTdep</pivotParameter> 
+        <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempMsrC</Output>     
     </HistorySet>    

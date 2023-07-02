@@ -30,7 +30,7 @@
 
   <Models>
     <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
-      <pivotParameter>timeSnapshot</pivotParameter>
+      <pivotParameter>time</pivotParameter>
       <Features>exp|TempC</Features>
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
@@ -60,19 +60,19 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>timeSnapshot</pivotParameter> 
+       <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempC</Output>     
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>timeSnapshot</pivotParameter> 
+        <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempD</Output>     
     </HistorySet>      
     <HistorySet name="msr">
       <options>
-        <pivotParameter>timeSnapshot</pivotParameter> 
+        <pivotParameter>time</pivotParameter> 
       </options>
       <Output>TempMsrC</Output>     
     </HistorySet>    

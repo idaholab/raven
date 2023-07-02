@@ -98,12 +98,9 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     dataDict = {self.getDataSetName(data): data for _, _, data in inputIn['Data']}
     names = list(dataDict.keys())#
     evaluation ={k: np.atleast_1d(val) for k, val in self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
-    if 'snapshot_pri_post_stdReduct' in evaluation.keys():
-      pivotParameter = self.pivotParameter
-      evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeSnapshot']
-    if 'Tdep_post_mean' in evaluation.keys():
-      pivotParameter = self.pivotParameter
-      evaluation[pivotParameter] = inputIn['Data'][0][-1]['timeTdep']
+    if 'time' in evaluation.keys():
+      pcmType = self.pcmType
+      evaluation[pcmType] = inputIn['Data'][0][-1]['time']
     return evaluation
 
   def _evaluate(self, datasets, **kwargs):
@@ -405,11 +402,11 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     if pcmVersion == 'Tdep':
       self.raiseAMessage('***    Running Tdep-PCM       ***')
       # Data of size (num_of_samples, num_of_features)
-      element = np.asarray(datasets['exp'].get('timeTdep'))[0]
-      v = np.asarray(datasets['exp'].get('timeTdep'))
+      element = np.asarray(datasets['exp'].get('time'))[0]
+      v = np.asarray(datasets['exp'].get('time'))
       num_of_samples = np.count_nonzero(v == element)
-      num_of_featuresExp = int(np.asarray(datasets['exp'].get('timeTdep')).shape[0]/num_of_samples)
-      num_of_featuresApp = int(np.asarray(datasets['app'].get('timeTdep')).shape[0]/num_of_samples)
+      num_of_featuresExp = int(np.asarray(datasets['exp'].get('time')).shape[0]/num_of_samples)
+      num_of_featuresApp = int(np.asarray(datasets['app'].get('time')).shape[0]/num_of_samples)
 
       if featData.size != num_of_samples * num_of_featuresExp or \
         targData.size != num_of_samples * num_of_featuresApp:
@@ -430,11 +427,11 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     if pcmVersion == 'Snapshot':
       self.raiseAMessage('***    Running Snapshot-PCM   ***')
       # Data of size (num_of_samples, num_of_features)
-      element = np.asarray(datasets['exp'].get('timeSnapshot'))[0]
-      v = np.asarray(datasets['exp'].get('timeSnapshot'))
+      element = np.asarray(datasets['exp'].get('time'))[0]
+      v = np.asarray(datasets['exp'].get('time'))
       num_of_samples = np.count_nonzero(v == element)
-      num_of_features = int(np.asarray(datasets['exp'].get('timeSnapshot')).shape[0]/num_of_samples)
-      num_of_targets = int(np.asarray(datasets['app'].get('timeSnapshot')).shape[0]/num_of_samples)
+      num_of_features = int(np.asarray(datasets['exp'].get('time')).shape[0]/num_of_samples)
+      num_of_targets = int(np.asarray(datasets['app'].get('time')).shape[0]/num_of_samples)
 
       if featData.size != num_of_samples * num_of_features or \
         targData.size != num_of_samples * num_of_targets or \
