@@ -135,10 +135,6 @@ class LowerConfidenceBound(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, LCBGrad, float/array, LCB gradient value
     """
-    # Need to convert array input "x" into dict point
-    featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
-    featurePoint = bayesianOptimizer.denormalizeData(featurePoint)
-    var = bayesianOptimizer.featurePointToArray(featurePoint)
     # NOTE assumes scikitlearn GPR currently
     meanGrad, stdGrad = bayesianOptimizer._model.supervisedContainer[0].evaluateGradients(var)
 

@@ -158,7 +158,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                            unit-variance priors are used.""",default=False ))
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                               descr=r"""Seed for the internal random number generator.""",default=None))
-    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
+    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b', 'None']),
                                                  descr=r"""Per default, the 'L-BFGS-B' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
                                                  parameters are kept fixed.""",default='fmin_l_bfgs_b'))
@@ -201,7 +201,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     elif name.lower() == 'dotproduct':
       kernel = skDotProduct()
     elif name.lower() == 'expsinesquared':
-      kernel = skExpSineSquared()
+      kernel = skExpSineSquared(periodicity_bounds=(1e-5, 1/(2*np.pi)))
     elif name.lower() == 'matern':
       kernel = skMatern(length_scale=lengthScale)
     elif name.lower() == 'rbf':
@@ -308,7 +308,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
     # Gradient of kernel wrt input evaluated against training inputs
     kernelGrad = self.model.kernel_.gradient_x(x, self.model.X_train_)
     meanGrad = np.dot(kernelGrad.T, self.model.alpha_)
-    # undo normalization from fitting GPR
     meanGrad = meanGrad * self.model._y_train_std
     if len(x.shape) == 1:
       stdGrad = np.zeros(1)
@@ -340,7 +339,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     if not np.allclose(yStd, stdGrad):
       stdGrad = -np.dot(kTrans, np.dot(kInv, kernelGrad))[0] / yStd
       # undo normalization
-      stdGrad = stdGrad* self.model._y_train_std**2
+      stdGrad = stdGrad * self.model._y_train_std**2
 
     return meanGrad, stdGrad
 
@@ -369,4 +368,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
     del settings['multioutput']
     del settings['anisotropic']
     del settings['custom_kernel']
+    if settings['optimizer'] == 'None':
+      settings['optimizer'] = None
     self.initializeModel(settings)

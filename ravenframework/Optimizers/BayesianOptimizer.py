@@ -19,6 +19,8 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
+from smt.sampling_methods import LHS
+import scipy.optimize as sciopt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -64,6 +66,22 @@ class BayesianOptimizer(RavenSampled):
       acqu.addSub(subSpecs)
     specs.addSub(acqu)
 
+    # Model selection
+    modelSelect = InputData.parameterInputFactory('ModelSelection', strictMode=False,
+        printPriority=106,
+        descr=r"""An optional node allowing the user to specify the details of model selection.
+              For example, the manner in which hyperparameters are selected for the GPR model.""")
+    modelSelect.addSub(InputData.parameterInputFactory('Duration', contentType=InputTypes.IntegerType,
+        descr=r"""Number of iterations between each reselection of the model. Default is 1"""))
+    modelSelect.addSub(InputData.parameterInputFactory('Method', contentType=InputTypes.makeEnumType("Method", "MethodType", ['External', 'Internal', 'Average']),
+        descr=r"""Determines methodology for selecting the model. This methodology is applied
+              after every duration length.
+              \begin{itemize}
+                \item External, uses whatever method the model has internal to itself
+                \item Internal, selects the MAP point of the model using slsqp
+                \item Average, Approximate marginalization over model space
+              \end{itemize}. Default is External"""))
+    specs.addSub(modelSelect)
     return specs
 
   @classmethod
@@ -92,12 +110,14 @@ class BayesianOptimizer(RavenSampled):
     """
     RavenSampled.__init__(self)
     # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
-    self._iteration = {}            # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
-    self._initialSampleSize = None  # Number of samples to build initial model with before applying acquisition (default is 5)
-    self._trainingInputs = [{}]     # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
-    self._trainingTargets = []      # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
-    self._model = None              # Regression model used for Bayesian Decision making
-    self._acquFunction = None       # Acquisition function object used in optimization
+    self._iteration = {}              # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
+    self._initialSampleSize = None    # Number of samples to build initial model with before applying acquisition (default is 5)
+    self._trainingInputs = [{}]       # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
+    self._trainingTargets = []        # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
+    self._model = None                # Regression model used for Bayesian Decision making
+    self._acquFunction = None         # Acquisition function object used in optimization
+    self._modelSelection = 'External' # Method for conducting model selection
+    self._modelDuration = 1           # Number of iterations between model updates
 
   def handleInput(self, paramInput):
     """
@@ -117,6 +137,12 @@ class BayesianOptimizer(RavenSampled):
     self._acquFunction = acqFactory.returnInstance(acquType)
     setattr(self._acquFunction, 'N', len(list(self.toBeSampled)))
     self._acquFunction.handleInput(acquNode.subparts[0])
+
+    # Model Selection
+    selectNode = paramInput.findFirst('ModelSelection')
+    if selectNode is not None:
+      self._modelDuration = selectNode.findFirst('Duration').value
+      self._modelSelection = selectNode.findFirst('Method').value
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -144,6 +170,14 @@ class BayesianOptimizer(RavenSampled):
     elif self._model.subType not in ["GaussianProcessRegressor"]:
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
                                       f'currently only accepts the following: {["GaussianProcessRegressor"]}')
+    self._setModelBounds()
+    # NOTE Once again considering specifically sklearn's GPR
+    optOption = self._model.supervisedContainer[0].model.get_params()['optimizer']
+    # Avoiding unecessary model selection procedures that would tack on time
+    if optOption is None and self._modelSelection == 'External':
+      self._modelSelection = None
+    else:
+      self._model.supervisedContainer[0].model.set_params(optimizer=None)
 
     # Initialize the acquisition function
     self._acquFunction.initialize()
@@ -206,6 +240,8 @@ class BayesianOptimizer(RavenSampled):
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].extend(getattr(rlz, varName).values)
       self._trainingTargets[traj].extend(getattr(rlz, self._objectiveVar).values)
+      # Generate posterior with training data
+      self._generatePredictiveModel(traj)
       self._resolveMultiSample(traj, rlz, info)
     elif isinstance(rlz, dict):
       self.raiseAMessage(f'Received next sample for iteration: {self.getIteration(traj)}')
@@ -213,14 +249,14 @@ class BayesianOptimizer(RavenSampled):
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].append(rlz[varName])
       self._trainingTargets[traj].append(rlz[self._objectiveVar])
+      # Generate posterior with training data
+      self._generatePredictiveModel(traj)
       optVal = rlz[self._objectiveVar]
       self._resolveNewOptPoint(traj, rlz, optVal, info)
 
-    # Generate posterior with training data
-    self._trainRegressionModel(traj)
     # Use acquisition to select next point
-    new_point = self._acquFunction.conductAcquisition(self)
-    self._submitRun(new_point, traj, step)
+    newPoint = self._acquFunction.conductAcquisition(self)
+    self._submitRun(newPoint, traj, step)
     self.incrementIteration(traj)
 
   def checkConvergence(self, traj, new, old):
@@ -363,6 +399,52 @@ class BayesianOptimizer(RavenSampled):
   ###############################################
   # Model Training and Evaluation #
   ###############################################
+  def _setModelBounds(self):
+    """
+      Corrects hyperparameter bounds to account for normalized input space
+      @ In, None
+      @ Out, None
+    """
+    # NOTE This assumes scikitlearn GPR model
+    hyperParamList = self._model.supervisedContainer[0].model.kernel.hyperparameters
+    for hyperParam in hyperParamList:
+      if 'length_scale' in hyperParam.name:
+        hyperBound = hyperParam.name + '_bounds'
+        self._model.supervisedContainer[0].model.kernel.set_params(**{hyperBound:(1e-5,1)})
+
+  def _selectHyperparameters(self, restartCount=5):
+    """
+      Selects MAP model in model space, and is exclusively for sklearn GPR models
+      @ In, restartCount, int, number of initial points to start optimization from
+      @ Out, None
+    """
+    # Function to optimize, taking input as log-transformed hyperParameters
+    lmlFunc = lambda logTheta: tuple([-1*x for x in self._model.supervisedContainer[0].model.log_marginal_likelihood(logTheta, eval_gradient=True, clone_kernel=False)])
+    # Build bounds for optimization
+    paramBounds = []
+    for hyperParam in self._model.supervisedContainer[0].model.kernel.hyperparameters:
+      for bound in hyperParam.bounds:
+        paramBounds.append(tuple(np.log(bound)))
+
+    # Restart locations include current parameter values
+    sampler = LHS(xlimits=np.array(paramBounds), criterion='cm')
+    initSamples = sampler(restartCount-1)
+    initSamples = np.concatenate((initSamples, np.array([self._model.supervisedContainer[0].model.kernel.theta])))
+    # Selecting MAP for each restart
+    options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
+    res = None
+    for x0 in initSamples:
+      result = sciopt.minimize(lmlFunc, x0, method='SLSQP', jac=True, bounds=paramBounds, options=options)
+      if res is None:
+        res = result
+      elif result.fun < res.fun:
+        res = result
+    print(res)
+    newTheta = res.x
+    newKernel = self._model.supervisedContainer[0].model.kernel_.clone_with_theta(newTheta)
+    self._model.supervisedContainer[0].model.kernel = newKernel
+    self._trainRegressionModel(0)
+
   def _trainRegressionModel(self, traj):
     """
       Reformats training data into form that ROM can handle
@@ -370,11 +452,39 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     # Build training set to feed to rom model
-    # trainingSet = {}
-    # for varName in list(self.toBeSampled):
-    #   trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
-    # trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
-    self._model.train(self._targetEvaluation)
+    trainingSet = {}
+    for varName in list(self.toBeSampled):
+      trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
+    trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
+    self._model.train(trainingSet)
+    # NOTE It would be preferrable to use targetEvaluation;
+    # however, there does not appear a built in normalization method and as
+    # consequence, it is preferrable to use the in class attributes to train the ROM
+    # on our normalized space.
+    # self._model.train(self._targetEvaluation)
+
+  def _generatePredictiveModel(self, traj):
+    """
+      Applies model selection if necessary, otherwise just fits training data to predictive model
+      @ In, traj, trajectory
+      @ Out, None
+    """
+     # Generate posterior with training data
+    if self._iteration[traj] // self._modelDuration == 0:
+      if self._modelSelection == 'External':
+        self._model.supervisedContainer[0].model.set_params(optimizer='fmin_l_bfgs_b')
+        self._trainRegressionModel(traj)
+        self._model.supervisedContainer[0].model.set_params(optimizer=None)
+      elif self._modelSelection == 'Internal':
+        self._trainRegressionModel(traj)
+        restartCount = self._model.supervisedContainer[0].model.get_params()['n_restarts_optimizer']
+        self._selectHyperparameters(restartCount=restartCount)
+      elif self._modelSelection == 'Average':
+        self.raiseAnError(RuntimeError, 'Model averaging is not yet available')
+      else:
+        self._trainRegressionModel(traj)
+    else:
+      self._trainRegressionModel(traj)
 
   def _evaluateRegressionModel(self, featurePoint):
     """
@@ -384,7 +494,7 @@ class BayesianOptimizer(RavenSampled):
       @ Out, std, ROM standard-deviation value at that point
     """
     # Evaluating the regression model
-    featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
+    # featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
     resultsDict = self._model.evaluate(featurePoint)
     # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
     mu = resultsDict[self._objectiveVar]

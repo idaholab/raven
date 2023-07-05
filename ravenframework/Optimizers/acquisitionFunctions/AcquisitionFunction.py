@@ -18,6 +18,7 @@ import scipy.optimize as sciopt
 from smt.sampling_methods import LHS
 import numpy as np
 from joblib import Parallel, delayed
+import numdifftools as nd
 # External Modules
 
 # Internal Modules
@@ -119,6 +120,10 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-5,
                                           popsize=self._seedingCount, init='sobol', vectorized=True)
     elif self._optMethod == 'slsqp':
+      #### delete after use ####
+      # maxDiff = self.testGradients(bayesianOptimizer, 100)
+      # print(maxDiff)
+      #### delete after use ####
       optFunc = lambda var: (-1*self.evaluate(var, bayesianOptimizer),
                              -1*self.gradient(var, bayesianOptimizer))
       # Need to sample seeding points for multi-start slsqp
@@ -148,12 +153,34 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       #     res = result
       #   elif result.fun < res.fun:
       #     res = result
-      print(res)
     else:
       bayesianOptimizer.raiseAnError(RuntimeError, 'Currently only accepts differential evolution. Other methods still under construction')
     self._optValue = -1*res.fun
     newPoint = bayesianOptimizer.arrayToFeaturePoint(res.x)
     return newPoint
+
+  ### TEMPORARY METHOD ###
+  def testGradients(self, bayesianOptimizer, nSamples):
+    """
+      Numerically validates gradients of acquisition functions
+    """
+    evalMethod = lambda var: self.evaluate(var, bayesianOptimizer)[0]
+    funGrad = nd.Gradient(evalMethod, step=0.0001, order=4)
+    diffVector = np.empty(nSamples)
+    limits = np.array(self._bounds)
+    sampler = LHS(xlimits=limits, criterion='cm', random_state=42)
+    initSamples = sampler(nSamples)
+    for i in range(nSamples):
+      xI = initSamples[i,:]
+      analytic = self.gradient(xI, bayesianOptimizer)[0]
+      numeric = funGrad(xI)
+      if not np.allclose(np.zeros(self.N), analytic) and not np.allclose(np.zeros(self.N), numeric):
+        gradDiff = np.subtract(analytic/np.linalg.norm(analytic), numeric/np.linalg.norm(numeric))
+      else:
+        gradDiff = np.subtract(analytic, numeric)
+      diffVector[i] = np.linalg.norm(gradDiff)
+    maxDiff = np.max(diffVector)
+    return maxDiff
 
   ######################
   # Evaluation Methods #

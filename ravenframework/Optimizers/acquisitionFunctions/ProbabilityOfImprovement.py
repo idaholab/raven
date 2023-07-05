@@ -145,8 +145,6 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
     # Evaluate posterior mean and standard deviation
     mu, s = bayesianOptimizer._evaluateRegressionModel(featurePoint)
-    featurePoint = bayesianOptimizer.denormalizeData(featurePoint)
-    var = bayesianOptimizer.featurePointToArray(featurePoint)
     meanGrad, stdGrad = bayesianOptimizer._model.supervisedContainer[0].evaluateGradients(var)
 
     # Need to retrieve current optimum point
