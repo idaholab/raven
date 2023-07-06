@@ -36,5 +36,23 @@ Specifically, the purpose of these transformers is not to generate a new time se
 The `TimeSeriesTransformer` class is also responsible for computing model residuals during the fitting process and combining one or more signals into a single signal during the generation process.
 
 ## TSA Algorithm Inheritance
-The following diagram shows which base classes each currently implemented TSA algorithm inherits from.
-![Venn diagram of TSA algorithm inheritance](AlgorithmClassification.png)
+The following table shows which base classes each currently implemented TSA algorithm inherits from.
+
+| Algorithm              | Transformer | Generator | Characterizer |
+|------------------------|:-----------:|:---------:|:-------------:|
+| `ARMA`                 |   &check;   |  &check;  |    &check;    |
+| `Fourier`              |   &check;   |  &check;  |    &check;    |
+| `PolynomialRegression` |   &check;   |  &check;  |    &check;    |
+| `RWD`                  |             |           |    &check;    |
+| `Wavelet`              |   &check;   |  &check;  |               |
+| `OutTruncation`        |   &check;   |           |               |
+| `ZeroFilter`           |   &check;   |           |               |
+| `MaxAbsScaler`         |   &check;   |           |    &check;    |
+| `MinMaxScaler`         |   &check;   |           |    &check;    |
+| `StandardScaler`       |   &check;   |           |    &check;    |
+| `RobustScaler`         |   &check;   |           |    &check;    |
+| `LogTransformer`       |   &check;   |           |               |
+| `ArcsinhTransformer`   |   &check;   |           |               |
+| `TanhTransformer`      |   &check;   |           |               |
+| `SigmoidTransformer`   |   &check;   |           |               |
+| `QuantileTransformer`  |   &check;   |           |               |
