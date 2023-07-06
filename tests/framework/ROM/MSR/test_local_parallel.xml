@@ -29,7 +29,8 @@
       train,
       resample
     </Sequence>
-    <internalParallel>True</internalParallel>
+    <parallelMethod>dask</parallelMethod>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Models>
