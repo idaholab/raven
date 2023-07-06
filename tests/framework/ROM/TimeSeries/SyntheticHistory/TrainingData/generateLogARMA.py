@@ -6,7 +6,7 @@ from generators import arma, toFile
 ##########
 # normally-distributed noise with 0 loc, 1 scale
 
-seconds = np.arange(1000) / 10. # 0 to 100 in 0.1 increments
+seconds = np.arange(100)
 
 slags = [0.4, 0.2]
 nlags = [0.3, 0.2, 0.1]

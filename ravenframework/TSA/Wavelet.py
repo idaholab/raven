@@ -17,11 +17,11 @@
 import numpy as np
 
 from ..utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
 # utility methods
-class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer):
+class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator):
   """
     Perform Discrete Wavelet Transformation on time-dependent data.
   """
@@ -182,11 +182,11 @@ class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
-    synthetic = self._generateSignal(params, pivot, settings)
+    synthetic = self.generate(params, pivot, settings)
     composite = initial + synthetic
     return composite
 
-  def _generateSignal(self, params, pivot, settings):
+  def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()

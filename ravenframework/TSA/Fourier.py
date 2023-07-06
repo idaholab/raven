@@ -22,11 +22,11 @@ import sklearn.linear_model
 import statsmodels.api as sm
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
 # utility methods
-class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer):
+class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
@@ -180,7 +180,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    synthetic = self._generateSignal(params, pivot)
+    synthetic = self.generate(params, pivot)
     residual = initial - synthetic
     return residual
 
@@ -194,11 +194,11 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
-    synthetic = self._generateSignal(params, pivot)
+    synthetic = self.generate(params, pivot)
     residual = initial + synthetic
     return residual
 
-  def _generateSignal(self, params, pivot):
+  def generate(self, params, pivot):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()

@@ -237,7 +237,9 @@ for transformerType in testedClasses:
   if transformer.name == 'LogTransformer':
     # Log transform should fail on negative values
     checkFails(f'{transformer.name} forward transform (all negative values)',
-               'Log transformation requires strictly positive values!',
+               'Log transformation requires strictly positive values, and negative values '
+               'were found in target "B"! If negative values were expected, perhaps '
+               'an ArcsinhTransformer would be more appropriate?',
                transformer.getResidual,
                args=(signals, params, pivot, {}))
     continue

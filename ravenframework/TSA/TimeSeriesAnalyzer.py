@@ -148,6 +148,10 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
     reserved exclusively for stochastic algorithms. Deterministic generative algorithms should NOT
     inherit from this class.
   """
+  # Class attributes
+  ## defines if this algorithm is stochastic or deterministic
+  _isStochastic = False
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -158,6 +162,16 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
     """
     specs = super().getInputSpecification()
     return specs
+
+  @classmethod
+  def isStochastic(cls):
+    """
+      Method that returns if a Generator algorithm is stochastic or deterministic.
+
+      @ In, None
+      @ Out, _isStochastic, bool, True if this algorithm is stochastic and False if it is deterministic
+    """
+    return cls._isStochastic
 
   @abc.abstractmethod
   def generate(self, params, pivot, settings):
