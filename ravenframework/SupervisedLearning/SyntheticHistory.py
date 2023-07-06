@@ -78,8 +78,6 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     SupervisedLearning._handleInput(self, paramInput)
     self.readTSAInput(paramInput)
-    # if not self.canGenerate():
-    #   self.raiseAnError(IOError, 'SyntheticHistory ROM must contain at least one generative TSA algorithm!')
 
   def _train(self, featureVals, targetVals):
     """

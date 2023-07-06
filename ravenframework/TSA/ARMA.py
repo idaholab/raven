@@ -29,7 +29,7 @@ from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer, Ti
 
 
 # utility methods
-class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
