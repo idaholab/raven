@@ -124,6 +124,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   def canAcceptMissingValues(self):
     """
       Checks if the algorithm can accept missing values (generally NaN).
+      @ In, None
       @ Out, _acceptsMissingValues, bool, if the characterization algorithm accepts missing values
     """
     # NOTE Signals may have missing values, and this is incompatible with some algorithms. As
