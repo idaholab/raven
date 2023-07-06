@@ -203,6 +203,7 @@
   [./parallel]
     type = 'RavenFramework'
     input = 'test_local_parallel.xml'
+    max_time = 600
     UnorderedCsv = 'data/outDataParallel.csv'
     output = 'data/outDataParallel.xml'
     required_libraries = 'AMSC'
