@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.ARMA</name>
+    <author>j-bryan</author>
+    <created>2023-06-27</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.MarkovAR</classesTested>
+    <description>
+      Tests the SyntheticHistory ROM using only the MarkovAR TimeSeriesAnalyzer algorithm.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MarkovAR</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="infile">../TrainingData/MarkovAR.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal0, pivot</Target>
+      <Features>scaling</Features>
+      <pivotParameter>pivot</pivotParameter>
+      <markovar target="signal0" seed='42'>
+        <SignalLag>1</SignalLag>
+        <MarkovStates>2</MarkovStates>
+      </markovar>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling</Input>
+      <Output>signal0</Output>
+      <options>
+        <pivotParameter>pivot</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>signal0</Output>
+      <options>
+        <pivotParameter>pivot</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

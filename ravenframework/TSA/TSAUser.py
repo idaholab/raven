@@ -18,6 +18,7 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
+import pandas as pd
 from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes
@@ -189,6 +190,7 @@ class TSAUser:
     # NOTE assumption: only one training signal
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
+    ALL_RESIDUALS = pd.DataFrame(index=pivots)
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
@@ -209,6 +211,10 @@ class TSAUser:
         algoResidual = algo.getResidual(signal, params, pivots, settings)
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
+      for t in targets:
+        ALL_RESIDUALS[f'{algo.name}_{t}'] = residual[0, :, self.target.index(t)]
+    ALL_RESIDUALS.index = pivots
+    ALL_RESIDUALS.to_csv('residuals.csv', index=False)
 
   def evaluateTSASequential(self):
     """
@@ -222,6 +228,7 @@ class TSAUser:
     # that ignores the pivotParameter on which to index the results variables
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
+    ALL_COMPOSITES = pd.DataFrame(index=pivots)
     for algo in self._tsaAlgorithms[::-1]:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -234,9 +241,13 @@ class TSAUser:
         result[:, indices] = algo.generate(params, pivots, settings)
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
+      for t in targets:
+        ALL_COMPOSITES[f'{algo.name}_{t}'] = result[:, noPivotTargets.index(t)]
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues
+    ALL_COMPOSITES.index = pivots
+    ALL_COMPOSITES.to_csv('composites.csv', index=False)
     return rlz
 
   def writeTSAtoXML(self, xml):

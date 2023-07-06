@@ -20,9 +20,13 @@ Wrappers for scikit-learn preprocessing scalers.
 """
 
 import sklearn.preprocessing as skl
+import numpy as np
+from scipy.stats import iqr
+from copy import deepcopy
 
+from ..TimeSeriesAnalyzer import TimeSeriesTransformer
 from .ScikitLearnBase import SKLTransformer, SKLCharacterizer
-from ...utils import InputTypes
+from ...utils import InputTypes, xmlUtils
 
 
 class MaxAbsScaler(SKLCharacterizer):
