@@ -207,10 +207,13 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     # The residual for an ARMA model can be useful, and we want to return that if it's available.
     # If the 'reduce_memory' option was used, then the ARIMAResults object from fitting the model
     # where that residual is stored is not available. In that case, we simply return the original.
+    if settings['reduce_memory']:
+      return initial
+
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      if 'results' in data['arma']:
-        residual[: t] = data['arma']['results'].resid
+      residual[:, t] = data['arma']['results'].resid
+
     return residual
 
   def getComposite(self, initial, params, pivot, settings):
