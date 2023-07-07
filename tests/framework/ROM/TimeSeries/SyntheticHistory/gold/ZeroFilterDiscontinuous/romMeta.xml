@@ -124,9 +124,9 @@
         <variance>7.105134137e-01</variance>
       </WIND>
       <SOLAR>
-        <constant>-9.289660882e-05</constant>
-        <AR_0>5.494183327e-01</AR_0>
-        <variance>1.892563478e+00</variance>
+        <constant>-4.974232358e-03</constant>
+        <AR_0>5.124665489e-01</AR_0>
+        <variance>1.893641655e+00</variance>
       </SOLAR>
     </ARMA>
   </arma>

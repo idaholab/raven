@@ -153,7 +153,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
         params[target]['cdf'] = mathUtils.characterizeCDF(history[mask], binOps=2, minBins=self._minBins)
-        normed = mathUtils.gaussianize(history[mask], params[target]['cdf'])
+        normed = history
+        normed[mask] = mathUtils.gaussianize(history[mask], params[target]['cdf'])
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?

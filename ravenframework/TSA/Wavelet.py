@@ -167,7 +167,7 @@ class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    synthetic = self._generateSignal(params, pivot, settings)
+    synthetic = self.generate(params, pivot, settings)
     residual = initial - synthetic
     return residual
 
