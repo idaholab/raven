@@ -1720,7 +1720,7 @@ class Interpolated(SupervisedLearning):
       if df is None:
         df = newDf
       else:
-        df = df.append(newDf)
+        df = df._append(newDf)
 
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
