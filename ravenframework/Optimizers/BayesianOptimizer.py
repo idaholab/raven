@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Class for implementing Bayesian Optimization into the RAVEN framework
-  auth: Anthoney Griffith
+  auth: Anthoney Griffith (@grifaa)
   date: May, 2023
 """
 #External Modules------------------------------------------------------------------------------------
@@ -34,7 +34,10 @@ class BayesianOptimizer(RavenSampled):
   """
     Implements the Bayesian Optimization algorithm for cost function minimization within the RAVEN framework
   """
-
+  convergenceOptions = {'acquisition': r"""Provides convergence criteria in terms of the value of the acquisition
+                                       function at a given iteration. If the value falls below a provided threshhold,
+                                       the optimizer is considered converged; however, it is recommended to pair this
+                                       criteria with persistance. Default is 1e-8"""}
 
   ##########################
   # Initialization Methods #
@@ -82,6 +85,20 @@ class BayesianOptimizer(RavenSampled):
                 \item Average, Approximate marginalization over model space
               \end{itemize}. Default is External"""))
     specs.addSub(modelSelect)
+
+    # Convergence
+    conv = InputData.parameterInputFactory('convergence', strictMode=True,
+        printPriority=108,
+        descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
+              Note that convergence is met when any one of the convergence criteria is met. If no convergence
+              criteria are given, then the defaults are used.""")
+    specs.addSub(conv)
+    for name, descr in cls.convergenceOptions.items():
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        printPriority=300,
+        descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
+              is considered fully converged. This helps in preventing early false convergence. Default is 5 (BO specific)"""))
     return specs
 
   @classmethod
@@ -118,6 +135,13 @@ class BayesianOptimizer(RavenSampled):
     self._acquFunction = None         # Acquisition function object used in optimization
     self._modelSelection = 'External' # Method for conducting model selection
     self._modelDuration = 1           # Number of iterations between model updates
+    self._acquisitionConv = 1e-8      # Value for acquisition convergence criteria
+    self._convergenceInfo = {}        # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 5     # consecutive persistence required to mark convergence
+    # FIXME Is this the route we wanna go to handle noisy optimization?
+    self._expectedOptVal = None       # Expected value of fopt, in other words, muopt
+    self._optValThreeSigma = None     # 3 Standard deviations at expected solution, confidence of solution
+    self._expectedSolution = None     # Decision variable values at expected solution
 
   def handleInput(self, paramInput):
     """
@@ -144,6 +168,16 @@ class BayesianOptimizer(RavenSampled):
       self._modelDuration = selectNode.findFirst('Duration').value
       self._modelSelection = selectNode.findFirst('Method').value
 
+    # Convergence
+    convNode = paramInput.findFirst('convergence')
+    if convNode is not None:
+      acquConv = convNode.findFirst('acquisition')
+      if acquConv is not None:
+        self._acquisitionConv = acquConv.value
+      persistence = convNode.findFirst('persistence')
+      if persistence is not None:
+        self._requiredPersistence = persistence.value
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -153,7 +187,7 @@ class BayesianOptimizer(RavenSampled):
     """
     # FIXME currently BO assumes only one optimization 'trajectory'
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-
+    self._convergenceInfo = {0:{'persistence':0, 'converged':False}}
     meta = ['batchId']
     self.addMetaKeys(meta)
     self._initialSampleSize = len(self._initialValues)
@@ -181,6 +215,9 @@ class BayesianOptimizer(RavenSampled):
 
     # Initialize the acquisition function
     self._acquFunction.initialize()
+    # Closing extra trajectories
+    for t in self._activeTraj[1:]:
+      self._closeTrajectory(t, 'cancel', 'Currently BO is single trajectory', 0)
 
     # Initialize feature and target data set for conditioning regression model on
     # NOTE assuming that sampler/user provides at least one initial input
@@ -258,27 +295,6 @@ class BayesianOptimizer(RavenSampled):
     newPoint = self._acquFunction.conductAcquisition(self)
     self._submitRun(newPoint, traj, step)
     self.incrementIteration(traj)
-
-  def checkConvergence(self, traj, new, old):
-    """
-      Check for trajectory convergence
-      @ In, traj, int, trajectory identifier
-      @ In, new, dict, new opt point
-      @ In, old, dict, previous opt point
-    """
-    return
-
-  def _checkForImprovement(self, new, old):
-    """
-      Determine if the new value is sufficient improved over the old.
-      @ In, new, float, new optimization value
-      @ In, old, float, previous optimization value
-      @ Out, improved, bool, True if "sufficiently" improved or False if not.
-    """
-    if old - new > 0:
-      return True
-    else:
-      return False
 
   def flush(self):
     """
@@ -439,7 +455,6 @@ class BayesianOptimizer(RavenSampled):
         res = result
       elif result.fun < res.fun:
         res = result
-    print(res)
     newTheta = res.x
     newKernel = self._model.supervisedContainer[0].model.kernel_.clone_with_theta(newTheta)
     self._model.supervisedContainer[0].model.kernel = newKernel
@@ -469,8 +484,8 @@ class BayesianOptimizer(RavenSampled):
       @ In, traj, trajectory
       @ Out, None
     """
-     # Generate posterior with training data
-    if self._iteration[traj] // self._modelDuration == 0:
+    # Generate posterior with training data
+    if self._iteration[traj] % self._modelDuration == 0:
       if self._modelSelection == 'External':
         self._model.supervisedContainer[0].model.set_params(optimizer='fmin_l_bfgs_b')
         self._trainRegressionModel(traj)
@@ -569,6 +584,52 @@ class BayesianOptimizer(RavenSampled):
       singleRlz = {} # FIXME is this necessary?
     self.raiseADebug(f'Multi-sample resolution completed')
 
+  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
+    """
+      Consider and store a new optimal point
+      @ In, traj, int, trajectory for this new point
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, xr.DataSet, batched realizations
+      @ In, optVal, list of floats, values of objective variable
+    """
+    # Recommending solutions is based on the acqusition function's utility, typically local reward
+    muStar, xStar, stdStar = self._acquFunction._recommendSolution(self)
+    self._expectedOptVal = muStar
+    self._optValThreeSigma = stdStar
+    self._expectedSolution = xStar
+    # RavenSampled._resolveNewOptPoint(self, traj, rlz, optVal, info)
+    # FIXME, is the preferred method of
+    self.raiseADebug('*' * 80)
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new opt point ...')
+    # note the collection of the opt point
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    # FIXME check implicit constraints? Function call, - Jia
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
+    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    # BO should consider convergence on every iteration and by extension Persistence
+    self._updatePersistence(traj, converged, optVal)
+    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
+    #       point history.
+    # Solution should reflect our expectation on the true latent function value,
+    # This is equivalent to the observation when no corrupting noise is modeled/included
+    currentPoint = {}
+    for decisionVarName in list(self.toBeSampled):
+      currentPoint[decisionVarName] = rlz[decisionVarName]
+    rlz[self._objectiveVar] = self._evaluateRegressionModel(currentPoint)[0]
+    if self._writeSteps == 'every':
+      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
+    self.raiseADebug('*' * 80)
+    if acceptable in ['accepted', 'first']:
+      # record history
+      self._optPointHistory[traj].append((rlz, info))
+      self._rerunsSinceAccept[traj] = 0
+      # nothing else to do but wait for the grad points to be collected
+    elif acceptable == 'rejected':
+      self._rejectOptPoint(traj, info, old)
+    else:
+      self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
+
+
   # support methods for _resolveNewOptPoint
   def _checkAcceptability(self, traj, opt, optVal, info):
     """
@@ -582,19 +643,49 @@ class BayesianOptimizer(RavenSampled):
     """
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar]
-      # Check if new point is better
-      if self._checkForImprovement(optVal, oldVal):
+      # oldVal = old[self._objectiveVar]
+      # # Check if new point is better
+      # if self._checkForImprovement(optVal, oldVal):
+      #   acceptable = 'accepted'
+      #   rejectReason = 'None'
+      # else:
+      #   acceptable = 'rejected'
+      #   rejectReason = 'No improvement'
+      ###############################
+      if opt == self._expectedSolution:
         acceptable = 'accepted'
-        rejectReason = 'None'
+        rejectReason = None
       else:
         acceptable = 'rejected'
-        rejectReason = 'No improvement'
+        rejectReason = 'Not Recommended Solution Location'
     else: # no history
       old = None
       acceptable = 'first'
       rejectReason = 'None'
     return acceptable, old, rejectReason
+
+  def _checkForImprovement(self, new, old):
+    """
+      Determine if the new value is sufficient improved over the old.
+      @ In, None
+      @ Out, improved, bool, True if "sufficiently" improved or False if not.
+    """
+    if old - new > 0:
+      return True
+    else:
+      return False
+
+  def checkConvergence(self, traj, new, old):
+    """
+      Check for trajectory convergence
+      @ In, traj, int, trajectory identifier
+      @ In, new, dict, new opt point
+      @ In, old, dict, previous opt point
+      @ Out, converged, bool, has this traj converged or not?
+    """
+    converged = self._acquFunction._converged(self)
+    self._convergenceInfo['converged'] = converged
+    return converged
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -605,11 +696,17 @@ class BayesianOptimizer(RavenSampled):
       @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
-    self.raiseAWarning('No convergence methods aside from iteration budget has been implemented yet')
-    if self.getIteration(traj) < self.limit:
+    # No point in checking convergence if no feasible point has been found
+    if len(self._optPointHistory[0]) == 0:
       converged = False
+    elif self.getIteration(traj) < self.limit:
+      converged = self.checkConvergence(traj, new, old)
+      # # Should update persistence even if not accepted/improved point for BO
+      # if acceptable not in ['accepted']:
+      #   self._updatePersistence(traj, converged, self._optPointHistory[0][-1][0][self._objectiveVar])
     else:
       converged = True
+    self._convergenceInfo['converged'] = converged
     return converged
 
   def _updatePersistence(self, traj, converged, optVal):
@@ -620,7 +717,15 @@ class BayesianOptimizer(RavenSampled):
       @ In, optVal, float, new optimal value
       @ Out, None
     """
-    return
+    # update persistence
+    if converged:
+      self._convergenceInfo[traj]['persistence'] += 1
+      self.raiseADebug(f'Trajectory {traj} has converged successfully {self._convergenceInfo[traj]["persistence"]} / {self._requiredPersistence} time(s)!')
+      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    else:
+      self._convergenceInfo[traj]['persistence'] = 0
+      self.raiseADebug(f'Resetting convergence for trajectory {traj}.')
 
   def _rejectOptPoint(self, traj, info, old):
     """

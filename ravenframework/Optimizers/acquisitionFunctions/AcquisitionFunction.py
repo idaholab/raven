@@ -19,6 +19,7 @@ from smt.sampling_methods import LHS
 import numpy as np
 from joblib import Parallel, delayed
 import numdifftools as nd
+import copy
 # External Modules
 
 # Internal Modules
@@ -117,7 +118,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     if self._optMethod == 'differentialEvolution':
       # NOTE -1 is to enforce maximization of the positive function
       optFunc = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
-      res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-5,
+      res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
                                           popsize=self._seedingCount, init='sobol', vectorized=True)
     elif self._optMethod == 'slsqp':
       #### delete after use ####
@@ -234,6 +235,48 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     info = {'acquisition':self._optValue}
     self._optValue = None # Resetting
     return info
+
+  def _converged(self, bayesianOptimizer):
+    """
+      Specific Acquisition functions may want to overload this method.
+      Checks for convergence on acquisition.
+      @ In, bayesianOptimizer, instance of BayesianOptimizer class
+      @ Out, converged, bool, has the optimizer converged on acquisition?
+    """
+    if self._optValue is None:
+      converged = False
+    elif self._optValue <= bayesianOptimizer._acquisitionConv:
+      converged = True
+    else:
+      converged = False
+    return converged
+
+  def _recommendSolution(self, bayesianOptimizer):
+    """
+      Specific Acquisition functions may want to overload this method
+      Uses current predictive model to recommend a solution point
+      @ In, bayesianOptimizer, instance of BayesianOptimizer class
+      @ Out, muStar, recommended solution value
+      @ Out, xStar, dict, point associated with muStar for the current data
+      @ Out, stdStar, standard deviation of model prediction at xStar
+    """
+    # Pulling input data from BO instance
+    trainingInputs = copy.copy(bayesianOptimizer._trainingInputs[0])
+    for varName, array in trainingInputs.items():
+      trainingInputs[varName] = np.asarray(array)
+    # Evaluating the model at all training points
+    modelEvaluation = bayesianOptimizer._evaluateRegressionModel(trainingInputs)
+    muVec = modelEvaluation[0]
+    stdVec = modelEvaluation[1]
+    # Retrieving best mean value within training set locations, need index for retrieving other values
+    muStar = np.min(muVec)
+    minDex = np.argmin(muVec)
+    stdStar = stdVec[minDex]
+    # Retrieving location of recommended solution
+    xStar = {}
+    for varName in list(trainingInputs):
+      xStar[varName] = trainingInputs[varName][minDex]
+    return muStar, xStar, stdStar
 
   ###################
   # Utility Methods #

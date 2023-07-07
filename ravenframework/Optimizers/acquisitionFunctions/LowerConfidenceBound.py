@@ -192,6 +192,24 @@ class LowerConfidenceBound(AcquisitionFunction):
     """
     self._pi = self._basePi*(np.exp(-N/(4*self._rho)))*(np.sin((2*np.pi*N)/self._rho)**2)
 
+  # convergence
+  def _converged(self, bayesianOptimizer):
+    """
+      Lower Confidence bound has a different style of convergence
+      @ In, bayesianOptimizer, instance of BayesianOptimizer class
+      @ Out, converged, bool, has the optimizer converged on acquisition?
+    """
+    if self._optValue is None:
+      converged = False
+      return converged
+    optDiff = np.absolute(-1*self._optValue - bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar])
+    optDiff /= np.absolute(bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar])
+    if optDiff <= bayesianOptimizer._acquisitionConv:
+      converged = True
+    else:
+      converged = False
+    return converged
+
   ###################
   # Utility Methods #
   ###################

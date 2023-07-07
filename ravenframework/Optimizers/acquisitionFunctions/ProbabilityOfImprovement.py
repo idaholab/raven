@@ -15,6 +15,7 @@
 """
 # External Modules
 import numpy as np
+from scipy.stats import norm
 # External Modules
 
 # Internal Modules
@@ -97,6 +98,17 @@ class ProbabilityOfImprovement(AcquisitionFunction):
       self._transient = self.oscillate
     elif settings['transient'] == 'DecayingOscillate':
       self._transient = self.decayingOscillate
+
+  # PoI requires a correction in acquisition
+  def conductAcquisition(self, bayesianOptimizer):
+    """
+      Selects new sample via optimizing the acquisition function
+      @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
+      @ Out, newPoint, dict, new point to sample the cost function at
+    """
+    newPoint = AcquisitionFunction.conductAcquisition(self, bayesianOptimizer)
+    self._optValue = norm.cdf(self._optValue)
+    return newPoint
 
   ######################
   # Evaluation Methods #
