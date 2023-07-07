@@ -106,14 +106,16 @@ function install_libraries()
   then
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $USE_MAMBA == TRUE ]]; then
         conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
         activate_env
         local MCOMMAND=${COMMAND/#conda /mamba } #Replace conda at start with mamba
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
         ${MCOMMAND}
     else
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
         ${COMMAND}
     fi
@@ -176,7 +178,7 @@ function create_libraries()
     if [[ $USE_MAMBA == TRUE ]]; then
         echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge mamba
         conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD
-        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
         activate_env
         local MCOMMAND=${COMMAND/#conda /mamba }
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
