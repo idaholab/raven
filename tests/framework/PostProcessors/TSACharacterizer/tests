@@ -6,6 +6,7 @@
       type = OrderedCSV
       output = 'Basic/chz.csv'
       windows_gold = 'Basic/windowsChz.csv'
+      mac_gold = 'Basic/windowsChz.csv'
       rel_err = 1.5e-1 # limited by ARMA__signal_fa__constant
       zero_threshold = 1e-12
     [../]
