@@ -76,7 +76,7 @@ class CsvLoader(MessageUser):
       self.raiseADebug(f'Reading data from "{myFile}"')
     # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
     if (not nullOK) and (pd.isnull(df).values.sum() != 0):
-      bad = pd.isnull(df).any(1).to_numpy().nonzero()[0][0]
+      bad = pd.isnull(df).any(axis=1).to_numpy().nonzero()[0][0]
       self.raiseAnError(IOError, f'Invalid data in input file: row "{bad+1}" in "{myFile}"')
     self.allFieldNames = list(df.columns)
     return df
