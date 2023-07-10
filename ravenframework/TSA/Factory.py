@@ -25,6 +25,7 @@ from .MarkovAR import MarkovAR
 from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
 from .RWD import RWD
+from .STL import STL
 from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
                           OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
                           QuantileTransformer, Gaussianize, PreserveCDF, Differencing

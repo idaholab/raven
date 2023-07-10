@@ -17,14 +17,14 @@
 import re
 import numpy as np
 
-from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer
 
 
 # utility methods
-class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
@@ -86,7 +86,9 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
     """
     settings = super().setDefaults(settings)
     if 'engine' not in settings:
-      settings['engine'] = randomUtils.newRNG()
+      # We want to use a numpy RNG engine so we can take advantage of some of the numpy functions
+      # that aren't implemented in randomUtils, like random choice with weighted probabilities.
+      settings['engine'] = randomUtils.newRNG(env='numpy')
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -240,8 +242,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, data) in enumerate(params.items()):
       modelData = data['MarkovAR']
-      # TODO produce our own shocks?
-      # msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'], armaData['initials'], synthetic.shape[0])
       new, _ = self._generateSignal(synthetic.shape[0], modelData, settings)
       synthetic[:, t] = new
 
@@ -265,22 +265,31 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
     ar = params['ar']
     noiseScale = np.sqrt(params['sigma2'])
 
-    state = 0  # initial state
-    possible_states = np.arange(regimes, dtype=int)
-    synth = np.zeros(size + burn)
-    states = np.zeros(size + burn, dtype=int)
-    for t in range(order):
-      states[t] = np.random.choice(possible_states, p=transition[state])
-      # Generating just a few of noise values to get things going
-      synth[t] = consts[state] + np.random.normal(scale=noiseScale[state])
-    for t in range(order, size + burn):
-      state = np.random.choice(possible_states, p=transition[state])
-      states[t] = state
-      synth[t] = consts[state] + np.random.normal(scale=noiseScale[state])
-      for i in range(min(t, order)):
-        synth[t] += ar[state, i] * (synth[t-i-1] - consts[states[t-i-1]])
+    # Use the RNG engine stored in settings to do our random sampling.
+    # This RNG engine should be a numpy RandomState object.
+    engine = settings['engine']
+    if not isinstance(engine, np.random.RandomState):
+      raise TypeError(f'Expected RNG engine to be a numpy RandomState object, but got {type(engine)}.')
 
-    # remove burn-in period
+    possible_states = np.arange(regimes, dtype=int)
+    states = np.zeros(size + burn, dtype=int)
+    # Calculate the Markov states
+    for t in range(1, size + burn):  # default to starting in state 0
+      states[t] = engine.choice(possible_states, p=transition[states[t-1]])
+
+    # Start building up the synthetic signal, starting with the noise
+    synth = engine.normal(loc=0., scale=noiseScale[states], size=size+burn)
+
+    # Build up the AR terms one time step at a time
+    for t in range(order, size + burn):
+      synth[t] += np.sum(ar[states[t]][::-1] * synth[t-order:t])
+
+    # Finally add in the state constants
+    synth += consts[states]
+    if not np.all(np.isfinite(synth)):
+      raise RuntimeError('Synthetic signal contains non-finite values!')
+
+    # Remove burn-in period
     synth = synth[burn:]
     states = states[burn:]
 
@@ -320,7 +329,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
     # -> target is the trained variable (e.g. Signal, Temperature)
     # -> metric is the algorithm used (e.g. Fourier, ARMA)
     # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
-    raise NotImplementedError('MarkovAR should not be used with clustering!')
+    raise NotImplementedError('Clustering is not supported for MarkovAR!')
 
   def setClusteringValues(self, fromCluster, params):
     """
@@ -330,29 +339,4 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, params, dict, trained parameter settings
       @ Out, params, dict, updated parameter settings
     """
-    raise NotImplementedError('MarkovAR should not be used with clustering!')
-
-  # # utils
-  # def _generateNoise(self, model, initDict, size):
-  #   """
-  #     Generates purturbations for ARMA sampling.
-  #     @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
-  #     @ In, initDict, dict, mean and covariance of initial sampling distribution
-  #     @ In, size, int, length of time-like variable
-  #     @ Out, msrShocks, np.array, measurement shocks
-  #     @ Out, stateShocks, np.array, state shocks
-  #     @ Out, initialState, np.array, initial random state
-  #   """
-  #   # measurement shocks -> these are usually near 0 but not exactly
-  #   # note in statsmodels.tsa.statespace.kalman_filter, mean of measure shocks is 0s
-  #   msrCov = model['obs_cov']
-  #   msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size)
-  #   # state shocks -> these are the significant noise terms
-  #   # note in statsmodels.tsa.statespace.kalman_filter, mean of state shocks is 0s
-  #   stateCov = model['state_cov']
-  #   stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size)
-  #   # initial state
-  #   initMean = initDict['mean']
-  #   initCov = initDict['cov']
-  #   initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean)
-  #   return msrShocks, stateShocks, initialState
+    raise NotImplementedError('Clustering is not supported for MarkovAR!')
