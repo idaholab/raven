@@ -767,7 +767,7 @@ class Code(Model):
     """
     evaluation = finishedJob.getEvaluation()
     if not hasattr(evaluation, 'pop'):
-      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job " + str(finishedJob.identifier) + ":" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
 
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)

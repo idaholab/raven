@@ -27,7 +27,7 @@ from __future__ import absolute_import
 from .Runner import Runner
 from .InternalRunner import InternalRunner
 from .SharedMemoryRunner import SharedMemoryRunner
-from .DistributedMemoryRunner import DistributedMemoryRunner
+from .RayRunner import RayRunner
 from .DaskRunner import DaskRunner
 from .PassthroughRunner import PassthroughRunner
 from .Error import Error

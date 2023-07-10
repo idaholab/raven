@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SparseSensing</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-07-18</created>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
+    <description>This test aims to check the ability of the Sparse Sensing Postprocessor
+     to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
+     when perturbing the heater power.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>reconstructionOptiTwist</WorkingDir>
+    <Sequence>LoadCSV, mySPpp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="twistFile" type="">./Perturbations2.csv</Input>
+    <Input name="refDO" type="">./350_330.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="LoadCSV">
+      <Input class="Files" type="">twistFile</Input>
+      <Input class="Files" type="">refDO</Input>
+      <Output class="DataObjects" type="HistorySet">TwistDO</Output>
+      <Output class="DataObjects" type="PointSet">myDO</Output>
+    </IOStep>
+    <PostProcess name="mySPpp">
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
+      <Model class="Models" type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Input class="DataObjects" type="PointSet">myDO</Input>
+      <Input class="DataObjects" type="HostorySet">TwistDO</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
+      <Output class="OutStreams" type="Plot">mySensorPlot</Output>
+      <Output class="OutStreams" type="Plot">mySensorPlot3D</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
+        <optimizer>QR</optimizer>
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="myDO">
+      <Output>X (m),Temperature (K),Y (m)</Output>
+    </PointSet>
+    <HistorySet name="TwistDO">
+      <Input> Power (W), BCTemperature (K)</Input>
+      <Output>X (m),Temperature (K),Y (m)</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <Output>Temperature (K), X (m), Y (m)</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+      <what>output</what>
+    </Print>
+    <Plot name="mySensorPlot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>myDO|Output|X (m)</x>
+          <y>myDO|Output|Y (m)</y>
+          <cmap>coolwarm</cmap>
+          <colorMap>myDO|Output|Temperature (K)</colorMap>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>outPP|Output|X (m)</x>
+          <y>outPP|Output|Y (m)</y>
+          <c>black</c>
+          <marker>x</marker>
+        </plot>
+        <xlabel>x</xlabel>
+        <ylabel>y</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+
+    <Plot name="mySensorPlot3D">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>TwistDO|Output|X (m)</x>
+          <y>TwistDO|Output|Y (m)</y>
+          <z>TwistDO|Output|Temperature (K)</z>
+          <cmap>coolwarm</cmap>
+          <colorMap>TwistDO|Output|Temperature (K)</colorMap>
+        </plot>
+        <xlabel>x</xlabel>
+        <ylabel>y</ylabel>
+        <zlabel>temperature (K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

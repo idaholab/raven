@@ -41,6 +41,7 @@ from .Validations import Probabilistic
 from .Validations import PPDSS
 from .Validations import PhysicsGuidedCoverageMapping
 from .TSACharacterizer import TSACharacterizer
+from .SparseSensing import SparseSensing
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay
