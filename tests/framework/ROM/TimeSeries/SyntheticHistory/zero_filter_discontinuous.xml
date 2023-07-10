@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.ZeroFilterDiscontinuous</name>
+    <author>j-bryan</author>
+    <created>2023-05-25</created>
+    <classesTested>
+      SupervisedLearning.SyntheticHistory,
+      TSA.ARMA,
+      TSA.Fourier,
+      TSA.Transformers.ZeroFilter,
+      TSA.Transformers.OutTruncationPositive
+    </classesTested>
+    <description>
+      Tests the ARMA model handling of zero filtering when filtered values fall in the middle of the array.
+      This test duplicates the framework/ROM/TimeSeries/ARMA.ZeroFilterDiscontinuous using the TSA module
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ZeroFilterDiscontinuous</WorkingDir>
+    <Sequence>load, train, meta, serialize, sample</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">../../ARMA/ZeroFilterDiscontinuous/Data.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">meta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synth</Output>
+      <Output class="OutStreams" type="Print">synth</Output>
+    </MultiRun>
+
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <HistorySet name="input">
+      <Input>scaling,YEAR</Input>
+      <Output>TOTALLOAD,WIND,SOLAR,HOUR</Output>
+      <options>
+        <pivotParameter>HOUR</pivotParameter>
+      </options>
+    </HistorySet>
+
+    <DataSet name="synth">
+      <Input>scaling</Input>
+      <Output>TOTALLOAD,WIND,SOLAR</Output>
+      <Index var="HOUR">TOTALLOAD,WIND,SOLAR</Index>
+    </DataSet>
+    <DataSet name="meta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="SyntheticHistory">
+      <Target>TOTALLOAD,WIND,SOLAR,HOUR</Target>
+      <Features>scaling</Features>
+      <pivotParameter>HOUR</pivotParameter>
+      <outtruncation target="SOLAR" domain="positive"/>
+      <zerofilter target="SOLAR"/>
+      <fourier target="SOLAR">
+        <periods>24, 12</periods>
+      </fourier>
+      <fourier target="TOTALLOAD,WIND">
+        <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
+      </fourier>
+      <arma target="TOTALLOAD,WIND,SOLAR" seed='42'>
+        <SignalLag>1</SignalLag>
+        <NoiseLag>0</NoiseLag>
+      </arma>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>meta</source>
+    </Print>
+
+    <Print name="synth">
+      <type>csv</type>
+      <source>synth</source>
+    </Print>
+  </OutStreams>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+</Simulation>

@@ -18,6 +18,7 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
+from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes
 
@@ -46,6 +47,9 @@ class TSAUser:
       if subset == 'characterize' and not c.canCharacterize():
         continue
       elif subset == 'generate' and not c.canGenerate():
+        continue
+      if isabstract(c):
+        # Abstract classes cannot be instantiated, so providing input specs for them is pointless
         continue
       spec.addSub(c.getInputSpecification())
     return spec
@@ -91,6 +95,22 @@ class TSAUser:
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError('TSA: The pivotParameter must be included in the target space.')
+
+  def canCharacterize(self):
+    """
+      Checks if any of the algorithms are characterizers
+      @ In, None
+      @ Out, isCharacterizer, bool, True if this entity is a characterizer
+    """
+    return any(algo.canCharacterize() for algo in self._tsaAlgorithms)
+
+  def canGenerate(self):
+    """
+      Checks if any of the algorithms are generators
+      @ In, None
+      @ Out, isGenerator, bool, True if this entity is a generator
+    """
+    return any(algo.canGenerate() for algo in self._tsaAlgorithms)
 
   def _tsaReset(self):
     """
@@ -170,19 +190,22 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    numAlgo = len(self._tsaAlgorithms)
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
-      params = algo.characterize(signal, pivots, targets, settings)
+      # check if there are missing values in the signal and if algo can accept them
+      if np.isnan(signal).any() and not algo.canAcceptMissingValues():
+        raise ValueError(f'Missing values (NaN) found in input to {algo.name},'
+                         'but {algo.name} cannot accept missing values!')
+      params = algo.fit(signal, pivots, targets, settings)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
-      # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
-      #             the ARMA
-      if a < numAlgo - 1:
+      # This is only done if the algo produces a residual (is a transformer). Otherwise, the
+      # residual signal is not altered.
+      if algo.canTransform():
         algoResidual = algo.getResidual(signal, params, pivots, settings)
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
@@ -204,12 +227,13 @@ class TSAUser:
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
       params = self._tsaTrainedParams[algo]
-      if not algo.canGenerate():
-        self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
-      signal = algo.generate(params, pivots, settings)
-      result[:, indices] += signal  # TODO (j-bryan): This is assuming additive signals. Can we generalize this?
-      # I'd like to replace this with a method that does the inverse of getResidual so it acts as a transformer
-      # instead of an additive component thing
+      signal = result[:, indices]
+      if algo.canTransform():  # covers algorithms which are both transformers and generators
+        result[:, indices] = algo.getComposite(signal, params, pivots, settings)
+      elif algo.canGenerate():
+        result[:, indices] = algo.generate(params, pivots, settings)
+      else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
+        continue
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues
