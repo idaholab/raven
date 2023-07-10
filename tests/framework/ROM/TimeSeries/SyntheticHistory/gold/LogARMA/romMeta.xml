@@ -1,0 +1,33 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>SyntheticHistoryROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,seconds</Targets>
+    </ROM>
+    <LogTransformer>
+      <signal1 />
+    </LogTransformer>
+    <ARMA>
+      <signal0>
+        <constant>-1.995714627e-03</constant>
+        <AR_0>-1.488327149e-01</AR_0>
+        <AR_1>4.614077958e-01</AR_1>
+        <MA_0>6.117498370e-01</MA_0>
+        <MA_1>-1.329982303e-01</MA_1>
+        <MA_2>7.346955330e-02</MA_2>
+        <variance>1.610500427e+00</variance>
+      </signal0>
+      <signal1>
+        <constant>1.697777790e-02</constant>
+        <AR_0>1.306999095e+00</AR_0>
+        <AR_1>-5.089435424e-01</AR_1>
+        <MA_0>-9.713139239e-01</MA_0>
+        <MA_1>3.577117701e-01</MA_1>
+        <MA_2>1.488308967e-01</MA_2>
+        <variance>1.436540074e+00</variance>
+      </signal1>
+    </ARMA>
+  </synth>
+  
+</DataObjectMetadata>

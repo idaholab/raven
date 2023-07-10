@@ -15,28 +15,16 @@
   Randomized Window Decomposition
 """
 
-import collections
 import numpy as np
-import scipy as sp
-from .. import Decorators
-import string
-import numpy.linalg as LA
-import pandas as pd
-import copy as cp
 
-
-from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
-statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
-
-from .. import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer
 
 # utility methods
 class RWD(TimeSeriesCharacterizer):
-  r"""
+  """
     Randomized Window Decomposition
   """
-
 
   @classmethod
   def getInputSpecification(cls):
@@ -62,7 +50,6 @@ class RWD(TimeSeriesCharacterizer):
                  descr=r"""Indicating random seed."""))
     return specs
 
-
   #
   # API Methods
   #
@@ -80,7 +67,7 @@ class RWD(TimeSeriesCharacterizer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifsications
+      @ In, spec, InputData.InputParams, input specifsications
       @ In, sampleType, integer = 0, 1, 2
       @     sampleType = 0: Sequentially Sampling
       @     sampleType = 1: Randomly Sampling
@@ -109,7 +96,7 @@ class RWD(TimeSeriesCharacterizer):
       settings['seed'] = 42
     return settings ####
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -118,8 +105,6 @@ class RWD(TimeSeriesCharacterizer):
       @ In, settings, dict, settings for this ROM
       @ Out, params, dict of dict: 1st level contains targets/variables; 2nd contains: U vectors and features
     """
-    # lazy import statsmodels
-    import statsmodels.api
     # settings:
     #   signatureWindowLength, int,  Signature window length
     #   featureIndex, list of int,  The index that contains differentiable params
@@ -161,12 +146,11 @@ class RWD(TimeSeriesCharacterizer):
         baseMatrix = np.zeros((signatureWindowLength, windowNumber))
         for i in range(windowNumber-1):
           baseMatrix[:,i] = np.copy(history[i*signatureWindowLength:(i+1)*signatureWindowLength])
-      U,s,V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
+      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(baseMatrix,0)
       featureMatrix = U.T @ signatureMatrix
       params[target] = {'uVec'   : U[:,0:fi],
                         'Feature': featureMatrix}
     return params
-
 
   def getParamNames(self, settings):
     """
@@ -199,8 +183,6 @@ class RWD(TimeSeriesCharacterizer):
           rlz[f'{base}__uVec{i}_{j}'] = info['uVec'][j,i]
     return rlz
 
-
-
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
@@ -209,7 +191,8 @@ class RWD(TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
-
+    # FIXME This method isn't currently tested or used anywhere. Trying to call this method results
+    # in an error due to a mismatch of array shapes when calculating sigMatSynthetic. Remove this method?
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
       sigMatSynthetic = params[target]['uVec'] @ params[target]['Feature']
@@ -228,7 +211,7 @@ class RWD(TimeSeriesCharacterizer):
     for target, info in params.items():
       base = xmlUtils.newNode(target)
       writeTo.append(base)
-      (m,n) = info["uVec"].shape
+      (m, n) = info["uVec"].shape
       for i in range(n):
         U0 = info["uVec"][:,0]
         counter +=1
