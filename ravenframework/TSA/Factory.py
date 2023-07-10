@@ -30,15 +30,7 @@ from .RWD import RWD
 from .STL import STL
 from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
                           OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
-<<<<<<< HEAD
-<<<<<<< HEAD
                           QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT, BoundDomain
-=======
-                          QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT
->>>>>>> 95a0f2504 (renaming DWT to FilterBankDWT, adding class attrib for MRA)
-=======
-                          QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT, BoundDomain
->>>>>>> 45100a7a3 (adds BoundDomain to Factory class and README)
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
@@ -64,5 +56,4 @@ aliases = {'Fourier': 'fourier',
            'Differencing': 'differencing',
            'FilterBankDWT': 'filterbankdwt',
            'BoundDomain': 'bounddomain'}
->>>>>>> 45100a7a3 (adds BoundDomain to Factory class and README)
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)

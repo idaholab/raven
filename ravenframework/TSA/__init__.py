@@ -33,6 +33,10 @@ from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScal
                           QuantileTransformer, OutTruncation, ZeroFilter, PreserveCDF, Gaussianize, \
                           Differencing, FilterBankDWT, BoundDomain
 
+from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
+                          LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
+                          QuantileTransformer, OutTruncation, ZeroFilter
+
 from .Factory import factory
 
 from .TSAUser import TSAUser # needs to be imported AFTER factory!
