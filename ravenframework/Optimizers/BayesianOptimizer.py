@@ -116,6 +116,10 @@ class BayesianOptimizer(RavenSampled):
     # NOTE both are within context of normalized space
     new['radiusFromBest'] = 'radius of current point from current best point'
     new['radiusFromLast'] = 'radius of current point from previous point'
+    new['solutionValue'] = 'Expected value of objective var at recommended solution point'
+    # new['recommendedSolution'] = 'Location of recommended solution'
+    new['solutionDeviation'] = 'Standard deviation of recommended solution'
+    new['evaluationCount'] = 'Number of function evaluations up to current iteration'
     ok.update(new)
     return ok
 
@@ -138,10 +142,10 @@ class BayesianOptimizer(RavenSampled):
     self._acquisitionConv = 1e-8      # Value for acquisition convergence criteria
     self._convergenceInfo = {}        # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 5     # consecutive persistence required to mark convergence
-    # FIXME Is this the route we wanna go to handle noisy optimization?
     self._expectedOptVal = None       # Expected value of fopt, in other words, muopt
-    self._optValThreeSigma = None     # 3 Standard deviations at expected solution, confidence of solution
+    self._optValSigma = None          # Standard deviations at expected solution, confidence of solution
     self._expectedSolution = None     # Decision variable values at expected solution
+    self._evaluationCount = 0         # Number of function/model calls
 
   def handleInput(self, paramInput):
     """
@@ -392,6 +396,10 @@ class BayesianOptimizer(RavenSampled):
       prevDelta = None
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
+    toAdd['solutionValue'] = self._expectedOptVal
+    # toAdd['recommendedSolution'] = self._expectedSolution
+    toAdd['solutionDeviation'] = self._optValSigma
+    toAdd['evaluationCount'] = self._evaluationCount
     return toAdd
 
   def incrementIteration(self, traj):
@@ -595,8 +603,9 @@ class BayesianOptimizer(RavenSampled):
     # Recommending solutions is based on the acqusition function's utility, typically local reward
     muStar, xStar, stdStar = self._acquFunction._recommendSolution(self)
     self._expectedOptVal = muStar
-    self._optValThreeSigma = stdStar
+    self._optValSigma = stdStar
     self._expectedSolution = xStar
+    self._evaluationCount += 1
     # RavenSampled._resolveNewOptPoint(self, traj, rlz, optVal, info)
     # FIXME, is the preferred method of
     self.raiseADebug('*' * 80)
@@ -610,25 +619,33 @@ class BayesianOptimizer(RavenSampled):
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
+    if self._writeSteps == 'every':
+      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
     # Solution should reflect our expectation on the true latent function value,
     # This is equivalent to the observation when no corrupting noise is modeled/included
     currentPoint = {}
     for decisionVarName in list(self.toBeSampled):
       currentPoint[decisionVarName] = rlz[decisionVarName]
-    rlz[self._objectiveVar] = self._evaluateRegressionModel(currentPoint)[0]
-    if self._writeSteps == 'every':
-      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
+    rlz[self._objectiveVar] = self._evaluateRegressionModel(currentPoint)[0][0]
     self.raiseADebug('*' * 80)
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
       self._rerunsSinceAccept[traj] = 0
       # nothing else to do but wait for the grad points to be collected
-    elif acceptable == 'rejected':
-      self._rejectOptPoint(traj, info, old)
+    elif acceptable == 'rejected' and rejectReason == 'Not Recommended':
+      # If the last recommended solution point is the same, update the expected function value
+      if all(old[var] == xStar[var] for var in list(self.toBeSampled)):
+        newEstimate = copy.copy(old)
+        newEstimate[self._objectiveVar] = muStar
+        self._optPointHistory[traj].append((newEstimate, info))
+      else:
+        newRealization = copy.copy(old)
+        for var in list(self.toBeSampled):
+          newRealization[var] = xStar[var]
+        newRealization[self._objectiveVar] = muStar
     else:
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
-
 
   # support methods for _resolveNewOptPoint
   def _checkAcceptability(self, traj, opt, optVal, info):
@@ -643,21 +660,13 @@ class BayesianOptimizer(RavenSampled):
     """
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
-      # oldVal = old[self._objectiveVar]
-      # # Check if new point is better
-      # if self._checkForImprovement(optVal, oldVal):
-      #   acceptable = 'accepted'
-      #   rejectReason = 'None'
-      # else:
-      #   acceptable = 'rejected'
-      #   rejectReason = 'No improvement'
-      ###############################
-      if opt == self._expectedSolution:
+      # Is our new point the best point for the data available?
+      if all(opt[var] == self._expectedSolution[var] for var in list(self.toBeSampled)):
         acceptable = 'accepted'
         rejectReason = None
       else:
         acceptable = 'rejected'
-        rejectReason = 'Not Recommended Solution Location'
+        rejectReason = 'Not Recommended'
     else: # no history
       old = None
       acceptable = 'first'
@@ -670,10 +679,7 @@ class BayesianOptimizer(RavenSampled):
       @ In, None
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    if old - new > 0:
-      return True
-    else:
-      return False
+    return
 
   def checkConvergence(self, traj, new, old):
     """
