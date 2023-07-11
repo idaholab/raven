@@ -41,6 +41,7 @@ The following table shows which base classes each currently implemented TSA algo
 | Algorithm              | Transformer | Generator | Characterizer |
 |------------------------|:-----------:|:---------:|:-------------:|
 | `ARMA`                 |   &check;   |  &check;  |    &check;    |
+| `MarkovAR`             |   &check;   |  &check;  |               |
 | `Fourier`              |   &check;   |  &check;  |    &check;    |
 | `PolynomialRegression` |   &check;   |  &check;  |    &check;    |
 | `RWD`                  |             |           |    &check;    |

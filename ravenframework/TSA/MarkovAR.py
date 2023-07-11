@@ -20,19 +20,15 @@ import numpy as np
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesTransformer
 
 
 # utility methods
-class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
+class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
   # class attribute
-  ## define the clusterable features for this trainer.
-  _features = ['ar',
-               'sigma2',
-               'const']
   _acceptsMissingValues = True
 
   @classmethod
@@ -102,10 +98,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransform
     """
     # lazy import statsmodels
     import statsmodels.api as sm
-    # settings:
-    #   P: number of AR terms to use (signal lag)
-    #   Q: number of MA terms to use (noise lag)
-    #   gaussianize: whether to "whiten" noise before training
     # set seed for training
     seed = settings['seed']
     if seed is not None:
@@ -145,6 +137,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransform
                              f'"{name}" contain NaN values: {value}.')
 
       params[target]['MarkovAR'] = parsedParams
+      params[target]['MarkovAR']['model'] = res
     return params
 
   def _parseParams(self, params, order, kRegimes):
@@ -194,42 +187,42 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransform
           parsedParams[paramName][:] = value
     return parsedParams
 
-  def getParamNames(self, settings):
-    """
-      Return list of expected variable names based on the parameters
-      @ In, settings, dict, training parameters for this algorithm
-      @ Out, names, list, string list of names
-    """
-    names = []
-    for target in settings['target']:
-      for regime in range(settings['regimes']):
-        base = f'{self.name}__{target}'
-        names.append(f'{base}__constant__state{regime}')
-        names.append(f'{base}__variance__state{regime}')
-        for p in range(settings['order']):
-          names.append(f'{base}__AR__{p}__state{regime}')
-      # TODO add transition matrix info?
-    return names
+  # def getParamNames(self, settings):
+  #   """
+  #     Return list of expected variable names based on the parameters
+  #     @ In, settings, dict, training parameters for this algorithm
+  #     @ Out, names, list, string list of names
+  #   """
+  #   names = []
+  #   for target in settings['target']:
+  #     for regime in range(settings['regimes']):
+  #       base = f'{self.name}__{target}'
+  #       names.append(f'{base}__constant__state{regime}')
+  #       names.append(f'{base}__variance__state{regime}')
+  #       for p in range(settings['order']):
+  #         names.append(f'{base}__AR__{p}__state{regime}')
+  #     # TODO add transition matrix info?
+  #   return names
 
-  def getParamsAsVars(self, params):
-    """
-      Map characterization parameters into flattened variable format
-      @ In, params, dict, trained parameters (as from characterize)
-      @ Out, rlz, dict, realization-style response
-    """
-    rlz = {}
-    paramNames = ['const', 'sigma2', 'ar']
-    for target, info in params.items():
-      base = f'{self.name}__{target}'
-      for name in paramNames:
-        for regime, value in enumerate(info['MarkovAR'][name]):
-          if name == 'ar':  # value will be an array of lagged AR terms
-            for p, val in enumerate(value):
-              rlz[f'{base}__{name}__{p}__state{regime}'] = val
-          else:  # sigma2 or const
-            rlz[f'{base}__{name}__state{regime}'] = value
-      # TODO add transition matrix info?
-    return rlz
+  # def getParamsAsVars(self, params):
+  #   """
+  #     Map characterization parameters into flattened variable format
+  #     @ In, params, dict, trained parameters (as from characterize)
+  #     @ Out, rlz, dict, realization-style response
+  #   """
+  #   rlz = {}
+  #   paramNames = ['const', 'sigma2', 'ar']
+  #   for target, info in params.items():
+  #     base = f'{self.name}__{target}'
+  #     for name in paramNames:
+  #       for regime, value in enumerate(info['MarkovAR'][name]):
+  #         if name == 'ar':  # value will be an array of lagged AR terms
+  #           for p, val in enumerate(value):
+  #             rlz[f'{base}__{name}__{p}__state{regime}'] = val
+  #         else:  # sigma2 or const
+  #           rlz[f'{base}__{name}__state{regime}'] = value
+  #     # TODO add transition matrix info?
+  #   return rlz
 
   def generate(self, params, pivot, settings):
     """
@@ -295,6 +288,36 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransform
 
     return synth, states
 
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    residual = initial.copy()
+    for tg, (target, data) in enumerate(params.items()):
+      # The model fit results contain the fit residuals, so we can just use those.
+      residual[:, tg] = data['MarkovAR']['model'].resid
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = initial + self.generate(params, pivot, settings)
+    return synthetic
+
   def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.
@@ -315,28 +338,3 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransform
           regime.append(xmlUtils.newNode(f'AR_{p+1}', text=f'{float(ar):1.9e}'))
       for (i, j), p in np.ndenumerate(info['MarkovAR']['transitionMatrix']):
         base.append(xmlUtils.newNode(f'Transition_{i}to{j}', text=f'{float(p):1.9e}'))
-
-  # clustering
-  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
-    """
-      Provide the characteristic parameters of this ROM for clustering with other ROMs
-      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
-      @ In, requests, list, list of requested attributes from this ROM
-      @ In, params, dict, parameters from training this ROM
-      @ Out, features, dict, params as {paramName: value}
-    """
-    # nameTemplate convention:
-    # -> target is the trained variable (e.g. Signal, Temperature)
-    # -> metric is the algorithm used (e.g. Fourier, ARMA)
-    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
-    raise NotImplementedError('Clustering is not supported for MarkovAR!')
-
-  def setClusteringValues(self, fromCluster, params):
-    """
-      Interpret returned clustering settings as settings for this algorithm.
-      Acts somewhat as the inverse of getClusteringValues.
-      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
-      @ In, params, dict, trained parameter settings
-      @ Out, params, dict, updated parameter settings
-    """
-    raise NotImplementedError('Clustering is not supported for MarkovAR!')
