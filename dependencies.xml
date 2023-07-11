@@ -64,11 +64,11 @@ Note all install methods after "main" take
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
-    <ray source="pip" pip_extra="[default]" os='mac,linux'>2.2</ray>
-    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray>
-    <pydantic source="pip" os='mac,linux'>1</pydantic> <!-- ray 2.2 can't use pydantic 2 -->
+    <ray source="pip" pip_extra="[default]" os='mac,linux'>2.5</ray>
+    <ray source="pip" pip_extra="[default]" os='windows'>2.5</ray>
+    <!-- <pydantic source="pip" os='mac,linux'>1</pydantic> --> <!-- ray 2.2 can't use pydantic 2 -->
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
-    <redis source="pip" os='windows'/>
+    <!-- <redis source="pip" os='windows'/> -->
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
