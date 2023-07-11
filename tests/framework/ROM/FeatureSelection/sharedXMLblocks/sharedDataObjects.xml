@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<DataObjects>
+  <!-- The input PointSet object -->
+  <PointSet name="dummyIN">
+    <Input>X,Y,A,B,C,D</Input>
+    <Output>OutputPlaceHolder</Output>
+  </PointSet>
+  <PointSet name="trainingData">
+    <Input>X,Y,A,B,C,D</Input>
+    <Output>Z</Output>
+  </PointSet>
+  <!-- The output PointSet objects -->
+  <PointSet name="outData">
+    <Input>X,Y,A,B,C,D</Input>
+    <Output>Z</Output>
+  </PointSet>
+  <DataSet name="rom_stats"/>
+</DataObjects>

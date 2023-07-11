@@ -160,3 +160,4 @@ user_guide/EnsembleModel/run_basic/sample/
 user_guide/ForwardSamplingStrategies/RunDir/Grid/sample/
 user_guide/ForwardSamplingStrategies/RunDir/MonteCarlo/sample/
 user_guide/ForwardSamplingStrategies/RunDir/Stratified/sample/
+ROM/TimeSeries/ARMA/ZeroFilterDiscontinuous/arma.pk
