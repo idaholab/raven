@@ -71,11 +71,12 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, None
       @ Out, None
     """
-    self._optMethod = None  # Method used to optimize acquisition function for sample selection
-    self._seedingCount = 0  # For multi-start gradient methods, the number of starting points and the population size for differential evolution
-    self.N = None           # Dimension of the input space
-    self._bounds = []       # List of tuples for bounds that scipy optimizers use
-    self._optValue = None   # Value of the acquisition function at the recommended sample
+    self._optMethod = None   # Method used to optimize acquisition function for sample selection
+    self._seedingCount = 0   # For multi-start gradient methods, the number of starting points and the population size for differential evolution
+    self.N = None            # Dimension of the input space
+    self._bounds = []        # List of tuples for bounds that scipy optimizers use
+    self._optValue = None    # Value of the acquisition function at the recommended sample
+    self._constraints = None # Scipy optimizer constraint object for applying explicit constraints
 
   def handleInput(self, specs):
     """
@@ -106,7 +107,6 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     # Input space is normalized, thus building the bounds is simple
     for i in range(self.N):
       self._bounds.append((0,1))
-    # TODO should we feed explicit constraints here?
 
   def conductAcquisition(self, bayesianOptimizer):
     """
@@ -118,8 +118,12 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     if self._optMethod == 'differentialEvolution':
       # NOTE -1 is to enforce maximization of the positive function
       optFunc = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
-      res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
-                                          popsize=self._seedingCount, init='sobol', vectorized=True)
+      if self._constraints == None:
+        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
+                                            popsize=self._seedingCount, init='sobol', vectorized=True)
+      else:
+        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
+                                            popsize=self._seedingCount, init='sobol', vectorized=True, constraints=self._constraints)
     elif self._optMethod == 'slsqp':
       #### delete after use ####
       # maxDiff = self.testGradients(bayesianOptimizer, 100)
@@ -140,20 +144,25 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
         tempArray[0,index] = best[varName]
       initSamples = np.concatenate((initSamples,tempArray),axis=0)
       options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
-      results = Parallel(n_jobs=-1)(delayed(sciopt.minimize)(optFunc, x0, method='SLSQP', jac=True,
-                                                             bounds=self._bounds, options=options) for x0 in initSamples)
-      res = results[0]
-      for solution in results[1:]:
-        if solution.fun < res.fun:
-          res = solution
+      # results = Parallel(n_jobs=-1)(delayed(sciopt.minimize)(optFunc, x0, method='SLSQP', jac=True,
+      #                                                        bounds=self._bounds, options=options) for x0 in initSamples)
+      # res = results[0]
+      # for solution in results[1:]:
+      #   if solution.fun < res.fun:
+      #     res = solution
 
-      # res = None
-      # for x0 in initSamples:
-      #   result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds, options=options)
-      #   if res is None:
-      #     res = result
-      #   elif result.fun < res.fun:
-      #     res = result
+      res = None
+      for x0 in initSamples:
+        if self._constraints == None:
+          result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds,
+                                   options=options)
+        else:
+          result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds,
+                                    options=options, constraints=self._constraints)
+        if res is None:
+          res = result
+        elif result.fun < res.fun:
+          res = result
     else:
       bayesianOptimizer.raiseAnError(RuntimeError, 'Currently only accepts differential evolution. Other methods still under construction')
     self._optValue = -1*res.fun
@@ -216,6 +225,22 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, ddacqValue, float/array, acquisition function hessian value
     """
+
+  def buildConstraint(self, bayesianOptimizer):
+    """
+      Builds explicit constraints to enforce in acquisition
+      @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to constraint evaluation
+      @ Out, None
+    """
+    # Copy to avoid overwriting
+    baye = copy.copy(bayesianOptimizer)
+    # Generating form that works with scipy.minimize
+    self._constraints = []
+    for constraint in baye._constraintFunctions:
+      constraintFun = lambda var: np.array([constraint.evaluate('constrain', baye.denormalizeData(baye.arrayToFeaturePoint(var)))])
+      nlc = sciopt.NonlinearConstraint(constraintFun, 0, np.inf)
+      self._constraints.append(nlc)
+    return
 
   def needDenormalized(self):
     """

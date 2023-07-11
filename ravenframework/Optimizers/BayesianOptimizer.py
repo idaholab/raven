@@ -197,6 +197,10 @@ class BayesianOptimizer(RavenSampled):
     self._initialSampleSize = len(self._initialValues)
     self.batch = self._initialSampleSize
 
+    # Building explicit contraints for acquisition if there are any
+    if len(self._constraintFunctions) > 0:
+      self._acquFunction.buildConstraint(self)
+
     # Initialize model object and store within class
     for model in self.assemblerDict['Models']:
       modelName = model[2]
@@ -660,6 +664,13 @@ class BayesianOptimizer(RavenSampled):
     """
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
+      # Need to check explicit constraints
+      for constraint in self._constraintFunctions:
+        constrained = constraint.evaluate('constrain', self.denormalizeData(opt))
+        mostViolated = np.min(constrained)
+        if mostViolated < 0:
+          acceptable = 'rejected'
+          rejectReason = 'Constraint Violation'
       # Is our new point the best point for the data available?
       if all(opt[var] == self._expectedSolution[var] for var in list(self.toBeSampled)):
         acceptable = 'accepted'
