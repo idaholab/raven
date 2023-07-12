@@ -127,60 +127,6 @@ class Abce(CodeInterfaceBase):
       @ In, subDirectory, string, the subdirectory where the information is.
       @ Out, directory, string, the base name of the csv file
     """
-    # print('command',command)
-    # print('output',output)
-    # print('workingDir',workingDir)
-    # command python  /Users/l00317783/Library/CloudStorage/Box-Box/abce/run.py --settings_file=settings.yml --inputs_path=inputs --verbosity=3
-    # output out~settings
-    # workingDir /Users/l00317783/Library/CloudStorage/Box-Box/abceheron/others/rra/rra/abcesetting/sweep/2
-    #print("finalizeCodeOutput", command, codeLogFile, subDirectory)
     outDict = {}
-    # toRead = "hourly_summary" #"Daily_summary"
-    # if self._outputDirectory is not None:
-    #   directory = os.path.join(subDirectory, self._outputDirectory)
-    # else:
-    #   directory = subDirectory
-    # readFile = os.path.join(directory, toRead)
-    # if toRead.lower().startswith("hourly"):
-    #   busData, busList, busDataList, hasMinute = self._readBusData(os.path.join(directory, "bus_detail.csv"))
-    #   outDict = {}
-    #   inFile = open(readFile+".csv","r")
-    #   hasNetDemand = False
-    #   firstLine = inFile.readline()
-    #   date, hour, rest = firstLine.split(",", maxsplit=2)
-    #   restSplit = rest.rstrip().split(",")
-    #   hourKey = hour.strip()
-    #   timeKey = date.rstrip()+"_"+hourKey
-    #   outDict[timeKey] = []
-    #   outDict[hour] = []
-    #   otherKeys = restSplit
-    #   for key in otherKeys:
-    #     outDict[key] = []
-    #   if "RenewablesUsed" in outDict and "Demand" in outDict:
-    #     hasNetDemand = True
-    #     outDict["NetDemand"] = []
-    #   first = False
-    #   for bus in busList:
-    #     for dataName in busDataList:
-    #       outDict[bus+"_"+dataName] = []
-
-    #   for line in inFile.readlines():
-    #     date, hour, rest = line.split(",", maxsplit=2)
-    #     restSplit = rest.rstrip().split(",")
-    #     timeValue = date.rstrip()+"_"+hour.lstrip()
-    #     outDict[timeKey].append(timeValue)
-    #     outDict[hourKey].append(float(hour))
-    #     for key,value in zip(otherKeys,restSplit):
-    #       outDict[key].append(float(value))
-    #     if hasNetDemand:
-    #       #Calculate the demand - renewables used to get net demand
-    #       netDemand = outDict["Demand"][-1]  - outDict["RenewablesUsed"][-1]
-    #       outDict["NetDemand"].append(netDemand)
-    #     for bus in busList:
-    #       if hasMinute:
-    #         busTimeKey = (date, hour, '0')
-    #       else:
-    #         busTimeKey = (date, hour)
-    #       for dataName, data in zip(busDataList,busData[busTimeKey][bus]):
-    #         outDict[bus+"_"+dataName].append(float(data) if len(data) > 0 else float("NaN"))
+    outDict['OutputPlaceHolder'] = 'palceholder'
     return outDict

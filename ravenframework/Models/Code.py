@@ -618,24 +618,20 @@ class Code(Model):
     outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
       finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
-      print('finalCodeOutput', finalCodeOutput)
       ## Special case for RAVEN interface --ALFOA 09/17/17
       ravenCase = type(finalCodeOutput).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
       # check return of finalizecode output
       if finalCodeOutput is not None:
         isDict = isinstance(finalCodeOutput,dict)
         isStr = isinstance(finalCodeOutput,str)
-        print('isDict',isDict,'isStr',isStr)
         if not isDict and not isStr:
           self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
                                           'containing the new output file root or a dict of data!')
       if finalCodeOutput and not ravenCase:
         if not isDict:
-          bbbbb
           outputFile = finalCodeOutput
         else:
           returnDict = finalCodeOutput
-          vvvvv
     ## If the run was successful
     if returnCode == 0:
       ## This may be a tautology at this point --DPM 4/12/17
@@ -657,12 +653,6 @@ class Code(Model):
         if self.code.getIfWriteCsv():
           csvFileName = os.path.join(metaData['subDirectory'],outputFile+'.csv')
           pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
-        print('self.code.getIfWriteCsv()',self.code.getIfWriteCsv())
-        print('kwargs',kwargs)
-        print('returnDict',returnDict)
-        print('returnValue',returnValue)
-        print('exportDict',exportDict)
-        ccccccc
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
         returnValue = (kwargs['SampledVars'],returnDict)
