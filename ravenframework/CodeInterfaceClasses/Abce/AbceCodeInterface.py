@@ -67,12 +67,34 @@ class Abce(CodeInterfaceBase):
         if inputFile.getBase() == 'settings' and inputFile.getExt() == ext:
           return index,inputFile
       raise IOError('No settings file with extension '+ext+' found!')
+    
+    def setOutputDir(settingsFile):
+      """
+      Set the output directory in the settings file.
+      @ In, settingsFile, InputFile object, settings file
+      """
+      # the settings file is the settings.yml file the scenario name is in node 
+      # simulation -> scenario_name 
+      # the output directory is the directory of the settings file in subdirectory "outputs/$scenario_name"
+      # get the scenario name by reading the settings.yml file 
+      scenarioName = None
+      with open(settingsFile.getAbsFile(),'r') as settings:
+        for line in settings:
+          if 'scenario_name' in line:
+            scenarioName = line.split(':')[1].strip()
+            # remove the double quotes
+            scenarioName = scenarioName.replace('"','')
+            break
+      self._outputDirectory = os.path.join(os.path.dirname(settingsFile.getAbsFile()),'outputs',scenarioName)
+      return None
+    
     #prepend
     todo = ''
     todo += clargs['pre']+' '
     todo += executable
     index=None
-    #inputs
+    #setup input files and output directory
+    self._outputDirectory = None
     for flag,elems in clargs['input'].items():
       if flag == 'noarg':
         continue
@@ -80,6 +102,7 @@ class Abce(CodeInterfaceBase):
       for elem in elems:
         ext, delimiter = elem[0], elem[1]
         idx,fname = findSettingIndex(inputFiles,ext.strip('.'))
+        setOutputDir(fname)
         todo += delimiter + fname.getFilename()
         if index == None:
           index = idx
