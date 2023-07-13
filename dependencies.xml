@@ -67,8 +67,6 @@ Note all install methods after "main" take
     <ray source="pip" pip_extra="[default]" os='mac,linux'>2.5</ray>
     <ray source="pip" pip_extra="[default]" os='windows'>2.5</ray>
     <pydantic source="pip">1</pydantic> <!-- ray 2.5 can't use pydantic 2 -->
-    <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
-    <!-- <redis source="pip" os='windows'/> -->
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
