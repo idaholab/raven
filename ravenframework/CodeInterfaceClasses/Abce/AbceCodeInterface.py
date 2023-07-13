@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on 2020-Sept-2
+Created on 2023-Jul-12
 
-This is a CodeInterface for the Presient code.
+This is a CodeInterface for the ABCE code.
 
 """
 
@@ -59,7 +59,6 @@ class Abce(CodeInterfaceBase):
     
     def findSettingIndex(inputFiles,ext):
       """
-
       Find the settings file and return its index in the inputFiles list.
       @ In, inputFiles, list of InputFile objects
       @ In, ext, string, extension of the settings file
@@ -106,7 +105,6 @@ class Abce(CodeInterfaceBase):
     """
     infiles=[]
     origfiles=[]
-    #FIXME possible danger here from reading binary files
     for inputFile in currentInputFiles:
       if inputFile.getExt() in self.getInputExtension():
         infiles.append(inputFile)
