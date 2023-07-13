@@ -72,11 +72,10 @@ except ImportError:
   print("randomENG not found\n")
 print()
 amsc_report = library_handler.checkSingleLibrary('AMSC', useImportCheck=True)
-for module, found, message, version in [('AMSC',amsc_report[0], amsc_report[1], "")]:
-  if found:
-    print(module,version,"\n",message,"\n")
-  else:
-    print(module+' not found\n')
+if amsc_report[0]:
+  print("AMSC\n",amsc_report[1],"\n")
+else:
+  print('AMSC not found\n')
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(('8.8.8.8', 1))
