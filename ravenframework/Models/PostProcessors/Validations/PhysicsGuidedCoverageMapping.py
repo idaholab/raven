@@ -55,6 +55,8 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     specs.addSub(measurementsInput)
     pcmTypeInput = InputData.parameterInputFactory("pcmType", contentType=InputTypes.StringType)
     specs.addSub(pcmTypeInput)
+    recErrorInput = InputData.parameterInputFactory("ReconstructionError", contentType=InputTypes.StringListType)
+    specs.addSub(recErrorInput)
     return specs
 
   def __init__(self):
@@ -83,6 +85,11 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # Get Measurements data from input
       elif child.getName() == 'Measurements':
         self.measurements = child.value
+      # Get reconstruction error from input to decide on the rank in TdepPCM
+      elif child.getName() == 'ReconstructionError':
+        self.ReconstructionError = child.value
+      else :
+        self.ReconstructionError = None
     # Number of Features responses must equal to number of Measurements responses
     # Number of samples between Features and Measurements can be different
     if len(self.features) != len(self.measurements):
@@ -282,7 +289,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       return appPred
 
-    def FindRank(ref, x, xM):
+    def FindRank(ref, x, recError=None):
       """
       Method to determine the rank of matrix 'x' such that the maximum residual for
       reconstructed matrix 'x_r' under different ranks is less than a error defined,
@@ -291,27 +298,33 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       @ In, ref: array-like (1D), reference sample used for scaling data 'x'.
       @ In, x: array-like (2D), the matrix [samples x timesteps] for which the rank is to be determined.
-      @ In, xM: array-like (2D), the matrix [samples x timesteps] used to calculate measurement error.
+      @ In, recError, array-like (1D), reconstruction error to determine the rank of time series data.
       @ Out, xMAX[0]: rank, int, the rank of matrix 'x' that satisfies the condition on maximum residual.
       """
+
       x = (x.T/ref).T
-      error = (np.std(xM, axis=0)/ np.mean(xM, axis=0))[0] #msr error
-      #scaling by reference
-      u, s, v_T = np.linalg.svd(x)
-      # Find the maximum of the residual under different rank
-      maxError = np.zeros(np.mean(xM, axis=0).shape[0])
-      for k in range(1,maxError.shape[0]+1):
-        res = x - u[:,:k]@np.diag(s)[:k,:k]@v_T[:k,:]#residual of x-x_r under different rank
-        maxError[k-1] = np.max(abs(res)) # maximum of the residual
-      # 1/10 is decided as we want a rank corresponding to around 0.1% reconstruction error.
       # The precition of pcmTdep is sensitive to the rank here, which determines the dimension of
       # U_exp, U_app subspaces for KNN regression. We will lose information under low rank, or
       # overfit data with noise under high rank.
-      # This error can be made as user-defined later.
-      xMAX=min(np.argwhere(maxError<error/10)) #rank corresponding to msr error
+      # This error can be made as user-defined.
+      if recError == None:
+        recError = 0.001 # 0.001 is decided as we want a rank corresponding to around 0.1% reconstruction error.
+      else:
+        recError = float(recError[0])
+
+
+      #scaling by reference
+      u, s, v_T = np.linalg.svd(x)
+      # Find the maximum of the residual under different rank
+      maxError = np.zeros(x.shape[0])
+      for k in range(1,maxError.shape[0]+1):
+        res = x - u[:,:k]@np.diag(s)[:k,:k]@v_T[:k,:]#residual of x-x_r under different rank
+        maxError[k-1] = np.max(abs(res)) # maximum of the residual
+
+      xMAX=min(np.argwhere(maxError<recError)) #rank corresponding to reconstruction error
       return xMAX[0]
 
-    def pcmTdep(featData, msrData, targData):
+    def pcmTdep(featData, msrData, targData, recError):
       """
         Method to perform Tdep PCM model for uncertainty quantification and data assimilation in time-dependent
         applications using Singular Value Decomposition (SVD) and K-Nearest Neighbors regression(KNN).
@@ -321,6 +334,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         by the estimated application coefficients.
 
         @ In, featData, msrData,, targData : array-like (2D), the input data for features, measurements, and targets.
+        @ In, recError, array-like (1D), reconstruction error to determine the rank of time series data.
         @ Out, yAppPred: array-like (2D), the predicted application response.
         @ Out, error, array-like (2D), the relative error between predicted and computed application reference.
       """
@@ -347,8 +361,8 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
 
       #KNN regression
-      rkApp = FindRank(yAppRef, yAppScaled, yExpMsr) #rank of application
-      rkExp = FindRank(yExpRef, yExpScaled, yExpMsr)  # rank of experiments
+      rkApp = FindRank(yAppRef, yAppScaled, recError) #rank of application
+      rkExp = FindRank(yExpRef, yExpScaled, recError)  # rank of experiments
 
       alphaAppHat=np.zeros(rkApp)
       for i in range(rkApp):
@@ -399,6 +413,12 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
     pcmVersion = self.pcmType
 
+
+    if self.ReconstructionError != None:
+      recError = self.ReconstructionError #reconstruction error to determine the rank of time series data.
+    else:
+      recError = None
+
     if pcmVersion == 'Tdep':
       self.raiseAMessage('***    Running Tdep-PCM       ***')
       # Data of size (num_of_samples, num_of_features)
@@ -416,7 +436,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       msrData = np.array(msrData).reshape(num_of_samples, num_of_featuresExp)
       targData = np.array(targData).reshape(num_of_samples, num_of_featuresApp)
       time = v[:num_of_featuresExp]
-      yAppPred, error = pcmTdep(featData, msrData, targData)
+      yAppPred, error = pcmTdep(featData, msrData, targData, recError)
       name = "time"
       outputDict[name] = np.asarray(time)
       name = "Tdep_post_mean"

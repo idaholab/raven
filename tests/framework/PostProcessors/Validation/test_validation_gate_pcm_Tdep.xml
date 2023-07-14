@@ -32,6 +32,7 @@
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
       <pcmType>Tdep</pcmType>
+      <ReconstructionError>0.001</ReconstructionError>
     </PostProcessor>
   </Models>
 

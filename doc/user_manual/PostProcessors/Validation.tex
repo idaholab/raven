@@ -233,14 +233,14 @@ pivot parameter must be named `pivot\_parameter' and this array is assigned with
 \paragraph{PCM}
 \textbf{PCM} evaluates the uncertainty reduction fraction and obtain posterior distribution of Target 
 when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method. There are 
-three versions of PCM so far: 'Static', 'Snapshot', and 'Tdep'. Static PCM is for static problem, and Snapshot PCM 
+three versions of PCM so far: `Static', `Snapshot', and `Tdep'. Static PCM is for static problem, and Snapshot PCM 
 and Tdep PCM are for time-dependent problem.
 %
 \ppType{PCM}{PhysicsGuidedCoverageMapping}
 %
 
 \begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defaulted as 'time', and required by Snapshot and Tdep PCM.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defaulted as `time', and required by Snapshot and Tdep PCM.
   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features. 
   \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
      targets. \nb Each target will be validated using all features listed in xml node \xmlNode{Features}. The
@@ -249,7 +249,9 @@ and Tdep PCM are for time-dependent problem.
      measurements of the features. \nb Each measurement correspond to a feature listed in xml node \xmlNode{Features}. The
     number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
   \item \xmlNode{pcmType}, \xmlDesc{string, required field}, contains the string given by users to choose the version 
-    of PCM to be applied. \nb It has three options: 'Static', 'Snapshot', and 'Tdep', corresponding to the three PCM versions.
+    of PCM to be applied. \nb It has three options: `Static', `Snapshot', and `Tdep', corresponding to the three PCM versions.
+  \item \xmlNode{ReconstructionError}, \xmlDesc{string, optional field}, contains the string given by users to determind the 
+    reconstruction error corresponding to rank of time series data. Default value is 0.001 if not given.
 
 \end{itemize}
 
@@ -309,6 +311,7 @@ which corresponding to the timesteps, posterior mean, and error between posterio
       <Targets>app|TempD</Targets>
       <Measurements>msr|TempMsrC</Measurements>
       <pcmType>Tdep</pcmType>
+      <ReconstructionError>0.001</ReconstructionError>
     </PostProcessor>
     ...
   <Models>
