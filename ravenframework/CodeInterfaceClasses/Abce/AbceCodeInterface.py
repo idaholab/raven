@@ -21,6 +21,7 @@ This is a CodeInterface for the ABCE code.
 import os
 import re
 import warnings
+import pandas as pd
 
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..Generic.GenericCodeInterface import GenericParser
@@ -36,7 +37,7 @@ class Abce(CodeInterfaceBase):
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
-      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, executable, string, executable name with absolute path of ABCE/run.py
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
@@ -61,7 +62,7 @@ class Abce(CodeInterfaceBase):
       """
       Find the settings file and return its index in the inputFiles list.
       @ In, inputFiles, list of InputFile objects
-      @ In, ext, string, extension of the settings file
+      @ In, ext, string, extension of the settings.yml file
       """
       for index,inputFile in enumerate(inputFiles):
         if inputFile.getBase() == 'settings' and inputFile.getExt() == ext:
@@ -71,7 +72,7 @@ class Abce(CodeInterfaceBase):
     def setOutputDir(settingsFile):
       """
       Set the output directory in the settings file.
-      @ In, settingsFile, InputFile object, settings file
+      @ In, settingsFile, InputFile object, settings.yml file
       """
       # the settings file is the settings.yml file the scenario name is in node 
       # simulation -> scenario_name 
@@ -147,9 +148,16 @@ class Abce(CodeInterfaceBase):
       @ In, command, ignored
       @ In, codeLogFile, ignored
       @ In, subDirectory, string, the subdirectory where the information is.
-      @ Out, directory, string, the base name of the csv file
+      @ Out, directory, string, the assets results
     """
     outDict = {}
-    #TODO should change it in the future for reading the output file from the code
-    outDict['OutputPlaceHolder'] = 'palceholder'
+    outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
+    assetsData = pd.read_excel(outputFile,sheet_name='assets')
+    # read each column and store it in the dictionary
+    # column_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved
+    for col in assetsData.columns:
+      outDict[col] = assetsData[col].values
+    # TODO should change it in the future for reading the output file from the code or the database file 
+    # OutputPlaceHolder should be a list of float("NaN") if the len(assetsData)>0 or just a float("NaN")
+    outDict['OutputPlaceHolder'] = [float("NaN")]*len(assetsData)
     return outDict
