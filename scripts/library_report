@@ -44,9 +44,7 @@ import library_handler
 from ravenframework.utils import utils
 
 report_list = library_handler.checkLibraries(buildReport=True)
-amsc_report = library_handler.checkSingleLibrary('AMSC', useImportCheck=True)
 tensorflow_report = library_handler.checkSingleLibrary('tensorflow', version='check', useImportCheck=True)
-report_list.append(('AMSC',amsc_report[0], amsc_report[1], ""))
 report_list.append(('tensorflow',) + tensorflow_report)
 print("\nLibraries report:\n")
 for module, found, message, version in report_list:
@@ -72,7 +70,12 @@ try:
   print("randomENG","\n",randomENG)
 except ImportError:
   print("randomENG not found\n")
-
+print()
+amsc_report = library_handler.checkSingleLibrary('AMSC', useImportCheck=True)
+if amsc_report[0]:
+  print("AMSC\n",amsc_report[1],"\n")
+else:
+  print('AMSC not found\n')
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(('8.8.8.8', 1))
