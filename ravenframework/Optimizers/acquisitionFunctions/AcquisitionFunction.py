@@ -135,7 +135,10 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       limits = np.array(self._bounds)
       # NOTE one of our seeds will always come from the current recommended solution (best point)
       samplingCount = self._seedingCount - 1
-      sampler = LHS(xlimits=limits, criterion='cm')
+      if samplingCount <= 1:
+        sampler = LHS(xlimits=limits, criterion='center')
+      else:
+        sampler = LHS(xlimits=limits, criterion='cm')
       initSamples = sampler(samplingCount)
       best = bayesianOptimizer._optPointHistory[0][-1][0]
       # Need to convert 'best point' and add to init array
@@ -291,8 +294,24 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       trainingInputs[varName] = np.asarray(array)
     # Evaluating the model at all training points
     modelEvaluation = bayesianOptimizer._evaluateRegressionModel(trainingInputs)
+    # Evaluating constraints at all training points
+    invalidIndices = []
+    if self._constraints is not None:
+      arrayTrainingInputs = bayesianOptimizer.featurePointToArray(trainingInputs)
+      for constraint in self._constraints:
+        constraintArray = constraint.fun(arrayTrainingInputs)
+        invalidArray = np.less(constraintArray, np.zeros(constraintArray.shape))
+        invalidWhere = np.where(invalidArray[0])
+        for index in invalidWhere[0]:
+          invalidIndices.append(index)
+    # Pulling mean and std out of evaluation to operate on array structure
     muVec = modelEvaluation[0]
     stdVec = modelEvaluation[1]
+    # Removing values at locations where constraint violation has occurred
+    muVec = np.delete(muVec, invalidIndices)
+    stdVec = np.delete(stdVec, invalidIndices)
+    for varName in list(trainingInputs):
+      trainingInputs[varName] = np.delete(trainingInputs[varName], invalidIndices)
     # Retrieving best mean value within training set locations, need index for retrieving other values
     muStar = np.min(muVec)
     minDex = np.argmin(muVec)

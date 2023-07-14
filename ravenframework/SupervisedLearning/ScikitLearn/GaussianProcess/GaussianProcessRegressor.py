@@ -203,7 +203,7 @@ class GaussianProcessRegressor(ScikitLearnBase):
     elif name.lower() == 'expsinesquared':
       kernel = skExpSineSquared(periodicity_bounds=(1e-5, 1/(2*np.pi)))
     elif name.lower() == 'matern':
-      kernel = skMatern(length_scale=lengthScale)
+      kernel = skMatern(length_scale=lengthScale, nu=2.5)
     elif name.lower() == 'rbf':
       kernel = skRBF(length_scale=lengthScale)
     elif name.lower() == 'rationalquadratic':
@@ -329,8 +329,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
     # numerical issues. If yes: set the variance to 0.
     yVarNegative = yVar < 0
     if np.any(yVarNegative):
-      self.raiseAWarning("Predicted variances smaller than 0. "
-                    "Setting those variances to 0.")
+      # self.raiseAWarning("Predicted variances smaller than 0. "
+      #               "Setting those variances to 0.")
       yVar[yVarNegative] = 0
     # undo normalisation
     yVar = yVar * self.model._y_train_std**2

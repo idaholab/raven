@@ -355,11 +355,10 @@ class BayesianOptimizer(RavenSampled):
       @ Out, x, np.array, array form of same input
     """
     # TODO same concerns as inverse class (see above)
-    dim = len(featurePoint)
-    x = np.empty(dim)
-    for index, varName in enumerate(list(featurePoint)):
-      x[index] = featurePoint[varName]
-    return x
+    x = []
+    for varName in list(featurePoint):
+      x.append(featurePoint[varName])
+    return np.asarray(x)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -424,9 +423,9 @@ class BayesianOptimizer(RavenSampled):
     """
     return self._iteration[traj]
 
-  ###############################################
+  #################################
   # Model Training and Evaluation #
-  ###############################################
+  #################################
   def _setModelBounds(self):
     """
       Corrects hyperparameter bounds to account for normalized input space

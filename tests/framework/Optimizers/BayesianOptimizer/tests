@@ -5,19 +5,41 @@
     [./data]
       type = OrderedCSV
       output = 'Basic/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MishraBirdConstrained]
+    type = 'RavenFramework'
+    input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'MishraBirdConstrained/opt_export_0.csv'
       rel_err = 1e-2
       zero_threshold = 1e-5
     [../]
   [../]
 
-  [./Beale]
+  [./Matyas]
     type = 'RavenFramework'
-    input = 'Beale/BayesianBeale.xml'
+    input = 'Matyas/BayesianMatyas.xml'
     [./data]
       type = OrderedCSV
-      output = 'Beale/opt_export_0.csv'
+      output = 'Matyas/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 5e-3
+    [../]
+  [../]
+
+  [./Levi]
+    type = 'RavenFramework'
+    input = 'Levi/BayesianLevi.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Levi/opt_export_0.csv'
       rel_err = 1e-2
-      zero_threshold = 1e-2
+      zero_threshold = 1e-3
     [../]
   [../]
 []
