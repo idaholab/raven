@@ -23,7 +23,7 @@ def evaluate(Inputs):
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
     if (ind == 0) :
-      obj1 += Inputs[var]
+      obj1 = Inputs[var]
     if (ind != 0):
       Sum += Inputs[var]
   g = 1 + (9/len(Inputs.keys())*Sum )
@@ -39,3 +39,5 @@ def run(self,Inputs):
     @ Out, None
   """
   self.obj1,self.obj2 = evaluate(Inputs)
+
+
