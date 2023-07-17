@@ -213,7 +213,7 @@ class SimulateData:
     if not list_:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
-      outputDict = {'info_ids':['MaxEFPD'], 'values': [float(list_[-1])]}
+      outputDict = {'info_ids':['MaxEFPD'], 'values': [list_[-1]]}
 
     return outputDict
 
@@ -515,9 +515,9 @@ class SimulateData:
     #stop
     #Considering that: FA type 0 is empty, type 1 reflector, type 2 2% enrichment, types 3 and 4 2.5% enrichment, and types 5 and 6 3.2% enrichment. The cost of burnable is not being considered
     if len(FAcount) == 7:
-      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*4.94262343 + (FAcount[3] + FAcount[4])*5.67862599 + (FAcount[5] + FAcount[6])*6.7274349
+      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*2.69520839 + (FAcount[3] + FAcount[4])*3.24678409 + (FAcount[5] + FAcount[6])*4.03739539
     else:
-      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*4.94262343 + (FAcount[3] + FAcount[4])*5.67862599 + (FAcount[5])*6.7274349
+      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*2.69520839 + (FAcount[3] + FAcount[4])*3.24678409 + (FAcount[5])*4.03739539
     print(fuel_cost)
     #fuel_type.append(float(search_space))
     #stop
