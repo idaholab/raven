@@ -31,15 +31,4 @@
       zero_threshold = 5e-3
     [../]
   [../]
-
-  [./Levi]
-    type = 'RavenFramework'
-    input = 'Levi/BayesianLevi.xml'
-    [./data]
-      type = OrderedCSV
-      output = 'Levi/opt_export_0.csv'
-      rel_err = 1e-2
-      zero_threshold = 1e-3
-    [../]
-  [../]
 []

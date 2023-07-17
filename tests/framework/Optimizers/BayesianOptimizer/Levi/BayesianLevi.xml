@@ -56,13 +56,13 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>90</limit>
+        <limit>95</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
       <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
       <ModelSelection>
-        <Duration>10</Duration>
+        <Duration>5</Duration>
         <Method>Internal</Method>
       </ModelSelection>
       <convergence>
