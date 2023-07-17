@@ -301,7 +301,10 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     residual = initial.copy()
     for tg, (target, data) in enumerate(params.items()):
       # The model fit results contain the fit residuals, so we can just use those.
-      residual[:, tg] = data['MarkovAR']['model'].resid
+      # The length of the residuals array is shorter than the length of the original signal by
+      # the AR order, so we need to pad the beginning of the residual array with zeros.
+      modelResid = data['MarkovAR']['model'].resid
+      residual[:, tg] = np.r_[np.zeros(len(residual) - len(modelResid)), modelResid]
     return residual
 
   def getComposite(self, initial, params, pivot, settings):
