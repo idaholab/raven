@@ -250,7 +250,7 @@ and Tdep PCM are for time-dependent problem.
     number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
   \item \xmlNode{pcmType}, \xmlDesc{string, required field}, contains the string given by users to choose the version 
     of PCM to be applied. \nb It has three options: `Static', `Snapshot', and `Tdep', corresponding to the three PCM versions.
-  \item \xmlNode{ReconstructionError}, \xmlDesc{string, optional field}, contains the string given by users to determind the 
+  \item \xmlNode{ReconstructionError}, \xmlDesc{float, optional field}, contains the value given by users to determind the 
     reconstruction error corresponding to rank of time series data. Default value is 0.001 if not given.
 
 \end{itemize}
