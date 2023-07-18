@@ -10,7 +10,7 @@ Several post-processors are available for model validation:
   \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
   \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
   % \item  \textbf{Representativity}
-  \item  \textbf{PCM}, using Physics-guided Coverage Mapping method for validation, can only be used for static problems.
+  \item  \textbf{PCM}, using Physics-guided Coverage Mapping method for validation, can be used for static and time-dependent problems.
 \end{itemize}
 %
 
@@ -231,27 +231,39 @@ pivot parameter must be named `pivot\_parameter' and this array is assigned with
 \end{lstlisting}
 
 \paragraph{PCM}
-\textbf{PCM} evaluates the uncertainty reduction fraction when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method.
-
+\textbf{PCM} evaluates the uncertainty reduction fraction and obtain posterior distribution of Target 
+when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method. There are 
+three versions of PCM so far: `Static', `Snapshot', and `Tdep'. Static PCM is for static problem, and Snapshot PCM 
+and Tdep PCM are for time-dependent problem.
 %
 \ppType{PCM}{PhysicsGuidedCoverageMapping}
 %
 
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defaulted as `time', and required by Snapshot and Tdep PCM.
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features. 
   \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
      targets. \nb Each target will be validated using all features listed in xml node \xmlNode{Features}. The
-    number of targets is not necessarily equal to the number of features.
+    number of targets is not necessarily equal to the number of features. 
   \item \xmlNode{Measurements}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
      measurements of the features. \nb Each measurement correspond to a feature listed in xml node \xmlNode{Features}. The
     number of measurements should be equal to the number of features and in the same order as the features listed in \xmlNode{Features}.
+  \item \xmlNode{pcmType}, \xmlDesc{string, required field}, contains the string given by users to choose the version 
+    of PCM to be applied. \nb It has three options: `Static', `Snapshot', and `Tdep', corresponding to the three PCM versions.
+  \item \xmlNode{ReconstructionError}, \xmlDesc{float, optional field}, contains the value given by users to determind the 
+    reconstruction error corresponding to rank of time series data. Default value is 0.001 if not given.
+
 \end{itemize}
 
-The output of PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'', 
-where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Targets}.
+The output of Static PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'', 
+where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Targets}. 
+The output of Snapshot PCM includes two comma separated lists ``time'' and  ``snapshot\textunderscore pri\textunderscore post\textunderscore stdReduct'', 
+which corresponding to the timesteps and uncertainty reduction fraction of the time-series Target data specified in DataObject of \xmlNode{Targets}.
+The output of Tdep PCM includes three comma separated lists ``time'', ``Tdep\textunderscore post\textunderscore mean'', and ``Error'', 
+which corresponding to the timesteps, posterior mean, and error between posterior and prior Target data specified in DataObject of \xmlNode{Targets}.
 
 
-\textbf{Example:}
+\textbf{Example: Static PCM}
 \begin{lstlisting}[style=XML,morekeywords={subType}]
 <Simulation>
   ...
@@ -261,6 +273,45 @@ where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{Tar
       <Features>outputDataMC1|F1,outputDataMC1|F2</Features>
       <Targets>outputDataMC2|F2,outputDataMC2|F3,outputDataMC2|F4</Targets>
       <Measurements>msrData|F1,msrData|F2</Measurements>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\textbf{Example: Snapshot PCM}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
+      <pivotParameter>time</pivotParameter>
+      <Features>exp|TempC</Features>
+      <Targets>app|TempD</Targets>
+      <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Snapshot</pcmType>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\textbf{Example: Tdep PCM}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pcm_Tdep" subType="PhysicsGuidedCoverageMapping">
+      <pivotParameter>time</pivotParameter>
+      <Features>exp|TempC</Features>
+      <Targets>app|TempD</Targets>
+      <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Tdep</pcmType>
+      <ReconstructionError>0.001</ReconstructionError>
     </PostProcessor>
     ...
   <Models>
