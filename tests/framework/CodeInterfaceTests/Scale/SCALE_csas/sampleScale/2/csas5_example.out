@@ -8,7 +8,11 @@
         ***                                                                                                              ***
         ***        best estimate system k-eff                                  0.991 + or - 0.051                        ***
         ***                                                                                                              ***
+        ***        Energy of average lethargy of Fission (eV)                  2.80003E-01 + or -  3.58169E-03           ***
+        ***                                                                                                              ***
         ***        system mean free path (cm)                                  1.23761E+00 + or -  9.01053E-03           ***
+        ***                                                                                                              ***
+        ***        system nu bar                                               2.44645E+00 + or -  1.11459E-04           ***
         ***                                                                                                              ***
         ***        number of warning messages                                  4                                         ***
         ***                                                                                                              ***

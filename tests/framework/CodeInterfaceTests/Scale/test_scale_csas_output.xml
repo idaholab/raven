@@ -60,7 +60,7 @@
   <DataObjects>
     <PointSet name="results">
       <Input>dens</Input>
-      <Output>keff,meanFreePath</Output>
+      <Output>keff,meanFreePath,AverageLethargyFission,nubar</Output>
     </PointSet>
   </DataObjects>
 
