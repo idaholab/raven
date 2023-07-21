@@ -26,6 +26,7 @@ from __future__ import division, print_function, absolute_import
 import bisect
 import sys
 import os
+import glob
 import errno
 import shutil
 import inspect
@@ -41,6 +42,16 @@ class Object(object):
     Simple custom inheritance object.
   """
   pass
+
+try:
+  import enum
+  #Enum of the parallel libraries we support
+  #Note that shared is use no parallel lib, and distributed is choose one
+  # and use it.
+  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','shared','distributed'])
+except ImportError:
+  ParallelLibEnum = "ParallelLibEnum is not available without enum"
+
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):
@@ -655,6 +666,10 @@ def find_crow(framework_dir):
                 ravenDir]
     if "CROW_DIR" in os.environ:
       crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
+    #Check for editable install
+    if len(glob.glob(os.path.join(ravenDir, "src", "crow_modules", "_randomENG*"))) > 0:
+      sys.path.append(os.path.join(ravenDir, "src"))
+      return
     for crowDir in crowDirs:
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
@@ -681,15 +696,6 @@ def add_path(absolutepath):
   if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
     print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
   os.environ['PYTHONPATH'] = newPath
-
-def add_path_recursively(absoluteInitialPath):
-  """
-    Method to recursively add all the path and subpaths contained in absoluteInitialPath in the pythonpath
-    @ In, absoluteInitialPath, string, the absolute path to add
-    @ Out, None
-  """
-  for dirr,_,_ in os.walk(absoluteInitialPath):
-    add_path(dirr)
 
 def findCrowModule(name):
   """

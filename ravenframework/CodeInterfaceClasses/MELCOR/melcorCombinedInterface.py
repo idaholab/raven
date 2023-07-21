@@ -17,11 +17,9 @@
            Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from melcorInterface   import MelcorApp
-from melgenInterface import MelgenApp
+from .melcorInterface   import MelcorApp
+from .melgenInterface import MelgenApp
 
 class Melcor(CodeInterfaceBase):
   """
@@ -116,5 +114,3 @@ class Melcor(CodeInterfaceBase):
     """
     failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
     return failure
-
-

@@ -19,10 +19,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os
@@ -44,7 +40,6 @@ from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from ..utils import TreeStructure as ETS
-from ..utils.graphStructure import graphObject as graph
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -150,8 +145,17 @@ class DynamicEventTree(Grid):
     self.hybridNumberSamplers              = 0
     # List of variables that represent the aleatory space
     self.standardDETvariables              = []
-    # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
+    # Dictionary of variables that represent the epistemic space (hybrid det).
+    # Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
+    # Dictionary (mapping) between the fully correlated variables and the "epistemic"
+    # variable representation (variable name) in the input file. For example,
+    # {'var1':'var1,var2','var2':'var1,var2'}
+    self.fullyCorrelatedEpistemicToVar     = {}
+    # Dictionary to store constants, e.g., {constantName: constantValue} from hybrid sampler
+    self.hybridConstants = {}
+    # Dictionary to store dependent variables, e.g., {dependentVariableName:value} from hybrid sampler
+    self.hybridDependentSample = {}
 
   def _localWhatDoINeed(self):
     """
@@ -258,7 +262,7 @@ class DynamicEventTree(Grid):
     # get the branchedLevel dictionary
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-      if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys()):
+      if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys())+list(self.hybridConstants.keys()):
         branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
@@ -686,6 +690,8 @@ class DynamicEventTree(Grid):
       self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+      ##### REDUNDANT FUNCTIONALS #####
+      self._functionalVariables()
       # Add some useful variable naming in the input
       self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
       # Add the new input path into the RunQueue system
@@ -719,7 +725,7 @@ class DynamicEventTree(Grid):
 
   def __createVariablesInfoForKwargs(self, model):
     """
-      This utility method is to create a variable infor block
+      This utility method is to create a variable info block
       useful to couple with DET external codes
       @ In, model, Model instance, model instance that can be a Code type, ROM, etc.
       @ Out, varInfo, dict, the dictionary containing the variable names
@@ -923,6 +929,10 @@ class DynamicEventTree(Grid):
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
+        for epVar in self.epistemicVariables:
+          if len(epVar.split(",")) > 1:
+            for el in epVar.split(","):
+              self.fullyCorrelatedEpistemicToVar[el.strip()] = epVar
 
   def localGetInitParams(self):
     """
@@ -970,6 +980,11 @@ class DynamicEventTree(Grid):
       while hybridsampler.amIreadyToProvideAnInput():
         hybridsampler.counter +=1
         hybridsampler.localGenerateInput(None,None)
+        hybridsampler._constantVariables()
+        ##### REDUNDANT FUNCTIONALS #####
+        hybridsampler._functionalVariables()
+        self.hybridConstants.update(hybridsampler.constants)
+        self.hybridDependentSample.update(hybridsampler.dependentSample)
         hybridsampler.inputInfo['prefix'] = hybridsampler.counter
         hybridlistoflist[cnt].append(copy.deepcopy(hybridsampler.inputInfo))
     if self.hybridNumberSamplers > 0:
@@ -994,7 +1009,12 @@ class DynamicEventTree(Grid):
         elm.add('hybridsamplerCoordinate', combinations[precSample])
         for point in combinations[precSample]:
           for epistVar, val in point['SampledVars'].items():
-            self.epistemicVariables[epistVar][elm.get('name')] = val
+            if epistVar in hybridsampler.constants or epistVar in hybridsampler.dependentSample:
+              continue
+            if epistVar in self.fullyCorrelatedEpistemicToVar:
+              self.epistemicVariables[self.fullyCorrelatedEpistemicToVar[epistVar]][elm.get('name')] = val
+            else:
+              self.epistemicVariables[epistVar][elm.get('name')] = val
       # The dictionary branchedLevel is stored in the xml tree too. That's because
       # the advancement of the thresholds must follow the tree structure
       elm.add('branchedLevel', self.branchedLevel[0])

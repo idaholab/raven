@@ -31,8 +31,8 @@
       <KDD labelFeature="component" lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>manifold|LocallyLinearEmbedding</SKLtype>
-        <eigen_solver>dense</eigen_solver>
-        <tol>1E-10</tol>
+        <eigen_solver>arpack</eigen_solver>
+        <tol>1E-6</tol>
         <random_state>1</random_state>
         <n_components>2</n_components>
       </KDD>

@@ -19,26 +19,31 @@ import copy
 import collections
 import numpy as np
 import sklearn.linear_model
+import statsmodels.api as sm
 
 from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
 # utility methods
-class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
   """
   # class attribute
   ## define the clusterable features for this trainer.
-  _features = [] # TODO
+  _features = ['sin',       # amplitude of sine coefficients
+               'cos',       # amplitude of cosine coefficients
+               'intercept'] # mean of signal
+  _acceptsMissingValues = True
 
   @classmethod
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -71,14 +76,14 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
     settings['periods'] = spec.findFirst('periods').value
     return settings
 
-  def characterize(self, signal, pivot, targets, settings, simultFit=True):
+  def fit(self, signal, pivot, targets, settings, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -103,13 +108,11 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
     params = {}
     for tg, target in enumerate(targets):
       history = signal[:, tg] # TODO need to keep in sync with SyntheticSignal ROM!
+      mask = ~np.isnan(history)  # some values might be NaN due to masking
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')
-        fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
-        fourierEngine.fit(fourierSignals, history)
-        intercept = fourierEngine.intercept_
-        coeffs = fourierEngine.coef_
+        intercept, coeffs = self._fitSignal(fourierSignals, history)
       else:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}"! ',
                         'Calculating iteratively instead of all at once.')
@@ -122,10 +125,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         coeffs = np.zeros(F2) # amplitude coeffs for sine, cosine
         for fn in range(F2):
           fSignal = fourierSignals[:,fn] # Fourier base signal for this waveform
-          eng = sklearn.linear_model.LinearRegression(normalize=False) # regressor
-          eng.fit(fSignal.reshape(H,1), signalToFit)
-          thisIntercept = eng.intercept_
-          thisCoeff = eng.coef_[0]
+          thisIntercept, thisCoeff = self._fitSignal(fSignal.reshape(H,1), signalToFit)
           coeffs[fn] = thisCoeff
           intercept += thisIntercept
           # remove this signal from the signal to fit
@@ -157,6 +157,63 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
                         # 'periods'  : self._periods}
       # END for target in targets
     return params
+
+  def _fitSignal(self, baseSignal, signalToFit):
+    """
+      Utility for calculating least-squares approximation of Fourier coefficients
+      @ In, baseSignal, np.ndarray, signal composes of Fourier base(s)
+      @ In, signalToFit, np.ndarray, signal being detrended
+      @ Out, intercept, np.ndarray, intercept for the base Fourier signal
+      @ Out, coeffs, np.ndarray, coefficients of the various Fourier components
+    """
+    fitResult = sm.OLS(signalToFit, sm.add_constant(baseSignal), missing='drop').fit()
+    intercept = fitResult.params[0]
+    coeffs = fitResult.params[1:]
+    return intercept, coeffs
+
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes fitted Fourier signal from data
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    synthetic = self.generate(params, pivot)
+    residual = initial - synthetic
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Adds the Fourier signal back into initial signal
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = self.generate(params, pivot)
+    residual = initial + synthetic
+    return residual
+
+  def generate(self, params, pivot):
+    """
+      Generates a synthetic history from fitted parameters.
+      @ In, params, dict, characterization such as otained from self.characterize()
+      @ In, pivot, np.array(float), pivot parameter values
+      @ Out, synthetic, np.array(float), synthetic ARMA signal
+    """
+    synthetic = np.zeros((len(pivot), len(params)))
+    for t, (target, data) in enumerate(params.items()):
+      synthetic[:, t] += data['intercept']
+      for period, coeffs in data['coeffs'].items():
+        C = coeffs['amplitude']
+        s = coeffs['phase']
+        synthetic[:, t] += mathUtils.evalFourier(period, C, s, pivot)
+    return synthetic
 
   def getParamNames(self, settings):
     """
@@ -190,24 +247,6 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
           rlz[f'{baseWave}__{stat}'] = value
     return rlz
 
-
-  def generate(self, params, pivot, settings):
-    """
-      Generates a synthetic history from fitted parameters.
-      @ In, params, dict, characterization such as otained from self.characterize()
-      @ In, pivot, np.array(float), pivot parameter values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, synthetic, np.array(float), synthetic ARMA signal
-    """
-    synthetic = np.zeros((len(pivot), len(params)))
-    for t, (target, data) in enumerate(params.items()):
-      synthetic[:, t] += data['intercept']
-      for period, coeffs in data['coeffs'].items():
-        C = coeffs['amplitude']
-        s = coeffs['phase']
-        synthetic[:, t] += mathUtils.evalFourier(period, C, s, pivot)
-    return synthetic
-
   def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.
@@ -225,6 +264,74 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
         base.append(periodNode)
         for stat, value in sorted(list(info['coeffs'][period].items()), key=lambda x:x[0]):
           periodNode.append(xmlUtils.newNode(stat, text=f'{value:1.9e}'))
+
+  # clustering
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    # nameTemplate convention:
+    # -> target is the trained variable (e.g. Signal, Temperature)
+    # -> metric is the algorithm used (e.g. Fourier, ARMA)
+    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
+    features = {}
+    for target, info in params.items():
+      if 'intercept' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='intercept')
+        features[key] = info['intercept']
+      if 'sin' in requests or 'cos' in requests:
+        for period, data in info['coeffs'].items():
+          C = data['amplitude']
+          p = data['phase']
+          if 'sin' in requests:
+            sin = C * np.cos(p)
+            key = nameTemplate.format(target=target, metric=self.name, id=f'{period}_sin')
+            features[key] = sin
+          if 'cos' in requests:
+            cos = C * np.sin(p)
+            key = nameTemplate.format(target=target, metric=self.name, id=f'{period}_cos')
+            features[key] = cos
+    return features
+
+  def setClusteringValues(self, fromCluster, params):
+    """
+      Interpret returned clustering settings as settings for this algorithm.
+      Acts somewhat as the inverse of getClusteringValues.
+      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
+      @ In, params, dict, trained parameter settings
+      @ Out, params, dict, updated parameter settings
+    """
+    # TODO this needs to be fast, as it's done a lot.
+    # Consider restructering the "period", "sin", "cos" for faster manipulation.
+    # need both sin and cos before we can set the params for amp, phase, so store here
+    sincos = collections.defaultdict(dict)
+    for target, identifier, value in fromCluster:
+      value = float(value)
+      if identifier == 'intercept':
+        params[target]['intercept'] = value
+      elif identifier.endswith('_sin'):
+        period = float(identifier.split('_')[0])
+        if period not in sincos[target]:
+          sincos[target][period] = {}
+        sincos[target][period]['sin'] = value
+      elif identifier.endswith('_cos'):
+        period = float(identifier.split('_')[0])
+        if period not in sincos[target]:
+          sincos[target][period] = {}
+        sincos[target][period]['cos'] = value
+    for target, tdata in sincos.items():
+      for period, pdata in tdata.items():
+        A = pdata['sin']
+        B = pdata['cos']
+        C, p = mathUtils.convertSinCosToSinPhase(A, B)
+        if period not in params[target]['coeffs']:
+          raise RuntimeError()
+        params[target]['coeffs'][period] = {'amplitude': C, 'phase': p}
+    return params
 
   #
   # Utility Methods

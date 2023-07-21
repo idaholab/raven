@@ -33,7 +33,7 @@ except ValueError:
   from DataObject import DataObject
 
 from .. import CsvLoader
-from ..utils import utils, cached_ndarray, xmlUtils, mathUtils
+from ..utils import utils, cached_ndarray, xmlUtils, mathUtils, InputData, InputTypes
 
 class DataSet(DataObject):
   """
@@ -65,6 +65,25 @@ class DataSet(DataObject):
     self._neededForReload = [self.sampleTag] # metavariables required to reload this data object.
     self._samplerTag      = None
     self.inputKDTree      = None
+    self._autogenerate    = set()             # index vars in here are automatically generated
+
+  ### INPUT SPECIFICATION ###
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    inputSpecification = super(DataSet,cls).getInputSpecification()
+
+    # this is specific to DataSet
+    indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
+    indexInput.addParam('var',InputTypes.StringType,True)
+    indexInput.addParam('autogenerate',InputTypes.BoolType,descr="If true, autogenerate this index")
+    inputSpecification.addSub(indexInput)
+
+    return inputSpecification
 
   def _readMoreXML(self,xmlNode):
     """
@@ -76,6 +95,7 @@ class DataSet(DataObject):
     inp.parseNode(xmlNode)
     # let parent read first
     DataObject._readMoreXML(self,inp)
+
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
@@ -211,6 +231,13 @@ class DataSet(DataObject):
     if indexMap is not None:
       # keep only those parts of the indexMap that correspond to variables we care about.
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
+    #If the index is in autogenerate set, generate it automatically
+    if len(self._autogenerate) > 0:
+      for autoindex in self._autogenerate:
+        expectedLength = len(rlz[self._pivotParams[autoindex][0]])
+        #if it already exists and has correct length, don't add
+        if autoindex not in rlz or len(rlz[autoindex]) != expectedLength:
+          rlz[autoindex] = np.arange(expectedLength)
     # clean out entries that aren't desired
     try:
       rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
@@ -235,7 +262,7 @@ class DataSet(DataObject):
     #  a list of realizations, where each realization is effectively a list of xr.DataArray objects.
     #
     #  To mitigate this behavior, we forcibly add a [0.0] entry to each realization, then exclude
-    #  it once the realizations are constructed.  This seems like an innefficient option; others
+    #  it once the realizations are constructed.  This seems like an inefficient option; others
     #  should be explored.  - talbpaul, 12/2017
     #  newData is a numpy array of realizations,
     #  each of which is a numpy array of some combination of scalar values and/or xr.DataArrays.
@@ -1669,7 +1696,14 @@ class DataSet(DataObject):
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
-    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    try:
+      matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    except ValueError as e:
+      # str(e) returns an error such as 'varName' is not in list so the error below reads as
+      # 'varName' is not in list of DataObject self.name
+      self.raiseAnError(ValueError, f"Variable {str(e)} of DataObject '{self.name}'. "
+                        f"Available variables are: {', '.join(self._orderedVars)}. "
+                        "Check <Input>/<Output> sections." )
     if not first:
       rr, rlz = [], []
     for r, _ in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
@@ -1905,7 +1939,7 @@ class DataSet(DataObject):
     if len(missing) > 0:
       extra = provided - needed
       self.raiseAnError(IOError, f'Not all variables requested for data object "{self.name}" were found in csv "{fileName}.csv"!' +
-                        f'\nNeeded: {needed}; \nUnused: {extra}; \nMissing: {missing}')
+                        f'\nNeeded: {needed}; \nUnused: {extra}; \nProvided: {provided}; \nMissing: {missing}')
     # otherwise, return happily and continue loading the CSV
 
     return dims
@@ -2066,7 +2100,8 @@ class DataSet(DataObject):
       data = self._data
       mode = 'w'
 
-    data = data.drop(toDrop)
+    #Errors when dropping don't matter since it means they were removed before
+    data = data.drop(toDrop, errors='ignore')
     self.raiseADebug(f'Printing data from "{self.name}" to CSV: "{filenameLocal}.csv"')
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?

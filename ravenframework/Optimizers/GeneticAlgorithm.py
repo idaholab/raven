@@ -52,7 +52,12 @@ class GeneticAlgorithm(RavenSampled):
                          at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
-                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations"""}
+                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
+                        'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
+                                     This convergence criterion is based on a normalized
+                                     similarity metric that can be summurized as the normalized Hausdorff distance
+                                     (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
+                                     which implies that values closer to 1.0 represents a tighter convergence criterion."""}
   def __init__(self):
     """
       Constructor.
@@ -73,6 +78,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None    # population fitness
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
+    self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -144,6 +150,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                         \item scrambleMutator.
                                                                         \item inversionMutator.
                                                                         \item bitFlipMutator.
+                                                                        \item randomMutator.
                                                                       \end{itemize}
                                                                     \end{itemize}
                                                 \item survivorSelectors:
@@ -207,8 +214,9 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""a subnode containing the implemented mutation mechanisms.
                   This includes: a.    bitFlipMutation,
                                  b.    swapMutation,
-                                 c.    scrambleMutation, or
-                                 d.    inversionMutation.""")
+                                 c.    scrambleMutation,
+                                 d.    inversionMutation, or
+                                 e.    randomMutator.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -238,9 +246,18 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
-                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
+                  This includes: \begin{itemize}
+                                \item    invLinear:
+                                \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
+
+                                 \item    logistic:
+                                 \[fitness = \frac{1}{1+e^{a\times(obj-b)}}\].
+
+                                                                    \item
+          feasibleFirst:                                  \[fitness =
+          -obj   \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \ \ g\\_j(x)\geq 0 \;  \forall j\]                                  and
+          \[fitness = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
+                                 \end{itemize}.""")
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
@@ -292,6 +309,8 @@ class GeneticAlgorithm(RavenSampled):
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     new['AHD'] = 'Hausdorff Distance between populations'
+    new['HDSM'] = 'Hausdorff Distance Similarity Measure between populations'
+    new['ConstraintEvaluation_{CONSTRAINT}'] = 'Constraint function evaluation (negative if violating and positive otherwise)'
     ok.update(new)
 
     return ok
@@ -470,7 +489,6 @@ class GeneticAlgorithm(RavenSampled):
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
-
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar=self._objectiveVar,
                                              a=self._objCoeff,
@@ -479,8 +497,8 @@ class GeneticAlgorithm(RavenSampled):
                                              constraintFunction=g,
                                              type=self._minMax)
 
-    self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
+    self._collectOptPoint(rlz, offSpringFitness, objectiveVal,g)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
@@ -536,25 +554,7 @@ class GeneticAlgorithm(RavenSampled):
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
         children = childrenMutated
-      # Make sure no children are exactly similar to parents
-      flag = True
-      counter = 0
-      while flag and counter < self._populationSize:
-        counter += 1
-        repeated = []
-        for i in range(np.shape(self.population.data)[0]):
-          for j in range(i,np.shape(children.data)[0]):
-            if all(self.population.data[i,:]==children.data[j,:]):
-              repeated.append(j)
-        repeated = list(set(repeated))
-        if repeated:
-          if len(repeated)> children.shape[0] - self._populationSize:
-            newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict=self.distDict, locs=self._mutationLocs, mutationProb=self._mutationProb, variables=list(self.toBeSampled))
-            children.data[repeated,:] = newChildren.data
-          else:
-            children = children.drop_sel(chromosome=repeated)
-        else:
-          flag = False
+
       # keeping the population size constant by ignoring the excessive children
       children = children[:self._populationSize, :]
 
@@ -604,6 +604,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None
     self.ahdp = np.NaN
     self.ahd = np.NaN
+    self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -611,13 +612,34 @@ class GeneticAlgorithm(RavenSampled):
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
-  def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, info):
+
+  def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
+    """
+      Utility method to update the solution export
+      @ In, traj, int, trajectory for this new point
+      @ In, rlz, dict, realized realization
+      @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
+      @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
+      @ Out, None
+    """
+    for i in range(rlz.sizes['RAVEN_sample_ID']):
+      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+      rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+      rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+      rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+      for ind, consName in enumerate(g['Constraint'].values):
+        rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
+      self._updateSolutionExport(traj, rlzDict, acceptable, None)
+
+  def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
     """
       Store a new Generation after checking convergence
       @ In, traj, int, trajectory for this new point
       @ In, rlz, dict, realized realization
       @ In, objectiveVal, list, objective values at each chromosome of the realization
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
     self.raiseADebug('*'*80)
@@ -632,11 +654,8 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      for i in range(rlz.sizes['RAVEN_sample_ID']):
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled)
-        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
-        rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-        self._updateSolutionExport(traj, rlzDict, acceptable, None)
+      self._solutionExportUtilityUpdate(traj, rlz, fitness, g, acceptable)
+
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -650,7 +669,7 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def _collectOptPoint(self, population, fitness, objectiveVal):
+  def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
@@ -658,9 +677,16 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-    optPoints,fit,obj = zip(*[[x,y,z] for x, y, z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
-    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(self.toBeSampled.keys()))
+
+    varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
+    varList = set(varList)
+    selVars = [var for var in varList if var in rlz.data_vars]
+    population = datasetToDataArray(rlz, selVars)
+    optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
+    point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
+    gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+      point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]
       self.bestObjective = obj[0]
@@ -761,6 +787,26 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
+  def _checkConvHDSM(self, traj, **kwargs):
+    """
+      Computes the Hausdorff Distance Similarity Metric as the termination criteria
+      @ In, traj, int, trajectory identifier
+      @ In, kwargs, dict, dictionary of parameters for SAHDp termination criteria:
+            old, np.array, old generation
+            new, np.array, new generation
+      @ Out, converged, bool, convergence state
+    """
+    old = kwargs['old'].data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
+    self.hdsm = self._hdsm(old, new)
+    converged = (self.hdsm >= self._convergenceCriteria['HDSM'])
+    self.raiseADebug(self.convFormat.format(name='HDSM',
+                                            conv=str(converged),
+                                            got= self.hdsm,
+                                            req=self._convergenceCriteria['HDSM']))
+
+    return converged
+
   def _ahdp(self, a, b, p):
     """
       p-average Hausdorff Distance for generation convergence
@@ -821,6 +867,37 @@ class GeneticAlgorithm(RavenSampled):
       s.append(self._popDist(a[i,:],b))
 
     return max(s)
+
+  def _envelopeSize(self,a,b):
+    r"""
+      Compute hyper diagonal of envelope containing old and new population
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+    """
+    aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
+    bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
+    sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
+    hyperDiagonal = mathUtils.hyperdiagonal(sides)
+    return hyperDiagonal
+
+  def _hdsm(self, a, b):
+    """
+      Hausdorff Distance Similarity Measure for generation convergence
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _hdsm, float, average Hausdorff distance
+    """
+    normFactor = self._envelopeSize(a, b)
+    ahd = self._ahd(a,b)
+    if mathUtils.compareFloats(ahd, 0.0, 1e-14):
+      return 1.
+    if mathUtils.compareFloats(normFactor, 0.0, 1e-14):
+      # the envelope has a zero size (=> populations are
+      # composed by the same genes (all the same numbers
+      # => minimum == maximum within the population
+      return 1.
+    return  1. - ahd / normFactor
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -955,7 +1032,8 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
-             'AHD': self.ahd}
+             'AHD': self.ahd,
+             'HDSM': self.hdsm}
 
     for var, val in self.constants.items():
       toAdd[var] = val
@@ -982,6 +1060,8 @@ class GeneticAlgorithm(RavenSampled):
         new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
       elif '{VAR}' in template:
         new.extend([template.format(VAR=var) for var in self.toBeSampled])
+      elif '{CONSTRAINT}' in template:
+        new.extend([template.format(CONSTRAINT=constraint.name) for constraint in self._constraintFunctions + self._impConstraintFunctions])
       else:
         new.append(template)
 

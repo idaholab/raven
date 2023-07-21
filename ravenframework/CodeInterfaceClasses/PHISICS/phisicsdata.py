@@ -250,11 +250,11 @@ class phisicsdata():
     valueList = []
     tree = ET.parse(os.path.join(self.workingDir, xsOutput))
     root = tree.getroot()
-    for materialXML in root.getiterator('library'):
-      for isotopeXML in materialXML.getiterator('isotope'):
+    for materialXML in root.iter('library'):
+      for isotopeXML in materialXML.iter('isotope'):
         reactionList = [j.tag for j in isotopeXML]
         for react in reactionList:
-          for groupXML in isotopeXML.getiterator(react):
+          for groupXML in isotopeXML.iter(react):
             individualGroup = [
                 x.strip() for x in groupXML.attrib.get('g').split(',')
             ]

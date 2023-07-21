@@ -46,6 +46,8 @@ class MLPRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.neural_network
     self.model = sklearn.neural_network.MLPRegressor
+    #These lists are used by writeXML in ScikitLearnBase
+    self._vectorWriteList = ["coefs_", "intercepts_"]
 
   @classmethod
   def getInputSpecification(cls):
@@ -64,7 +66,7 @@ class MLPRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType,
                                                  descr=r"""The ith element represents the number of neurons in the ith hidden layer.
                                                  lenght = n\_layers - 2""", default=(100,)))
-    specs.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.makeEnumType("activation", "activationType",['identity', 'logistic', 'tanh','tanh']),
+    specs.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.makeEnumType("activation", "activationType",['identity', 'logistic', 'tanh','relu']),
                                                  descr=r"""Activation function for the hidden layer:
                                                  \begin{itemize}
                                                    \item identity:  no-op activation, useful to implement linear bottleneck, returns $f(x) = x$

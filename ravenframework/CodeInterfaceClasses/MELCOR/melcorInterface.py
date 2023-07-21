@@ -15,15 +15,13 @@
   Created on April 18, 2017
   @author: Matteo Donorio (University of Rome La Sapienza)
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import copy
 import sys
-import MELCORdata
+from . import MELCORdata
 from ravenframework.utils import utils
-import GenericParser
-from melgenInterface import MelgenApp
+from ..Generic import GenericParser
+from .melgenInterface import MelgenApp
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class MelcorApp(CodeInterfaceBase):

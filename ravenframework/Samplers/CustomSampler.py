@@ -128,7 +128,7 @@ class CustomSampler(Sampler):
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
       @ In, None
-      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
+      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distribtions are needed and the Source is loaded automatically)
     """
     needDict = {}
     needDict['Functions'] = [] # In case functions have been inputted
@@ -173,7 +173,7 @@ class CustomSampler(Sampler):
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
       headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
-      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float64, delimiter=',', skiprows=1, ndmin=2)
       lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled:

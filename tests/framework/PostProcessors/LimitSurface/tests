@@ -27,14 +27,19 @@
   rel_err = 0.0001
  [../]
 
- [./testLimitSurfaceIntegralPPWihtBoundingError]
+ [./testLimitSurfaceIntegralPPWithBoundingError]
   type = 'RavenFramework'
   input = 'test_LimitSurface_with_err_bounds.xml'
   output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.xml'
-  csv = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
   max_time = 300
   rel_err = 0.001
-  skip_if_OS = windows
+  # replace skip_if_OS = windows with Windows specific gold file
+  [./csv]
+   type = OrderedCSV
+   output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
+   windows_gold = 'limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
+   mac_gold =  'limitSurfaceBoundingError/MacLimitSurfaceWeightedPb_dump.csv'
+   [../]
  [../]
 
 

@@ -54,7 +54,7 @@
         <xlabel>X</xlabel>
         <ylabel>Y</ylabel>
         <legend>
-          <loc>best</loc>
+          <loc>upper right</loc>
           <ncol>2</ncol>
         </legend>
       </plotSettings>

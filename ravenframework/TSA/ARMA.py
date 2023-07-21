@@ -25,23 +25,29 @@ from ..utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, imp
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 from .. import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer
 
 
 # utility methods
-class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
   # class attribute
   ## define the clusterable features for this trainer.
-  _features = [] # TODO
+  _features = ['ar',
+               'ma',
+               'sigma2',
+               'const']
+  _acceptsMissingValues = True
+  _isStochastic = True
 
   @classmethod
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
+      @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -91,7 +97,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
@@ -116,7 +122,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       settings['reduce_memory'] = False
     return settings
 
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -140,13 +146,15 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
     for tg, target in enumerate(targets):
       params[target] = {}
       history = signal[:, tg]
+      mask = ~np.isnan(history)
       if settings.get('gaussianize', True):
         # Transform data to obatain normal distrbuted series. See
         # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
-        params[target]['cdf'] = mathUtils.characterizeCDF(history, binOps=2, minBins=self._minBins)
-        normed = mathUtils.gaussianize(history, params[target]['cdf'])
+        params[target]['cdf'] = mathUtils.characterizeCDF(history[mask], binOps=2, minBins=self._minBins)
+        normed = history
+        normed[mask] = mathUtils.gaussianize(history[mask], params[target]['cdf'])
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
@@ -154,7 +162,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       Q = settings['Q']
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
-      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q))
+      model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
       # NOTE on low_memory use, test using SyntheticHistory.ARMA test:
       #   case    | time used (s) | memory used (MiB)
@@ -177,15 +185,53 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       selCov = r.dot(q).dot(r.T)
       initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
       initDist = {'mean': initMean, 'cov': initCov}
-      params[target]['arma'] = {'const': res.params[0], # exog/intercept/constant
-                                'ar': res.arparams,     # AR
-                                'ma': res.maparams,     # MA
-                                'var': res.params[-1],  # variance
+      params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
+                                'ar': -res.polynomial_ar[1:],     # AR
+                                'ma': res.polynomial_ma[1:],     # MA
+                                'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'model': model}
       if not settings['reduce_memory']:
         params[target]['arma']['results'] = res
     return params
+
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    # The residual for an ARMA model can be useful, and we want to return that if it's available.
+    # If the 'reduce_memory' option was used, then the ARIMAResults object from fitting the model
+    # where that residual is stored is not available. In that case, we simply return the original.
+    if settings['reduce_memory']:
+      return initial
+
+    residual = initial.copy()
+    for t, (target, data) in enumerate(params.items()):
+      residual[:, t] = data['arma']['results'].resid
+
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    # Add a generated ARMA signal to the initial signal.
+    synthetic = self.generate(params, pivot, settings)
+    composite = initial + synthetic
+    return composite
 
   def getParamNames(self, settings):
     """
@@ -220,30 +266,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       for q, ma in enumerate(info['arma']['ma']):
         rlz[f'{base}__MA__{q}'] = ma
     return rlz
-
-  def getResidual(self, initial, params, pivot, settings):
-    """
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
-    """
-    raise NotImplementedError('ARMA cannot provide a residual yet; it must be the last TSA used!')
-    # FIXME how to get a useful residual?
-    # -> the "residual" of the ARMA is ideally white noise, not a 0 vector, even if perfectly fit
-    #    so what does it mean to provide the residual from the ARMA training?
-    # in order to use "predict" (in-sample forecasting) can't be in low-memory mode
-    # if settings['reduce_memory']:
-    #   raise RuntimeError('Cannot get residual of ARMA if in reduced memory mode!')
-    # for tg, (target, data) in enumerate(params.items()):
-    #   armaData = data['arma']
-    #   modelParams = np.hstack([[armaData.get('const', 0)],
-    #                            armaData['ar'],
-    #                            armaData['ma'],
-    #                            [armaData.get('var', 1)]])
-    #   new = armaData['model'].predict(modelParams)
 
   def generate(self, params, pivot, settings):
     """
@@ -294,6 +316,62 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
 
+  # clustering
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    # nameTemplate convention:
+    # -> target is the trained variable (e.g. Signal, Temperature)
+    # -> metric is the algorithm used (e.g. Fourier, ARMA)
+    # -> id is the subspecific characteristic ID (e.g. sin, AR_0)
+    features = {}
+    for target, info in params.items():
+      data = info['arma']
+      if 'ar' in requests:
+        for p, phi in enumerate(data['ar']):
+          key = nameTemplate.format(target=target, metric=self.name, id=f'ar_{p}')
+          features[key] = phi
+      if 'ma' in requests:
+        for q, theta in enumerate(data['ma']):
+          key = nameTemplate.format(target=target, metric=self.name, id=f'ma_{q}')
+          features[key] = theta
+      if 'const' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='const')
+        features[key] = data['const']
+      if 'var' in requests:
+        key = nameTemplate.format(target=target, metric=self.name, id='var')
+        features[key] = data['var']
+      # TODO mean? should always be 0
+      # TODO CDF properties? might change noise a lot ...
+    return features
+
+  def setClusteringValues(self, fromCluster, params):
+    """
+      Interpret returned clustering settings as settings for this algorithm.
+      Acts somewhat as the inverse of getClusteringValues.
+      @ In, fromCluster, list(tuple), (target, identifier, values) to interpret as settings
+      @ In, params, dict, trained parameter settings
+      @ Out, params, dict, updated parameter settings
+    """
+    # TODO this needs to be fast, as it's done a lot.
+    for target, identifier, value in fromCluster:
+      value = float(value)
+      if identifier in ['const', 'var']:
+        params[target]['arma'][identifier] = value
+      elif identifier.startswith('ar_'):
+        index = int(identifier.split('_')[1])
+        params[target]['arma']['ar'][index] = value
+      elif identifier.startswith('ma_'):
+        index = int(identifier.split('_')[1])
+        params[target]['arma']['ma'][index] = value
+    return params
+
+  # utils
   def _generateNoise(self, model, initDict, size):
     """
       Generates purturbations for ARMA sampling.

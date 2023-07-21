@@ -43,4 +43,9 @@
    csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
    output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
  [../]
+ [./ProjectileCodePlugin]
+   type = 'RavenFramework'
+   input = test_projectile_code_plugin.xml
+   output = 'ProjectileCodePlugin/to_file.csv'
+ [../]
 []

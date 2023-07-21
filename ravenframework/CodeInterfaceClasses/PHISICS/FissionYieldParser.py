@@ -34,9 +34,8 @@ class FissionYieldParser():
         pertDict)  # Perturbed variables
 
     # open the unperturbed file
-    openInputFile = open(self.inputFiles, "r")
-    lines = openInputFile.readlines()
-    openInputFile.close()
+    with open(self.inputFiles, "r") as openInputFile:
+      lines = openInputFile.readlines()
 
     self.characterizeLibrary(lines)
     self.isotopeList = list(set(

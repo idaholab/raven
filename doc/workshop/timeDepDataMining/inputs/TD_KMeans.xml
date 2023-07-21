@@ -5,7 +5,7 @@
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
-    <description>Workshop test: Time dependent data mining with KMeans analysis wit preprocessor</description>
+    <description>Workshop test: Time dependent data mining with KMeans analysis with preprocessor</description>
     <revisions>
       <revision author="wangc" date="2018-09-27">
         As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
@@ -100,22 +100,17 @@
         <precompute_distances>True</precompute_distances>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
-      <method>HS2PS</method>
+    <PostProcessor name="dataPreProc" subType="HS2PS">
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter0" subType="dataObjectLabelFilter">
       <label>KMeans1Labels</label>
       <clusterIDs>0</clusterIDs>
     </PostProcessor>
-    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter1" subType="dataObjectLabelFilter">
       <label>KMeans1Labels</label>
       <clusterIDs>1</clusterIDs>
     </PostProcessor>

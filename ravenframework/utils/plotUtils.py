@@ -22,7 +22,8 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import numpy as np
-
+from pandas.plotting import parallel_coordinates
+import pandas as pd
 
 def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
   """
@@ -54,16 +55,25 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
     @ Out, None
   """
   N = zs.shape[0]
+  zs = zs.astype(np.float64)
+  dys = ymaxs - ymins
+  zs[:, 0] = zs[:, 0]
+  zs[:, 1:] = (zs[:, 1:] - ymins[1:]) / dys[1:] * dys[0] + ymins[1:]
 
-  fig, host = plt.subplots()
+  fig, host = plt.subplots(figsize=(15, 8))
 
   axes = [host] + [host.twinx() for i in range(zs.shape[1] - 1)]
   for i, ax in enumerate(axes):
-    ax.set_ylim(ymins[i], ymaxs[i])
+    ax.set_aspect('auto')
+    ax.set_ylim((int(ymins[i]), int(ymaxs[i])))
+    ax.set_yticks(np.arange(ymins[i], ymaxs[i]+1, 1))
     ax.spines['top'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
     if ax != host:
+      ax.spines['left'].set_visible(False)
+      ax.yaxis.set_ticks_position('right')
       ax.spines["right"].set_position(("axes", i / (zs.shape[1] - 1)))
+      ax.tick_params(axis='y', which='major', pad=7)
 
   host.set_xlim(0, zs.shape[1] - 1)
   host.set_xticks(range(zs.shape[1]))
@@ -75,11 +85,14 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   host.set_title(plot_title, fontsize=14)
 
   for j in range(N):
-    verts = list(zip([x for x in np.linspace(0, len(zs) - 1, len(zs) * 3 - 2, endpoint=True)],
+    host.plot(range(zs.shape[1]), zs[j,:])
+    '''verts = list(zip([x for x in np.linspace(0, len(zs) - 1, len(zs) * 3 - 2, endpoint=True)],
                      np.repeat(zs[j, :], 3)[1:-1]))
     codes = [Path.MOVETO] + [Path.CURVE4 for _ in range(len(verts) - 1)]
     path = Path(verts, codes)
     patch = patches.PathPatch(path, facecolor='none', lw=1)
-    host.add_patch(patch)
+    host.add_patch(patch)'''
+
   plt.tight_layout()
   plt.savefig(fileID)
+  plt.close()

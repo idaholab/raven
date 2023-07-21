@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Created May 8, 2016
+
+@author: wangc
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
@@ -456,16 +461,15 @@ class YakInstantLibraryParser():
       @ Out, None.
     """
     for outFile in inFiles:
-      newFile = open(outFile.getAbsFile(),'w')
-      tree = self.xmlsDict[outFile.getFilename()]
-      root = tree.getroot()
-      for child in root:
-        for mat in child:
-          matID = mat.attrib['ID'].strip()
-          if matID not in self.aliases.keys():
-            continue
-          self._replaceXMLNodeText(mat,self.pertLib[matID])
+      with open(outFile.getAbsFile(),'w') as newFile:
+        tree = self.xmlsDict[outFile.getFilename()]
+        root = tree.getroot()
+        for child in root:
+          for mat in child:
+            matID = mat.attrib['ID'].strip()
+            if matID not in self.aliases.keys():
+              continue
+            self._replaceXMLNodeText(mat,self.pertLib[matID])
 
-      toWrite = self._prettify(tree)
-      newFile.writelines(toWrite)
-      newFile.close()
+        toWrite = self._prettify(tree)
+        newFile.writelines(toWrite)

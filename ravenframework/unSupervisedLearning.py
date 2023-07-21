@@ -267,7 +267,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
         # compute the pairwised distance for given matrix
         self.normValues = metric.evaluatePairwise((normValues,None))
 
-    self.__trainLocal__()
+    self._train()
     self.amITrained = True
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
@@ -354,7 +354,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
 
   @abc.abstractmethod
-  def __trainLocal__(self):
+  def _train(self):
     """
       Perform training...
       @ In, none
@@ -499,7 +499,7 @@ class SciKitLearn(unSupervisedLearning):
     self.normValues = None
     self.outputDict = {}
 
-  def __trainLocal__(self):
+  def _train(self):
     """
       Perform training on samples in self.normValues: array,
       shape = [n_samples, n_features] or [n_samples, n_samples]
@@ -890,10 +890,10 @@ class temporalSciKitLearn(unSupervisedLearning):
         self.muAndSigmaFeatures[feature][1,t] = sigma
 
     self.inputDict = tdict
-    self.__trainLocal__()
+    self._train()
     self.amITrained = True
 
-  def __trainLocal__(self):
+  def _train(self):
     """
       Method to train this class.
     """
@@ -1319,7 +1319,7 @@ class Scipy(unSupervisedLearning):
     self.normValues = None
     self.outputDict = {}
 
-  def __trainLocal__(self):
+  def _train(self):
     """
       Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
       @ In, None

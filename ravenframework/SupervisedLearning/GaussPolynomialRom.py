@@ -143,7 +143,7 @@ class GaussPolynomialRom(SupervisedLearning):
     interpolationParam.addParam("weight", InputTypes.FloatType, required=False,
                   descr=r"""delineates the importance weighting of this dimension.  A larger importance weight will
                   result in increased resolution for this dimension at the cost of resolution in lower-weighted
-                  dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
+                  dimensions.  The algorithm normalizes weights at run-time.""", default=1)
     specs.addSub(interpolationParam)
     return specs
 
@@ -427,7 +427,7 @@ class GaussPolynomialRom(SupervisedLearning):
       tot*=self.polys[varName](o,p)
     return tot
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Trains ROM.
       @ In, featureVals, np.ndarray, feature values

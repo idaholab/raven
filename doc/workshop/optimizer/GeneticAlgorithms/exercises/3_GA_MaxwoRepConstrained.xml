@@ -1,0 +1,194 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>doc/workshop/optimizer/GeneticAlgorithms/inputs.GA_MaxwoRepConstrained</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2022-07-21</created>
+    <classesTested/>
+    <description>Workshop test: GA maximization without replacement Constrained</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MaxwoReplacementConstrained</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">LocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../Models/LocalSum.py" name="LocalSum" subType="">
+      <variables>x1,x2,x3,x4,x5,x6,obj</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../Models/myConstraints.py" name="expConstr1">
+      <variables>x1,x2,x3,x4,x5,x6</variables>
+    </External>
+    <External file="../../Models/myConstraints.py" name="impConstr1">
+      <variables>x1,x2,x3,x4,x5,x6,obj</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <UniformDiscrete name='woRep_dist'>
+      <lowerBound>2</lowerBound>
+      <upperBound>7</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+    <UniformDiscrete name='wRep_dist'>
+      <lowerBound>2</lowerBound>
+      <upperBound>7</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>25</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>max</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>20</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.9</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="invLinear">
+          <a>1.0</a>
+          <b>20</b><!--Complete this-->
+        </fitness>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <objective>obj</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Constraint class='Functions' type='External'>expConstr1</Constraint><!--Complete this-->
+      <!-- <ImplicitConstraint class='Functions' type='External'>impConstr1</ImplicitConstraint> -->
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3,x4,x5,x6</Input>
+      <Output>obj</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,x4,x5,x6,obj,age,batchId,fitness,iteration,accepted,conv_objective</Output><!--Modify if necessary-->
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x1,x2,x3,x4,x5,x6,obj</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source>opt_export</source>
+      <vars>x1,x2,x3,x4,x5,x6,obj</vars>
+      <logVars>obj</logVars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>

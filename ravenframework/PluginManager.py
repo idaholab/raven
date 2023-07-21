@@ -29,7 +29,7 @@ from collections import defaultdict
 from .PluginBaseClasses import PluginBase
 from .utils import xmlUtils
 
-
+_filePath = os.path.dirname(__file__)
 ## custom errors
 class PluginError(RuntimeError):
   """
@@ -91,7 +91,14 @@ def finishLoadPlugin(name):
     @ Out, available, bool, if True then plugin is available to use
   """
   if name not in _delayedPlugins:
-    return False
+    #Try to find module in system (such as from pip install)
+    #Note that loadEntities (below) checks if there is a subclass of
+    # PluginBase.PluginBase before using it, so this is safe.
+    spec = importlib.util.find_spec(name)
+    if spec is None:
+      return False
+    plugin = importlib.util.module_from_spec(spec)
+    _delayedPlugins[name] = (spec, plugin, False)
   spec, plugin, loaded = _delayedPlugins[name]
   if not loaded:
     spec.loader.exec_module(plugin)
@@ -149,11 +156,12 @@ def getEntities(entityType=None):
 _pluginEntities = defaultdict(dict)
 
 # load plugins directory and collect plugins
-pluginsPath = os.path.join(os.path.dirname(__file__), '..', 'plugins')
-# use "catalogue" to differentiate between "path" and "directory"
-pluginsCatalogue = os.path.abspath(os.path.join(pluginsPath, 'plugin_directory.xml'))
-# if no installed plugins, report and finish; otherwise, load plugins
-if os.path.isfile(pluginsCatalogue):
-  loadPlugins(pluginsPath, pluginsCatalogue)
-else:
-  print('PluginFactory: No installed plugins detected.')
+pluginsPath = os.path.join(_filePath, '..', 'plugins')
+if os.path.isdir(pluginsPath): #If false, then probably running as pip package
+  # use "catalogue" to differentiate between "path" and "directory"
+  pluginsCatalogue = os.path.abspath(os.path.join(pluginsPath, 'plugin_directory.xml'))
+  # if no installed plugins, report and finish; otherwise, load plugins
+  if os.path.isfile(pluginsCatalogue):
+    loadPlugins(pluginsPath, pluginsCatalogue)
+  else:
+    print('PluginFactory: No installed plugins detected.')

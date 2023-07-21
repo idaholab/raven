@@ -106,7 +106,13 @@
    output = 'GenericInterfaceIOCustomOutput/samples.xml'
    csv = 'GenericInterfaceIOCustomOutput/samples.csv'
  [../]
-
+ [./genericInterfaceDataSet]
+   type = 'RavenFramework'
+   input = 'test_generic_dataset.xml'
+   output = 'GenericDataSet/samples.xml'
+   csv = 'GenericDataSet/samples.csv'
+   test_interface_only = True
+ [../]
  [./melcorInterfaceForwardSamplingNoExe]
    type = 'RavenFramework'
    input = 'test_melcor_interface.xml'

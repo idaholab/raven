@@ -99,8 +99,8 @@ class Grid(Sampler):
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
-    # FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
-    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable", "Distribution"], dimTagsPrefix={"Distribution": "<distribution>"})
+    self.gridEntity._handleInput(paramInput, dimensionTags=["variable", "Distribution"], dimTagsPrefix={"Distribution": "<distribution>"})
+
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
@@ -108,6 +108,12 @@ class Grid(Sampler):
       self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
+    # check that grid in CDF contains values in the [0,1] interval
+    for key in grdInfo:
+      if grdInfo[key][0] == 'CDF':
+        valueArrays = grdInfo[key][2]
+        if min(valueArrays)<0.0 or max(valueArrays)>1.0:
+          self.raiseAnError(IOError, ("Grid sampler " + str(self.name) + ": Grid associated with variable " + str(key) + " is outside the [0,1] interval"))
 
   def localGetInitParams(self):
     """
@@ -185,6 +191,7 @@ class Grid(Sampler):
                                       f'of the given distribution "{self.distDict[varName].type}" ({distLB}, {distUB})'))
       else:
         self.raiseAnError(IOError, f'{self.gridInfo[varName]} is not known as value keyword for type. Sampler: {self.name}')
+
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
       coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)

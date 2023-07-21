@@ -3,4 +3,16 @@
     type = 'RavenPython'
     input = 'testARMA.py'
   [../]
+
+  [./pickle_rom]
+    type = 'RavenFramework'
+    input = 'pickle_rom.xml'
+    output = 'ROM.pk DMDcCxCoeff.xml'
+  [../]
+
+  [./test_script_ROM_inputs]
+    type = 'RavenPython'
+    input = 'testScriptROMInputs.py'
+    prereq = pickle_rom
+  [../]
 []

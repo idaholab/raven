@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.ZeroFilterDiscontinuous</name>
+    <author>j-bryan</author>
+    <created>2022-09-26</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the ARMA model handling of zero filtering when filtered values fall in the middle of the array
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ZeroFilterDiscontinuous</WorkingDir>
+    <Sequence>load, train, meta, serialize, sample</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">Data.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">meta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synth</Output>
+      <Output class="OutStreams" type="Print">synth</Output>
+    </MultiRun>
+
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <HistorySet name="input">
+      <Input>scaling,YEAR</Input>
+      <Output>TOTALLOAD,WIND,SOLAR,HOUR</Output>
+      <options>
+        <pivotParameter>HOUR</pivotParameter>
+      </options>
+    </HistorySet>
+
+    <DataSet name="synth">
+      <Input>scaling</Input>
+      <Output>TOTALLOAD,WIND,SOLAR</Output>
+      <Index var="HOUR">TOTALLOAD,WIND,SOLAR</Index>
+    </DataSet>
+    <DataSet name="meta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <pivotParameter>HOUR</pivotParameter>
+      <Features>scaling</Features>
+      <Target>TOTALLOAD,WIND,SOLAR,HOUR</Target>
+      <P>1</P>
+      <Q>0</Q>
+      <Fourier>24, 12</Fourier>
+      <SpecificFourier variables='TOTALLOAD,WIND'>
+        <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
+      </SpecificFourier>
+      <ZeroFilter>SOLAR</ZeroFilter>
+      <outTruncation domain='positive'>SOLAR</outTruncation>
+      <reseedCopies>True</reseedCopies>
+      <seed>42</seed>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>meta</source>
+    </Print>
+
+    <Print name="synth">
+      <type>csv</type>
+      <source>synth</source>
+    </Print>
+  </OutStreams>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+</Simulation>

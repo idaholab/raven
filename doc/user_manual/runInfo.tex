@@ -167,10 +167,22 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 %
 \default{1}
 
+%%%%%% parallelMethod
+
+\item \xmlNode{parallelMethod}, \xmlDesc{string, optional field}, is a string that specifies which parallelMethod should be used for internal objects (e.g., ROMs, External Models, PostProcessors, etc.).  The number of threads or processes is \xmlNode{batchSize}.
+  If this flag is set to:
+  \begin{itemize}
+  \item  \textbf{\texttt{shared}}, default value, which uses shared memory threading for running tasks.
+  \item \textbf{\texttt{distributed}}, automatically chooses a distributed library from the following libraries.
+  \item \textbf{\texttt{dask}}, use Dask for distributed running tasks.
+  \item \textbf{\texttt{ray}}, use Ray for distributed running tasks.
+  \end{itemize}
+  \default{shared}
+
 %%%%%% internalParallel
 \item \xmlNode{internalParallel}, \xmlDesc{boolean, optional field}, is a boolean
 flag that controls the type of parallel implementation needs to be used for Internal
-Objects (e.g., ROMs, External Models, PostProcessors, etc.).
+Objects (e.g., ROMs, External Models, PostProcessors, etc.).  It is recommended that parallelMethod be used instead of this flag.
 If this flag is set to:
 \begin{itemize}
  \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading
@@ -273,20 +285,10 @@ automatically sets this option )
 %
 \default{None - Automatic detection}
 
-%%%%%% redisPassword
-\item \xmlNode{redisPassword}, \xmlDesc{string, optional
-field}, specifies, if \xmlNode{internalParallel} is set to true, the password used by the RAVEN internal parallelization
-in order to link multiple sockets to the main RAVEN runner. If set, in conjunction with  \xmlNode{headNode},  the RAVEN internal parallelization will try to link
-to an already established parallel enviroment (without re-instanciating another).
-\nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
-automatically sets this option )
-%
-\default{None - Automatic detection}
-
 %%%%%% remoteNodes
 \item \xmlNode{remoteNodes}, \xmlDesc{comma separated string, optional
 field}, specifies, if \xmlNode{internalParallel} is set to true, the list of nodes (IPs) that should be used by the RAVEN to deploy its internal parallelization.
-If set, in conjunction with  \xmlNode{headNode} and \xmlNode{redisPassword},  the RAVEN internal parallelization will try to link
+If set, in conjunction with  \xmlNode{headNode},  the RAVEN internal parallelization will try to link
 to an already established parallel enviroment (without re-instanciating another).
 \nb This option is generally used when multiple instances of RAVEN are run in the same HPC clusters (e.g. RAVEN running RAVEN, which
 automatically sets this option )
@@ -300,6 +302,10 @@ field}, specifies additional PATH that should be added in the $PYTHONPATH$ befor
 additional path that will be added to the PYTHONPATH (e.g. path of python scripts that are used in driven models, etc.)
 %
 \default{None}
+
+%%%%%% schedulerFile
+\item \xmlNode{schedulerFile}, \xmlDesc{string, option field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.  This allows RAVEN to use an already started dask scheduler.  The scheduler file is created by running \texttt{dask scheduler --scheduler-file schedulerFile} which is also how RAVEN starts dask if this node is not provided.
+  \default{None}
 
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,98 @@
+\section{PostProcessor Plugins}
+\label{sec:postprocessorPlugins}
+
+Similar to other entities plugins, the PostProcessor plugin accepts RAVEN DataObject(s) as input(s),
+perform additional operations on the data stored in the DataObject(s), and save the calculations
+results into a new RAVEN DataObject. This procedure does not require modifying RAVEN itself, and the
+developed plugin entity is going to be embedded in RAVEN at run-time.
+
+At the initialization stage, RAVEN imports all the \texttt{PostProcessor} plugin entity that are contained in
+\texttt{plugin/src} directory and performs some preliminary cross-checks.
+\\It is important to notice that the name of class in the plugin entity module is the one
+the user needs to specify when the new postprocessor plugin entity needs to be used.
+For example, if the new plugin module contains the class ``NewPostProcessor'',
+the \textit{subType} in the \xmlNode{PostProcessor} block will be \xmlAttr{PluginName.NewPostProcessor}:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+  class NewPostProcessor(PostProcessorPluginBase):
+    ...
+\end{lstlisting}
+\begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
+  <Models>
+    ...
+    <PostProcessor name='whatever' subType='PluginName.NewPostProcessor'>
+     ...
+    </PostProcessor>
+    ...
+  </Models>
+\end{lstlisting}
+
+When loading an ``PostProcessor Plugin entities'', RAVEN expects to find, in the class
+representing the plugin, the following required methods:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
+  class NewCode(CodePluginBase):
+    ...
+    def run(self,inputIn):
+      """
+       This method to perform operations on the data from input DataObject(s)
+       @ In, inputIn, dict, dictionary which contains the data inside the input DataObject
+       @ Out, outputDict, dict, the output dictionary, passing through HistorySet info
+      """
+\end{lstlisting}
+
+Where the input \texttt{inputIn} for \textbf{run} method has the following format:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+inputIn = {'Data':listData, 'Files':listOfFiles},
+listData has the following format if 'xrDataset' is passed to self.setInputDataType('xrDataset')
+(listOfInputVars, listOfOutVars, xr.Dataset)
+Otherwise listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+DataDict is a dictionary that has the format:
+    dataDict['dims']     = dict {varName:independentDimensions}
+    dataDict['metadata'] = dict {metaVarName:metaVarValue}
+    dataDict['type'] = str TypeOfDataObject
+    dataDict['inpVars'] = list of input variables
+    dataDict['outVars'] = list of output variables
+    dataDict['numberRealization'] = int SizeOfDataObject
+    dataDict['name'] = str DataObjectName
+    dataDict['metaKeys'] = list of meta variables
+    dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
+\end{lstlisting}
+
+In addition, the following optional methods can be specified:
+\begin{lstlisting}[language=python, basicstyle=\scriptsize\ttfamily, breaklines=True, columns=fullflexible]
+  from ravenframework.PluginBaseClasses.CodePluginBase import CodePluginBase
+  class NewCode(CodePluginBase):
+    ...
+    @classmethod
+    def getInputSpecification(cls):
+      """
+        Method to get a reference to a class that specifies the input data for
+        class cls.
+        @ In, cls, the class for which we are retrieving the specification
+        @ Out, inputSpecification, InputData.ParameterInput, class to use for
+          specifying input of cls.
+      """
+    def __init__(self):
+      """
+        Constructor
+        @ In, None
+        @ Out, None
+      """
+    def initialize(self, runInfo, inputs, initDict=None):
+      """
+        Method to initialize the DataClassifier post-processor.
+        @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+        @ In, inputs, list, list of inputs
+        @ In, initDict, dict, optional, dictionary with initialization options
+        @ Out, None
+      """
+    def _handleInput(self, paramInput):
+      """
+        Function to handle the parameter input.
+        @ In, paramInput, ParameterInput, the already parsed input.
+        @ Out, None
+      """
+\end{lstlisting}
+
+The explanation for all above optional methods can be found in section \ref{subsec:commonMethods}.

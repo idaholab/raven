@@ -80,7 +80,8 @@ def setupFramework():
     @ In, None
     @ Out, None
   """
-  frameworkDir = findFramework()
+  #Get the directory above the ravenframework directory
+  frameworkDir = os.path.dirname(findFramework())
   if frameworkDir not in sys.path:
     sys.path.append(frameworkDir)
 
@@ -102,12 +103,6 @@ def setupCpp():
   frameworkDir = findFramework()
 
   utils.find_crow(frameworkDir)
-
-  if any(os.path.normcase(sp) == os.path.join(frameworkDir, 'contrib', 'pp') for sp in sys.path):
-    print(f'WARNING: "{os.path.join(frameworkDir,"contrib", "pp")}" already in system path. Skipping CPP setup')
-  else:
-    # TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
-    utils.add_path_recursively(os.path.join(frameworkDir, 'contrib', 'pp'))
 
 def checkVersions():
   """
@@ -147,7 +142,7 @@ def checkVersions():
       print(msg)
   if notQA:
     print('ERROR: Some required Python libraries have incorrect versions for running RAVEN as configured:')
-    for lib, found, need in notQA:
+    for lib, need, found in notQA:
       print(f'  -> WRONG VERSION: lib "{lib}" need "{need}" but found "{found}"')
   if missing or notQA:
     print('Try installing libraries using instructions on RAVEN repository wiki at ' +
