@@ -63,8 +63,8 @@ class Scale(CodeInterfaceBase):
     if self.sequence.count('csas') == 1:
       if self.sequence.count('triton') > 0 or self.sequence.count('origen') > 0:
         raise IOError("If csas sequence is activated, nor triton/origen special sequence can be activated!")
-    
-    
+
+
     timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
@@ -81,7 +81,7 @@ class Scale(CodeInterfaceBase):
     origen = []
     triton = []
     csas = []
-    
+
     for inputFile in inputFiles:
       if inputFile.getType().strip().lower() == "triton":
         triton.append(inputFile)
@@ -97,7 +97,7 @@ class Scale(CodeInterfaceBase):
       raise IOError('multiple SCALE csas input files have been found. Only one is allowed!')
     if len(csas) > 0 and len(triton) > 0 and len(origen) > 0:
       raise IOError('multiple SCALE csas, origen and triton input files have been found. Only one is allowed!')
-      
+
     # Check if the input requested by the sequence has been found
     if self.sequence.count('triton') != len(triton):
       raise IOError('triton input file has not been found. Files type must be set to "triton"!')
