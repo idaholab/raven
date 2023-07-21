@@ -27,4 +27,13 @@
    test_interface_only = True
  [../]
 
+ [./ScaleCSAS]
+   type = 'RavenFramework'
+   input = test_scale_csas_output.xml
+   output = 'SCALE_csas/output_results.xml'
+   csv = 'SCALE_csas/output_results.csv'
+   rel_err = 0.00001
+   test_interface_only = True
+ [../]
+
 []

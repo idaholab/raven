@@ -27,6 +27,7 @@ import xml.etree.ElementTree as ET
 from ..Generic import GenericParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from .tritonAndOrigenData import origenAndTritonData
+from .csasData import csasData
 
 class Scale(CodeInterfaceBase):
   """
@@ -39,7 +40,7 @@ class Scale(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen','plain']
+    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen','csas']
     self.timeUOM  = 's'  # uom of time (i.e. s, h, m, d, y )
     self.outputRoot = {} # the root of the output sequences
 
@@ -59,9 +60,9 @@ class Scale(CodeInterfaceBase):
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
     if self.sequence.count('triton') > 1 or self.sequence.count('origen') > 1:
       raise IOError("Multiple triton or origen sequences are not supported yet!")
-    if self.sequence.count('plain') == 1:
+    if self.sequence.count('csas') == 1:
       if self.sequence.count('triton') > 0 or self.sequence.count('origen') > 0:
-        raise IOError("If plain sequence is activated, nor triton/origen special sequence can be activated!")
+        raise IOError("If csas sequence is activated, nor triton/origen special sequence can be activated!")
     
     
     timeUOM = xmlNode.find("timeUOM")
@@ -79,38 +80,38 @@ class Scale(CodeInterfaceBase):
     inputDict = {}
     origen = []
     triton = []
-    plain = []
+    csas = []
     
     for inputFile in inputFiles:
       if inputFile.getType().strip().lower() == "triton":
         triton.append(inputFile)
       elif inputFile.getType().strip().lower() == "origen":
         origen.append(inputFile)
-      elif inputFile.getType().strip().lower() == "plain":
-        plain.append(inputFile)
+      elif inputFile.getType().strip().lower() == "csas":
+        csas.append(inputFile)
     if len(triton) > 1:
       raise IOError('multiple triton input files have been found. Only one is allowed!')
     if len(origen) > 1:
       raise IOError('multiple origen input files have been found. Only one is allowed!')
-    if len(plain) > 1:
-      raise IOError('multiple SCALE plain input files have been found. Only one is allowed!')
-    if len(plain) > 0 and len(triton) > 0 and len(origen) > 0:
-      raise IOError('multiple SCALE plain, origen and triton input files have been found. Only one is allowed!')
+    if len(csas) > 1:
+      raise IOError('multiple SCALE csas input files have been found. Only one is allowed!')
+    if len(csas) > 0 and len(triton) > 0 and len(origen) > 0:
+      raise IOError('multiple SCALE csas, origen and triton input files have been found. Only one is allowed!')
       
     # Check if the input requested by the sequence has been found
     if self.sequence.count('triton') != len(triton):
       raise IOError('triton input file has not been found. Files type must be set to "triton"!')
     if self.sequence.count('origen') != len(origen):
       raise IOError('origen input file has not been found. Files type must be set to "origen"!')
-    if self.sequence.count('plain') != len(plain):
-      raise IOError('plain input file has not been found. Files type must be set to "plain"!')
+    if self.sequence.count('csas') != len(csas):
+      raise IOError('csas input file has not been found. Files type must be set to "csas"!')
     # add inputs
     if len(origen) > 0:
       inputDict['origen'] = origen
     if len(triton) > 0:
       inputDict['triton'] = triton
-    if len(plain) > 0:
-      inputDict['plain'] = plain
+    if len(csas) > 0:
+      inputDict['csas'] = csas
     return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
@@ -193,22 +194,8 @@ class Scale(CodeInterfaceBase):
     for key in self.outputRoot.keys():
       if self.outputRoot[key] is not None:
         filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
-    if outputType == 'plain':
-      fn =  os.path.join(workingDir,self.outputRoot[outputType]+".out")
-      with open(fn,"r+") as fobj:
-        keff, enAvgLetargy, nubar, meanFreePath = None, None, None, None
-        for line in fobj.readlines():
-          if line.strip().startswith("***") and "best estimate system k-eff" in line:
-            keff = line.split("best estimate system k-eff")[1].strip().split()[0]
-          if line.strip().startswith("***") and "Energy of average lethargy of Fission (eV)" in line:
-            enAvgLetargy = line.split("Energy of average lethargy of Fission (eV)")[1].strip().split()[0]
-          if line.strip().startswith("***") and "system nu bar" in line:
-            nubar = line.split("system nu bar")[1].strip().split()[0]
-          if line.strip().startswith("***") and "system mean free path (cm)" in line:
-            meanFreePath = line.split("system mean free path (cm)")[1].strip().split()[0]
-      with open (os.path.join(workingDir,output+".csv"),"w+") as fobj:
-        fobj.write("time,keff,AverageLethargyFission,nubar,meanFreePath\n")
-        fobj.write("0,{},{},{},{}\n".format(keff,enAvgLetargy,nubar,meanFreePath))
+    if outputType == 'csas':
+      outputParser = csasData(os.path.join(workingDir,self.outputRoot[outputType]+".out"))
     else:
       outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
-      outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
+    return outputParser.returnData()
