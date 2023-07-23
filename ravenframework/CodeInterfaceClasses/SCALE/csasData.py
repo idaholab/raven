@@ -41,7 +41,6 @@ class csasData:
       @ In, None
       @ Out, None
     """
-    self._data['time'] = [0.]
     with open(self.filename,"r+") as fobj:
       for line in fobj.readlines():
         if line.strip().startswith("***") and "best estimate system k-eff" in line:
