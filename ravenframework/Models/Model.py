@@ -226,29 +226,47 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     except KeyError:
       self.raiseADebug("Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
+
     for child in xmlNode:
       if child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys():
           if 'type' in child.attrib.keys():
             if child.attrib['type'].lower() not in ['input','output']:
-              self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
-            aliasType           = child.attrib['type'].lower().strip()
+              self.raiseAnError(IOError, 'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
+            aliasType = child.attrib['type'].lower().strip()
             complementAliasType = 'output' if aliasType == 'input' else 'input'
           else:
-            self.raiseAnError(IOError,'not found the attribute "type" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(IOError, f'The attribute "type" was not found for an alias in {self.type} model "{self.name}"!')
+
           varFramework, varModel = child.attrib['variable'], child.text.strip()
           if varFramework in self.alias[aliasType].keys():
-            self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+              IOError,
+              f'The alias for variable "{varFramework}" already exists in {self.type} model "{self.name}"!'
+            )
+
           if varModel in self.alias[aliasType].values():
-            self.raiseAnError(IOError,' The alias ' +varModel+' has been already used for another variable in model '+str(self.name) +' of type '+self.type)
-          if varFramework in self.alias[complementAliasType].keys():
-            self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted ('+complementAliasType+') in model '+str(self.name) +' of type '+self.type)
-          if varModel in self.alias[complementAliasType].values():
-            self.raiseAnError(IOError,' The alias ' +varModel+' has been already used ('+complementAliasType+') for another variable in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+              IOError,
+              f'The alias "{varModel}" has been already used for another variable in {self.type} model "{self.name}"!'
+            )
+
+          if varFramework in self.alias[complementAliasType]:
+            self.raiseAnError(
+              IOError,
+              f'The alias for variable "{varFramework}" has already been input as "{complementAliasType}" for {self.type} model "{self.name}"!'
+            )
+
+          for key, val in self.alias[complementAliasType].items():
+            if val == varModel:
+              self.raiseAnError(
+                IOError,
+                f'The alias "{varModel}" has already been used as "{complementAliasType}" for variable "{key}" for {self.type} model "{self.name}"!'
+              )
           self.alias[aliasType][varFramework] = child.text.strip()
         else:
-          self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+          self.raiseAnError(IOError, f'The "variable" attribute is missing in one of the aliases for {self.type} model "{self.name}"!')
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
@@ -298,19 +316,25 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       listAliasType = [aliasType]
     originalVariables = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
-      for varFramework,varModel in self.alias[aliasTyp].items():
-        whichVar =  varModel if fromModelToFramework else varFramework
-        notFound = 2**62
-        if type(originalVariables).__name__ != 'list':
-          found = sampledVars.pop(whichVar,[notFound])
-          if not np.array_equal(np.asarray(found), [notFound]):
-            if fromModelToFramework:
-              sampledVars[varFramework] = originalVariables[varModel]
-            else:
-              sampledVars[varModel]     = originalVariables[varFramework]
+      for varFramework, varModel in self.alias[aliasTyp].items():
+        oldName = varModel if fromModelToFramework else varFramework
+        newName = varFramework if fromModelToFramework else varModel
+        if isinstance(originalVariables, dict):
+          # replace the old name with the new one, if present
+          if oldName in sampledVars:
+            value = sampledVars.pop(oldName)
+            sampledVars[newName] = value
+        elif isinstance(sampledVars, list):
+          # options apparently are only a dict or list, so we're a list
+          # find the index of the aliased variable and replace it in the list
+          try:
+            index = sampledVars.index(oldName)
+          except ValueError:
+            # index wasn't found, no action necessary
+            continue
+          sampledVars[index] = newName
         else:
-          if whichVar in sampledVars:
-            sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel
+          self.raiseAnError(RuntimeError, 'Unrecognized alias list type:', type(sampledVars))
     return originalVariables
 
   def _handleInput(self, paramInput):

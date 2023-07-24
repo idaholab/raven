@@ -128,6 +128,7 @@ class Dummy(Model):
                 localInput[entry] = []
               value = dataSet.isel({dataIN.sampleTag: rlz})[entry].values
               localInput[entry].append(value)
+          localInput['_indexMap'] = dict((k, v) for k, v in dataIN.getDimensions().items() if v)
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
         localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs

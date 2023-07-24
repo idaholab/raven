@@ -95,14 +95,15 @@ class TSACharacterizer(PostProcessorInterface, TSAUser):
     self.checkInput(inp)
     inp = inp[0]
     rlzs = []
+    targets = self.getTSATargets()
     for r, rlz in enumerate(inp.sliceByIndex(inp.sampleTag)):
       self.raiseADebug(f'Characterizing realization {r} ...')
       self._tsaReset()
-      pivots = rlz[self.pivotParameterID]
-      targetVals = np.zeros((1, len(pivots), len(self.target))) # shape: (rlzs, time, targets)
-      for t, target in enumerate(self.target):
+      pivots = rlz[self._tsaPivotName]
+      targetVals = np.zeros((1, len(pivots), len(targets))) # shape: (rlzs, time, targets)
+      for t, target in enumerate(targets):
         targetVals[0, :, t] = rlz[target]
-      self.trainTSASequential(targetVals)
+      self.trainTSASequential(targetVals, pivots=pivots)
       rlz = self.getParamsAsVars()
       rlzs.append(rlz)
     return rlzs
