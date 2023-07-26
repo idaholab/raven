@@ -8,6 +8,7 @@
           <xsd:element name="GradientDescent" type="GradientDescentOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="SimulatedAnnealing" type="SimulatedAnnealingOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="GeneticAlgorithm" type="GeneticAlgorithmOptimizer" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="BayesianOptimizer" type="BayesianOptimizerOptimizer" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -97,6 +98,13 @@
         <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
         <xsd:element name="AHD"                type="xsd:float" minOccurs="0"/>
         <xsd:element name="HDSM"               type="xsd:float" minOccurs="0"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="BOConvergenceType">
+      <xsd:all>
+        <xsd:element name="acquisition" type="xsd:float" minOccurs="0"/>
+        <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
@@ -253,5 +261,67 @@
         <xsd:element name="fitness"            type="fitnessType"          />
         <xsd:element name="survivorSelection"  type="xsd:string"           />
       </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="BayesianOptimizerOptimizer">
+        <xsd:sequence>
+            <xsd:element name="objective"        type="xsd:string"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="variable"         type="optVarType"            minOccurs="1" maxOccurs='unbounded'/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="samplerInit"      type="optInitType"           minOccurs="0"/>
+            <xsd:element name="acceptance"       type="OptAcceptanceType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="convergence"      type="BOConvergenceType"    minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="constant"         type="constantVarType"       minOccurs="0" maxOccurs='unbounded'/>
+            <xsd:element name="ConstantSource"         minOccurs="0" maxOccurs='unbounded'>
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="class" type="xsd:string" use="required"/>
+                <xsd:attribute name="type" type="xsd:string" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Model"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="ModelSelection">
+      <xsd:all>
+        <xsd:element name="Duration"   type="xsd:integer" />
+        <xsd:element name="Method"   type="xsd:string" />
+      </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="ModelSelection">
+      <xsd:all>
+        <xsd:element name="Duration"   type="xsd:integer" />
+        <xsd:element name="Method"   type="xsd:string" />
+      </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="Acquisition">
+      <xsd:complexType name="ExpectedImprovement">
+        <xsd:all>
+          <xsd:element name="optimizationMethod"   type="xsd:string" />
+          <xsd:element name="seedingCount"   type="xsd:integer" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ProbabilityOfImprovement">
+        <xsd:all>
+          <xsd:element name="optimizationMethod"   type="xsd:string" />
+          <xsd:element name="seedingCount"   type="xsd:integer" />
+          <xsd:element name="epsilon"   type="xsd:float" />
+          <xsd:element name="rho"   type="xsd:float" />
+          <xsd:element name="transient"   type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="LowerConfidenceBound">
+        <xsd:all>
+          <xsd:element name="optimizationMethod"   type="xsd:string" />
+          <xsd:element name="seedingCount"   type="xsd:integer" />
+          <xsd:element name="pi"   type="xsd:float" />
+          <xsd:element name="rho"   type="xsd:float" />
+          <xsd:element name="transient"   type="xsd:string" />
+        </xsd:all>
+      </xsd:complexType>
     </xsd:complexType>
 </xsd:schema>
