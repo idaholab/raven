@@ -595,7 +595,11 @@ class Tester:
         output = process.communicate(timeout=timeout)[0]
       except subprocess.TimeoutExpired:
         process.kill()
-        output = process.communicate()[0]
+        try:
+          #wait 20 seconds, then give up trying to get output
+          output = process.communicate(timeout=20)[0]
+        except subprocess.TimeoutExpired as error:
+          output = "Getting output timed out: " + repr(error)
         timed_out = True
     else:
       timeout_killer = _TimeoutThread(process, timeout)
