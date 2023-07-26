@@ -35,9 +35,9 @@ class BayesianOptimizer(RavenSampled):
     Implements the Bayesian Optimization algorithm for cost function minimization within the RAVEN framework
   """
   convergenceOptions = {'acquisition': r"""Provides convergence criteria in terms of the value of the acquisition
-                                       function at a given iteration. If the value falls below a provided threshhold,
-                                       the optimizer is considered converged; however, it is recommended to pair this
-                                       criteria with persistance. Default is 1e-8"""}
+                        function at a given iteration. If the value falls below a provided threshhold,
+                        the optimizer is considered converged; however, it is recommended to pair this
+                        criteria with persistance. Default is 1e-8"""}
 
   ##########################
   # Initialization Methods #
@@ -57,48 +57,50 @@ class BayesianOptimizer(RavenSampled):
                             tradeoff of additional backend calculation (training regressions and selecting samples) in
                             favor of reducing the number of function or 'model' evaluations."""
 
-    # Acquisition function
-    acqu = InputData.parameterInputFactory('Acquisition', strictMode=True,
-        printPriority=106,
-        descr=r"""A required node for specifying the details about the acquisition function
-              used in the policy of Bayesian Optimization.""")
+    acquisitionFunction = InputData.parameterInputFactory('Acquisition', strictMode=True,
+                                                          printPriority=106,
+                                                          descr=r"""A required node for specifying
+                                                          the details about the acquisition function
+                                                          used in the policy of Bayesian Optimization.""")
 
     # Pulling specs for each acquisition function option
     for option in acqFactory.knownTypes():
       subSpecs = acqFactory.returnClass(option).getInputSpecification()
-      acqu.addSub(subSpecs)
-    specs.addSub(acqu)
+      acquisitionFunction.addSub(subSpecs)
+    specs.addSub(acquisitionFunction)
 
     # Model selection
     modelSelect = InputData.parameterInputFactory('ModelSelection', strictMode=False,
-        printPriority=106,
-        descr=r"""An optional node allowing the user to specify the details of model selection.
-              For example, the manner in which hyperparameters are selected for the GPR model.""")
+                                                  printPriority=106,
+                                                  descr=r"""An optional node allowing the user to specify the details of model selection.
+                                                  For example, the manner in which hyperparameters are selected for the GPR model.""")
     modelSelect.addSub(InputData.parameterInputFactory('Duration', contentType=InputTypes.IntegerType,
-        descr=r"""Number of iterations between each reselection of the model. Default is 1"""))
+                                                       descr=r"""Number of iterations between each reselection of the model. Default is 1"""))
     modelSelect.addSub(InputData.parameterInputFactory('Method', contentType=InputTypes.makeEnumType("Method", "MethodType", ['External', 'Internal', 'Average']),
-        descr=r"""Determines methodology for selecting the model. This methodology is applied
-              after every duration length.
-              \begin{itemize}
-                \item External, uses whatever method the model has internal to itself
-                \item Internal, selects the MAP point of the model using slsqp
-                \item Average, Approximate marginalization over model space
-              \end{itemize}. Default is External"""))
+                                                       descr=r"""Determines methodology for selecting the model. This methodology is applied
+                                                       after every duration length.
+                                                       \begin{itemize}
+                                                       \item External, uses whatever method the model has internal to itself
+                                                       \item Internal, selects the MAP point of the model using slsqp
+                                                       \item Average, Approximate marginalization over model space
+                                                       \end{itemize}. Default is External"""))
     specs.addSub(modelSelect)
 
     # Convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
-        printPriority=108,
-        descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
-              Note that convergence is met when any one of the convergence criteria is met. If no convergence
-              criteria are given, then the defaults are used.""")
+                                           printPriority=108,
+                                           descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
+                                           Note that convergence is met when any one of the convergence criteria is met. If no convergence
+                                           criteria are given, then the defaults are used.""")
     specs.addSub(conv)
+
     for name, descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
-        printPriority=300,
-        descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
-              is considered fully converged. This helps in preventing early false convergence. Default is 5 (BO specific)"""))
+                                                printPriority=300,
+                                                descr=r"""provides the number of consecutive times convergence should
+                                                be reached before a trajectory is considered fully converged.
+                                                This helps in preventing early false convergence. Default is 5 (BO specific)"""))
     return specs
 
   @classmethod
@@ -109,19 +111,18 @@ class BayesianOptimizer(RavenSampled):
       @ Out, ok, list(str), list of acceptable variable names
     """
     # cannot be determined before run-time due to variables and prefixes.
-    ok = super(BayesianOptimizer, cls).getSolutionExportVariableNames()
-    new = {}
-    new['conv_{CONV}'] = 'status of each given convergence criteria'
-    new['acquisition'] = 'value of acquisition at each iteration'
+    acceptedExports = super(BayesianOptimizer, cls).getSolutionExportVariableNames()
+    newExports = {}
+    newExports['conv_{CONV}'] = 'status of each given convergence criteria'
+    newExports['acquisition'] = 'value of acquisition at each iteration'
     # NOTE both are within context of normalized space
-    new['radiusFromBest'] = 'radius of current point from current best point'
-    new['radiusFromLast'] = 'radius of current point from previous point'
-    new['solutionValue'] = 'Expected value of objective var at recommended solution point'
-    # new['recommendedSolution'] = 'Location of recommended solution'
-    new['solutionDeviation'] = 'Standard deviation of recommended solution'
-    new['evaluationCount'] = 'Number of function evaluations up to current iteration'
-    ok.update(new)
-    return ok
+    newExports['radiusFromBest'] = 'radius of current point from current best point'
+    newExports['radiusFromLast'] = 'radius of current point from previous point'
+    newExports['solutionValue'] = 'Expected value of objective var at recommended solution point'
+    newExports['solutionDeviation'] = 'Standard deviation of recommended solution'
+    newExports['evaluationCount'] = 'Number of function evaluations up to current iteration'
+    acceptedExports.update(newExports)
+    return acceptedExports
 
   def __init__(self):
     """
@@ -211,7 +212,7 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError(RuntimeError, 'No model was provided for Bayesian Optimizer. This method requires a ROM model.')
     elif self._model.subType not in ["GaussianProcessRegressor"]:
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
-                                      f'currently only accepts the following: {["GaussianProcessRegressor"]}')
+                        f'currently only accepts the following: {["GaussianProcessRegressor"]}')
     self._setModelBounds()
     # NOTE Once again considering specifically sklearn's GPR
     optOption = self._model.supervisedContainer[0].model.get_params()['optimizer']
@@ -281,6 +282,7 @@ class BayesianOptimizer(RavenSampled):
                            f'Setting sample batch size to {self.batch}')
       else:
         self.raiseAMessage(f'Received next set of parallel samples for iteration: {self.getIteration(traj)}')
+
       # Add new inputs and model evaluations to the dataset
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].extend(getattr(rlz, varName).values)
@@ -290,6 +292,7 @@ class BayesianOptimizer(RavenSampled):
       self._resolveMultiSample(traj, rlz, info)
     elif isinstance(rlz, dict):
       self.raiseAMessage(f'Received next sample for iteration: {self.getIteration(traj)}')
+
       # Add new input and model evaluation to the dataset
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].append(rlz[varName])
@@ -322,28 +325,30 @@ class BayesianOptimizer(RavenSampled):
   ###################
   # Utility Methods #
   ###################
-  def arrayToFeaturePoint(self, x):
+  def arrayToFeaturePoint(self, arrayPoint):
     """
       Converts array input to featurePoint that model evaluation can read
-      @ In, x, array input
+      @ In, arrayPoint, numpy array, array input
       @ Out, featurePoint, input in dictionary form
     """
     # TODO how to properly track variable names
-    dim = x.shape[0]
+    dim = arrayPoint.shape[0]
     if dim != len(list(self.toBeSampled)):
         self.raiseAnError(RuntimeError, f'Dimension of input array supplied is {dim}, but the'
-                                      f'dimension of the input space is {len(list(self.toBeSampled))}')
+                          f'dimension of the input space is {len(list(self.toBeSampled))}')
     featurePoint = {}
     # Receiving 2-D array of many inputs
-    if len(x.shape) == 2:
+    if len(arrayPoint.shape) == 2:
+
       # FIXME currently assumes indexing of array follows order of 'toBeSampled'
       for index, var in enumerate(list(self.toBeSampled)):
-        featurePoint[var] = x[index, :]
+        featurePoint[var] = arrayPoint[index, :]
     # Receiving single input location
-    elif len(x.shape) == 1:
+    elif len(arrayPoint.shape) == 1:
+
       # FIXME currently assumes indexing of array follows order of 'toBeSampled'
       for index, var in enumerate(list(self.toBeSampled)):
-        featurePoint[var] = x[index]
+        featurePoint[var] = arrayPoint[index]
     else:
       self.raiseAnError(RuntimeError, f'Received invalid array shape in utility function: {len(x.shape)}-D')
     return featurePoint
@@ -352,13 +357,13 @@ class BayesianOptimizer(RavenSampled):
     """
       Converts featurePoint input to numpy array for easier operating
       @ In, featurePoint, dict, point in input space
-      @ Out, x, np.array, array form of same input
+      @ Out, arrayPoint, np.array, array form of same input
     """
     # TODO same concerns as inverse class (see above)
-    x = []
+    arrayPoint = []
     for varName in list(featurePoint):
-      x.append(featurePoint[varName])
-    return np.asarray(x)
+      arrayPoint.append(featurePoint[varName])
+    return np.asarray(arrayPoint)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -378,6 +383,7 @@ class BayesianOptimizer(RavenSampled):
       # If this point is the new opt, then it is zero away from itself
       if acceptable == 'accepted':
         bestDelta = 0
+
         for varName in list(self.toBeSampled):
           newPoint = rlz[varName]
           # -2 because newPoint is already appended to self._trainingInputs
@@ -385,6 +391,7 @@ class BayesianOptimizer(RavenSampled):
           recentDelta[varName] = newPoint - prevPoint
         prevDelta = np.linalg.norm(self.featurePointToArray(recentDelta))
       else:
+
         for varName in list(self.toBeSampled):
           newPoint = rlz[varName]
           # -2 because newPoint is already appended to self._trainingInputs
@@ -400,7 +407,6 @@ class BayesianOptimizer(RavenSampled):
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
     toAdd['solutionValue'] = self._expectedOptVal
-    # toAdd['recommendedSolution'] = self._expectedSolution
     toAdd['solutionDeviation'] = self._optValSigma
     toAdd['evaluationCount'] = self._evaluationCount
     return toAdd
@@ -449,6 +455,7 @@ class BayesianOptimizer(RavenSampled):
     lmlFunc = lambda logTheta: tuple([-1*x for x in self._model.supervisedContainer[0].model.log_marginal_likelihood(logTheta, eval_gradient=True, clone_kernel=False)])
     # Build bounds for optimization
     paramBounds = []
+
     for hyperParam in self._model.supervisedContainer[0].model.kernel.hyperparameters:
       for bound in hyperParam.bounds:
         paramBounds.append(tuple(np.log(bound)))
@@ -460,6 +467,7 @@ class BayesianOptimizer(RavenSampled):
     # Selecting MAP for each restart
     options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
     res = None
+
     for x0 in initSamples:
       result = sciopt.minimize(lmlFunc, x0, method='SLSQP', jac=True, bounds=paramBounds, options=options)
       if res is None:
@@ -479,6 +487,7 @@ class BayesianOptimizer(RavenSampled):
     """
     # Build training set to feed to rom model
     trainingSet = {}
+
     for varName in list(self.toBeSampled):
       trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
     trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
