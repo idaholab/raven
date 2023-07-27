@@ -106,3 +106,35 @@ def impConstr3(Input):
   """
   g = 100 - Input.obj1
   return g
+
+def impConstr4(Input):
+  """
+    The implicit constraint involves variables from the output space, for example the objective variable or
+    a dependent variable that is not in the optimization search space
+    @ In, Input, object, RAVEN container
+    @ out, g, float, implicit constraint 3 evaluation function
+  """
+  g = Input.obj2 - 20
+  return g
+
+  """
+    Evaluates the implicit constraint function at a given point/solution ($\vec(x)$)
+    @ In, Input, object, RAVEN container
+    @ Out, g(inputs x1,x2,..,output or dependent variable), float, implicit constraint evaluation function
+            the way the constraint is designed is that
+            the constraint function has to be >= 0,
+            so if:
+            1) f(x,y) >= 0 then g = f
+            2) f(x,y) >= a then g = f - a
+            3) f(x,y) <= b then g = b - f
+            4) f(x,y)  = c then g = 1e-6 - abs((f(x,y) - c)) (equality constraint)
+  """
+  """
+    Let's assume that the constraint is:
+    $ x3+x4 < 8 $
+    then g the constraint evaluation function (which has to be > 0) is taken to be:
+    g = 8 - (x3+x4)
+    in this case if g(\vec(x)) < 0 then this x violates the constraint and vice versa
+    @ In, Input, object, RAVEN container
+    @ out, g, float, explicit constraint 1 evaluation function
+  """
