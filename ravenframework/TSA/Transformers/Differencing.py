@@ -26,7 +26,7 @@ from ...utils import xmlUtils, InputTypes
 
 
 class Differencing(TimeSeriesTransformer):
-  """ TODO """
+  """ Differences the signal N times. """
   @classmethod
   def getInputSpecification(cls):
     """

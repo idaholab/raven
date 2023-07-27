@@ -40,19 +40,22 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
         specifying input of cls.
     """
     specs = super(MarkovAR, cls).getInputSpecification()
-    specs.name = 'markovar'
-    specs.description = r"""characterizes the signal using autoregressive coefficients conditioned
+    specs.name = 'MarkovAR'
+    specs.description = r"""characterizes the signal using autoregressive (AR) coefficients conditioned
         on the state of a hidden Markov model (HMM) to stochastically fit the training signal.
-        The AR representation has the following form:
+        The Markov-switching autoregressive model (MSAR) has the following form:
         \begin{equation*}
-          Y_t = \mu^{(S_t)} \sum_{i=1}^P \phi_i^{(S_t)} \left(Y_{t-i} - \mu^{(S_{t-i})}\right) + \epsilon_t^{(S_t)},
+          Y_t = \mu_{S_t} \sum_{i=1}^p \phi_{i,{S_t}} \left(Y_{t-i} - \mu_{S_{t-i}}\right) + \varepsilon_{t,{S_t}},
         \end{equation*}
         where $t$ indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
-        coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
-        term, and $S_t$ is the HMM state at time $t$. The HMM state is determined by the transition
-        probabilities between states, which are conditioned on the previous state. The transition
-        probabilities are stored in a transition matrix $T$, where $T_{ij}$ is the probability of
-        transitioning from state $i$ to state $j$."""
+        coefficients, $p$ is the number of signal lag terms to consider, $\varepsilon$ is a random noise
+        term with mean 0 and variance $\sigma^2_{S_t}$, and $S_t$ is the HMM state at time $t$.
+        The HMM state is determined by the transition probabilities between states, which are conditioned
+        on the previous state. The transition probabilities are stored in a transition matrix $P$,
+        where entry $p_{ij}$ is the probability of transitioning from state $i$ to state $j$ conditional
+        on being in state $i$. For a MSAR model with HMM state dimensionality $r$, the transition matrix
+        $P$ is of size $r \times r$. Each of the mean, autoregressive, and noise variance terms may be
+        switching or non-switching parameters."""
     specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))
@@ -186,43 +189,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
           parsedParams[paramName][:] = value
     return parsedParams
 
-  # def getParamNames(self, settings):
-  #   """
-  #     Return list of expected variable names based on the parameters
-  #     @ In, settings, dict, training parameters for this algorithm
-  #     @ Out, names, list, string list of names
-  #   """
-  #   names = []
-  #   for target in settings['target']:
-  #     for regime in range(settings['regimes']):
-  #       base = f'{self.name}__{target}'
-  #       names.append(f'{base}__constant__state{regime}')
-  #       names.append(f'{base}__variance__state{regime}')
-  #       for p in range(settings['order']):
-  #         names.append(f'{base}__AR__{p}__state{regime}')
-  #     # TODO add transition matrix info?
-  #   return names
-
-  # def getParamsAsVars(self, params):
-  #   """
-  #     Map characterization parameters into flattened variable format
-  #     @ In, params, dict, trained parameters (as from characterize)
-  #     @ Out, rlz, dict, realization-style response
-  #   """
-  #   rlz = {}
-  #   paramNames = ['const', 'sigma2', 'ar']
-  #   for target, info in params.items():
-  #     base = f'{self.name}__{target}'
-  #     for name in paramNames:
-  #       for regime, value in enumerate(info['MarkovAR'][name]):
-  #         if name == 'ar':  # value will be an array of lagged AR terms
-  #           for p, val in enumerate(value):
-  #             rlz[f'{base}__{name}__{p}__state{regime}'] = val
-  #         else:  # sigma2 or const
-  #           rlz[f'{base}__{name}__state{regime}'] = value
-  #     # TODO add transition matrix info?
-  #   return rlz
-
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
@@ -259,6 +225,8 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
 
     # Use the RNG engine stored in settings to do our random sampling.
     # This RNG engine should be a numpy RandomState object.
+    # We want to use a numpy RNG engine so we can take advantage of some of the numpy functions
+    # that aren't implemented in randomUtils, like random choice with weighted probabilities.
     engine = settings['engine']
     if not isinstance(engine, np.random.RandomState):
       raise TypeError(f'Expected RNG engine to be a numpy RandomState object, but got {type(engine)}.')

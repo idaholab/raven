@@ -31,5 +31,12 @@
   [./Distributions]
     type = 'RavenPython'
     input = 'testDistributionTransformations.py'
+  [./PreserveCDF]
+    type = 'RavenPython'
+    input = 'testPreserveCDF.py'
+  [../]
+  [./Differencing]
+    type = 'RavenPython'
+    input = 'testDifferencing.py'
   [../]
 []
