@@ -1,4 +1,4 @@
-# Copyright 2023 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -155,8 +155,9 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+
     # Model (GPR)
-    self._model = paramInput.findFirst('Model').value
+    self._model = paramInput.findFirst('ROM').value
 
     # Acquisition function
     acquNode = paramInput.findFirst('Acquisition')
@@ -203,7 +204,7 @@ class BayesianOptimizer(RavenSampled):
       self._acquFunction.buildConstraint(self)
 
     # Initialize model object and store within class
-    for model in self.assemblerDict['Models']:
+    for model in self.assemblerDict['ROM']:
       modelName = model[2]
       if modelName == self._model:
         self._model = model[3]
@@ -472,7 +473,7 @@ class BayesianOptimizer(RavenSampled):
         paramBounds.append(tuple(np.log(bound)))
 
     # Restart locations include current parameter values
-    sampler = LHS(xlimits=np.array(paramBounds), criterion='cm')
+    sampler = LHS(xlimits=np.array(paramBounds), criterion='cm', random_state=self._seed)
     initSamples = sampler(restartCount-1)
     currentTheta = np.array([self._model.supervisedContainer[0].model.kernel.theta])
     initSamples = np.concatenate((initSamples, currentTheta))

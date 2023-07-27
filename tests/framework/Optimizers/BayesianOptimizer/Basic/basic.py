@@ -1,4 +1,4 @@
-# Copyright 2023 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import math
 import numpy as np
 def evaluate(x,y):
   """
-    evaluates the Eggholder function at each given x,y.
+    evaluates the function at each given x,y.
     @ In, x, float, first input dimention.
     @ In, y, float, second input dimention.
     @ Out, evaluate, float, f(x,y)

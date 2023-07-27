@@ -241,7 +241,7 @@ Bayesian Optimizer Example:
 
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
 
-      <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
 
       <Acquisition>
         <ExpectedImprovement>

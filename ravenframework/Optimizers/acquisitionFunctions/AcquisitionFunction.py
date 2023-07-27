@@ -1,4 +1,4 @@
-# Copyright 2023 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+  Class for implementing acquisition functions for Bayesian Optimization
+  auth: Anthoney Griffith (@grifaa)
+  date: June, 2023
+"""
 
 # External Modules
 import scipy.optimize as sciopt
@@ -118,10 +123,10 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       optFunc = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
       if self._constraints == None:
         res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
-                                            popsize=self._seedingCount, init='sobol', vectorized=True)
+                                            popsize=self._seedingCount, init='sobol', vectorized=True, seed=bayesianOptimizer._seed)
       else:
         res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
-                                            popsize=self._seedingCount, init='sobol', vectorized=True, constraints=self._constraints)
+                                            popsize=self._seedingCount, init='sobol', vectorized=True, constraints=self._constraints, seed=bayesianOptimizer._seed)
     elif self._optMethod == 'slsqp':
       optFunc = lambda var: (-1*self.evaluate(var, bayesianOptimizer),
                              -1*self.gradient(var, bayesianOptimizer))
@@ -130,9 +135,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       # NOTE one of our seeds will always come from the current recommended solution (best point)
       samplingCount = self._seedingCount - 1
       if samplingCount <= 1:
-        sampler = LHS(xlimits=limits, criterion='center')
+        sampler = LHS(xlimits=limits, criterion='center', random_state=bayesianOptimizer._seed)
       else:
-        sampler = LHS(xlimits=limits, criterion='cm')
+        sampler = LHS(xlimits=limits, criterion='cm', random_state=bayesianOptimizer._seed)
       initSamples = sampler(samplingCount)
       best = bayesianOptimizer._optPointHistory[0][-1][0]
       # Need to convert 'best point' and add to init array

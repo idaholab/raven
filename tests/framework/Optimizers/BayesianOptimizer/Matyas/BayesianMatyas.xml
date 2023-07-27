@@ -58,16 +58,17 @@
       <samplerInit>
         <limit>50</limit>
         <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
-      <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
       <ModelSelection>
         <Duration>10</Duration>
         <Method>Internal</Method>
       </ModelSelection>
       <convergence>
         <acquisition>1e-8</acquisition>
-        <persistence>40</persistence>
+        <persistence>5</persistence>
       </convergence>
       <Acquisition>
         <ProbabilityOfImprovement>
@@ -123,7 +124,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x,y,ans</Output>
+        <Output>x,y,ans,accepted,solutionValue</Output>
       </PointSet>
     </DataObjects>
 

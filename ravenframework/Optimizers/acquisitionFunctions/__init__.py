@@ -1,4 +1,4 @@
-# Copyright 2023 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
   Acquisition functions provide the optimization policy for Bayesian Optimization.
 """
 
-from __future__ import absolute_import
-
-# These lines ensure that we do not have to do something like:
-# 'from Optimizers.Optimizer import Sampler' outside of this submodule
-
-# TODO
 from .AcquisitionFunction import AcquisitionFunction
 from .ExpectedImprovement import ExpectedImprovement
 from .ProbabilityOfImprovement import ProbabilityOfImprovement

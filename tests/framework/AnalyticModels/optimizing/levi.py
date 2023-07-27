@@ -1,4 +1,4 @@
-# Copyright 2023 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import numpy as np
 
 def evaluate(x,y):
   """
-    Evaluates Beale function.
+    Evaluates Levi function.
     @ In, x, float, value
     @ In, y, float, value
-    @ Out, evaluate, value at x, y
+    @ Out, evaluate, float, value at x, y
   """
   return (np.sin(3*np.pi*x)**2) + (((x-1)**2)*(1 + (np.sin(3*np.pi*y)**2))) + (((y-1)**2)*(1 + (np.sin(2*np.pi*y)**2)))
 
@@ -36,44 +36,3 @@ def run(self,Inputs):
     @ Out, None
   """
   self.ans = evaluate(self.x,self.y)
-
-def grad(x, y):
-  """
-    Evaluates gradient of Beale at x, y
-    @ In, x, float, value
-    @ In, y, float, value
-    @ Out, grad, list, gradient of Beale
-  """
-  return [gradX(x, y), gradY(x, y)]
-
-def gradX(x, y):
-  """
-    Evaluates X-gradient of Beale at x, y
-    @ In, x, float, value
-    @ In, y, float, value
-    @ Out, gradX, float, X-gradient of Beale
-  """
-  tot = 0
-  consts = (1.5, 2.25, 2.625)
-  for i in range(1, 4):
-    tot += 2 * (y**i - 1) * (x * (y**i - 1) + consts[i-1])
-  return tot
-
-def gradY(x, y):
-  """
-    Evaluates Y-gradient of Beale at x, y
-    @ In, x, float, value
-    @ In, y, float, value
-    @ Out, gradY, float, Y-gradient of Beale
-  """
-  tot = 0
-  consts = (1.5, 2.25, 2.625)
-  for i in range(1, 4):
-    tot += 2 * i * x * (x * (y**i - 1) + consts[i-1])
-  return tot
-
-if __name__ == '__main__':
-  import sys
-  x = float(sys.argv[1])
-  y = float(sys.argv[2])
-  print(evaluate(x, y), grad(x, y))

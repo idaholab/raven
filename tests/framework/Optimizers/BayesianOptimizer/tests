@@ -5,7 +5,7 @@
     [./data]
       type = OrderedCSV
       output = 'Basic/opt_export_0.csv'
-      rel_err = 1e-3
+      rel_err = 1e-5
       zero_threshold = 1e-5
     [../]
   [../]
@@ -16,7 +16,7 @@
     [./data]
       type = OrderedCSV
       output = 'MishraBirdConstrained/opt_export_0.csv'
-      rel_err = 1e-2
+      rel_err = 1e-5
       zero_threshold = 1e-5
     [../]
   [../]
@@ -27,8 +27,8 @@
     [./data]
       type = OrderedCSV
       output = 'Matyas/opt_export_0.csv'
-      rel_err = 1e-3
-      zero_threshold = 1e-2
+      rel_err = 1e-5
+      zero_threshold = 1e-5
     [../]
   [../]
 []

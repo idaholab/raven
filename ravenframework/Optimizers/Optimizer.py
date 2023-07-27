@@ -147,19 +147,6 @@ class Optimizer(AdaptiveSampler):
               The Sampler will be used to initialize the trajectories' initial points for some or all
               of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
-
-    model = InputData.assemblyInputFactory('Model', contentType=InputTypes.StringType, strictMode=True,
-                                          printPriority=175,
-                                          descr=r"""Name of a Model that optimizers may want to use during optimization. For example, the
-                                          Bayesian Optimizer requires a ROM to select points during optimization. The model is defined in
-                                          detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
-                                          the model definition's name.""")
-    model.addParam('subType', InputTypes.StringType, True,
-        descr=r"""RAVEN subType for this source. For example, \xmlNode{GaussianProcessRegressor} for the
-              GPR model within RAVEN. For more information on specifying ROM's in RAVEN, see the relevant
-              section in the user manual.""")
-
-    specs.addSub(model)
     return specs
 
   def __init__(self):
@@ -187,14 +174,13 @@ class Optimizer(AdaptiveSampler):
     self._constraintFunctions = []      # list of constraint functions
     self._impConstraintFunctions = []   # list of implicit constraint functions
     self._requireSolnExport = True      # optimizers only produce result in solution export
-    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files', 'Models'] # List of assembler entities required to initialize an optmizer
+    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files'] # List of assembler entities required to initialize an optmizer
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-    self.addAssemblerObject('Model', InputData.Quantity.zero_to_one)
-    self.addAssemblerObject('Model', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -224,8 +210,6 @@ class Optimizer(AdaptiveSampler):
     self.assemblerDict['Distributions'] = []
     self.assemblerDict['Functions'] = []
     self.assemblerDict['Files'] = []
-    self.assemblerDict['Models'] = []
-    self.assemblerDict['Models'] = []
     for mainClass in self.optAssemblerList:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,

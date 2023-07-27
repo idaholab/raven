@@ -74,9 +74,10 @@
       <samplerInit>
         <limit>25</limit>
         <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
       </samplerInit>
       <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
-      <Model  class="Models"  type="ROM" subType="GaussianProcessRegressor">gpROM</Model>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
       <ModelSelection>
         <Duration>1</Duration>
         <Method>Internal</Method>
@@ -121,7 +122,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans</Output>
+      <Output>x,y,ans,accepted,solutionValue</Output>
     </PointSet>
   </DataObjects>
 
