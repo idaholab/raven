@@ -27,4 +27,25 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_gate_pcm_Static]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_pcm_Static.xml'
+    csv = 'PhysicsGuidedCoverageMapping/pcmStatic_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_validation_gate_pcm_Snapshot]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_pcm_Snapshot.xml'
+    csv = 'PhysicsGuidedCoverageMapping/pcmSnapshot_metric_dump.csv PhysicsGuidedCoverageMapping/pcmSnapshot_metric_dump_0.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_validation_gate_pcm_Tdep]
+    type = 'RavenFramework'
+    input = 'test_validation_gate_pcm_Tdep.xml'
+    csv = 'PhysicsGuidedCoverageMapping/pcmTdep_results.csv PhysicsGuidedCoverageMapping/pcmTdep_results_0.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
 []
