@@ -29,7 +29,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     AutoRegressive Moving Average time series analyzer algorithm
   """
   # class attribute
-  _acceptsMissingValues = True
+  _acceptsMissingValues = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -109,7 +109,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       order = settings['order']
       regimes = settings['regimes']
       history = signal[:, tg]
-      history = history[~np.isnan(history)]  # manually drop masked values
 
       # FIXME For now, we assume that all of the AR, variance, and trend terms are switching.
       # It could be good to let the user decide which terms are switching and which are not, but
