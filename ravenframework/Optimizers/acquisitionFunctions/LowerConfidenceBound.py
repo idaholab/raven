@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-"""
+
 # External Modules
 from scipy.special import ndtri
 import numpy as np
@@ -45,20 +44,20 @@ class LowerConfidenceBound(AcquisitionFunction):
                         The approach assumes the model is conservative and values optimism through the following equation (for minimization):
                         $LCB(x) = \mu - \beta \sigma$, where $\beta = \Phi^{-1}(\pi)"""
     specs.addSub(InputData.parameterInputFactory('pi', contentType=InputTypes.FloatType,
-                        descr=r"""Parameter that determines the lower confidence bound. Must be
-                              between 0 and 1.""", default=0.98))
+                                                 descr=r"""Parameter that determines the lower confidence bound. Must be
+                                                 between 0 and 1.""", default=0.98))
     specs.addSub(InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
-                        descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
-                              Provides the period for the oscillate transient settings.""", default=1.0))
+                                                 descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
+                                                 Provides the period for the oscillate transient settings.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType", ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
-                        descr=r"""Determines how the threshold \tau changes as optimization progresses.
-                              \begin{itemize}
-                                \item Constant: \epsilon remains the provided value.
-                                \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
-                                \item Explore: \epsilon exponentially grows from 0 to provided value.
-                                \item Oscillate: \epsilon varies between 0 and provided value.
-                                \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
-                              \end{itemize}""", default='Constant'))
+                                                 descr=r"""Determines how the threshold \tau changes as optimization progresses.
+                                                 \begin{itemize}
+                                                 \item Constant: \epsilon remains the provided value.
+                                                 \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
+                                                 \item Explore: \epsilon exponentially grows from 0 to provided value.
+                                                 \item Oscillate: \epsilon varies between 0 and provided value.
+                                                 \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
+                                                 \end{itemize}""", default='Constant'))
     return specs
 
   def __init__(self):
@@ -155,42 +154,42 @@ class LowerConfidenceBound(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, LCBHess, float/array, LCB hessian value
     """
-    return
+    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Lower Confidence Bound not yet developed')
 
   #####################
   # Transient Methods #
   #####################
-  def exploit(self, N):
+  def exploit(self, iter):
     """
       Defines the transient method for exploit setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._pi = self._basePi*np.exp(-N/self._rho)
+    self._pi = self._basePi * np.exp(-iter / self._rho)
 
-  def explore(self, N):
+  def explore(self, iter):
     """
       Defines the transient method for explore setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._pi = self._basePi*(1 - np.exp(-N/self._rho))
+    self._pi = self._basePi * (1 - np.exp(-iter / self._rho))
 
-  def oscillate(self, N):
+  def oscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._pi = self._basePi*(np.sin((2*np.pi*N)/self._rho)**2)
+    self._pi = self._basePi * (np.sin((2 * np.pi * iter) / self._rho)**2)
 
-  def decayingOscillate(self, N):
+  def decayingOscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._pi = self._basePi*(np.exp(-N/(4*self._rho)))*(np.sin((2*np.pi*N)/self._rho)**2)
+    self._pi = self._basePi * (np.exp(-iter / (4 * self._rho))) * (np.sin((2 * np.pi * iter) / self._rho)**2)
 
   # convergence
   def _converged(self, bayesianOptimizer):

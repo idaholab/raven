@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-"""
+
 # External Modules
 import numpy as np
 from scipy.stats import norm
@@ -47,21 +46,21 @@ class ProbabilityOfImprovement(AcquisitionFunction):
                         following expression (for minimization):
                         $PoI(x) = \frac{\tau - \mu}{\sigma}$"""
     specs.addSub(InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
-                        descr=r"""Defines the threshold for PoI via the equation:
-                              $\tau = min \mu(\textbf{X}) - \epsilon$. The larger \epsilon is, the
-                              more exploratory the algorithm and vice versa.""", default=1.0))
+                                                 descr=r"""Defines the threshold for PoI via the equation:
+                                                 $\tau = min \mu(\textbf{X}) - \epsilon$. The larger \epsilon is, the
+                                                 more exploratory the algorithm and vice versa.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
-                        descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
-                              Provides the period for the oscillate transient setting.""", default=1.0))
+                                                 descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
+                                                 Provides the period for the oscillate transient setting.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType", ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
-                        descr=r"""Determines how the threshold \tau changes as optimization progresses.
-                              \begin{itemize}
-                                \item Constant: \epsilon remains the provided value.
-                                \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
-                                \item Explore: \epsilon exponentially grows from 0 to provided value.
-                                \item Oscillate: \epsilon varies between 0 and provided value.
-                                \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
-                              \end{itemize}""", default='Constant'))
+                                                 descr=r"""Determines how the threshold \tau changes as optimization progresses.
+                                                 \begin{itemize}
+                                                 \item Constant: \epsilon remains the provided value.
+                                                 \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
+                                                 \item Explore: \epsilon exponentially grows from 0 to provided value.
+                                                 \item Oscillate: \epsilon varies between 0 and provided value.
+                                                 \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
+                                                 \end{itemize}""", default='Constant'))
     return specs
 
   def __init__(self):
@@ -181,42 +180,42 @@ class ProbabilityOfImprovement(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, PoIHess, float/array, PoI hessian value
     """
-    return
+    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Probability of Improvement not yet developed')
 
   #####################
   # Transient Methods #
   #####################
-  def exploit(self, N):
+  def exploit(self, iter):
     """
       Defines the transient method for exploit setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._epsilon = self._baseEpsilon*np.exp(-N/self._rho)
+    self._epsilon = self._baseEpsilon * np.exp(-iter / self._rho)
 
-  def explore(self, N):
+  def explore(self, iter):
     """
       Defines the transient method for explore setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._epsilon = self._baseEpsilon*(1 - np.exp(-N/self._rho))
+    self._epsilon = self._baseEpsilon * (1 - np.exp(-iter / self._rho))
 
-  def oscillate(self, N):
+  def oscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._epsilon = self._baseEpsilon*(np.sin((2*np.pi*N)/self._rho)**2)
+    self._epsilon = self._baseEpsilon * (np.sin((2 * np.pi * iter) / self._rho)**2)
 
-  def decayingOscillate(self, N):
+  def decayingOscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, N, current iteration number
+      @ In, iter, current iteration number
       @ Out, None
     """
-    self._epsilon = self._baseEpsilon*(np.exp(-N/(4*self._rho)))*(np.sin((2*np.pi*N)/self._rho)**2)
+    self._epsilon = self._baseEpsilon * (np.exp(-iter / (4 * self._rho))) * (np.sin((2 * np.pi * iter) / self._rho )**2)
 
   ###################
   # Utility Methods #

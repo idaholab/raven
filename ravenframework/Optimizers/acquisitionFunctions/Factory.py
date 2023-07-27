@@ -11,13 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-"""
-# for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3-------------------------------------------
 
-################################################################################
 from ...EntityFactoryBase import EntityFactory
 from .AcquisitionFunction import AcquisitionFunction
 from .ExpectedImprovement import ExpectedImprovement

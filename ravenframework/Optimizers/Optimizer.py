@@ -149,11 +149,11 @@ class Optimizer(AdaptiveSampler):
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
 
     model = InputData.assemblyInputFactory('Model', contentType=InputTypes.StringType, strictMode=True,
-        printPriority=175,
-        descr=r"""Name of a Model that optimizers may want to use during optimization. For example, the
-              Bayesian Optimizer requires a ROM to select points during optimization. The model is defined in
-              detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
-              the model definition's name.""")
+                                          printPriority=175,
+                                          descr=r"""Name of a Model that optimizers may want to use during optimization. For example, the
+                                          Bayesian Optimizer requires a ROM to select points during optimization. The model is defined in
+                                          detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
+                                          the model definition's name.""")
     model.addParam('subType', InputTypes.StringType, True,
         descr=r"""RAVEN subType for this source. For example, \xmlNode{GaussianProcessRegressor} for the
               GPR model within RAVEN. For more information on specifying ROM's in RAVEN, see the relevant

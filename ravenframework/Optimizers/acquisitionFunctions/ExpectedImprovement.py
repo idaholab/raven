@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-"""
+
 # External Modules
 from scipy.stats import norm
 import numpy as np
@@ -82,12 +81,12 @@ class ExpectedImprovement(AcquisitionFunction):
     else:
       # Breaking out components from closed-form of EI (GPR)
       # Definition of standard gaussian density function
-      beta = (fopt - mu)/s
+      beta = (fopt - mu) / s
       pdf = norm.pdf(beta)
       # Standard normal cdf from scipy.stats
       cdf = norm.cdf(beta)
       # Definition of EI
-      EI = ((fopt - mu) * cdf) + (s*pdf)
+      EI = ((fopt - mu) * cdf) + (s * pdf)
 
     return EI
 
@@ -113,11 +112,11 @@ class ExpectedImprovement(AcquisitionFunction):
     beta = (fopt - mu)/s
     phi = norm.pdf(beta)
     Phi = norm.cdf(beta)
-    betaGrad = np.subtract(-s*np.transpose(meanGrad), (fopt-mu)*stdGrad)/(s**2)
+    betaGrad = np.subtract(-s * np.transpose(meanGrad), (fopt - mu) * stdGrad) / (s**2)
 
     # Derivative of standard normal pdf
-    phiGrad = (-beta/(np.sqrt(2*np.pi)))*np.exp(-(beta**2)/2)
-    EIGrad = stdGrad*phi - np.transpose(meanGrad)*Phi + betaGrad*(phi*(fopt-mu) + s*phiGrad)
+    phiGrad = (-beta / (np.sqrt(2 * np.pi))) * np.exp(-(beta**2) / 2)
+    EIGrad = stdGrad * phi - np.transpose(meanGrad) * Phi + betaGrad * (phi * (fopt - mu) + s * phiGrad)
     return EIGrad
 
   def hessian(self, var, bayesianOptimizer):
@@ -128,4 +127,4 @@ class ExpectedImprovement(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, EIHess, float/array, EI hessian value
     """
-    return
+    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Expected Improvement not yet developed')

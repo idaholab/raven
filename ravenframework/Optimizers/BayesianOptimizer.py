@@ -164,7 +164,7 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError('The <Acquisition> node requires exactly one acquisition function! Choose from: ', acqFactory.knownTypes())
     acquType = acquNode.subparts[0].getName()
     self._acquFunction = acqFactory.returnInstance(acquType)
-    setattr(self._acquFunction, 'N', len(list(self.toBeSampled)))
+    setattr(self._acquFunction, '_dim', len(list(self.toBeSampled)))
     self._acquFunction.handleInput(acquNode.subparts[0])
 
     # Model Selection
@@ -445,14 +445,25 @@ class BayesianOptimizer(RavenSampled):
         hyperBound = hyperParam.name + '_bounds'
         self._model.supervisedContainer[0].model.kernel.set_params(**{hyperBound:(1e-5,1)})
 
+  def _logMarginalLikelihood(self, logTheta):
+    """
+      Evaluates the log marginal likelihood of the sklearn GPR model
+      @ In, logTheta, np.array, log transformed hyperparameters
+      @ Out, logLikelihood, float, log-marginal likelihood
+      @ Out, lmlGradient, gradient of log-marginal likelihood
+    """
+    result = self._model.supervisedContainer[0].model.log_marginal_likelihood(logTheta, eval_gradient=True, clone_kernel=False)
+    # Flipping sign for maximization
+    logLikelihood = -1 * result[0]
+    lmlGradient = -1 * result[1]
+    return logLikelihood, lmlGradient
+
   def _selectHyperparameters(self, restartCount=5):
     """
       Selects MAP model in model space, and is exclusively for sklearn GPR models
       @ In, restartCount, int, number of initial points to start optimization from
       @ Out, None
     """
-    # Function to optimize, taking input as log-transformed hyperParameters
-    lmlFunc = lambda logTheta: tuple([-1*x for x in self._model.supervisedContainer[0].model.log_marginal_likelihood(logTheta, eval_gradient=True, clone_kernel=False)])
     # Build bounds for optimization
     paramBounds = []
 
@@ -463,13 +474,14 @@ class BayesianOptimizer(RavenSampled):
     # Restart locations include current parameter values
     sampler = LHS(xlimits=np.array(paramBounds), criterion='cm')
     initSamples = sampler(restartCount-1)
-    initSamples = np.concatenate((initSamples, np.array([self._model.supervisedContainer[0].model.kernel.theta])))
+    currentTheta = np.array([self._model.supervisedContainer[0].model.kernel.theta])
+    initSamples = np.concatenate((initSamples, currentTheta))
     # Selecting MAP for each restart
     options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
     res = None
 
     for x0 in initSamples:
-      result = sciopt.minimize(lmlFunc, x0, method='SLSQP', jac=True, bounds=paramBounds, options=options)
+      result = sciopt.minimize(self._logMarginalLikelihood, x0, method='SLSQP', jac=True, bounds=paramBounds, options=options)
       if res is None:
         res = result
       elif result.fun < res.fun:
@@ -529,7 +541,6 @@ class BayesianOptimizer(RavenSampled):
       @ Out, std, ROM standard-deviation value at that point
     """
     # Evaluating the regression model
-    # featurePoint = self.denormalizeData(featurePoint) # NOTE this is because model is trained on unormalized 'targetEvaluation' dataobject
     resultsDict = self._model.evaluate(featurePoint)
     # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
     mu = resultsDict[self._objectiveVar]
@@ -540,13 +551,9 @@ class BayesianOptimizer(RavenSampled):
   # Constraint Handling
   def _applyFunctionalConstraints(self, suggested, previous):
     """
-      fixes functional constraints of variables in "point" -> DENORMED point expected!
-      @ In, suggested, dict, potential point to apply constraints to
-      @ In, previous, dict, previous opt point in consideration
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
+      Abstract method from RavenSampled, currently not used by BayesianOptimizer
     """
-    return
+    pass
 
   def _handleImplicitConstraints(self, previous):
     """
@@ -560,7 +567,6 @@ class BayesianOptimizer(RavenSampled):
     denormed = self.denormalizeData(normed)
     denormed[self._objectiveVar] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
-
     return accept
 
   def _checkImpFunctionalConstraints(self, previous):
@@ -618,8 +624,6 @@ class BayesianOptimizer(RavenSampled):
     self._optValSigma = stdStar
     self._expectedSolution = xStar
     self._evaluationCount += 1
-    # RavenSampled._resolveNewOptPoint(self, traj, rlz, optVal, info)
-    # FIXME, is the preferred method of
     self.raiseADebug('*' * 80)
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new opt point ...')
     # note the collection of the opt point
@@ -726,9 +730,6 @@ class BayesianOptimizer(RavenSampled):
       converged = False
     elif self.getIteration(traj) < self.limit:
       converged = self.checkConvergence(traj, new, old)
-      # # Should update persistence even if not accepted/improved point for BO
-      # if acceptable not in ['accepted']:
-      #   self._updatePersistence(traj, converged, self._optPointHistory[0][-1][0][self._objectiveVar])
     else:
       converged = True
     self._convergenceInfo['converged'] = converged
@@ -754,9 +755,6 @@ class BayesianOptimizer(RavenSampled):
 
   def _rejectOptPoint(self, traj, info, old):
     """
-      Having rejected the suggested opt point, take actions so we can move forward
-      @ In, traj, int, identifier
-      @ In, info, dict, meta information about the opt point
-      @ In, old, dict, previous optimal point (to resubmit)
+      Abstract method from RavenSampled, but is not yet used in BayesianOptimizer
     """
     return
