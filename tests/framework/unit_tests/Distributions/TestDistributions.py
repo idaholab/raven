@@ -56,17 +56,27 @@ def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
-    @ In, value, float, the value to compare
-    @ In, expected, float, the expected value
-    @ In, tol, float, optional, the tolerance
+    @ In, value, float (or string), the value to compare
+    @ In, expected, float (or string), the expected value
+    @ In, tol, float, optional, the tolerance (valid for floats/ints only)
     @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  if relative:
-    denominator = expected if expected != 0. else 1.0
-  diff = abs(value - expected) if not relative else abs(value - expected)/denominator
+  isFloat = True
+  try:
+    val, expect = float(value), float(expected)
+  except ValueError:
+    val, expect = value, expected
+    isFloat = False
+  if relative and isFloat:
+    denominator = expect if expect != 0. else 1.0
+  if isFloat:
+    diff = abs(val - expect) if not relative else abs(val - expect)/denominator
+  else:
+    diff = 0.0 if val == expect else tol + 1.0
+
   if diff > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,val,"!=",expect)
     results["fail"] += 1
   else:
     results["pass"] += 1
