@@ -1623,7 +1623,7 @@ class Categorical(Distribution):
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
     StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
+    StatePartInput.addParam("outcome", InputTypes.FloatOrStringType, True)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
     ## Because we do not inherit from the base class, we need to manually
@@ -1750,8 +1750,9 @@ class Categorical(Distribution):
       pdfValue = self.mapping[x]
     else:
       if self.isFloat:
-        idx = bisect.bisect(list(self.values), x)
-        pdfValue = self.mapping[list(self.values)[idx]]
+        vals = sorted(list(self.values))
+        idx = bisect.bisect(vals, x)
+        pdfValue = self.mapping[list(vals)[idx]]
       else:
         self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
@@ -1769,9 +1770,16 @@ class Categorical(Distribution):
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
-        if x == float(element[0]):
+        if x == ( float(element[0]) if self.isFloat else element[0] ):
           return cumulative
     else:
+      if self.isFloat:
+        cumulative=0.0
+        for element in sortedMapping:
+          cumulative += element[1]
+          if x >= element[0]:
+            return cumulative
+      # if we reach this point we must error out
       self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
@@ -1784,13 +1792,13 @@ class Categorical(Distribution):
       self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
-      return float(sortedMapping[-1][0])
+      return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
     else:
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
         if cumulative >= x:
-          return float(element[0])
+          return float(element[0]) if self.isFloat else element[0]
 
   def rvs(self):
     """
