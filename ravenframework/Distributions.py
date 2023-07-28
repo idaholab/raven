@@ -26,7 +26,7 @@ from scipy.interpolate import UnivariateSpline
 from numpy import linalg as LA
 import copy
 import math as math
-import bisect
+import bisect 
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
