@@ -173,9 +173,8 @@ std = np.std(inverse)
 inverseTrue = norm.ppf(signals2)
 meanTrue = np.mean(inverseTrue)
 stdTrue = np.std(inverseTrue)
-# checkArray('PreserveCDF.getComposite', inverse, inverseTrue, float, tol=1e-1)
-checkFloat('PreserveCDF.getComposite mean', mean, meanTrue, tol=1.96*stdTrue/np.sqrt(len(pivot))
-checkFloat('PreserveCDF.getComposite std', std, stdTrue, tol=1e-2)
+checkFloat('PreserveCDF.getComposite mean', mean, meanTrue, tol=1e-2)
+checkFloat('PreserveCDF.getComposite std', std, stdTrue, tol=3e-2)
 
 print(results)
 

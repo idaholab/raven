@@ -58,10 +58,10 @@
       <Target>signal0, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
-      <markovar target="signal0" seed='42'>
+      <MarkovAR target="signal0" seed='42'>
         <SignalLag>1</SignalLag>
         <MarkovStates>2</MarkovStates>
-      </markovar>
+      </MarkovAR>
     </ROM>
   </Models>
 

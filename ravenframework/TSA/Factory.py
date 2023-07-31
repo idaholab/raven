@@ -35,7 +35,6 @@ factory = EntityFactory('TimeSeriesAnalyzer')
 aliases = {'Fourier': 'fourier',
            'ARMA': 'arma',
            'RWD': 'rwd',
-           'MarkovAR': 'markovar',
            'Wavelet': 'wavelet',
            'ZeroFilter': 'zerofilter',
            'OutTruncation': 'outtruncation',

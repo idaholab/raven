@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the TSA.Differencing class.
+  This Module performs Unit Tests for the TSA.PreserveCDF class.
   It can not be considered part of the active code but of the regression test system
 """
 import os
@@ -27,10 +27,10 @@ if ravenDir not in sys.path:
 
 from ravenframework.utils import xmlUtils
 
-from ravenframework.TSA import Differencing
+from ravenframework.TSA import STL
 
 print('Modules undergoing testing:')
-print(Differencing)
+print(STL)
 print('')
 
 results = {"pass":0, "fail":0}
@@ -126,17 +126,25 @@ def checkArray(comment, first, second, dtype, tol=1e-10, update=True):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createDifferencing(targets, order):
+def createSTL(targets, period=None, seasonal=None, trend=None):
   """
-    Creates a TSA.Differencing instance
+    Creates a TSA.STL instance
     @ In, targets, list(str), names of targets
-    @ In, order, int, order of differencing
+    @ In, period, int, optional, period of seasonality
+    @ In, seasonal, int, optional, length of seasonal smoother; must be odd
+    @ In, trend, int, optional, length of trend smoother; must be odd
     @ Out, transformer, subclass of TimeSeriesTransformer, transformer instance
     @ Out, settings, dict, settings for transformer
   """
-  transformer = Differencing()
-  attribs = {'target': ','.join(targets), 'order': order}
-  xml = xmlUtils.newNode(transformer.name.lower(), attrib=attribs)
+  transformer = STL()
+  xml = xmlUtils.newNode(transformer.name.lower(), attrib={'target': ','.join(targets)})
+  if period is not None:
+    xml.append(xmlUtils.newNode('period', text=period))
+  if seasonal is not None:
+    xml.append(xmlUtils.newNode('seasonal', text=seasonal))
+  if trend is not None:
+    xml.append(xmlUtils.newNode('trend', text=trend))
+  print(xml)
   inputSpec = transformer.getInputSpecification()()
   inputSpec.parseNode(xml)
   settings = transformer.handleInput(inputSpec)
@@ -145,45 +153,32 @@ def createDifferencing(targets, order):
 ###################
 #      Tests      #
 ###################
-# Test first-order differencing
 targets = ['A']
-pivot = np.arange(11)
-signals = np.linspace(-1, 1, 11).reshape(-1, 1)
+pivot = np.arange(1000)
+period = 100
+trend = pivot / 1000
+seasonal = np.sin(2 * np.pi * pivot / period)
+signals = (trend + seasonal).reshape(-1, 1)
 
-# Test fit
-diff1, settings = createDifferencing(targets=targets, order=1)
-params = diff1.fit(signals, pivot, targets, settings)
-checkArray('first-order differencing fit', params['A']['initValues'], signals[:1], float)
+stl, settings = createSTL(targets, period=period)
+params = stl.fit(signals, pivot, targets, settings)
 
-# Test forward transformation
-transformed1 = diff1.getResidual(signals, params, pivot, settings)
-transformed1True = np.r_[np.diff(signals, axis=0).ravel(), [np.nan] * settings['order']].reshape(-1, 1)
-checkArray('first-order differencing getResidual', transformed1, transformed1True, float)
+# Test forward transform
+# There is no randomness in the signal, and the trends and seasonality are well-defined. The residual
+# values should all be near zero.
+transformed = stl.getResidual(signals, params, pivot, settings)
+checkArray('residual', transformed, np.zeros_like(transformed), float)
 
-# Test inverse transformation
-inverse1 = diff1.getComposite(transformed1True, params, pivot, settings)
-# The inverse of first-order differencing is the cumulative sum, which should recover the original signal
-checkArray('first-order differencing getComposite', inverse1, signals, float)
+# Test inverse transform
+# The inverse transform (getComposite) on an array of zeros will return the sum of the trend and
+# seasonal components of the STL decomposition.
+inverseTransformed = stl.getComposite(np.zeros_like(signals), params, pivot, settings)
+checkArray('inverse', inverseTransformed, signals, float)
 
-
-# Test second-order differencing
-targets = ['B']
-pivot = np.arange(11)
-signals = np.linspace(-1, 1, 11).reshape(-1, 1)
-
-# Test fit
-diff2, settings = createDifferencing(targets=targets, order=2)
-params = diff2.fit(signals, pivot, targets, settings)
-checkArray('second-order differencing fit', params['B']['initValues'], signals[:2], float)
-
-# Test forward transformation
-transformed2 = diff2.getResidual(signals, params, pivot, settings)
-transformed2True = np.r_[np.diff(signals, n=2, axis=0).ravel(), [np.nan] * settings['order']].reshape(-1, 1)
-checkArray('second-order differencing getResidual', transformed2, transformed2True, float)
-
-# Test inverse transformation
-inverse2 = diff2.getComposite(transformed2True, params, pivot, settings)
-checkArray('second-order differencing getComposite', inverse2, signals, float)
+# The results of the above inverse transformation should also be the same as calling the generate()
+# method directly.
+generated = stl.generate(params, pivot, settings)
+checkArray('generate', generated, inverseTransformed, float)
 
 print(results)
 

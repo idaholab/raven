@@ -37,7 +37,7 @@ class Differencing(TimeSeriesTransformer):
     specs = super().getInputSpecification()
     specs.name = 'differencing'
     specs.description = r"""applies Nth order differencing to the data."""
-    specs.addParam('order', param_type=InputTypes.IntegerType, required=True,
+    specs.addParam('order', param_type=InputTypes.IntegerType,
                    descr="""differencing order.""", default=1)
     # TODO add initial value option
     return specs
@@ -50,6 +50,7 @@ class Differencing(TimeSeriesTransformer):
     """
     settings = super().handleInput(spec)
     settings['order'] = spec.parameterValues.get('order', 1)
+    print('Differencing.handleInput() settings', settings)
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -64,6 +65,7 @@ class Differencing(TimeSeriesTransformer):
                            params[target variable][characteristic] = value
     """
     params = {}
+    print('Differencing.fit() settings:', settings)
     for tg, target in enumerate(targets):
       # For differencing order N, we need to have the first N values of the signal
       targetSignal = signal[:settings['order']+1, tg]

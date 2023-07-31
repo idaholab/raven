@@ -3,33 +3,25 @@
     <ROM>
       <type>SyntheticHistoryROM</type>
       <Features>scaling</Features>
-      <Targets>signal0,signal1,pivot</Targets>
+      <Targets>signal0,pivot</Targets>
     </ROM>
     <MarkovAR>
       <signal0>
         <State_0>
-          <constant>-2.810049390e-02</constant>
-          <variance>2.139687226e-01</variance>
-          <AR_1>5.465746433e-01</AR_1>
+          <constant>-9.428844846e-03</constant>
+          <variance>4.490032590e-01</variance>
+          <AR_1>-5.995178691e-01</AR_1>
         </State_0>
         <State_1>
-          <constant>3.235066933e-02</constant>
-          <variance>1.379243292e+00</variance>
-          <AR_1>-5.233642989e-01</AR_1>
+          <constant>3.476533607e-02</constant>
+          <variance>1.723033779e+00</variance>
+          <AR_1>4.745646002e-01</AR_1>
         </State_1>
+        <Transition_0to0>8.336216137e-01</Transition_0to0>
+        <Transition_0to1>1.663783863e-01</Transition_0to1>
+        <Transition_1to0>1.434482032e-01</Transition_1to0>
+        <Transition_1to1>8.565517968e-01</Transition_1to1>
       </signal0>
-      <signal1>
-        <State_0>
-          <constant>1.796927023e-02</constant>
-          <variance>2.472466309e-01</variance>
-          <AR_1>4.120904033e-01</AR_1>
-        </State_0>
-        <State_1>
-          <constant>-1.461140595e-02</constant>
-          <variance>1.425004445e+00</variance>
-          <AR_1>-5.013920314e-01</AR_1>
-        </State_1>
-      </signal1>
     </MarkovAR>
   </synth>
   
