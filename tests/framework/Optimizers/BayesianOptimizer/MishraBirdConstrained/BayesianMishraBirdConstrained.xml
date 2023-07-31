@@ -15,7 +15,8 @@
       method is External, allowing scikit learn to select hyperparameters.
     </description>
     <analytic>
-      This test uses the constrained Mishra function found in the AnalyticModels section of RAVEN.
+      This test uses the Mishra's Constrained Bird function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
     </analytic>
   </TestInfo>
 

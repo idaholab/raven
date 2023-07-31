@@ -11,8 +11,8 @@
       custom and anisotropic kernels alongside the LCB acquisition function solved via differential evolution.
     </description>
     <analytic>
-      This test uses a basic tests function, which is nonconvex and continuous for testing the
-      optimizer's ability to find global solutions.
+      This test uses the Basic function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
     </analytic>
   </TestInfo>
 
@@ -98,7 +98,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="./basic" name="basic" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/basic.py" name="basic" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
     <ROM name="gpROM" subType="GaussianProcessRegressor">

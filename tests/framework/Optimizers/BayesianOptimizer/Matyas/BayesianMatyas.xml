@@ -11,7 +11,8 @@
       option. The function is the 2-dimensional Matyas.
     </description>
     <analytic>
-      This test uses Matyas function from the analytic models for testing.
+      This test uses the Matya's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
     </analytic>
   </TestInfo>
 
