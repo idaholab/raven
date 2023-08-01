@@ -159,5 +159,5 @@ class Abce(CodeInterfaceBase):
       outDict[col] = assetsData[col].values
     # TODO should change it in the future for reading the output file from the code or the database file 
     # OutputPlaceHolder should be a list of float("NaN") if the len(assetsData)>0 or just a float("NaN")
-    outDict['OutputPlaceHolder'] = [float("NaN")]*len(assetsData)
+    outDict['OutputPlaceHolder'] = float("NaN")
     return outDict
