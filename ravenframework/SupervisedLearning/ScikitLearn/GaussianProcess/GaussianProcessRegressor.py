@@ -99,8 +99,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          \zNormalizationNotPerformed{GaussianProcessRegressor}
                          """
     # create kernel node
-    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'WhiteNoise',
-                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",
+                                                 ['Constant', 'DotProduct', 'ExpSineSquared', 'WhiteNoise',
+                                                  'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2',
+                                                  'PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian',
+                                                  'PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:

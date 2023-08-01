@@ -328,4 +328,3 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     self._bounds = []
     self._optValue = None
-    return

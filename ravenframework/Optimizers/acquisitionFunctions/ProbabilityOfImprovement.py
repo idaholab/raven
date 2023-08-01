@@ -57,7 +57,8 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     specs.addSub(InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
                                                  descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
                                                  Provides the period for the oscillate transient setting.""", default=1.0))
-    specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType", ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
+    specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType",
+                                                 ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
                                                  descr=r"""Determines how the threshold \tau changes as optimization progresses.
                                                  \begin{itemize}
                                                  \item Constant: \epsilon remains the provided value.
@@ -185,7 +186,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, PoIHess, float/array, PoI hessian value
     """
-    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Probability of Improvement not yet developed')
+    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Probability of Improvement not yet developed')
 
   #####################
   # Transient Methods #

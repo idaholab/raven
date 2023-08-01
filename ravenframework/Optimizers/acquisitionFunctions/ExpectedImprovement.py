@@ -132,4 +132,4 @@ class ExpectedImprovement(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, EIHess, float/array, EI hessian value
     """
-    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Expected Improvement not yet developed')
+    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Expected Improvement not yet developed')

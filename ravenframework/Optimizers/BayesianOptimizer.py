@@ -554,7 +554,7 @@ class BayesianOptimizer(RavenSampled):
     """
       Abstract method from RavenSampled, currently not used by BayesianOptimizer
     """
-    pass
+    self.raiseAnError(NotImplementedError, '_applyFunctionalConstraints not implemented for Bayesian Optimizer')
 
   def _handleImplicitConstraints(self, previous):
     """
@@ -699,11 +699,9 @@ class BayesianOptimizer(RavenSampled):
 
   def _checkForImprovement(self, new, old):
     """
-      Determine if the new value is sufficient improved over the old.
-      @ In, None
-      @ Out, improved, bool, True if "sufficiently" improved or False if not.
+      Abstract method from RavenSampled, currently not used by BayesianOptimizer
     """
-    return
+    self.raiseAnError(NotImplementedError, '_checkForImprovement not implemented for Bayesian Optimizer')
 
   def checkConvergence(self, traj, new, old):
     """
@@ -756,6 +754,6 @@ class BayesianOptimizer(RavenSampled):
 
   def _rejectOptPoint(self, traj, info, old):
     """
-      Abstract method from RavenSampled, but is not yet used in BayesianOptimizer
+      Abstract method from RavenSampled, currently not used by BayesianOptimizer
     """
-    return
+    self.raiseAnError(NotImplementedError, '_rejectOptPoint not implemented for Bayesian Optimizer')

@@ -54,7 +54,8 @@ class LowerConfidenceBound(AcquisitionFunction):
     specs.addSub(InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
                                                  descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
                                                  Provides the period for the oscillate transient settings.""", default=1.0))
-    specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType", ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
+    specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType",
+                                                 ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
                                                  descr=r"""Determines how the threshold \tau changes as optimization progresses.
                                                  \begin{itemize}
                                                  \item Constant: \epsilon remains the provided value.
@@ -159,7 +160,7 @@ class LowerConfidenceBound(AcquisitionFunction):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, LCBHess, float/array, LCB hessian value
     """
-    bayesianOptimizer.raiseAnError(NotImplemented,'Hessian for Lower Confidence Bound not yet developed')
+    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Lower Confidence Bound not yet developed')
 
   #####################
   # Transient Methods #
