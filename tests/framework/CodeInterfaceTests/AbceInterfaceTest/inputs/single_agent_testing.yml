@@ -1,0 +1,52 @@
+# This is a dummy implementation of the ERCOT market, with all assets owned
+#   by the balance of system operator except for one of each type, which is
+#   owned by active agent #201.
+# This total system portfolio can serve a peak demand of around 75000 MW.
+#   Check your settings.yml file to make sure dispatch won't fail due to energy
+#   shortages.
+
+# Test agent
+201:
+    debt_fraction: 0.5
+    cost_of_debt: 0.06
+    cost_of_equity: 0.12
+    starting_debt: 7976000
+    starting_PPE:  1692000
+    starting_portfolio:
+        coal: 1
+        ngcc: 1
+        ngct: 1
+        conventional_nuclear: 1
+        wind: 1
+        solar: 1
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        coal:
+            8: 1
+        ngcc:
+            9: 1
+        ngct:
+            10: 1
+        wind:
+            11: 1
+        solar:
+            12: 1
+        conventional_nuclear:
+            13: 1
+
+
+# Balance of System
+208:
+    starting_portfolio:
+        wind: 278
+        solar: 82
+        ngcc: 226
+        ngct: 174
+        conventional_nuclear: 12
+        coal: 30
+        PUN_unit: 85
+    inactive: True
+
+
