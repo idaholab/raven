@@ -154,8 +154,8 @@ class Abce(CodeInterfaceBase):
     outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
     assetsData = pd.read_excel(outputFile,sheet_name='assets')
     # read each column and store it in the dictionary
-    # column_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	
-    # cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved
+    # column_names are: asset_id agent_id unit_type start_pd completion_pd 
+    # cancellation_pd retirement_pd total_capex cap_pmt C2N_reserved
     for col in assetsData.columns:
       outDict[col] = assetsData[col].values
     # TODO should change it in the future for reading the output file 
