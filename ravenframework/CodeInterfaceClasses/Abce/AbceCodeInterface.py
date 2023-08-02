@@ -39,8 +39,6 @@ class Abce(CodeInterfaceBase):
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path of ABCE/run.py
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if clargs==None:
@@ -48,7 +46,7 @@ class Abce(CodeInterfaceBase):
     #check for duplicate extension use
     usedExts = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
     if len(usedExts) != len(set(usedExts)):
-      raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+      raise IOError('ABCEInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
     for inf in inputFiles:
       ext = '.' + inf.getExt() if inf.getExt() is not None else ''
       try:
@@ -63,6 +61,7 @@ class Abce(CodeInterfaceBase):
       Find the settings file and return its index in the inputFiles list.
       @ In, inputFiles, list of InputFile objects
       @ In, ext, string, extension of the settings.yml file
+      @ Out, index, int, index of the settings file in the inputFiles list
       """
       for index,inputFile in enumerate(inputFiles):
         if inputFile.getBase() == 'settings' and inputFile.getExt() == ext:
@@ -73,6 +72,7 @@ class Abce(CodeInterfaceBase):
       """
       Set the output directory in the settings file.
       @ In, settingsFile, InputFile object, settings.yml file
+      @ Out, None
       """
       # the settings file is the settings.yml file the scenario name is in node 
       # simulation -> scenario_name 
@@ -154,10 +154,13 @@ class Abce(CodeInterfaceBase):
     outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
     assetsData = pd.read_excel(outputFile,sheet_name='assets')
     # read each column and store it in the dictionary
-    # column_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved
+    # column_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	
+    # cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved
     for col in assetsData.columns:
       outDict[col] = assetsData[col].values
-    # TODO should change it in the future for reading the output file from the code or the database file 
-    # OutputPlaceHolder should be a list of float("NaN") if the len(assetsData)>0 or just a float("NaN")
+    # TODO should change it in the future for reading the output file 
+    # from the code or the database file 
+    # OutputPlaceHolder should be a list of float("NaN") 
+    # if the len(assetsData)>0 or just a float("NaN")
     outDict['OutputPlaceHolder'] = float("NaN")
     return outDict
