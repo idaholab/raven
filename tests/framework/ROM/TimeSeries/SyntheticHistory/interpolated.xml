@@ -40,7 +40,7 @@
   </Steps>
 
   <Files>
-    <Input name="infile">../TrainingData/Clustered_A.csv</Input>
+    <Input name="infile">../TrainingData/Interpolated_A.csv</Input>
   </Files>
 
   <Samplers>
