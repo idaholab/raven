@@ -146,7 +146,7 @@
    input = 'test_Abce_code_interface.xml'
    csv = 'AbceInterfaceTest/grid_0.csv AbceInterfaceTest/grid_1.csv'
    rel_err = 0.0001
-   required_executable = 'run.py'
+   required_executable = 'abce/run.py'
    max_time = 600
    heavy = true
  [../]
