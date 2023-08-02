@@ -31,7 +31,7 @@ class Abce(CodeInterfaceBase):
     This class is used to run the Abce code.
   """
 
-  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):    
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -55,7 +55,7 @@ class Abce(CodeInterfaceBase):
         pass
     if len(usedExts) != 0:
       raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
-    
+
     def findSettingIndex(inputFiles,ext):
       """
       Find the settings file and return its index in the inputFiles list.
@@ -67,17 +67,17 @@ class Abce(CodeInterfaceBase):
         if inputFile.getBase() == 'settings' and inputFile.getExt() == ext:
           return index,inputFile
       raise IOError('No settings file with extension '+ext+' found!')
-    
+
     def setOutputDir(settingsFile):
       """
       Set the output directory in the settings file.
       @ In, settingsFile, InputFile object, settings.yml file
       @ Out, None
       """
-      # the settings file is the settings.yml file the scenario name is in node 
-      # simulation -> scenario_name 
+      # the settings file is the settings.yml file the scenario name is in node
+      # simulation -> scenario_name
       # the output directory is the directory of the settings file in subdirectory "outputs/$scenario_name"
-      # get the scenario name by reading the settings.yml file 
+      # get the scenario name by reading the settings.yml file
       scenarioName = None
       with open(settingsFile.getAbsFile(),'r') as settings:
         for line in settings:
@@ -117,8 +117,8 @@ class Abce(CodeInterfaceBase):
     returnCommand = [('parallel',todo)],outFile
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
-    
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):    
+
+  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -154,13 +154,13 @@ class Abce(CodeInterfaceBase):
     outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
     assetsData = pd.read_excel(outputFile,sheet_name='assets')
     # read each column and store it in the dictionary
-    # column_names are: asset_id agent_id unit_type start_pd completion_pd 
+    # column_names are: asset_id agent_id unit_type start_pd completion_pd
     # cancellation_pd retirement_pd total_capex cap_pmt C2N_reserved
     for col in assetsData.columns:
       outDict[col] = assetsData[col].values
-    # TODO should change it in the future for reading the output file 
-    # from the code or the database file 
-    # OutputPlaceHolder should be a list of float("NaN") 
+    # TODO should change it in the future for reading the output file
+    # from the code or the database file
+    # OutputPlaceHolder should be a list of float("NaN")
     # if the len(assetsData)>0 or just a float("NaN")
     outDict['OutputPlaceHolder'] = float("NaN")
     return outDict
