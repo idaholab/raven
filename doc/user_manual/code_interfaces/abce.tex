@@ -11,7 +11,7 @@ This allows inputs to be perturbed and data to be read out.
 \subsubsection{Sampler}
 
 For perturbing inputs, the sampled variable needs to be placed inside
-of \$( )\$ like \verb'$(var)$'. 
+of \$RAVEN-( )\$ like \verb'$RAVEN-(var)$'. 
 
 \begin{lstlisting}[style=XML]
   <Samplers>
@@ -74,7 +74,7 @@ The inputs in the \xmlNode{Files} section are shown below:
 \subsubsection{Models}
 
 The \xmlNode{Code} model can be used with the
-\xmlAttr{subType="Abce"} to run the ABCE Code Interface.
+\xmlAttr{subType="Abce"} to run the ABCE Code Interface. \xmlNode{executable} need to be the place of ABCE executable \textbf{run.py}.
 
 \begin{lstlisting}[style=XML]
   <Models>
