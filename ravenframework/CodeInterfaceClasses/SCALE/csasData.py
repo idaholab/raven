@@ -16,10 +16,6 @@ Created on March 25, 2022
 
 @author: aalfonsi
 """
-import numpy as np
-import os
-import copy
-import re
 
 class csasData:
   """
