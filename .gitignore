@@ -71,3 +71,8 @@ plugins/plugin_directory.xml
 # vscode
 .vscode
 *.code-workspace
+
+# Custom
+STACEY_NOTES.md
+./OUT/*
+./ABCE_XML_BACKUPS/*

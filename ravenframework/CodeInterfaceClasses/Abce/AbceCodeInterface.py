@@ -150,63 +150,27 @@ class Abce(CodeInterfaceBase):
       @ Out, directory, string, the assets results
     """      
 
-  ##USING SQLITE DB 
-  # Run script with =========>      ./raven_framework /home/whitsr3/abce_run_ex/abce_run_ex/abce_Custom_Sampler.xml 
-  # PY script to locate all dbs [I thought this function was EXternally for each database and therefore there NO need to locate them all..?]
-  # 1.) BUT save metadata about what generated them [what is "them"  in this case the databases and where can I find this metadata? in the db?]
-  # 2.) Add  ______ that records any independent variables to generate those runs [fill in the ______]
-  # 3.) Total number of each existing unit type (e.g. coal) for simulation years
+  # PY script to locate all dbs
+  # 1.) BUT save metadata about what generated them 
+  # 2.) Add  ______ that records any independent variables to generate those runs 
+  # 3.) Total number of each existing unit type (e.g. coal) for simulation years. (Should be Complete)
 
-  # E.g., What to store in DataFrame:
-  # Data on what each AGENT is doing in each YEAR, E.g., : 
+  # In e/ dataframe store data on what each AGENT is doing in each YEAR, E.g., : 
   # Agent 201 in year 0 has 400 MWe of coal. (So a TABLE of 
   # agent: (e.g., 201)
   # year:  (e.g., year 0)
-  # capacity: e.g., coal)
-  # unit_type (e.g, MWe)
+  # capacity: (e.g, MWe)
+  # unit_type  (e.g., coal)
 
-
-    outDF = pd.DataFrame() # {} <--- WAS # TODO: replace  outDict obj with the Pandas DataFrame result?
+    outDF = pd.DataFrame() 
     outputFile = os.path.join(self._outputDirectory, 'abce_db.db') # /home/whitsr3/abce_run_ex/abce_run_ex/abcesetting/sweep/3/outputs/ABCE_ERCOT_PWRC2N/abce_db.db
     db_conn = sqlite3.connect(outputFile)
-    assetsDataFrame = pd.read_sql_query("SELECT * from assets", db_conn)
-    # read Each COLumn and store it in the df 
-    # COLumn_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved    
+    # Columns are on assets table: asset_id,	agent_id,	unit_type,	start_pd,	completion_pd,	cancellation_pd,	retirement_pd,	total_capex, cap_pmt,	C2N_reserved    
+    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn) #("SELECT * from assets", db_conn) 
     for col in assetsDataFrame.columns:
       outDF[col] = assetsDataFrame[col].values
-      print(f'\n    @@@@@@@@@@@>>>>>>>>>>outDF[{col}] IS ::::: =============>>>>>>>>>>>>>>>>>\n {outDF[col]}\n')
-    # TODO: should change it in the future for reading the output file from the code or the database file 
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
-    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame) # TODO: Ask: I'm not sure what you're wanting me to do with this line here. len(assetDataFrame)=[818]
-    db_conn.close() # close the SQLite db connection after e/ finalizeCodeOutput() call?
-    return outDF 
-  
-  ##  ./raven_framework     OUTPUTS THE FOLLOWING ERROR: 
-  # The return argument from "finalizeCodeOutput" must be either a STRcontaining the new output file Root OR a dict of data!  
-
-# not find Could 
-# /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/RAVEN_ABCE/abce_wsl/abce/run.py'
-
-
-
-
-
-
-
-
-
-
-      #PREVIOUS EXCEL
-      ##outDict = {} # TODO: replace  outDict obj with the Pandas DataFrame result
-      ##outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
-      ##print("output file is -----------------------------> " + outputFile) # /home/whitsr3/abce_run_ex/abce_run_ex/abcesetting/sweep/3/outputs/ABCE_ERCOT_PWRC2N/outputs.xlsx
-      ##assetsData = pd.read_excel(outputFile,sheet_name='assets') # TODO: Read in SQLite db instead of Excel
-    
-    # read each COLumn and store it in the dictionary (Use Pandas DF instead of dict?)
-    # COLumn_names are: asset_id	agent_id	unit_type	start_pd	completion_pd	cancellation_pd	retirement_pd	total_capex	cap_pmt	C2N_reserved
-      ##for col in assetsData.columns:
-        ##outDict[col] = assetsData[col].values
-    # TODO should change it in the future for reading the output file from the code or the database file 
-    # OutputPlaceHolder should be a list of float("NaN") if the len(assetsData)>0 or just a float("NaN")
-      ##outDict['OutputPlaceHolder'] = [float("NaN")]*len(assetsData)
-      ##return outDict # replace  outDict obj with the Pandas DataFrame result
+    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output is still needed in data object. 
+    # close the SQLite db connection after e/ finalizeCodeOutput() call or once they've all completed?
+    db_conn.close()  
+    return {"Output": outDF }

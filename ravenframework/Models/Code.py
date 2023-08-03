@@ -772,13 +772,13 @@ class Code(Model):
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+    # breakpoint() # check value of evaluation variable
     if isinstance(evaluation,dict) and evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:
         output.addRealization(rlz)
     # otherwise, we received a single realization
-    else:
+    else:     
       output.addRealization(evaluation)
-
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject
 

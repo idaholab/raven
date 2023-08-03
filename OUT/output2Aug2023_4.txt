@@ -1,0 +1,3 @@
+CONDA
+raven_libraries          /home/whitsr3/miniconda3/envs/raven_libraries
+Running RAVEN in "opt" mode.

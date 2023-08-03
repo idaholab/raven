@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>abceGCI</JobName>
+    <Sequence>sweep</Sequence>
+    <WorkingDir>abcesetting</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sweep">
+      <!-- <Input class="Files" type="">abce_runner.sh</Input> -->
+      <!-- <Input class="Files" type="">agent_specifications.yml</Input> -->
+      <Input class="Files" type="">settings.yml</Input>
+
+      <Input class="Files" type="">C2N_project_definitions.yml</Input>
+      <Input class="Files" type="">demand_data.csv</Input>
+      <Input class="Files" type="">single_agent_testing.yml</Input>
+      <Input class="Files" type="">unit_specs.yml</Input>
+      <Input class="Files" type="">timeseries_load_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_nspin_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_pv_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_reg_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_spin_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_wind_hourly.csv</Input>
+      <Model class="Models" type="Code">abce</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">grid</Output>
+      <!-- <Output class="OutStreams" type="Print">sweep</Output> -->
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <!-- <Input name="abce_runner.sh" type="">abce_runner.sh</Input> -->
+    <!-- <Input name="agent_specifications.yml" type="" subDirectory="inputs">agent_specifications.yml</Input> -->
+    <Input name="settings.yml" type="">settings.yml</Input>
+
+    <Input name="C2N_project_definitions.yml" type="" subDirectory="inputs">C2N_project_definitions.yml</Input>
+    <Input name="demand_data.csv" type="" subDirectory="inputs">demand_data.csv</Input>
+    <Input name="single_agent_testing.yml" type="" subDirectory="inputs">single_agent_testing.yml</Input>
+    <Input name="unit_specs.yml" type="" subDirectory="inputs">unit_specs.yml</Input>
+    <Input name="timeseries_load_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_load_hourly.csv</Input>
+    <Input name="timeseries_nspin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_nspin_hourly.csv</Input>
+    <Input name="timeseries_pv_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_pv_hourly.csv</Input>
+    <Input name="timeseries_reg_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_reg_hourly.csv</Input>
+    <Input name="timeseries_spin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_spin_hourly.csv</Input>
+    <Input name="timeseries_wind_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_wind_hourly.csv</Input>
+  </Files>
+
+  <!-- <Models>
+    <Code name="abce" subType="GenericCode">
+      <executable>source</executable>
+      <clargs extension=".sh" type="input"/> 
+      <clargs extension=".yml" type="input"/> 
+    </Code>
+  </Models> -->
+
+
+  <Models>
+    <Code name="abce" subType="Abce">
+      <executable>/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/RAVEN_ABCE/abce_wsl/abce/run.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="--settings_file" extension=".yml" type="input" delimiter="="/>
+	  <clargs arg="--inputs_path=inputs --no-plots --verbosity=3" type="text"/> 
+   </Code>
+  </Models>
+ 
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>80000</lowerBound>
+      <upperBound>80010</upperBound>
+    </Uniform>
+    <Uniform name="windcap">
+      <lowerBound>90</lowerBound>
+      <upperBound>110</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="pkd">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="unit_specs_wind_capacity">
+        <distribution>windcap</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="grid">
+      <Input>pkd,unit_specs_wind_capacity</Input>
+      <Output>Output</Output>
+    </PointSet>
+  </DataObjects>
+
+  <!-- <OutStreams>
+    <Print name='sweep'>
+      <type>csv</type>
+      <source>grid</source>
+    </Print>
+  </OutStreams> -->
+
+  <OutStreams>
+    <Print name='samples'>
+      <type>csv</type>
+      <source>samples</source>
+      <what>input,output</what>	
+    </Print>
+  </OutStreams>	
+
+
+</Simulation>
