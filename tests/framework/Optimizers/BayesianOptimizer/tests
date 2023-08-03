@@ -5,6 +5,9 @@
     [./data]
       type = OrderedCSV
       output = 'Basic/opt_export_0.csv'
+      windows_gold = 'Basic/windows_opt_export_0.csv'
+      mac_gold = 'Basic/mac_opt_export_0.csv'
+      linux_gold = 'Basic/linux_export_0.csv'
       rel_err = 1e-5
       zero_threshold = 1e-5
     [../]
@@ -16,6 +19,9 @@
     [./data]
       type = OrderedCSV
       output = 'MishraBirdConstrained/opt_export_0.csv'
+      windows_gold = 'MishraBirdConstrained/windows_opt_export_0.csv'
+      mac_gold = 'MishraBirdConstrained/mac_opt_export_0.csv'
+      linux_gold = 'MishraBirdConstrained/linux_export_0.csv'
       rel_err = 1e-5
       zero_threshold = 1e-5
     [../]
@@ -27,6 +33,9 @@
     [./data]
       type = OrderedCSV
       output = 'Matyas/opt_export_0.csv'
+      windows_gold = 'Matyas/windows_opt_export_0.csv'
+      mac_gold = 'Matyas/mac_opt_export_0.csv'
+      linux_gold = 'Matyas/linux_export_0.csv'
       rel_err = 1e-5
       zero_threshold = 1e-5
     [../]
