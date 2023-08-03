@@ -222,8 +222,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       NOTE: This is originally copied over from SupervisedLearning!
          Primarily using this for interpolation.
       @ In, requestedFeatures, dict(list), featureSet and features to collect (may be None)
-      @ In, featureTemplate, str, templated string for naming features (probably leave as None)
-      @ Out, features, dict,
+      @ In, featureTemplate, str, optional, templated string for naming features (probably leave as None)
+      @ Out, features, dict, features to cluster on with shape {target_metric: np.array(floats)}
     """
     # NOTE: this should match the clustered features template.
     if featureTemplate is None:
@@ -258,7 +258,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
   def parametrizeGlobalRomFeatures(self, featureDict):
     """
       Parametrizes the GLOBAL features of the ROM (assumes this is the templateROM and segmentation is active)
-      @ In, featureDict, dictionary of features to parametrize
+      @ In, featureDict, dict, dictionary of features to parametrize
       @ Out, params, dict, dictionary of collected parametrized features
     """
     # NOTE: only used during interpolation for global features! returning empty dict...
