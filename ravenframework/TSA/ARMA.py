@@ -309,7 +309,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
-      @ In, params, dict, characterization such as otained from self.characterize()
+      @ In, params, dict, characterization such as obtained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
       @ In, settings, dict, settings for this ROM
       @ Out, synthetic, np.array(float), synthetic ARMA signal

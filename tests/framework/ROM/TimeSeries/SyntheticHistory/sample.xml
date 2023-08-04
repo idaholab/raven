@@ -48,8 +48,8 @@
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
       <arma target="signal0, signal1" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+        <P>2</P>
+        <Q>3</Q>
       </arma>
     </ROM>
   </Models>

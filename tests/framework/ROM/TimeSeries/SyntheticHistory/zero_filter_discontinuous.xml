@@ -95,8 +95,8 @@
         <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
       </fourier>
       <arma target="TOTALLOAD,WIND,SOLAR" seed='42'>
-        <SignalLag>1</SignalLag>
-        <NoiseLag>0</NoiseLag>
+        <P>1</P>
+        <Q>0</Q>
       </arma>
     </ROM>
   </Models>
