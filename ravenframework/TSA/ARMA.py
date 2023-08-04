@@ -72,12 +72,25 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          observed switching between modes. Note that the ARMA must be
                          retrained to change this property; it cannot be applied to serialized ARMAs.
                          """, default=False)
-    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
+    specs.addParam('auto_select', param_type=InputTypes.BoolType, required=False,
+                   descr=r"""uses the StatsForecast AutoARIMA algorithm to select P and Q parameters
+                         for each target signal. Resultant values are used to train the ARMA model(s).
+                         Bayesian information criterion (BIC) is used as the internal optimization
+                         metric.""", default=False)
+    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
-                       regression; typically represented as $P$ in literature."""))
-    specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.IntegerType,
+                       regression; typically represented as $P$ or Signal Lag in literature.
+                       Accepted as list or single value: if list, should be the same length as
+                       number of target signals. Otherwise, the singular value is used for all
+                       all signals. If `auto_select` is set to True, these values are used to
+                       bound the search for optimal $P$ values."""))
+    specs.addSub(InputData.parameterInputFactory('Q', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
-                       regression; typically represented as $Q$ in literature."""))
+                       regression; typically represented as $Q$ or Noise Lag in literature.
+                       Accepted as list or single value: if list, should be the same length as
+                       number of target signals. Otherwise, the singular value is used for all
+                       all signals. If `auto_select` is set to True, these values are used to
+                       bound the search for optimal $P$ values."""))
     return specs
 
   #
@@ -92,7 +105,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     """
     # general infrastructure
     super().__init__(*args, **kwargs)
-    self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
+    self._minBins = 20     # this feels arbitrary; used for empirical distr. of data
+    self._maxPQ = 0 # maximum number of AR or MA coefficients based on P/Q values
 
   def handleInput(self, spec):
     """
@@ -101,9 +115,32 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['P'] = spec.findFirst('SignalLag').value
-    settings['Q'] = spec.findFirst('NoiseLag').value
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
+    settings['auto_select'] = spec.parameterValues.get('auto_select', settings['auto_select'])
+    targets = settings['target']
+
+    # if auto selecting, replace P and Q with Nones to check for and replace later
+    if settings['auto_select']:
+      settings['P'] = dict((target, None) for target in targets )
+      settings['Q'] = dict((target, None) for target in targets )
+      settings['P']['bounds'] = list(spec.findAll('P')[0].value)
+      settings['Q']['bounds'] = list(spec.findAll('Q')[0].value)
+      return settings
+
+    # if not auto-selecting, storing P and Q values (number of Signal Lag and Noise Lag coefficients)
+    for lagType in ('P', 'Q'):
+      # grabbing provided P and Q parameters
+      lagVals = list(spec.findAll(lagType)[0].value)
+      # checking if number of P/Q values is acceptable (if only 1, same used for all targets; otherwise 1 value per target)
+      if len(lagVals) == 1:
+        settings[lagType] = dict((target, lagVals[0]) for target in targets )
+      elif len(lagVals) == len(targets):
+        settings[lagType] = dict((target, lagVals[i]) for i,target in enumerate(targets) )
+      else:
+        raise ValueError(f'Number of {lagType} values {len(lagVals)} should be 1 or equal to number of targets {len(targets)}')
+
+      # storing max P or Q for clustering later
+      self._maxPQ = np.max(np.r_[self._maxPQ, lagVals])
 
     return settings
 
@@ -120,6 +157,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       settings['engine'] = randomUtils.newRNG()
     if 'reduce_memory' not in settings:
       settings['reduce_memory'] = False
+    if 'auto_select' not in settings:
+      settings['auto_select'] = False
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -158,8 +197,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
-      P = settings['P']
-      Q = settings['Q']
+      P = settings['P'][target]
+      Q = settings['Q'][target]
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
