@@ -120,7 +120,6 @@ class BayesianOptimizer(RavenSampled):
     newExports['radiusFromLast'] = 'radius of current point from previous point'
     newExports['solutionValue'] = 'Expected value of objective var at recommended solution point'
     newExports['solutionDeviation'] = 'Standard deviation of recommended solution'
-    newExports['evaluationCount'] = 'Number of function evaluations up to current iteration'
     acceptedExports.update(newExports)
     return acceptedExports
 
@@ -409,7 +408,7 @@ class BayesianOptimizer(RavenSampled):
     toAdd['radiusFromLast'] = prevDelta
     toAdd['solutionValue'] = self._expectedOptVal
     toAdd['solutionDeviation'] = self._optValSigma
-    toAdd['evaluationCount'] = self._evaluationCount
+    toAdd['modelRuns'] = self._evaluationCount
     return toAdd
 
   def incrementIteration(self, traj):

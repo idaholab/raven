@@ -9,6 +9,9 @@
       This is the most basic test of the Optimizer. It optimizes a basic test function with the Bayesian Optimizer.
       This test provides a baseline for functionality and regression testing of the method. Particular options tested include
       custom and anisotropic kernels alongside the LCB acquisition function solved via differential evolution.
+      The post processing step captures the final results from opt_export. This is because for testing on mac and
+      windows, the entire optimization process is golded; however, due to seeding issues between OS's, the linux
+      tests only consider the final solutions proximity to the correct answer for the analytical test.
     </description>
     <analytic>
       This test uses the Basic function, which is documented in the analytic tests documentation under
@@ -18,7 +21,7 @@
 
   <RunInfo>
     <WorkingDir>./</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, collect_final, print</Sequence>
   </RunInfo>
 
   <Steps>
@@ -30,11 +33,19 @@
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
+    <PostProcess name="collect_final">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">PPindex</Model>
+      <Output class="DataObjects" type="PointSet">selected_index</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </PostProcess>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
       <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">selected_index</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
     </IOStep>
   </Steps>
 
@@ -112,6 +123,9 @@
       <custom_kernel>(Constant*RBF)+(Constant*Matern)</custom_kernel>
       <multioutput>False</multioutput>
     </ROM>
+    <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
+      <criterion value='-1'> index </criterion>
+    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -124,6 +138,10 @@
       <Input>trajID</Input>
       <Output>x,y,ans,accepted,solutionValue</Output>
     </PointSet>
+    <PointSet name="selected_index">
+      <Input>trajID</Input>
+      <Output>x,y,ans</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
@@ -135,6 +153,10 @@
       <type>csv</type>
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="final_opt">
+      <type>csv</type>
+      <source>selected_index</source>
     </Print>
   </OutStreams>
 
