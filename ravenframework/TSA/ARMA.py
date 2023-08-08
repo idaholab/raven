@@ -18,6 +18,7 @@ import copy
 import collections
 import numpy as np
 import scipy as sp
+import pandas as pd
 
 from .. import Decorators
 
@@ -105,8 +106,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     """
     # general infrastructure
     super().__init__(*args, **kwargs)
-    self._minBins = 20     # this feels arbitrary; used for empirical distr. of data
-    self._maxPQ = 0 # maximum number of AR or MA coefficients based on P/Q values
+    self._minBins = 20  # this feels arbitrary; used for empirical distr. of data
+    self._maxPQ   = 0   # maximum number of AR or MA coefficients based on P/Q values
+    self._maxCombinedPQ = 5
 
   def handleInput(self, spec):
     """
@@ -119,28 +121,37 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     settings['auto_select'] = spec.parameterValues.get('auto_select', settings['auto_select'])
     targets = settings['target']
 
-    # if auto selecting, replace P and Q with Nones to check for and replace later
-    if settings['auto_select']:
-      settings['P'] = dict((target, None) for target in targets )
-      settings['Q'] = dict((target, None) for target in targets )
-      settings['P']['bounds'] = list(spec.findAll('P')[0].value)
-      settings['Q']['bounds'] = list(spec.findAll('Q')[0].value)
-      return settings
-
-    # if not auto-selecting, storing P and Q values (number of Signal Lag and Noise Lag coefficients)
-    for lagType in ('P', 'Q'):
-      # grabbing provided P and Q parameters
+    # getting P and Q values (number of Signal Lag and Noise Lag coefficients) and checking validity
+    lagDict  = {}
+    lagTypes = ('P', 'Q')
+    for lagType in lagTypes: #NOTE: not including 'd' here, as this is a Transformer (add a check later?)
+      # grabbing Ps and Qs provided by user
       lagVals = list(spec.findAll(lagType)[0].value)
-      # checking if number of P/Q values is acceptable (if only 1, same used for all targets; otherwise 1 value per target)
+      # checking if number of P/Q values is acceptable
+      # --- if user provided only 1 value, we repeat it for all targets
+      # --- otherwise, the user has to provide a value for each target
       if len(lagVals) == 1:
-        settings[lagType] = dict((target, lagVals[0]) for target in targets )
+        lagDict[lagType] = dict((target, lagVals[0]) for target in targets )
       elif len(lagVals) == len(targets):
-        settings[lagType] = dict((target, lagVals[i]) for i,target in enumerate(targets) )
+        lagDict[lagType] = dict((target, lagVals[i]) for i,target in enumerate(targets) )
+      #TODO: if auto-selecting, allow 2 entries? as a lower,upper bound for search? or maybe too complicated...
       else:
         raise ValueError(f'Number of {lagType} values {len(lagVals)} should be 1 or equal to number of targets {len(targets)}')
 
-      # storing max P or Q for clustering later
-      self._maxPQ = np.max(np.r_[self._maxPQ, lagVals])
+    # storing max P or Q for clustering later
+    self._maxPQ = np.max(np.r_[self._maxPQ,
+                              [lagDict[lagType][target] for target in targets \
+                                for lagType in lagTypes]])
+
+    # if auto-selecting, replace P and Q with Nones to check for and replace later
+    if settings['auto_select']:
+      settings['P'] = dict((target, None) for target in targets )
+      settings['Q'] = dict((target, None) for target in targets )
+      settings['P']['bounds'] = self._maxPQ
+      settings['Q']['bounds'] = self._maxPQ
+    else:
+      settings['P'] = lagDict['P']
+      settings['Q'] = lagDict['Q']
 
     return settings
 
@@ -187,7 +198,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       history = signal[:, tg]
       mask = ~np.isnan(history)
       if settings.get('gaussianize', True):
-        # Transform data to obatain normal distrbuted series. See
+        # Transform data to obtain normal distributed series. See
         # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
@@ -200,6 +211,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       P = settings['P'][target]
       Q = settings['Q'][target]
       d = settings.get('d', 0)
+      # auto-select P and Q values if desired
+      if P is None or Q is None:
+        P, Q = self.autoSelectParams(settings, target, pivot[mask], history[mask])
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
@@ -224,15 +238,65 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       selCov = r.dot(q).dot(r.T)
       initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
       initDist = {'mean': initMean, 'cov': initCov}
+      ar = -res.polynomial_ar[1:]
+      ma = res.polynomial_ma[1:]
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': -res.polynomial_ar[1:],     # AR
-                                'ma': res.polynomial_ma[1:],     # MA
+                                'ar': np.pad(ar, (0, self._maxPQ - len(ar) ) ),     # AR
+                                'ma': np.pad(ma, (0, self._maxPQ - len(ma) ) ),     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'model': model}
       if not settings['reduce_memory']:
         params[target]['arma']['results'] = res
     return params
+
+  def autoSelectParams(self, settings, target, pivot, history):
+    """
+      Auto-selects ARMA hyperparameters P and Q for signal and noise lag. Uses the StatsForecast
+      AutoARIMA methodology for selection, including BIC as the optimization criteria,
+      @ In, settings, dict, additional settings specific to algorithm
+      @ In, target, str, name of target signal
+      @ In, pivot, np.array, time-like array values
+      @ In, history, np.array, signal values
+      @ Out, POpt, int, optimal signal lag parameter
+      @ Out, QOpt, int, optimal noise lag parameter
+    """
+    try:
+      from darts import models as dmodels
+      from darts import TimeSeries
+    except ModuleNotFoundError as exc:
+      print("This RAVEN TSA Module requires the DARTS library to be installed in the current python environment")
+      raise ModuleNotFoundError from exc
+
+    maxP = settings['P']['bounds']
+    maxQ = settings['Q']['bounds']
+
+    SFparams = {
+        "seasonal": False, # set to True if you want a SARIMA model
+        "stationary": False,
+        "start_p": 0,
+        "start_q": 0,
+        "max_p": maxP,
+        "max_q": maxQ,
+        "max_order": self._maxCombinedPQ,
+        "num_cores": 1,
+        "ic": 'bic',
+      }
+
+    SFAA = dmodels.StatsForecastAutoARIMA(**SFparams)
+    dataframe = pd.DataFrame()
+    dataframe['Target'] = history
+    dataframe['Pivot'] = np.arange(len(pivot))
+    timeSeries = TimeSeries.from_dataframe(dataframe, time_col='Pivot')
+
+    fittedARIMA = SFAA.fit(timeSeries,)
+    ARIMA = fittedARIMA.model.model_['arma']
+    ARIMA_order = tuple( ARIMA[i] for i in [0, 5, 1, 2, 6, 3, 4] )
+
+    POpt = ARIMA_order[0]
+    QOpt = ARIMA_order[2]
+
+    return POpt, QOpt
 
   def getResidual(self, initial, params, pivot, settings):
     """
@@ -320,8 +384,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     for t, (target, data) in enumerate(params.items()):
       armaData = data['arma']
       modelParams = np.hstack([[armaData.get('const', 0)],
-                               armaData['ar'],
-                               armaData['ma'],
+                               armaData['ar'][armaData['ar']!=0],
+                               armaData['ma'][armaData['ma']!=0],
                                [armaData.get('var', 1)]])
       msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'], armaData['initials'], synthetic.shape[0])
       # measurement shocks
