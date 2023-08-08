@@ -122,9 +122,9 @@ def crowdingDistance(rank, popSize, objectives):
   # # tentative code block start
   # import matplotlib.pyplot as plt
   # from mpl_toolkits.mplot3d import Axes3D
-  # xdata = [item[0] for item in data]
-  # ydata = [item[1] for item in data]
-  # zdata = [item[2] for item in data]
+  # xdata = [item[0] for item in objectives]
+  # ydata = [item[1] for item in objectives]
+  # zdata = [item[2] for item in objectives]
 
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
