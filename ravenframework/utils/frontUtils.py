@@ -80,7 +80,7 @@ def rankNonDominatedFrontiers(data):
     @ out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
-  # tentative code block start
+  ## tentative code block start
   # import matplotlib.pyplot as plt
   # from mpl_toolkits.mplot3d import Axes3D
   # xdata = [item[0] for item in data]
@@ -109,7 +109,6 @@ def rankNonDominatedFrontiers(data):
   #   ax3d.text(x, y, z, label)
   # plt.title("Data")
   # plt.show()
-
   return nonDominatedRank
 
 def crowdingDistance(rank, popSize, objectives):
@@ -120,6 +119,13 @@ def crowdingDistance(rank, popSize, objectives):
     @ In, objectives, np.array, matrix contains objective values for each element of the population
     @ Out, crowdDist, np.array, array of crowding distances
   """
+  # # tentative code block start
+  # import matplotlib.pyplot as plt
+  # from mpl_toolkits.mplot3d import Axes3D
+  # xdata = [item[0] for item in data]
+  # ydata = [item[1] for item in data]
+  # zdata = [item[2] for item in data]
+
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
   fronts = fronts[fronts!=np.inf]
