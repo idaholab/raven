@@ -721,6 +721,7 @@ class RavenSampled(Optimizer):
       if 'max' in self._minMax:
         objValue *= -1
       toExport[self._objectiveVar[0]] = objValue
+
     else: # Multi Objective Optimization
       for i in range(len(self._objectiveVar)):
         objValue = rlz[self._objectiveVar[i]]
@@ -739,7 +740,7 @@ class RavenSampled(Optimizer):
         toExport[var] = rlz[var]
     # formatting
     toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
-    self._solutionExport.addRealization(toExport)
+    self._solutionExport.addRealization(toExport) # It will stop when it is final
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

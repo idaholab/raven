@@ -363,7 +363,7 @@ class GeneticAlgorithm(RavenSampled):
     # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
     # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
     if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','rank_crowding']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {self._fitnessType}')
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, feasibleFirst and rank_crowding as a fitness, whereas provided fitness is {self._fitnessType}')
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
@@ -525,7 +525,10 @@ class GeneticAlgorithm(RavenSampled):
 
       for index,individual in enumerate(offSprings):
         newOpt = individual
+        objOpt = dict(zip(self._objectiveVar,
+                          list(map(lambda x:-1 if x=="max" else 1 , self._minMax))))
         opt = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
+        opt = {k: objOpt[k]*opt[k] for k in opt}
         for p, v in constraintData.items():
           opt[p] = v[index]
 
@@ -823,9 +826,9 @@ class GeneticAlgorithm(RavenSampled):
       print("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-
-        # rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
+        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
+        rlzDict['batchId'] = rlz['batchId'][i]
         for j in range(len(self._objectiveVar)):
           rlzDict[self._objectiveVar[j]] = objVal.data[i][j]
         rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
