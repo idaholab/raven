@@ -47,16 +47,23 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class of acquisition functions for Bayesian Optimizer.'
-    specs.addSub(InputData.parameterInputFactory('optimizationMethod', contentType=InputTypes.StringType,
+    specs.addSub(InputData.parameterInputFactory('optimizationMethod', contentType=InputTypes.makeEnumType("optimizationMethod", "optimizationMethodType",
+                                                 ['differentialEvolution','slsqp']),
                                                  descr=r"""String to specify routine used for the optimization of the acquisition function.
-                                                 Acceptable options include: ('differentialEvolution', 'slsqp'). \default{'differentialEvolution'}"""))
+                                                 Acceptable options include: ('differentialEvolution', 'slsqp'). \default{'differentialEvolution'}.
+                                                 \begin{itemize}
+                                                 \item Differential Evolution: A style of evolutionary algorithm, which specializes in floating point
+                                                 representations of decision variables. Works similar to its parent algorithm Genetic Algorithm
+                                                 \item SLSQP: A Sequential Least Squares algorithm, which uses an BFGS update and
+                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.""", default='differentialEvolution'))
     specs.addSub(InputData.parameterInputFactory('seedingCount', contentType=InputTypes.IntegerType,
                                                  descr=r"""If the method is gradient based or typically handled with singular
-              decisions (ex. slsqp approximates a quadratic program using the gradient), this number
-              represents the number of trajectories for a multi-start variant (default=2N).
-              N is the dimension of the input space.
-              If the method works on populations (ex. differential evolution simulates natural selection on a population),
-              the number represents the population size (default=10N)."""))
+                                                 decisions (ex. slsqp approximates a quadratic program using the gradient), this number
+                                                 represents the number of trajectories for a multi-start variant (default=2N).
+                                                 N is the dimension of the input space.
+                                                 If the method works on populations (ex. differential evolution simulates
+                                                 natural selection on a population),
+                                                 the number represents the population size (default=10N)."""))
     return specs
 
   @classmethod
@@ -74,12 +81,13 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, None
       @ Out, None
     """
-    self._optMethod = None   # Method used to optimize acquisition function for sample selection
-    self._seedingCount = 0   # For multi-start gradient methods, the number of starting points and the population size for differential evolution
-    self._dim = None         # Dimension of the input space
-    self._bounds = []        # List of tuples for bounds that scipy optimizers use
-    self._optValue = None    # Value of the acquisition function at the recommended sample
-    self._constraints = None # Scipy optimizer constraint object for applying explicit constraints
+    self._optMethod = None                                                     # Method used to optimize acquisition function for sample selection
+    self._seedingCount = 0                                                     # For multi-start gradient methods, the number of starting points and the population size for differential evolution
+    self._dim = None                                                           # Dimension of the input space
+    self._bounds = []                                                          # List of tuples for bounds that scipy optimizers use
+    self._optValue = None                                                      # Value of the acquisition function at the recommended sample
+    self._constraints = None                                                   # Scipy optimizer constraint object for applying explicit constraints
+    self._slsqpOptions = options = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Options dict for slsqp optimizer
 
   def handleInput(self, specs):
     """
@@ -145,16 +153,15 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       for index, varName in enumerate(list(bayesianOptimizer.toBeSampled)):
         tempArray[0,index] = best[varName]
       initSamples = np.concatenate((initSamples,tempArray),axis=0)
-      options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
 
       res = None
       for x0 in initSamples:
         if self._constraints == None:
           result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds,
-                                   options=options)
+                                   options=self._slsqpOptions)
         else:
           result = sciopt.minimize(optFunc, x0, method='SLSQP', jac=True, bounds=self._bounds,
-                                    options=options, constraints=self._constraints)
+                                    options=self._slsqpOptions, constraints=self._constraints)
         if res is None:
           res = result
         elif result.fun < res.fun:
@@ -169,6 +176,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
   def testGradients(self, bayesianOptimizer, nSamples):
     """
       Numerically validates gradients of acquisition functions
+      @ In, bayesianOptimizer, instance of BayesianOptimizer, instance of the optimizer in its current state
+      @ In, nSamples, int, number points to numerically test the analytical gradient
+      @ Out, maxDiff, float, largest descrepancy found between numerical and analytical gradients
     """
     evalMethod = lambda var: self.evaluate(var, bayesianOptimizer)[0]
     funGrad = nd.Gradient(evalMethod, step=0.0001, order=4)
@@ -214,7 +224,6 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     pass
 
-  @abc.abstractmethod
   def hessian(self, var, bayesianOptimizer):
     """
       Evaluates acquisition function's hessian using the current BO instance/ROM
@@ -223,7 +232,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ Out, ddacqValue, float/array, acquisition function hessian value
     """
-    pass
+    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian is not yet developed for this acqusition function')
 
   def buildConstraint(self, bayesianOptimizer):
     """
@@ -278,10 +287,10 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     """
       Specific Acquisition functions may want to overload this method
       Uses current predictive model to recommend a solution point
-      @ In, bayesianOptimizer, instance of BayesianOptimizer class
-      @ Out, muStar, recommended solution value
+      @ In, bayesianOptimizer, BayesianOptimizer object, instance of BayesianOptimizer class
+      @ Out, muStar, float, recommended solution value
       @ Out, xStar, dict, point associated with muStar for the current data
-      @ Out, stdStar, standard deviation of model prediction at xStar
+      @ Out, stdStar, float, standard deviation of model prediction at xStar
     """
     # Pulling input data from BO instance
     trainingInputs = copy.copy(bayesianOptimizer._trainingInputs[0])

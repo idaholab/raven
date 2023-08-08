@@ -125,7 +125,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
       @ In, var, np.array, input to evaluate Expected Improvement at
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ In, vectorized, bool, whether the evaluation should be vectorized or not (useful for differential evolution)
-      @ Out, PoI, float, probability of improvement function value
+      @ Out, poi, float, probability of improvement function value
     """
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
@@ -143,11 +143,11 @@ class ProbabilityOfImprovement(AcquisitionFunction):
 
     # Is this evaluation vectorized?
     if vectorized:
-      PoI = np.subtract(tau, mu)
-      PoI = np.divide(PoI, s)
+      poi = np.subtract(tau, mu)
+      poi = np.divide(PoI, s)
     else:
-      PoI = (tau - mu) / s
-    return PoI
+      poi = (tau - mu) / s
+    return poi
 
   def gradient(self, var, bayesianOptimizer):
     """
@@ -155,7 +155,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
       Should be overwritten by specific acquisition functions
       @ In, var, np.array, input to evaluate Expected Improvement gradient at
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
-      @ Out, PoIGrad, float/array, PoI gradient value
+      @ Out, poiGrad, float/array, PoI gradient value
     """
     # NOTE assumes scikitlearn GPR currently
     # Need to convert array input "x" into dict point
@@ -173,20 +173,10 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     tau = fopt - self._epsilon
 
     # Gradient of PoI
-    PoIGrad = -s*np.transpose(meanGrad) - (tau-mu)*stdGrad
-    PoIGrad = PoIGrad / (s**2)
+    poiGrad = -s*np.transpose(meanGrad) - (tau-mu)*stdGrad
+    poiGrad = PoIGrad / (s**2)
 
-    return PoIGrad
-
-  def hessian(self, var, bayesianOptimizer):
-    """
-      Evaluates acquisition function's hessian using the current BO instance/ROM
-      Should be overwritten by specific acquisition functions
-      @ In, var, np.array, input to evaluate Expected Improvement hessian at
-      @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
-      @ Out, PoIHess, float/array, PoI hessian value
-    """
-    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Probability of Improvement not yet developed')
+    return poiGrad
 
   #####################
   # Transient Methods #
@@ -194,7 +184,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
   def exploit(self, iter):
     """
       Defines the transient method for exploit setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._epsilon = self._baseEpsilon * np.exp(-iter / self._rho)
@@ -202,7 +192,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
   def explore(self, iter):
     """
       Defines the transient method for explore setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._epsilon = self._baseEpsilon * (1 - np.exp(-iter / self._rho))
@@ -210,7 +200,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
   def oscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._epsilon = self._baseEpsilon * (np.sin((2 * np.pi * iter) / self._rho)**2)
@@ -218,7 +208,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
   def decayingOscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._epsilon = self._baseEpsilon * (np.exp(-iter / (4 * self._rho))) * (np.sin((2 * np.pi * iter) / self._rho )**2)

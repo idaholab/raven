@@ -124,12 +124,3 @@ class ExpectedImprovement(AcquisitionFunction):
     EIGrad = stdGrad * phi - np.transpose(meanGrad) * Phi + betaGrad * (phi * (fopt - mu) + s * phiGrad)
     return EIGrad
 
-  def hessian(self, var, bayesianOptimizer):
-    """
-      Evaluates acquisition function's hessian using the current BO instance/ROM
-      Should be overwritten by specific acquisition functions
-      @ In, var, np.array, input to evaluate Expected Improvement hessian at
-      @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
-      @ Out, EIHess, float/array, EI hessian value
-    """
-    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Expected Improvement not yet developed')

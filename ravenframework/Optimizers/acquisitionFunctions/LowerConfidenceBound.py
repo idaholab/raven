@@ -113,7 +113,7 @@ class LowerConfidenceBound(AcquisitionFunction):
       @ In, var, np.array, input to evaluate Expected Improvement at
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
       @ In, vectorized, bool, whether the evaluation should be vectorized or not (useful for differential evolution)
-      @ Out, LCB, float, lower confidence bound function value
+      @ Out, lcb, float, lower confidence bound function value
     """
     # Need to convert array input "x" into dict point
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
@@ -127,10 +127,10 @@ class LowerConfidenceBound(AcquisitionFunction):
 
     # Is this evaluation vectorized?
     if vectorized:
-      LCB = np.add(-1*mu, beta*s)
+      lcb = np.add(-1*mu, beta*s)
     else:
-      LCB = -mu + beta*s
-    return LCB
+      lcb = -mu + beta*s
+    return lcb
 
   def gradient(self, var, bayesianOptimizer):
     """
@@ -138,7 +138,7 @@ class LowerConfidenceBound(AcquisitionFunction):
       Should be overwritten by specific acquisition functions
       @ In, var, np.array, input to evaluate Expected Improvement gradient at
       @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
-      @ Out, LCBGrad, float/array, LCB gradient value
+      @ Out, lcbGrad, float/array, LCB gradient value
     """
     # NOTE assumes scikitlearn GPR currently
     meanGrad, stdGrad = bayesianOptimizer._model.supervisedContainer[0].evaluateGradients(var)
@@ -148,19 +148,9 @@ class LowerConfidenceBound(AcquisitionFunction):
     beta = ndtri(self._pi)
 
     # Gradient of LCB
-    LCBGrad = -1*np.transpose(meanGrad) + beta*stdGrad
+    lcbGrad = -1*np.transpose(meanGrad) + beta*stdGrad
 
-    return LCBGrad
-
-  def hessian(self, var, bayesianOptimizer):
-    """
-      Evaluates acquisition function's hessian using the current BO instance/ROM
-      Should be overwritten by specific acquisition functions
-      @ In, var, np.array, input to evaluate Expected Improvement hessian at
-      @ In, bayesianOptimizer, instance of the BayesianOptimizer cls, provides access to model and evaluation method
-      @ Out, LCBHess, float/array, LCB hessian value
-    """
-    bayesianOptimizer.raiseAnError(NotImplementedError,'Hessian for Lower Confidence Bound not yet developed')
+    return lcbGrad
 
   #####################
   # Transient Methods #
@@ -168,7 +158,7 @@ class LowerConfidenceBound(AcquisitionFunction):
   def exploit(self, iter):
     """
       Defines the transient method for exploit setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._pi = self._basePi * np.exp(-iter / self._rho)
@@ -176,7 +166,7 @@ class LowerConfidenceBound(AcquisitionFunction):
   def explore(self, iter):
     """
       Defines the transient method for explore setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._pi = self._basePi * (1 - np.exp(-iter / self._rho))
@@ -184,7 +174,7 @@ class LowerConfidenceBound(AcquisitionFunction):
   def oscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._pi = self._basePi * (np.sin((2 * np.pi * iter) / self._rho)**2)
@@ -192,7 +182,7 @@ class LowerConfidenceBound(AcquisitionFunction):
   def decayingOscillate(self, iter):
     """
       Defines the transient method for oscillate setting
-      @ In, iter, current iteration number
+      @ In, iter, int, current iteration number
       @ Out, None
     """
     self._pi = self._basePi * (np.exp(-iter / (4 * self._rho))) * (np.sin((2 * np.pi * iter) / self._rho)**2)
@@ -201,7 +191,7 @@ class LowerConfidenceBound(AcquisitionFunction):
   def _converged(self, bayesianOptimizer):
     """
       Lower Confidence bound has a different style of convergence
-      @ In, bayesianOptimizer, instance of BayesianOptimizer class
+      @ In, bayesianOptimizer, BayesianOptimizer object, instance of BayesianOptimizer class
       @ Out, converged, bool, has the optimizer converged on acquisition?
     """
     if self._optValue is None:

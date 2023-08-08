@@ -47,7 +47,7 @@ class BayesianOptimizer(RavenSampled):
     """
       Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(BayesianOptimizer, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{BayesianOptimizer} optimizer is a method for black-box optimization.
@@ -83,7 +83,7 @@ class BayesianOptimizer(RavenSampled):
                                                        \item External, uses whatever method the model has internal to itself
                                                        \item Internal, selects the MAP point of the model using slsqp
                                                        \item Average, Approximate marginalization over model space
-                                                       \end{itemize}. Default is External"""))
+                                                       \end{itemize}. Default is Internal""", default='Internal'))
     specs.addSub(modelSelect)
 
     # Convergence
@@ -100,7 +100,8 @@ class BayesianOptimizer(RavenSampled):
                                                 printPriority=300,
                                                 descr=r"""provides the number of consecutive times convergence should
                                                 be reached before a trajectory is considered fully converged.
-                                                This helps in preventing early false convergence. Default is 5 (BO specific)"""))
+                                                This helps in preventing early false convergence. Default is 5 (BO specific)""",
+                                                default=5))
     return specs
 
   @classmethod
@@ -108,7 +109,7 @@ class BayesianOptimizer(RavenSampled):
     """
       Compiles a list of acceptable SolutionExport variable options.
       @ In, None
-      @ Out, ok, list(str), list of acceptable variable names
+      @ Out, acceptedExports, list(str), list of acceptable variable names
     """
     # cannot be determined before run-time due to variables and prefixes.
     acceptedExports = super(BayesianOptimizer, cls).getSolutionExportVariableNames()
@@ -131,21 +132,22 @@ class BayesianOptimizer(RavenSampled):
     """
     RavenSampled.__init__(self)
     # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
-    self._iteration = {}              # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
-    self._initialSampleSize = None    # Number of samples to build initial model with before applying acquisition (default is 5)
-    self._trainingInputs = [{}]       # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
-    self._trainingTargets = []        # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
-    self._model = None                # Regression model used for Bayesian Decision making
-    self._acquFunction = None         # Acquisition function object used in optimization
-    self._modelSelection = 'External' # Method for conducting model selection
-    self._modelDuration = 1           # Number of iterations between model updates
-    self._acquisitionConv = 1e-8      # Value for acquisition convergence criteria
-    self._convergenceInfo = {}        # by traj, the persistence and convergence information for most recent opt
-    self._requiredPersistence = 5     # consecutive persistence required to mark convergence
-    self._expectedOptVal = None       # Expected value of fopt, in other words, muopt
-    self._optValSigma = None          # Standard deviations at expected solution, confidence of solution
-    self._expectedSolution = None     # Decision variable values at expected solution
-    self._evaluationCount = 0         # Number of function/model calls
+    self._iteration = {}                                                      # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
+    self._initialSampleSize = None                                            # Number of samples to build initial model with before applying acquisition
+    self._trainingInputs = [{}]                                               # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
+    self._trainingTargets = []                                                # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
+    self._model = None                                                        # Regression model used for Bayesian Decision making
+    self._acquFunction = None                                                 # Acquisition function object used in optimization
+    self._modelSelection = 'Internal'                                         # Method for conducting model selection
+    self._modelDuration = 1                                                   # Number of iterations between model updates
+    self._acquisitionConv = 1e-8                                              # Value for acquisition convergence criteria
+    self._convergenceInfo = {}                                                # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 5                                             # consecutive persistence required to mark convergence
+    self._expectedOptVal = None                                               # Expected value of fopt, in other words, muopt
+    self._optValSigma = None                                                  # Standard deviations at expected solution, confidence of solution
+    self._expectedSolution = None                                             # Decision variable values at expected solution
+    self._evaluationCount = 0                                                 # Number of function/model calls
+    self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
 
   def handleInput(self, paramInput):
     """
@@ -156,31 +158,44 @@ class BayesianOptimizer(RavenSampled):
     RavenSampled.handleInput(self, paramInput)
 
     # Model (GPR)
-    self._model = paramInput.findFirst('ROM').value
+    model = paramInput.findFirst('ROM')
+    if model:
+      self._model = model.value
+    else:
+      self.raiseAnError(RuntimeError,'No <ROM> node specified for Bayesian Optimizer')
 
     # Acquisition function
     acquNode = paramInput.findFirst('Acquisition')
-    if len(acquNode.subparts) != 1:
-      self.raiseAnError('The <Acquisition> node requires exactly one acquisition function! Choose from: ', acqFactory.knownTypes())
-    acquType = acquNode.subparts[0].getName()
-    self._acquFunction = acqFactory.returnInstance(acquType)
-    setattr(self._acquFunction, '_dim', len(list(self.toBeSampled)))
-    self._acquFunction.handleInput(acquNode.subparts[0])
+    if acquNode:
+      if len(acquNode.subparts) != 1:
+        self.raiseAnError('The <Acquisition> node requires exactly one acquisition function! Choose from: ', acqFactory.knownTypes())
+      acquType = acquNode.subparts[0].getName()
+      self._acquFunction = acqFactory.returnInstance(acquType)
+      setattr(self._acquFunction, '_dim', len(list(self.toBeSampled)))
+      self._acquFunction.handleInput(acquNode.subparts[0])
+    else:
+      self.raiseAnError(RuntimeError, '<Acquisition> node missing from <BayesianOptimizer>')
 
     # Model Selection
     selectNode = paramInput.findFirst('ModelSelection')
-    if selectNode is not None:
-      self._modelDuration = selectNode.findFirst('Duration').value
-      self._modelSelection = selectNode.findFirst('Method').value
+    # If no model selection node or relevant subnode is given, defaults are already set in __init__
+    if selectNode:
+      duration = selectNode.findFirst('Duration')
+      if duration:
+        self._modelDuration = duration.value
+      method = selectNode.findFirst('Method')
+      if method:
+        self._modelSelection = method.value
 
     # Convergence
     convNode = paramInput.findFirst('convergence')
-    if convNode is not None:
+    # Similar to model selection, if no parent node or some child node is missing, __init__ provides default
+    if convNode:
       acquConv = convNode.findFirst('acquisition')
-      if acquConv is not None:
+      if acquConv:
         self._acquisitionConv = acquConv.value
       persistence = convNode.findFirst('persistence')
-      if persistence is not None:
+      if persistence:
         self._requiredPersistence = persistence.value
 
   def initialize(self, externalSeeding=None, solutionExport=None):
@@ -203,11 +218,7 @@ class BayesianOptimizer(RavenSampled):
       self._acquFunction.buildConstraint(self)
 
     # Initialize model object and store within class
-    for model in self.assemblerDict['ROM']:
-      modelName = model[2]
-      if modelName == self._model:
-        self._model = model[3]
-        break
+    self._model = self.retrieveObjectFromAssemblerDict('ROM', self._model)
     if self._model is None:
       self.raiseAnError(RuntimeError, 'No model was provided for Bayesian Optimizer. This method requires a ROM model.')
     elif self._model.subType not in ["GaussianProcessRegressor"]:
@@ -327,11 +338,11 @@ class BayesianOptimizer(RavenSampled):
   ###################
   def arrayToFeaturePoint(self, arrayPoint):
     """
-      Converts array input to featurePoint that model evaluation can read
+      Converts array input to featurePoint that model evaluation can read, follows order of
+      self.toBeSampled for variable names
       @ In, arrayPoint, numpy array, array input
       @ Out, featurePoint, input in dictionary form
     """
-    # TODO how to properly track variable names
     dim = arrayPoint.shape[0]
     if dim != len(list(self.toBeSampled)):
         self.raiseAnError(RuntimeError, f'Dimension of input array supplied is {dim}, but the'
@@ -340,7 +351,6 @@ class BayesianOptimizer(RavenSampled):
     # Receiving 2-D array of many inputs
     if len(arrayPoint.shape) == 2:
 
-      # FIXME currently assumes indexing of array follows order of 'toBeSampled'
       for index, var in enumerate(list(self.toBeSampled)):
         featurePoint[var] = arrayPoint[index, :]
     # Receiving single input location
@@ -355,11 +365,11 @@ class BayesianOptimizer(RavenSampled):
 
   def featurePointToArray(self, featurePoint):
     """
-      Converts featurePoint input to numpy array for easier operating
+      Converts featurePoint input to numpy array for easier operating, assumes order of variables
+      to match self.toBeSampled names
       @ In, featurePoint, dict, point in input space
       @ Out, arrayPoint, np.array, array form of same input
     """
-    # TODO same concerns as inverse class (see above)
     arrayPoint = []
     for varName in list(featurePoint):
       arrayPoint.append(featurePoint[varName])
@@ -425,7 +435,7 @@ class BayesianOptimizer(RavenSampled):
       Provides the "generation" or "iteration" of an optimization algorithm.
       The definition of generation is algorithm-specific; this is a utility for tracking only.
       @ In, traj, int, identifier for trajectory
-      @ Out, counter, int, iteration of the trajectory
+      @ Out, self._iteration[traj], int, iteration of the trajectory
     """
     return self._iteration[traj]
 
@@ -450,7 +460,7 @@ class BayesianOptimizer(RavenSampled):
       Evaluates the log marginal likelihood of the sklearn GPR model
       @ In, logTheta, np.array, log transformed hyperparameters
       @ Out, logLikelihood, float, log-marginal likelihood
-      @ Out, lmlGradient, gradient of log-marginal likelihood
+      @ Out, lmlGradient, np.array, gradient of log-marginal likelihood
     """
     result = self._model.supervisedContainer[0].model.log_marginal_likelihood(logTheta, eval_gradient=True, clone_kernel=False)
     # Flipping sign for maximization
@@ -477,11 +487,11 @@ class BayesianOptimizer(RavenSampled):
     currentTheta = np.array([self._model.supervisedContainer[0].model.kernel.theta])
     initSamples = np.concatenate((initSamples, currentTheta))
     # Selecting MAP for each restart
-    options = {'ftol':1e-10, 'maxiter':200, 'disp':False}
     res = None
 
     for x0 in initSamples:
-      result = sciopt.minimize(self._logMarginalLikelihood, x0, method='SLSQP', jac=True, bounds=paramBounds, options=options)
+      result = sciopt.minimize(self._logMarginalLikelihood, x0, method='SLSQP', jac=True, bounds=paramBounds,
+                               options=self._paramSelectionOptions)
       if res is None:
         res = result
       elif result.fun < res.fun:
@@ -537,8 +547,8 @@ class BayesianOptimizer(RavenSampled):
     """
       Evaluates GPR mean and standard deviation at a given input location
       @ In, featurePoint, dict, feature values to evaluate ROM
-      @ Out, mu, ROM mean/prediction value at that point
-      @ Out, std, ROM standard-deviation value at that point
+      @ Out, mu, np.array, ROM mean/prediction value at that point
+      @ Out, std, np.array, ROM standard-deviation value at that point
     """
     # Evaluating the regression model
     resultsDict = self._model.evaluate(featurePoint)
@@ -554,37 +564,6 @@ class BayesianOptimizer(RavenSampled):
       Abstract method from RavenSampled, currently not used by BayesianOptimizer
     """
     self.raiseAnError(NotImplementedError, '_applyFunctionalConstraints not implemented for Bayesian Optimizer')
-
-  def _handleImplicitConstraints(self, previous):
-    """
-      Considers all implicit constraints
-      @ In, previous, dict, NORMALIZED previous opt point
-      @ Out, accept, bool, whether point was satisfied implicit constraints
-    """
-    normed = copy.deepcopy(previous)
-    oldVal = normed[self._objectiveVar]
-    normed.pop(self._objectiveVar, oldVal)
-    denormed = self.denormalizeData(normed)
-    denormed[self._objectiveVar] = oldVal
-    accept = self._checkImpFunctionalConstraints(denormed)
-    return accept
-
-  def _checkImpFunctionalConstraints(self, previous):
-    """
-      Checks that provided point does not violate implicit functional constraints
-      @ In, previous, dict, previous opt point (denormalized)
-      @ Out, allOkay, bool, False if violations found else True
-    """
-    allOkay = True
-    inputs = dict(previous)
-    for impConstraint in self._impConstraintFunctions:
-      okay = impConstraint.evaluate('implicitConstraint', inputs)
-      if not okay:
-        self.raiseADebug(f'Implicit constraint "{impConstraint.name}" was violated!')
-        self.raiseADebug(' ... point:', previous)
-      allOkay *= okay
-
-    return bool(allOkay)
 
   # END constraint handling
   # * * * * * * * * * * * *
@@ -670,6 +649,7 @@ class BayesianOptimizer(RavenSampled):
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
       @ In, optVal, float, new optimization value
+      @ In, info, dict, provides auxillary info about optimizer status (traj, batch, step)
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
       @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
