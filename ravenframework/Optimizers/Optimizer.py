@@ -395,7 +395,11 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     if not self.assemblerDict.get('Sampler', False):
-      return
+      # Need to make sure that initial values have been provided
+      if self._initialValues:
+        return
+      else:
+        self.raiseAnError(RuntimeError, 'Initial values not provided via sampler or user selected points')
     sampler = self.assemblerDict['Sampler'][0][3]
     if not isinstance(sampler, Sampler):
       self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')

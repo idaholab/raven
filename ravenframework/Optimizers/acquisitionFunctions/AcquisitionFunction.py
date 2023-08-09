@@ -87,6 +87,11 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     self._bounds = []                                                          # List of tuples for bounds that scipy optimizers use
     self._optValue = None                                                      # Value of the acquisition function at the recommended sample
     self._constraints = None                                                   # Scipy optimizer constraint object for applying explicit constraints
+    self._polish = True                                                        # Polish setting for Differential Evolution
+    self._maxiter = 100                                                        # max iter setting for Differential Evolution
+    self._tol = 1e-1                                                           # tolerance setting for Differential Evolution
+    self._init = 'sobol'                                                       # init setting for Differential Evolution
+    self._vectorized = True                                                    # vectorized setting for Differential Evolution
     self._slsqpOptions = options = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Options dict for slsqp optimizer
 
   def handleInput(self, specs):
@@ -130,11 +135,11 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       # NOTE -1 is to enforce maximization of the positive function
       optFunc = lambda var: -1*self.evaluate(var, bayesianOptimizer, vectorized=True)
       if self._constraints == None:
-        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
-                                            popsize=self._seedingCount, init='sobol', vectorized=True, seed=bayesianOptimizer._seed)
+        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=self._polish, maxiter=self._maxiter, tol=self._tol,
+                                            popsize=self._seedingCount, init=self._init, vectorized=self._vectorized, seed=bayesianOptimizer._seed)
       else:
-        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=True, maxiter=100, tol=1e-1,
-                                            popsize=self._seedingCount, init='sobol', vectorized=True, constraints=self._constraints, seed=bayesianOptimizer._seed)
+        res = sciopt.differential_evolution(optFunc, bounds=self._bounds, polish=self._polish, maxiter=self._maxiter, tol=self._tol,
+                                            popsize=self._seedingCount, init=self._init, vectorized=self._vectorized , constraints=self._constraints, seed=bayesianOptimizer._seed)
     elif self._optMethod == 'slsqp':
       optFunc = lambda var: (-1*self.evaluate(var, bayesianOptimizer),
                              -1*self.gradient(var, bayesianOptimizer))

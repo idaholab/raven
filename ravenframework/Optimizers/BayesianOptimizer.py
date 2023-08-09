@@ -91,7 +91,7 @@ class BayesianOptimizer(RavenSampled):
                                            printPriority=108,
                                            descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
                                            Note that convergence is met when any one of the convergence criteria is met. If no convergence
-                                           criteria are given, then the defaults are used.""")
+                                           criteria are given.""")
     specs.addSub(conv)
 
     for name, descr in cls.convergenceOptions.items():
@@ -148,6 +148,7 @@ class BayesianOptimizer(RavenSampled):
     self._expectedSolution = None                                             # Decision variable values at expected solution
     self._evaluationCount = 0                                                 # Number of function/model calls
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
+    self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
 
   def handleInput(self, paramInput):
     """
@@ -449,6 +450,10 @@ class BayesianOptimizer(RavenSampled):
       @ Out, None
     """
     # NOTE This assumes scikitlearn GPR model
+    # Since the model is trained on a normalized feature space ([0,1]),
+    # length-scales greater than 1 imply that dimension does not change significantly over the entire domain.
+    # 1e-5 is what I believe to be a reasonable lower bound as it essentially implies there is no correlation
+    # between neighboring points for that dimension
     hyperParamList = self._model.supervisedContainer[0].model.kernel.hyperparameters
     for hyperParam in hyperParamList:
       if 'length_scale' in hyperParam.name:
@@ -529,7 +534,7 @@ class BayesianOptimizer(RavenSampled):
     # Generate posterior with training data
     if self._iteration[traj] % self._modelDuration == 0:
       if self._modelSelection == 'External':
-        self._model.supervisedContainer[0].model.set_params(optimizer='fmin_l_bfgs_b')
+        self._model.supervisedContainer[0].model.set_params(optimizer=self._externalParamOptimizer)
         self._trainRegressionModel(traj)
         self._model.supervisedContainer[0].model.set_params(optimizer=None)
       elif self._modelSelection == 'Internal':

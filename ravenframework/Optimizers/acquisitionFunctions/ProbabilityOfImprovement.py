@@ -144,7 +144,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     # Is this evaluation vectorized?
     if vectorized:
       poi = np.subtract(tau, mu)
-      poi = np.divide(PoI, s)
+      poi = np.divide(poi, s)
     else:
       poi = (tau - mu) / s
     return poi
@@ -174,7 +174,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
 
     # Gradient of PoI
     poiGrad = -s*np.transpose(meanGrad) - (tau-mu)*stdGrad
-    poiGrad = PoIGrad / (s**2)
+    poiGrad = poiGrad / (s**2)
 
     return poiGrad
 
