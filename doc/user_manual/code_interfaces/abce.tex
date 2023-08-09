@@ -50,6 +50,7 @@ the following files:
       \end{itemize}
     \end{itemize}
   \end{itemize}
+\end{itemize}
 
 
 
@@ -73,14 +74,13 @@ The inputs in the \xmlNode{Files} section are shown below:
 
 \subsubsection{Models}
 
-The \xmlNode{Code} model can be used with the
-\xmlAttr{subType="Abce"} to run the ABCE Code Interface. \xmlNode{executable} need to be the place of ABCE executable \textbf{run.py}.
+The \xmlNode{Code} model can be used with
+\xmlAttr{subType="Abce"} to run the ABCE Code Interface. The \xmlNode{executable} needs to be ABCE's executable \textbf{run.py}.
 
 \begin{lstlisting}[style=XML]
   <Models>
     <Code name="abce" subType="Abce">
-      <executable>
-      </executable>
+      <executable>abce/run.py</executable>
       <clargs arg="python" type="prepend" />
       <clargs arg="--settings_file" extension=".yml" type="input" delimiter="=" />
       <clargs arg="--inputs_path=inputs --verbosity=3" type="text" />

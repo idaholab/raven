@@ -16,7 +16,7 @@
 
   <RunInfo>
     <WorkingDir>AbceInterfaceTest</WorkingDir>
-    <Sequence>runAbce</Sequence>
+    <Sequence>runAbceFake</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -61,7 +61,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="runAbce" clearRunDir="False">
+    <MultiRun name="runAbceFake" clearRunDir="False">
       <Input class="Files" type="">settings.yml</Input>
       <Input class="Files" type="">demand_data_file</Input>
       <Input class="Files" type="">agent_specifications_file</Input>
@@ -76,7 +76,7 @@
       <Model class="Models" type="Code">abce</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="HistorySet">grid</Output>
-      <Output class="OutStreams" type="Print">grid</Output>
+      <Output class="OutStreams" type="Print">grid_fake</Output>
     </MultiRun>
   </Steps>
 
@@ -93,7 +93,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="grid">
+    <Print name="grid_fake">
       <type>csv</type>
       <source>grid</source>
     </Print>

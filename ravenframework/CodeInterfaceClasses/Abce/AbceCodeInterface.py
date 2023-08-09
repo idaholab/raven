@@ -90,9 +90,9 @@ class Abce(CodeInterfaceBase):
       return None
 
     #prepend
-    todo = ''
-    todo += clargs['pre']+' '
-    todo += executable
+    fullCommand = ''
+    fullCommand += clargs['pre']+' '
+    fullCommand += executable
     index=None
     #setup input files and output directory
     self._outputDirectory = None
@@ -100,21 +100,21 @@ class Abce(CodeInterfaceBase):
     for flag,elems in clargs['input'].items():
       if flag == 'noarg':
         continue
-      todo += ' '+flag
+      fullCommand += ' '+flag
       for elem in elems:
         ext, delimiter = elem[0], elem[1]
         idx,fname = findSettingIndex(inputFiles,ext.strip('.'))
         setOutputDir(fname)
-        todo += delimiter + fname.getFilename()
+        fullCommand += delimiter + fname.getFilename()
         if index == None:
           index = idx
     self.caseName = inputFiles[index].getBase()
     outFile = 'out~'+self.caseName
     if 'output' in clargs:
-      todo+=' '+clargs['output']+' '+outFile
-    todo+=' '+clargs['text']
-    todo+=' '+clargs['post']
-    returnCommand = [('parallel',todo)],outFile
+      fullCommand+=' '+clargs['output']+' '+outFile
+    fullCommand+=' '+clargs['text']
+    fullCommand+=' '+clargs['post']
+    returnCommand = [('parallel',fullCommand)],outFile
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
 
