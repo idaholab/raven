@@ -67,6 +67,7 @@
       <fourier target="signal0,signal1">
         <periods>2, 5, 10</periods>
       </fourier>
+      <gaussianize target="signal0, signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>2</SignalLag>
         <NoiseLag>3</NoiseLag>

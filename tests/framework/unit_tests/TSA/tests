@@ -28,4 +28,8 @@
     type = 'RavenPython'
     input = 'testNormalization.py'
   [../]
+  [./Distributions]
+    type = 'RavenPython'
+    input = 'testDistributionTransformations.py'
+  [../]
 []

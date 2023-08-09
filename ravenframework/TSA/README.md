@@ -56,3 +56,5 @@ The following table shows which base classes each currently implemented TSA algo
 | `TanhTransformer`      |   &check;   |           |               |
 | `SigmoidTransformer`   |   &check;   |           |               |
 | `QuantileTransformer`  |   &check;   |           |               |
+| `Gaussianize`          |   &check;   |           |               |
+| `PreserveCDF`          |   &check;   |           |               |

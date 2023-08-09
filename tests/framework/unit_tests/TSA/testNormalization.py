@@ -270,60 +270,6 @@ checkArray('RobustScaler getResidual', transformed, transformedTrue, float)
 inverse = robustScaler.getComposite(transformed, params, pivot, settings)
 checkArray('RobustScaler getComposite', inverse, signals, float)
 
-# Testing the QuantileTransformer is a bit more difficult because the internal operations are more
-# involved. However, if the distributions of both the original and target distributions are known,
-# an analytical solution for the transformation can be derived through a change of random variables.
-# The QuantileTransformer can use either a normal or uniform distribution as the target distribution.
-# With the target distribution as the normal distribution, the QuantileTransformer struggles to
-# estimate the correct quantiles of the extreme values of the distribution due to the asymptotic
-# nature of the tails of the distribution. This is not a problem with the uniform distribution due
-# to the bounded domain of the distribution. We can minimize the impact of this tail behavior by
-# increasing the number of samples used to estimate the quantiles, since the quantile function
-# estimation should converge to the true quantile function as the number of samples increases.
-# However, it is still necessary for "reasonable" sample sizes to remove the extreme values from the
-# transformed distribution before comparing the analytical solution and the quantile transformation.
-# Even with these measures, the test tolerance must be kept rather high to accommodate the growing
-# error in the tails.
-#   - j-bryan
-
-# Test QuantileTransformer (normal)
-targets = ['E']
-pivot = np.arange(3000)
-np.random.seed(42)
-signals = np.random.uniform(0, 1, (3000, 1))  # uniform distribution
-settings = {}
-quantileTransformer = createTransformer(targets, QuantileTransformer, outputDistribution='normal')
-params = quantileTransformer.fit(signals, pivot, targets, settings)
-# Check forward transform
-transformed = quantileTransformer.getResidual(signals, params, pivot, settings)
-transformedTrue = norm.ppf(signals)  # norm.ppf is the inverse CDF of the normal distribution
-# Remove values greater than 3 standard deviations from the mean to avoid tail estimation issues
-# when checking results
-transformed = transformed[np.abs(transformedTrue) < 3].reshape(-1, 1)
-transformedTrue = transformedTrue[np.abs(transformedTrue) < 3].reshape(-1, 1)
-checkArray('QuantileTransformer.getResidual() (uniform -> normal)', transformed, transformedTrue, float, tol=3e-1)
-# Check inverse transform
-# The inverse transform should recover the original signals
-inverse = quantileTransformer.getComposite(transformed, params, pivot, settings)
-checkArray('QuantileTransformer.getComposite() (uniform -> normal)', inverse, signals, float)
-
-# Test QuantileTransformer (uniform)
-targets = ['F']
-pivot = np.arange(500)
-np.random.seed(42)
-signals = np.random.normal(0, 1, (500, 1))  # far fewer samples are required
-settings = {}
-quantileTransformer = createTransformer(targets, QuantileTransformer, outputDistribution='uniform')
-params = quantileTransformer.fit(signals, pivot, targets, settings)
-# Check forward transform
-transformed = quantileTransformer.getResidual(signals, params, pivot, settings)
-transformedTrue = norm.cdf(signals)  # norm.cdf is the CDF of the normal distribution
-checkArray('QuantileTransformer.getResidual() (normal -> uniform)', transformed, transformedTrue, float, tol=3e-2)
-# Check inverse transform
-# The inverse transform should recover the original signals
-inverse = quantileTransformer.getComposite(transformed, params, pivot, settings)
-checkArray('QuantileTransformer.getComposite() (normal -> uniform)', inverse, signals, float)
-
 
 print(results)
 
