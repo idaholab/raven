@@ -201,8 +201,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for algo in self._tsaAlgorithms:
       settings = byAlgo.get(algo.name, None)
       if settings:
-        params = algo.setClusteringValues(settings, self.trainedParams[algo])
-        self.trainedParams[algo] = params
+        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
+        self._tsaTrainedParams[algo] = params
 
   def findAlgoByName(self, name):
     """
@@ -214,6 +214,68 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       if algo.name == name:
         return algo
     return None
+
+  def getFundamentalFeatures(self, requestedFeatures, featureTemplate=None):
+    """
+      Collect the fundamental parameters for this ROM
+      Used for writing XML, interpolating, clustering, etc
+      NOTE: This is originally copied over from SupervisedLearning!
+         Primarily using this for interpolation.
+      @ In, requestedFeatures, dict(list), featureSet and features to collect (may be None)
+      @ In, featureTemplate, str, optional, templated string for naming features (probably leave as None)
+      @ Out, features, dict, features to cluster on with shape {target_metric: np.array(floats)}
+    """
+    # NOTE: this should match the clustered features template.
+    if featureTemplate is None:
+      featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
+
+    requests = self._getClusterableFeatures()
+    features = self.getLocalRomClusterFeatures(featureTemplate, {}, requests, picker=None)
+
+    return features
+
+  def readFundamentalFeatures(self, features):
+    """
+      Reads in the requested ARMA model properties from a feature dictionary
+      @ In, features, dict, dictionary of fundamental features
+      @ Out, readFundamentalFeatures, dict, more clear list of features for construction
+    """
+    return features
+
+  def setFundamentalFeatures(self, features):
+    """
+      opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+      Constructs this ROM by setting fundamental features from "features"
+      @ In, features, dict, dictionary of info as from readFundamentalFeatures
+      @ Out, None
+    """
+    # NOTE: we deepcopy'd a ROM to get here... so any non-clusterable features have
+    #       been copied over. For example: ARMA 'results', 'model', 'initials'
+    # TODO: these attributes should be overloaded in some fashion in the future
+    self.setLocalRomClusterFeatures(features)
+    self.amITrained = True
+
+  def parametrizeGlobalRomFeatures(self, featureDict):
+    """
+      Parametrizes the GLOBAL features of the ROM (assumes this is the templateROM and segmentation is active)
+      @ In, featureDict, dict, dictionary of features to parametrize
+      @ Out, params, dict, dictionary of collected parametrized features
+    """
+    # NOTE: only used during interpolation for global features! returning empty dict...
+    params = {}
+    return params
+
+  def setGlobalRomFeatures(self, params, pivotValues):
+    """
+      Sets global ROM properties for a templateROM when using segmenting
+      Returns settings rather than "setting" them for use in ROMCollection classes
+      @ In, params, dict, dictionary of parameters to set
+      @ In, pivotValues, np.array, values of time parameter
+      @ Out, results, dict, global ROM feature set
+    """
+    # NOTE: only used during interpolation for global features! returning empty dict...
+    results = {}
+    return results
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
