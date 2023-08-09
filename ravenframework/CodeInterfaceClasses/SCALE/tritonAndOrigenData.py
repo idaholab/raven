@@ -52,7 +52,7 @@ def _scalingFactorBetweenTimeUOM(targetUOM, inputUOM):
 
 class origenAndTritonData:
   """
-    Class that parses output of scale output (now Triton and/or Orgin only) and write a RAVEN compatible CSV
+    Class that parses output of scale output (now Triton and/or Orgin only) and collect a RAVEN compatible dict
   """
   def __init__(self,filen, timeUOM='s', outputType="triton"):
     """
@@ -350,13 +350,12 @@ class origenAndTritonData:
     outputDict['values'] = np.atleast_2d(values)
     return outputDict
 
-  def writeCSV(self, fileout):
+  def returnData(self):
     """
-      Print Data into CSV format
-      @ In, fileout, str, the output file name
-      @ Out, None
+      Return Data into dict format
+      @ In, None
+      @ Out, data, dict, {'key':[...]}
     """
-    fileObject = open(fileout.strip()+".csv", mode='wb+') if not fileout.endswith('csv') else open(fileout.strip(), mode='wb+')
     headers = ['time']
     timeGrid = None
     nParams = np.sum([len(data['info_ids']) for data in self.data.values() if data is not None])+1
@@ -372,7 +371,5 @@ class origenAndTritonData:
           outputMatrix = np.zeros( (nParams, len(timeGrid)) )
           outputMatrix[0,:] = timeGrid[:]
         outputMatrix[startIndex:endIndex,:] = data['values'][:,:]
-    # print the csv
-    np.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
-    fileObject.close()
-
+    data = {k:outputMatrix[c][:] for c,k in enumerate(headers)}
+    return data
