@@ -59,6 +59,7 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
+    <openpyxl/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
