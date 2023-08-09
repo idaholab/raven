@@ -3,47 +3,82 @@
     <ROM>
       <type>Interp. Cluster ROM</type>
       <Features>scaling</Features>
-      <Targets>signal0,signal1,pivot</Targets>
+      <Targets>signal0,signal1,seconds</Targets>
     </ROM>
     <InterpolatedMultiyearROM type="Static">
       <MacroParameterID>macro</MacroParameterID>
-      <MacroSteps>2</MacroSteps>
+      <MacroSteps>3</MacroSteps>
       <MacroFirstStep>0</MacroFirstStep>
-      <MacroLastStep>1</MacroLastStep>
+      <MacroLastStep>2</MacroLastStep>
     </InterpolatedMultiyearROM>
     <MacroStepROM macro="0" type="Static">
       <GlobalROM segment="all" type="Static" />
       <ClusterROM type="Static" cluster="0">
         <ARMA>
           <signal0>
-            <constant>9.276339206e-03</constant>
-            <AR_0>3.847064710e-01</AR_0>
-            <variance>1.834482871e+00</variance>
+            <constant>-8.216830598e-03</constant>
+            <AR_0>-5.369247580e-02</AR_0>
+            <variance>1.373981362e+01</variance>
           </signal0>
           <signal1>
-            <constant>1.107435607e-02</constant>
-            <AR_0>-3.643525583e-01</AR_0>
-            <variance>1.923062923e+00</variance>
+            <constant>3.831346073e-02</constant>
+            <AR_0>1.593931374e-01</AR_0>
+            <variance>1.358490309e+01</variance>
           </signal1>
         </ARMA>
-        <segments_represented>0, 1, 2, 3, 4</segments_represented>
-        <indices>0, 99</indices>
+        <segments_represented>0, 3, 4, 5, 8</segments_represented>
+        <indices>0, 9</indices>
       </ClusterROM>
       <ClusterROM type="Static" cluster="1">
         <ARMA>
           <signal0>
-            <constant>1.021071648e-02</constant>
-            <AR_0>-5.438779968e-01</AR_0>
-            <variance>1.515047621e+00</variance>
+            <constant>-6.453519401e-02</constant>
+            <AR_0>1.879732740e-01</AR_0>
+            <variance>1.298742600e+01</variance>
           </signal0>
           <signal1>
-            <constant>-3.223478400e-03</constant>
-            <AR_0>3.152658940e-01</AR_0>
-            <variance>1.920182399e+00</variance>
+            <constant>-1.104883743e-01</constant>
+            <AR_0>1.600793727e-01</AR_0>
+            <variance>1.344166264e+01</variance>
           </signal1>
         </ARMA>
-        <segments_represented>5, 6, 7, 8, 9</segments_represented>
-        <indices>100, 199</indices>
+        <segments_represented>1, 2, 6, 7, 9</segments_represented>
+        <indices>10, 19</indices>
+      </ClusterROM>
+    </MacroStepROM>
+    <MacroStepROM macro="2" type="Static">
+      <GlobalROM segment="all" type="Static" />
+      <ClusterROM type="Static" cluster="0">
+        <ARMA>
+          <signal0>
+            <constant>-8.216830598e-03</constant>
+            <AR_0>-5.369247580e-02</AR_0>
+            <variance>1.373981362e+01</variance>
+          </signal0>
+          <signal1>
+            <constant>3.831346073e-02</constant>
+            <AR_0>1.593931374e-01</AR_0>
+            <variance>1.358490309e+01</variance>
+          </signal1>
+        </ARMA>
+        <segments_represented>0, 3, 4, 5, 8</segments_represented>
+        <indices>0, 9</indices>
+      </ClusterROM>
+      <ClusterROM type="Static" cluster="1">
+        <ARMA>
+          <signal0>
+            <constant>-6.453519401e-02</constant>
+            <AR_0>1.879732740e-01</AR_0>
+            <variance>1.298742600e+01</variance>
+          </signal0>
+          <signal1>
+            <constant>-1.104883743e-01</constant>
+            <AR_0>1.600793727e-01</AR_0>
+            <variance>1.344166264e+01</variance>
+          </signal1>
+        </ARMA>
+        <segments_represented>1, 2, 6, 7, 9</segments_represented>
+        <indices>10, 19</indices>
       </ClusterROM>
     </MacroStepROM>
     <MacroStepROM macro="1" type="Static">
@@ -51,34 +86,34 @@
       <ClusterROM type="Static" cluster="0">
         <ARMA>
           <signal0>
-            <constant>9.276339206e-03</constant>
-            <AR_0>3.847064710e-01</AR_0>
-            <variance>1.834482871e+00</variance>
+            <constant>-8.216830598e-03</constant>
+            <AR_0>-5.369247580e-02</AR_0>
+            <variance>1.373981362e+01</variance>
           </signal0>
           <signal1>
-            <constant>1.107435607e-02</constant>
-            <AR_0>-3.643525583e-01</AR_0>
-            <variance>1.923062923e+00</variance>
+            <constant>3.831346073e-02</constant>
+            <AR_0>1.593931374e-01</AR_0>
+            <variance>1.358490309e+01</variance>
           </signal1>
         </ARMA>
-        <segments_represented>0, 1, 2, 3, 4</segments_represented>
-        <indices>0, 99</indices>
+        <segments_represented>0, 3, 4, 5, 8</segments_represented>
+        <indices>0, 9</indices>
       </ClusterROM>
       <ClusterROM type="Static" cluster="1">
         <ARMA>
           <signal0>
-            <constant>1.021071648e-02</constant>
-            <AR_0>-5.438779968e-01</AR_0>
-            <variance>1.515047621e+00</variance>
+            <constant>-6.453519401e-02</constant>
+            <AR_0>1.879732740e-01</AR_0>
+            <variance>1.298742600e+01</variance>
           </signal0>
           <signal1>
-            <constant>-3.223478400e-03</constant>
-            <AR_0>3.152658940e-01</AR_0>
-            <variance>1.920182399e+00</variance>
+            <constant>-1.104883743e-01</constant>
+            <AR_0>1.600793727e-01</AR_0>
+            <variance>1.344166264e+01</variance>
           </signal1>
         </ARMA>
-        <segments_represented>5, 6, 7, 8, 9</segments_represented>
-        <indices>100, 199</indices>
+        <segments_represented>1, 2, 6, 7, 9</segments_represented>
+        <indices>10, 19</indices>
       </ClusterROM>
     </MacroStepROM>
   </synth>

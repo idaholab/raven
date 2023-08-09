@@ -37,7 +37,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   ## define the clusterable features for this trainer.
   _features = ['ar',
                'ma',
-               'sigma2',
+               'var',
                'const']
   _acceptsMissingValues = True
   _isStochastic = True
