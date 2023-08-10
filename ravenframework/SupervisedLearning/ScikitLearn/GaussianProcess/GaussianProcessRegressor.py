@@ -178,7 +178,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
     return specs
 
   def pickKernel(self, name, lengthScaleSetting):
-  def pickKernel(self, name, lengthScaleSetting):
     """
       This method is used to pick a kernel from the iternal factory
       @ In, name, str, the kernel name
