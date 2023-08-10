@@ -143,7 +143,7 @@ class PreserveCDF(TimeSeriesTransformer):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.name = 'preservecdf'
+    specs.name = 'preserveCDF'
     specs.description = r"""forces generated data provided to the inverse transformation function to
                             have the same CDF as the original data through quantile mapping. If this
                             transformer is used as part of a SyntheticHistory ROM, it should likely

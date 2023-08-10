@@ -46,5 +46,5 @@ aliases = {'Fourier': 'fourier',
            'RobustScaler': 'robustscaler',
            'QuantileTransformer': 'quantiletransformer',
            'Gaussianize': 'gaussianize',
-           'preserveCDF': 'PreserveCDF'}
+           'PreserveCDF': 'preserveCDF'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)
