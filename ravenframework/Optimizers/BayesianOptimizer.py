@@ -225,6 +225,16 @@ class BayesianOptimizer(RavenSampled):
     elif self._model.subType not in ["GaussianProcessRegressor"]:
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
                         f'currently only accepts the following: {["GaussianProcessRegressor"]}')
+    elif self._model.supervisedContainer[0].multioutputWrapper:
+      self.raiseAnError(RuntimeError, f'When using GPR ROM for Bayesian Optimization, must set <multioutput>'
+                        f'node to False')
+    elif len(self._model.supervisedContainer[0].target) != 1:
+      self.raiseAnError(RuntimeError, f'Only one target allowed when using GPR ROM for Bayesian Optimizer! '
+                        f'Received {len(self._model.supervisedContainer[0].target)}')
+    elif self._objectiveVar not in self._model.supervisedContainer[0].target:
+      self.raiseAnError(RuntimeError, f'GPR ROM <target> should be obective variable: {self._objectiveVar}, '
+                        f'Received {self._model.supervisedContainer[0].target}')
+
     self._setModelBounds()
     # NOTE Once again considering specifically sklearn's GPR
     optOption = self._model.supervisedContainer[0].model.get_params()['optimizer']
@@ -417,7 +427,10 @@ class BayesianOptimizer(RavenSampled):
       prevDelta = None
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
-    toAdd['solutionValue'] = self._expectedOptVal
+    if self._minMax == 'max':
+      toAdd['solutionValue'] = -1*self._expectedOptVal
+    else:
+      toAdd['solutionValue'] = self._expectedOptVal
     toAdd['solutionDeviation'] = self._optValSigma
     toAdd['modelRuns'] = self._evaluationCount
     return toAdd

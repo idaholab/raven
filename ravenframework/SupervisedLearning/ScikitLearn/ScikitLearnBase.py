@@ -220,10 +220,6 @@ class ScikitLearnBase(SupervisedLearning):
     if std is not None:
       # FIXME assumes there is a single training target
       returnDict[self.target[0]+'_std'] = std
-    # Handling standard deviation return if there is one
-    if std is not None:
-      # FIXME assumes there is a single training target
-      returnDict[self.target[0]+'_std'] = std
     return returnDict
 
   def __resetLocal__(self):
