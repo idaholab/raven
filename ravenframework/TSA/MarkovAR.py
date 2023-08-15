@@ -85,9 +85,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     """
     settings = super().setDefaults(settings)
     if 'engine' not in settings:
-      # We want to use a numpy RNG engine so we can take advantage of some of the numpy functions
-      # that aren't implemented in randomUtils, like random choice with weighted probabilities.
-      settings['engine'] = randomUtils.newRNG(env='numpy')
+      settings['engine'] = randomUtils.newRNG()
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -102,7 +100,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     # lazy import statsmodels
     import statsmodels.api as sm
     # set seed for training
-    seed = settings['seed']
+    seed = settings.get('seed')
     if seed is not None:
       randomUtils.randomSeed(seed, engine=settings['engine'], seedBoth=True)
 
@@ -200,9 +198,9 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, data) in enumerate(params.items()):
       modelData = data['MarkovAR']
+      # There's no immediate use for the state information, so we'll just discard it for now.
       new, _ = self._generateSignal(synthetic.shape[0], modelData, settings)
       synthetic[:, t] = new
-
     return synthetic
 
   def _generateSignal(self, size, params, settings):
@@ -214,8 +212,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       @ Out, synth, np.array(float), synthetic signal
       @ Out, states, np.array(int), Markov states of the synthetic signal
     """
-    burn = min(100, size)  # FIXME burn-in should probably be a function of the AR order
-                           # and expected state duration. Using 100 for now, or size if size < 100.
     regimes = settings['regimes']
     order = settings['order']
     transition = params['transitionMatrix']
@@ -223,19 +219,34 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     ar = params['ar']
     noiseScale = np.sqrt(params['sigma2'])
 
-    # Use the RNG engine stored in settings to do our random sampling.
-    # This RNG engine should be a numpy RandomState object.
-    # We want to use a numpy RNG engine so we can take advantage of some of the numpy functions
-    # that aren't implemented in randomUtils, like random choice with weighted probabilities.
     engine = settings['engine']
-    if not isinstance(engine, np.random.RandomState):
-      raise TypeError(f'Expected RNG engine to be a numpy RandomState object, but got {type(engine)}.')
+    rngSeed = settings.get('seed', None)
+    if rngSeed is not None:
+      engine.seed(rngSeed)
 
-    possible_states = np.arange(regimes, dtype=int)
+    # Calculate the Markov states. This is independent of the AR model, so we can do it first.
+    # We want to start in a high-probability state, so let's calculate the expected duration of each
+    # state (follows a geometric series) and use that to determine the most probable state, then we'll
+    # initialize the Markov chain in that state.
+    expectedDurations = [1 / (1 - transition[i, i]) for i in range(regimes)]
+    initState = np.argmax(expectedDurations)
+    # Burn-in when generating with a MSAR model accomplished two things. (1) It gives the Markov model
+    # time to reach a high-probability state, and (2) it helps separate the AR signal from its initial
+    # conditions, which do not follow the AR model. We're handling (1) by starting in the state with
+    # the greatest expected duration, so the burn-in period will be dictated by (2). In
+    # ravenframework/SupervisedLearning/ARMA.py, the burn-in period is set to twice the maximum AR
+    # or MA order. We'll do the same here.
+    burn = 2 * order
     states = np.zeros(size + burn, dtype=int)
-    # Calculate the Markov states
-    for t in range(1, size + burn):  # default to starting in state 0
-      states[t] = engine.choice(possible_states, p=transition[states[t-1]])
+    states[0] = initState
+    # To transition from one state to another, we need to perform a weighted random choice according
+    # to the transition probabilities. We can do this by creating a cumulative distribution function
+    # for the transition probabilities of each state (cumulative sum of transition probabilities) and
+    # using numpy's searchsorted function to map a uniform random number from U(0, 1) to a state number.
+    transCDFs = np.cumsum(transition, axis=1)
+    rands = engine.uniform(size=size+burn-1)
+    for t in range(1, size + burn):
+      states[t] = np.searchsorted(transCDFs[states[t - 1]], rands[t - 1])
 
     # Start building up the synthetic signal, starting with the noise
     synth = engine.normal(loc=0., scale=noiseScale[states], size=size+burn)
@@ -246,6 +257,10 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
 
     # Finally add in the state constants
     synth += consts[states]
+
+    # There's a chance that the model that has been fit is not stationary, leading to potential divergence
+    # of the synthetic signal. We can check for this by looking for non-finite values in the synthetic
+    # signal.
     if not np.all(np.isfinite(synth)):
       raise RuntimeError('Synthetic signal contains non-finite values!')
 
@@ -268,10 +283,10 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     residual = initial.copy()
     for tg, (target, data) in enumerate(params.items()):
       # The model fit results contain the fit residuals, so we can just use those.
-      # The length of the residuals array is shorter than the length of the original signal by
-      # the AR order, so we need to pad the beginning of the residual array with zeros.
+      # The length of the residuals array is shorter than the length of the original signal by the
+      # AR order (not really sure why), so we need to pad the end of the residual array with zeros.
       modelResid = data['MarkovAR']['model'].resid
-      residual[:, tg] = np.r_[np.zeros(len(residual) - len(modelResid)), modelResid]
+      residual[:, tg] = np.r_[modelResid, np.zeros(len(residual) - len(modelResid))]
     return residual
 
   def getComposite(self, initial, params, pivot, settings):

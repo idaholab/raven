@@ -17,7 +17,6 @@ Created on August 3, 2021
 
 Contains a utility base class for accessing commonly-used TSA functions.
 """
-import os
 import numpy as np
 import pandas as pd
 from inspect import isabstract
@@ -192,15 +191,6 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
 
-    from collections import defaultdict
-    ALL_RESIDUALS = defaultdict(list)
-    new_pivot_length = len(pivots)
-    if os.path.exists('residuals.csv'):
-      stored_resids = pd.read_csv('residuals.csv')
-      new_pivot_length += len(stored_resids)
-      for col in stored_resids.columns:
-        ALL_RESIDUALS[col] = stored_resids[col].tolist()
-
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
@@ -221,24 +211,6 @@ class TSAUser:
         algoResidual = algo.getResidual(signal, params, pivots, settings)
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
-      if algo.name == 'ARMA':
-        for tg, target in enumerate(targets):
-          history = signal[:, tg]
-          mask = ~np.isnan(history)
-          from ..utils import mathUtils
-          if settings.get('gaussianize', True):
-            # Transform data to obatain normal distrbuted series. See
-            # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
-            # Applied Energy, 87(2010) 843-855
-            # -> then train independent ARMAs
-            params[target]['cdf'] = mathUtils.characterizeCDF(history[mask], binOps=2, minBins=algo._minBins)
-            normed = history
-            normed[mask] = mathUtils.gaussianize(history[mask], self._tsaTrainedParams[algo][target]['cdf'])
-            ALL_RESIDUALS[f'Normalized_{target}'].extend(normed)
-      for t in targets:
-        ALL_RESIDUALS[f'{algo.name}_{t}'].extend(residual[0, :, self.target.index(t)])
-
-    pd.DataFrame(ALL_RESIDUALS, index=np.arange(new_pivot_length)).to_csv('residuals.csv', index=False)
 
   def evaluateTSASequential(self):
     """
@@ -253,15 +225,6 @@ class TSAUser:
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
 
-    from collections import defaultdict
-    ALL_COMPOSITES = defaultdict(list)
-    new_pivot_length = len(pivots)
-    if os.path.exists('composites.csv'):
-      stored_comps = pd.read_csv('composites.csv')
-      new_pivot_length += len(stored_comps)
-      for col in stored_comps.columns:
-        ALL_COMPOSITES[col] = stored_comps[col].tolist()
-
     for algo in self._tsaAlgorithms[::-1]:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -274,13 +237,9 @@ class TSAUser:
         result[:, indices] = algo.generate(params, pivots, settings)
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
-      for t in targets:
-        ALL_COMPOSITES[f'{algo.name}_{t}'].extend(result[:, noPivotTargets.index(t)])
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues
-
-    pd.DataFrame(ALL_COMPOSITES, index=np.arange(new_pivot_length)).to_csv('composites.csv', index=False)
 
     return rlz
 
