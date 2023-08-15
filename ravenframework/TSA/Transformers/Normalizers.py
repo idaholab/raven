@@ -22,7 +22,7 @@ Wrappers for scikit-learn preprocessing scalers.
 import sklearn.preprocessing as skl
 
 from .ScikitLearnBase import SKLTransformer, SKLCharacterizer
-from ...utils import InputTypes, mathUtils
+from ...utils import InputTypes
 
 
 class MaxAbsScaler(SKLCharacterizer):
