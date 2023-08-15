@@ -4,6 +4,7 @@
   input = 'test_adaptive_sgc_pca_analytic.xml'
   UnorderedCsv = 'Adaptive/data.csv'
   UnorderedXml = 'Adaptive/dump.xml'
+  zero_threshold = 1e-12
  [../]
 
  [./test_adaptive_sgc_attenuation]

@@ -1,0 +1,163 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.BayesianBasic</name>
+    <author>grifanth</author>
+    <created>2023-06-20</created>
+    <classesTested>BayesianOptimizer</classesTested>
+    <description>
+      This is the most basic test of the Optimizer. It optimizes a basic test function with the Bayesian Optimizer.
+      This test provides a baseline for functionality and regression testing of the method. Particular options tested include
+      custom and anisotropic kernels alongside the LCB acquisition function solved via differential evolution.
+      The post processing step captures the final results from opt_export. This is because for testing on mac and
+      windows, the entire optimization process is golded; however, due to seeding issues between OS's, the linux
+      tests only consider the final solutions proximity to the correct answer for the analytical test.
+    </description>
+    <analytic>
+      This test uses the Basic function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./</WorkingDir>
+    <Sequence>optimize, collect_final, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">basic</Model>
+      <Optimizer class="Optimizers" type="BayesianOptimizer">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <PostProcess name="collect_final">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">PPindex</Model>
+      <Output class="DataObjects" type="PointSet">selected_index</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">selected_index</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='basic_dist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+
+   <Samplers>
+    <Stratified name="LHS_samp">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>basic_dist</distribution>
+        <grid construction="equal" steps="20" type="CDF">0 1</grid>
+      </variable>
+      <variable name="y">
+        <distribution>basic_dist</distribution>
+        <grid construction="equal" steps="20" type="CDF">0 1</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Optimizers>
+    <BayesianOptimizer name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>basic_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>basic_dist</distribution>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>25</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
+      <ModelSelection>
+        <Duration>1</Duration>
+        <Method>Internal</Method>
+      </ModelSelection>
+      <convergence>
+        <acquisition>1e-3</acquisition>
+        <persistence>3</persistence>
+      </convergence>
+      <Acquisition>
+        <LowerConfidenceBound>
+          <optimizationMethod>differentialEvolution</optimizationMethod>
+          <seedingCount>30</seedingCount>
+          <pi>0.98</pi>
+          <transient>Constant</transient>
+        </LowerConfidenceBound>
+      </Acquisition>
+    </BayesianOptimizer>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/basic.py" name="basic" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
+      <Features>x,y</Features>
+      <Target>ans</Target>
+      <alpha>1e-8</alpha>
+      <n_restarts_optimizer>5</n_restarts_optimizer>
+      <normalize_y>True</normalize_y>
+      <random_state>42</random_state>
+      <kernel>Custom</kernel>
+      <custom_kernel>(Constant*RBF)+(Constant*Matern)</custom_kernel>
+      <multioutput>False</multioutput>
+    </ROM>
+    <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
+      <criterion value='-1'> index </criterion>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,accepted,solutionValue</Output>
+    </PointSet>
+    <PointSet name="selected_index">
+      <Input>trajID</Input>
+      <Output>x,y,ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="final_opt">
+      <type>csv</type>
+      <source>selected_index</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

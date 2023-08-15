@@ -135,7 +135,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
                                           'FiniteDifference',
                                           'ConjugateGradient',
                                           'SimulatedAnnealing',
-                                          'GeneticAlgorithm']
+                                          'GeneticAlgorithm',
+                                          'BayesianOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
