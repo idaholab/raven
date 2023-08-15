@@ -87,6 +87,7 @@ class Abce(CodeInterfaceBase):
             scenarioName = scenarioName.replace('"','')
             break
       self._outputDirectory = os.path.join(os.path.dirname(settingsFile.getAbsFile()),'outputs',scenarioName)
+      print("_outputDirectory", self._outputDirectory, "settingsFile", settingsFile.getAbsFile(), "scenarioName", scenarioName)
       return None
 
     #prepend
@@ -153,6 +154,7 @@ class Abce(CodeInterfaceBase):
     outDict = {}
     outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
     assetsData = pd.read_excel(outputFile,sheet_name='assets')
+    print("assetsData", assetsData)
     # read each column and store it in the dictionary
     # column_names are: asset_id agent_id unit_type start_pd completion_pd
     # cancellation_pd retirement_pd total_capex cap_pmt C2N_reserved
