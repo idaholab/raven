@@ -153,7 +153,7 @@ class Abce(CodeInterfaceBase):
     """
     outDict = {}
     outputFile = os.path.join(self._outputDirectory,'outputs.xlsx')
-    assetsData = pd.read_excel(outputFile,sheet_name='assets')
+    assetsData = pd.read_excel(outputFile,sheet_name='assets', index_col=0)
     print("assetsData", assetsData)
     # read each column and store it in the dictionary
     # column_names are: asset_id agent_id unit_type start_pd completion_pd
