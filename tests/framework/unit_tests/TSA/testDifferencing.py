@@ -135,8 +135,9 @@ def createDifferencing(targets, order):
     @ Out, settings, dict, settings for transformer
   """
   transformer = Differencing()
-  attribs = {'target': ','.join(targets), 'order': order}
+  attribs = {'target': ','.join(targets)}
   xml = xmlUtils.newNode(transformer.name.lower(), attrib=attribs)
+  xml.append(xmlUtils.newNode('order', text=str(order)))
   inputSpec = transformer.getInputSpecification()()
   inputSpec.parseNode(xml)
   settings = transformer.handleInput(inputSpec)

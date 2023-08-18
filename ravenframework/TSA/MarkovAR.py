@@ -224,7 +224,6 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       @ Out, synth, np.array(float), synthetic signal
       @ Out, states, np.array(int), Markov states of the synthetic signal
     """
-    regimes = settings['regimes']
     order = settings['order']
     transition = params['transitionMatrix']
     consts = params['const']

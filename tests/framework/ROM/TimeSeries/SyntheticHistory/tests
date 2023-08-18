@@ -54,6 +54,40 @@
     [../]
   [../]
 
+  [./STLARMA]
+    type = 'RavenFramework'
+    input = 'stl_arma.xml'
+    output = 'STLARMA/plot_samples_0.png STLARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'STLARMA/samples_0.csv STLARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'STLARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./DiffARMA]
+    type = 'RavenFramework'
+    input = 'differencing_arma.xml'
+    output = 'DiffARMA/plot_samples_0.png DiffARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'DiffARMA/samples_0.csv DiffARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'DiffARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./LogARMA]
     type = 'RavenFramework'
     input = 'log_arma.xml'

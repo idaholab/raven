@@ -22,7 +22,7 @@ Nth order differencing
 import numpy as np
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer
-from ...utils import xmlUtils, InputTypes
+from ...utils import xmlUtils, InputTypes, InputData
 
 
 class Differencing(TimeSeriesTransformer):
@@ -37,9 +37,8 @@ class Differencing(TimeSeriesTransformer):
     specs = super().getInputSpecification()
     specs.name = 'differencing'
     specs.description = r"""applies Nth order differencing to the data."""
-    specs.addParam('order', param_type=InputTypes.IntegerType,
-                   descr="""differencing order.""", default=1)
-    # TODO add initial value option
+    specs.addSub(InputData.parameterInputFactory('order', contentType=InputTypes.IntegerType,
+                                                 descr=r"""differencing order."""))
     return specs
 
   def handleInput(self, spec):
@@ -49,8 +48,7 @@ class Differencing(TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['order'] = spec.parameterValues.get('order', 1)
-    print('Differencing.handleInput() settings', settings)
+    settings['order'] = spec.findFirst('order').value
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -65,7 +63,6 @@ class Differencing(TimeSeriesTransformer):
                            params[target variable][characteristic] = value
     """
     params = {}
-    print('Differencing.fit() settings:', settings)
     for tg, target in enumerate(targets):
       # For differencing order N, we need to have the first N values of the signal
       targetSignal = signal[:settings['order']+1, tg]
