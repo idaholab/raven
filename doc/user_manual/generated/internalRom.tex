@@ -2111,6 +2111,68 @@ Example:
           regression; typically represented as $Q$ in literature.
       \end{itemize}
 
+    \item \xmlNode{MarkovAR}:
+      characterizes the signal using autoregressive (AR) coefficients conditioned         on the
+      state of a hidden Markov model (HMM) to stochastically fit the training signal.         The
+      Markov-switching autoregressive model (MSAR) has the following form:         \begin{equation*}
+      Y\_t = \mu\_{S\_t} \sum\_{i=1}^p \phi\_{i,{S\_t}} \left(Y\_{t-i} - \mu\_{S\_{t-i}}\right) +
+      \varepsilon\_{t,{S\_t}},         \end{equation*}         where $t$ indicates a discrete time
+      step, $\phi$ are the signal lag (or auto-regressive)         coefficients, $p$ is the number
+      of signal lag terms to consider, $\varepsilon$ is a random noise         term with mean 0 and
+      variance $\sigma^2\_{S\_t}$, and $S\_t$ is the HMM state at time $t$.         The HMM state is
+      determined by the transition probabilities between states, which are conditioned         on
+      the previous state. The transition probabilities are stored in a transition matrix $P$,
+      where entry $p\_{ij}$ is the probability of transitioning from state $i$ to state $j$
+      conditional         on being in state $i$. For a MSAR model with HMM state dimensionality $r$,
+      the transition matrix         $P$ is of size $r \times r$. Each of the mean, autoregressive,
+      and noise variance terms may be         switching or non-switching parameters.
+      The \xmlNode{MarkovAR} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{switching\_ar}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            indicates whether the autoregressive coefficients are switching parameters. \default{True}
+          \item \xmlAttr{switching\_variance}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            indicates whether the noise variance is a switching parameter. \default{True}
+          \item \xmlAttr{switching\_trend}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            indicates whether the mean is a switching parameter. \default{True}
+      \end{itemize}
+
+      The \xmlNode{MarkovAR} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{SignalLag}: \xmlDesc{integer}, 
+          the number of terms in the AutoRegressive term to retain in the
+          regression; typically represented as $P$ in literature.
+
+        \item \xmlNode{MarkovStates}: \xmlDesc{integer}, 
+          the number of states in the hidden Markov model.
+      \end{itemize}
+
+    \item \xmlNode{STL}:
+       Decomposes the signal into trend, seasonal, and residual components using the STL method of
+      Cleveland et al. (1990).
+      The \xmlNode{STL} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{STL} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{seasonal}: \xmlDesc{integer}, 
+          the length of the seasonal smoother.
+
+        \item \xmlNode{period}: \xmlDesc{integer}, 
+          periodicity of the sequence.
+
+        \item \xmlNode{trend}: \xmlDesc{integer}, 
+          the length of the trend smoother. Must be an odd integer.
+      \end{itemize}
+
     \item \xmlNode{wavelet}:
       Discrete Wavelet TimeSeriesAnalysis algorithm. Performs a discrete wavelet transform
       on time-dependent data. Note: This TSA module requires pywavelets to be installed within your
@@ -2234,6 +2296,22 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+    \item \xmlNode{differencing}:
+      applies Nth order differencing to the data.
+      The \xmlNode{differencing} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{differencing} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{order}: \xmlDesc{integer}, 
+          differencing order.
       \end{itemize}
 
     \item \xmlNode{preserveCDF}:
