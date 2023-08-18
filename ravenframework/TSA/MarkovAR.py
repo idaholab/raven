@@ -56,6 +56,12 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
         on being in state $i$. For a MSAR model with HMM state dimensionality $r$, the transition matrix
         $P$ is of size $r \times r$. Each of the mean, autoregressive, and noise variance terms may be
         switching or non-switching parameters."""
+    specs.addParam('switching_ar', param_type=InputTypes.BoolType, required=False, default=True,
+                  descr=r"""indicates whether the autoregressive coefficients are switching parameters.""")
+    specs.addParam('switching_variance', param_type=InputTypes.BoolType, required=False, default=True,
+                  descr=r"""indicates whether the noise variance is a switching parameter.""")
+    specs.addParam('switching_trend', param_type=InputTypes.BoolType, required=False, default=True,
+                  descr=r"""indicates whether the mean is a switching parameter.""")
     specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))
@@ -75,6 +81,9 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     settings = super().handleInput(spec)
     settings['order'] = spec.findFirst('SignalLag').value
     settings['regimes'] = spec.findFirst('MarkovStates').value
+    settings['switching_ar'] = spec.parameterValues.get('switching_ar', True)
+    settings['switching_variance'] = spec.parameterValues.get('switching_variance', True)
+    settings['switching_trend'] = spec.parameterValues.get('switching_trend', True)
     return settings
 
   def setDefaults(self, settings):
@@ -111,16 +120,17 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       regimes = settings['regimes']
       history = signal[:, tg]
 
-      # FIXME For now, we assume that all of the AR, variance, and trend terms are switching.
-      # It could be good to let the user decide which terms are switching and which are not, but
-      # maybe default to all switching. Setting some terms to non-switching would reduce the number
-      # of parameters to estimate, which should help with fitting convergence.
+      # We default to having the AR, variance, and trend terms as switching parameters. Users can set
+      # which terms are switching parameters using the input settings. If there is reason to believe
+      # that some terms should not be switching parameters, then the user should set them as such
+      # as this simplifies the model that needs to be fit and should improve convergence and estimation.
+      # However, using all switching parameters is the most general case, so we default to that.
       model = sm.tsa.MarkovAutoregression(endog=history,
                                           k_regimes=regimes,
                                           order=order,
-                                          switching_ar=True,
-                                          switching_variance=True,
-                                          switching_trend=True)
+                                          switching_ar=settings['switching_ar'],
+                                          switching_variance=settings['switching_variance'],
+                                          switching_trend=settings['switching_trend'])
       res = model.fit()
 
       rawParams = {k: v for k, v in zip(res.model.param_names, res.params)}
@@ -137,6 +147,8 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
                              f'"{name}" contain NaN values: {value}.')
 
       params[target]['MarkovAR'] = parsedParams
+      # The model fit object is stored only to get the residuals. Is there a better way to hold on
+      # to those values?
       params[target]['MarkovAR']['model'] = res
     return params
 
@@ -224,18 +236,15 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     if rngSeed is not None:
       engine.seed(rngSeed)
 
-    # Calculate the Markov states. This is independent of the AR model, so we can do it first.
-    # We want to start in a high-probability state, so let's calculate the expected duration of each
-    # state (follows a geometric series) and use that to determine the most probable state, then we'll
-    # initialize the Markov chain in that state.
-    expectedDurations = [1 / (1 - transition[i, i]) for i in range(regimes)]
-    initState = np.argmax(expectedDurations)
     # Burn-in when generating with a MSAR model accomplished two things. (1) It gives the Markov model
     # time to reach a high-probability state, and (2) it helps separate the AR signal from its initial
-    # conditions, which do not follow the AR model. We're handling (1) by starting in the state with
-    # the greatest expected duration, so the burn-in period will be dictated by (2). In
-    # ravenframework/SupervisedLearning/ARMA.py, the burn-in period is set to twice the maximum AR
-    # or MA order. We'll do the same here.
+    # conditions, which do not follow the AR model. We can handle (1) by starting in the state with
+    # the greatest expected duration, which is also the state with the greatest probability of
+    # remaining in the state, which is the state with the greatest diagonal element in the transition
+    # matrix.
+    initState = np.diag(transition).argmax()
+    # We'll use a burn-in period to address (2). In ravenframework/SupervisedLearning/ARMA.py,
+    # the burn-in period is set to twice the maximum AR or MA order. We'll do the same here.
     burn = 2 * order
     states = np.zeros(size + burn, dtype=int)
     states[0] = initState
