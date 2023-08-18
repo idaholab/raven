@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Optimizers are a class of Samplers that specialize the Adaptive Samplers.
-
-  Reworked 2020-01
-  @author: talbpaul
+  Factory file for acquisition function instances
 """
 
-from __future__ import absolute_import
+from ...EntityFactoryBase import EntityFactory
+from .AcquisitionFunction import AcquisitionFunction
+from .ExpectedImprovement import ExpectedImprovement
+from .ProbabilityOfImprovement import ProbabilityOfImprovement
+from .LowerConfidenceBound import LowerConfidenceBound
 
-from .Optimizer import Optimizer
-from .RavenSampled import RavenSampled
-from .GradientDescent import GradientDescent
-from .SimulatedAnnealing import SimulatedAnnealing
-from .BayesianOptimizer import BayesianOptimizer
-
-from .Factory import factory
+factory = EntityFactory('Acquisition')
+factory.registerAllSubtypes(AcquisitionFunction)

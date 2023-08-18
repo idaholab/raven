@@ -37,7 +37,7 @@ Note all install methods after "main" take
   <main>
     <h5py/>
     <numpy>1.22</numpy>
-    <scipy>1.7</scipy>
+    <scipy>1.9</scipy>
     <scikit-learn>1.0</scikit-learn>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
@@ -70,6 +70,7 @@ Note all install methods after "main" take
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
+    <smt/>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>

@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Optimizers are a class of Samplers that specialize the Adaptive Samplers.
-
-  Reworked 2020-01
-  @author: talbpaul
+  Acquisition functions provide the optimization policy for Bayesian Optimization.
 """
 
-from __future__ import absolute_import
-
-from .Optimizer import Optimizer
-from .RavenSampled import RavenSampled
-from .GradientDescent import GradientDescent
-from .SimulatedAnnealing import SimulatedAnnealing
-from .BayesianOptimizer import BayesianOptimizer
+from .AcquisitionFunction import AcquisitionFunction
+from .ExpectedImprovement import ExpectedImprovement
+from .ProbabilityOfImprovement import ProbabilityOfImprovement
+from .LowerConfidenceBound import LowerConfidenceBound
 
 from .Factory import factory
