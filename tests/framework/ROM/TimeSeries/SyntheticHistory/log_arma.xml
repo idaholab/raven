@@ -64,6 +64,7 @@
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
       <logtransformer target="signal1"/>
+      <gaussianize target="signal0, signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>2</SignalLag>
         <NoiseLag>3</NoiseLag>
