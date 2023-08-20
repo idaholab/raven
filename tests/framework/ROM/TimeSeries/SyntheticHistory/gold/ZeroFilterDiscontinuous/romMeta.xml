@@ -112,21 +112,26 @@
         </waveform>
       </WIND>
     </Fourier>
+    <Gaussianize>
+      <TOTALLOAD />
+      <WIND />
+      <SOLAR />
+    </Gaussianize>
     <ARMA>
       <TOTALLOAD>
-        <constant>-3.097348657e-02</constant>
-        <AR_0>7.171448397e-01</AR_0>
-        <variance>8.089165013e-01</variance>
+        <constant>-4.158865848e-02</constant>
+        <AR_0>8.702202491e-01</AR_0>
+        <variance>2.973272651e-01</variance>
       </TOTALLOAD>
       <WIND>
-        <constant>-2.044737452e-02</constant>
-        <AR_0>7.623773996e-01</AR_0>
-        <variance>7.105134137e-01</variance>
+        <constant>-2.220072382e-02</constant>
+        <AR_0>9.040423880e-01</AR_0>
+        <variance>2.258342079e-01</variance>
       </WIND>
       <SOLAR>
-        <constant>-4.974232358e-03</constant>
-        <AR_0>5.124665489e-01</AR_0>
-        <variance>1.893641655e+00</variance>
+        <constant>-1.304799638e-02</constant>
+        <AR_0>7.022137015e-01</AR_0>
+        <variance>7.048554959e-01</variance>
       </SOLAR>
     </ARMA>
   </arma>

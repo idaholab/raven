@@ -44,7 +44,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super(Fourier, cls).getInputSpecification()
@@ -181,7 +181,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    synthetic = self.generate(params, pivot)
+    synthetic = self.generate(params, pivot, settings)
     residual = initial - synthetic
     return residual
 
@@ -195,15 +195,16 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
-    synthetic = self.generate(params, pivot)
+    synthetic = self.generate(params, pivot, settings)
     residual = initial + synthetic
     return residual
 
-  def generate(self, params, pivot):
+  def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
+      @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic ARMA signal
     """
     synthetic = np.zeros((len(pivot), len(params)))

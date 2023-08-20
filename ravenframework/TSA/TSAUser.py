@@ -197,8 +197,8 @@ class TSAUser:
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
       # check if there are missing values in the signal and if algo can accept them
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
-        raise ValueError(f'Missing values (NaN) found in input to {algo.name},'
-                         'but {algo.name} cannot accept missing values!')
+        raise ValueError(f'Missing values (NaN) found in input to {algo.name}, '
+                         f'but {algo.name} cannot accept missing values!')
       params = algo.fit(signal, pivots, targets, settings)
       # store characteristics
       self._tsaTrainedParams[algo] = params
