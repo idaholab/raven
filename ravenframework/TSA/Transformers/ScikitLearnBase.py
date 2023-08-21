@@ -23,11 +23,13 @@ import abc
 from copy import deepcopy
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer
-from ...utils import xmlUtils
+from ...utils import xmlUtils, InputTypes
 
 
 class SKLTransformer(TimeSeriesTransformer):
   """ Wrapper for scikit-learn transformers """
+  _acceptsMissingValues = True
+
   @property
   @abc.abstractmethod
   def templateTransformer(self):
@@ -47,7 +49,7 @@ class SKLTransformer(TimeSeriesTransformer):
     params = {}
     for tg, target in enumerate(targets):
       transformer = deepcopy(self.templateTransformer)
-      transformer.fit(signal)
+      transformer.fit(signal[:, tg].reshape(-1, 1))
       params[target] = {'model': transformer}
     return params
 
@@ -91,7 +93,6 @@ class SKLTransformer(TimeSeriesTransformer):
     """
     # Add model settings as subnodes to writeTO node
     for target, info in params.items():
-      # Add model attributes as a attributes in the node
       base = xmlUtils.newNode(target)
       writeTo.append(base)
 
@@ -112,13 +113,30 @@ class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
     params = {}
     for tg, target in enumerate(targets):
       transformer = deepcopy(self.templateTransformer)
-      transformer.fit(signal)
+      transformer.fit(signal[:, tg].reshape(-1, 1))
       # Attributes of interest in the transformer have the convention of ending with an underscore,
       # so that underscore is added here to the feature names before fetching them.
       # Also, the transformer features are stored in an array, so we take the first (and only) element.
       params[target] = {feat: getattr(transformer, self.camelToSnake(feat))[0] for feat in self._features}
       params[target]['model'] = transformer
     return params
+
+  def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
+    """
+      Provide the characteristic parameters of this ROM for clustering with other ROMs
+      @ In, nameTemplate, str, formatting string template for clusterable params (target, metric id)
+      @ In, requests, list, list of requested attributes from this ROM
+      @ In, params, dict, parameters from training this ROM
+      @ Out, features, dict, params as {paramName: value}
+    """
+    features = {}
+    requestedFeatures = set(self._features).intersection(set(requests))
+    for target, info in params.items():
+      for feat in requestedFeatures:
+        value = info[feat]
+        key = nameTemplate.format(target=target, metric=self.name, id=feat)
+        features[key] = value
+    return features
 
   def getParamsAsVars(self, params):
     """

@@ -25,7 +25,8 @@ from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
 from .RWD import RWD
 from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
-                          OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, QuantileTransformer
+                          OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
+                          QuantileTransformer, Gaussianize, PreserveCDF
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
@@ -43,5 +44,7 @@ aliases = {'Fourier': 'fourier',
            'MinMaxScaler': 'minmaxscaler',
            'StandardScaler': 'standardscaler',
            'RobustScaler': 'robustscaler',
-           'QuantileTransformer': 'quantiletransformer'}
+           'QuantileTransformer': 'quantiletransformer',
+           'Gaussianize': 'gaussianize',
+           'PreserveCDF': 'preserveCDF'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)

@@ -26,7 +26,7 @@ from .RWD import RWD
 
 from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
                           LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
-                          QuantileTransformer, OutTruncation, ZeroFilter
+                          QuantileTransformer, OutTruncation, ZeroFilter, PreserveCDF, Gaussianize
 
 from .Factory import factory
 

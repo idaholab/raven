@@ -38,7 +38,7 @@
       <fourier target='signal_f, signal_fa'>
         <periods>2, 5, 10</periods>
       </fourier>
-      <arma target="signal_a, signal_fa" seed='42'>
+      <arma target="signal_a, signal_fa" seed='42' gaussianize="True">
         <SignalLag>2</SignalLag>
         <NoiseLag>3</NoiseLag>
       </arma>

@@ -64,6 +64,7 @@
       <Target>signal0, signal1, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
+      <gaussianize target="signal0, signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>1</SignalLag>
         <NoiseLag>0</NoiseLag>

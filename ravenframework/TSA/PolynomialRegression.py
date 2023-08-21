@@ -33,7 +33,7 @@ class PolynomialRegression(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeS
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super(PolynomialRegression, cls).getInputSpecification()

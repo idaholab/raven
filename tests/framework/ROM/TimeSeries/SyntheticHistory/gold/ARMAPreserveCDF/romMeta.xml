@@ -5,6 +5,10 @@
       <Features>scaling</Features>
       <Targets>signal0,signal1,seconds</Targets>
     </ROM>
+    <PreserveCDF>
+      <signal0 />
+      <signal1 />
+    </PreserveCDF>
     <Gaussianize>
       <signal0 />
       <signal1 />

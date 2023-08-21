@@ -70,6 +70,22 @@
     [../]
   [../]
 
+  [./ARMAPreserveCDF]
+    type = 'RavenFramework'
+    input = 'arma_preserveCDF.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'ARMAPreserveCDF/samples_0.csv ARMAPreserveCDF/samples_1.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'ARMAPreserveCDF/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./ZeroFilterDiscontinuous]
     type = 'RavenFramework'
     input = 'zero_filter_discontinuous.xml'

@@ -36,7 +36,7 @@ class LogTransformer(SKLTransformer):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super().getInputSpecification()
@@ -74,7 +74,7 @@ class ArcsinhTransformer(SKLTransformer):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super().getInputSpecification()
@@ -94,7 +94,7 @@ class TanhTransformer(SKLTransformer):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super().getInputSpecification()
@@ -114,7 +114,7 @@ class SigmoidTransformer(SKLTransformer):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super().getInputSpecification()
@@ -134,7 +134,7 @@ class OutTruncation(SKLTransformer):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, None
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     specs = super().getInputSpecification()

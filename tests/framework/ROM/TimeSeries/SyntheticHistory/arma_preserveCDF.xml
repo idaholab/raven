@@ -1,21 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/SyntheticHistory.ARMA</name>
-    <author>talbpaul</author>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.ARMAPreserveCDF</name>
+    <author>j-bryan</author>
     <created>2021-01-27</created>
-    <classesTested>SupervisedLearning.SyntheticHistory,TSA.ARMA</classesTested>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.ARMA, TSA.PreserveCDF</classesTested>
     <description>
-      Tests the SyntheticHistory ROM using only the ARMA TimeSeriesAnalyzer algorithm.
+      Tests the SyntheticHistory ROM using the ARMA TimeSeriesAnalyzer algorithm with input CDF preservation.
     </description>
-    <revisions>
-      <revision author="j-bryan" date="2022-06-23">Added serialization step to test if ARMA is picklable</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMA</WorkingDir>
-    <Sequence>read, train, print, serialize, sample</Sequence>
+    <WorkingDir>ARMAPreserveCDF</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -33,10 +30,6 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-    <IOStep name="serialize">
-      <Input class="Models" type="ROM">synth</Input>
-      <Output class="Files" type="">pk</Output>
-    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">synth</Model>
@@ -48,7 +41,6 @@
 
   <Files>
     <Input name="infile">../TrainingData/ARMA_A.csv</Input>
-    <Input name="pk">arma.pk</Input>
   </Files>
 
   <Samplers>
@@ -66,6 +58,7 @@
       <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
+      <preserveCDF target="signal0, signal1"/>
       <gaussianize target="signal0, signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>2</SignalLag>
