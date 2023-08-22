@@ -66,20 +66,19 @@ def compare_list_entry(a_list, b_list, **kwargs):
   match = True        #True if entries match
   diff = []           #tuple of (element, diff code, correct (a) value, test (b) value)
   options = kwargs
-  for i in range(len(a_list)):
+  for i, a_entry in enumerate(a_list):
     if i > len(b_list) - 1:
       match = False
-      diff.append((b_list[-1], XMLDiff.missingChildNode, a_list[i].tag, None))
+      diff.append((b_list[-1], XMLDiff.missingChildNode, a_entry.tag, None))
       #could have matched the tag and attributes
-      total_matchable += 1 + len(a_list[i].attrib.keys())
+      total_matchable += 1 + len(a_entry.attrib.keys())
       #if text isn't empty, could have matched text, too
-      if a_list[i].text is not None and len(a_list[i].text.strip()) > 0:
+      if a_entry.text is not None and len(a_entry.text.strip()) > 0:
         total_matchable += 1
       continue
-    a_item = a_list[i]
     b_item = b_list[i]
     #match tag
-    same, _ = cswf(a_item.tag, b_item.tag,
+    same, _ = cswf(a_entry.tag, b_item.tag,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
                    remove_whitespace=options["remove_whitespace"],
@@ -87,12 +86,12 @@ def compare_list_entry(a_list, b_list, **kwargs):
     total_matchable += 1
     if not same:
       match = False
-      diff.append((b_item, XMLDiff.notMatchTag, a_item.tag, b_item.tag))
+      diff.append((b_item, XMLDiff.notMatchTag, a_entry.tag, b_item.tag))
     else:
       num_match += 1
     #match text
-    #if (a_item.text is None or len(a_item.text)>0) and (b_item.text is None or len(b_item.text)>0):
-    same, _ = cswf(a_item.text,
+    #if (a_entry.text is None or len(a_entry.text)>0) and (b_item.text is None or len(b_item.text)>0):
+    same, _ = cswf(a_entry.text,
                    b_item.text,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
@@ -100,20 +99,20 @@ def compare_list_entry(a_list, b_list, **kwargs):
                    remove_unicode_identifier=options["remove_unicode_identifier"])
     if not same:
       match = False
-      diff.append((b_item, XMLDiff.notMatchText, str(a_item.text), str(b_item.text)))
+      diff.append((b_item, XMLDiff.notMatchText, str(a_entry.text), str(b_item.text)))
       total_matchable += 1
     else:
-      if not(a_item.text is None or a_item.text.strip() != ''):
+      if not(a_entry.text is None or a_entry.text.strip() != ''):
         num_match += 1
         total_matchable += 1
     #match attributes
-    for attrib in a_item.attrib.keys():
+    for attrib in a_entry.attrib.keys():
       total_matchable += 1
       if attrib not in b_item.attrib.keys():
         match = False
         diff.append((b_item, XMLDiff.missingAttribute, attrib, None))
         continue
-      same, _ = cswf(a_item.attrib[attrib],
+      same, _ = cswf(a_entry.attrib[attrib],
                      b_item.attrib[attrib],
                      rel_err=options["rel_err"],
                      zero_threshold=options["zero_threshold"],
@@ -121,12 +120,12 @@ def compare_list_entry(a_list, b_list, **kwargs):
                      remove_unicode_identifier=options["remove_unicode_identifier"])
       if not same:
         match = False
-        diff.append((b_item, XMLDiff.notMatchAttribute, (a_item, attrib), (b_item, attrib)))
+        diff.append((b_item, XMLDiff.notMatchAttribute, (a_entry, attrib), (b_item, attrib)))
       else:
         num_match += 1
-    #note attributes in b_item not in a_item
+    #note attributes in b_item not in a_entry
     for attrib in b_item.attrib.keys():
-      if attrib not in a_item.attrib.keys():
+      if attrib not in a_entry.attrib.keys():
         match = False
         diff.append((b_item, XMLDiff.extraAttribute, attrib, None))
         total_matchable += 1
@@ -207,10 +206,10 @@ def compare_unordered_element(a_element, b_element, **kwargs):
   for unmatched, close in matchvals.items():
     #print the path without a match
     path = '/'.join(list(m.tag for m in unmatched))
-    note += 'No match for gold node {}\n'.format(path)
-    note += '               tag: {}\n'.format(unmatched[-1].tag)
-    note += '              attr: {}\n'.format(unmatched[-1].attrib)
-    note += '              text: {}\n'.format(unmatched[-1].text)
+    note += f'No match for gold node {path}\n'
+    note += f'               tag: {unmatched[-1].tag}\n'
+    note += f'              attr: {unmatched[-1].attrib}\n'
+    note += f'              text: {unmatched[-1].text}\n'
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)
@@ -232,24 +231,23 @@ def compare_unordered_element(a_element, b_element, **kwargs):
         if miss is None:
           miss = str(miss)
         if code == XMLDiff.missingChildNode:
-          note += '    <'+b_diff.tag+'> is missing child node: <'+right+'> vs <'+miss+'>\n'
+          note += f'    <{b_diff.tag}> is missing child node: <{right}> vs <{miss}>\n'
         elif code == XMLDiff.missingAttribute:
-          note += '    <'+b_diff.tag+'> is missing attribute: "'+right+'"\n'
+          note += f'    <{b_diff.tag}> is missing attribute: "{right}"\n'
         elif code == XMLDiff.extraChildNode:
-          note += '    <'+b_diff.tag+'> has extra child node: <'+right+'>\n'
+          note += f'    <{b_diff.tag}> has extra child node: <{right}>\n'
         elif code == XMLDiff.extraAttribute:
-          note += '    <'+b_diff.tag+'> has extra attribute: "'+right+\
-            '" = "'+b_diff.attrib[right]+'"\n'
+          note += f'    <{b_diff.tag}> has extra attribute: "{right}" = "{b_diff.attrib[right]}"\n'
         elif code == XMLDiff.notMatchTag:
-          note += '    <'+b_diff.tag+'> tag does not match: <'+right+'> vs <'+miss+'>\n'
+          note += f'    <{b_diff.tag}> tag does not match: <{right}> vs <{miss}>\n'
         elif code == XMLDiff.notMatchAttribute:
-          note += '    <'+b_diff.tag+'> attribute does not match: "'+right[1]+\
-            '" = "'+right[0].attrib[right[1]]+'" vs "'+miss[0].attrib[miss[1]]+'"\n'
+          note += f'    <{b_diff.tag}> has extra attribute: "{right[1]}" = ' +\
+                  f'"{right[0].attrib[right[1]]}" vs "{miss[0].attrib[miss[1]]}"\n'
         elif code == XMLDiff.notMatchText:
-          note += '    <'+b_diff.tag+'> text does not match: "'+right+'" vs "'+miss+'"\n'
+          note += f'    <{b_diff.tag}> text does not match: "{right}" vs "{miss}"\n'
         else:
-          note += '     UNRECOGNIZED OPTION: "'+b_diff.tag+'" "'+str(code)+\
-            '": "'+str(right)+'" vs "'+str(miss)+'"\n'
+          note += f'     UNRECOGNIZED OPTION: "{b_diff.tag}" "{str(code)}"'+\
+            f'": "{str(right)}" vs "{str(miss)}"\n'
 
   return (False, [note])
 
@@ -319,12 +317,12 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
       #find all matching XML paths
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found = []
-      for i in range(len(a_element)):
+      for i, a_entry in enumerate(a_element):
         sub_options = dict(options)
         sub_options["path"] = path
-        (same_child, _) = compare_ordered_element(a_element[i], b_element[i], *args, **sub_options)
+        (same_child, _) = compare_ordered_element(a_entry, b_element[i], *args, **sub_options)
         if same_child:
-          found.append((a_element[i], b_element[i]))
+          found.append((a_entry, b_element[i]))
         same = same and same_child
       #prune matches from trees
       for children in found:
@@ -335,16 +333,17 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
         if len(a_element) > 0:
           a_string = ET.tostring(a_element)
           if len(a_string) > 80:
-            message.append('Branches in gold not matching test...\n{}'.format(path))
+            message.append(f'Branches in gold not matching test...\n{path}')
           else:
-            message.append('Branches in gold not matching test...\n{} {}'.format(path, a_string))
+            message.append(f'Branches in gold not matching test...\n{path} {a_string}')
         if len(b_element) > 0:
           b_string = ET.tostring(b_element)
           if len(b_string) > 80:
-            message.append('Branches in test not matching gold...\n{}'.format(path))
+            message.append(f'Branches in test not matching gold...\n{path}')
           else:
-            message.append('Branches in test not matching gold...\n{} {}'.format(path, b_string))
+            message.append(f'Branches in test not matching gold...\n{path} {b_string}')
   return (same, message)
+
 
 def remove_subnodes_from_root(a_element, b_element, ignored_nodes):
   """
@@ -450,7 +449,7 @@ class XMLDiff:
               gold_root = alt_gold_root_list[0]
           if not self.__same:
             pass #already failed
-          elif 'unordered' in self.__options.keys() and self.__options['unordered']:
+          elif 'unordered' in list(self.__options) and self.__options['unordered']:
             same, messages = compare_unordered_element(gold_root, test_root, **self.__options)
           else:
             same, messages = compare_ordered_element(test_root, gold_root, **self.__options)
