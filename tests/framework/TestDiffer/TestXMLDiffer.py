@@ -79,6 +79,21 @@ same,message = XMLDiff.compare_unordered_element(ET.fromstring("<test>Hello  Wor
 
 checkAnswer("whitespace with remove unordered",same,True)
 
+a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
+                          ET.ElementTree(ET.fromstring("<test> <c1>a</c1> <c2>a</c2> </test>")),
+                          ET.ElementTree(ET.fromstring("<test> <c1>a</c1> <c2>b</c2> </test>")),
+                          ignored_nodes=["./c2"])
+checkAnswer("test ignore with single child node",success,True)
+same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
+checkAnswer("compare test with single child node",same,True)
+
+a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
+                          ET.ElementTree(ET.fromstring('<test><c1 n="0">a</c1><c1 n="1"/></test>')),
+                          ET.ElementTree(ET.fromstring('<test><c1 n="0">b</c1><c1 n="1"/></test>')),
+                          ignored_nodes=['./c1[@n="0"]'])
+checkAnswer("test ignore with repeat nodes and attributes",success,True)
+same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
+checkAnswer("compare test with repeat nodes and attributes",same,True)
 
 sys.exit(results["fail"])
 """
@@ -92,6 +107,7 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="sotogj" date="2023-08-23">Adding tests for ignoring nodes.</revision>
     </revisions>
   </TestInfo>
 """

@@ -345,15 +345,17 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
   return (same, message)
 
 
-def remove_subnodes_from_root(a_element, b_element, ignored_nodes):
+def ignore_subnodes_from_root(a_element, b_element, ignored_nodes):
   """
     Compares two element trees and returns (same,message) where same is true
       if they are the same, and message is a list of the differences
-    @ In, a_element, ET.Element, the first element tree
-    @ In, b_element, ET.Element, the second element tree
+    @ In, a_element, ET.Element.Tree, the first element tree
+    @ In, b_element, ET.Element.Tree, the second element tree
     @ In, ignored_nodes, str, address of ignored subnodes of XPath format, e.g.,
                               `.//parentNode/childNode[@name:<>]/grandchildNode`
-    @ Out, element, ET.Element, an element tree
+    @ Out, a_element, ET.Element.Tree, the first element tree
+    @ Out, b_element, ET.Element.Tree, the second element tree
+    @ Out, success, bool, was the removal successful?
   """
   # internal check of ignored nodes already conducted by this point
   for ignored in ignored_nodes:
@@ -430,7 +432,7 @@ class XMLDiff:
         if files_read:
           # need access to element tree here rather than root
           if self.__options['ignored_nodes']:
-            test_root, gold_root, same = remove_subnodes_from_root(test_root, gold_root,
+            test_root, gold_root, same = ignore_subnodes_from_root(test_root, gold_root,
                                           self.__options['ignored_nodes'])
             if not same:
               messages = ["Removing subnodes failed."]
