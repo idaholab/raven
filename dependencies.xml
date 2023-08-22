@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <pip/>
     <importlib_metadata/>
     <openpyxl/>
-    <sqlalchemy>2.0.0</sqlalchemy>
+    <sqlalchemy>1.4</sqlalchemy>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
