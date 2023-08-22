@@ -346,6 +346,30 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
             message.append('Branches in test not matching gold...\n{} {}'.format(path, b_string))
   return (same, message)
 
+def remove_subnodes_from_root(a_element, b_element, ignored_nodes):
+  """
+    Compares two element trees and returns (same,message) where same is true
+      if they are the same, and message is a list of the differences
+    @ In, a_element, ET.Element, the first element tree
+    @ In, b_element, ET.Element, the second element tree
+    @ In, ignored_nodes, str, address of ignored subnodes of XPath format, e.g.,
+                              `.//parentNode/childNode[@name:<>]/grandchildNode`
+    @ Out, element, ET.Element, an element tree
+  """
+  # internal check of ignored nodes already conducted by this point
+  for ignored in ignored_nodes:
+    try:
+      for element in [a_element, b_element]:
+        parentpath = '/'.join(ignored.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
+        childpath = ignored.split('/')[-1]             # `/grandchildNode`
+        parentnode = element.find(parentpath)
+        parentnode.remove(parentnode.find(childpath))
+      success = True
+    except Exception as e:
+      print((f"Could not find XPath {ignored} in elements with exception:{e}"))
+      return a_element, b_element, False
+  return a_element, b_element, success
+
 class XMLDiff:
   """
     XMLDiff is used for comparing xml files.
@@ -395,16 +419,24 @@ class XMLDiff:
       else:
         files_read = True
         try:
-          test_root = ET.parse(test_filename).getroot()
+          test_root = ET.parse(test_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+test_filename+': '+str(exp.args)
         try:
-          gold_root = ET.parse(gold_filename).getroot()
+          gold_root = ET.parse(gold_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(exp.args)
         if files_read:
+          # need access to element tree here rather than root
+          if self.__options['ignored_nodes']:
+            test_root, gold_root, same = remove_subnodes_from_root(test_root, gold_root,
+                                          self.__options['ignored_nodes'])
+            if not same:
+              messages = ["Removing subnodes failed."]
+          test_root = test_root.getroot()
+          gold_root = gold_root.getroot()
           if self.__options['alt_root'] is not None:
             alt_test_root_list = test_root.findall(self.__options['alt_root'])
             alt_gold_root_list = gold_root.findall(self.__options['alt_root'])
@@ -458,6 +490,9 @@ class XML(Differ):
                      'Relative Error for csv files or floats in xml ones')
     params.add_param('alt_root', '', 'If included, do a findall on the value on the root,'+
                      ' and then use that as the root instead.  Note, findall must return one value')
+    params.add_param('ignored_nodes', '', 'If included, ignore specific xml node address from diff'+
+                     ' which is denoted as `parent|child@name:name|grandchild@name:name`'+
+                     ' which is XPath format.')
     return params
 
   def __init__(self, name, params, test_dir):
@@ -482,6 +517,47 @@ class XML(Differ):
       self.__xmlopts['alt_root'] = self.specs['alt_root']
     else:
       self.__xmlopts['alt_root'] = None
+    if len(self.specs['ignored_nodes']) > 0:
+      if isinstance(self.specs['ignored_nodes'], list):
+        self.__xmlopts['ignored_nodes'] = [str(i) for i in self.specs['ignored_nodes']]
+      else:
+        self.__xmlopts['ignored_nodes'] = [self.specs['ignored_nodes']]
+    else:
+      self.__xmlopts['ignored_nodes'] = None
+
+  def check_xpath(self):
+    """
+      Converts xpath given if not correct.
+      @ In, None
+      @ Out, None
+    """
+    for i,ignored in enumerate(self.__xmlopts['ignored_nodes']):
+      # assuming xpath looks like "Parent|Child@name:value|Grandchild"
+      # should be converted to ".//Parent/Child[@name:'value']/Grandchild"
+      # NOTE: assuming that there is a child node... otherwise use `alt_root`?
+      if self.__xmlopts['ignored_nodes'][i].startswith('\"'):
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i][1:]
+      if self.__xmlopts['ignored_nodes'][i].endswith('\"'):
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i][:-1]
+      if '|' in self.__xmlopts['ignored_nodes'][i]:
+        nodes = ignored.split('|')
+        tpath = ''
+        for node in nodes:
+          tag = ''
+          value = ''
+          add_params = '@' in node
+          if add_params:
+            node, tag = node.split('@')
+            tag, value = tag.split(':')
+          tpath += f'/{node}'
+          if add_params:
+            tpath += f'[@{tag}=\'{value}\']'
+        self.__xmlopts['ignored_nodes'][i] = tpath
+      if not self.__xmlopts['ignored_nodes'][i].startswith('./'):
+        self.__xmlopts['ignored_nodes'][i] = './' + self.__xmlopts['ignored_nodes'][i]
+      # sometimes the [@name:'value'] comes in as [@name:\'value\']
+      if "\\" in self.__xmlopts['ignored_nodes'][i]:
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i].replace("\\", "")
 
   def check_output(self):
     """
@@ -494,5 +570,7 @@ class XML(Differ):
     """
     xml_files = self._get_test_files()
     gold_files = self._get_gold_files()
+    if self.__xmlopts['ignored_nodes'] is not None:
+      self.check_xpath()
     xml_diff = XMLDiff(xml_files, gold_files, **self.__xmlopts)
     return xml_diff.diff()
