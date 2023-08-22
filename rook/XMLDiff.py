@@ -528,7 +528,9 @@ class XML(Differ):
 
   def check_xpath(self):
     """
-      Converts xpath given if not correct.
+      Converts xpath given if not correct. This assumes that the xpath coming in looks like
+      "Parent|Child@name:value|Grandchild" and converts to
+      "./Parent/Child[@name:'value']/Grandchild".
       @ In, None
       @ Out, None
     """
@@ -554,8 +556,9 @@ class XML(Differ):
           if add_params:
             tpath += f'[@{tag}=\'{value}\']'
         self.__xmlopts['ignored_nodes'][i] = tpath
-      if not self.__xmlopts['ignored_nodes'][i].startswith('./'):
-        self.__xmlopts['ignored_nodes'][i] = './' + self.__xmlopts['ignored_nodes'][i]
+      # NOTE: might be changed in future? makes starting position relative to current node
+      if not self.__xmlopts['ignored_nodes'][i].startswith('.'):
+        self.__xmlopts['ignored_nodes'][i] = '.' + self.__xmlopts['ignored_nodes'][i]
       # sometimes the [@name:'value'] comes in as [@name:\'value\']
       if "\\" in self.__xmlopts['ignored_nodes'][i]:
         self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i].replace("\\", "")
