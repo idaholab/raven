@@ -196,8 +196,6 @@ nameTemplate = 'ClusterFeature|{target}|{metric}|{id}|unscaled'
 featureNames = maxAbsScaler._features
 clusterFeatures = maxAbsScaler.getClusteringValues(nameTemplate, featureNames, params)
 featuresTrue = {f'ClusterFeature|{targets[0]}|MaxAbsScaler|scale|unscaled': scaleTrue}
-print(clusterFeatures)
-print(featuresTrue)
 for k in featuresTrue.keys():
   checkFloat('MaxAbsScaler getClusteringValues', clusterFeatures[k], featuresTrue[k])
 # Check forward transform
