@@ -18,7 +18,6 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
-import pandas as pd
 from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes

@@ -43,6 +43,7 @@ The following table shows which base classes each currently implemented TSA algo
 | `ARMA`                 |   &check;   |  &check;  |    &check;    |
 | `MarkovAR`             |   &check;   |  &check;  |               |
 | `Fourier`              |   &check;   |  &check;  |    &check;    |
+| `STL`                  |   &check;   |  &check;  |               |
 | `PolynomialRegression` |   &check;   |  &check;  |    &check;    |
 | `RWD`                  |             |           |    &check;    |
 | `Wavelet`              |   &check;   |  &check;  |               |
