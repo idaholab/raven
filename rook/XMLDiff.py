@@ -90,7 +90,8 @@ def compare_list_entry(a_list, b_list, **kwargs):
     else:
       num_match += 1
     #match text
-    #if (a_entry.text is None or len(a_entry.text)>0) and (b_item.text is None or len(b_item.text)>0):
+    #if (a_entry.text is None or len(a_entry.text)>0) and \
+    #   (b_item.text is None or len(b_item.text)>0):
     same, _ = cswf(a_entry.text,
                    b_item.text,
                    rel_err=options["rel_err"],
@@ -366,8 +367,8 @@ def ignore_subnodes_from_root(a_element, b_element, ignored_nodes):
         parentnode = element.find(parentpath)
         parentnode.remove(parentnode.find(childpath))
       success = True
-    except Exception as e:
-      print((f"Could not find XPath {ignored} in elements with exception:{e}"))
+    except Exception as exp:
+      print((f"Could not find XPath {ignored} in elements with exception:{exp}"))
       return a_element, b_element, False
   return a_element, b_element, success
 
