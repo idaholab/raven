@@ -59,7 +59,7 @@
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
       <MarkovAR target="signal0" seed='42'>
-        <SignalLag>1</SignalLag>
+        <P>1</P>
         <MarkovStates>2</MarkovStates>
       </MarkovAR>
     </ROM>

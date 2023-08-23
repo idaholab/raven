@@ -2142,7 +2142,7 @@ Example:
 
       The \xmlNode{MarkovAR} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{SignalLag}: \xmlDesc{integer}, 
+        \item \xmlNode{P}: \xmlDesc{integer}, 
           the number of terms in the AutoRegressive term to retain in the
           regression; typically represented as $P$ in literature.
 
@@ -2298,6 +2298,19 @@ Example:
             sets a seed for the underlying random number generator, if present.
       \end{itemize}
 
+    \item \xmlNode{preserveCDF}:
+      forces generated data provided to the inverse transformation function to
+      have the same CDF as the original data through quantile mapping. If this
+      transformer is used as part of a SyntheticHistory ROM, it should likely
+      be used as the first transformer in the chain.
+      The \xmlNode{preserveCDF} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
     \item \xmlNode{differencing}:
       applies Nth order differencing to the data.
       The \xmlNode{differencing} node recognizes the following parameters:
@@ -2312,19 +2325,6 @@ Example:
       \begin{itemize}
         \item \xmlNode{order}: \xmlDesc{integer}, 
           differencing order.
-      \end{itemize}
-
-    \item \xmlNode{preserveCDF}:
-      forces generated data provided to the inverse transformation function to
-      have the same CDF as the original data through quantile mapping. If this
-      transformer is used as part of a SyntheticHistory ROM, it should likely
-      be used as the first transformer in the chain.
-      The \xmlNode{preserveCDF} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
-            indicates the variables for which this algorithm will be used for characterization.
-          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
-            sets a seed for the underlying random number generator, if present.
       \end{itemize}
 
     \item \xmlNode{zerofilter}:

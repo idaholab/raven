@@ -62,7 +62,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
                   descr=r"""indicates whether the noise variance is a switching parameter.""")
     specs.addParam('switching_trend', param_type=InputTypes.BoolType, required=False, default=True,
                   descr=r"""indicates whether the mean is a switching parameter.""")
-    specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.IntegerType,
+    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ in literature."""))
     specs.addSub(InputData.parameterInputFactory('MarkovStates', contentType=InputTypes.IntegerType,
@@ -79,7 +79,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['order'] = spec.findFirst('SignalLag').value
+    settings['order'] = spec.findFirst('P').value
     settings['regimes'] = spec.findFirst('MarkovStates').value
     settings['switching_ar'] = spec.parameterValues.get('switching_ar', True)
     settings['switching_variance'] = spec.parameterValues.get('switching_variance', True)
