@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
+  Created on June 27, 2023
+  @author: j-bryan
+
   Markov-switching autoregressive time series analyzer algorithm
 """
 import re
@@ -26,7 +29,7 @@ from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesTransformer
 # utility methods
 class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
   r"""
-    AutoRegressive Moving Average time series analyzer algorithm
+    Markov-switching autoregressive time series model
   """
   # class attribute
   _acceptsMissingValues = False
@@ -270,7 +273,8 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     # of the synthetic signal. We can check for this by looking for non-finite values in the synthetic
     # signal.
     if not np.all(np.isfinite(synth)):
-      raise RuntimeError('Synthetic signal contains non-finite values!')
+      raise RuntimeError('Synthetic signal contains non-finite values! This could be due to a '
+                         'non-stationary model. Check stationarity of model.')
 
     # Remove burn-in period
     synth = synth[burn:]
