@@ -101,7 +101,7 @@ class UnorderedCSVDiffer:
       print('Looking in:\n', csv)
     match = csv.copy()
     # TODO can I do this as a single search, using binomial on floats +- relErr?
-    for idx, val in row.iteritems():
+    for idx, val in row.items():
       if debug:
         print('  checking index', idx, 'value', val)
       # Due to relative matches in floats, we may not be sorted with respect to this index.

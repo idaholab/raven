@@ -22,6 +22,18 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import numpy as np
+from scipy.linalg import solve_triangular
+from ....contrib.SKOpt.GPKernels import ConstantKernel as skConstantKernel
+from ....contrib.SKOpt.GPKernels import DotProduct as skDotProduct
+from ....contrib.SKOpt.GPKernels import Exponentiation as skExponentiation
+from ....contrib.SKOpt.GPKernels import ExpSineSquared as skExpSineSquared
+from ....contrib.SKOpt.GPKernels import Matern as skMatern
+from ....contrib.SKOpt.GPKernels import Product as skProduct
+from ....contrib.SKOpt.GPKernels import RationalQuadratic as skRationalQuadratic
+from ....contrib.SKOpt.GPKernels import RBF as skRBF
+from ....contrib.SKOpt.GPKernels import Sum as skSum
+from ....contrib.SKOpt.GPKernels import WhiteKernel as skWhiteKernel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -87,8 +99,11 @@ class GaussianProcessRegressor(ScikitLearnBase):
                          \zNormalizationNotPerformed{GaussianProcessRegressor}
                          """
     # create kernel node
-    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['Constant', 'DotProduct', 'ExpSineSquared', 'Exponentiation',
-                                                                                                                   'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2','PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian','PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic']),
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",
+                                                 ['Constant', 'DotProduct', 'ExpSineSquared', 'WhiteNoise',
+                                                  'Matern','PairwiseLinear','PairwiseAdditiveChi2','PairwiseChi2',
+                                                  'PairwisePoly','PairwisePolynomial','PairwiseRBF','PairwiseLaplassian',
+                                                  'PairwiseSigmoid','PairwiseCosine', 'RBF', 'RationalQuadratic', 'Custom']),
                                                  descr=r"""The kernel specifying the covariance function of the GP. If None is passed,
                                                  the kernel $Constant$ is used as default. The kernel hyperparameters are optimized during fitting and consequentially the hyperparameters are
                                                  not inputable. The following kernels are avaialable:
@@ -99,7 +114,6 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                                      It is parameterized by a parameter sigma\_0 $\sigma$ which controls the inhomogenity of the kernel.
                                                    \item ExpSineSquared, it allows one to model functions which repeat themselves exactly. It is parameterized by a length scale parameter $l>0$ and a periodicity parameter $p>0$.
                                                                          The kernel is given by $k(x_i, x_j) = \text{exp}\left(-\frac{ 2\sin^2(\pi d(x_i, x_j)/p) }{ l^ 2} \right)$ where $d(\\cdot,\\cdot)$ is the Euclidean distance.
-                                                   \item Exponentiation, it takes one base kernel and a scalar parameter $p$ and combines them via $k_{exp}(X, Y) = k(X, Y) ^p$.
                                                    \item Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls the smoothness of the resulting function. The smaller $\nu$,
                                                                  the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
                                                                  identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$ (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
@@ -129,6 +143,9 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                    \item RationalQuadratic, it can be seen as a scale mixture (an infinite sum) of RBF kernels with different characteristic length scales. It is parameterized by a length scale parameter
                                                                             $l>0$ and a scale mixture parameter $\alpha>0$ . The kernel is given by $k(x_i, x_j) = \left(1 + \frac{d(x_i, x_j)^2 }{ 2\alpha  l^2}\right)^{-\alpha}$ where
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
+                                                   \item WhiteNoise, This is a kernel representing observation noise in the GPR model and is given by $k(x_i, x_j) = \epsilon\delta_{i,j}$
+                                                                where $\delta$ is the dirac delta function
+                                                   \item Custom, this option allows the user to specify any combination of the above kernels. Still under construction
                                                  \end{itemize}.""",default=None))
 
 
@@ -144,52 +161,215 @@ class GaussianProcessRegressor(ScikitLearnBase):
                                                            unit-variance priors are used.""",default=False ))
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                               descr=r"""Seed for the internal random number generator.""",default=None))
-    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b']),
+    specs.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer", "optimizerType",['fmin_l_bfgs_b', 'None']),
                                                  descr=r"""Per default, the 'L-BFGS-B' algorithm from
                                                  scipy.optimize.minimize is used. If None is passed, the kernel’s
                                                  parameters are kept fixed.""",default='fmin_l_bfgs_b'))
+    specs.addSub(InputData.parameterInputFactory("anisotropic", contentType=InputTypes.BoolType,
+                                                 descr=r"""Boolean that determines if unique length-scales are used for each
+                                                 axis of the input space (where applicable). The default is False.""",default=False))
+    specs.addSub(InputData.parameterInputFactory("custom_kernel", contentType=InputTypes.StringType,
+                                                 descr=r"""Defines the custom kernel constructed by the available base kernels.
+                                                 Only applicable when 'kernel' is set to 'Custom'; therefore, the default is None.""",default=None))
+    specs.addSub(InputData.parameterInputFactory("multioutput", contentType=InputTypes.BoolType,
+                                                 descr=r"""Determines whether model will track multiple targets through the
+                                                 multiouput regressor wrapper class. For most RAVEN applications, this is expected;
+                                                 therefore, the default is True.""",default=True))
     return specs
 
-  def pickKernel(self, name):
+  def pickKernel(self, name, lengthScaleSetting):
     """
       This method is used to pick a kernel from the iternal factory
       @ In, name, str, the kernel name
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic
       @ Out, kernel, object, the kernel object
     """
     import sklearn
+    # For anisotropic cases length-scale should be a vector
+    if lengthScaleSetting:
+      lengthScale = np.ones(len(self.features))
+    else:
+      lengthScale = 1
+
+    # For anisotropic cases length-scale should be a vector
+    if lengthScaleSetting:
+      lengthScale = np.ones(len(self.features))
+    else:
+      lengthScale = 1
+
     if name.lower() == 'constant':
-      kernel = sklearn.gaussian_process.kernels.ConstantKernel()
+      kernel = skConstantKernel()
     elif name.lower() == 'dotproduct':
-      kernel = sklearn.gaussian_process.kernels.DotProduct()
+      kernel = skDotProduct()
     elif name.lower() == 'expsinesquared':
-      kernel = sklearn.gaussian_process.kernels.ExpSineSquared()
-    elif name.lower() == 'exponentiation':
-      kernel = sklearn.gaussian_process.kernels.Exponentiation()
+      kernel = skExpSineSquared(periodicity_bounds=(1e-5, 1/(2*np.pi)))
     elif name.lower() == 'matern':
-      kernel = sklearn.gaussian_process.kernels.Matern()
-    elif name.lower() == 'pairwiselinear':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='linear')
-    elif name.lower() == 'pairwiseadditivechi2':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='additive_chi2')
-    elif name.lower() == 'pairwisechi2':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='chi2')
-    elif name.lower() == 'pairwisepoly':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='poly')
-    elif name.lower() == 'pairwisepolynomial':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='polynomial')
-    elif name.lower() == 'pairwiserbf':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='rbf')
-    elif name.lower() == 'pairwiselaplacian':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='laplacian')
-    elif name.lower() == 'pairwisesigmoid':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='sigmoid')
-    elif name.lower() == 'pairwisecosine':
-      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric='cosine')
+      kernel = skMatern(length_scale=lengthScale, nu=2.5)
     elif name.lower() == 'rbf':
-      kernel = sklearn.gaussian_process.kernels.RBF()
+      kernel = skRBF(length_scale=lengthScale)
     elif name.lower() == 'rationalquadratic':
-      kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
+      kernel = skRationalQuadratic()
+    elif name.lower() == 'whitenoise':
+      kernel = skWhiteKernel()
+    # For the pairwise kernels, slice the input string to get metric
+    elif name.lower()[0:8] == 'pairwise':
+      metric = name.lower()[8:]
+      kernel = sklearn.gaussian_process.kernels.PairwiseKernel(metric=metric)
+    else:
+      self.raiseAnError(RuntimeError, f'Invalid kernel input found: {name}')
     return kernel
+
+  def customKernel(self, kernelStatement, lengthScaleSetting):
+    """
+      Constructs scikit learn kernel defined by input
+      @ In, kernelStatement, string, string form of desired kernel
+      @ In, lengthScaleSetting, bool, whether or not to make the kernel anisotropic (where applicable)
+      @ Out, kernel, sklearn kernel object
+    """
+    # Initialize construction terms
+    kernel = None
+    # Need to apply operations to kernel components
+    operations = {'+':skSum,
+                  '*':skProduct,
+                  '^':skExponentiation}
+    runningKernel = ""
+    paranthetical = False # Considering kernel expressions with parantheses
+    tempKernel = None
+    operator = None
+    leftIndex = None
+    embedded = 0          # Tracks number of embedded parantheticals
+    for index, char in enumerate(kernelStatement):
+      if char == '(':
+        paranthetical = True
+        # Where does parantheses start?
+        if leftIndex is None:
+          leftIndex = index+1
+        else:
+          embedded += 1
+          continue
+      elif char ==')':
+        # Want to handle parantheses at the highest level first
+        if embedded > 0:
+          embedded -= 1
+          continue
+        # Slicing out expression in parantheses
+        parantheticalKernel = kernelStatement[leftIndex:index+embedded]
+        tempKernel = self.customKernel(parantheticalKernel, lengthScaleSetting)
+        paranthetical = False # ending paranthetical statement
+        leftIndex = None
+        continue
+      # Just finish reading through statement in parantheses
+      if paranthetical:
+        continue
+      # Is the character a piece of a kernel tag or an operator tag?
+      if char not in ['+', '*', '^']:
+        runningKernel += char
+      else:
+        # Consider exponentiation first
+        if operator == '^':
+          tempKernel = float(runningKernel)
+        # Are we about to operate on a paranthetical statement?
+        if tempKernel is None:
+          tempKernel = self.pickKernel(runningKernel, lengthScaleSetting)
+
+        if kernel is None:
+          kernel = tempKernel
+        else:
+          kernel = operations[operator](kernel, tempKernel)
+        # Resetting construction pieces and setting operator for next piece
+        operator = char
+        tempKernel = None
+        runningKernel = ""
+    # Need to apply final operation
+    if len(runningKernel) > 0:
+      try:
+        if operator == '^':
+           kernel = operations[operator](kernel, float(runningKernel))
+        else:
+          kernel = operations[operator](kernel, self.pickKernel(runningKernel, lengthScaleSetting))
+      except KeyError:
+        kernel = self.pickKernel(runningKernel, lengthScaleSetting)
+    # Necessary if last term is a paranthetical
+    else:
+      try:
+        kernel = operations[operator](kernel, tempKernel)
+      except KeyError:
+        kernel = tempKernel
+    return kernel
+
+  def evaluateGradients(self, x):
+    """
+      Evaluates gradient of GPR mean and std wrt to the input
+      @ In, x, np.array, input vector to evaluate model gradient at
+      @ Out, meanGrad, np.array, gradient of predictive mean wrt x
+      @ Out, stdGrad, np.array, gradient of predictive std wrt x
+    """
+    # BSD 3-Clause License
+
+    # Copyright (c) 2016-2020 The scikit-optimize developers.
+    # All rights reserved.
+
+    # Redistribution and use in source and binary forms, with or without
+    # modification, are permitted provided that the following conditions are met:
+
+    # 1. Redistributions of source code must retain the above copyright notice, this
+    #    list of conditions and the following disclaimer.
+
+    # 2. Redistributions in binary form must reproduce the above copyright notice,
+    #    this list of conditions and the following disclaimer in the documentation
+    #    and/or other materials provided with the distribution.
+
+    # 3. Neither the name of the copyright holder nor the names of its
+    #    contributors may be used to endorse or promote products derived from
+    #    this software without specific prior written permission.
+
+    # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    kernelGrad = self.model.kernel_.gradient_x(x, self.model.X_train_)
+    meanGrad = np.dot(kernelGrad.T, self.model.alpha_)
+    meanGrad = meanGrad * self.model._y_train_std
+    if len(x.shape) == 1:
+      stdGrad = np.zeros(1)
+    elif len(x.shape) == 2:
+      stdGrad = np.zeros(x.shape[1])
+    else:
+      self.raiseAnError(RuntimeError, f'Invalid input shape found in GPR gradient evaluation: {x.shape}')
+
+    # Need variance information
+    kTrans = self.model.kernel_(x, self.model.X_train_)
+
+    # Compute variance of predictive distribution
+    LInv = solve_triangular(self.model.L_.T, np.eye(self.model.L_.shape[0]))
+    kInv = LInv.dot(LInv.T)
+    yVar = self.model.kernel_.diag(x)
+    yVar -= np.einsum("ki,kj,ij->k", kTrans, kTrans, kInv)
+
+    # Check if any of the variances is negative because of
+    # numerical issues. If yes: set the variance to 0.
+    yVarNegative = yVar < 0
+    if np.any(yVarNegative):
+      # self.raiseAWarning("Predicted variances smaller than 0. "
+      #               "Setting those variances to 0.")
+      yVar[yVarNegative] = 0
+    # undo normalisation
+    yVar = yVar * self.model._y_train_std**2
+    yStd = np.sqrt(yVar)
+
+    if not np.allclose(yStd, stdGrad):
+      stdGrad = -np.dot(kTrans, np.dot(kInv, kernelGrad))[0] / yStd
+      # undo normalization
+      stdGrad = stdGrad * self.model._y_train_std**2
+
+    return meanGrad, stdGrad
 
   def _handleInput(self, paramInput):
     """
@@ -198,10 +378,24 @@ class GaussianProcessRegressor(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
-                                                               'normalize_y', 'random_state', 'optimizer'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer', 'multioutput',
+                                                               'normalize_y', 'random_state', 'optimizer', 'anisotropic', 'custom_kernel'])
     # notFound must be empty
     assert(not notFound)
     # special treatment for kernel
-    settings['kernel'] = self.pickKernel(settings['kernel']) if settings['kernel'] is not None else None
+    if settings['kernel'] != "Custom":
+      settings['kernel'] = self.pickKernel(settings['kernel'], settings['anisotropic']) if settings['kernel'] is not None else None
+    # further special treatment for custom kernels
+    else:
+      if settings['custom_kernel'] == None:
+        self.raiseAnError(OSError, 'Custom kernel selected but no custom_kernel input was provided.')
+      settings['kernel'] = self.customKernel(settings['custom_kernel'], settings['anisotropic'])
+    # Is this regressor for multi-output purposes?
+    self.multioutputWrapper = settings['multioutput']
+    # Deleting items that scikit-learn does not use
+    del settings['multioutput']
+    del settings['anisotropic']
+    del settings['custom_kernel']
+    if settings['optimizer'] == 'None':
+      settings['optimizer'] = None
     self.initializeModel(settings)

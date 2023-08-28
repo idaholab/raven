@@ -98,6 +98,7 @@ class RavenSampled(Optimizer):
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
                'rejectReason':'description of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
+               'modelRuns': 'integer identifying the number of times the model is evaluated up to the current step'
               })
 
     return ok
@@ -632,7 +633,8 @@ class RavenSampled(Optimizer):
     toExport.update({'iteration': self.getIteration(traj),
                      'trajID': traj,
                      'accepted': acceptable,
-                     'rejectReason': rejectReason
+                     'rejectReason': rejectReason,
+                     'modelRuns': self.counter
                     })
     # optimal point input and output spaces
     objValue = rlz[self._objectiveVar]

@@ -1939,7 +1939,7 @@ class DataSet(DataObject):
     if len(missing) > 0:
       extra = provided - needed
       self.raiseAnError(IOError, f'Not all variables requested for data object "{self.name}" were found in csv "{fileName}.csv"!' +
-                        f'\nNeeded: {needed}; \nUnused: {extra}; \nMissing: {missing}')
+                        f'\nNeeded: {needed}; \nUnused: {extra}; \nProvided: {provided}; \nMissing: {missing}')
     # otherwise, return happily and continue loading the CSV
 
     return dims

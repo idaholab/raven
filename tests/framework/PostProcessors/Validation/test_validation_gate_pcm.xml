@@ -44,6 +44,7 @@
       <Features>outputDataMC1|F1,outputDataMC1|F2</Features>
       <Targets>outputDataMC2|F2,outputDataMC2|F3,outputDataMC2|F4</Targets>
       <Measurements>msrData|F1,msrData|F2</Measurements>
+      <pcmType>Static</pcmType>
     </PostProcessor>
   </Models>
 
@@ -143,7 +144,7 @@
     </PointSet>    
     <PointSet name="pcm_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>pri_post_stdReduct_F2,pri_post_stdReduct_F3,pri_post_stdReduct_F4</Output>
+      <Output>static_pri_post_stdReduct_F2,static_pri_post_stdReduct_F3,static_pri_post_stdReduct_F4</Output>
     </PointSet>
   </DataObjects>
 

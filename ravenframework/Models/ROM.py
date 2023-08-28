@@ -284,6 +284,7 @@ class ROM(Dummy):
       @ In,  None
       @ Out, None
     """
+    self.raiseADebug("resetting ROM")
     for rom in self.supervisedContainer:
       rom.reset()
     self.amITrained = False
@@ -416,7 +417,7 @@ class ROM(Dummy):
     """
     request = self._inputToInternal(request)
     if not self.amITrained:
-      self.raiseAnError(RuntimeError, "ROM "+self.name+" has not been trained yet and, consequentially, can not be evaluated!")
+      self.raiseAnError(RuntimeError, "ROM "+self.name+" has not been trained yet and, consequentially, can not calculate confidence")
     confidenceDict = {}
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.confidence(request)
@@ -473,7 +474,7 @@ class ROM(Dummy):
     if self.pickled:
       self.raiseAnError(RuntimeError,'ROM "', self.name, '" has not been loaded yet!  Use an IOStep to load it.')
     if not self.amITrained:
-      self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not be evaluated!")
+      self.raiseAnError(RuntimeError, "ROM ", self.name, " has not been trained yet and, consequentially, can not calculate derivatives!")
     derivatives = {}
     if self.segment:
       derivatives = mathUtils.derivatives(self.supervisedContainer[0].evaluate, request, var=feats, n=order)

@@ -239,13 +239,12 @@ signals[:, 0] = signalA
 model = createRegression(targets, 2)
 settings = {'degree': 2}
 settings = model.setDefaults(settings)
-params = model.characterize(signals, pivot, targets, settings)
+params = model.fit(signals, pivot, targets, settings)
 check = params['A']['model']
 
 for title, real, pred in zip(coef_titles, okay_coefs, check):
   checkFloat(title, real, check[pred], tol=1e-1)
 
-checkTrue("model can generate", model.canGenerate())
 checkTrue("model can characterize", model.canCharacterize())
 
 ############################
@@ -258,7 +257,7 @@ signals[:, 0] = signalA
 model = createRegression(targets, 2)
 settings = {'degree': 2}
 settings = model.setDefaults(settings)
-params = model.characterize(signals, pivot, targets, settings)
+params = model.fit(signals, pivot, targets, settings)
 check = params['A']['model']
 
 for title, real, pred in zip(coef_titles, okay_coefs, check):
@@ -276,7 +275,7 @@ signals[:, 0] = signalB
 model = createRegression(targets, 3)
 settings = {'degree': 3}
 settings = model.setDefaults(settings)
-params = model.characterize(signals, pivot, targets, settings)
+params = model.fit(signals, pivot, targets, settings)
 check = params['A']['model']
 
 for title, real, pred in zip(coef_titles, okay_coefs, check):
@@ -295,7 +294,7 @@ signals[:, 0] = signalB
 model = createRegression(targets, 3)
 settings = {'degree': 3}
 settings = model.setDefaults(settings)
-params = model.characterize(signals, pivot, targets, settings)
+params = model.fit(signals, pivot, targets, settings)
 check = params['A']['model']
 
 for title, real, pred in zip(coef_titles, okay_coefs, check):
