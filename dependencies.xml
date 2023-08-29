@@ -47,7 +47,7 @@ Note all install methods after "main" take
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
     <tensorflow source="pip" os='mac,linux'>2.13</tensorflow>
-    <tensorflow source="pip" os='windows'>2.12</tensorflow>
+    <tensorflow source="pip" os='windows'>2.11</tensorflow>
     <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.8</python>
