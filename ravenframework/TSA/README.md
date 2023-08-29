@@ -41,7 +41,9 @@ The following table shows which base classes each currently implemented TSA algo
 | Algorithm              | Transformer | Generator | Characterizer |
 |------------------------|:-----------:|:---------:|:-------------:|
 | `ARMA`                 |   &check;   |  &check;  |    &check;    |
+| `MarkovAR`             |   &check;   |  &check;  |               |
 | `Fourier`              |   &check;   |  &check;  |    &check;    |
+| `STL`                  |   &check;   |  &check;  |               |
 | `PolynomialRegression` |   &check;   |  &check;  |    &check;    |
 | `RWD`                  |             |           |    &check;    |
 | `Wavelet`              |   &check;   |  &check;  |               |
@@ -57,4 +59,5 @@ The following table shows which base classes each currently implemented TSA algo
 | `SigmoidTransformer`   |   &check;   |           |               |
 | `QuantileTransformer`  |   &check;   |           |               |
 | `Gaussianize`          |   &check;   |           |               |
+| `Differencing`         |   &check;   |           |               |
 | `PreserveCDF`          |   &check;   |           |               |

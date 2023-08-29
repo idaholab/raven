@@ -32,4 +32,12 @@
     type = 'RavenPython'
     input = 'testDistributionTransformations.py'
   [../]
+  [./Differencing]
+    type = 'RavenPython'
+    input = 'testDifferencing.py'
+  [../]
+  [./STL]
+    type = 'RavenPython'
+    input = 'testSTL.py'
+  [../]
 []

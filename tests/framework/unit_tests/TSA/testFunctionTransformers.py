@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the TSA.ZeroFilter class.
+  This Module performs Unit Tests for the data transformers that inherit from the TSA.SklTransformer
+  base class. These are classes which wrap sklearn.preprocessing.FunctionTransformer objects to perform
+  simple nonlinear transformations on the data.
   It can not be considered part of the active code but of the regression test system
 """
 import os
@@ -198,8 +200,8 @@ def extractTransformerFunctions(transformer):
 ###################
 # Test positive values only
 targets = ['A']
-pivot = np.arange(10)
-signals = np.linspace(1, 2, 11).reshape(-1, 1)  # has negative values
+pivot = np.arange(11)
+signals = np.linspace(1, 2, 11).reshape(-1, 1)
 
 for transformerType in testedClasses:
   transformer = createTransformer(targets, transformerType)
@@ -226,7 +228,7 @@ for transformerType in testedClasses:
 # Test negative values only
 # This is important because some transforms (e.g. log transform) will fail on negative values
 targets = ['B']
-signals = np.linspace(-1, 1, 11).reshape(-1, 1)  # has negative values
+signals = np.linspace(-1, 1, 11).reshape(-1, 1)
 
 for transformerType in testedClasses:
   transformer = createTransformer(targets, transformerType)
