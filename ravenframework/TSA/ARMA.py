@@ -19,6 +19,7 @@ import collections
 import numpy as np
 import scipy as sp
 import pandas as pd
+import re
 
 from .. import Decorators
 
@@ -262,10 +263,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ Out, QOpt, int, optimal noise lag parameter
     """
     try:
-      from darts import models as dmodels
-      from darts import TimeSeries
+      from statsforecast.models import AutoARIMA
+      from statsforecast.arima import arima_string
     except ModuleNotFoundError as exc:
-      print("This RAVEN TSA Module requires the DARTS library to be installed in the current python environment")
+      print("This RAVEN TSA Module requires the statsforecast library to be installed in the current python environment")
       raise ModuleNotFoundError from exc
 
     maxP = settings['P']['bounds']
@@ -279,22 +280,16 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
         "max_p": maxP,
         "max_q": maxQ,
         "max_order": self._maxCombinedPQ,
-        "num_cores": 1,
         "ic": 'bic',
       }
 
-    SFAA = dmodels.StatsForecastAutoARIMA(**SFparams)
-    dataframe = pd.DataFrame()
-    dataframe['Target'] = history
-    dataframe['Pivot'] = np.arange(len(pivot))
-    timeSeries = TimeSeries.from_dataframe(dataframe, time_col='Pivot')
+    SFAA = AutoARIMA(**SFparams)
+    fittedARIMA = SFAA.fit(y=history)
 
-    fittedARIMA = SFAA.fit(timeSeries,)
-    ARIMA = fittedARIMA.model.model_['arma']
-    ARIMA_order = tuple( ARIMA[i] for i in [0, 5, 1, 2, 6, 3, 4] )
-
-    POpt = ARIMA_order[0]
-    QOpt = ARIMA_order[2]
+    arma_str = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
+    POpt,_,QOpt = [int(a) for a in arma_str.split(',')]
+    print(POpt)
+    print(QOpt)
 
     return POpt, QOpt
 
