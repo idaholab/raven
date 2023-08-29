@@ -84,11 +84,11 @@ class IOStep(Step):
           ', the number of Inputs != number of Outputs, and there are Outputs. '+\
           f'Inputs: {len(inDictionary["Input"])} Outputs: {len(outputs)}')
     # determine transfer and if it is a valid combination
-    for i in range(len(outputs)):
+    for i, output in enumerate(outputs):
       # from Database to ...
       if isinstance(inDictionary['Input'][i], Database):
         # ... dataobject
-        if isinstance(outputs[i], DataObject.DataObject):
+        if isinstance(output, DataObject.DataObject):
           self.actionType.append('Database-dataObjects')
         # ... anything else
         else:
@@ -99,7 +99,7 @@ class IOStep(Step):
       # from DataObject to ...
       elif  isinstance(inDictionary['Input'][i], DataObject.DataObject):
         # ... Database
-        if isinstance(outputs[i], Database):
+        if isinstance(output, Database):
           self.actionType.append('dataObjects-Database')
         # ... anything else
         else:
@@ -110,15 +110,15 @@ class IOStep(Step):
       # from ROM model to ...
       elif isinstance(inDictionary['Input'][i], (Models.ROM, Models.ExternalModel)):
         # ... file
-        if isinstance(outputs[i],Files.File):
-          if 'PYOMO' == outputs[i].getType().upper():
+        if isinstance(output,Files.File):
+          if 'PYOMO' == output.getType().upper():
             self.actionType.append('MODEL-PYOMO')
-          if 'FMU' == outputs[i].getType().upper():
+          if 'FMU' == output.getType().upper():
             self.actionType.append('MODEL-FMU')
           else:
             self.actionType.append('MODEL-FILES')
         # ... data object
-        elif isinstance(outputs[i], DataObject.DataObject):
+        elif isinstance(output, DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
         # ... anything else
         else:
@@ -129,10 +129,10 @@ class IOStep(Step):
       # from File to ...
       elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
-        if isinstance(outputs[i], (Models.ROM, Models.ExternalModel)):
+        if isinstance(output, (Models.ROM, Models.ExternalModel)):
           self.actionType.append('FILES-MODEL')
         # ... dataobject
-        elif isinstance(outputs[i],DataObject.DataObject):
+        elif isinstance(output,DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         # ... anything else
         else:
@@ -147,12 +147,12 @@ class IOStep(Step):
     if self.fromDirectory and len(self.actionType) == 0:
       self.raiseAnError(IOError, f'In Step named {self.name}. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
     #Initialize all the Database outputs.
-    for i in range(len(outputs)):
+    for i, output in enumerate(outputs):
       if isinstance(inDictionary['Output'][i], Database):
-        if outputs[i].name not in databases:
-          databases.add(outputs[i].name)
-          outputs[i].initialize(self.name)
-          self.raiseADebug(f'for the role Output the item of class {outputs[i].type} and name {outputs[i].name} has been initialized')
+        if output.name not in databases:
+          databases.add(output.name)
+          output.initialize(self.name)
+          self.raiseADebug(f'for the role Output the item of class {output.type} and name {output.name} has been initialized')
 
     # if have a fromDirectory and are a dataObjects-*, need to load data
     if self.fromDirectory:
@@ -177,40 +177,40 @@ class IOStep(Step):
       @ Out, None
     """
     outputs = self.__getOutputs(inDictionary)
-    for i in range(len(outputs)):
+    for i, output in enumerate(outputs):
       if self.actionType[i] == 'Database-dataObjects':
-        # inDictionary['Input'][i] is Database, outputs[i] is a DataObjects
-        inDictionary['Input'][i].loadIntoData(outputs[i])
+        # inDictionary['Input'][i] is Database, output is a DataObjects
+        inDictionary['Input'][i].loadIntoData(output)
       elif self.actionType[i] == 'dataObjects-Database':
-        # inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
-        outputs[i].saveDataToFile(inDictionary['Input'][i])
+        # inDictionary['Input'][i] is a dataObjects, output is Database
+        output.saveDataToFile(inDictionary['Input'][i])
 
       elif self.actionType[i] == 'ROM-dataObjects':
-        # inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
+        # inDictionary['Input'][i] is a ROM, output is dataObject
         # print information from the ROM to the data set or associated XML.
         romModel = inDictionary['Input'][i]
         # get non-pointwise data (to place in XML metadata of data object)
         # TODO how can user ask for particular information?
         xml = romModel.writeXML(what='all')
-        self.raiseADebug(f'Adding meta "{xml.getRoot().tag}" to output "{outputs[i].name}"')
-        outputs[i].addMeta(romModel.name, node = xml)
+        self.raiseADebug(f'Adding meta "{xml.getRoot().tag}" to output "{output.name}"')
+        output.addMeta(romModel.name, node = xml)
         # get pointwise data (to place in main section of data object)
-        romModel.writePointwiseData(outputs[i])
+        romModel.writePointwiseData(output)
 
       elif self.actionType[i] == 'MODEL-FILES':
-        # inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        # inDictionary['Input'][i] is a ROM, output is Files
         # pickle the ROM
         # check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{inDictionary["Input"][i].name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
-        fileobj = outputs[i]
+        fileobj = output
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
 
       elif self.actionType[i] == 'MODEL-PYOMO':
-        outfile = open(outputs[i].getAbsFile(),"w")
+        outfile = open(output.getAbsFile(),"w")
         outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
         outfile.close()
 
@@ -218,14 +218,14 @@ class IOStep(Step):
         #check the ROM is trained first (if ExternalModel no check it is performed)
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{inDictionary["Input"][i].name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
-        self.raiseAMessage(f'Exporting Model "{inDictionary["Input"][i].name}" as FMU named "{outputs[i].name}"')
+        self.raiseAMessage(f'Exporting Model "{inDictionary["Input"][i].name}" as FMU named "{output.name}"')
         from ..utils.fmuExporter import FMUexporter
         fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
-        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
-        fmuexec.buildFMU(outputs[i].getAbsFile())
+        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': output.getPath(), 'frameworkDir': fdir, 'keepModule': True})
+        fmuexec.buildFMU(output.getAbsFile())
 
       elif self.actionType[i] == 'FILES-MODEL':
-        # inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel
+        # inDictionary['Input'][i] is a Files, output is ROM or ExternalModel
         # unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
@@ -246,14 +246,14 @@ class IOStep(Step):
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{unpickledObj.name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
         # copy model (same for any internal model (Dummy model derived classes)
-        outputs[i]._copyModel(unpickledObj)
+        output._copyModel(unpickledObj)
 
       elif self.actionType[i] == 'FILES-dataObjects':
-        # inDictionary['Input'][i] is a Files, outputs[i] is PointSet
+        # inDictionary['Input'][i] is a Files, output is PointSet
         # load a CSV from file
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
+        output.load(inDictionary['Input'][i].getPath(),'csv',**options)
 
       else:
         # unrecognized, and somehow not caught by the step reader.

@@ -813,11 +813,11 @@ class Simulation(MessageUser):
     # add the global objects
     stepInputDict['jobHandler'] = self.jobHandler
     # generate the needed assembler to send to the step
-    for key in stepInputDict:
-      if isinstance(stepInputDict[key], list):
-        stepindict = stepInputDict[key]
+    for stepIn in stepInputDict.values():
+      if isinstance(stepIn, list):
+        stepindict = stepIn
       else:
-        stepindict = [stepInputDict[key]]
+        stepindict = [stepIn]
       # check assembler. NB. If the assembler refers to an internal object the relative dictionary
       # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
       for stp in stepindict:

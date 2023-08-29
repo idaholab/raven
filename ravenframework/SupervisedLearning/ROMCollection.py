@@ -981,7 +981,7 @@ class Clusters(Segments):
     labels = self._clusterInfo['labels']
     for i, repRom in enumerate(self._roms):
       # find associated node
-      modify = xmlUtils.findPath(main, 'SegmentROM[@segment={}]'.format(i))
+      modify = xmlUtils.findPath(main, f'SegmentROM[@segment={i}]')
       # make changes to reflect being a cluster
       modify.tag = 'ClusterROM'
       modify.attrib['cluster'] = modify.attrib.pop('segment')
