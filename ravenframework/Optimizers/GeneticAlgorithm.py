@@ -142,7 +142,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                       \item tournamentSelection.
                                                                       \item rankSelection.
                                                                     \end{itemize}
-                                                 \item Reproduction:
+                                                  \item Reproduction:
                                                                   \begin{itemize}
                                                                     \item crossover:
                                                                       \begin{itemize}
@@ -158,11 +158,16 @@ class GeneticAlgorithm(RavenSampled):
                                                                         \item bitFlipMutator.
                                                                       \end{itemize}
                                                                     \end{itemize}
-                                                \item survivorSelectors:
+                                                  \item survivorSelectors:
                                                                       \begin{itemize}
                                                                         \item ageBased.
                                                                         \item fitnessBased.
                                                                       \end{itemize}
+                                                  \item constraintHandling:
+                                                                    \begin{itemize}
+                                                                      \item hard.
+                                                                      \item soft.
+                                                                    \end{itemize}          
                                                 \end{itemize}""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
@@ -170,6 +175,14 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""The number of chromosomes in each population.""")
     GAparams.addSub(populationSize)
+    
+    # Constraint Handling
+    constraintHandling = InputData.parameterInputFactory('constraintHandling', strictMode=True,
+        contentType=InputTypes.StringType,
+        printPriority=108,
+        descr=r"""a node indicating whether GA will handle constraints hardly or softly.""")
+    GAparams.addSub(constraintHandling)
+        
     # Parent Selection
     parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
         contentType=InputTypes.StringType,
@@ -358,11 +371,9 @@ class GeneticAlgorithm(RavenSampled):
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-
     # Check if the fitness requested is among the constrained optimization fitnesses
-    # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
     # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
-    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','rank_crowding']:
+    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','hardConstraint']:
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, feasibleFirst and rank_crowding as a fitness, whereas provided fitness is {self._fitnessType}')
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
@@ -463,16 +474,15 @@ class GeneticAlgorithm(RavenSampled):
         for y in (self._constraintFunctions + self._impConstraintFunctions):
           params += y.parameterNames()
         for p in list(set(params) -set([self._objectiveVar[0]]) -set(list(self.toBeSampled.keys()))):
-        # for p in list(set(params) -set([self._objectiveVar]) -set(list(self.toBeSampled.keys()))):
           constraintData[p] = list(np.atleast_1d(rlz[p].data))
       # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
       # and all x's (individuals) in the population
       g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
       g = xr.DataArray(g0,
-                      dims=['chromosome','Constraint'],
-                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
-                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+                       dims=['chromosome','Constraint'],
+                       coords={'chromosome':np.arange(np.shape(offSprings)[0]),
+                               'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
       # FIXME The constraint handling is following the structure of the RavenSampled.py,
       #        there are many utility functions that can be simplified and/or merged together
       #        _check, _handle, and _apply, for explicit and implicit constraints.
@@ -519,9 +529,9 @@ class GeneticAlgorithm(RavenSampled):
       g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
       g = xr.DataArray(g0,
-                      dims=['chromosome','Constraint'],
-                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
-                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+                       dims=['chromosome','Constraint'],
+                       coords={'chromosome':np.arange(np.shape(offSprings)[0]),
+                               'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
 
       for index,individual in enumerate(offSprings):
         newOpt = individual
@@ -538,14 +548,13 @@ class GeneticAlgorithm(RavenSampled):
           else:
             g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
-      fitness     = np.zeros((len(offSprings), 1))
-      for i in range(len(fitness)):
-        fitness[i] = countConstViolation(g.data[i])
-      fitness = [item for sublist in fitness.tolist() for item in sublist]
-
-      fitness = xr.DataArray(fitness,
-                             dims=['NumOfConstraintViolated'],
-                             coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
+      offSpringFitness = self._fitnessInstance(rlz,
+                                               objVar=self._objectiveVar,
+                                               a=self._objCoeff,
+                                               b=self._penaltyCoeff,
+                                               penalty=None,
+                                               constraintFunction=g,
+                                               type=self._minMax)
 
       # 0.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -579,7 +588,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                                popObjectiveVal=self.objectiveVal,
                                                                                offObjectiveVal=objectiveVal,
                                                                                popConst = self.constraints,
-                                                                               offConst = fitness,
+                                                                               offConst = offSpringFitness,
                                                                                popConstV = self.constraintsV,
                                                                                offConstV = g
                                                                               )
@@ -619,11 +628,27 @@ class GeneticAlgorithm(RavenSampled):
 
         else:
           self.population = offSprings
-          self.constraints = fitness
+          self.constraints = offSpringFitness
           self.constraintsV = g
-          self.rank, self.crowdingDistance = self._fitnessInstance(rlz,
-                                                                   objVals = self._objectiveVar
-                                                                   )
+
+          offObjVal = []
+          for i in range(len(self._objectiveVar)):
+            offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+
+          offspringObjsVals = [list(ele) for ele in list(zip(*offObjVal))]
+
+          offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringObjsVals))
+          self.rank     = xr.DataArray(offSpringRank,
+                                      dims=['rank'],
+                                      coords={'rank': np.arange(np.shape(offSpringRank)[0])})
+
+          offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank, 
+                                                              popSize=len(offSpringRank), 
+                                                              objectives=np.array(offspringObjsVals))
+          self.crowdingDistance = xr.DataArray(offSpringCD,
+                                    dims=['CrowdingDistance'],
+                                    coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
+
           self.objectiveVal = []
           for i in range(len(self._objectiveVar)):
             self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
@@ -775,7 +800,7 @@ class GeneticAlgorithm(RavenSampled):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict[self._objectiveVar[0]] = np.atleast_1d(rlz[self._objectiveVar[0]].data)[i]
-        rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+        rlzDict['fitness'] = np.atleast_1d(fitness.to_array()[:,i])
         for ind, consName in enumerate(g['Constraint'].values):
           rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
@@ -867,12 +892,14 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ Out, point, dict, point used in this realization
     """
-
     varList = list(self.toBeSampled.keys()) + self._solutionExport.getVars('input') + self._solutionExport.getVars('output')
     varList = set(varList)
     selVars = [var for var in varList if var in rlz.data_vars]
     population = datasetToDataArray(rlz, selVars)
-    optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
+    if self._fitnessType == 'hardConstraint':
+      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1],-x[2]))])
+    else:
+      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])  
     point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:

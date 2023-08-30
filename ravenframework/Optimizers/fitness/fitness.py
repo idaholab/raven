@@ -20,6 +20,7 @@
 """
 # Internal Modules----------------------------------------------------------------------------------
 from ...utils import frontUtils
+from ..parentSelectors.parentSelectors import countConstViolation
 
 # External Imports
 import numpy as np
@@ -75,8 +76,8 @@ def invLinear(rlz,**kwargs):
 
   fitness = -a * (rlz[objVar].data).reshape(-1,1) - b * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
   fitness = xr.DataArray(np.squeeze(fitness),
-                          dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(data))})
+                         dims=['chromosome'],
+                         coords={'chromosome': np.arange(len(data))})
   return fitness
 
 def rank_crowding(rlz,**kwargs):
@@ -109,6 +110,34 @@ def rank_crowding(rlz,**kwargs):
 
   return offSpringRank, offSpringCD
 
+
+def hardConstraint(rlz,**kwargs):
+  r"""
+    Multiobjective optimization using NSGA-II requires the rank and crowding distance values to the objective function
+
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
+    @ In, kwargs, dict, dictionary of parameters for this rank_crowding method:
+          objVar, string, the names of the objective variables
+    @ Out, offSpringRank, xr.DataArray, the rank of the given objective corresponding to a specific chromosome.
+           offSpringCD,   xr.DataArray, the crowding distance of the given objective corresponding to a specific chromosome.
+  """
+  objVar = kwargs['objVar']
+  g = kwargs['constraintFunction']
+  data = np.atleast_1d(rlz[objVar].data)
+  fitness     = np.zeros((len(data), 1))
+  for i in range(len(fitness)):
+    fitness[i] = countConstViolation(g.data[i])
+  fitness = [-item for sublist in fitness.tolist() for item in sublist]
+
+  fitness = xr.DataArray(fitness,
+                         dims=['NumOfConstraintViolated'],
+                         coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
+
+  return fitness
+
+
 def feasibleFirst(rlz,**kwargs):
   r"""
     Efficient Parameter-less Feasible First Penalty Fitness method
@@ -117,11 +146,13 @@ def feasibleFirst(rlz,**kwargs):
     1.  As the objective function decreases (comes closer to the min value), the fitness value increases
     2.  As the objective function increases (away from the min value), the fitness value decreases
     3.  As the solution violates the constraints the fitness should decrease and hence the solution is less favored by the algorithm.
-    4.  For the violating solutions, the fitness is starts from the worst solution in the population
+    4.  For the violating solutions, the fitness starts from the worst solution in the population
         (i.e., max objective in minimization problems and min objective in maximization problems)
 
     For maximization problems the objective value is multiplied by -1 and hence the previous trends are inverted.
     A great quality of this fitness is that if the objective value is equal for multiple solutions it selects the furthest from constraint violation.
+    
+    Reference: Deb, Kalyanmoy. "An efficient constraint handling method for genetic algorithms." Computer methods in applied mechanics and engineering 186.2-4 (2000): 311-338.
 
     .. math::
 
@@ -139,23 +170,46 @@ def feasibleFirst(rlz,**kwargs):
           'constraintFunction', xr.Dataarray, containing all constraint functions (explicit and implicit) evaluations for the whole population
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
-  objVar = kwargs['objVar']
+  if isinstance(kwargs['objVar'], str) == True:
+    objVar = [kwargs['objVar']]
+  else:
+    objVar = kwargs['objVar']
   g = kwargs['constraintFunction']
-  data = np.atleast_1d(rlz[objVar].data)
-  worstObj = max(data)
-  fitness = []
-  for ind in range(data.size):
-    if np.all(g.data[ind, :]>=0):
-      fit=(data[ind])
+  for i in range(len(objVar)):
+    data = np.atleast_1d(rlz[objVar][objVar[i]].data)
+    worstObj = max(data)
+    fitness = []
+    for ind in range(data.size):
+      if np.all(g.data[ind, :]>=0):
+        fit=(data[ind])
+      else:
+        fit = worstObj
+        for constInd,_ in enumerate(g['Constraint'].data):
+          fit+=(max(0,-1 * g.data[ind, constInd]))
+      fitness.append(-1 * fit)
+    fitness = xr.DataArray(np.array(fitness),
+                           dims=['chromosome'],
+                           coords={'chromosome': np.arange(len(data))})
+    if i == 0:
+      fitnessSet = fitness.to_dataset(name = objVar[i])
     else:
-      fit = worstObj
-      for constInd,_ in enumerate(g['Constraint'].data):
-        fit+=(max(0,-1 * g.data[ind, constInd]))
-    fitness.append(-1 * fit)
-  fitness = xr.DataArray(np.array(fitness),
-                          dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(data))})
-  return fitness
+      fitnessSet[objVar[i]] = fitness
+  ### This code block is for sinlge objective ###
+  # data = np.atleast_1d(rlz[objVar].data)
+  # worstObj = max(data)
+  # fitness = []
+  # for ind in range(data.size):
+  #   if np.all(g.data[ind, :]>=0):
+  #     fit=(data[ind])
+  #   else:
+  #     fit = worstObj
+  #     for constInd,_ in enumerate(g['Constraint'].data):
+  #       fit+=(max(0,-1 * g.data[ind, constInd]))
+  #   fitness.append(-1 * fit)
+  # fitness = xr.DataArray(np.array(fitness),
+  #                        dims=['chromosome'],
+  #                        coords={'chromosome': np.arange(len(data))})
+  return fitnessSet
 
 def logistic(rlz,**kwargs):
   """
@@ -201,6 +255,7 @@ __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
 __fitness['feasibleFirst'] = feasibleFirst
 __fitness['rank_crowding'] = rank_crowding
+__fitness['hardConstraint'] = hardConstraint
 
 
 def returnInstance(cls, name):
@@ -211,5 +266,5 @@ def returnInstance(cls, name):
     @ Out, __crossovers[name], instance of class
   """
   if name not in __fitness:
-    cls.raiseAnError (IOError, "{} FITNESS FUNCTION NOT IMPLEMENTED!!!!!".format(name))
+    cls.raiseAnError (IOError, "{} is not a supported fitness function. ".format(name))
   return __fitness[name]

@@ -21,10 +21,15 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
-
+# External Modules----------------------------------------------------------------------------------
 import numpy as np
 import xarray as xr
 from ravenframework.utils import frontUtils
+# External Modules End------------------------------------------------------------------------------
+
+# Internal Modules----------------------------------------------------------------------------------
+from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
+# Internal Modules End------------------------------------------------------------------------------
 
 # @profile
 def ageBased(newRlz,**kwargs):
@@ -97,11 +102,12 @@ def fitnessBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
+  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
+  offSpringsFitness = np.array([item for sublist in offSpringsFitness for item in sublist])
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
-  popFitness = np.atleast_1d(kwargs['fitness'].data)
-
+  popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
+  popFitness = np.array([item for sublist in popFitness for item in sublist])
   newPopulation = population
   newFitness = popFitness
   newAge = list(map(lambda x:x+1, popAge))
@@ -123,6 +129,7 @@ def fitnessBased(newRlz,**kwargs):
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
+  newFitness = newFitness.to_dataset(name = list(kwargs['fitness'].keys())[0])
 
   #return newPopulationArray,newFitness,newAge
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']

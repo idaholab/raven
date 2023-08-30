@@ -21,10 +21,15 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
-
+# External Modules----------------------------------------------------------------------------------
 import numpy as np
 import xarray as xr
 from ...utils import randomUtils
+# External Modules----------------------------------------------------------------------------------
+
+# Internal Modules----------------------------------------------------------------------------------
+from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
+# Internal Modules End------------------------------------------------------------------------------
 
 # For mandd: to be updated with RAVEN official tools
 from itertools import combinations
@@ -42,7 +47,7 @@ def rouletteWheel(population,**kwargs):
   """
   # Arguments
   pop = population
-  fitness = kwargs['fitness']
+  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])  
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -62,11 +67,11 @@ def rouletteWheel(population,**kwargs):
     roulettePointer = randomUtils.random(dim=1, samples=1)
     # initialize Probability
     counter = 0
-    if np.all(fitness.data>=0) or np.all(fitness.data<=0):
-      selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
+    if np.all(fitness>=0) or np.all(fitness<=0):
+      selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
     else:
       # shift the fitness to be all positive
-      shiftedFitness = fitness.data + abs(min(fitness.data))
+      shiftedFitness = fitness + abs(min(fitness))
       selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
 
@@ -109,11 +114,11 @@ def tournamentSelection(population,**kwargs):
     matrixOperationRaw[:,3] = np.transpose(constraintInfo.data)
     matrixOperation = np.zeros((popSize,len(matrixOperationRaw[0])))
   else:
-    fitness = kwargs['fitness']
+    fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])  
     multiObjectiveRanking = False
     matrixOperationRaw = np.zeros((popSize,2))
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
-    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,1] = np.transpose(fitness)
     matrixOperation = np.zeros((popSize,2))
 
   indexes = list(np.arange(popSize))
