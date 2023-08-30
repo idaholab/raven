@@ -246,6 +246,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                                 'ma': np.pad(ma, (0, self._maxPQ - len(ma) ) ),     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
+                                'lags': [P,d,Q],
                                 'model': model}
       if not settings['reduce_memory']:
         params[target]['arma']['results'] = res
@@ -413,6 +414,23 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       for q, ma in enumerate(info['arma']['ma']):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
+      if 'lags' in info["arma"].keys():
+        base.append(xmlUtils.newNode('order', text=','.join([str(int(l)) for l in info["arma"]["lags"]])))
+
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    nonFeatures = {}
+    for target, info in params.items():
+      nonFeatures[target] = {}
+      if 'lags' in info["arma"].keys():
+        nonFeatures[target]['p'] = np.array([info["arma"]["lags"][0]])
+        nonFeatures[target]['d'] = np.array([info["arma"]["lags"][1]])
+        nonFeatures[target]['q'] = np.array([info["arma"]["lags"][2]])
+    return nonFeatures
 
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:

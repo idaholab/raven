@@ -105,6 +105,21 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     pass # TODO
 
+  def getSegmentPointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, None
+      @ Out, segmentData, dict
+    """
+    segmentNonFeatures = self.getTSApointwiseData()
+    formattedNonFeatures = {}
+    for algo,algoInfo in segmentNonFeatures.items():
+      for target,targetInfo in algoInfo.items():
+        for k,val in targetInfo.items():
+          formattedNonFeatures[f'{target}|{algo}|{k}'] = val
+    return formattedNonFeatures
+
   def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.

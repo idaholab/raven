@@ -658,6 +658,17 @@ class SupervisedLearning(BaseInterface):
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
+  def getSegmentPointwiseData(self, writeTo):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, Element to write to
+      @ Out, segmentData, dict
+    """
+    # by default, nothing to write!
+    self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
+    return {}
+
   def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.

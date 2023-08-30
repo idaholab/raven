@@ -252,3 +252,30 @@ class TSAUser:
       algoNode = xmlUtils.newNode(algo.name)
       algo.writeXML(algoNode, self._tsaTrainedParams[algo])
       root.append(algoNode)
+
+  def getTSApointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, None,
+      @ Out, segmentData, dict
+    """
+    #
+    segmentNonFeatures = {}
+    for algo in self._tsaAlgorithms:
+      if algo not in self._tsaTrainedParams:
+        continue
+      segmentNonFeatures[algo.name] = algo.getNonClusterFeatures(self._tsaTrainedParams[algo])
+    return segmentNonFeatures
+
+  def writeTSAPointwiseData(self, writeTo):
+    """
+      Writes pointwise data about segmentation to a realization.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, rlz, dict, realization data structure where each entry is an np.ndarray
+    """
+    for algo in self._tsaAlgorithms:
+      if algo not in self._tsaTrainedParams:
+        continue
+      algo_rlz = {}
+

@@ -142,6 +142,14 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, None
     """
 
+  @abc.abstractmethod
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+
 
 class TimeSeriesGenerator(TimeSeriesAnalyzer):
   """
