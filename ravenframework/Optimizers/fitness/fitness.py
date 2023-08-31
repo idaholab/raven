@@ -113,7 +113,7 @@ def rank_crowding(rlz,**kwargs):
 
 def hardConstraint(rlz,**kwargs):
   r"""
-    Multiobjective optimization using NSGA-II requires the rank and crowding distance values to the objective function
+    Fitness method counting the number of constraints violated
 
     @ In, rlz, xr.Dataset, containing the evaluation of a certain
               set of individuals (can be the initial population for the very first iteration,
@@ -123,19 +123,26 @@ def hardConstraint(rlz,**kwargs):
     @ Out, offSpringRank, xr.DataArray, the rank of the given objective corresponding to a specific chromosome.
            offSpringCD,   xr.DataArray, the crowding distance of the given objective corresponding to a specific chromosome.
   """
-  objVar = kwargs['objVar']
+  if isinstance(kwargs['objVar'], str) == True:
+    objVar = [kwargs['objVar']]
+  else:
+    objVar = kwargs['objVar']
   g = kwargs['constraintFunction']
-  data = np.atleast_1d(rlz[objVar].data)
-  fitness     = np.zeros((len(data), 1))
-  for i in range(len(fitness)):
-    fitness[i] = countConstViolation(g.data[i])
-  fitness = [-item for sublist in fitness.tolist() for item in sublist]
 
-  fitness = xr.DataArray(fitness,
-                         dims=['NumOfConstraintViolated'],
-                         coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
+  for j in range(len(objVar)):
+    fitness     = np.zeros((len(g.data), 1))
+    for i in range(len(fitness)):
+      fitness[i] = countConstViolation(g.data[i])
+    fitness = [-item for sublist in fitness.tolist() for item in sublist]
+    fitness = xr.DataArray(fitness,
+                          dims=['NumOfConstraintViolated'],
+                          coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
+    if j == 0:
+      fitnessSet = fitness.to_dataset(name = objVar[j])
+    else:
+      fitnessSet[objVar[j]] = fitness
 
-  return fitness
+  return fitnessSet
 
 
 def feasibleFirst(rlz,**kwargs):
@@ -194,21 +201,6 @@ def feasibleFirst(rlz,**kwargs):
       fitnessSet = fitness.to_dataset(name = objVar[i])
     else:
       fitnessSet[objVar[i]] = fitness
-  ### This code block is for sinlge objective ###
-  # data = np.atleast_1d(rlz[objVar].data)
-  # worstObj = max(data)
-  # fitness = []
-  # for ind in range(data.size):
-  #   if np.all(g.data[ind, :]>=0):
-  #     fit=(data[ind])
-  #   else:
-  #     fit = worstObj
-  #     for constInd,_ in enumerate(g['Constraint'].data):
-  #       fit+=(max(0,-1 * g.data[ind, constInd]))
-  #   fitness.append(-1 * fit)
-  # fitness = xr.DataArray(np.array(fitness),
-  #                        dims=['chromosome'],
-  #                        coords={'chromosome': np.arange(len(data))})
   return fitnessSet
 
 def logistic(rlz,**kwargs):
