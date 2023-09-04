@@ -61,7 +61,7 @@
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>20</populationSize>
         <parentSelection>tournamentSelection</parentSelection> <!-- rouletteWheel, tournamentSelection -->
         <reproduction>
           <crossover type="onePointCrossover">
@@ -101,7 +101,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
+        <limit>20</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x1">

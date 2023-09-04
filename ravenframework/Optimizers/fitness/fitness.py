@@ -80,37 +80,6 @@ def invLinear(rlz,**kwargs):
                          coords={'chromosome': np.arange(len(data))})
   return fitness
 
-def rank_crowding(rlz,**kwargs):
-  r"""
-    Multiobjective optimization using NSGA-II requires the rank and crowding distance values to the objective function
-
-    @ In, rlz, xr.Dataset, containing the evaluation of a certain
-              set of individuals (can be the initial population for the very first iteration,
-              or a population of offsprings)
-    @ In, kwargs, dict, dictionary of parameters for this rank_crowding method:
-          objVar, string, the names of the objective variables
-    @ Out, offSpringRank, xr.DataArray, the rank of the given objective corresponding to a specific chromosome.
-           offSpringCD,   xr.DataArray, the crowding distance of the given objective corresponding to a specific chromosome.
-  """
-  objectiveVal = []
-  for i in range(len(kwargs['objVals'])):
-    objectiveVal.append(list(np.atleast_1d(rlz[kwargs['objVals'][i]].data)))
-
-  offspringObjsVals = [list(ele) for ele in list(zip(*objectiveVal))]
-
-  offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringObjsVals))
-  offSpringRank = xr.DataArray(offSpringRank,
-                              dims=['rank'],
-                              coords={'rank': np.arange(np.shape(offSpringRank)[0])})
-
-  offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank, popSize=len(offSpringRank), objectives=np.array(offspringObjsVals))
-  offSpringCD = xr.DataArray(offSpringCD,
-                            dims=['CrowdingDistance'],
-                            coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
-
-  return offSpringRank, offSpringCD
-
-
 def hardConstraint(rlz,**kwargs):
   r"""
     Fitness method counting the number of constraints violated
@@ -135,8 +104,8 @@ def hardConstraint(rlz,**kwargs):
       fitness[i] = countConstViolation(g.data[i])
     fitness = [-item for sublist in fitness.tolist() for item in sublist]
     fitness = xr.DataArray(fitness,
-                          dims=['NumOfConstraintViolated'],
-                          coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
+                           dims=['NumOfConstraintViolated'],
+                           coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
     if j == 0:
       fitnessSet = fitness.to_dataset(name = objVar[j])
     else:
@@ -182,6 +151,7 @@ def feasibleFirst(rlz,**kwargs):
   else:
     objVar = kwargs['objVar']
   g = kwargs['constraintFunction']
+  penalty = kwargs['b']
   for i in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
     worstObj = max(data)
@@ -192,8 +162,8 @@ def feasibleFirst(rlz,**kwargs):
       else:
         fit = worstObj
         for constInd,_ in enumerate(g['Constraint'].data):
-          fit+=(max(0,-1 * g.data[ind, constInd]))
-      fitness.append(-1 * fit)
+          fit+= penalty*(max(0,-1*g.data[ind, constInd]))
+      fitness.append(fit)
     fitness = xr.DataArray(np.array(fitness),
                            dims=['chromosome'],
                            coords={'chromosome': np.arange(len(data))})
@@ -246,7 +216,6 @@ __fitness = {}
 __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
 __fitness['feasibleFirst'] = feasibleFirst
-__fitness['rank_crowding'] = rank_crowding
 __fitness['hardConstraint'] = hardConstraint
 
 

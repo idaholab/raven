@@ -731,7 +731,7 @@ class RavenSampled(Optimizer):
     # constants and functions
     toExport.update(self.constants)
     toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
-    # additional from from inheritors
+    # additional from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
     # check for anything else that solution export wants that rlz might provide
     for var in self._solutionExport.getVars():
