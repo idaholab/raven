@@ -24,5 +24,6 @@ from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
+from .BayesianOptimizer import BayesianOptimizer
 
 from .Factory import factory

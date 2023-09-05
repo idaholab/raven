@@ -17,7 +17,7 @@
 """
 import abc
 
-from ..utils import utils, InputData, InputTypes
+from ..utils import utils, InputData, InputTypes, mathUtils
 
 # utility methods
 class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):

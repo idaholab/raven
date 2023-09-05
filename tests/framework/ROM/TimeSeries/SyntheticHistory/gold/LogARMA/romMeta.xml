@@ -8,24 +8,28 @@
     <LogTransformer>
       <signal1 />
     </LogTransformer>
+    <Gaussianize>
+      <signal0 />
+      <signal1 />
+    </Gaussianize>
     <ARMA>
       <signal0>
-        <constant>-1.995714627e-03</constant>
-        <AR_0>-1.488327149e-01</AR_0>
-        <AR_1>4.614077958e-01</AR_1>
-        <MA_0>6.117498370e-01</MA_0>
-        <MA_1>-1.329982303e-01</MA_1>
-        <MA_2>7.346955330e-02</MA_2>
-        <variance>1.610500427e+00</variance>
+        <constant>-2.017786565e-02</constant>
+        <AR_0>-2.254403826e-01</AR_0>
+        <AR_1>5.928885641e-01</AR_1>
+        <MA_0>8.315085708e-01</MA_0>
+        <MA_1>-3.393858013e-02</MA_1>
+        <MA_2>8.594632095e-02</MA_2>
+        <variance>8.219099887e-01</variance>
       </signal0>
       <signal1>
-        <constant>1.697777790e-02</constant>
-        <AR_0>1.306999095e+00</AR_0>
-        <AR_1>-5.089435424e-01</AR_1>
-        <MA_0>-9.713139239e-01</MA_0>
-        <MA_1>3.577117701e-01</MA_1>
-        <MA_2>1.488308967e-01</MA_2>
-        <variance>1.436540074e+00</variance>
+        <constant>3.324618133e-02</constant>
+        <AR_0>1.284845806e+00</AR_0>
+        <AR_1>-4.694213600e-01</AR_1>
+        <MA_0>-8.193080567e-01</MA_0>
+        <MA_1>2.676701089e-01</MA_1>
+        <MA_2>2.033831083e-01</MA_2>
+        <variance>7.028920133e-01</variance>
       </signal1>
     </ARMA>
   </synth>

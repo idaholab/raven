@@ -160,6 +160,10 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
         badAlgos.append(algoName)
         continue
       algo = factory.returnClass(algoName, self)
+      if not algo.canCharacterize():
+        errMsg.append(f'Cannot cluster on TSA algorithm "{algoName}"!  It does not support clustering.')
+        badAlgos.append(algoName)
+        continue
       if feature not in algo._features:
         badFeatures[algoName].append(feature)
     if badFeatures:
@@ -181,7 +185,10 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     features = {}
     # check: is it possible tsaAlgorithms isn't populated by now?
     for algo in self._tsaAlgorithms:
-      features[algo.name] = algo._features
+      if algo.canCharacterize():
+        features[algo.name] = algo._features
+      else:
+        features[algo.name] = []
     return features
 
   def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None):
@@ -196,7 +203,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     features = {}
     for algo in self._tsaAlgorithms:
-      if algo.name not in request:
+      if algo.name not in request or not algo.canCharacterize():
         continue
       algoReq = request[algo.name] if request is not None else None
       algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self._tsaTrainedParams[algo])

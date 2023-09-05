@@ -201,15 +201,25 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, featureVals, np.array, list of values at which to evaluate the ROM
       @ Out, returnDict, dict, dict of all the target results
     """
+    std = None
     if self.uniqueVals is not None:
       outcomes =  self.uniqueVals
     else:
-      outcomes = self.model.predict(featureVals)
+      # Model may not have access to standard deviation of the prediction
+      try:
+        outcomes, std = self.model.predict(featureVals, return_std=True)
+        std = np.atleast_1d(std)
+      except TypeError:
+        outcomes = self.model.predict(featureVals)
     outcomes = np.atleast_1d(outcomes)
     if len(outcomes.shape) == 1:
       returnDict = {key:value for (key,value) in zip(self.target,outcomes)}
     else:
       returnDict = {key: outcomes[:, i] for i, key in enumerate(self.target)}
+    # Handling standard deviation return if there is one
+    if std is not None:
+      # FIXME assumes there is a single training target
+      returnDict[self.target[0]+'_std'] = std
     return returnDict
 
   def __resetLocal__(self):

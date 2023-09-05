@@ -2043,6 +2043,28 @@ Example:
       etc) used in the input HistorySet.
   \default{time}
 
+    \item \xmlNode{fourier}:
+      TimeSeriesAnalysis algorithm for determining the strength and phase of
+      specified Fourier periods within training signals. The Fourier signals take
+      the form $C\sin(\frac{2\pi}{k}+\phi)$, where $C$ is the calculated strength
+      or amplitude, $k$ is the user-specified period(s) to search for, and $\phi$
+      is the calculated phase shift. The resulting characterization and synthetic
+      history generation is deterministic given a single training signal.
+      The \xmlNode{fourier} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{fourier} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{periods}: \xmlDesc{comma-separated floats}, 
+          Specifies the periods (inverse of frequencies) that should be searched
+          for within the training signal.
+      \end{itemize}
+
     \item \xmlNode{arma}:
       characterizes the signal using Auto-Regressive and Moving Average         coefficients to
       stochastically fit the training signal.         The ARMA representation has the following
@@ -2066,6 +2088,16 @@ Example:
             MiB, but increased training time by 0.4 seconds. No change in results has been
             observed switching between modes. Note that the ARMA must be
             retrained to change this property; it cannot be applied to serialized ARMAs. \default{False}
+          \item \xmlAttr{gaussianize}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            activates a transformation of the signal to a normal distribution before
+            training. This is done by fitting a CDF to the data and then transforming the
+            data to a normal distribution using the CDF. The CDF is saved and used during
+            sampling to back-transform the data to the original distribution. This is
+            recommended for non-normal data, but is not required. Note that the ARMA must be
+            retrained to change this property; it cannot be applied to serialized ARMAs.
+            Note: New models wishing to apply this transformation should use a
+            \xmlNode{gaussianize} node preceding the \xmlNode{arma} node instead of this
+            option. \default{False}
       \end{itemize}
 
       The \xmlNode{arma} node recognizes the following subnodes:
@@ -2077,55 +2109,6 @@ Example:
         \item \xmlNode{NoiseLag}: \xmlDesc{integer}, 
           the number of terms in the Moving Average term to retain in the
           regression; typically represented as $Q$ in literature.
-      \end{itemize}
-
-    \item \xmlNode{fourier}:
-      TimeSeriesAnalysis algorithm for determining the strength and phase of
-      specified Fourier periods within training signals. The Fourier signals take
-      the form $C\sin(\frac{2\pi}{k}+\phi)$, where $C$ is the calculated strength
-      or amplitude, $k$ is the user-specified period(s) to search for, and $\phi$
-      is the calculated phase shift. The resulting characterization and synthetic
-      history generation is deterministic given a single training signal.
-      The \xmlNode{fourier} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
-            indicates the variables for which this algorithm will be used for characterization.
-          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
-            sets a seed for the underlying random number generator, if present.
-      \end{itemize}
-
-      The \xmlNode{fourier} node recognizes the following subnodes:
-      \begin{itemize}
-        \item \xmlNode{periods}: \xmlDesc{comma-separated floats}, 
-          Specifies the periods (inverse of frequencies) that should be searched
-          for within the training signal.
-      \end{itemize}
-
-    \item \xmlNode{rwd}:
-      TimeSeriesAnalysis algorithm for sliding window snapshots to generate features
-      The \xmlNode{rwd} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
-            indicates the variables for which this algorithm will be used for characterization.
-          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
-            sets a seed for the underlying random number generator, if present.
-      \end{itemize}
-
-      The \xmlNode{rwd} node recognizes the following subnodes:
-      \begin{itemize}
-        \item \xmlNode{signatureWindowLength}: \xmlDesc{integer}, 
-          the size of signature window, which represents as a snapshot for a certain time step;
-          typically represented as $w$ in literature, or $w\_sig$ in the code.
-
-        \item \xmlNode{featureIndex}: \xmlDesc{integer}, 
-          Index used for feature selection, which requires pre-analysis for now, will be addresses
-          via other non human work required method
-
-        \item \xmlNode{sampleType}: \xmlDesc{integer}, 
-          Indicating the type of sampling.
-
-        \item \xmlNode{seed}: \xmlDesc{integer}, 
-          Indicating random seed.
       \end{itemize}
 
     \item \xmlNode{wavelet}:
@@ -2182,6 +2165,33 @@ Example:
           Specifies the degree polynomial to fit the data with.
       \end{itemize}
 
+    \item \xmlNode{rwd}:
+      TimeSeriesAnalysis algorithm for sliding window snapshots to generate features
+      The \xmlNode{rwd} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{rwd} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{signatureWindowLength}: \xmlDesc{integer}, 
+          the size of signature window, which represents as a snapshot for a certain time step;
+          typically represented as $w$ in literature, or $w\_sig$ in the code.
+
+        \item \xmlNode{featureIndex}: \xmlDesc{integer}, 
+          Index used for feature selection, which requires pre-analysis for now, will be addresses
+          via other non human work required method
+
+        \item \xmlNode{sampleType}: \xmlDesc{integer}, 
+          Indicating the type of sampling.
+
+        \item \xmlNode{seed}: \xmlDesc{integer}, 
+          Indicating random seed.
+      \end{itemize}
+
     \item \xmlNode{maxabsscaler}:
       scales the data to the interval $[-1, 1]$. This is done by dividing by     the largest
       absolute value of the data.
@@ -2219,6 +2229,19 @@ Example:
       centers and scales the data by subtracting the mean and dividing by     the standard
       deviation.
       The \xmlNode{standardscaler} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+    \item \xmlNode{preserveCDF}:
+      forces generated data provided to the inverse transformation function to
+      have the same CDF as the original data through quantile mapping. If this
+      transformer is used as part of a SyntheticHistory ROM, it should likely
+      be used as the first transformer in the chain.
+      The \xmlNode{preserveCDF} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
             indicates the variables for which this algorithm will be used for characterization.
@@ -2296,6 +2319,19 @@ Example:
             -- no description yet --
       \end{itemize}
 
+    \item \xmlNode{gaussianize}:
+      transforms the data into a normal distribution using quantile mapping.
+      The \xmlNode{gaussianize} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{nQuantiles}: \xmlDesc{integer, optional}, 
+            number of quantiles to use in the transformation. If \xmlAttr{nQuantiles}
+            is greater than the number of data, then the number of data is used instead. \default{1000}
+      \end{itemize}
+
     \item \xmlNode{quantiletransformer}:
       transforms the data to fit a given distribution by mapping the data to     a uniform
       distribution and then to the desired distribution.
@@ -2309,7 +2345,7 @@ Example:
             number of quantiles to use in the transformation. If \xmlAttr{nQuantiles}
             is greater than the number of data, then the number of data is used instead. \default{1000}
           \item \xmlAttr{outputDistribution}: \xmlDesc{[normal, uniform], optional}, 
-            distribution to transform to. Must be either 'normal' or 'uniform'. \default{normal}
+            distribution to transform to. \default{normal}
       \end{itemize}
   \end{itemize}
 
