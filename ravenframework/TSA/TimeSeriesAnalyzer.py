@@ -192,6 +192,13 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
       @ Out, synthetic, np.array(float), synthetic signal
     """
 
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    pass
 
 class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   """
@@ -265,6 +272,13 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
       params[target][identifier] = value
     return params
 
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    pass
 
 class TimeSeriesTransformer(TimeSeriesAnalyzer):
   """
@@ -306,3 +320,11 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
+
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    pass
