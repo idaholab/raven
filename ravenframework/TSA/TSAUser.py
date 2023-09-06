@@ -189,6 +189,7 @@ class TSAUser:
     # NOTE assumption: only one training signal
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
+
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for a, algo in enumerate(self._tsaAlgorithms):
       settings = self._tsaAlgoSettings[algo]
@@ -222,6 +223,7 @@ class TSAUser:
     # that ignores the pivotParameter on which to index the results variables
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
+
     for algo in self._tsaAlgorithms[::-1]:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -237,6 +239,7 @@ class TSAUser:
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
     rlz[self.pivotParameterID] = self.pivotParameterValues
+
     return rlz
 
   def writeTSAtoXML(self, xml):
