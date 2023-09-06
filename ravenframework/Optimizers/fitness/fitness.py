@@ -152,6 +152,9 @@ def feasibleFirst(rlz,**kwargs):
     objVar = kwargs['objVar']
   g = kwargs['constraintFunction']
   penalty = kwargs['b']
+  pen = [penalty[i:i+len(g['Constraint'].data)] for i in range(0, len(penalty), len(g['Constraint'].data))]
+  objPen = dict(map(lambda i,j : (i,j), objVar, pen))
+
   for i in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
     worstObj = max(data)
@@ -162,7 +165,7 @@ def feasibleFirst(rlz,**kwargs):
       else:
         fit = worstObj
         for constInd,_ in enumerate(g['Constraint'].data):
-          fit+= penalty*(max(0,-1*g.data[ind, constInd]))
+          fit+= objPen[objVar[i]][constInd]*(max(0,-1*g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
       fitness.append(fit)
     fitness = xr.DataArray(np.array(fitness),
                            dims=['chromosome'],

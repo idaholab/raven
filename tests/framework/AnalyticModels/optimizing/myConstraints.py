@@ -94,7 +94,7 @@ def impConstr2(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 2 evaluation function
   """
-  g = Input.x1**2 + Input.obj - 10
+  g = Input.x1**2 + Input.obj1 - 10
   return g
 
 def impConstr3(Input):

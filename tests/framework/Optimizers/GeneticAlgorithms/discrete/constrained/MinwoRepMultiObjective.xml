@@ -9,9 +9,9 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multi_MinwoReplacement_wo_constraints_20_5_M</WorkingDir>
+    <WorkingDir>Multi_MinwoReplacement_wo_constraints_50_10</WorkingDir>
     <Sequence>optimize,print</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>4</batchSize>
   </RunInfo>
 
   <Steps>
@@ -41,6 +41,9 @@
     <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="expConstr3">
       <variables>x1,x2,x3,x4,x5,x6</variables>
     </External>
+    <!-- <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External> -->
     <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr3">
       <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
     </External>
@@ -57,10 +60,10 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>5</limit>
+        <limit>10</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>min,min</type>
+        <type>min</type>
       </samplerInit>
       <GAparams>
         <populationSize>20</populationSize>
@@ -74,7 +77,7 @@
           </mutation>
         </reproduction>
         <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
-          <b>100</b>
+          <b>50, 50, 100, 100</b>
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
@@ -99,10 +102,11 @@
       <variable name="x6">
         <distribution>woRep_dist</distribution>
       </variable>
-      <objective>obj1, obj2 </objective>
+      <objective>obj1</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
+      <!-- <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint> -->
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
     </GeneticAlgorithm>
   </Optimizers>
@@ -138,7 +142,7 @@
     <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>x1,x2,x3,x4,x5,x6</Input>
-      <Output>obj1,obj2</Output>
+      <Output>obj1</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>

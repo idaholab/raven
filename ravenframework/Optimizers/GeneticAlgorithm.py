@@ -271,12 +271,12 @@ class GeneticAlgorithm(RavenSampled):
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
-        contentType=InputTypes.FloatType,
+        contentType=InputTypes.FloatListType,
         printPriority=108,
         descr=r""" a: coefficient of objective function.""")
     fitness.addSub(objCoeff)
     penaltyCoeff = InputData.parameterInputFactory('b', strictMode=True,
-        contentType=InputTypes.FloatType,
+        contentType=InputTypes.FloatListType,
         printPriority=108,
         descr=r""" b: coefficient of constraint penalty.""")
     fitness.addSub(penaltyCoeff)
@@ -369,15 +369,20 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelectionNode = gaParamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
+    if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
+      self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than two. ')
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-    # Check if the fitness requested is among the constrained optimization fitnesses
     # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
     if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','hardConstraint']:
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, feasibleFirst and hardConstraint as a fitness, whereas provided fitness is {self._fitnessType}')
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
+    expConstr = self.assemblerObjects['Constraint'][0]
+    impConstr = self.assemblerObjects['ImplicitConstraint'][0]
+    if len(self._penaltyCoeff) != len(self._objectiveVar) * (len([ele for ele in expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in impConstr if ele != 'Functions' if ele !='External']) ):
+      self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
@@ -637,7 +642,7 @@ class GeneticAlgorithm(RavenSampled):
           for i in range(len(self._objectiveVar)):
             offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
-          offspringObjsVals = [list(ele) for ele in list(zip(*offObjVal))]
+          # offspringObjsVals = [list(ele) for ele in list(zip(*offObjVal))]
 
           # offspringFitVals for Rank and CD calculation
           fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data
