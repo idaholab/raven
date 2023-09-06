@@ -24,7 +24,10 @@ from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
 from .GeneticAlgorithm import GeneticAlgorithm
-from .BayesianOptimizer import BayesianOptimizer
+try:
+    from .BayesianOptimizer import BayesianOptimizer
+except ModuleNotFoundError as error:
+    print("ERROR: Unable to import BayesianOptimizer", error)
 
 factory = EntityFactory('Optimizer')
 factory.registerType('GradientDescent', GradientDescent)
