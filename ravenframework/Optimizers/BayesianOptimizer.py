@@ -19,10 +19,7 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
-try:
-  from smt.sampling_methods import LHS
-except ModuleNotFoundError as error:
-  print("ERROR: Unable to import smt", error)
+from smt.sampling_methods import LHS
 import scipy.optimize as sciopt
 #External Modules End--------------------------------------------------------------------------------
 
