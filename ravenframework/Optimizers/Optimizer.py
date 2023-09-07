@@ -162,7 +162,7 @@ class Optimizer(AdaptiveSampler):
     # public
     # _protected
     self._seed = None                   # random seed to apply
-    self._minMax = ['min']                # maximization or minimization?
+    self._minMax = ['min']              # maximization or minimization?
     self._activeTraj = []               # tracks live trajectories
     self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
     self._convergedTraj = {}            # tracks converged trajectories, and values obtained
@@ -267,7 +267,7 @@ class Optimizer(AdaptiveSampler):
         if len(self._minMax) != len(self._objectiveVar):
           self.raiseAnError(IOError, 'The number of <type> in <Optimizers>-<GeneticAlgorithm>-<SamplerInit> and <objective> in <Optimizers>-<GeneticAlgorithm> must be of the same length!')
         if list(set(self._minMax)-set(['min','max'])) != []:
-          self.raiseAnError(IOError, "<type> must be a either 'min' and/or 'max'")
+          self.raiseAnError(IOError, "<type> under <Optimizers>-<GeneticAlgorhtm> must be a either 'min' and/or 'max'")
 
     # variables additional reading
     for varNode in paramInput.findAll('variable'):

@@ -343,6 +343,8 @@ class GeneticAlgorithm(RavenSampled):
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
+    if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
+      self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
     # reproduction node
     reproductionNode = gaParamsNode.findFirst('reproduction')
     self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
@@ -350,6 +352,8 @@ class GeneticAlgorithm(RavenSampled):
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
+    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover and uniformCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
@@ -359,6 +363,8 @@ class GeneticAlgorithm(RavenSampled):
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
+    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, and bitFlipMutator as a mutator, whereas provided mutator is {self._mutationType}')
     if mutationNode.findFirst('locs') is None:
       self._mutationLocs = None
     else:
@@ -369,6 +375,8 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelectionNode = gaParamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
+    if self._survivorSelectionType not in ['ageBased','fitnessBased','rankNcrowdingBased']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
     if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than two. ')
     # Fitness
@@ -610,26 +618,22 @@ class GeneticAlgorithm(RavenSampled):
           self._resolveNewGenerationMulti(traj, rlz, info)
 
           ##############################################################################
-          objs_vals = [list(ele) for ele in list(zip(*self.objectiveVal))]
           ##TODO: remove all the plots and maybe design new plots in outstreams if our current cannot be used
           ## These are currently for debugging purposes
           import matplotlib.pyplot as plt
-          # JY: Visualization: all points - This code block needs to be either deleted or revisited.
-          plt.plot(np.array(objs_vals)[:,0], np.array(objs_vals)[:,1],'*')
 
-          # JY: Visualization: optimal points only - This code block needs to be either deleted or revisited.
-          # plt.xlim(75,100)
-          # plt.ylim(5,20)
-          # plt.xlim(0,1)
-          # plt.ylim(0,6)
-          plt.title(str('Iteration ' + str(self.counter-1)))
+          signChange = list(map(lambda x:-1 if x=="max" else 1 , self._minMax))
+          for i in range(0, len(self.multiBestObjective)):
+            newMultiBestObjective = self.multiBestObjective * signChange
 
-          plt.plot(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0],
-                   np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,1],'*')
-          for i in range(len(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[:,0])):
-            plt.text(np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,0],
-                     np.array(list(zip(self._optPointHistory[traj][-1][0][self._objectiveVar[0]], self._optPointHistory[traj][-1][0][self._objectiveVar[1]])))[i,1], str(self.batchId-1))
-            plt.savefig('PF'+str(i)+'_'+str(self.counter-1)+'.png')
+          plt.title(str('BatchID = ' + str(self.batchId)))
+          plt.plot(newMultiBestObjective[:,0],
+                   newMultiBestObjective[:,1],'*')
+
+          for i in range(len(self.multiBestObjective[:,0])):
+            plt.text(newMultiBestObjective[i,0],
+                     newMultiBestObjective[i,1], str(self.batchId))
+            plt.savefig('PF'+str(i)+'_'+str(self.batchId)+'.png')
           ##############################################################################
 
         else:
@@ -641,8 +645,6 @@ class GeneticAlgorithm(RavenSampled):
           offObjVal = []
           for i in range(len(self._objectiveVar)):
             offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-
-          # offspringObjsVals = [list(ele) for ele in list(zip(*offObjVal))]
 
           # offspringFitVals for Rank and CD calculation
           fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data

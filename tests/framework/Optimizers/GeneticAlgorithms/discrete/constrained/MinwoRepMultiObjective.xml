@@ -9,7 +9,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multi_MinwoReplacement_wo_constraints_50_10</WorkingDir>
+    <WorkingDir>Multi_MinwoReplacement_wo_constraints_min_max_min_50_20</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
@@ -33,7 +33,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/myLocalSum_multi.py" name="myLocalSum" subType="">
-      <variables>x1,x2,x3,x4,x5,x6,obj1,obj2</variables>
+      <variables>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3</variables>
     </ExternalModel>
   </Models>
 
@@ -60,13 +60,13 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>10</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>min</type>
+        <type>min, max, min</type>
       </samplerInit>
       <GAparams>
-        <populationSize>20</populationSize>
+        <populationSize>50</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -77,7 +77,7 @@
           </mutation>
         </reproduction>
         <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
-          <b>50, 50, 100, 100</b>
+          <b>50, 50, 100, 100, 100, 150</b> <!--the number of wegith needs to same with the number of objectives multiplied by the number of constraints-->
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
@@ -102,7 +102,7 @@
       <variable name="x6">
         <distribution>woRep_dist</distribution>
       </variable>
-      <objective>obj1</objective>
+      <objective>obj1, obj2, obj3</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
@@ -114,7 +114,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>20</limit>
+        <limit>50</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -142,12 +142,11 @@
     <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>x1,x2,x3,x4,x5,x6</Input>
-      <Output>obj1</Output>
+      <Output>obj1, obj2, obj3</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <!-- <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,age,batchId,rank,CD,ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,fitness,accepted </Output> -->
-      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted </Output>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted </Output>
     </PointSet>
   </DataObjects>
 
