@@ -1,0 +1,219 @@
+# GenCos included in this input data have portfolio information drawn from
+#   publicly-available sources, such as the EIA-860 annual database.
+# Financial parameters are rough estimates for the GenCos which approximate
+#   real firms, and are representative values for the non-real GenCos.
+
+# NRG
+201:
+    debt_fraction: 0.5
+    cost_of_debt: 0.06
+    cost_of_equity: 0.12
+    starting_debt: 7976000000
+    starting_PPE:  1692000000
+    starting_portfolio:
+        coal: 9
+        ngcc: 27
+        ngct: 23
+        conventional_nuclear: 4
+        wind: 1
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        coal:
+            8: 3
+            10: 2
+            11: 1
+            19: 3
+        ngcc:
+            20: 7
+            30: 20
+        ngct:
+            16: 13
+            26: 10
+        conventional_nuclear:
+            12: 4
+        wind:
+            35: 1
+
+# Vistra/Luminant
+202:
+    debt_fraction: 0.5
+    cost_of_debt: 0.07
+    cost_of_equity: 0.1
+    starting_debt: 3300000000
+    starting_PPE:  3400000000
+    starting_portfolio:
+        coal: 8
+        ngcc: 39
+        ngct: 69
+        conventional_nuclear: 6
+        solar: 6
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        coal:
+            4: 1
+            11: 3
+            19: 4
+        ngcc:
+            9: 3
+            10: 3
+            11: 3
+            12: 3
+            13: 5
+            14: 5
+            18: 8
+            22: 5
+            24: 4
+        ngct:
+            12: 4
+            16: 8
+            17: 10
+            25: 7
+            28: 40
+        conventional_nuclear:
+            8: 6
+
+# City of San Antonio
+203:
+    debt_fraction: 0.9
+    cost_of_debt: 0.02
+    cost_of_equity: 0.05
+    starting_debt: 3000000000
+    starting_PPE:  1000000000
+    starting_portfolio:
+        coal: 5
+        ngcc: 17
+        ngct: 9
+        conventional_nuclear: 3
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        coal:
+            7: 2
+            8: 1
+            15: 2
+        ngcc:
+            3: 3
+            15: 8
+            22: 6
+        ngct:
+            6: 4
+            20: 5
+        conventional_nuclear:
+            12: 3
+ 
+# Renewables, Inc.
+204:
+    debt_fraction: 0.5
+    cost_of_debt: 0.06
+    cost_of_equity: 0.11
+    starting_debt: 200000000
+    starting_PPE:   90000000
+    starting_portfolio:
+        wind: 30
+        solar: 10
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        wind:
+            14: 1
+            19: 5
+            20: 20
+            24: 4
+        solar:
+            31: 10
+ 
+# Lean Gas Ops, Inc.
+205:
+    debt_fraction: 0.5
+    cost_of_debt: 0.04
+    cost_of_equity: 0.07
+    starting_debt: 500000000
+    starting_PPE:  200000000
+    starting_portfolio:
+        ngcc: 20
+        ngct: 30
+        wind: 10
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        ngcc:
+            3: 1
+            4: 1
+            5: 2
+            8: 3
+            15: 3
+            21: 5
+            26: 5
+        ngct:
+            9: 5
+            10: 1
+            16: 10
+            25: 10
+            28: 4
+        wind:
+            19: 3
+            27: 7
+ 
+# Legacy Fossil Operator, Inc.
+206:
+    debt_fraction: 0.5
+    cost_of_debt: 0.04
+    cost_of_equity: 0.1
+    starting_debt:  4000000000
+    starting_PPE:    600000000
+    starting_portfolio:
+        coal: 9
+        ngcc: 3
+        ngct: 40
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        coal:
+            4: 2
+            5: 1
+            13: 4
+            15: 2
+        ngcc:
+            18: 3
+        ngct:
+            3: 2
+            4: 5
+            6: 1
+            10: 10
+            13: 8
+            15: 6
+            20: 4
+            22: 4
+ 
+# TinySolar
+207:
+    debt_fraction: 0.1
+    cost_of_debt: 0.1
+    cost_of_equity: 0.11
+    starting_debt:  10000000
+    starting_PPE: 90000000
+    starting_portfolio:
+        solar: 6
+    scheduled_retirements:
+    # Format:
+    # unit_type:
+    #   retirement_pd: num_units
+        solar:
+            30: 6
+ 
+# Balance of System
+208:
+    starting_portfolio:
+        wind: 238
+        solar: 61
+        ngcc: 121
+        ngct: 4
+    inactive: True

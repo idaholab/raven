@@ -26,7 +26,7 @@
       <Model class="Models" type="Code">abce</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">grid</Output>
-      <!-- <Output class="OutStreams" type="Print">sweep</Output> -->
+      <Output class="OutStreams" type="Print">samples</Output>
     </MultiRun>
   </Steps>
 
@@ -106,7 +106,7 @@
   <OutStreams>
     <Print name='samples'>
       <type>csv</type>
-      <source>samples</source>
+      <source>grid</source>
       <what>input,output</what>	
     </Print>
   </OutStreams>	

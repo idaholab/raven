@@ -150,7 +150,7 @@ class Abce(CodeInterfaceBase):
       @ Out, directory, string, the assets results
     """      
 
-  # PY script to locate all dbs
+  # PY script to locate all DBs
   # 1.) BUT save metadata about what generated them 
   # 2.) Add  ______ that records any independent variables to generate those runs 
   # 3.) Total number of each existing unit type (e.g. coal) for simulation years. (Should be Complete)
@@ -163,14 +163,19 @@ class Abce(CodeInterfaceBase):
   # unit_type  (e.g., coal)
 
     outDF = pd.DataFrame() 
+    resultDict = {}
     outputFile = os.path.join(self._outputDirectory, 'abce_db.db') # /home/whitsr3/abce_run_ex/abce_run_ex/abcesetting/sweep/3/outputs/ABCE_ERCOT_PWRC2N/abce_db.db
     db_conn = sqlite3.connect(outputFile)
     # Columns are on assets table: asset_id,	agent_id,	unit_type,	start_pd,	completion_pd,	cancellation_pd,	retirement_pd,	total_capex, cap_pmt,	C2N_reserved    
     assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn) #("SELECT * from assets", db_conn) 
     for col in assetsDataFrame.columns:
       outDF[col] = assetsDataFrame[col].values
+     
+ 
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
     outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output is still needed in data object. 
     # close the SQLite db connection after e/ finalizeCodeOutput() call or once they've all completed?
     db_conn.close()  
-    return {"Output": outDF }
+    return {"asset_id": outDF["asset_id"], "agent_id": outDF["agent_id"], "unit_type": outDF["unit_type"], "completion_pd": outDF["completion_pd"], "retirement_pd": outDF["retirement_pd"]}
+    # Or p(x)ly just do this and return resultDict instead: #for f in outDF: resultDict[f] = outDF[f]
+    #return {"Output": outDF }
