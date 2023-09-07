@@ -354,9 +354,10 @@ def ignore_subnodes_from_root(a_element, b_element, ignored_nodes):
     @ In, b_element, ET.Element.Tree, the second element tree
     @ In, ignored_nodes, str, address of ignored subnodes of XPath format, e.g.,
                               `.//parentNode/childNode[@name:<>]/grandchildNode`
-    @ Out, a_element, ET.Element.Tree, the first element tree
-    @ Out, b_element, ET.Element.Tree, the second element tree
-    @ Out, success, bool, was the removal successful?
+    @ Out, ignore_subnodes_from_root, (ET.Element.Tree, ET.Element.Tree, bool), (a_element,
+          b_element, success) where a_element and b_element are the two input element trees which
+          are modified if successful (otherwise returned as is) and success is a boolean noting if
+          removal of ignored nodes was successful
   """
   # internal check of ignored nodes already conducted by this point
   for ignored in ignored_nodes:

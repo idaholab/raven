@@ -80,20 +80,20 @@ same,message = XMLDiff.compare_unordered_element(ET.fromstring("<test>Hello  Wor
 checkAnswer("whitespace with remove unordered",same,True)
 
 a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
-                          ET.ElementTree(ET.fromstring("<test> <c1>a</c1> <c2>a</c2> </test>")),
-                          ET.ElementTree(ET.fromstring("<test> <c1>a</c1> <c2>b</c2> </test>")),
-                          ignored_nodes=["./c2"])
-checkAnswer("test ignore with single child node",success,True)
+                          ET.ElementTree(ET.fromstring("<test> <a>0</a> <b>0</b> </test>")),
+                          ET.ElementTree(ET.fromstring("<test> <a>0</a> <b>1</b> </test>")),
+                          ignored_nodes=["./b"])
+checkAnswer("ignoring child node in both elements",success,True)
 same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
-checkAnswer("compare test with single child node",same,True)
+checkAnswer("comparing elements after ignoring child node",same,True)
 
 a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
-                          ET.ElementTree(ET.fromstring('<test><c1 n="0">a</c1><c1 n="1"/></test>')),
-                          ET.ElementTree(ET.fromstring('<test><c1 n="0">b</c1><c1 n="1"/></test>')),
-                          ignored_nodes=['./c1[@n="0"]'])
-checkAnswer("test ignore with repeat nodes and attributes",success,True)
+                          ET.ElementTree(ET.fromstring('<test><a n="0">1</a><a n="1"/></test>')),
+                          ET.ElementTree(ET.fromstring('<test><a n="0">2</a><a n="1"/></test>')),
+                          ignored_nodes=['./a[@n="0"]'])
+checkAnswer("ignoring child node in both elements via attribute",success,True)
 same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
-checkAnswer("compare test with repeat nodes and attributes",same,True)
+checkAnswer("comparing elements after ignoring child node via attribute",same,True)
 
 sys.exit(results["fail"])
 """
