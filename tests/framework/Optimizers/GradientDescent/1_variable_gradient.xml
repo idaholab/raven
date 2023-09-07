@@ -26,21 +26,21 @@
     <MultiRun name="optimize_fd">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter_fd</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter_fd</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export_fd</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut_fd</Output>
     </MultiRun>
     <MultiRun name="optimize_cd">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter_cd</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter_cd</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export_cd</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut_cd</Output>
     </MultiRun>
     <MultiRun name="optimize_spsa">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter_spsa</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter_spsa</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export_spsa</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut_spsa</Output>
     </MultiRun>
