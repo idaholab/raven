@@ -360,23 +360,27 @@ def ignore_subnodes_from_tree(a_tree, b_tree, ignored_nodes):
           removal of ignored nodes was successful
   """
   # internal check of ignored nodes xpath nomenclature already conducted by this point
-  for ignored in ignored_nodes:
-    successes = []
+  success = True
+  # looping through requested nodes to ignore
+  for node in ignored_nodes:
+    found_and_removed_nodes = []
+    # looping through element trees first to find the node, then remove it if found
     for tree in [a_tree, b_tree]:
       found = False
-      parentpath = '/'.join(ignored.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
-      childpath = ignored.split('/')[-1]             # `/grandchildNode`
-      parentnode = tree.find(parentpath)
-      if parentnode is not None:
-        childnode = parentnode.find(childpath)
-        if childnode is not None: #simple boolean check doesn't work?
-          parentnode.remove(childnode)
+      parent_path = '/'.join(node.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
+      child_path = node.split('/')[-1]             # `/grandchildNode`
+      parent_node = tree.find(parent_path)
+      if parent_node is not None:
+        child_node = parent_node.find(child_path)
+        if child_node is not None: #simple boolean check doesn't work?
+          parent_node.remove(child_node)
           found = True
-      successes.append(found)
-    if sum(successes) == 0:
-      print((f"Given XPath {ignored} not found in either tree."))
-      return a_tree, b_tree, False
-  return a_tree, b_tree, True
+      found_and_removed_nodes.append(found) # tally of "was node found and removed?" per tree
+    # ensuring node was found+removed in at least 1 tree
+    if sum(found_and_removed_nodes) == 0:
+      print((f"Given XPath {node} not found in either tree."))
+      success = False # if there is one failure, entire method returns failure
+  return a_tree, b_tree, success
 
 
 class XMLDiff:
@@ -459,7 +463,7 @@ class XMLDiff:
               gold_root = alt_gold_root_list[0]
           if not self.__same:
             pass #already failed
-          elif 'unordered' in list(self.__options) and self.__options['unordered']:
+          elif 'unordered' in self.__options and self.__options['unordered']:
             same, messages = compare_unordered_element(gold_root, test_root, **self.__options)
           else:
             same, messages = compare_ordered_element(test_root, gold_root, **self.__options)

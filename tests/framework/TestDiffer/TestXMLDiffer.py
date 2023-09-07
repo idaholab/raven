@@ -96,12 +96,12 @@ same,message = XMLDiff.compare_unordered_element(a_tree.getroot(),b_tree.getroot
 checkAnswer("comparing roots after ignoring child node in both trees via attribute",same,True)
 
 a_tree,b_tree,success = XMLDiff.ignore_subnodes_from_tree(
-                          ET.ElementTree(ET.fromstring('<test> <a/> </test>')),
+                          ET.ElementTree(ET.fromstring('<test> <a/> <c/> </test>')),
                           ET.ElementTree(ET.fromstring('<test> <a/> <b/> </test>')),
-                          ignored_nodes=['./b'])
-checkAnswer("ignoring child node in one tree",success,True)
+                          ignored_nodes=['./b', './c'])
+checkAnswer("ignoring multiple nodes exclusive to trees",success,True)
 same,message = XMLDiff.compare_unordered_element(a_tree.getroot(),b_tree.getroot())
-checkAnswer("comparing roots after ignoring child node in one tree",same,True)
+checkAnswer("comparing roots after ignoring multiple nodes exclusive to trees",same,True)
 
 sys.exit(results["fail"])
 """
