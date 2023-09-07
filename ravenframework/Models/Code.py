@@ -777,7 +777,7 @@ class Code(Model):
       for rlz in evaluation['realizations']:
         output.addRealization(rlz)
     # otherwise, we received a single realization
-    else:     
+    else:
       output.addRealization(evaluation)
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject
