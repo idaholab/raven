@@ -346,32 +346,38 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
   return (same, message)
 
 
-def ignore_subnodes_from_root(a_element, b_element, ignored_nodes):
+def ignore_subnodes_from_tree(a_tree, b_tree, ignored_nodes):
   """
     Compares two element trees and returns (same,message) where same is true
       if they are the same, and message is a list of the differences
-    @ In, a_element, ET.Element.Tree, the first element tree
-    @ In, b_element, ET.Element.Tree, the second element tree
+    @ In, a_tree, ET.Element.Tree, the first element tree
+    @ In, b_tree, ET.Element.Tree, the second element tree
     @ In, ignored_nodes, str, address of ignored subnodes of XPath format, e.g.,
                               `.//parentNode/childNode[@name:<>]/grandchildNode`
-    @ Out, ignore_subnodes_from_root, (ET.Element.Tree, ET.Element.Tree, bool), (a_element,
-          b_element, success) where a_element and b_element are the two input element trees which
+    @ Out, ignore_subnodes_from_tree, (ET.Element.Tree, ET.Element.Tree, bool), (a_tree,
+          b_tree, success) where a_tree and b_tree are the two input element trees which
           are modified if successful (otherwise returned as is) and success is a boolean noting if
           removal of ignored nodes was successful
   """
-  # internal check of ignored nodes already conducted by this point
+  # internal check of ignored nodes xpath nomenclature already conducted by this point
   for ignored in ignored_nodes:
-    try:
-      for element in [a_element, b_element]:
-        parentpath = '/'.join(ignored.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
-        childpath = ignored.split('/')[-1]             # `/grandchildNode`
-        parentnode = element.find(parentpath)
-        parentnode.remove(parentnode.find(childpath))
-      success = True
-    except Exception as exp:
-      print((f"Could not find XPath {ignored} in elements with exception:{exp}"))
-      return a_element, b_element, False
-  return a_element, b_element, success
+    successes = []
+    for tree in [a_tree, b_tree]:
+      found = False
+      parentpath = '/'.join(ignored.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
+      childpath = ignored.split('/')[-1]             # `/grandchildNode`
+      parentnode = tree.find(parentpath)
+      if parentnode is not None:
+        childnode = parentnode.find(childpath)
+        if childnode is not None: #simple boolean check doesn't work?
+          parentnode.remove(childnode)
+          found = True
+      successes.append(found)
+    if sum(successes) == 0:
+      print((f"Given XPath {ignored} not found in either tree."))
+      return a_tree, b_tree, False
+  return a_tree, b_tree, True
+
 
 class XMLDiff:
   """
@@ -422,24 +428,24 @@ class XMLDiff:
       else:
         files_read = True
         try:
-          test_root = ET.parse(test_filename)
+          test_tree = ET.parse(test_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+test_filename+': '+str(exp.args)
         try:
-          gold_root = ET.parse(gold_filename)
+          gold_tree = ET.parse(gold_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(exp.args)
         if files_read:
           # need access to element tree here rather than root
           if self.__options['ignored_nodes']:
-            test_root, gold_root, same = ignore_subnodes_from_root(test_root, gold_root,
+            test_tree, gold_tree, same = ignore_subnodes_from_tree(test_tree, gold_tree,
                                           self.__options['ignored_nodes'])
             if not same:
               messages = ["Removing subnodes failed."]
-          test_root = test_root.getroot()
-          gold_root = gold_root.getroot()
+          test_root = test_tree.getroot()
+          gold_root = gold_tree.getroot()
           if self.__options['alt_root'] is not None:
             alt_test_root_list = test_root.findall(self.__options['alt_root'])
             alt_gold_root_list = gold_root.findall(self.__options['alt_root'])

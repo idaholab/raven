@@ -79,21 +79,29 @@ same,message = XMLDiff.compare_unordered_element(ET.fromstring("<test>Hello  Wor
 
 checkAnswer("whitespace with remove unordered",same,True)
 
-a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
+a_tree,b_tree,success = XMLDiff.ignore_subnodes_from_tree(
                           ET.ElementTree(ET.fromstring("<test> <a>0</a> <b>0</b> </test>")),
                           ET.ElementTree(ET.fromstring("<test> <a>0</a> <b>1</b> </test>")),
                           ignored_nodes=["./b"])
-checkAnswer("ignoring child node in both elements",success,True)
-same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
-checkAnswer("comparing elements after ignoring child node",same,True)
+checkAnswer("ignoring child node in both trees",success,True)
+same,message = XMLDiff.compare_unordered_element(a_tree.getroot(),b_tree.getroot())
+checkAnswer("comparing roots after ignoring child node in both trees",same,True)
 
-a_element,b_element,success = XMLDiff.ignore_subnodes_from_root(
+a_tree,b_tree,success = XMLDiff.ignore_subnodes_from_tree(
                           ET.ElementTree(ET.fromstring('<test><a n="0">1</a><a n="1"/></test>')),
                           ET.ElementTree(ET.fromstring('<test><a n="0">2</a><a n="1"/></test>')),
                           ignored_nodes=['./a[@n="0"]'])
-checkAnswer("ignoring child node in both elements via attribute",success,True)
-same,message = XMLDiff.compare_unordered_element(a_element.getroot(),b_element.getroot())
-checkAnswer("comparing elements after ignoring child node via attribute",same,True)
+checkAnswer("ignoring child node in both trees via attribute",success,True)
+same,message = XMLDiff.compare_unordered_element(a_tree.getroot(),b_tree.getroot())
+checkAnswer("comparing roots after ignoring child node in both trees via attribute",same,True)
+
+a_tree,b_tree,success = XMLDiff.ignore_subnodes_from_tree(
+                          ET.ElementTree(ET.fromstring('<test> <a/> </test>')),
+                          ET.ElementTree(ET.fromstring('<test> <a/> <b/> </test>')),
+                          ignored_nodes=['./b'])
+checkAnswer("ignoring child node in one tree",success,True)
+same,message = XMLDiff.compare_unordered_element(a_tree.getroot(),b_tree.getroot())
+checkAnswer("comparing roots after ignoring child node in one tree",same,True)
 
 sys.exit(results["fail"])
 """
@@ -107,7 +115,7 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="sotogj" date="2023-08-23">Adding tests for ignoring nodes.</revision>
+      <revision author="sotogj" date="2023-09-07">Adding tests for ignoring nodes.</revision>
     </revisions>
   </TestInfo>
 """
