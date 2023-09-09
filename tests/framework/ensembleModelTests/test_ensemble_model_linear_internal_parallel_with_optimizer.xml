@@ -95,7 +95,7 @@
     <MultiRun name="testMetamodelHeatTransfer">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opt_smp</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
