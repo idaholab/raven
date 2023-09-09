@@ -131,11 +131,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type'] = ['SPSA',
-                                          'FiniteDifference',
-                                          'ConjugateGradient',
-                                          'SimulatedAnnealing',
+  validateDict['Optimizer'][0]['type'] = ['GradientDescent',
                                           'GeneticAlgorithm',
+                                          'SimulatedAnnealing',
                                           'BayesianOptimizer']
 
   @classmethod
