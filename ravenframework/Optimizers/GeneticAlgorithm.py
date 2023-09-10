@@ -389,8 +389,11 @@ class GeneticAlgorithm(RavenSampled):
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     expConstr = self.assemblerObjects['Constraint'][0]
     impConstr = self.assemblerObjects['ImplicitConstraint'][0]
-    if len(self._penaltyCoeff) != len(self._objectiveVar) * (len([ele for ele in expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in impConstr if ele != 'Functions' if ele !='External']) ):
-      self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
+    if self._penaltyCoeff != None:
+      if len(self._penaltyCoeff) != len(self._objectiveVar) * (len([ele for ele in expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in impConstr if ele != 'Functions' if ele !='External']) ):
+        self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
+    else:
+      pass
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
