@@ -1,23 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/SyntheticHistory.Clustered</name>
-    <author>talbpaul</author>
-    <created>2021-02-11</created>
-    <classesTested>SupervisedLearning.SyntheticHistory,TSA.Fourier,TSA.ARMA</classesTested>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.VARMAInterpolated</name>
+    <author>j-bryan</author>
+    <created>2031-08-24</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.VARMA</classesTested>
     <description>
-      Tests clustering for the SyntheticHistory ROM with Fourier and ARMA steps.
+      Tests clustering and interpolation for SyntheticHistory ROMs using TSA.VARMA
     </description>
-    <revisions>
-      <revision author="j-bryan" date="2023-09-01">
-        Adapted training data so that the interpolation happens between different models instead
-	of repeating the same file between macro steps.
-      </revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Interpolated</WorkingDir>
+    <WorkingDir>VARMAInterpolated</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -46,7 +40,7 @@
   </Steps>
 
   <Files>
-    <Input name="infile">../TrainingData/ARMAInterpolated.csv</Input>
+    <Input name="infile">../TrainingData/VARMAInterp.csv</Input>
   </Files>
 
   <Samplers>
@@ -61,13 +55,13 @@
 
   <Models>
     <ROM name="synth" subType="SyntheticHistory">
-      <Target>signal0, seconds</Target>
+      <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <arma target="signal0" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
-      </arma>
+      <varma target="signal0, signal1" seed='42'>
+        <P>1</P>
+        <Q>0</Q>
+      </varma>
       <Segment grouping="interpolate">
         <macroParameter>macro</macroParameter>
         <Classifier class="Models" type="PostProcessor">classifier</Classifier>
@@ -77,7 +71,7 @@
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
-        <Features>signal0</Features>
+        <Features>signal0, signal1</Features>
         <SKLtype>cluster|KMeans</SKLtype>
         <n_clusters>1</n_clusters>
         <tol>1E-12</tol>
@@ -105,16 +99,16 @@
     </PointSet>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
-      <Output>signal0, seconds</Output>
+      <Output>signal0, signal1, seconds</Output>
       <options>
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
-      <Output>signal0, seconds</Output>
-      <Index var="seconds">signal0</Index>
-      <Index var="macro">signal0</Index>
+      <Output>signal0, signal1, seconds</Output>
+      <Index var="seconds">signal0, signal1</Index>
+      <Index var="macro">signal0, signal1</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
