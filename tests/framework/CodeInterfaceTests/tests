@@ -144,8 +144,7 @@
  [./s_whitmoreTest]
    type = 'RavenFramework'
    input = abce_Custom_Sampler.xml
-   output = 'abcesetting/samples.csv'
+   csv = 'abcesetting/samples.csv'
    test_interface_only = True
-
 [../]
 []
