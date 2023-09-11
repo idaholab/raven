@@ -30,7 +30,7 @@ class Abce(CodeInterfaceBase):
     This class is used to run the Abce code.
   """
 
-  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):    
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -73,10 +73,10 @@ class Abce(CodeInterfaceBase):
       Set the output directory in the settings file.
       @ In, settingsFile, InputFile object, settings.yml file
       """
-      # the settings file is the settings.yml file the scenario name is in node 
-      # simulation -> scenario_name 
+      # the settings file is the settings.yml file the scenario name is in node
+      # simulation -> scenario_name
       # the output directory is the directory of the settings file in subdirectory "outputs/$scenario_name"
-      # get the scenario name by reading the settings.yml file 
+      # get the scenario name by reading the settings.yml file
       scenarioName = None
       with open(settingsFile.getAbsFile(),'r') as settings:
         for line in settings:
@@ -117,7 +117,7 @@ class Abce(CodeInterfaceBase):
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):    
+  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -148,34 +148,33 @@ class Abce(CodeInterfaceBase):
       @ In, codeLogFile, ignored [Ignore for now]
       @ In, subDirectory, string, the subdirectory where the information is. [Use full path]
       @ Out, directory, string, the assets results
-    """      
+    """
 
-  # PY script to locate all DBs
-  # 1.) BUT save metadata about what generated them 
-  # 2.) Add  ______ that records any independent variables to generate those runs 
-  # 3.) Total number of each existing unit type (e.g. coal) for simulation years. (Should be Complete)
+    # PY script to locate all DBs
+    # 1.) BUT save metadata about what generated them
+    # 2.) Add input parameters that record any independent variables to generate those runs
+    # 3.) Total number of each existing unit type (e.g. coal) for simulation years. (Should be Complete)
 
-  # In e/ dataframe store data on what each AGENT is doing in each YEAR, E.g., : 
-  # Agent 201 in year 0 has 400 MWe of coal. (So a TABLE of 
-  # agent: (e.g., 201)
-  # year:  (e.g., year 0)
-  # capacity: (e.g, MWe)
-  # unit_type  (e.g., coal)
+    # In e/ dataframe store data on what each AGENT is doing in each YEAR, E.g., :
+    # Agent 201 in year 0 has 400 MWe of coal. (So a TABLE of
+    # agent: (e.g., 201)
+    # year:  (e.g., year 0)
+    # capacity: (e.g, MWe)
+    # unit_type  (e.g., coal)
 
-    outDF = pd.DataFrame() 
+    outDF = pd.DataFrame()
     resultDict = {}
     outputFile = os.path.join(self._outputDirectory, 'abce_db.db') # /home/whitsr3/abce_run_ex/abce_run_ex/abcesetting/sweep/3/outputs/ABCE_ERCOT_PWRC2N/abce_db.db
     db_conn = sqlite3.connect(outputFile)
-    # Columns are on assets table: asset_id,	agent_id,	unit_type,	start_pd,	completion_pd,	cancellation_pd,	retirement_pd,	total_capex, cap_pmt,	C2N_reserved    
-    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn) #("SELECT * from assets", db_conn) 
+    # Columns are on assets table: asset_id,agent_id,unit_type,start_pd,completion_pd,cancellation_pd,retirement_pd,total_capex,cap_pmt,C2N_reserved
+    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn) #("SELECT * from assets", db_conn)
     for col in assetsDataFrame.columns:
       outDF[col] = assetsDataFrame[col].values
-     
- 
+
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
-    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output is still needed in data object. 
+    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output is still needed in data object.
     # close the SQLite db connection after e/ finalizeCodeOutput() call or once they've all completed?
-    db_conn.close()  
+    db_conn.close()
     return {"asset_id": outDF["asset_id"], "agent_id": outDF["agent_id"], "unit_type": outDF["unit_type"], "completion_pd": outDF["completion_pd"], "retirement_pd": outDF["retirement_pd"]}
     # Or p(x)ly just do this and return resultDict instead: #for f in outDF: resultDict[f] = outDF[f]
     #return {"Output": outDF }
