@@ -73,20 +73,12 @@ plugins/plugin_directory.xml
 *.code-workspace
 
 # Custom
+# Files
 STACEY_NOTES.md
-./OUT/*
+# Directories
 OUT
-OUT/*
-./OUT
-
-./ABCE_XML_BACKUPS/*
 ABCE_XML_BACKUPS
-ABCE_XML_BACKUPS/
-ABCE_XML_BACKUPS/*
-
 abce_run_ex_BUs
-abce_run_ex_BUs/*
-./abce_run_exBUs/
-./abce_run_exBUs/*
+
 
 
