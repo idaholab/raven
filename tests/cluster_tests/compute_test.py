@@ -27,16 +27,18 @@ outFile = open(os.path.join(head,"out~"+tail+".csv"),"w")
 
 print(sys.argv)
 start = time.time()
-end = start + 60.0
 print(start)
 
 iterations = 0
-while time.time() < end:
+#The below number of iterations takes about 20 seconds on sawtooth
+while iterations < 100000:
     a = 2**2**2**2**2
     iterations += 1
 
+end = time.time()
+
 print(time.time())
 
-outFile.write("start,end,iterations\n")
-outFile.write(str(start)+","+str(end)+","+str(iterations)+"\n")
+outFile.write("start,end,delta,iterations\n")
+outFile.write(str(start)+","+str(end)+","+str(end-start)+","+str(iterations)+"\n")
 outFile.close()
