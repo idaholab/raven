@@ -20,10 +20,14 @@ import os
 import re
 import warnings
 import pandas as pd
-import sqlite3  #N
+import sqlite3
 
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..Generic.GenericCodeInterface import GenericParser
+
+# For Memoization testing (only benefitial if same args are sometimes passed to finalizeCodeOutput)
+#import functools
+#import math
 
 class Abce(CodeInterfaceBase):
   """
@@ -140,6 +144,11 @@ class Abce(CodeInterfaceBase):
     parser.writeNewInput(infiles,origfiles)
     return currentInputFiles
 
+
+  # Following @directive to output cache hits and misses to determine if this method would benefit from memoization.
+  # (E.g., If the # of cache misses is high when cache is NOT full, then adding cache may be useless.)
+  #@functools.lru_cache(maxsize=2)
+  #_FINALIZECODEOUTPUT_MEMOIZED_VALUES = {}
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
       Convert csv (ADDENDUM: NOT csv But should be "convert SQlite...") information to RAVEN's prefered formats [Pandas DataFrame]
@@ -149,10 +158,13 @@ class Abce(CodeInterfaceBase):
       @ In, subDirectory, string, the subdirectory where the information is. [Use full path]
       @ Out, directory, string, the assets results
     """
+    # Cannot test if caching/memoization is needed until f(n) parameters are decided on.
+    # TODO: [First] Find Out: if we inted to use the Command, codeLogFile, and subDirectory parameters
+    # listed ^ and in what way.
 
     # PY script to locate all DBs
     # 1.) BUT save metadata about what generated them
-    # 2.) Add input parameters that record any independent variables to generate those runs
+    # 2.) Add [input parameters] that record any independent variables to generate those runs
     # 3.) Total number of each existing unit type (e.g. coal) for simulation years. (Should be Complete)
 
     # In e/ dataframe store data on what each AGENT is doing in each YEAR, E.g., :
@@ -163,7 +175,6 @@ class Abce(CodeInterfaceBase):
     # unit_type  (e.g., coal)
 
     outDF = pd.DataFrame()
-    resultDict = {}
     outputFile = os.path.join(self._outputDirectory, 'abce_db.db') # /home/whitsr3/abce_run_ex/abce_run_ex/abcesetting/sweep/3/outputs/ABCE_ERCOT_PWRC2N/abce_db.db
     db_conn = sqlite3.connect(outputFile)
     # Columns are on assets table: asset_id,agent_id,unit_type,start_pd,completion_pd,cancellation_pd,retirement_pd,total_capex,cap_pmt,C2N_reserved
@@ -172,9 +183,9 @@ class Abce(CodeInterfaceBase):
       outDF[col] = assetsDataFrame[col].values
 
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
-    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output is still needed in data object.
+    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)# To defeat Raven check for output b/c it was looking for output. Still needed in data object?
     # close the SQLite db connection after e/ finalizeCodeOutput() call or once they've all completed?
     db_conn.close()
+    # TODO: Find Out: Should the needed columns, asset_id, agent_id, unit_type, completion_pd, retirement_pd
+    # added to this f(n)'s parameters rather than hard coding them here and above?
     return {"asset_id": outDF["asset_id"], "agent_id": outDF["agent_id"], "unit_type": outDF["unit_type"], "completion_pd": outDF["completion_pd"], "retirement_pd": outDF["retirement_pd"]}
-    # Or p(x)ly just do this and return resultDict instead: #for f in outDF: resultDict[f] = outDF[f]
-    #return {"Output": outDF }
