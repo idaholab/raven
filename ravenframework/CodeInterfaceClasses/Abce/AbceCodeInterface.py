@@ -142,8 +142,8 @@ class Abce(CodeInterfaceBase):
 
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
-      Convert csv (ADDENDUM: NOT csv But should be "convert SQlite...") information to RAVEN's prefered formats [Pandas DataFrame]
-      Joins together two different csv [again, NOT csv But SQLite]files and also reorders it a bit.
+      Convert SQLite information to RAVEN's prefered formats [Pandas DataFrame]
+      Joins together two different SQLite files and also reorders it a bit.
       @ In, command, ignored  [Ignore for now]
       @ In, codeLogFile, ignored [Ignore for now]
       @ In, subDirectory, string, the subdirectory where the information is. [Use full path]
