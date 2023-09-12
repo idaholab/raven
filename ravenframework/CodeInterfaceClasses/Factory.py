@@ -19,7 +19,7 @@ from ..EntityFactoryBase import EntityFactory
 
 from ..CodeInterfaceBaseClass import CodeInterfaceBase
 from .Generic.GenericCodeInterface import GenericCode
-from .Abce.AbceCodeInterface import Abce # NEW
+from .Abce.AbceCodeInterface import Abce
 from .AccelerateCFD.AccelerateCFD import AcceleratedCFD
 from .CobraTF.CTFinterface import CTF
 from .Dymola.DymolaInterface import Dymola

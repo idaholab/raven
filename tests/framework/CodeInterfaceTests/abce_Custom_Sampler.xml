@@ -9,10 +9,7 @@
 
   <Steps>
     <MultiRun name="sweep">
-      <!-- <Input class="Files" type="">abce_runner.sh</Input> -->
-      <!-- <Input class="Files" type="">agent_specifications.yml</Input> -->
       <Input class="Files" type="">settings.yml</Input>
-
       <Input class="Files" type="">C2N_project_definitions.yml</Input>
       <Input class="Files" type="">demand_data.csv</Input>
       <Input class="Files" type="">single_agent_testing.yml</Input>
@@ -31,11 +28,7 @@
   </Steps>
 
   <Files>
-    <!-- <Input name="abce_runner.sh" type="">abce_runner.sh</Input> -->
-    <!-- <Input name="agent_specifications.yml" type=""
-    subDirectory="inputs">agent_specifications.yml</Input> -->
     <Input name="settings.yml" type="">settings.yml</Input>
-
     <Input name="C2N_project_definitions.yml" type="" subDirectory="inputs">
       C2N_project_definitions.yml</Input>
     <Input name="demand_data.csv" type="" subDirectory="inputs">demand_data.csv</Input>
@@ -54,15 +47,6 @@
     <Input name="timeseries_wind_hourly.csv" type="" subDirectory="inputs/ts_data">
       timeseries_wind_hourly.csv</Input>
   </Files>
-
-  <!-- <Models>
-    <Code name="abce" subType="GenericCode">
-      <executable>source</executable>
-      <clargs extension=".sh" type="input"/> 
-      <clargs extension=".yml" type="input"/> 
-    </Code>
-  </Models> -->
-
 
   <Models>
     <Code name="abce" subType="Abce">
@@ -98,10 +82,6 @@
   </Samplers>
 
   <DataObjects>
-    <!-- <PointSet name="grid">
-      <Input>pkd,unit_specs_wind_capacity</Input>
-      <Output>Output</Output>
-    </PointSet> -->
     <DataSet name="grid">
       <Input>pkd,unit_specs_wind_capacity, autoindex</Input>
       <Output>asset_id, agent_id, unit_type, completion_pd, retirement_pd</Output>
@@ -109,12 +89,6 @@
     </DataSet>
   </DataObjects>
 
-  <!-- <OutStreams>
-    <Print name='sweep'>
-      <type>csv</type>
-      <source>grid</source>
-    </Print>
-  </OutStreams> -->
   <OutStreams>
     <Print name='samples'>
       <type>csv</type>
@@ -122,6 +96,4 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-
-
 </Simulation>

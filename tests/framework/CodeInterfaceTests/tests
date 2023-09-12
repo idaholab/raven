@@ -141,7 +141,7 @@
    test_interface_only = True
  [../]
 
- [./s_whitmoreTest]
+ [./abceTest]
    type = 'RavenFramework'
    input = abce_Custom_Sampler.xml
    csv = 'abcesetting/samples.csv'
