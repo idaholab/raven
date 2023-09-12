@@ -778,6 +778,7 @@ class Code(Model):
     # otherwise, we received a single realization
     else:
       output.addRealization(evaluation)
+
     ##TODO How to handle restart?
     ##TODO How to handle collectOutputFromDataObject
 

@@ -47,7 +47,7 @@ class Abce(CodeInterfaceBase):
     #check for duplicate extension use
     usedExts = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
     if len(usedExts) != len(set(usedExts)):
-      raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+      raise IOError('AbceCodeInterface cannot handle multiple input files with the same extension.')
     for inf in inputFiles:
       ext = '.' + inf.getExt() if inf.getExt() is not None else ''
       try:
@@ -163,7 +163,5 @@ class Abce(CodeInterfaceBase):
       outDF[col] = assetsDataFrame[col].values
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
     outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame) # To defeat Raven check for output b/c it was looking for output. Still needed in data object?
-    # Should I open and close the SQLite db connection for each finalizeCodeOutput() call?
-    #  Or, keep it open and close it once they've all completed?
     db_conn.close()
     return {"asset_id": outDF["asset_id"], "agent_id": outDF["agent_id"], "unit_type": outDF["unit_type"], "completion_pd": outDF["completion_pd"], "retirement_pd": outDF["retirement_pd"]}
