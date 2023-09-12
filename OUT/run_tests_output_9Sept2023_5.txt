@@ -1,0 +1,80 @@
+Running RAVEN tests ...
+Loading libraries ...
+CONDA
+... Run Options:
+... ECE Mode: 1
+... Verbosity: 0
+... Clean: 0
+... Install Mode: CONDA
+... Conda Defs:
+... Loading RAVEN libraries ...
+... Detected OS as --os linux ...
+... Using Python command python
+... $RAVEN_LIBS_NAME set through raven/.ravenrc to raven_libraries
+... >> If this is not desired, then remove it from the ravenrc file before running.
+... >> RAVEN environment is named "raven_libraries"
+... found conda path in ravenrc: /home/whitsr3/miniconda3/etc/profile.d/conda.sh
+... >> If this is not the desirable path, rerun with argument --conda-defs [path] or remove the entry from raven/.ravenrc file.
+... Found conda definitions at /home/whitsr3/miniconda3/etc/profile.d/conda.sh
+conda 23.5.0
+raven_libraries          /home/whitsr3/miniconda3/envs/raven_libraries
+... Found library environment ...
+... Activating environment ...
+... Activating environment ...
+... done!
+
+********************************************************************************
+
+Running RAVEN tests ...
+rook: loading init file "/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/developer_tools/rook.ini"
+rook: ... loaded setting "add_non_default_run_types = qsub"
+rook: ... loaded setting "test_dir = tests, doc/workshop"
+rook: found 121 test dirs under "tests" ...
+rook: found 13 test dirs under "doc/workshop" ...
+rook: loading init file "/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/developer_tools/rook.ini"
+rook: ... loaded setting "add_non_default_run_types = qsub"
+rook: ... loaded setting "test_dir = tests, doc/workshop"
+(1/1) [92mSuccess[0m([94m 10.88sec[0m)[93mtests/framework/CodeInterfaceTests/s_whitmoreTest[0m
+[0m
+PASSED: [92m1[0m
+SKIPPED: [90m0[0m
+FAILED: [91m0[0m
+ ... RAVEN tests passed successfully.
+
+********************************************************************************
+
+Running PluginAPI tests ...
+rook: found 1 test dirs under "/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/plugins/ExamplePlugin/tests" ...
+[0m
+PASSED: [92m0[0m
+SKIPPED: [90m0[0m
+FAILED: [91m0[0m
+... PluginAPI tests passed successfully.
+Loading plugin tests ...
+
+********************************************************************************
+
+Starting tests for plugin HERON ...
+Running ROOK command: python /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/rook/main.py --test-dir /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/HERON/tests --testers-dir /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/scripts/TestHarness/testers,/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/HERON/tests/../src/Testers --add-non-default-run-types qsub --re=s_whitmoreTest ...
+rook: found 41 test dirs under "/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/HERON/tests" ...
+[0m
+PASSED: [92m0[0m
+SKIPPED: [90m0[0m
+FAILED: [91m0[0m
+Tests passed for plugin HERON.
+
+********************************************************************************
+
+Starting tests for plugin ExamplePlugin ...
+Running ROOK command: python /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/rook/main.py --test-dir /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/plugins/ExamplePlugin/tests --testers-dir /mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/scripts/TestHarness/testers,/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/plugins/ExamplePlugin/tests/../src/Testers --add-non-default-run-types qsub --re=s_whitmoreTest ...
+rook: found 1 test dirs under "/mnt/c/Users/WHITSR3/source/repos/_INL_Projects/raven/plugins/ExamplePlugin/tests" ...
+[0m
+PASSED: [92m0[0m
+SKIPPED: [90m0[0m
+FAILED: [91m0[0m
+Tests passed for plugin ExamplePlugin.
+
+********************************************************************************
+
+Tested sets: RAVEN PluginAPI HERON ExamplePlugin
+... tests passed!

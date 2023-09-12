@@ -145,6 +145,7 @@
    type = 'RavenFramework'
    input = abce_Custom_Sampler.xml
    csv = 'abcesetting/samples.csv'
+   text = abcesetting/sweep/1/settings.yml
    test_interface_only = True
 [../]
 []
