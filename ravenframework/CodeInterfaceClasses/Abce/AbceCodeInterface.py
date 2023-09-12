@@ -149,19 +149,13 @@ class Abce(CodeInterfaceBase):
       @ In, subDirectory, string, the subdirectory where the information is. [Use full path]
       @ Out, directory, string, the assets results
     """
-
-    # locate all DBs
-    # 1.) BUT save metadata about what generated them.
-    # 2.) Add [input parameters] that record any independent variables to generate those runs.
-    # 3.) Total number of each existing unit type (e.g. coal) for simulation years.
-
     outDF = pd.DataFrame()
     outputFile = os.path.join(self._outputDirectory, 'abce_db.db')
     db_conn = sqlite3.connect(outputFile)
-    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn) #("SELECT * from assets", db_conn)
+    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, completion_pd, retirement_pd from assets", db_conn)
     for col in assetsDataFrame.columns:
       outDF[col] = assetsDataFrame[col].values
     # OutputPlaceHolder should be a list of float("NaN") IF the len(assetsData)>0 OR just a float("NaN")
-    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame) # To defeat Raven check for output b/c it was looking for output. Still needed in data object?
+    outDF['OutputPlaceHolder'] = [float("NaN")]*len(assetsDataFrame)
     db_conn.close()
     return {"asset_id": outDF["asset_id"], "agent_id": outDF["agent_id"], "unit_type": outDF["unit_type"], "completion_pd": outDF["completion_pd"], "retirement_pd": outDF["retirement_pd"]}
