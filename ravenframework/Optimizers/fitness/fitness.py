@@ -16,7 +16,8 @@
   currently the implemented fitness function is a linear combination of the objective function and penalty function for constraint violation:
 
   Created June,16,2020
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  Updated September,17,2023
+  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
 """
 # Internal Modules----------------------------------------------------------------------------------
 from ...utils import frontUtils
@@ -59,26 +60,29 @@ def invLinear(rlz,**kwargs):
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
   if kwargs['a'] == None:
-    a = 1.0
+    a = [1.0]
   else:
     a = kwargs['a']
   if kwargs['b'] == None:
-    b = 10.0
+    b = [10.0]
   else:
     b = kwargs['b']
   if kwargs['constraintFunction'].all() == None:
     penalty = 0.0
   else:
     penalty = kwargs['constraintFunction'].data
-
-  objVar = kwargs['objVar']
-  data = np.atleast_1d(rlz[objVar].data)
-
-  fitness = -a * (rlz[objVar].data).reshape(-1,1) - b * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
-  fitness = xr.DataArray(np.squeeze(fitness),
-                         dims=['chromosome'],
-                         coords={'chromosome': np.arange(len(data))})
-  return fitness
+  objVar = [kwargs['objVar']]
+  for j in range(len(objVar)):
+    data = np.atleast_1d(rlz[objVar][objVar[j]].data)
+    fitness = -a[0] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[0] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
+    fitness = xr.DataArray(np.squeeze(fitness),
+                          dims=['chromosome'],
+                          coords={'chromosome': np.arange(len(data))})
+    if j == 0:
+        fitnessSet = fitness.to_dataset(name = objVar[j])
+    else:
+        fitnessSet[objVar[j]] = fitness
+  return fitnessSet
 
 def hardConstraint(rlz,**kwargs):
   r"""
@@ -150,23 +154,26 @@ def feasibleFirst(rlz,**kwargs):
     objVar = [kwargs['objVar']]
   else:
     objVar = kwargs['objVar']
-  g = kwargs['constraintFunction']
-  penalty = kwargs['b']
-  pen = [penalty[i:i+len(g['Constraint'].data)] for i in range(0, len(penalty), len(g['Constraint'].data))]
+  if kwargs['constraintNum'] == 0:
+    pen = kwargs['b']
+  else:
+    g = kwargs['constraintFunction']
+    penalty = kwargs['b']
+    pen = [penalty[i:i+len(g['Constraint'].data)] for i in range(0, len(penalty), len(g['Constraint'].data))]
+  
   objPen = dict(map(lambda i,j : (i,j), objVar, pen))
-
   for i in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
     worstObj = max(data)
     fitness = []
     for ind in range(data.size):
-      if np.all(g.data[ind, :]>=0):
+      if kwargs['constraintNum'] == 0 or np.all(g.data[ind, :]>=0):
         fit=(data[ind])
       else:
         fit = worstObj
         for constInd,_ in enumerate(g['Constraint'].data):
           fit+= objPen[objVar[i]][constInd]*(max(0,-1*g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
-      fitness.append(fit)
+      fitness.append(-1*fit)
     fitness = xr.DataArray(np.array(fitness),
                            dims=['chromosome'],
                            coords={'chromosome': np.arange(len(data))})
@@ -194,25 +201,30 @@ def logistic(rlz,**kwargs):
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
   if kwargs['a'] == None:
-    a = 1.0
+    a = [1.0]
   else:
     a = kwargs['a']
 
   if kwargs['b'] == None:
-    b = 0.0
+    b = [0.0]
   else:
     b = kwargs['b']
 
-  objVar = kwargs['objVar']
-  val = rlz[objVar]
-  data = np.atleast_1d(rlz[objVar].data)
-  denom = 1.0 + np.exp(-a * (val - b))
-  fitness = 1.0 / denom
-  fitness = xr.DataArray(np.array(fitness),
-                          dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(data))})
+  objVar = [kwargs['objVar']]
+  for i in range(len(objVar)):
+    val = rlz[objVar][objVar[i]].data
+    data = np.atleast_1d(rlz[objVar][objVar[i]].data)
+    denom = 1.0 + np.exp(-a[0] * (val - b[0]))
+    fitness = 1.0 / denom
+    fitness = xr.DataArray(fitness.data,
+                           dims=['chromosome'],
+                           coords={'chromosome': np.arange(len(data))})
+    if i == 0:
+      fitnessSet = fitness.to_dataset(name = objVar[i])
+    else:
+      fitnessSet[objVar[i]] = fitness
 
-  return fitness
+  return fitnessSet
 
 
 __fitness = {}

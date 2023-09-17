@@ -64,7 +64,7 @@
             <mutationProb>1.0</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="rank_crowding">
+        <fitness type="feasibleFirst">
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>

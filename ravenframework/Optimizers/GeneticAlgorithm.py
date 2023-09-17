@@ -17,12 +17,14 @@
   Genetic Algorithm-based optimization. Multiple strategies for
   mutations, cross-overs, etc. are available.
   Created June,3,2020
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  Updated Sepember,17,2023
+  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
   References
     ----------
     .. [1] Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.
-       [2] Z. Michalewicz, "Genetic Algorithms. + Data Structures. = Evolution Programs," Third, Revised
-           and Extended Edition, Springer (1996).
+       [2] Z. Michalewicz, "Genetic Algorithms. + Data Structures. = Evolution Programs," Third, Revised and Extended Edition, Springer (1996).
+       [3] Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.
+       [4] Deb, Kalyanmoy. "An efficient constraint handling method for genetic algorithms." Computer methods in applied mechanics and engineering 186.2-4 (2000): 311-338.
 """
 # External Modules----------------------------------------------------------------------------------
 from collections import deque, defaultdict
@@ -267,9 +269,13 @@ class GeneticAlgorithm(RavenSampled):
 
                                  b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
 
-                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$""")
+                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$
+                                 
+                                 d.    hardConstraint: $fitness = the number of constraints violated.$
+                                 
+                                 """)
     fitness.addParam("type", InputTypes.StringType, True,
-                     descr=r"""[invLin, logistic, feasibleFirst]""")
+                     descr=r"""[invLin, logistic, feasibleFirst, hardConstraint]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatListType,
         printPriority=108,
@@ -334,22 +340,36 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
-    # GAparams
+    ####################################################################################
+    # GAparams                                                                         #
+    ####################################################################################
     gaParamsNode = paramInput.findFirst('GAparams')
-    # populationSize
+    
+    ####################################################################################
+    # populationSize                                                                   #
+    ####################################################################################
     populationSizeNode = gaParamsNode.findFirst('populationSize')
     self._populationSize = populationSizeNode.value
-    # parent selection
+    
+    ####################################################################################
+    # parent selection node                                                            #
+    ####################################################################################
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
     if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
       self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
-    # reproduction node
+    
+    ####################################################################################
+    # reproduction node                                                                #
+    ####################################################################################
     reproductionNode = gaParamsNode.findFirst('reproduction')
     self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
-    # crossover node
+    
+    ####################################################################################
+    # crossover node                                                                   #
+    ####################################################################################
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
     if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
@@ -360,18 +380,24 @@ class GeneticAlgorithm(RavenSampled):
       self._crossoverPoints = crossoverNode.findFirst('points').value
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
-    # mutation node
+    
+    ####################################################################################
+    # mutation node                                                                    #
+    ####################################################################################
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, and bitFlipMutator as a mutator, whereas provided mutator is {self._mutationType}')
+    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator','randomMutator']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, bitFlipMutator, and randomMutator as a mutator, whereas provided mutator is {self._mutationType}')
     if mutationNode.findFirst('locs') is None:
       self._mutationLocs = None
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
-    # Survivor selection
+    
+    ####################################################################################
+    # survivor selection node                                                          #
+    ####################################################################################
     survivorSelectionNode = gaParamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
@@ -379,25 +405,53 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
     if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than two. ')
-    # Fitness
+    
+    ####################################################################################
+    # fitness node                                                                     #
+    ####################################################################################
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
+    
+    ####################################################################################
+    # constraint node                                                                  #
+    ####################################################################################
     # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
-    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','feasibleFirst','hardConstraint']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, feasibleFirst and hardConstraint as a fitness, whereas provided fitness is {self._fitnessType}')
-    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
-    self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
-    expConstr = self.assemblerObjects['Constraint'][0]
-    impConstr = self.assemblerObjects['ImplicitConstraint'][0]
-    if self._penaltyCoeff != None:
-      if len(self._penaltyCoeff) != len(self._objectiveVar) * (len([ele for ele in expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in impConstr if ele != 'Functions' if ele !='External']) ):
+    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','logistic', 'feasibleFirst','hardConstraint']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, logistic, feasibleFirst and hardConstraint as a fitness, whereas provided fitness is {self._fitnessType}')
+    self._expConstr = self.assemblerObjects['Constraint'][0] if 'Constraint' in self.assemblerObjects else None
+    self._impConstr = self.assemblerObjects['ImplicitConstraint'][0] if 'ImplicitConstraint' in self.assemblerObjects else None
+    if self._expConstr != None and self._impConstr != None:
+      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External']) 
+    elif self._expConstr == None and self._impConstr != None:
+      self._numOfConst = len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External']) 
+    elif self._expConstr != None and self._impConstr == None:
+      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External']) 
+    else:
+      self._numOfConst = 0
+    if (self._expConstr != None) and (self._impConstr != None) and (self._penaltyCoeff != None):
+      if len(self._penaltyCoeff) != len(self._objectiveVar) * self._numOfConst:
         self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
     else:
       pass
+    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
+    #NOTE the code lines below are for 'feasibleFirst' temperarily. It will be generalized for invLinear as well.
+    if self._fitnessType == 'feasibleFirst':  
+      if self._numOfConst != 0 and fitnessNode.findFirst('b') is not None:
+        self._penaltyCoeff = fitnessNode.findFirst('b').value 
+      elif self._numOfConst == 0 and fitnessNode.findFirst('b') is not None:
+        self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')  
+      elif self._numOfConst != 0 and fitnessNode.findFirst('b') is None:
+        self._penaltyCoeff = list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1. 
+      else:
+        self._penaltyCoeff = list(np.repeat(0, len(self._objectiveVar))) 
+    else: 
+      self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
-    # Convergence Criterion
+    ####################################################################################
+    # convergence criterion node                                                       #
+    ####################################################################################
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
       for sub in convNode.subparts:
@@ -453,9 +507,9 @@ class GeneticAlgorithm(RavenSampled):
     # overload as needed in inheritors
     return True
 
-  ##########################################################################################################
-  # Run Methods                                                                                            #
-  ##########################################################################################################
+  ####################################################################################
+  # Run Methods                                                                      #
+  ####################################################################################
 
   def _useRealization(self, info, rlz):
     """
@@ -480,11 +534,11 @@ class GeneticAlgorithm(RavenSampled):
     # 0.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
 
-    if not self._canHandleMultiObjective or len(self._objectiveVar) == 1:  # This is a single-objective Optimization case
+    if not self._canHandleMultiObjective or len(self._objectiveVar) == 1:  # This is for a single-objective Optimization case.
       offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
       objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
 
-      # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+      # Collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
       constraintData = {}
       if self._constraintFunctions or self._impConstraintFunctions:
         params = []
@@ -492,8 +546,7 @@ class GeneticAlgorithm(RavenSampled):
           params += y.parameterNames()
         for p in list(set(params) -set([self._objectiveVar[0]]) -set(list(self.toBeSampled.keys()))):
           constraintData[p] = list(np.atleast_1d(rlz[p].data))
-      # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
-      # and all x's (individuals) in the population
+      # Compute constraint function g_j(x) for all constraints (j = 1 .. J) and all x's (individuals) in the population
       g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
       g = xr.DataArray(g0,
@@ -522,18 +575,19 @@ class GeneticAlgorithm(RavenSampled):
                                                b=self._penaltyCoeff,
                                                penalty=None,
                                                constraintFunction=g,
+                                               constraintNum = self._numOfConst,
                                                type=self._minMax)
 
       self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
       self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-    else: # This is a multi-objective Optimization case
+    else: # This is for a multi-objective Optimization case.
       objectiveVal = []
       offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
       for i in range(len(self._objectiveVar)):
         objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
-      # collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+      # Collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
       constraintData = {}
       if self._constraintFunctions or self._impConstraintFunctions:
         params = []
@@ -541,8 +595,7 @@ class GeneticAlgorithm(RavenSampled):
           params += y.parameterNames()
         for p in list(set(params) -set(self._objectiveVar) -set(list(self.toBeSampled.keys()))):
           constraintData[p] = list(np.atleast_1d(rlz[p].data))
-      # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
-      # and all x's (individuals) in the population
+      # Compute constraint function g_j(x) for all constraints (j = 1 .. J) and all x's (individuals) in the population
       g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
       g = xr.DataArray(g0,
@@ -569,15 +622,14 @@ class GeneticAlgorithm(RavenSampled):
                                                objVar=self._objectiveVar,
                                                a=self._objCoeff,
                                                b=self._penaltyCoeff,
-                                               penalty =None,
                                                constraintFunction=g,
+                                               constraintNum = self._numOfConst,
                                                type    =self._minMax)
 
-      # 0.2@ n-1: Survivor selection(rlz)
-      # update population container given obtained children
-
+    # 0.2@ n-1: Survivor selection(rlz)
+    # Update population container given obtained children
     if self._activeTraj:
-      if len(self._objectiveVar) == 1: # If the number of objectives is just 1:
+      if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
         if self.counter > 1:
           self.population, self.fitness,\
           age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
@@ -593,7 +645,7 @@ class GeneticAlgorithm(RavenSampled):
           self.fitness = offSpringFitness
           self.objectiveVal = rlz[self._objectiveVar[0]].data
 
-      else: # If the number of objectives is more than 1:
+      else: # This is for a multi-objective Optimization case.
         if self.counter > 1:
           self.population,self.rank, \
           self.popAge,self.crowdingDistance, \
@@ -675,16 +727,16 @@ class GeneticAlgorithm(RavenSampled):
                                      self.fitness,
                                      self.constraintsV)
           self._resolveNewGenerationMulti(traj, rlz, info)
+
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
-
-      if len(self._objectiveVar) == 1: # If the number of objectives is just 1:
+      if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
         parents = self._parentSelectionInstance(self.population,
                                                 variables=list(self.toBeSampled),
                                                 fitness=self.fitness,
                                                 nParents=self._nParents)
 
-      else: # This is for a multi-objective Optimization case
+      else: # This is for a multi-objective Optimization case.
 
         parents = self._parentSelectionInstance(self.population,
                                                 variables=list(self.toBeSampled),
@@ -695,14 +747,14 @@ class GeneticAlgorithm(RavenSampled):
                                                 )
 
       # 2 @ n: Crossover from set of parents
-      # create childrenCoordinates (x1,...,xM)
+      # Create childrenCoordinates (x1,...,xM)
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints)
 
       # 3 @ n: Mutation
-      # perform random directly on childrenCoordinates
+      # Perform random directly on childrenCoordinates
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
                                                locs=self._mutationLocs,
@@ -710,7 +762,7 @@ class GeneticAlgorithm(RavenSampled):
                                                variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
-      # repair should only happen if multiple genes in a single chromosome have the same values (),
+      # Repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
       for chrom in range(self._nChildren):
@@ -734,7 +786,7 @@ class GeneticAlgorithm(RavenSampled):
                                         'Gene':list(self.toBeSampled)})
 
       # 5 @ n: Submit children batch
-      # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
+      # Submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(self.batch):
         newRlz = {}
         for _, var in enumerate(self.toBeSampled.keys()):
@@ -758,7 +810,6 @@ class GeneticAlgorithm(RavenSampled):
                 })
     # NOTE: Currently, GA treats explicit and implicit constraints similarly
     # while box constraints (Boundary constraints) are automatically handled via limits of the distribution
-    #
     self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
     self._submissionQueue.append((point, info))
 
@@ -967,7 +1018,7 @@ class GeneticAlgorithm(RavenSampled):
     self.multiBestFitness = fitSet
     self.multiBestObjective = optObjVal
     self.multiBestConstraint = optConstNew
-    self.multiBestRank = optRank #TODO JY: MultiBestRank is not anymore in need. This should be removed later. 
+    self.multiBestRank = optRank  
     self.multiBestCD = optCD
 
     return optPointsDic
@@ -1018,7 +1069,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
     """
-    if len(self._objectiveVar) == 1: # single objective optimization
+    if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
       if len(self._optPointHistory[traj]) < 2:
         return False
       o1, _ = self._optPointHistory[traj][-1]
@@ -1028,19 +1079,13 @@ class GeneticAlgorithm(RavenSampled):
                                               conv=str(converged),
                                               got=obj,
                                               req=self._convergenceCriteria['objective']))
-    else:                            # multi objective optimization
+    else:                            # This is for a multi-objective Optimization case.
       if len(self._optPointHistory[traj]) < 2:
         return False
       o1, _ = self._optPointHistory[traj][-1]
       obj1 = o1[self._objectiveVar[0]]
       obj2 = o1[self._objectiveVar[1]]
       converged = (obj1 == self._convergenceCriteria['objective'] and obj2 == self._convergenceCriteria['objective'])
-      # JY: I stopped here. Codeline below needs to be revisited! 01/16/23
-      # self.raiseADebug(self.convFormat.format(name='objective',
-      #                                         conv=str(converged),
-      #                                         got=obj1,
-      #                                         req=self._convergenceCriteria['objective']))
-
     return converged
 
   def _checkConvAHDp(self, traj, **kwargs):
@@ -1161,7 +1206,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, True if converged on ANY criteria
     """
     # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
-    if len(self._objectiveVar) == 1: # single-objective optimization
+    if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
       if acceptable == 'accepted':
         self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
         # check convergence
@@ -1170,7 +1215,7 @@ class GeneticAlgorithm(RavenSampled):
         converged = False
         convDict = dict((var, False) for var in self._convergenceInfo[traj])
       self._convergenceInfo[traj].update(convDict)
-    else: # multi-objective optimization
+    else: # This is for a multi-objective Optimization case.
       if acceptable == 'accepted':
         self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
         # check convergence
@@ -1214,8 +1259,9 @@ class GeneticAlgorithm(RavenSampled):
     """
     return
 
-  # * * * * * * * * * * * *
-  # Constraint Handling
+  ###############################
+  # Constraint Handling         #
+  ###############################
   def _handleExplicitConstraints(self, point, constraint):
     """
       Computes explicit (i.e. input-based) constraints
@@ -1278,9 +1324,9 @@ class GeneticAlgorithm(RavenSampled):
     g = impConstraint.evaluate('implicitConstraint', inputs)
 
     return g
-
-  # END constraint handling
-  # * * * * * * * * * * * *
+  ###############################
+  # END constraint handling     # 
+  ###############################
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
