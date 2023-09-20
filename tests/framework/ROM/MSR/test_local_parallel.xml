@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="all">
   <TestInfo>
     <name>framework/ROM/MSR.parallel</name>
     <author>maljdan</author>
@@ -29,7 +29,8 @@
       train,
       resample
     </Sequence>
-    <internalParallel>True</internalParallel>
+    <parallelMethod>dask</parallelMethod>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Models>

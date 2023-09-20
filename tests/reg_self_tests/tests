@@ -4,6 +4,23 @@
   input = 'test_ordered_csv.py'
  [../]
 
+ [./unordered_csv]
+  type = 'RavenPython'
+  input = 'test_unordered_csv.py'
+ [../]
+
+ [./check_windows]
+   type = 'RavenPython'
+   input = 'only_windows.py'
+   skip_if_OS = 'mac,linux'
+ [../]
+
+ [./check_not_windows]
+   type = 'RavenPython'
+   input = 'only_not_windows.py'
+   skip_if_OS = 'windows'
+ [../]
+
  [./simple_exec]
   type = 'GenericExecutable'
   executable = 'python'

@@ -28,12 +28,15 @@
 import abc
 import copy
 import numpy as np
+import sklearn
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import utils, mathUtils, xmlUtils
 from ..utils import InputTypes, InputData
 from ..BaseClasses import BaseInterface
+from .FeatureSelection import factory as featureSelectionFactory
+from .FeatureSelection import utils as featSelectUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SupervisedLearning(BaseInterface):
@@ -69,6 +72,51 @@ class SupervisedLearning(BaseInterface):
     spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
         descr=r"""If a time-dependent ROM is requested, please specifies the pivot
         variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
+    ######################
+    # feature selections #
+    # dynamically loaded #
+    ######################
+    featureSelection = InputData.parameterInputFactory("featureSelection",
+                                                       descr=r"""Apply feature selection algorithm""")
+    for subType in featureSelectionFactory.knownTypes():
+      validClass = featureSelectionFactory.returnClass(subType)
+      validSpec = validClass.getInputSpecification()
+      featureSelection.addSub(validSpec)
+    spec.addSub(featureSelection)
+    # Feature space transformation?
+    featureSpaceTransformation = InputData.parameterInputFactory('featureSpaceTransformation',
+                                                   descr=r"""Use dimensionality reduction technique to perform a trasformation of the training dataset
+                                                  into an uncorrelated one. The dimensionality of the problem will not be reduced but
+                                                  the data will be transformed in the transformed space. E.g if the number of features
+                                                  are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
+                                                  In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
+                                                  (n_samples*n_timesteps,n_features) before applying the transformation and then reconstructed
+                                                  back into the original shape (before fitting the model).
+                                                   """)
+    transformationMethodType = InputTypes.makeEnumType("transformationMethod",
+                                                       "transformationMethodeType",
+                                                       ['PCA', 'KernelLinearPCA','KernelPolyPCA','KernelRbfPCA','KernelSigmoidPCA','KernelCosinePCA', 'ICA'])
+    featureSpaceTransformation.addSub(InputData.parameterInputFactory('transformationMethod',contentType=transformationMethodType,
+        descr=r"""Transformation method to use. Eight options (5 Kernel PCAs) are available:
+                  \begin{itemize}
+                    \item \textit{PCA}, Principal Component Analysis;
+                    \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
+                    \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
+                    \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
+                    \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
+                    \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
+                    \item \textit{ICA}, Independent component analysis;
+                   \end{itemize}
+
+        """, default="PCA"))
+    featureSpaceTransformation.addSub(InputData.parameterInputFactory('parametersToInclude',contentType=InputTypes.StringListType,
+        descr=r"""List of IDs of features/variables to include in the transformation process.""", default=None))
+
+    spaceEnum = InputTypes.makeEnumType("spaceEnum","spaceEnumType",['Feature','feature', 'Target','target'])
+    featureSpaceTransformation.addSub(InputData.parameterInputFactory('whichSpace',contentType=spaceEnum,
+        descr=r"""Which space to search? Target or Feature?""", default="Feature"))
+    spec.addSub(featureSpaceTransformation)
+
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType,
         descr=r"""The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with \xmlAttr{subType}
         ``CrossValidation``.""")
@@ -118,20 +166,69 @@ class SupervisedLearning(BaseInterface):
       @ In, None
       @ Out, None
     """
+    #Note: self.saveParam (BaseInterface class) is set at the _handleInput stage
     super().__init__()
-    self.printTag = 'SupervisedLearning'
-    self.features = None           # "inputs" to this model
-    self.target = None             # "outputs" of this model
-    self.amITrained = False        # "True" if the ROM is already trained
-    self._dynamicHandling = False  # time-like dependence in the model?
-    self.dynamicFeatures = False   # time-like dependence in the feature space? FIXME: this is not the right design
-    self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
+    self.printTag = type(self).__name__
+    # "inputs" to this model
+    self.features = None
+    # "outputs" of this model
+    self.target = None
+    # "True" if the ROM is already trained
+    self.amITrained = False
+    # time-like dependence in the model?
+    self._dynamicHandling = False
+    # time-like dependence in the feature space? FIXME: this is not the right design
+    self.dynamicFeatures = False
+    # feature selection algorithm container
+    self.featureSelectionAlgo = None
+    # the feature selection has been performed already?
+    self.doneSelectionFeatures = False
+    # should a feature space transformation be performed?
+    self.performFeatureSpaceTransformation = False
+    # container of the feature space transformation settings
+    self.featureSpaceTransformationSettings = {}
+    # objects assembled by the ROM Model, passed through.
+    self._assembledObjects = None
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
-    self.muAndSigmaFeatures = {}   # normalization parameters
-    self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
-    self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    # normalization parameters
+    self.muAndSigmaFeatures = {}
+    # keys that can be passed to DataObject as meta information
+    self.metadataKeys = set()
+    # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.metadataParams = {}
+    # This parameter is set at the initialization of the model
+    # If True, the importances are computed if no 'feature_importances_' and
+    # 'coef_' are set by the estimator (see def initializeModel)
+    # After the computation, the importances are set as attribute of the self.model
+    # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
+    self.computeImportances = False
+
+  def __getstate__(self):
+    """
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+
+    if state.get('featureSelectionAlgo') is not None:
+      del state['featureSelectionAlgo']
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
+    if self.saveParams:
+      fs = self.paramInput.findFirst("featureSelection")
+      if  fs is not None:
+        self.featureSelectionAlgo = featureSelectionFactory.returnInstance(fs.subparts[0].getName())
+        self.featureSelectionAlgo._handleInput(fs.subparts[0])
 
   def _handleInput(self, paramInput):
     """
@@ -139,12 +236,41 @@ class SupervisedLearning(BaseInterface):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
+    # check if paramInput must be saved.
+    # currently they are saved if and only if a feature selection
+    # algorithm is activated
+    # Consequentially we check for the presence of feature selection
+    # as first thing before processing the input data
+    featSelection = paramInput.findFirst("featureSelection")
+    self.saveParams = featSelection is not None
+    # now we can proceed with the input handling
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
     self.pivotID = nodes['pivotParameter']
+
+    if featSelection is not None:
+      if len(featSelection.subparts) > 1:
+        self.raiseAnError(IOError, "Only one feature selection algorithm is allowed in the ROM")
+      featAlgo = featSelection.subparts[0]
+      self.featureSelectionAlgo = featureSelectionFactory.returnInstance(featAlgo.getName())
+      # handle input
+      self.featureSelectionAlgo._handleInput(featAlgo)
+      # if the feature selection algorithm is set, we should always have a mean to compute
+      # the feature importances (e.g. either the model can provide them or we use permutation)
+      self.computeImportances = True
+    # dim reduction to transform the training space?
+    featureSpaceTransformation = paramInput.findFirst("featureSpaceTransformation")
+    if featureSpaceTransformation is not None:
+      self.performFeatureSpaceTransformation = True
+      nodesFeatureTransformation, notFound = featureSpaceTransformation.findNodesAndExtractValues(['parametersToInclude', 'whichSpace', 'transformationMethod'])
+      if nodesFeatureTransformation['parametersToInclude'] is None:
+        self.raiseAnError(IOError, '"parametersToInclude" not found. It must be inputted in Feature Space Transformation settings!' )
+      self.featureSpaceTransformationSettings.update(nodesFeatureTransformation)
+      self.featureSpaceTransformationSettings['whichSpace'] = self.featureSpaceTransformationSettings['whichSpace'].lower()
+
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
@@ -158,28 +284,8 @@ class SupervisedLearning(BaseInterface):
     """
     self.features = inputDict.get('Features', None)
     self.target = inputDict.get('Target', None)
+    self.featureSelectionAlgo = inputDict.get('featureSelectionAlgorithm', None)
     self.verbosity = inputDict.get('verbosity', None)
-
-  def __getstate__(self):
-    """
-      This function return the state of the ROM
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
-    """
-    state = copy.copy(self.__dict__)
-    return state
-
-  def __setstate__(self, d):
-    """
-      Initialize the ROM with the data contained in newstate
-      @ In, d, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(d)
-    #FIXME: REMOVE THIS ONCE HERON GETS UPDATED WITH
-    #FIXME: NEW PICKLED ROMS
-    if 'dynamicFeatures' not in d:
-      self.dynamicFeatures = False
 
   def setEstimator(self, estimatorList):
     """
@@ -207,6 +313,26 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     pass
+
+  @property
+  def featureImportances_(self):
+    """
+      Method to return the features' importances
+      @ In, None
+      @ Out, featureImportances_, dict of dicts, dict of importances {'target1':{feature1:importance, feature1:importance,...},...}
+    """
+    return dict.fromkeys(self.target,dict.fromkeys(self.features,1.))
+
+  @property
+  def requireJobHandler(self):
+    """
+      Property setting the requirement for job handler (internal parallelization)
+      If JobHandler is required, it will be stored in the assembler object container
+      (i.e. self._assembledObjects['jobHandler'])
+      @ In, None
+      @ Out, requireJobHandler, bool, True if jobhandler is required
+    """
+    return self.featureSelectionAlgo is not None and not self.doneSelectionFeatures
 
   def train(self, tdict, indexMap=None):
     """
@@ -267,7 +393,84 @@ class SupervisedLearning(BaseInterface):
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
 
-    self.__trainLocal__(featureValues,targetValues)
+    if self.performFeatureSpaceTransformation:
+      # nsamples, timeStep, nFeatures
+      nComponents = len(self.featureSpaceTransformationSettings['parametersToInclude'])
+      if self.featureSpaceTransformationSettings['transformationMethod'] == 'PCA':
+        self.transformationEngine = sklearn.decomposition.IncrementalPCA(n_components=nComponents, whiten=True)
+      elif self.featureSpaceTransformationSettings['transformationMethod'].startswith("Kernel"):
+        # kernel PCA
+        kernel = self.featureSpaceTransformationSettings['transformationMethod'].lower().replace("kernel", "").replace("pca", "")
+        self.transformationEngine = sklearn.decomposition.KernelPCA(n_components=nComponents, kernel= kernel,  fit_inverse_transform=True, random_state=0)
+      elif self.featureSpaceTransformationSettings['transformationMethod'] == 'ICA':
+        self.transformationEngine = sklearn.decomposition.FastICA(n_components=nComponents, random_state=0)
+      # This should be activated when the scaler is avaialable
+      #else:
+      #  self.transformationEngine = sklearn.decomposition.NMF(n_components=nComponents)
+      #  setattr(self.transformationEngine, "scaler", sklearn.preprocessing.MinMaxScaler())
+
+      params = self.featureSpaceTransformationSettings['parametersToInclude']
+      space = self.featureSpaceTransformationSettings['whichSpace']
+      if space == 'feature':
+        indeces = np.asarray([i for i, e in enumerate(self.features) if e in params])
+      else:
+        indeces = np.asarray([i for i, e in enumerate(self.target) if e in params])
+      if self.dynamicFeatures:
+        # we use reshape the training matrix into a (n_samples*n_timesteps,n_features)
+        # to come up with a global transfomation for all the samples
+        # FIXME: this approach is not rigorous and should be replaced by
+        # the application of FPCA (Functional Principal Component Analysis)
+        if space == 'feature':
+          shape = featureValues.shape
+          newSpace = self.transformationEngine.fit_transform(featureValues.reshape(-1,shape[2])[:, indeces].T)
+          featureValues = newSpace.reshape(shape)
+        else:
+          shape = targetValues.shape
+          newSpace = self.transformationEngine.fit_transform(targetValues.reshape(-1,shape[2])[:, indeces].T).T
+          targetValues = newSpace.reshape(shape)
+      else:
+        if space == 'feature':
+          featureValues[ :, indeces] = self.transformationEngine.fit_transform(featureValues[:, indeces])
+        else:
+          targetValues[:, indeces] = self.transformationEngine.fit_transform(targetValues[ :, indeces]).T
+
+    if self.featureSelectionAlgo is not None and not self.doneSelectionFeatures:
+      if self.featureSelectionAlgo.needROM:
+        self.featureSelectionAlgo.setEstimator(self)
+      newFeatures, support = self.featureSelectionAlgo.run(self.features, self.target, featureValues, targetValues)
+      # identify parameters to remove
+      space =  self.featureSelectionAlgo.var("whichSpace")
+      # support here is the support vector on the global space (not just the subspace on which the selection has been performed)
+      # for this reason, the list of parameters to send are the full target or features
+      vals = featSelectUtils.screenInputParams(support, self.paramInput, self.target if 'target' in space else self.features)
+      if space == 'feature' and np.sum(support) != len(self.features):
+        self.removed = set(self.features) - set(np.asarray(self.features)[newFeatures].tolist())
+        self.raiseAMessage("Feature Selection removed the following features: {}".format(', '.join(self.removed)))
+        self.raiseAMessage("Old feature space for surrogate model was       : {}".format(', '.join(self.features)))
+        self.raiseAMessage("New feature space for surrogate model is now    : {}".format(', '.join(np.asarray(self.features)[newFeatures].tolist())))
+      elif space == 'target' and np.sum(support) != len(self.target):
+        self.removed = set(self.target) - set(np.asarray(self.target)[newFeatures].tolist())
+        self.raiseAMessage("Feature Selection removed the following features (from target space): {}".format(', '.join(self.removed)))
+        self.raiseAMessage("Old feature space (in the target space) for surrogate model was     : {}".format(', '.join(self.target)))
+        self.raiseAMessage("New feature space (in the target space) for surrogate model is now  : {}".format(', '.join(np.asarray(self.target)[newFeatures].tolist())))
+      else:
+        self.raiseAMessage("Feature Selection DID NOT remove any feature since all all needed to maximize the performance of the surrogate model!")
+
+      # re-update parameters
+      self.paramInput.findNodesAndSetValues(vals)
+      self._handleInput(self.paramInput)
+      if self.dynamicFeatures:
+        if space == 'feature':
+          featureValues = featureValues[:,:,support]
+        else:
+          targetValues = targetValues[:,:,support]
+      else:
+        if space == 'feature':
+          featureValues = featureValues[:,support]
+        else:
+          targetValues = targetValues[:,support]
+      self.doneSelectionFeatures = True
+    self._train(featureValues,targetValues)
     self.amITrained = True
 
   def _localNormalizeData(self,values,names,feat):
@@ -359,7 +562,44 @@ class SupervisedLearning(BaseInterface):
           featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    if self.performFeatureSpaceTransformation:
+      params = self.featureSpaceTransformationSettings['parametersToInclude']
+      space = self.featureSpaceTransformationSettings['whichSpace'].lower()
+      if space == 'feature':
+        indeces = np.asarray([i for i, e in enumerate(self.features) if e in params])
+      else:
+        indeces = np.asarray([i for i, e in enumerate(self.target) if e in params])
+        sh = featureValues.shape
+        reconstructed = np.zeros((sh[1],len(self.target))) if self.dynamicFeatures else np.zeros((len(self.target)))
+      if space == 'feature':
+        if self.dynamicFeatures:
+          shape = featureValues.shape
+          newSpace = self.transformationEngine.transform(featureValues.reshape(-1,shape[2])[:, indeces].T)
+          featureValues = newSpace.reshape(shape)
+        else:
+          featureValues[:, indeces] = self.transformationEngine.transform(featureValues[:, indeces])
+    # now evaluate
+    evaluation = self.__evaluateLocal__(featureValues)
+    # if transformation in the target space
+    if self.performFeatureSpaceTransformation and space == 'target':
+      for idx in indeces:
+        if self.dynamicFeatures:
+          reconstructed[:,idx] = evaluation[np.asarray(self.target)[idx]][:]
+        else:
+          reconstructed[idx] = evaluation[np.asarray(self.target)[idx]]
+      reconstructed = self.transformationEngine.inverse_transform(reconstructed)
+      for idx in indeces:
+        if self.dynamicFeatures:
+          evaluation[np.asarray(self.target)[idx]] = reconstructed[:,idx]
+        else:
+          evaluation[np.asarray(self.target)[idx]] = reconstructed[idx]
+
+    if self.doneSelectionFeatures and self.removed:
+      dummy = np.empty(list(evaluation.values())[0].shape)
+      dummy[:] = np.NaN
+      for rem in self.removed:
+        evaluation[rem] = dummy
+    return evaluation
 
   def reset(self):
     """
@@ -398,8 +638,15 @@ class SupervisedLearning(BaseInterface):
     # different calls depending on if it's static or dynamic
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
       writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
+      # write some common parameters (e.g. features, targets, etc.)
+      writeTo.addScalar('ROM', "Features", ",".join(self.features), None, general = True)
+      writeTo.addScalar('ROM', "Targets", ",".join(self.target), None, general = True)
     else:
       writeTo.addScalar('ROM', "type", self.printTag)
+      # write some common parameters (e.g. features, targets, etc.)
+      writeTo.addScalar('ROM', "Features", ",".join(self.features))
+      writeTo.addScalar('ROM', "Targets", ",".join(self.target))
+
 
   def writePointwiseData(self, *args):
     """
@@ -420,7 +667,7 @@ class SupervisedLearning(BaseInterface):
       @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
-    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')
+    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options yet.')
 
   def isDynamic(self):
     """
@@ -529,7 +776,7 @@ class SupervisedLearning(BaseInterface):
   ### END ROM Clustering ###
 
   @abc.abstractmethod
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
@@ -551,9 +798,18 @@ class SupervisedLearning(BaseInterface):
   @abc.abstractmethod
   def __evaluateLocal__(self,featureVals):
     """
+      Local evaluation method
       @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
       @ Out, targetVals , np.array, 1-D numpy array [n_samples]
     """
+
+  def _evaluateLocal(self,featureVals):
+    """
+      Method accessable outside ROM class to perform direct evaluation
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
+    return self.__evaluateLocal__(featureVals)
 
   @abc.abstractmethod
   def __resetLocal__(self):

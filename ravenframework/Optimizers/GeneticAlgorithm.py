@@ -52,7 +52,12 @@ class GeneticAlgorithm(RavenSampled):
                          at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
-                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations"""}
+                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
+                        'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
+                                     This convergence criterion is based on a normalized
+                                     similarity metric that can be summurized as the normalized Hausdorff distance
+                                     (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
+                                     which implies that values closer to 1.0 represents a tighter convergence criterion."""}
   def __init__(self):
     """
       Constructor.
@@ -73,6 +78,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None    # population fitness
     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN     # Hausdorff Distance between populations
+    self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -144,6 +150,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                         \item scrambleMutator.
                                                                         \item inversionMutator.
                                                                         \item bitFlipMutator.
+                                                                        \item randomMutator.
                                                                       \end{itemize}
                                                                     \end{itemize}
                                                 \item survivorSelectors:
@@ -207,8 +214,9 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""a subnode containing the implemented mutation mechanisms.
                   This includes: a.    bitFlipMutation,
                                  b.    swapMutation,
-                                 c.    scrambleMutation, or
-                                 d.    inversionMutation.""")
+                                 c.    scrambleMutation,
+                                 d.    inversionMutation, or
+                                 e.    randomMutator.""")
     mutation.addParam("type", InputTypes.StringType, True,
                       descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -301,6 +309,7 @@ class GeneticAlgorithm(RavenSampled):
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     new['AHD'] = 'Hausdorff Distance between populations'
+    new['HDSM'] = 'Hausdorff Distance Similarity Measure between populations'
     new['ConstraintEvaluation_{CONSTRAINT}'] = 'Constraint function evaluation (negative if violating and positive otherwise)'
     ok.update(new)
 
@@ -595,6 +604,7 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None
     self.ahdp = np.NaN
     self.ahd = np.NaN
+    self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
     self.bestObjective = None
@@ -602,6 +612,26 @@ class GeneticAlgorithm(RavenSampled):
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
+
+  def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
+    """
+      Utility method to update the solution export
+      @ In, traj, int, trajectory for this new point
+      @ In, rlz, dict, realized realization
+      @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+      @ In, g, xr.DataArray, the constraint evaluation function
+      @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
+      @ Out, None
+    """
+    for i in range(rlz.sizes['RAVEN_sample_ID']):
+      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+      rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+      rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+      rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+      for ind, consName in enumerate(g['Constraint'].values):
+        rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
+      self._updateSolutionExport(traj, rlzDict, acceptable, None)
+
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
     """
       Store a new Generation after checking convergence
@@ -624,14 +654,8 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      for i in range(rlz.sizes['RAVEN_sample_ID']):
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
-        rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-        for ind, consName in enumerate(g['Constraint'].values):
-          rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
-        self._updateSolutionExport(traj, rlzDict, acceptable, None)
+      self._solutionExportUtilityUpdate(traj, rlz, fitness, g, acceptable)
+
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -763,6 +787,26 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
+  def _checkConvHDSM(self, traj, **kwargs):
+    """
+      Computes the Hausdorff Distance Similarity Metric as the termination criteria
+      @ In, traj, int, trajectory identifier
+      @ In, kwargs, dict, dictionary of parameters for SAHDp termination criteria:
+            old, np.array, old generation
+            new, np.array, new generation
+      @ Out, converged, bool, convergence state
+    """
+    old = kwargs['old'].data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
+    self.hdsm = self._hdsm(old, new)
+    converged = (self.hdsm >= self._convergenceCriteria['HDSM'])
+    self.raiseADebug(self.convFormat.format(name='HDSM',
+                                            conv=str(converged),
+                                            got= self.hdsm,
+                                            req=self._convergenceCriteria['HDSM']))
+
+    return converged
+
   def _ahdp(self, a, b, p):
     """
       p-average Hausdorff Distance for generation convergence
@@ -823,6 +867,37 @@ class GeneticAlgorithm(RavenSampled):
       s.append(self._popDist(a[i,:],b))
 
     return max(s)
+
+  def _envelopeSize(self,a,b):
+    r"""
+      Compute hyper diagonal of envelope containing old and new population
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+    """
+    aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
+    bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
+    sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
+    hyperDiagonal = mathUtils.hyperdiagonal(sides)
+    return hyperDiagonal
+
+  def _hdsm(self, a, b):
+    """
+      Hausdorff Distance Similarity Measure for generation convergence
+      @ In, a, np.array, old population A
+      @ In, b, np.array, new population B
+      @ Out, _hdsm, float, average Hausdorff distance
+    """
+    normFactor = self._envelopeSize(a, b)
+    ahd = self._ahd(a,b)
+    if mathUtils.compareFloats(ahd, 0.0, 1e-14):
+      return 1.
+    if mathUtils.compareFloats(normFactor, 0.0, 1e-14):
+      # the envelope has a zero size (=> populations are
+      # composed by the same genes (all the same numbers
+      # => minimum == maximum within the population
+      return 1.
+    return  1. - ahd / normFactor
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -957,7 +1032,8 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
-             'AHD': self.ahd}
+             'AHD': self.ahd,
+             'HDSM': self.hdsm}
 
     for var, val in self.constants.items():
       toAdd[var] = val

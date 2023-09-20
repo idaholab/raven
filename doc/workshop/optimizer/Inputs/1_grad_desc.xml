@@ -14,7 +14,7 @@
 
   <Steps>
     <MultiRun name="optimize">
-      <Optimizer class="Optimizers" type="FiniteDifference">opter</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter</Optimizer>
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">projectile</Model>
       <SolutionExport class="DataObjects" type="PointSet">search_path</SolutionExport>

@@ -16,6 +16,7 @@ Created on Mar 16, 2013
 @author: crisr
 """
 from abc import ABCMeta, abstractmethod
+import copy
 
 from ..utils import mathUtils
 from ..utils.utils import metaclass_insert
@@ -46,14 +47,17 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       @ Out, None
     """
     super().__init__()
-    self.name             = ''                                                          # name of this instance (alias)
-    self.type             = type(self).__name__                                         # specific type within this class
-    self.verbosity        = None                                                        # verbosity level (see message handler)
-    self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
-    self.variableGroups   = {}                                                          # the variables this class needs to be aware of
-    self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
-    self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
+    self.name             = ''                   # name of this istance (alias)
+    self.type             = type(self).__name__  # specific type within this class
+    self.verbosity        = None                 # verbosity level (see message handler)
+    self.globalAttributes = {}                   # this is a dictionary that contains parameters that are set at
+                                                 # the level of the base classes defining the types
+    self.printTag         = 'BaseType'           # the tag that refers to this class in all the specific printing
+    self.variableGroups   = {}                   # the variables this class needs to be aware of
+    self.metadataKeys     = set()                # list of registered metadata keys to expect from this entity
+    self.metadataParams   = {}                   # dictionary of registered metadata keys with repect to their indexes
+    self.saveParams       = False                # this variable controls if the input parameters should be saved (handleInput)
+    self.paramInput       = None                 # if self.saveParams == True, this variable contains the paramInput of this interface
 
   def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
     """
@@ -180,7 +184,8 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       @ In, paramInput, InputData.Parameters
       @ Out, None
     """
-    pass
+    if self.saveParams:
+      self.paramInput = copy.deepcopy(paramInput)
 
   ################################
   # undecided; are these still useful?

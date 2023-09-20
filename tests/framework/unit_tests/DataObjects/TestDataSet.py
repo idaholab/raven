@@ -327,9 +327,13 @@ rlz2 = {'a' :21.0,
         'prefix': 'third',
         'time':[23.1e-6,23.2e-6,23.3e-6],
        }
+matchDict = {'abc': 1.0,
+        'b': 2.0,
+       }
 formatRealization(rlz0)
 formatRealization(rlz1)
 formatRealization(rlz2)
+formatRealization(matchDict)
 # test missing data
 rlzMissing = dict(rlz0)
 rlz0['z'] = 6.0
@@ -341,8 +345,9 @@ rlzFormat['c'] = list(rlzFormat['c'])
 checkFails('DataSet addRealization err format','Realization was not formatted correctly for "DataSet"! See warnings above.',data.addRealization,args=[rlzFormat])
 # test appending
 data.addRealization(dict(rlz0))
-
-
+# test error if requested match not in variable list
+rlzMissing = dict(matchDict)
+checkFails('DataSet _getRealizationFromCollectorByValue err missing',"Variable 'abc' is not in list of DataObject 'DataSet'. Available variables are: a, b, c, x, y, z, prefix. Check <Input>/<Output> sections.",data._getRealizationFromCollectorByValue,args=[rlzMissing,{}])
 # get realization by index, from collector
 checkRlz('Dataset append 0',data.realization(index=0),rlz0,skip=['time', '_indexMap'])
 # try to access the inaccessible

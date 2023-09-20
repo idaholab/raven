@@ -18,6 +18,7 @@
   2.  scrambleMutator
   3.  bitFlipMutator
   4.  inversionMutator
+  5.  randomMutator
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi

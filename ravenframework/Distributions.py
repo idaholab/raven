@@ -26,6 +26,7 @@ from scipy.interpolate import UnivariateSpline
 from numpy import linalg as LA
 import copy
 import math as math
+import bisect
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
@@ -1622,7 +1623,7 @@ class Categorical(Distribution):
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
     StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
+    StatePartInput.addParam("outcome", InputTypes.FloatOrStringType, True)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
     ## Because we do not inherit from the base class, we need to manually
@@ -1643,6 +1644,7 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
+    self.isFloat        = False
 
   def _handleInput(self, paramInput):
     """
@@ -1656,13 +1658,20 @@ class Categorical(Distribution):
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        if float(outcome) in self.values:
+        try:
+          float(outcome)
+          self.isFloat = True
+        except:
+          self.isFloat = False
+        if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome))
+          self.values.add(float(outcome) if self.isFloat else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
+    self.upperBoundUsed = True
+    self.lowerBoundUsed = True
 
   def getInitParams(self):
     """
@@ -1740,7 +1749,12 @@ class Categorical(Distribution):
     if x in self.values:
       pdfValue = self.mapping[x]
     else:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+      if self.isFloat:
+        vals = sorted(list(self.values))
+        idx = bisect.bisect(vals, x)
+        pdfValue = self.mapping[list(vals)[idx]]
+      else:
+        self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
   def cdf(self,x):
@@ -1756,9 +1770,16 @@ class Categorical(Distribution):
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
-        if x == float(element[0]):
+        if x == ( float(element[0]) if self.isFloat else element[0] ):
           return cumulative
     else:
+      if self.isFloat:
+        cumulative=0.0
+        for element in sortedMapping:
+          cumulative += element[1]
+          if x >= element[0]:
+            return cumulative
+      # if we reach this point we must error out
       self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
@@ -1771,13 +1792,13 @@ class Categorical(Distribution):
       self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
-      return float(sortedMapping[-1][0])
+      return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
     else:
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
         if cumulative >= x:
-          return float(element[0])
+          return float(element[0]) if self.isFloat else element[0]
 
   def rvs(self):
     """

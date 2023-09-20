@@ -19,6 +19,7 @@ from ...EntityFactoryBase import EntityFactory
 from .PostProcessorInterface import PostProcessorInterface
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .BasicStatistics import BasicStatistics
+from .SubdomainBasicStatistics import SubdomainBasicStatistics
 from .LimitSurface import LimitSurface
 from .Metric import Metric
 from .DataMining import DataMining
@@ -40,6 +41,7 @@ from .Validations import Probabilistic
 from .Validations import PPDSS
 from .Validations import PhysicsGuidedCoverageMapping
 from .TSACharacterizer import TSACharacterizer
+from .SparseSensing import SparseSensing
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay

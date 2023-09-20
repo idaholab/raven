@@ -100,3 +100,8 @@ RELAP5/RELAP5interfaceTestOperator/testDummyStep
 RELAP5/RELAP5interfaceTestSingleRun/testDummyStep
 RELAP5interfaceTestModifiedVersionINSS/
 RAVEN/Optimizer/sample/
+GenericDataSet/sample/1/ALL
+GenericDataSet/sample/1/input.txt
+GenericDataSet/sample/2/ALL
+GenericDataSet/sample/2/input.txt
+GenericDataSet/sample/input.txt

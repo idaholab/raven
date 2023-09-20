@@ -51,7 +51,7 @@
   </Steps>
 
   <Files>
-    <Input name="input">head.csv</Input>
+    <Input name="input">../Interpolated/head.csv</Input>
     <Input name="pk">interpolated.pk</Input>
   </Files>
 
@@ -121,9 +121,9 @@
   </Models>
 
   <Metrics>
-    <SKL name="metric">
+    <Metric name="mse" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <OutStreams>

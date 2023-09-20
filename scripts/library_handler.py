@@ -146,17 +146,15 @@ def checkSameVersion(expected, received):
   #Only check as many digits as given in expSplit
   rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
   # drop trailing 0s on both
-  while expSplit[-1] == 0:
+  while len(expSplit) and expSplit[-1] == 0:
     expSplit.pop()
-  while rcvSplit[-1] == 0:
+  while len(rcvSplit) and rcvSplit[-1] == 0:
     rcvSplit.pop()
   exp = '.'.join(str(x) for x in expSplit)
   rcv = '.'.join(str(x) for x in rcvSplit)
   if exp == rcv:
     return True
   return False
-
-
 
 def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
@@ -190,6 +188,8 @@ def findLibAndVersion(lib, version=None):
   if lib not in metaExceptions:
     try:
       foundVersion = importlib_metadata.version(lib)
+      #The following line can be used for debugging library problems
+      #print(lib, importlib_metadata.files(lib)[0].locate())
       found = True
       output = 'Library found.'
     except importlib_metadata.PackageNotFoundError:
@@ -531,6 +531,9 @@ if __name__ == '__main__':
   condaParser.add_argument('--subset', dest='subset',
         choices=('core', 'forge', 'pip', 'pyomo'), default='core',
         help='Use subset of installation libraries, divided by source.')
+  condaParser.add_argument('--no-name', dest='noName',
+                           action='store_true',
+                           help='Do not include --name in output (needed for mamba install)')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
   pipParser.add_argument('--action', dest='action', choices=('install', 'list', 'setup.cfg'), default='install',
@@ -596,7 +599,10 @@ if __name__ == '__main__':
     if args.installer == 'conda':
       installer = 'conda'
       equals = '='
-      actionArgs = '--name {env} -y {src}'
+      if args.noName:
+        actionArgs = '-y {src}'
+      else:
+        actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
       if args.subset == 'core' or args.subset == 'forge':
         # from defaults
