@@ -1,0 +1,18 @@
+<DataObjectMetadata name="grid">
+  <DataSet type="Static">
+    <dims>
+      <agent_id>autoindex</agent_id>
+      <asset_id>autoindex</asset_id>
+      <completion_pd>autoindex</completion_pd>
+      <retirement_pd>autoindex</retirement_pd>
+      <unit_type>autoindex</unit_type>
+    </dims>
+    <general>
+      <datasetName>grid</datasetName>
+      <inputs>pkd,unit_specs_wind_capacity</inputs>
+      <outputs>asset_id,agent_id,unit_type,completion_pd,retirement_pd</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

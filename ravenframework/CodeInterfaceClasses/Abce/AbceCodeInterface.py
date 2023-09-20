@@ -15,13 +15,12 @@
 Created on 2023-Jul-12
 
 This is a CodeInterface for the ABCE code.
-
 """
 
 import os
 import re
 import warnings
-from sqlalchemy import create_engine, text
+import sqlite3
 import pandas as pd
 
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
@@ -88,7 +87,7 @@ class Abce(CodeInterfaceBase):
             scenarioName = scenarioName.replace('"','')
             break
       self._outputDirectory = os.path.join(os.path.dirname(settingsFile.getAbsFile()),'outputs',scenarioName)
-      print("_outputDirectory", self._outputDirectory, "settingsFile", settingsFile.getAbsFile(), "scenarioName", scenarioName)
+      #print("_outputDirectory", self._outputDirectory, "settingsFile", settingsFile.getAbsFile(), "scenarioName", scenarioName)
       return None
 
     #prepend
@@ -145,27 +144,26 @@ class Abce(CodeInterfaceBase):
 
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
-      Convert csv information to RAVEN's prefered formats
-      Joins together two different csv files and also reorders it a bit.
-      @ In, command, ignored
+      Convert SQLite information to RAVEN's prefered formats [Pandas DataFrame]
+      Joins together two different SQLite files and also reorders it a bit.           @ In, command, ignored
       @ In, codeLogFile, ignored
       @ In, subDirectory, string, the subdirectory where the information is.
       @ Out, directory, string, the assets results
     """
     outDict = {}
     outputFile = os.path.join(self._outputDirectory,'abce_db.db')
-    sqlpath = 'sqlite:///'+outputFile
-    engine_cloud = create_engine(sqlpath)
-    assetsData = pd.read_sql_table('assets', engine_cloud.connect())
+    db_conn = sqlite3.connect(outputFile)
+    assetsDataFrame = pd.read_sql_query("SELECT asset_id, agent_id, unit_type, start_pd, completion_pd, retirement_pd, cancellation_pd, total_capex, cap_pmt, C2N_reserved from assets", db_conn)
+    db_conn.close()
     # print("assetsData", assetsData)
     # read each column and store it in the dictionary
     # column_names are: asset_id agent_id unit_type start_pd completion_pd
     # cancellation_pd retirement_pd total_capex cap_pmt C2N_reserved
-    for col in assetsData.columns:
-      outDict[col] = assetsData[col].values
+    for col in assetsDataFrame.columns:
+      outDict[col] = assetsDataFrame[col].values
     # TODO should change it in the future for reading the output file
     # from the code or the database file
     # OutputPlaceHolder should be a list of float("NaN")
     # if the len(assetsData)>0 or just a float("NaN")
-    outDict['OutputPlaceHolder'] = float("NaN")
+    outDict['OutputPlaceHolder'] = float("NaN")*len(assetsDataFrame)
     return outDict

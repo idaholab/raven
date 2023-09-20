@@ -71,3 +71,14 @@ plugins/plugin_directory.xml
 # vscode
 .vscode
 *.code-workspace
+
+# Custom
+# Files
+STACEY_NOTES.md
+# Directories
+OUT
+ABCE_XML_BACKUPS
+abce_run_ex_BUs
+
+
+

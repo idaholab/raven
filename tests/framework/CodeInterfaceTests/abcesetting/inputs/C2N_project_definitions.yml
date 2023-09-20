@@ -1,0 +1,155 @@
+greenfield:
+  PWR:
+    npp_ns_xtr:
+      cost_rem: 1940.0
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 2632.0
+      time_rem: 3.0
+    cpp_wr: 
+      cost_rem: 33.0
+      time_rem: 1.5
+    cpp_nrc:
+      cost_rem: 0.0
+      time_rem: 0.0
+    cpp_dnd:
+      cost_rem: 194.0
+      time_rem: 1.0
+  HTGR:
+    npp_ns_xtr:
+      cost_rem: 1977.0
+      time_rem: 1
+    npp_safety_xtr:
+      cost_rem: 1941.0
+      time_rem: 3.0
+    cpp_wr:
+      cost_rem: 25.0
+      time_rem: 1.5
+    cpp_nrc:
+      cost_rem: 0.0
+      time_rem: 0.0
+    cpp_dnd:
+      cost_rem: 145.0
+      time_rem: 1.0
+  SFR:
+    npp_ns_xtr:
+      cost_rem: 2415.0
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 2497.0
+      time_rem: 3.0
+    cpp_wr:
+      cost_rem: 30.0
+      time_rem: 1.5
+    cpp_nrc:
+      cost_rem: 0.0
+      time_rem: 0.0
+    cpp_dnd:
+      cost_rem: 179.0
+      time_rem: 1.0
+
+electrical:
+  baseline:
+    npp_ns_xtr:
+      cost_rem: 1430.0
+      time_rem: 1
+    npp_safety_xtr:
+      cost_rem: 1941.0
+      time_rem: 3.0
+    cpp_wr:
+      cost_rem: 33.0
+      time_rem: 1.5
+    cpp_nrc:
+      cost_rem: 0.0
+      time_rem: 0.0
+    cpp_dnd:
+      cost_rem: 194.0
+      time_rem: 1.0
+  conservative:
+    npp_ns_xtr:
+      cost_rem: 1615.0
+      time_rem: 1
+    npp_safety_xtr:
+      cost_rem: 2191.0
+      time_rem: 4.0
+    cpp_wr:
+      cost_rem: 66.0
+      time_rem: 2.0
+    cpp_nrc:
+      cost_rem: 0.0
+      time_rem: 0.0
+    cpp_dnd:
+      cost_rem: 194.0
+      time_rem: 1.0
+
+
+steam_noTES:
+  baseline:
+    npp_ns_xtr:
+      cost_rem: 1222
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 2400
+      time_rem: 3.0
+    cpp_wr:
+      cost_rem: 123.0
+      time_rem: 2.0
+    cpp_nrc:
+      cost_rem: 61.0
+      time_rem: 2.0
+    cpp_dnd:
+      cost_rem: 145.0
+      time_rem: 1.0
+  conservative:
+    npp_ns_xtr:
+      cost_rem: 1444.0
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 2836.0
+      time_rem: 4.0
+    cpp_wr:
+      cost_rem: 246.0
+      time_rem: 2.5
+    cpp_nrc:
+      cost_rem: 61.0
+      time_rem: 2.5
+    cpp_dnd:
+      cost_rem: 145.0
+      time_rem: 1.0
+
+
+steam_TES:
+  baseline:
+    npp_ns_xtr:
+      cost_rem: 1557.0
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 1610.0
+      time_rem: 3.0
+    cpp_wr:
+      cost_rem: 30.0
+      time_rem: 1.5
+    cpp_nrc:
+      cost_rem: 21.0
+      time_rem: 1.5
+    cpp_dnd:
+      cost_rem: 179.0
+      time_rem: 1.0
+  conservative:
+    npp_ns_xtr:
+      cost_rem: 1929.0
+      time_rem: 1.0
+    npp_safety_xtr:
+      cost_rem: 1996.0
+      time_rem: 4.0
+    cpp_wr:
+      cost_rem: 61.0
+      time_rem: 2.0
+    cpp_nrc:
+      cost_rem: 63.0
+      time_rem: 2.0
+    cpp_dnd:
+      cost_rem: 179.0
+      time_rem: 1.0
+
+
