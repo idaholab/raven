@@ -1,0 +1,79 @@
+[Tests]
+  [./Basic_not_linux]
+    type = 'RavenFramework'
+    input = 'Basic/BayesianBasic.xml'
+    skip_if_OS = 'linux'
+    [./data]
+      type = OrderedCSV
+      output = 'Basic/opt_export_0.csv'
+      windows_gold = 'Basic/windows_opt_export_0.csv'
+      mac_gold = 'Basic/mac_opt_export_0.csv'
+      rel_err = 1e-5
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./Basic_linux]
+    type = 'RavenFramework'
+    input = 'Basic/BayesianBasic.xml'
+    skip_if_OS = 'mac,windows'
+    [./data]
+      type = OrderedCSV
+      output = 'Basic/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./MishraBirdConstrained_not_linux]
+    type = 'RavenFramework'
+    input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
+    skip_if_OS = 'linux'
+    [./data]
+      type = OrderedCSV
+      output = 'MishraBirdConstrained/opt_export_0.csv'
+      windows_gold = 'MishraBirdConstrained/windows_opt_export_0.csv'
+      mac_gold = 'MishraBirdConstrained/mac_opt_export_0.csv'
+      rel_err = 1e-5
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MishraBirdConstrained_linux]
+    type = 'RavenFramework'
+    input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
+    skip_if_OS = 'mac,windows'
+    [./data]
+      type = OrderedCSV
+      output = 'MishraBirdConstrained/final_opt.csv'
+      rel_err = 3e-3
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./Matyas_not_linux]
+    type = 'RavenFramework'
+    input = 'Matyas/BayesianMatyas.xml'
+    skip_if_OS = 'linux'
+    [./data]
+      type = OrderedCSV
+      output = 'Matyas/opt_export_0.csv'
+      windows_gold = 'Matyas/windows_opt_export_0.csv'
+      mac_gold = 'Matyas/mac_opt_export_0.csv'
+      rel_err = 1e-5
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./Matyas_linux]
+    type = 'RavenFramework'
+    input = 'Matyas/BayesianMatyas.xml'
+    skip_if_OS = 'mac,windows'
+    [./data]
+      type = OrderedCSV
+      output = 'Matyas/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-2
+    [../]
+  [../]
+[]

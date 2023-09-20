@@ -108,6 +108,39 @@ This is a 2D function with a plethora of local minima and maxima (i.e., non-conv
 	\item Global Minimum: $f(x=512, y=404.2319) = -959.6407$
 \end{itemize}
 
+\paragraph{Basic Function}
+This basic test provides a 2-dimensional, nonconvex cost function to test optimizers' ability to find global.
+Function is generally well-behaved, periodic and smooth.
+See \url{https://www.blopig.com/blog/wp-content/uploads/2019/10/GPyOpt-Tutorial1.html}.
+
+\begin{itemize}
+  \item Objective Function: $f(x, y) = (x^2 + y^2)(\sin^2(x) - \cos(y))$
+  \item Domain: $0 \le x,y \le 10$
+  \item Global Minimum: $f(9.4969, 6.3799)=-129.6023$
+\end{itemize}
+
+\paragraph{Levi's Function}
+The Levi's function is a highly multi-modal, continuous cost function with many valleys. This function
+tests an optimizer's ability to navigate valleys and local minima.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Objective Function: $f(x, y) = \sin^2(3\pi x) + (x-1)^2(1 + \sin^2(3\pi y)) + (y-1)^2(1 + \sin^2(2\pi y))$
+  \item Domain: $-10 \le x,y \le 10$
+  \item Global Minimum: $f(1, 1)=0$
+\end{itemize}
+
+\paragraph{Matya's Function}
+Matya's function is a unimodal function that tests precise convergence. The slope towards the optimal point becomes
+flat quickly, making the optimum unpronounced.
+See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
+
+\begin{itemize}
+  \item Objective Function: $0.26(x^2 y^2) - 0.48xy$
+  \item Domain: $-10 \le x,y \le 10$
+  \item Global Minimum: $f(0, 0)=0$
+\end{itemize}
+
 \subsubsection{Constrained}
 \paragraph{Mishra's Bird Function}
 The Mishra bird function offers a constrained problem with multiple peaks, local minima, and one steep global
@@ -170,7 +203,7 @@ An exteremly simple two dimensional nonlinear function formed from 45-degrees hy
 \paragraph{Locally weighted sum without replacement}
 This function computes the sum of the input vector components weighted by the location in the vector (i.e., component/dimension number). The input vector is sampled from a disrete uniform distribution of intergers between an upper bound $ub$, and a lower bound $lb$ without replacement (i.e., if an integer is selected for one variable (a component in the $n$-th dimensional input vector it cannot be selected for the remaining components)).
 \begin{itemize}
-	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms)
 	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
 	\item Global Minimum: $f(\vec{x}_{opt}|x_i = lb + G - i) = \sum_{i=1}^{G} (lb + G -i) \times i$
 	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = lb + G - i = 1+6-i = \begin{bmatrix}
@@ -183,7 +216,7 @@ This function computes the sum of the input vector components weighted by the lo
 \paragraph{Locally weighted sum with replacement}
 This function computes the sum of the input vector components weighted by the location in the vector (i.e., component/dimension number). The input vector is sampled from a disrete uniform distribution of intergers between an upper bound $ub$, and a lower bound $lb$ with replacement (i.e., if an integer is selected for one variable, it can be selected again for any or all other variables).
 \begin{itemize}
-	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms)
 	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/ replacement}} (lb,ub)$
 	\item Global Minimum: $f(\vec{x}_{opt}|x_i = lb) = \sum_{i=1}^{G} lb \times i$
 	For instance, if $lb =1$, $ub=20$ , $G=6$, $\vec{x}_{opt} = [\vec{x}]_i | x_i = lb = 1 = \begin{bmatrix}
@@ -197,7 +230,7 @@ This function computes the sum of the input vector components weighted by the lo
 \paragraph{Locally weighted sum with replacement linearly constrained}
 It uses the same function but adds a constraint.
 \begin{itemize}
-	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms)
 	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
 	\item constraint $x_2 \leq 8.5 - 0.5 * x_1$
 	\item Global Minimum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}
@@ -209,7 +242,7 @@ It uses the same function but adds a constraint.
 \paragraph{Locally weighted sum with replacement sphere constrained}
 It uses the same function but adds a constraint.
 \begin{itemize}
-	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms) 
+	\item Objective Function: $f(\vec{x}) = \sum_{i=1}^{G}i \times x_i$; where $G$ is the number of variables (aka dimension of search/design space or number of Genes in Genetic algorithms)
 	\item Domain: $x_i \sim \mathcal{U}^{\text{Discrete int}}_{\text{w/o replacement}} (lb,ub)$
 	\item constraint $x^{2}_{1} + x^{2}_{2} \leq 72$
 	\item Global Minimum if $lb = 1, ub = 6, G =3$: $f(\vec{x}_{opt} = \begin{bmatrix}

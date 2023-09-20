@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
+    <Sequence>load,PCM</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_Tdep</name>
+    <author>syin</author>
+    <created>2023-04-23</created>
+    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
+    <description>
+        This test is aimed to show how Tdep_PCM works.This test uses the coefficients of SETH-C and SETH-D data 
+        based on their U subspace as experiment (Feature) and application (Target) models.
+        Here, coefficients of SETH-C are used as experiemnt responses (Features);
+        coefficients of SETH-C and SETH-D temperatures data are used as application responses (Target)
+        The outputs are posterior mean, and fraction value reflecting the error between posterior and prior mean
+        of Target, and has columns:'time', 'Tdep_post_mean', 'Error'.
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="allData">./data/TimeDep/Tdep.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="pcm_Tdep" subType="PhysicsGuidedCoverageMapping">
+      <pivotParameter>time</pivotParameter>
+      <Features>exp|TempC</Features>
+      <Targets>app|TempD</Targets>
+      <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Tdep</pcmType>
+      <ReconstructionError>0.001</ReconstructionError>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">allData</Input>
+      <Input class="Files" type="">allData</Input>
+      <Input class="Files" type="">allData</Input>
+      <Output class="DataObjects" type="HistorySet">exp</Output>
+      <Output class="DataObjects" type="HistorySet">app</Output>
+      <Output class="DataObjects" type="HistorySet">msr</Output>
+    </IOStep>
+    <PostProcess name="PCM">
+      <Input class="DataObjects" type="HistorySet">exp</Input>
+      <Input class="DataObjects" type="HistorySet">app</Input>
+      <Input class="DataObjects" type="HistorySet">msr</Input>
+      <Model class="Models" type="PostProcessor">pcm_Tdep</Model>
+      <Output class="DataObjects" type="HistorySet">pcmTdep_metric</Output>
+      <Output class="OutStreams" type="Print">pcmTdep_results</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="exp">
+      <options>
+       <pivotParameter>time</pivotParameter> 
+      </options>
+      <Output>TempC</Output>     
+    </HistorySet>
+    <HistorySet name="app">
+      <options>
+        <pivotParameter>time</pivotParameter> 
+      </options>
+      <Output>TempD</Output>     
+    </HistorySet>      
+    <HistorySet name="msr">
+      <options>
+        <pivotParameter>time</pivotParameter> 
+      </options>
+      <Output>TempMsrC</Output>     
+    </HistorySet>    
+    <HistorySet name="pcmTdep_metric">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Input>InputPlaceHolder</Input>
+      <Output>time, Tdep_post_mean, Error</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>       
+    <Print name="pcmTdep_results">
+      <type>csv</type>
+      <source>pcmTdep_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -1,4 +1,5 @@
-# Raven
+# Raven <img src="https://www.rdworldonline.com/wp-content/uploads/2023/08/RD100_2023_Winner_Logo.png" align="right" height="150" width="125"/>
+
 Risk Analysis Virtual Environment
 
 RAVEN is designed to perform parametric and probabilistic analysis based on the response of complex system codes. RAVEN is capable of investigating the system response as well as the input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused toward system feature discovery, such as limit surfaces, separating regions of the input space leading to system failure, using dynamic supervised learning techniques. RAVEN includes the following major capabilities:

@@ -1,0 +1,165 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/BO.Matyas</name>
+    <author>AnthoneyGriffith</author>
+    <created>2023-07-13</created>
+    <classesTested>BayesianOptimizer</classesTested>
+    <description>
+      This file provides regression testing of the BayesianOptimizer class in RAVEN. The primary
+      functionality tested is the PoI acquisition function with the differentialEvolution solution
+      option. The function is the 2-dimensional Matyas.
+      The post processing step captures the final results from opt_export. This is because for testing on mac and
+      windows, the entire optimization process is golded; however, due to seeding issues between OS's, the linux
+      tests only consider the final solutions proximity to the correct answer for the analytical test.
+    </description>
+    <analytic>
+      This test uses the Matya's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./</WorkingDir>
+    <Sequence>optimize, collect_final, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" >
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">mat</Model>
+      <Optimizer class="Optimizers" type="BayesianOptimizer">BOopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <PostProcess name="collect_final">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">PPindex</Model>
+      <Output class="DataObjects" type="PointSet">selected_index</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">selected_index</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='mat_dist'>
+      <lowerBound>-10</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <BayesianOptimizer name="BOopt">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>mat_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>mat_dist</distribution>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
+      <ModelSelection>
+        <Duration>10</Duration>
+        <Method>Internal</Method>
+      </ModelSelection>
+      <convergence>
+        <acquisition>1e-8</acquisition>
+        <persistence>5</persistence>
+      </convergence>
+      <Acquisition>
+        <ProbabilityOfImprovement>
+          <optimizationMethod>differentialEvolution</optimizationMethod>
+          <seedingCount>50</seedingCount>
+          <epsilon>0.2</epsilon>
+          <rho>10</rho>
+          <transient>Oscillate</transient>
+        </ProbabilityOfImprovement>
+      </Acquisition>
+    </BayesianOptimizer>
+  </Optimizers>
+
+  <Samplers>
+    <Stratified name="LHS_samp">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>mat_dist</distribution>
+        <grid construction="equal" steps="5" type="CDF">0 1</grid>
+      </variable>
+      <variable name="y">
+        <distribution>mat_dist</distribution>
+        <grid construction="equal" steps="5" type="CDF">0 1</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/matyas.py" name="mat" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
+      <Features>x,y</Features>
+      <Target>ans</Target>
+      <alpha>1e-8</alpha>
+      <n_restarts_optimizer>5</n_restarts_optimizer>
+      <normalize_y>True</normalize_y>
+      <random_state>42</random_state>
+      <kernel>Custom</kernel>
+      <custom_kernel>(Constant*Matern)+(Constant*RBF)</custom_kernel>
+      <anisotropic>True</anisotropic>
+      <multioutput>False</multioutput>
+    </ROM>
+    <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
+      <criterion value='-1'> index </criterion>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,accepted,solutionValue</Output>
+    </PointSet>
+    <PointSet name="selected_index">
+      <Input>trajID</Input>
+      <Output>x,y,ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="final_opt">
+      <type>csv</type>
+      <source>selected_index</source>
+    </Print>
+  </OutStreams>
+</Simulation>
