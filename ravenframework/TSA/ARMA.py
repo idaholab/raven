@@ -386,7 +386,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   # utils
   def _generateNoise(self, model, initDict, size):
     """
-      Generates purturbations for ARMA sampling.
+      Generates perturbations for ARMA sampling.
       @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
       @ In, initDict, dict, mean and covariance of initial sampling distribution
       @ In, size, int, length of time-like variable
