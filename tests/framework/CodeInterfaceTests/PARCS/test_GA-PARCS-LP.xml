@@ -290,7 +290,7 @@
   </Samplers>
 
   <Steps>
-      <MultiRun name="sampleGA-PARCS" re-seeding="2286">
+    <MultiRun name="sampleGA-PARCS" re-seeding="2286" clearRunDir="False">
       <Input class="Files" type="parcsdata">parcs_input</Input>
       <Input class="Files" type="perturb">parcsperturb_input</Input>
       <Input class="Files" type="input">input</Input>
