@@ -144,15 +144,15 @@ class PARCSData:
     numpy.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
     fileObject.close()
 
-  def getPinPower(self, depletionFile):
+  def getPinPower(self, pinpowerFile):
     """
       Get the pin power from the depletion output file
-      @ In, depletionFile, string, depletion file name to be parsed
+      @ In, pinpowerFile, string, pinpower file name to be parsed
       @ Out, outputDict, dict, the dictionary containing the read data
                            {'info_ids':list(of ids of data),
                             'values': list}
     """
-    with open(os.path.abspath(os.path.expanduser(depletionFile)),"r") as df:
+    with open(os.path.abspath(os.path.expanduser(pinpowerFile)),"r") as df:
       lines = df.readlines()
     numLines = len(lines)
     buStep = []
