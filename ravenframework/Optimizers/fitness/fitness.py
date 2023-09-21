@@ -71,7 +71,10 @@ def invLinear(rlz,**kwargs):
     penalty = 0.0
   else:
     penalty = kwargs['constraintFunction'].data
-  objVar = [kwargs['objVar']]
+  if isinstance(kwargs['objVar'], str) == True:
+    objVar = [kwargs['objVar']]
+  else:
+    objVar = kwargs['objVar']
   for j in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[j]].data)
     fitness = -a[0] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[0] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
@@ -204,13 +207,14 @@ def logistic(rlz,**kwargs):
     a = [1.0]
   else:
     a = kwargs['a']
-
   if kwargs['b'] == None:
     b = [0.0]
   else:
     b = kwargs['b']
-
-  objVar = [kwargs['objVar']]
+  if isinstance(kwargs['objVar'], str) == True:
+    objVar = [kwargs['objVar']]
+  else:
+    objVar = kwargs['objVar']
   for i in range(len(objVar)):
     val = rlz[objVar][objVar[i]].data
     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
