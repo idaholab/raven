@@ -24,7 +24,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>

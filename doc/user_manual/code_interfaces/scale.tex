@@ -11,6 +11,7 @@ currently limited in driving the following SCALE calculation codes:}}
 \begin{itemize}
   \item \textbf{\textit{ORIGEN}}
   \item \textbf{\textit{TRITON (using NEWT as transport solver)}}
+  \item \textbf{\textit{CSAS (any CSAS sequence)}}
 \end{itemize}
 }
 
@@ -61,8 +62,9 @@ In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can conta
      \item  ``\textit{triton}''
      \item  ``\textit{origen}''
      \item  ``\textit{triton,origen}''
+     \item  ``\textit{csas}''
     \end{itemize}
-  \item \xmlNode{timeUOM}, optional, string. In this node the user can specify  the \textit{units} for the independent variable ``time''.
+  \item \xmlNode{timeUOM}, optional, string. In this node the user can specify  the \textit{units} for the independent variable ``time'' (this does not have any effect for \textit{csas} since it is a static sequence).
    If the outputs are exported by SCALE in a different unit (e.g days, years, etc.), the SCALE interface will convert all the different
    time scales into the unit here specified (in order to have a consistent  (and unique) time scale). Available are:
     \begin{itemize}
@@ -78,10 +80,14 @@ In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can conta
 An example  is shown  below:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name="MyScale" subType="Scale">
+    <Code name="MyScale1" subType="Scale">
       <executable>path/to/scalerte</executable>
       <sequence>triton,origen</sequence>
       <timeUOM>d</timeUOM>
+    </Code>
+    <Code name="MyScale2" subType="Scale">
+      <executable>path/to/scalerte</executable>
+      <sequence>csas</sequence>
     </Code>
 </Models>
 \end{lstlisting}
@@ -92,15 +98,18 @@ An example  is shown  below:
 The \xmlNode{Files} XML node has to contain all the files required by the particular
 sequence (s) of the external code  (SCALE) to be run.
 This involves not only the input file(s) (.inp) but also the auxiliary files that might be needed (e.g. binary initial compositions, etc.).
-As mentioned, the current SCALE interface only supports TRITON and ORIGEN sequences. For this reason, depending on the
+As mentioned, the current SCALE interface only supports TRITON, ORIGEN and CSAS sequences.
+For this reason, depending on the
 type of sequence (see previous section) to be run, the relative input files need to be marked with the sequence they are associated
-with. This means that the type of the input file must be either ``triton'' or ``origen''. The auxiliary files that might be needed by
+with. This means that the type of the input file must be either ``triton'', ``origen'' or ``csas''.
+The auxiliary files that might be needed by
 a particular sequence (e.g. binary initial compositions, etc.) should not be marked with any specific type (i.e. \textit{type=``''}).
 Example:
 \begin{lstlisting}[style=XML]
 <Files>
   <Input name="triton_input" type="triton">pwr_depletion.inp</Input>
   <Input name="origen_input" type="origen">decay_calc.inp</Input>
+  <Input name="csas_input" type="csas">csas_expample.inp</Input>
   <Input name="binary_comp" type="">pwr_depletion.f71</Input>
 </Files>
 \end{lstlisting}
@@ -111,7 +120,7 @@ by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
 \paragraph{Output Files conversion}
 Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the SCALE output
 files need to be converted by the code interface.
-\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON and ORIGEN sequences only}.
+\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON, ORIGEN and CSAS sequences only}.
 %% TRITON
 \\The following information is collected from TRITON output:
 \begin{itemize}
@@ -261,6 +270,51 @@ The following information is collected from ORIGEN output:
      time    & ga74\_watts  & ga75\_watts      & subtotals\_fission\_products      & th231\_watts & th234\_watts & subtotals\_actinides & totals\_watts \\ \hline
      0.0E+00 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03   & 1.2313E+06    \\
      1.0E-06 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03  & 1.2313E+06
+    \end{tabular}
+   \end{table}
+\end{itemize}
+
+%% CSAS
+The following information is collected from CSAS output:
+\begin{itemize}
+  \item \textit{\textbf{history overview}}
+  \begin{lstlisting}[basicstyle=\tiny]
+        *****************************************************************************************************
+        ***                                                                                               ***
+        ***   title                                                                                       ***
+        ***                                                                                               ***
+        *****************************************************************************************************
+        ***                                                                                               ***
+        ***                             ******      final results table      ******                       ***
+        ***                                                                                               ***
+        ***   best estimate system k-eff                                  0.1111 + or - 0.11111           ***
+        ***                                                                                               ***
+        ***   Energy of average lethargy of Fission (eV)                  1.11111E-01 + or -  1.11111E-03 ***
+        ***                                                                                               ***
+        ***   system nu bar                                               1.11111E+00 + or -  1.11111E-04 ***
+        ***                                                                                               ***
+        ***   system mean free path (cm)                                  1.11111E+00 + or -  1.11111E-03 ***
+        ***                                                                                               ***
+        ***   number of warning messages                                 xx                               ***
+        ***                                                                                               ***
+        ***   number of error messages                                    x                               ***
+        ***                                                                                               ***
+        ***   k-effective satisfies the chi**2 test for normality at the 95 % level                       ***
+        ***                                                                                               ***
+        ***                                                                                               ***
+        *****************************************************************************************************
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+    \begin{table}[h]
+    \centering
+    \caption{CSAS Results}
+    \label{CSASresults}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+     time    & keff  & AverageLethargyFission      & nubar      & meanFreePath \\
+     0.0 & 0.1111 & 1.11111E-01 & 1.11111E+00 & 1.11111E+00
     \end{tabular}
    \end{table}
 \end{itemize}

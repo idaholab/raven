@@ -147,7 +147,6 @@ class Optimizer(AdaptiveSampler):
               The Sampler will be used to initialize the trajectories' initial points for some or all
               of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
-
     return specs
 
   def __init__(self):
@@ -181,7 +180,7 @@ class Optimizer(AdaptiveSampler):
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -396,7 +395,11 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     if not self.assemblerDict.get('Sampler', False):
-      return
+      # Need to make sure that initial values have been provided
+      if self._initialValues:
+        return
+      else:
+        self.raiseAnError(RuntimeError, 'Initial values not provided via sampler or user selected points')
     sampler = self.assemblerDict['Sampler'][0][3]
     if not isinstance(sampler, Sampler):
       self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')

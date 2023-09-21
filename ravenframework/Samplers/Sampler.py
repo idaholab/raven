@@ -174,6 +174,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         descr=r"""the method that is used for the variables transformation. The currently available method is \xmlString{pca}. """))
     inputSpecification.addSub(variablesTransformationInput)
 
+    rom = InputData.assemblyInputFactory('ROM', contentType=InputTypes.StringType,
+                                          printPriority=175,
+                                          descr=r"""Name of a Model that optimizers may want to use during optimization. For example, the
+                                          Bayesian Optimizer requires a ROM to select points during optimization. The model is defined in
+                                          detail with in the \xmlNode{Models} as in other uses. This node should be provided a string referencing
+                                          the model definition's name.""")
+    inputSpecification.addSub(rom)
+
     return inputSpecification
 
   def __init__(self):

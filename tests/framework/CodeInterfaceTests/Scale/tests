@@ -3,7 +3,6 @@
  [./ScaleOrigen]
    type = 'RavenFramework'
    input = test_scale_origen_forward.xml
-   output = 'SCALE_origen/sampleScale/1/origen_mass.csv SCALE_origen/sampleScale/2/origen_mass.csv'
    csv = 'SCALE_origen/output_time_evolution.csv'
    rel_err = 0.00001
    test_interface_only = True
@@ -12,7 +11,6 @@
  [./ScaleTriton]
    type = 'RavenFramework'
    input = test_scale_triton_forward.xml
-   output = 'SCALE_triton/sampleScale/1/triton_dv1a.csv SCALE_triton/sampleScale/2/triton_dv1a.csv'
    csv = 'SCALE_triton/output_time_evolution.csv'
    rel_err = 0.00001
    test_interface_only = True
@@ -21,8 +19,16 @@
  [./ScaleTritonOrigenCombined]
    type = 'RavenFramework'
    input = test_scale_combined_forward.xml
-   output = 'SCALE_triton_origen_combined/sampleScale/1/decay_origen.csv SCALE_triton_origen_combined/sampleScale/2/decay_origen.csv'
    csv = 'SCALE_triton_origen_combined/output_time_evolution.csv'
+   rel_err = 0.00001
+   test_interface_only = True
+ [../]
+
+ [./ScaleCSAS]
+   type = 'RavenFramework'
+   input = test_scale_csas_output.xml
+   output = 'SCALE_csas/output_results.xml'
+   csv = 'SCALE_csas/output_results.csv'
    rel_err = 0.00001
    test_interface_only = True
  [../]

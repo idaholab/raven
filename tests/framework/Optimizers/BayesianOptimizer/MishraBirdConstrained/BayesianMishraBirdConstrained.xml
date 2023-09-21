@@ -1,0 +1,177 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/BO.mishraBirdConstrained</name>
+    <author>AnthoneyGriffith</author>
+    <created>2023-07-12</created>
+    <classesTested>BayesianOptimizer</classesTested>
+    <description>
+      This test assesses the Genetic algorithm on the Mishra function.
+      The nominal dimensionality of the problem is 2.
+      The objective variable is ans.
+      The problem is constrained.
+      It is a minimization problem, and the sampling is from continuous variables.
+      The acquisition function is Expected Improvement with the slsqp solver. The model ModelSelection
+      method is External, allowing scikit learn to select hyperparameters.
+      The post processing step captures the final results from opt_export. This is because for testing on mac and
+      windows, the entire optimization process is golded; however, due to seeding issues between OS's, the linux
+      tests only consider the final solutions proximity to the correct answer for the analytical test.
+    </description>
+    <analytic>
+      This test uses the Mishra's Constrained Bird function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./</WorkingDir>
+    <Sequence>optimize, collect_final, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" >
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">mishra</Model>
+      <Optimizer class="Optimizers" type="BayesianOptimizer">BOopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <PostProcess name="collect_final">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Model class="Models" type="PostProcessor">PPindex</Model>
+      <Output class="DataObjects" type="PointSet">selected_index</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">selected_index</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Print">final_opt</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='mishra_dist_x'>
+      <lowerBound>-10</lowerBound>
+      <upperBound>0</upperBound>
+    </Uniform>
+    <Uniform name='mishra_dist_y'>
+      <lowerBound>-6.5</lowerBound>
+      <upperBound>0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <BayesianOptimizer name="BOopt">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>mishra_dist_x</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>mishra_dist_y</distribution>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>30</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+      <ROM  class="Models" type="ROM">gpROM</ROM>
+      <Constraint class='Functions' type='External'>constraint1</Constraint>
+      <ModelSelection>
+        <Duration>1</Duration>
+        <Method>External</Method>
+      </ModelSelection>
+      <convergence>
+        <acquisition>1e-4</acquisition>
+        <persistence>2</persistence>
+      </convergence>
+      <Acquisition>
+        <ExpectedImprovement>
+          <optimizationMethod>slsqp</optimizationMethod>
+          <seedingCount>8</seedingCount>
+        </ExpectedImprovement>
+      </Acquisition>
+    </BayesianOptimizer>
+  </Optimizers>
+
+  <Samplers>
+    <Stratified name="LHS_samp">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>mishra_dist_x</distribution>
+        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+      </variable>
+      <variable name="y">
+        <distribution>mishra_dist_y</distribution>
+        <grid construction="equal" steps="10" type="CDF">0 1</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/mishraBirdConstrained.py" name="mishra" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
+      <Features>x,y</Features>
+      <Target>ans</Target>
+      <alpha>1e-8</alpha>
+      <n_restarts_optimizer>10</n_restarts_optimizer>
+      <normalize_y>True</normalize_y>
+      <random_state>42</random_state>
+      <kernel>Custom</kernel>
+      <custom_kernel>(Constant*Matern)</custom_kernel>
+      <anisotropic>True</anisotropic>
+      <multioutput>False</multioutput>
+    </ROM>
+    <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
+      <criterion value='-1'> index </criterion>
+    </PostProcessor>
+  </Models>
+
+  <Functions>
+    <External file="../../../AnalyticModels/optimizing/mishraBirdConstrained.py" name="constraint1">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,accepted,solutionValue</Output>
+    </PointSet>
+    <PointSet name="selected_index">
+      <Input>trajID</Input>
+      <Output>x,y,ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="final_opt">
+      <type>csv</type>
+      <source>selected_index</source>
+    </Print>
+  </OutStreams>
+</Simulation>

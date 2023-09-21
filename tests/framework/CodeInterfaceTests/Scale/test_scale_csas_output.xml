@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Scale.ScaleOrigen</name>
+    <author>alfoa</author>
+    <created>2018-04-04</created>
+    <classesTested>Models.Code.Scale</classesTested>
+    <description>
+       An example of using the the Model Code of type Scale, with Forward Sampling and driving a sequence
+       in SCALE using a ``csas'' sequence for collecting outputs (keff, nubar, mean free path,
+       energy of average lethargy of Fission)
+    </description>
+    <revisions>
+      <revision author="aalfonsi" date="2023-07-19">Added example of using the csas sequence</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>SCALE_csas</WorkingDir>
+    <Sequence>sampleScale</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="csas_input" type="csas">csas5_example.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyScale" subType="Scale">
+      <executable>scalerte</executable>
+      <sequence>csas</sequence>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dens_dist">
+      <upperBound>10.20</upperBound>
+      <lowerBound>10.10</lowerBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="dens">
+        <distribution>dens_dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.1 0.8</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleScale"  clearRunDir="False">
+      <Input class="Files" type="csas">csas_input</Input>
+      <Model class="Models" type="Code">MyScale</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="PointSet">results</Output>
+      <Output class="OutStreams" type="Print">output_results</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="results">
+      <Input>dens</Input>
+      <Output>keff,meanFreePath,AverageLethargyFission,nubar</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="output_results">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

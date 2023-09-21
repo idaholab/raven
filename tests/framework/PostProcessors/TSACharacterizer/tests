@@ -2,10 +2,14 @@
   [./Basic]
     type = 'RavenFramework'
     input = 'basic.xml'
-    output = 'Basic/chz.xml'
-    csv = 'Basic/chz.csv'
-    rel_err = 1.5e-1 # limited by ARMA__signal_fa__constant
-    zero_threshold = 1e-12
+    [./csv]
+      type = OrderedCSV
+      output = 'Basic/chz.csv'
+      windows_gold = 'Basic/windowsChz.csv'
+      mac_gold = 'Basic/windowsChz.csv'
+      rel_err = 1.5e-1 # limited by ARMA__signal_fa__constant
+      zero_threshold = 1e-12
+    [../]
   [../]
   [./RWD]
     type = 'RavenFramework'

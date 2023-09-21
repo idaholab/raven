@@ -27,6 +27,7 @@ import xml.etree.ElementTree as ET
 from ..Generic import GenericParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from .tritonAndOrigenData import origenAndTritonData
+from .csasData import csasData
 
 class Scale(CodeInterfaceBase):
   """
@@ -39,7 +40,7 @@ class Scale(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
+    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen','csas']
     self.timeUOM  = 's'  # uom of time (i.e. s, h, m, d, y )
     self.outputRoot = {} # the root of the output sequences
 
@@ -59,6 +60,11 @@ class Scale(CodeInterfaceBase):
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
     if self.sequence.count('triton') > 1 or self.sequence.count('origen') > 1:
       raise IOError("Multiple triton or origen sequences are not supported yet!")
+    if self.sequence.count('csas') == 1:
+      if self.sequence.count('triton') > 0 or self.sequence.count('origen') > 0:
+        raise IOError("If csas sequence is activated, nor triton/origen special sequence can be activated!")
+
+
     timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
@@ -74,26 +80,38 @@ class Scale(CodeInterfaceBase):
     inputDict = {}
     origen = []
     triton = []
+    csas = []
 
     for inputFile in inputFiles:
       if inputFile.getType().strip().lower() == "triton":
         triton.append(inputFile)
       elif inputFile.getType().strip().lower() == "origen":
         origen.append(inputFile)
+      elif inputFile.getType().strip().lower() == "csas":
+        csas.append(inputFile)
     if len(triton) > 1:
       raise IOError('multiple triton input files have been found. Only one is allowed!')
     if len(origen) > 1:
       raise IOError('multiple origen input files have been found. Only one is allowed!')
+    if len(csas) > 1:
+      raise IOError('multiple SCALE csas input files have been found. Only one is allowed!')
+    if len(csas) > 0 and len(triton) > 0 and len(origen) > 0:
+      raise IOError('multiple SCALE csas, origen and triton input files have been found. Only one is allowed!')
+
     # Check if the input requested by the sequence has been found
     if self.sequence.count('triton') != len(triton):
       raise IOError('triton input file has not been found. Files type must be set to "triton"!')
     if self.sequence.count('origen') != len(origen):
       raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+    if self.sequence.count('csas') != len(csas):
+      raise IOError('csas input file has not been found. Files type must be set to "csas"!')
     # add inputs
     if len(origen) > 0:
       inputDict['origen'] = origen
     if len(triton) > 0:
       inputDict['triton'] = triton
+    if len(csas) > 0:
+      inputDict['csas'] = csas
     return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
@@ -171,10 +189,13 @@ class Scale(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
-    outputType   = 'combined' if len(self.sequence) > 1 else self.sequence[0]
+    outputType  = 'combined' if len(self.sequence) > 1 else self.sequence[0]
     filesIn = {}
     for key in self.outputRoot.keys():
       if self.outputRoot[key] is not None:
         filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
-    outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
-    outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
+    if outputType == 'csas':
+      outputParser = csasData(os.path.join(workingDir,self.outputRoot[outputType]+".out"))
+    else:
+      outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
+    return outputParser.returnData()
