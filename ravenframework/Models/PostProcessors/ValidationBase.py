@@ -188,7 +188,7 @@ class ValidationBase(PostProcessorReadyInterface):
     if "|" in var and names is not None:
       info = var.split("|")
       do = info[0]
-      feat = info[1]
+      feat = info[-1]
       dat = datasets[do][feat]
     else:
       for _, ds in enumerate(datasets):
