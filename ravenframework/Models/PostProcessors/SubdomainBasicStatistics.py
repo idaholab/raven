@@ -168,7 +168,8 @@ class SubdomainBasicStatistics(PostProcessorReadyInterface):
     midPoint = self.gridEntity.returnCellsMidPoints(returnDict=True)
     firstPass = True
     for i, (cellId, data) in enumerate(inputData.items()):
-      cellData = self.stat.inputToInternal(data)
+      cellData = data
+      self.stat.resetProbabilityWeight(data[1])
       res = self.stat._runLocal(cellData)
       for k in res:
         if firstPass:
@@ -181,8 +182,9 @@ class SubdomainBasicStatistics(PostProcessorReadyInterface):
           results[k][i] =  np.atleast_1d(midPoint[cellId][k])
       firstPass = False
     outputRealization['data'] =  results
+    indexes = inputIn['Data'][0][-1].indexes
     if self.stat.dynamic:
-      dims = dict.fromkeys(results.keys(), inputIn[-1].indexes if type(inputIn) == list else inputIn.indexes)
+      dims = dict.fromkeys(results.keys(), indexes)
       for k in list(midPoint.values())[0]:
         dims[k] = []
       outputRealization['dims'] = dims

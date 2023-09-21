@@ -212,6 +212,18 @@ class BasicStatistics(PostProcessorReadyInterface):
 
     return inputDataset, pbWeights
 
+
+  def resetProbabilityWeight(self, pbWeights):
+    """
+      Reset probability weight using given pbWeights
+      @ In, pbWeights, xr.Dataset, dataset contains probability weights and
+        variable probability weight
+      @ Out, None
+    """
+    if 'ProbabilityWeight' in pbWeights:
+      self.realizationWeight = xr.Dataset()
+      self.realizationWeight['ProbabilityWeight'] =  pbWeights['ProbabilityWeight']
+
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the BasicStatistic pp. In here the working dir is
