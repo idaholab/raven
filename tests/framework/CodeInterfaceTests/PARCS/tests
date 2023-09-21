@@ -1,0 +1,10 @@
+[Tests]
+ [./test_GA_PARCS_LP]
+   type = 'RavenFramework'
+   input = test_GA-PARCS-LP.xml
+   output = 'PARCS-RAVEN-GA/sampleGA-PARCS/b1_r1/input.inp PARCS-RAVEN-GA/sampleGA-PARCS/b1_r2/input.inp PARCS-RAVEN-GA/sampleGA-PARCS/b2_r2/input.inp'
+   csv = 'PARCS-RAVEN-GA/optOut.csv PARCS-RAVEN-GA/opt_export.csv PARCS-RAVEN-GA/opt_export_0.csv'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
+[]
