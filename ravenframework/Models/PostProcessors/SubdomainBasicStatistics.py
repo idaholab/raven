@@ -21,13 +21,12 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .BasicStatistics import BasicStatistics
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class SubdomainBasicStatistics(PostProcessorInterface):
+class SubdomainBasicStatistics(PostProcessorReadyInterface):
   """
     Subdomain basic statitistics class. It computes all statistics on subdomains
   """
@@ -76,6 +75,9 @@ class SubdomainBasicStatistics(PostProcessorInterface):
     self.validDataType  = ['PointSet', 'HistorySet', 'DataSet']
     self.outputMultipleRealizations = True
     self.printTag = 'PostProcessor SUBDOMAIN STATISTICS'
+    self.inputDataObjectName = None # name for input data object
+    self.setInputDataType('xrDataset')
+    self.sampleTag = 'RAVEN_sample_ID'
 
   def inputToInternal(self, currentInp):
     """
@@ -88,15 +90,12 @@ class SubdomainBasicStatistics(PostProcessorInterface):
     cellIDs = self.gridEntity.returnCellIdsWithCoordinates()
     dimensionNames =  self.gridEntity.returnParameter('dimensionNames')
     self.dynamic = False
-    currentInput = currentInp [-1] if type(currentInp) == list else currentInp
-    if len(currentInput) == 0:
-      self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-    if currentInput.type not in ['PointSet','HistorySet']:
-      self.raiseAnError(IOError, self, 'This Postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
     # extract all required data from input DataObjects, an input dataset is constructed
-    dataSet = currentInput.asDataset()
-    processedDataSet, pbWeights = self.stat.inputToInternal(currentInput)
+    inpVars, outVars, dataSet = currentInp['Data'][0]
+    processedDataSet, pbWeights = self.stat.inputToInternal(currentInp)
+    self.sampleSize = dataSet.sizes[self.sampleTag]
+
     for cellId, verteces in cellIDs.items():
       # create masks
       maskDataset = None
@@ -115,9 +114,9 @@ class SubdomainBasicStatistics(PostProcessorInterface):
       # check if at least sample is available (for scalar quantities) and at least 2 samples for derivative quantities
       setWhat = set(self.stat.what)
       minimumNumberOfSamples = 2 if len(setWhat.intersection(set(self.stat.vectorVals))) > 0 else 1
-      if len(cellDataset[currentInput.sampleTag]) < minimumNumberOfSamples:
+      if self.sampleSize < minimumNumberOfSamples:
         self.raiseAnError(RuntimeError,"Number of samples in cell "
-                          f"{cellId}  < {minimumNumberOfSamples}. Found {len(cellDataset[currentInput.sampleTag])}"
+                          f"{cellId}  < {minimumNumberOfSamples}. Found {self.sampleSize}"
                           " samples within the cell. Please make the evaluation grid coarser or increase number of samples!")
 
       # store datasets
