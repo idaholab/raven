@@ -66,9 +66,15 @@ class Melcor(CodeInterfaceBase):
     foundMelcorInp = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
+        if foundMelcorInp:
+          raise IOError(f"Multiple Melcor input files are found {inputFile} and {melgIn}, please check your inputs, only one of input is accepted")
         foundMelcorInp = True
         melgIn = currentInputFiles[index]
         melcIn = currentInputFiles[index]
+
+    if not foundMelcorInp:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+
     if not foundMelcorInp:
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn, melcIn
@@ -89,12 +95,6 @@ class Melcor(CodeInterfaceBase):
     """
     found = False
 
-    for index, inputFile in enumerate(inputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     melcOut = 'OUTPUT_MELCOR'
     melcin,melgin = self.findInps(inputFiles)
     if clargs:
