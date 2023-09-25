@@ -395,7 +395,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                                armaData['ar'][armaData['ar']!=0],
                                armaData['ma'][armaData['ma']!=0],
                                [armaData.get('var', 1)]])
-      msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'], armaData['initials'], synthetic.shape[0])
+      msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'],
+                                                                 armaData['initials'],
+                                                                 synthetic.shape[0],
+                                                                 settings['engine'])
       # measurement shocks
       # statsmodels if we don't provide them.
       # produce sample
@@ -500,12 +503,13 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     return params
 
   # utils
-  def _generateNoise(self, model, initDict, size):
+  def _generateNoise(self, model, initDict, size, engine=None):
     """
-      Generates purturbations for ARMA sampling.
+      Generates perturbations for ARMA sampling.
       @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
       @ In, initDict, dict, mean and covariance of initial sampling distribution
       @ In, size, int, length of time-like variable
+      @ In, engine, instance, optional, random number generator
       @ Out, msrShocks, np.array, measurement shocks
       @ Out, stateShocks, np.array, state shocks
       @ Out, initialState, np.array, initial random state
@@ -513,13 +517,13 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     # measurement shocks -> these are usually near 0 but not exactly
     # note in statsmodels.tsa.statespace.kalman_filter, mean of measure shocks is 0s
     msrCov = model['obs_cov']
-    msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size)
+    msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size, engine=engine)
     # state shocks -> these are the significant noise terms
     # note in statsmodels.tsa.statespace.kalman_filter, mean of state shocks is 0s
     stateCov = model['state_cov']
-    stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size)
+    stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size, engine=engine)
     # initial state
     initMean = initDict['mean']
     initCov = initDict['cov']
-    initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean)
+    initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean, engine=engine)
     return msrShocks, stateShocks, initialState

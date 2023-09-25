@@ -84,6 +84,15 @@ class SKLTransformer(TimeSeriesTransformer):
       composite[:, tg] = data['model'].inverse_transform(composite[:, tg].reshape(-1, 1)).flatten()
     return composite
 
+  def _invertTransformationFunctions(self):
+    """
+      Swaps the forward and inverse functions of the template transformer.
+      @ In, None
+      @ Out, None
+    """
+    self.templateTransformer.transform, self.templateTransformer.inverse_transform = \
+      self.templateTransformer.inverse_transform, self.templateTransformer.transform
+
   def writeXML(self, writeTo, params):
     """
       Allows the engine to put whatever it wants into an XML to print to file.

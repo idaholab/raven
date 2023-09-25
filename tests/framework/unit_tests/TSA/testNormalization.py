@@ -191,6 +191,13 @@ params = maxAbsScaler.fit(signals, pivot, targets, settings)
 scale = params['A']['scale']
 scaleTrue = 2
 checkFloat('MaxAbsScaler fit', scale, scaleTrue)
+# Check clustering parameter fetching
+nameTemplate = 'ClusterFeature|{target}|{metric}|{id}|unscaled'
+featureNames = maxAbsScaler._features
+clusterFeatures = maxAbsScaler.getClusteringValues(nameTemplate, featureNames, params)
+featuresTrue = {f'ClusterFeature|{targets[0]}|MaxAbsScaler|scale|unscaled': scaleTrue}
+for k in featuresTrue.keys():
+  checkFloat('MaxAbsScaler getClusteringValues', clusterFeatures[k], featuresTrue[k])
 # Check forward transform
 transformed = maxAbsScaler.getResidual(signals, params, pivot, settings)
 transformedTrue = np.linspace(-1, 1, 11).reshape(-1, 1)
@@ -215,6 +222,14 @@ maxValueTrue = 2
 scaleTrue = 0.25  # 1 / (2 - (-2))
 checkFloat('MinMaxScaler fit minValue', minValue, minValueTrue)
 checkFloat('MinMaxScaler fit maxValue', maxValue, maxValueTrue)
+# Check clustering parameter fetching
+nameTemplate = 'ClusterFeature|{target}|{metric}|{id}|unscaled'
+featureNames = minMaxScaler._features
+clusterFeatures = minMaxScaler.getClusteringValues(nameTemplate, featureNames, params)
+featuresTrue = {f'ClusterFeature|{targets[0]}|MinMaxScaler|dataMin|unscaled': minValueTrue,
+                f'ClusterFeature|{targets[0]}|MinMaxScaler|dataMax|unscaled': maxValueTrue}
+for k in featuresTrue.keys():
+  checkFloat('MinMaxScaler getClusteringValues', clusterFeatures[k], featuresTrue[k])
 # Check forward transform
 transformed = minMaxScaler.getResidual(signals, params, pivot, settings)
 transformedTrue = np.linspace(0, 1, 11).reshape(-1, 1)
@@ -238,6 +253,14 @@ meanTrue = 0
 scaleTrue = np.std(signals)
 checkFloat('StandardScaler fit mean', mean, meanTrue)
 checkFloat('StandardScaler fit scale', scale, scaleTrue)
+# Check clustering parameter fetching
+nameTemplate = 'ClusterFeature|{target}|{metric}|{id}|unscaled'
+featureNames = standardScaler._features
+clusterFeatures = standardScaler.getClusteringValues(nameTemplate, featureNames, params)
+featuresTrue = {f'ClusterFeature|{targets[0]}|StandardScaler|mean|unscaled': meanTrue,
+                f'ClusterFeature|{targets[0]}|StandardScaler|scale|unscaled': scaleTrue}
+for k in featuresTrue.keys():
+  checkFloat('StandardScaler getClusteringValues', clusterFeatures[k], featuresTrue[k])
 # Check forward transform
 transformed = standardScaler.getResidual(signals, params, pivot, settings)
 transformedTrue = (signals - meanTrue) / scaleTrue
@@ -261,6 +284,14 @@ centerTrue = 0  # median at 0
 scaleTrue = 2  # quartiles at -1 and 1, so interquarter range is 2
 checkFloat('RobustScaler fit center', center, centerTrue)
 checkFloat('RobustScaler fit scale', scale, scaleTrue)
+# Check clustering parameter fetching
+nameTemplate = 'ClusterFeature|{target}|{metric}|{id}|unscaled'
+featureNames = robustScaler._features
+clusterFeatures = robustScaler.getClusteringValues(nameTemplate, featureNames, params)
+featuresTrue = {f'ClusterFeature|{targets[0]}|RobustScaler|center|unscaled': centerTrue,
+                f'ClusterFeature|{targets[0]}|RobustScaler|scale|unscaled': scaleTrue}
+for k in featuresTrue.keys():
+  checkFloat('RobustScaler getClusteringValues', clusterFeatures[k], featuresTrue[k])
 # Check forward transform
 transformed = robustScaler.getResidual(signals, params, pivot, settings)
 transformedTrue = np.linspace(-1, 1, 11).reshape(-1, 1)

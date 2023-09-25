@@ -275,12 +275,13 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
   else:
     return _reduceRedundantListing(vals,size)
 
-def randomMultivariateNormal(cov, size=1, mean=None):
+def randomMultivariateNormal(cov, size=1, mean=None, engine=None):
   """
     Provides a random sample from a multivariate distribution.
     @ In, cov, np.array, covariance matrix (must be square, positive definite)
     @ In, size, int, optional, number of samples to return
     @ In, mean, np.array, means for distributions (must be length of 1 side of covar matrix == len(cov[0]))
+    @ In, engine, instance, optional, random number generator
     @ Out, vals, np.array, array of samples with size [n_samples, len(cov[0])]
   """
   dims = cov.shape[0]
@@ -289,7 +290,7 @@ def randomMultivariateNormal(cov, size=1, mean=None):
   eps = 10 * sys.float_info.epsilon
   covEps = cov + eps * np.identity(dims)
   decomp = np.linalg.cholesky(covEps)
-  randSamples = randomNormal(size=(dims, size)).reshape((dims, size))
+  randSamples = randomNormal(size=(dims, size), engine=engine).reshape((dims, size))
   vals = mean + np.dot(decomp, randSamples)
   return vals
 

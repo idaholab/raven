@@ -223,7 +223,9 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for algo in self._tsaAlgorithms:
       settings = byAlgo.get(algo.name, None)
       if settings:
-        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
+        # there might be multiple instances of same algo w/ different targets, need to filter by targets
+        filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
+        params = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
         self._tsaTrainedParams[algo] = params
 
   def findAlgoByName(self, name):
@@ -298,6 +300,18 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     # NOTE: only used during interpolation for global features! returning empty dict...
     results = {}
     return results
+
+  def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
+      @ In, localPicker, slice, optional, indexer for part of signal that should be adjusted IN LOCAL SIGNAL
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    return evaluation
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
