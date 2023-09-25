@@ -198,7 +198,7 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
       @ In, params, dict, parameters from training this ROM
       @ Out, None
     """
-    pass
+    return {}
 
 class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   """
@@ -278,7 +278,7 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
       @ In, params, dict, parameters from training this ROM
       @ Out, None
     """
-    pass
+    return {}
 
 class TimeSeriesTransformer(TimeSeriesAnalyzer):
   """
@@ -327,4 +327,4 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
       @ In, params, dict, parameters from training this ROM
       @ Out, None
     """
-    pass
+    return {}

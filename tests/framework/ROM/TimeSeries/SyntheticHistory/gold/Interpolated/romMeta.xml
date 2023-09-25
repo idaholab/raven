@@ -23,11 +23,13 @@
             <constant>6.564505717e-02</constant>
             <AR_0>-1.113714579e-01</AR_0>
             <variance>5.815862686e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-4.872371580e-06</constant>
             <AR_0>3.636652905e-01</AR_0>
             <variance>5.630618954e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>0, 1, 2, 7, 8</segments_represented>
@@ -43,11 +45,13 @@
             <constant>-5.644253444e-02</constant>
             <AR_0>2.683182521e-01</AR_0>
             <variance>5.370882136e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-1.682640622e-03</constant>
             <AR_0>1.828765482e-02</AR_0>
             <variance>5.860219850e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>3, 4, 5, 6, 9</segments_represented>
@@ -66,11 +70,13 @@
             <constant>6.564505717e-02</constant>
             <AR_0>-1.113714579e-01</AR_0>
             <variance>5.815862686e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-4.872371580e-06</constant>
             <AR_0>3.636652905e-01</AR_0>
             <variance>5.630618954e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>0, 1, 2, 7, 8</segments_represented>
@@ -86,11 +92,13 @@
             <constant>-5.644253444e-02</constant>
             <AR_0>2.683182521e-01</AR_0>
             <variance>5.370882136e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-1.682640622e-03</constant>
             <AR_0>1.828765482e-02</AR_0>
             <variance>5.860219850e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>3, 4, 5, 6, 9</segments_represented>
@@ -109,11 +117,13 @@
             <constant>6.564505717e-02</constant>
             <AR_0>-1.113714579e-01</AR_0>
             <variance>5.815862686e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-4.872371580e-06</constant>
             <AR_0>3.636652905e-01</AR_0>
             <variance>5.630618954e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>0, 1, 2, 7, 8</segments_represented>
@@ -129,11 +139,13 @@
             <constant>-5.644253444e-02</constant>
             <AR_0>2.683182521e-01</AR_0>
             <variance>5.370882136e+00</variance>
+            <order>1,0,0</order>
           </signal0>
           <signal1>
             <constant>-1.682640622e-03</constant>
             <AR_0>1.828765482e-02</AR_0>
             <variance>5.860219850e+00</variance>
+            <order>1,0,0</order>
           </signal1>
         </ARMA>
         <segments_represented>3, 4, 5, 6, 9</segments_represented>

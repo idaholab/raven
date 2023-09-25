@@ -19,7 +19,6 @@ import collections
 import numpy as np
 import scipy as sp
 import pandas as pd
-import re
 
 from .. import Decorators
 
@@ -254,8 +253,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       ar = -res.polynomial_ar[1:]
       ma = res.polynomial_ma[1:]
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': np.pad(ar, (0, self._maxPQ - len(ar) ) ),     # AR
-                                'ma': np.pad(ma, (0, self._maxPQ - len(ma) ) ),     # MA
+                                'ar': ar, #np.pad(ar, (0, self._maxPQ - len(ar) ), "constant", constant_values=0.0 ),     # AR
+                                'ma': ma, #np.pad(ma, (0, self._maxPQ - len(ma) ), "constant", constant_values=0.0 ),     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'lags': [P,d,Q],
@@ -278,6 +277,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     try:
       from statsforecast.models import AutoARIMA
       from statsforecast.arima import arima_string
+      import re
     except ModuleNotFoundError as exc:
       print("This RAVEN TSA Module requires the statsforecast library to be installed in the current python environment")
       raise ModuleNotFoundError from exc
@@ -398,7 +398,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'],
                                                                  armaData['initials'],
                                                                  synthetic.shape[0],
-                                                                 settings['engine'])
+                                                                 None) #settings['engine'])
       # measurement shocks
       # statsmodels if we don't provide them.
       # produce sample
