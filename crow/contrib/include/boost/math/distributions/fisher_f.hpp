@@ -54,6 +54,11 @@ private:
 
 typedef fisher_f_distribution<double> fisher_f;
 
+#ifdef __cpp_deduction_guides
+template <class RealType>
+fisher_f_distribution(RealType,RealType)->fisher_f_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+#endif
+
 template <class RealType, class Policy>
 inline const std::pair<RealType, RealType> range(const fisher_f_distribution<RealType, Policy>& /*dist*/)
 { // Range of permissible values for random variable x.
@@ -78,10 +83,10 @@ RealType pdf(const fisher_f_distribution<RealType, Policy>& dist, const RealType
    // Error check:
    RealType error_result = 0;
    static const char* function = "boost::math::pdf(fisher_f_distribution<%1%> const&, %1%)";
-   if(false == detail::check_df(
+   if(false == (detail::check_df(
          function, df1, &error_result, Policy())
          && detail::check_df(
-         function, df2, &error_result, Policy()))
+         function, df2, &error_result, Policy())))
       return error_result;
 
    if((x < 0) || !(boost::math::isfinite)(x))
@@ -178,7 +183,7 @@ inline RealType quantile(const fisher_f_distribution<RealType, Policy>& dist, co
       return error_result;
 
    // With optimizations turned on, gcc wrongly warns about y being used
-   // uninitializated unless we initialize it to something:
+   // uninitialized unless we initialize it to something:
    RealType x, y(0);
 
    x = boost::math::ibeta_inv(df1 / 2, df2 / 2, p, &y, Policy());
@@ -366,7 +371,7 @@ inline RealType kurtosis_excess(const fisher_f_distribution<RealType, Policy>& d
    if(df2 <= 8)
    {
       return policies::raise_domain_error<RealType>(
-         function, "Second degree of freedom was %1% but must be > 8 in order for the distribution to have a kutosis.", df2, Policy());
+         function, "Second degree of freedom was %1% but must be > 8 in order for the distribution to have a kurtosis.", df2, Policy());
    }
    RealType df2_2 = df2 * df2;
    RealType df1_2 = df1 * df1;

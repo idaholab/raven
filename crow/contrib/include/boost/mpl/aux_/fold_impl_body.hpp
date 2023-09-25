@@ -11,9 +11,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: fold_impl_body.hpp 49267 2008-10-11 06:19:02Z agurtovoy $
-// $Date: 2008-10-10 23:19:02 -0700 (Fri, 10 Oct 2008) $
-// $Revision: 49267 $
+// $Id$
+// $Date$
+// $Revision$
 
 #   include <boost/mpl/limits/unrolling.hpp>
 #   include <boost/mpl/aux_/preprocessor/repeat.hpp>
@@ -60,7 +60,7 @@ struct AUX778076_FOLD_IMPL_NAME;
 
 #if !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
 
-#   if !BOOST_WORKAROUND(__BORLANDC__, < 0x600)
+#   if !BOOST_WORKAROUND(BOOST_BORLANDC, < 0x600)
 
 #   define BOOST_PP_ITERATION_PARAMS_1 \
     (3,(0, BOOST_MPL_LIMIT_UNROLLING, <boost/mpl/aux_/fold_impl_body.hpp>))
@@ -125,7 +125,7 @@ struct AUX778076_FOLD_IMPL_NAME<-1,Last,Last,State,ForwardOp>
     typedef Last iterator;
 };
 
-#   else // BOOST_WORKAROUND(__BORLANDC__, < 0x600)
+#   else // BOOST_WORKAROUND(BOOST_BORLANDC, < 0x600)
 
 // Borland have some serious problems with the unrolled version, so
 // we always use a basic implementation
@@ -164,7 +164,7 @@ struct AUX778076_FOLD_IMPL_NAME<N,Last,Last,State,ForwardOp >
     typedef state type;
 };
 
-#   endif // BOOST_WORKAROUND(__BORLANDC__, < 0x600)
+#   endif // BOOST_WORKAROUND(BOOST_BORLANDC, < 0x600)
  
 #else // BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
 

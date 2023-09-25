@@ -51,7 +51,14 @@ namespace boost { namespace math {
     
     
     typedef logistic_distribution<double> logistic;
-    
+
+    #ifdef __cpp_deduction_guides
+    template <class RealType>
+    logistic_distribution(RealType)->logistic_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+    template <class RealType>
+    logistic_distribution(RealType,RealType)->logistic_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+    #endif
+
     template <class RealType, class Policy>
     inline const std::pair<RealType, RealType> range(const logistic_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable x.
@@ -290,6 +297,13 @@ namespace boost { namespace math {
     {
       return kurtosis_excess(dist) + 3;
     } // RealType kurtosis_excess(const logistic_distribution<RealType, Policy>& dist)
+
+    template <class RealType, class Policy>
+    inline RealType entropy(const logistic_distribution<RealType, Policy>& dist)
+    {
+       using std::log;
+       return 2 + log(dist.scale());
+    }
   }}
 
 

@@ -8,6 +8,7 @@
 #if !defined(BOOST_FUSION_SINGLE_VIEW_ITERATOR_05052005_0340)
 #define BOOST_FUSION_SINGLE_VIEW_ITERATOR_05052005_0340
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/fusion/support/iterator_base.hpp>
 #include <boost/fusion/view/single_view/detail/deref_impl.hpp>
@@ -19,9 +20,9 @@
 #include <boost/fusion/view/single_view/detail/value_of_impl.hpp>
 #include <boost/config.hpp>
 
-#if defined (BOOST_MSVC)
+#ifdef _MSC_VER
 #  pragma warning(push)
-#  pragma warning (disable: 4512) // assignment operator could not be generated.
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
 #endif
 
 namespace boost { namespace fusion
@@ -39,18 +40,25 @@ namespace boost { namespace fusion
         typedef Pos position;
         typedef SingleView single_view_type;
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         explicit single_view_iterator(single_view_type& in_view)
             : view(in_view) {}
 
         SingleView& view;
-
-    private:
-        single_view_iterator& operator=(single_view_iterator const&);
     };
 }}
 
-#if defined (BOOST_MSVC)
+#ifdef _MSC_VER
 #  pragma warning(pop)
+#endif
+
+#ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
+namespace std
+{
+    template <typename SingleView, typename Pos>
+    struct iterator_traits< ::boost::fusion::single_view_iterator<SingleView, Pos> >
+    { };
+}
 #endif
 
 #endif

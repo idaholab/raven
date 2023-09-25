@@ -63,6 +63,11 @@ namespace boost
 
       typedef non_central_f_distribution<double> non_central_f; // Reserved name of type double.
 
+      #ifdef __cpp_deduction_guides
+      template <class RealType>
+      non_central_f_distribution(RealType,RealType,RealType)->non_central_f_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+      #endif
+
       // Non-member functions to give properties of the distribution.
 
       template <class RealType, class Policy>
@@ -133,9 +138,10 @@ namespace boost
                &r,
                Policy()))
                return r;
+         RealType guess = m > 2 ? RealType(m * (n + l) / (n * (m - 2))) : RealType(1);
          return detail::generic_find_mode(
             dist,
-            m * (n + l) / (n * (m - 2)),
+            guess,
             function);
       }
 
