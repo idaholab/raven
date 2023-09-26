@@ -253,8 +253,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       ar = -res.polynomial_ar[1:]
       ma = res.polynomial_ma[1:]
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': ar, #np.pad(ar, (0, self._maxPQ - len(ar) ), "constant", constant_values=0.0 ),     # AR
-                                'ma': ma, #np.pad(ma, (0, self._maxPQ - len(ma) ), "constant", constant_values=0.0 ),     # MA
+                                'ar': ar, #np.pad(ar, (0, self._maxPQ - len(ar) ), "constant", constant_values=0.0 ),     # ar
+                                'ma': ma, #np.pad(ma, (0, self._maxPQ - len(ma) ), "constant", constant_values=0.0 ),     # ma
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'lags': [P,d,Q],

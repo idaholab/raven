@@ -658,7 +658,7 @@ class SupervisedLearning(BaseInterface):
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
-  def getSegmentPointwiseData(self, writeTo):
+  def getSegmentPointwiseData(self):
     """
       Allows the SVE to accumulate data arrays to later add to a DataObject
       Overload in subclasses.
@@ -666,7 +666,7 @@ class SupervisedLearning(BaseInterface):
       @ Out, segmentData, dict
     """
     # by default, nothing to write!
-    self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
+    self.raiseAMessage('Writing ROM, but no pointwise data found. Moving on ...')
     return {}
 
   def writeXML(self, writeTo, targets=None, skip=None):
