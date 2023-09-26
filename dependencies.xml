@@ -13,6 +13,7 @@ Note all install methods after "main" take
  add with no pinned version: <library/>
  remove a library:           <library>remove</library>
  action for limited OS:      <library os='windows'>...
+ action for certain machine  <library machine='arm64'>...
  add library from forge:     <library source='forge'>...
  optional:                   <library optional='True'>...
  skip run/install check:     <library skip_check='True'>...
@@ -68,7 +69,7 @@ Note all install methods after "main" take
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
-    <smt optional='True'/> <!-- not available on macos arm64 -->
+    <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <pywavelets optional='True'>1.1</pywavelets>
