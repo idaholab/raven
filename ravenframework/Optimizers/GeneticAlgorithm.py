@@ -105,12 +105,12 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionType = None                           # type of the survivor selection process chosen
     self._survivorSelectionInstance = None                       # instance of the survivor selection process chosen
     self._fitnessType = None                                     # type of the fitness calculation chosen
-    self._objCoeff = None                                        # //
+    self._objCoeff = None                                        # weight coefficients of objectives for fitness calculation
     self._objectiveVar = None                                    # objective variable names
-    self._penaltyCoeff = None                                    # //
-    self._fitnessInstance = None                                 # //
-    self._repairInstance = None                                  # //
-    self._canHandleMultiObjective = True                         # //
+    self._penaltyCoeff = None                                    # weight coefficients corresponding to constraints and objectives for fitness calculation
+    self._fitnessInstance = None                                 # instance of fitness
+    self._repairInstance = None                                  # instance of repair
+    self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
 
   ##########################
   # Initialization Methods #
