@@ -10,7 +10,7 @@
    <NAxial> 14 </NAxial>
    <FA_Pitch> 21.50 </FA_Pitch>
    <FA_Power> 16.3 </FA_Power>
-   <Geometry> QUATER </Geometry>
+   <Geometry> QUARTER </Geometry>
    <grid_x> 1*10.75 8*21.50 </grid_x>
    <grid_y> 1*10.75 8*21.50 </grid_y>
    <grid_z> 30.48  12*30.48  30.48 </grid_z>

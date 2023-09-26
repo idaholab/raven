@@ -216,7 +216,7 @@ def getcoremap(parameter, faID, geometrykey):
   """
     Genrate Loading Pattern
     @ In, parameter, DataParser class, include all parameter information
-    @ In, faID, sorted list, geometry key for full or quater core
+    @ In, faID, sorted list, geometry key for full or quarter core
     @ Out, loadingPattern, str, Loading Pattern
   """
   faDict = parameter.faDict
@@ -226,11 +226,11 @@ def getcoremap(parameter, faID, geometrykey):
   if geometrykey.lower()=='full':
     rows, cols=17,17
     xStart, yStart = 9, 9
-  elif geometrykey.lower() =='quater':
+  elif geometrykey.lower() =='quarter':
     rows, cols=9,9
     xStart, yStart = 1, 1
   else:
-    raise ValueError("No available geometry key. Only full or quater core is supported")
+    raise ValueError("No available geometry key. Only full or quarter core is supported")
   for i in range(rows):
       col = []
       for j in range(cols):
@@ -290,7 +290,7 @@ def getIndexFull(x, y, x0, y0):
 def getIndexQuater(x, y):
     """
       Get the index of symetric element in a 1/8 th symmetric core map
-      to quater core
+      to quarter core
       @ In, x, float, x coordinate of the element
       @ In, y, float, y coordinate of the element
       @ Out, outarray, list, list of indices [(x,y)]
