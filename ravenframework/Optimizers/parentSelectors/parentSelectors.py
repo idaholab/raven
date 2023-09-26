@@ -97,21 +97,20 @@ def tournamentSelection(population,**kwargs):
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
 
-  nParents= kwargs['nParents']
+  nParents = kwargs['nParents']
+  nObjVal  = len(kwargs['objVal'])
   pop = population
   popSize = population.values.shape[0]
 
-  if 'rank' in kwargs.keys():
-    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
+  if nObjVal > 1:
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to. 
     rank = kwargs['rank']
     crowdDistance = kwargs['crowdDistance']
-    # constraintInfo = kwargs['constraint']
     multiObjectiveRanking = True
-    matrixOperationRaw = np.zeros((popSize, 3))    #NOTE if constraint is needed to eliminate chromosome violating constraints, then poopSize should be 4.
+    matrixOperationRaw = np.zeros((popSize, 3))                    #NOTE if constraint information is in need to eliminate chromosome violating constraints, then poopSize should be 4.
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
     matrixOperationRaw[:,1] = np.transpose(crowdDistance.data)
     matrixOperationRaw[:,2] = np.transpose(rank.data)
-    # matrixOperationRaw[:,3] = np.transpose(constraintInfo.data)
     matrixOperation = np.zeros((popSize,len(matrixOperationRaw[0])))
   else:
     fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])  
