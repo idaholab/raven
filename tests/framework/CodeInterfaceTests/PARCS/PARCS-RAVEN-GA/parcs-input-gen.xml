@@ -1,0 +1,39 @@
+<PARCS-input-gen>
+   <THFlag> F </THFlag>
+   <power> 100 </power>
+   <coretype> PWR </coretype>
+   <initialBoron> 1000 </initialBoron>
+   <XSdir> Xsdir </XSdir>
+   <Depdir> PARCSDEP </Depdir>
+   <DepHistory> 1 1 1 1 18*30 </DepHistory>
+   <NFA> 9 </NFA>
+   <NAxial> 14 </NAxial>
+   <FA_Pitch> 21.50 </FA_Pitch>
+   <FA_Power> 16.3 </FA_Power>
+   <Geometry> QUARTER </Geometry>
+   <grid_x> 1*10.75 8*21.50 </grid_x>
+   <grid_y> 1*10.75 8*21.50 </grid_y>
+   <grid_z> 30.48  12*30.48  30.48 </grid_z>
+   <neutmesh_x> 1*1 8*1 </neutmesh_x>
+   <neutmesh_y> 1*1 8*1 </neutmesh_y>
+   <BC> 0 2 0 2 2 2 </BC>
+   <FA-list>
+	<FA name='FA1'   FAid ='0'  type ='20' structure = '1*6   12*1    1*7 FUEL'/>
+	<FA name='FA2'   FAid ='1'  type ='30' structure = '1*6   12*2    1*7 FUEL'/>
+	<FA name='FA3'   FAid ='2'  type ='40' structure = '1*6   12*3    1*7 FUEL'/>
+	<FA name='FA4'   FAid ='3'  type ='50' structure = '1*6   12*4    1*7 FUEL'/>
+	<FA name='FA5'   FAid ='4'  type ='60' structure = '1*6   12*5    1*7 FUEL'/>
+	<FA name='REF'   FAid ='5'  type ='10' structure = '1*6   12*8    1*7 REFL'/>
+	<FA name='NONE'  FAid ='-1' type ='00' structure = ''/>
+   </FA-list>
+   <XS-list>
+    <XS id='1' name='xs_g200_gd_0_bp_0'/>
+    <XS id='2' name='xs_g250_gd_0_bp_0'/>
+    <XS id='3' name='xs_g250_gd_16_bp_0'/>
+    <XS id='4' name='xs_g320_gd_0_bp_0'/>
+    <XS id='5' name='xs_g320_gd_16_bp_0'/>
+    <XS id='6' name='xs_gbot'/>
+    <XS id='7' name='xs_gtop'/>
+    <XS id='8' name='xs_grad'/>
+   </XS-list>
+</PARCS-input-gen>
