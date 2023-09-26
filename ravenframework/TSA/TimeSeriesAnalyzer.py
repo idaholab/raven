@@ -30,6 +30,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   # class attribute
   ## defines if missing values are accepted by the characterization algorithm
   _acceptsMissingValues = False
+  _isGlobal = False
 
   @classmethod
   def getInputSpecification(cls):

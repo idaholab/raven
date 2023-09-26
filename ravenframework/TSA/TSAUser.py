@@ -176,11 +176,12 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
-  def trainTSASequential(self, targetVals):
+  def trainTSASequential(self, targetVals, trainGlobal=False):
     """
       Train TSA algorithms using a sequential removal-and-residual approach.
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], array of time series data
         NOTE: this should be a single history/realization, not an array of realizations
+      @ In, trainGlobal, bool, are we training on global signal?
       @ Out, None
     """
     pivotName = self.pivotParameterID
@@ -192,6 +193,9 @@ class TSAUser:
 
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for a, algo in enumerate(self._tsaAlgorithms):
+      # check if training globally, if so we only train global algos
+      if trainGlobal and not algo._isGlobal:
+        continue
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
@@ -211,10 +215,10 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
-  def evaluateTSASequential(self):
+  def evaluateTSASequential(self, evalGlobal=False):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
-      @ In, None
+      @ In, evalGlobal, bool, are these algos trained on global signal?
       @ Out, rlz, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
@@ -225,6 +229,9 @@ class TSAUser:
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
 
     for algo in self._tsaAlgorithms[::-1]:
+      # check if trained globally, if so we add back global params
+      if evalGlobal and not algo._isGlobal:
+        continue
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
@@ -241,6 +248,19 @@ class TSAUser:
     rlz[self.pivotParameterID] = self.pivotParameterValues
 
     return rlz
+
+  def getGlobalTSARomSettings(self):
+    """
+      Train TSA algorithms using a sequential removal-and-residual approach.
+      @ In, None
+      @ Out, settings
+    """
+    globalSettings = {}
+    for algo in self._tsaAlgorithms:
+      if not algo._isGlobal:
+        continue
+      globalSettings[algo] = self._tsaTrainedParams[algo]
+    return globalSettings
 
   def writeTSAtoXML(self, xml):
     """

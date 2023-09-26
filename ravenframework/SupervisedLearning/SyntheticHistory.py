@@ -20,6 +20,7 @@
 """
 import numpy as np
 import collections
+import copy
 
 from ..utils import InputData, xmlUtils
 from ..TSA import TSAUser
@@ -96,6 +97,56 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     rlz = self.evaluateTSASequential()
     return rlz
+
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    self.raiseADebug('Training Global...')
+    trainingDict = copy.deepcopy(trainingDict)
+    names, values  = list(trainingDict.keys()), list(trainingDict.values())
+    ## This is for handling the special case needed by skl *MultiTask* that
+    ## requires multiple targets.
+    targetValues = []
+    for target in self.target:
+      if target in names:
+        targetValues.append(values[names.index(target)])
+      else:
+        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+    # stack targets
+    targetValues = np.stack(targetValues, axis=-1)
+    self.trainTSASequential(targetValues, trainGlobal=True)
+    settings = self.getGlobalTSARomSettings()
+    return settings, trainingDict
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      TODO finish docs
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    rlz = self.evaluateTSASequential(evalGlobal=True)
+    return rlz
+
+  def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
+      @ In, localPicker, slice, optional, indexer for part of signal that should be adjusted IN LOCAL SIGNAL
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    return evaluation
 
   def writePointwiseData(self, writeTo):
     """
