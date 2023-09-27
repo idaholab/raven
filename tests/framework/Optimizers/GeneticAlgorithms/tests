@@ -310,7 +310,7 @@
     [./csv]
      type = OrderedCSV
      output = 'continuous/constrained/simionescuConstrainedInvLin/opt_export_0.csv'
-     rel_err = 10.0
+     rel_err = 0.001
     [../]
   [../]
 
