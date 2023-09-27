@@ -194,7 +194,7 @@ class TSAUser:
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for a, algo in enumerate(self._tsaAlgorithms):
       # check if training globally, if so we only train global algos
-      if trainGlobal and not algo._isGlobal:
+      if trainGlobal and not algo.isGlobal():
         continue
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -215,7 +215,7 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
-  def evaluateTSASequential(self, evalGlobal=False):
+  def evaluateTSASequential(self, evalGlobal=False, rlz=None):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
       @ In, evalGlobal, bool, are these algos trained on global signal?
@@ -230,7 +230,7 @@ class TSAUser:
 
     for algo in self._tsaAlgorithms[::-1]:
       # check if trained globally, if so we add back global params
-      if evalGlobal and not algo._isGlobal:
+      if evalGlobal and not algo.isGlobal():
         continue
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
@@ -257,7 +257,7 @@ class TSAUser:
     """
     globalSettings = {}
     for algo in self._tsaAlgorithms:
-      if not algo._isGlobal:
+      if not algo.isGlobal():
         continue
       globalSettings[algo] = self._tsaTrainedParams[algo]
     return globalSettings

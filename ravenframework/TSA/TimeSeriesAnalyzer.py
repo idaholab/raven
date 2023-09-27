@@ -46,6 +46,9 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
         descr=r"""indicates the variables for which this algorithm will be used for characterization. """)
     specs.addParam('seed', param_type=InputTypes.IntegerType, required=False,
         descr=r"""sets a seed for the underlying random number generator, if present.""")
+    specs.addParam('global', param_type=InputTypes.BoolType, required=False,
+                   descr=r"""designates this algorithm to be used on global signal instead of per
+                   segment""", default=False)
     return specs
 
   @classmethod
@@ -107,7 +110,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     settings = {}
     settings['target'] = spec.parameterValues['target']
     settings['seed'] = spec.parameterValues.get('seed', None)
-
+    self._isGlobal = spec.parameterValues.get('global', False)
     settings = self.setDefaults(settings)
 
     return settings
@@ -133,6 +136,15 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     ## behavior defaults to False. It is left to each algorithm to implement how these missing
     ## values are handled.
     return self._acceptsMissingValues
+
+  def isGlobal(self):
+    """
+      Method that returns if an algorithm is applied globally or per segment.
+
+      @ In, None
+      @ Out, _isGlobal, bool, True if this algorithm is global and False if it is per segment
+    """
+    return self._isGlobal
 
   @abc.abstractmethod
   def writeXML(self, writeTo, params):

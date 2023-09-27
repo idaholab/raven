@@ -58,9 +58,6 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     specs.addSub(InputData.parameterInputFactory('periods', contentType=InputTypes.FloatListType,
                  descr=r"""Specifies the periods (inverse of frequencies) that should be searched
                  for within the training signal."""))
-    specs.addParam('global', param_type=InputTypes.BoolType, required=False,
-                   descr=r"""designates this algorithm to be used on global signal instead of per
-                   segment""", default=False)
     return specs
 
   #
@@ -84,8 +81,6 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     """
     settings = super().handleInput(spec)
     settings['periods'] = spec.findFirst('periods').value
-
-    self._isGlobal = spec.parameterValues.get('global', False)
     return settings
 
   def fit(self, signal, pivot, targets, settings, simultFit=True):
