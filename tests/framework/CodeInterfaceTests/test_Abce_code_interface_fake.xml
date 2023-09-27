@@ -75,21 +75,20 @@
       <Input class="Files" type="">timeseries_pv_hourly.csv</Input>
       <Model class="Models" type="Code">abce</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="HistorySet">grid</Output>
+      <Output class="DataObjects" type="DataSet">grid</Output>
       <Output class="OutStreams" type="Print">grid_fake</Output>
     </MultiRun>
   </Steps>
 
 
   <DataObjects>
-    <HistorySet name="grid">
-      <Input>var</Input>
+    <DataSet name="grid">
+      <Input>var, autoindex</Input>
       <Output>agent_id, unit_type, start_pd, completion_pd, cancellation_pd,
-        retirement_pd, total_capex, cap_pmt, C2N_reserved </Output>
-      <options>
-        <pivotParameter>asset_id</pivotParameter>
-      </options>
-    </HistorySet>
+      retirement_pd, total_capex, cap_pmt, C2N_reserved </Output>
+      <Index var="autoindex" autogenerate="True">agent_id, unit_type, start_pd, completion_pd, cancellation_pd,
+      retirement_pd, total_capex, cap_pmt, C2N_reserved</Index>
+    </DataSet>
   </DataObjects>
 
   <OutStreams>

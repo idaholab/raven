@@ -153,7 +153,8 @@
  [./AbceInterfaceOnlyTest]
    type = 'RavenFramework'
    input = 'test_Abce_code_interface_fake.xml'
-   csv = 'AbceInterfaceTest/grid_fake_0.csv AbceInterfaceTest/grid_fake_1.csv'
+   csv = 'AbceInterfaceTest/grid_fake.csv'
+   text = 'AbceInterfaceTest/runAbceFake/1/settings.yml'
    test_interface_only = true
  [../]
 
