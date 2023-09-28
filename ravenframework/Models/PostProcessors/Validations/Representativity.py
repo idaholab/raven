@@ -437,12 +437,12 @@ class Representativity(ValidationBase):
       @ Out, propagetedExpUncert, np.array, propagated variance covariance matrix of experiments due to parameter uncertainties
     """
     # Compute adjusted target #eq 71
-    UtarTilde = normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenTar.T + UmesVar) @ Umes
+    UtarTilde = normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar) @ Umes
     # back transform to parameters
     tarTilde = UtarTilde * FOMs + FOMs
 
     # Compute adjusted par_var #eq 74
-    UtarVarTilde = normalizedSenTar @ UparVar @ normalizedSenTar.T - normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenTar.T + UmesVar) @ normalizedSenExp @ UparVar @ normalizedSenTar.T
+    UtarVarTilde = normalizedSenTar @ UparVar @ normalizedSenTar.T - normalizedSenTar @ UparVar @ normalizedSenExp.T @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenExp.T + UmesVar) @ normalizedSenExp @ UparVar @ normalizedSenTar.T
 
     # back transform the variance
     UtarVarTildeDiag = np.diagonal(UtarVarTilde)
@@ -457,8 +457,8 @@ class Representativity(ValidationBase):
     # Compute adjusted par_var neglecting UmesVar (to compare to representativity)
     # The representativity (#eq 79 negelcts UmesVar)
     propagetedExpUncert = (normalizedSenExp @ UparVar) @ normalizedSenExp.T
-    UtarVarztilde_no_UmesVar = (normalizedSenTar @ UparVar @ normalizedSenTar.T)\
+    UtarVartilde_no_UmesVar = (normalizedSenTar @ UparVar @ normalizedSenTar.T)\
                                 - (normalizedSenTar @ UparVar @ normalizedSenExp.T)\
                                 @ np.linalg.pinv(normalizedSenExp @ UparVar @ normalizedSenExp.T)\
                                 @ (normalizedSenExp @ UparVar @ normalizedSenTar.T)
-    return tarTilde, tarVarTilde, UtarVarTilde, UtarVarztilde_no_UmesVar, propagetedExpUncert
+    return tarTilde, tarVarTilde, UtarVarTilde, UtarVartilde_no_UmesVar, propagetedExpUncert
