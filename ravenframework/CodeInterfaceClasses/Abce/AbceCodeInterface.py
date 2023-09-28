@@ -39,6 +39,8 @@ class Abce(CodeInterfaceBase):
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path of ABCE/run.py
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, ignored
+      @ In, preExec, ignored
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if clargs==None:
@@ -59,9 +61,9 @@ class Abce(CodeInterfaceBase):
     def findSettingIndex(inputFiles,ext):
       """
       Find the settings file and return its index in the inputFiles list.
-      @ In, inputFiles, list of InputFile objects
+      @ In, inputFiles, list, list of InputFile objects
       @ In, ext, string, extension of the settings.yml file
-      @ Out, index, int, index of the settings file in the inputFiles list
+      @ Out, (index, inputFile), (int, str), index of the settings file in the inputFiles list and the file
       """
       for index,inputFile in enumerate(inputFiles):
         if inputFile.getBase() == 'settings' and inputFile.getExt() == ext:
@@ -87,7 +89,6 @@ class Abce(CodeInterfaceBase):
             scenarioName = scenarioName.replace('"','')
             break
       self._outputDirectory = os.path.join(os.path.dirname(settingsFile.getAbsFile()),'outputs',scenarioName)
-      #print("_outputDirectory", self._outputDirectory, "settingsFile", settingsFile.getAbsFile(), "scenarioName", scenarioName)
       return None
 
     #prepend
@@ -145,10 +146,11 @@ class Abce(CodeInterfaceBase):
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
       Convert SQLite information to RAVEN's prefered formats [Pandas DataFrame]
-      Joins together two different SQLite files and also reorders it a bit.           @ In, command, ignored
+      Joins together two different SQLite files and also reorders it a bit.
+      @ In, command, ignored
       @ In, codeLogFile, ignored
       @ In, subDirectory, string, the subdirectory where the information is.
-      @ Out, directory, string, the assets results
+      @ Out, outDict, dictionary of DataFrames, the assets results
     """
     outDict = {}
     outputFile = os.path.join(self._outputDirectory,'abce_db.db')
