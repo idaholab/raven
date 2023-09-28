@@ -54,6 +54,23 @@
     [../]
   [../]
 
+  [./GlobalFourierARMA]
+    type = 'RavenFramework'
+    input = 'global_fourier_arma.xml'
+    output = 'GlobalFourierARMA/plot_samples_0.png GlobalFourierARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'GlobalFourierARMA/samples_0.csv GlobalFourierARMA/samples_1.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'GlobalFourierARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./STLARMA]
     type = 'RavenFramework'
     input = 'stl_arma.xml'
