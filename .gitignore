@@ -71,3 +71,6 @@ plugins/plugin_directory.xml
 # vscode
 .vscode
 *.code-workspace
+
+# Directories
+OUT
