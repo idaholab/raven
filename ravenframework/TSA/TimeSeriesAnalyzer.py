@@ -30,7 +30,6 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   # class attribute
   ## defines if missing values are accepted by the characterization algorithm
   _acceptsMissingValues = False
-  _isGlobal = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -110,7 +109,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     settings = {}
     settings['target'] = spec.parameterValues['target']
     settings['seed'] = spec.parameterValues.get('seed', None)
-    self._isGlobal = spec.parameterValues.get('global', False)
+    settings['global'] = spec.parameterValues.get('global', False)
     settings = self.setDefaults(settings)
 
     return settings
@@ -136,15 +135,6 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     ## behavior defaults to False. It is left to each algorithm to implement how these missing
     ## values are handled.
     return self._acceptsMissingValues
-
-  def isGlobal(self):
-    """
-      Method that returns if an algorithm is applied globally or per segment.
-
-      @ In, None
-      @ Out, _isGlobal, bool, True if this algorithm is global and False if it is per segment
-    """
-    return self._isGlobal
 
   @abc.abstractmethod
   def writeXML(self, writeTo, params):

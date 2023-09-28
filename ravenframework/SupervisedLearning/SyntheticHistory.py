@@ -109,20 +109,26 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
     """
     self.raiseADebug('Training Global...')
+    # extracting info from training Dict, convert all signals to single array
     trainingDict = copy.deepcopy(trainingDict)
     names, values  = list(trainingDict.keys()), list(trainingDict.values())
     ## This is for handling the special case needed by skl *MultiTask* that
     ## requires multiple targets.
     targetValues = []
+    targetNames = []
     for target in self.target:
       if target in names:
         targetValues.append(values[names.index(target)])
+        targetNames.append(target)
       else:
         self.raiseAnError(IOError,'The target '+target+' is not in the training set')
     # stack targets
     targetValues = np.stack(targetValues, axis=-1)
     self.trainTSASequential(targetValues, trainGlobal=True)
     settings = self.getGlobalTSARomSettings()
+    # update targets in trainingDict
+    for i,target in enumerate(targetNames):
+      trainingDict[target] = targetValues[:,:,i]
     return settings, trainingDict
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
@@ -133,7 +139,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       TODO finish docs
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    rlz = self.evaluateTSASequential(evalGlobal=True)
+    rlz = self.evaluateTSASequential(evalGlobal=True, rlz=evaluation)
     return rlz
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):

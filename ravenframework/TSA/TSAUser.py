@@ -64,6 +64,7 @@ class TSAUser:
     self._tsaAlgoSettings = {}       # initialization settings for each algorithm
     self._tsaTrainedParams = {}      # holds results of training each algorithm
     self._tsaAlgorithms = []         # list and order for TSA algorithms to use
+    self._tsaGlobalAlgorithms = []
     self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
     self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
     self._paramNames = None          # cached list of parameter names
@@ -83,7 +84,10 @@ class TSAUser:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
         self._tsaAlgoSettings[algo] = algo.handleInput(sub)
-        self._tsaAlgorithms.append(algo)
+        if self._tsaAlgoSettings[algo]['global']:
+          self._tsaGlobalAlgorithms.append(algo)
+        else:
+          self._tsaAlgorithms.append(algo)
         foundTSAType = True
     if foundTSAType is False:
       options = ', '.join(factory.knownTypes())
@@ -95,6 +99,8 @@ class TSAUser:
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError('TSA: The pivotParameter must be included in the target space.')
+    if len(self._tsaAlgorithms)==0:
+      print("No Segmenting algorithms were requested.")
 
   def canCharacterize(self):
     """
@@ -191,11 +197,11 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
 
-    residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    for a, algo in enumerate(self._tsaAlgorithms):
-      # check if training globally, if so we only train global algos
-      if trainGlobal and not algo.isGlobal():
-        continue
+    residual = targetVals if trainGlobal else targetVals[:, :, :] # deep-ish copy, so we don't mod originals
+    # check if training globally, if so we only train global algos
+    algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
+
+    for a, algo in enumerate(algorithms):
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
@@ -228,10 +234,14 @@ class TSAUser:
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
 
-    for algo in self._tsaAlgorithms[::-1]:
-      # check if trained globally, if so we add back global params
-      if evalGlobal and not algo.isGlobal():
-        continue
+    # check if training globally, if so we only apply global algos to given realizations
+    if evalGlobal:
+      algorithms = self._tsaGlobalAlgorithms[::-1]
+      result += np.array([rlz[target].tolist() for target in noPivotTargets]).T
+    else:
+      algorithms = self._tsaAlgorithms[::-1]
+
+    for algo in algorithms:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
@@ -256,9 +266,7 @@ class TSAUser:
       @ Out, settings
     """
     globalSettings = {}
-    for algo in self._tsaAlgorithms:
-      if not algo.isGlobal():
-        continue
+    for algo in self._tsaGlobalAlgorithms:
       globalSettings[algo] = self._tsaTrainedParams[algo]
     return globalSettings
 
