@@ -46,8 +46,13 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     specs.addParam('seed', param_type=InputTypes.IntegerType, required=False,
         descr=r"""sets a seed for the underlying random number generator, if present.""")
     specs.addParam('global', param_type=InputTypes.BoolType, required=False,
-                   descr=r"""designates this algorithm to be used on global signal instead of per
-                   segment""", default=False)
+                   descr=r"""designates this algorithm to be used on full signal instead of per
+                   segment. NOTE: because this is intended to be used when some algorithms are
+                   applied segment-wise and others are applied globally, this is meant to be an
+                   advanced feature and it is important to be mindful of the segments lengths.
+                   E.g., some Fourier periods may be longer than the intended segment length, in
+                   which case the this 'global' parameter should be set to True for better
+                   fitting.""", default=False)
     return specs
 
   @classmethod

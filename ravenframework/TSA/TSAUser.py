@@ -64,7 +64,7 @@ class TSAUser:
     self._tsaAlgoSettings = {}       # initialization settings for each algorithm
     self._tsaTrainedParams = {}      # holds results of training each algorithm
     self._tsaAlgorithms = []         # list and order for TSA algorithms to use
-    self._tsaGlobalAlgorithms = []
+    self._tsaGlobalAlgorithms = []   # list and order for global TSA algorithms to use
     self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
     self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
     self._paramNames = None          # cached list of parameter names
@@ -197,7 +197,8 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
 
-    residual = targetVals if trainGlobal else targetVals[:, :, :] # deep-ish copy, so we don't mod originals
+    # if NOT training globally, deep-ish copy, so we don't mod originals
+    residual = targetVals if trainGlobal else targetVals[:, :, :]
     # check if training globally, if so we only train global algos
     algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
 
@@ -221,11 +222,11 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
-  def evaluateTSASequential(self, evalGlobal=False, rlz=None):
+  def evaluateTSASequential(self, evalGlobal=False, evaluation=None):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
       @ In, evalGlobal, bool, are these algos trained on global signal?
-      @ Out, rlz, dict, realization dictionary of values for each target
+      @ Out, evaluation, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
     # the algorithms' targets need to be consistently indexed, but there's no
@@ -237,7 +238,7 @@ class TSAUser:
     # check if training globally, if so we only apply global algos to given realizations
     if evalGlobal:
       algorithms = self._tsaGlobalAlgorithms[::-1]
-      result += np.array([rlz[target].tolist() for target in noPivotTargets]).T
+      result += np.array([evaluation[target].tolist() for target in noPivotTargets]).T
     else:
       algorithms = self._tsaAlgorithms[::-1]
 
